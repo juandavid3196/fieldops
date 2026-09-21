@@ -1,0 +1,38 @@
+# .NET compiled output
+**/bin/
+**/obj/
+**/TestResults/
+**/artifacts/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Node and Angular
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+**/out-tsc/
+
+# Environment variables and local configuration
+.env
+.env.*
+!.env.example
+**/appsettings.Local.json
+**/appsettings.*.local.json
+
+# Logs
+*.log
+logs/
+
+# IDEs
+.idea/
+.history/
+
+# Operating system
+.DS_Store
+Thumbs.db
