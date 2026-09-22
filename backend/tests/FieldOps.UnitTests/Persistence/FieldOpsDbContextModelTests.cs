@@ -1,5 +1,7 @@
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
+using FieldOps.Domain.Organizations;
+using FieldOps.Domain.Technicians;
 using FieldOps.Domain.Users;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +37,12 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(CustomerNote), "customer_notes")]
     [InlineData(typeof(ServiceCategory), "service_categories")]
     [InlineData(typeof(CatalogItem), "catalog_items")]
+    [InlineData(typeof(Skill), "skills")]
+    [InlineData(typeof(TechnicianProfile), "technician_profiles")]
+    [InlineData(typeof(TechnicianSkill), "technician_skills")]
+    [InlineData(typeof(TechnicianWeeklyAvailability), "technician_weekly_availability")]
+    [InlineData(typeof(TechnicianBreak), "technician_breaks")]
+    [InlineData(typeof(TechnicianException), "technician_exceptions")]
     public void Model_MapsEntityToExpectedTable(Type entityType, string expectedTableName)
     {
         using var context = CreateContext();
@@ -61,5 +69,33 @@ public class FieldOpsDbContextModelTests
             catalogItem!.GetForeignKeys(),
             fk => fk.PrincipalEntityType.ClrType == typeof(ServiceCategory));
         Assert.Equal(2, catalogItemToCategoryFk.Properties.Count);
+
+        var technicianProfile = context.Model.FindEntityType(typeof(TechnicianProfile));
+        var technicianToOrganizationUserFk = Assert.Single(
+            technicianProfile!.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(OrganizationUser));
+        Assert.Equal(2, technicianToOrganizationUserFk.Properties.Count);
+        Assert.False(technicianToOrganizationUserFk.IsRequired);
+    }
+
+    [Fact]
+    public void Model_ConfiguresTechnicianSkillCompositeKeyAndCascadeDeletes()
+    {
+        using var context = CreateContext();
+
+        var technicianSkill = context.Model.FindEntityType(typeof(TechnicianSkill));
+        var primaryKeyProperties = technicianSkill!.FindPrimaryKey()!.Properties;
+
+        Assert.Equal(2, primaryKeyProperties.Count);
+
+        var toTechnicianFk = Assert.Single(
+            technicianSkill.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(TechnicianProfile));
+        Assert.Equal(DeleteBehavior.Cascade, toTechnicianFk.DeleteBehavior);
+
+        var toSkillFk = Assert.Single(
+            technicianSkill.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(Skill));
+        Assert.Equal(DeleteBehavior.NoAction, toSkillFk.DeleteBehavior);
     }
 }
