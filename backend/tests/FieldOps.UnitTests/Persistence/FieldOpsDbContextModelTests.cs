@@ -1,5 +1,6 @@
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
+using FieldOps.Domain.Invoices;
 using FieldOps.Domain.Organizations;
 using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
@@ -32,7 +33,9 @@ public class FieldOpsDbContextModelTests
                     .MapEnum<MessageVisibility>("message_visibility")
                     .MapEnum<QuoteStatus>("quote_status")
                     .MapEnum<WorkOrderStatus>("work_order_status")
-                    .MapEnum<VisitStatus>("visit_status"))
+                    .MapEnum<VisitStatus>("visit_status")
+                    .MapEnum<InvoiceStatus>("invoice_status")
+                    .MapEnum<PaymentMethod>("payment_method"))
             .UseSnakeCaseNamingConvention()
             .Options;
 
@@ -74,6 +77,10 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(VisitEvidence), "visit_evidence")]
     [InlineData(typeof(VisitIncident), "visit_incidents")]
     [InlineData(typeof(CustomerSignoff), "customer_signoffs")]
+    [InlineData(typeof(Invoice), "invoices")]
+    [InlineData(typeof(InvoiceLine), "invoice_lines")]
+    [InlineData(typeof(Payment), "payments")]
+    [InlineData(typeof(PaymentAllocation), "payment_allocations")]
     public void Model_MapsEntityToExpectedTable(Type entityType, string expectedTableName)
     {
         using var context = CreateContext();
@@ -315,5 +322,62 @@ public class FieldOpsDbContextModelTests
                 fk => fk.PrincipalEntityType.ClrType == typeof(Visit));
             Assert.Equal(DeleteBehavior.Cascade, toVisitFk.DeleteBehavior);
         }
+    }
+
+    [Fact]
+    public void Model_ConfiguresInvoiceSingleColumnWorkOrderForeignKey()
+    {
+        using var context = CreateContext();
+
+        var invoice = context.Model.FindEntityType(typeof(Invoice));
+
+        // work_order_id REFERENCES work_orders (id): single-column, not
+        // tenant-composite, exactly as defined in the relational model.
+        var toWorkOrderFk = Assert.Single(
+            invoice!.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(WorkOrder));
+        Assert.Single(toWorkOrderFk.Properties);
+        Assert.Equal(DeleteBehavior.NoAction, toWorkOrderFk.DeleteBehavior);
+    }
+
+    [Fact]
+    public void Model_ConfiguresPaymentAllocationManyToManyUniquenessAndCascade()
+    {
+        using var context = CreateContext();
+
+        var paymentAllocation = context.Model.FindEntityType(typeof(PaymentAllocation));
+
+        // UNIQUE (payment_id, invoice_id): one allocation per Payment and
+        // Invoice combination.
+        var uniquePaymentInvoiceIndex = Assert.Single(
+            paymentAllocation!.GetIndexes(),
+            index => index.IsUnique
+                && index.Properties.Select(p => p.Name).SequenceEqual(["PaymentId", "InvoiceId"]));
+        Assert.NotNull(uniquePaymentInvoiceIndex);
+
+        var toPaymentFk = Assert.Single(
+            paymentAllocation.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(Payment));
+        Assert.Equal(DeleteBehavior.Cascade, toPaymentFk.DeleteBehavior);
+
+        var toInvoiceFk = Assert.Single(
+            paymentAllocation.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(Invoice));
+        Assert.Equal(DeleteBehavior.NoAction, toInvoiceFk.DeleteBehavior);
+    }
+
+    [Fact]
+    public void Model_ConfiguresInvoiceLineAndPaymentWithoutOrganizationIdWhereApplicable()
+    {
+        using var context = CreateContext();
+
+        var invoiceLine = context.Model.FindEntityType(typeof(InvoiceLine));
+        Assert.Null(invoiceLine!.FindProperty("OrganizationId"));
+
+        var paymentAllocation = context.Model.FindEntityType(typeof(PaymentAllocation));
+        Assert.Null(paymentAllocation!.FindProperty("OrganizationId"));
+
+        var payment = context.Model.FindEntityType(typeof(Payment));
+        Assert.NotNull(payment!.FindProperty("OrganizationId"));
     }
 }

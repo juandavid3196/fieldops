@@ -1,6 +1,7 @@
 using FieldOps.Domain.Branches;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
+using FieldOps.Domain.Invoices;
 using FieldOps.Domain.Organizations;
 using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
@@ -108,6 +109,14 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<CustomerSignoff> CustomerSignoffs => Set<CustomerSignoff>();
 
+    public DbSet<Invoice> Invoices => Set<Invoice>();
+
+    public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
+
+    public DbSet<Payment> Payments => Set<Payment>();
+
+    public DbSet<PaymentAllocation> PaymentAllocations => Set<PaymentAllocation>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Declares the enums with labels in enum declaration order.
@@ -120,6 +129,8 @@ public sealed class FieldOpsDbContext(
         modelBuilder.HasPostgresEnum<QuoteStatus>(name: "quote_status");
         modelBuilder.HasPostgresEnum<WorkOrderStatus>(name: "work_order_status");
         modelBuilder.HasPostgresEnum<VisitStatus>(name: "visit_status");
+        modelBuilder.HasPostgresEnum<InvoiceStatus>(name: "invoice_status");
+        modelBuilder.HasPostgresEnum<PaymentMethod>(name: "payment_method");
 
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(FieldOpsDbContext).Assembly);
