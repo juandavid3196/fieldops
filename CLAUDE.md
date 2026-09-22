@@ -1,273 +1,120 @@
 # FieldOps
 
-FieldOps is a multi-tenant field service management platform for companies
-that manage their own customers, technicians, work orders and billing.
+Multi-tenant field service platform: each organization schedules and assigns
+its own workforce. Not a marketplace.
 
-It is not a marketplace. Customers do not select technicians. The service
-company schedules and assigns its internal workforce.
-
-## Technology stack
-
-### Frontend
-
-- Angular 22
-- TypeScript
-- Standalone components
-- Signals
-- RxJS
-- PrimeNG
-- SCSS
-- Vitest
-- ESLint
-- Prettier
-
-### Backend
-
-- .NET 10
-- ASP.NET Core Web API
-- Entity Framework Core 10
-- PostgreSQL
-- Clean Architecture
-- Domain-driven design
-- Docker
-
-## Repository structure
-
-fieldops/
-frontend/
-backend/
-src/
-FieldOps.Api/
-FieldOps.Application/
-FieldOps.Domain/
-FieldOps.Infrastructure/
-tests/
-FieldOps.UnitTests/
-FieldOps.IntegrationTests/
-specs/
-templates/
-frontend/
-backend/
-completed/
-docs/
-.claude/
-agents/
-skills/
-hooks/
+| Path                 | Contents                                                    | Rules                |
+| -------------------- | ----------------------------------------------------------- | -------------------- |
+| `frontend/`          | Angular 22, PrimeNG 22, SCSS, Vitest                        | `frontend/CLAUDE.md` |
+| `backend/`           | .NET 10 Web API, EF Core 10, PostgreSQL 17, `FieldOps.slnx` | `backend/CLAUDE.md`  |
+| `docs/`              | Backend, frontend and database reference docs               |                      |
+| `.claude/`           | Settings, DB-safety hook, agents, skills                    |                      |
+| `.githooks/`         | `pre-commit`, `pre-push`                                    |                      |
+| `.github/workflows/` | Frontend, backend and integration CI                        |                      |
+| `docker-compose.yml` | Local PostgreSQL; reads `.env` (template `.env.example`)    |                      |
 
 ## Source of truth
 
-Implementation decisions must follow this order:
+1. Approved functional spec.
+2. `docs/database/fieldops-schema.sql`.
+3. Existing architecture and conventions (`docs/`, CLAUDE.md files, code).
+4. Tests.
+5. Mockups and design references.
 
-1. Approved specification
-2. Relational database model
-3. Architecture documentation
-4. Existing validated code
-5. Design mockups
+On any conflict: stop and report both sources and the options.
 
-Stop and report the conflict when two sources disagree.
+## Working rules
 
-## Specification workflow
+- Inspect before changing. Present a short plan with assumptions, conflicts
+  and missing decisions first.
+- Stay in scope: no unrelated refactors or speculative features.
+- Check `git status` first; never discard, overwrite or reformat others' work.
+- Do not commit, push, merge or open PRs unless asked.
+- Never bypass validation (`--no-verify`, skipped hooks, disabled tests or rules).
+- Run the commands for every area changed. Never claim completion after a
+  failed or skipped check.
 
-Business functionality requires an approved spec.
+## Git
 
-Initial database modeling and migrations may be implemented directly from
-the approved relational database model without a functional spec.
+- Default branch `main` (`master` is stale); never work on it directly.
+- One concern per branch and PR.
+- Branches: `feature|fix|chore|docs/<kebab-description>`, plus the spec ID
+  when one exists (`feature/FEAT-012-customer-list`).
+- Commits: Conventional Commits, e.g. `chore(frontend): configure core architecture`.
 
-Every spec must contain:
+## Commands
 
-- Objective
-- Roles and permissions
-- Main flow
-- Business rules
-- States and transitions
-- Entities and relationships
-- API contract
-- Frontend requirements
-- Error cases
-- Acceptance criteria
-- Required tests
-- Out-of-scope items
+```bash
+# frontend/
+npm ci
+npm run format:check
+npm run lint
+npm run test -- --watch=false
+npm run build -- --configuration production
 
-Implement only the active spec.
+# backend/
+dotnet tool restore
+dotnet restore FieldOps.slnx
+dotnet format FieldOps.slnx --verify-no-changes --no-restore
+dotnet build FieldOps.slnx --configuration Release --no-restore
+dotnet test tests/FieldOps.UnitTests/FieldOps.UnitTests.csproj --configuration Release --no-build
 
-Do not add speculative features.
+# backend/ integration (requires Docker Desktop running: Testcontainers)
+dotnet test tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj --configuration Release --no-build
+```
 
-## Backend architecture
+- Use `FieldOps.slnx`; there is no `FieldOps.sln`.
+- Hooks (`git config core.hooksPath .githooks`): pre-commit runs format and lint
+  checks; pre-push runs frontend test/build and backend build/unit tests.
+  Integration tests run only in CI or manually.
 
-### Domain
+## Agent boundaries
 
-Contains:
+Never:
 
-- Entities
-- Value objects
-- Domain rules
-- Domain events
-- Enums
+- Run `dotnet ef database update` or `dotnet ef database drop`, drop databases
+  or remove Docker volumes. The user or approved CI applies migrations.
+- Read, print or commit secrets (`.env`, user-secrets).
 
-Domain must not depend on Application, Infrastructure or API.
+Only when explicitly requested:
 
-### Application
+- Generate migrations or SQL scripts.
+- Change CI, hooks, `.claude/`, dependencies, architecture or public API contracts.
+- Delete files or branches, `git reset --hard`, force push or rewrite history.
 
-Contains:
+`.claude/hooks/block-database-mutations.mjs` is a safety net, not permission.
+Project tooling: `implement-persistence-slice` skill, `database-reviewer` agent.
 
-- Use cases
-- Commands and queries
-- Interfaces
-- Validation
-- Application models
+## Spec workflow
 
-Application may depend only on Domain.
-
-### Infrastructure
-
-Contains:
-
-- Entity Framework Core
-- PostgreSQL configurations
-- Identity implementations
-- File storage
-- Notifications
-- External integrations
-
-Infrastructure implements Application interfaces.
-
-### API
-
-Contains:
-
-- Controllers
-- Middleware
-- Dependency injection configuration
-- Authentication configuration
-- HTTP concerns
-
-Controllers must not contain business logic.
-
-## Database rules
-
-- PostgreSQL is the database.
-- EF Core migrations control schema changes.
-- The relational model is the database design reference.
-- Do not execute the complete SQL schema manually.
-- Use snake_case database naming.
-- Use Guid primary keys.
-- Use timestamptz for UTC timestamps.
-- Tenant-owned entities require OrganizationId.
-- Avoid cascade delete unless explicitly required.
-- Never generate or apply a migration without reviewing it.
-- Never modify an existing committed migration.
-- Never apply migrations automatically to production.
-
-## Database safety
-
-Agents may generate, inspect and script EF Core migrations, but must never:
-
-- Run `dotnet ef database update`.
-- Run `dotnet ef database drop`.
-- Drop PostgreSQL databases.
-- Delete Docker database volumes.
-
-Database migrations must be reviewed and applied manually by the user.
-
-## Frontend architecture
-
-Use feature-oriented organization.
-
-src/app/
-core/
-shared/
-layout/
-features/
-
-Rules:
-
-- Use standalone components.
-- Use Angular Signals for local synchronous state.
-- Use RxJS for asynchronous streams.
-- Use functional HTTP interceptors.
-- Use lazy-loaded feature routes.
-- Keep feature-specific models and services inside the feature.
-- Shared must contain only reusable elements.
-- Do not call HttpClient directly from UI components.
-- Do not place business logic in templates.
-- Do not use any type unless technically unavoidable.
-- Use PrimeNG before creating custom complex components.
-- All pages must include loading, empty, error and permission states.
+- Business functionality requires an approved spec. Infrastructure and
+  configuration work needs an explicit request instead.
+- Lifecycle: draft → review → approval → implementation → tests → audit.
+- Sections: objective, roles and permissions, main flow, business rules, states
+  and transitions, entities and relationships, API contract, frontend
+  requirements, error cases, acceptance criteria, required tests, out of scope.
+- Implement only the active approved spec.
+- Never change acceptance criteria silently. Report deviations; update the spec
+  only after approval.
+- Done: acceptance criteria pass, authorization and tenant isolation tested,
+  validation passes, migrations reviewed, docs updated, no unrelated changes,
+  audit report produced.
+- `spec` and `spec-impl` skills are planned, not installed. They will add
+  `specs/templates/`; do not create spec folders before then.
 
 ## Security
 
-- Never commit secrets.
-- Never expose connection strings.
-- Never trust OrganizationId received from the client.
-- Resolve tenant identity from the authenticated context.
-- Validate authorization in the backend.
-- Frontend guards are not security boundaries.
-- Validate uploaded files by size, type and authorization.
-- Do not log passwords, tokens or sensitive customer data.
+- Resolve `OrganizationId` from the authenticated context; never trust the client.
+- Authorize in the backend; frontend guards are UX only.
+- Validate uploads by size, type and authorization.
+- Never log passwords, tokens, connection strings or sensitive customer data.
 
-## Git workflow
+## Instruction style
 
-Branches:
-
-- feature/FEAT-XXX-description
-- fix/FEAT-XXX-description
-- chore/description
-
-Rules:
-
-- Do not work directly on main.
-- Keep pull requests scoped to one spec.
-- Do not mix unrelated refactoring with a feature.
-- Use the spec ID in branch names and commits.
-
-## Required validation
-
-### Frontend
-
-npm run format:check
-npm run lint
-npm run test
-npm run build
-
-### Backend
-
-dotnet format --verify-no-changes
-dotnet build
-dotnet test
-
-### Database
-
-dotnet ef migrations script
-
-## Definition of done
-
-A spec is complete only when:
-
-- Acceptance criteria pass.
-- Authorization is implemented.
-- Tenant isolation is verified.
-- Tests pass.
-- Frontend and backend builds pass.
-- Database migrations are reviewed.
-- No unrelated files were modified.
-- Documentation is updated.
-- An audit report has been produced.
-
-## Agent behavior
-
-Before modifying files:
-
-1. Read this CLAUDE.md.
-2. Read the active spec.
-3. Inspect relevant existing code.
-4. Present a short implementation plan.
-5. Identify conflicts or missing decisions.
-
-After implementation:
-
-1. Run the required validation commands.
-2. Review the changed files.
-3. Report tests and build results.
-4. List any deviation from the spec.
-5. Do not claim completion when a validation failed.
+- Concise, operational rules; state each rule once, in its narrowest scope.
+  Root rules are not repeated in nested files.
+- Tables, bullets and commands over prose. Document current repository
+  behavior only, and only what changes agent decisions.
+- Link to `docs/` instead of copying it. Update rules instead of appending.
+- Report relevant results only (changed files, validation, risks, pending
+  decisions), without narration.
