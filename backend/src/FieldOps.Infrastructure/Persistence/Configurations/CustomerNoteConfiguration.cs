@@ -1,4 +1,5 @@
 using FieldOps.Domain.Customers;
+using FieldOps.Domain.Organizations;
 using FieldOps.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -33,6 +34,11 @@ internal sealed class CustomerNoteConfiguration
         builder.Property(note => note.CreatedAt)
             .HasDefaultValueSql("now()")
             .IsRequired();
+
+        builder.HasOne<Organization>()
+            .WithMany()
+            .HasForeignKey(note => note.OrganizationId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         // FOREIGN KEY (organization_id, customer_id) REFERENCES customers (organization_id, id)
         builder.HasOne<Customer>()

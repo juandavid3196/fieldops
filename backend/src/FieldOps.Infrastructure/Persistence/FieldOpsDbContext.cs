@@ -2,6 +2,7 @@ using FieldOps.Domain.Branches;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Organizations;
+using FieldOps.Domain.Requests;
 using FieldOps.Domain.Technicians;
 using FieldOps.Domain.Users;
 using Microsoft.EntityFrameworkCore;
@@ -59,12 +60,27 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<TechnicianException> TechnicianExceptions => Set<TechnicianException>();
 
+    public DbSet<ServiceRequest> ServiceRequests => Set<ServiceRequest>();
+
+    public DbSet<RequestAttachment> RequestAttachments => Set<RequestAttachment>();
+
+    public DbSet<RequestMessage> RequestMessages => Set<RequestMessage>();
+
+    public DbSet<RequestStatusHistory> RequestStatusHistories => Set<RequestStatusHistory>();
+
+    public DbSet<Assessment> Assessments => Set<Assessment>();
+
+    public DbSet<AssessmentAttachment> AssessmentAttachments => Set<AssessmentAttachment>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Declares the enums with labels in enum declaration order.
         modelBuilder.HasPostgresEnum<UserStatus>(name: "user_status");
         modelBuilder.HasPostgresEnum<CustomerType>(name: "customer_type");
         modelBuilder.HasPostgresEnum<CatalogItemType>(name: "catalog_item_type");
+        modelBuilder.HasPostgresEnum<RequestStatus>(name: "request_status");
+        modelBuilder.HasPostgresEnum<AssessmentStatus>(name: "assessment_status");
+        modelBuilder.HasPostgresEnum<MessageVisibility>(name: "message_visibility");
 
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(FieldOpsDbContext).Assembly);
