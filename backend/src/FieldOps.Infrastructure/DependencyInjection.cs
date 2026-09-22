@@ -15,6 +15,8 @@ namespace FieldOps.Infrastructure;
 
 public static class DependencyInjection
 {
+    public const string PostgreSqlHealthCheckName = "postgresql";
+
     public static IServiceCollection AddInfrastructure(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -46,6 +48,10 @@ public static class DependencyInjection
                         .MapEnum<PaymentMethod>("payment_method")
                         .MapEnum<NotificationStatus>("notification_status"))
                 .UseSnakeCaseNamingConvention());
+
+        services
+            .AddHealthChecks()
+            .AddDbContextCheck<FieldOpsDbContext>(PostgreSqlHealthCheckName);
 
         return services;
     }
