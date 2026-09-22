@@ -2,6 +2,7 @@ using FieldOps.Domain.Branches;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Organizations;
+using FieldOps.Domain.Technicians;
 using FieldOps.Domain.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,6 +45,19 @@ public sealed class FieldOpsDbContext(
     public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
 
     public DbSet<CatalogItem> CatalogItems => Set<CatalogItem>();
+
+    public DbSet<Skill> Skills => Set<Skill>();
+
+    public DbSet<TechnicianProfile> TechnicianProfiles => Set<TechnicianProfile>();
+
+    public DbSet<TechnicianSkill> TechnicianSkills => Set<TechnicianSkill>();
+
+    public DbSet<TechnicianWeeklyAvailability> TechnicianWeeklyAvailabilities =>
+        Set<TechnicianWeeklyAvailability>();
+
+    public DbSet<TechnicianBreak> TechnicianBreaks => Set<TechnicianBreak>();
+
+    public DbSet<TechnicianException> TechnicianExceptions => Set<TechnicianException>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
