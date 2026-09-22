@@ -69,7 +69,10 @@ Stop and report the conflict when two sources disagree.
 
 ## Specification workflow
 
-No business functionality may be implemented without an approved spec.
+Business functionality requires an approved spec.
+
+Initial database modeling and migrations may be implemented directly from
+the approved relational database model without a functional spec.
 
 Every spec must contain:
 
