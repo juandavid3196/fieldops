@@ -18,4 +18,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FieldOps.Domain\FieldOps.Domain.csproj" />
+    <ProjectReference Include="..\..\src\FieldOps.Infrastructure\FieldOps.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
