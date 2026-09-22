@@ -1,3 +1,5 @@
+using FieldOps.Domain.Catalog;
+using FieldOps.Domain.Customers;
 using FieldOps.Domain.Users;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +27,10 @@ public static class DependencyInjection
             options
                 .UseNpgsql(
                     connectionString,
-                    npgsql => npgsql.MapEnum<UserStatus>("user_status"))
+                    npgsql => npgsql
+                        .MapEnum<UserStatus>("user_status")
+                        .MapEnum<CustomerType>("customer_type")
+                        .MapEnum<CatalogItemType>("catalog_item_type"))
                 .UseSnakeCaseNamingConvention());
 
         return services;
