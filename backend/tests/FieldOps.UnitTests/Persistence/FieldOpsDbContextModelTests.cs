@@ -1,6 +1,7 @@
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Organizations;
+using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using FieldOps.Domain.Technicians;
 using FieldOps.Domain.Users;
@@ -27,7 +28,8 @@ public class FieldOpsDbContextModelTests
                     .MapEnum<CatalogItemType>("catalog_item_type")
                     .MapEnum<RequestStatus>("request_status")
                     .MapEnum<AssessmentStatus>("assessment_status")
-                    .MapEnum<MessageVisibility>("message_visibility"))
+                    .MapEnum<MessageVisibility>("message_visibility")
+                    .MapEnum<QuoteStatus>("quote_status"))
             .UseSnakeCaseNamingConvention()
             .Options;
 
@@ -53,6 +55,10 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(RequestStatusHistory), "request_status_history")]
     [InlineData(typeof(Assessment), "assessments")]
     [InlineData(typeof(AssessmentAttachment), "assessment_attachments")]
+    [InlineData(typeof(Quote), "quotes")]
+    [InlineData(typeof(QuoteVersion), "quote_versions")]
+    [InlineData(typeof(QuoteLine), "quote_lines")]
+    [InlineData(typeof(QuoteResponse), "quote_responses")]
     public void Model_MapsEntityToExpectedTable(Type entityType, string expectedTableName)
     {
         using var context = CreateContext();
@@ -157,5 +163,62 @@ public class FieldOpsDbContextModelTests
         var toAssessmentFk = Assert.Single(attachment.GetForeignKeys());
         Assert.Equal(typeof(Assessment), toAssessmentFk.PrincipalEntityType.ClrType);
         Assert.Equal(DeleteBehavior.Cascade, toAssessmentFk.DeleteBehavior);
+    }
+
+    [Fact]
+    public void Model_ConfiguresQuoteAndQuoteVersionCircularRelationship()
+    {
+        using var context = CreateContext();
+
+        var quote = context.Model.FindEntityType(typeof(Quote));
+        var toApprovedVersionFk = Assert.Single(
+            quote!.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(QuoteVersion));
+        Assert.Single(toApprovedVersionFk.Properties);
+        Assert.False(toApprovedVersionFk.IsRequired);
+
+        var quoteVersion = context.Model.FindEntityType(typeof(QuoteVersion));
+        var toQuoteFk = Assert.Single(
+            quoteVersion!.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(Quote));
+        Assert.Equal(2, toQuoteFk.Properties.Count);
+        Assert.True(toQuoteFk.IsRequired);
+
+        var uniqueVersionNoIndex = Assert.Single(
+            quoteVersion.GetIndexes(),
+            index => index.IsUnique
+                && index.Properties.Select(p => p.Name).SequenceEqual(["QuoteId", "VersionNo"]));
+        Assert.NotNull(uniqueVersionNoIndex);
+    }
+
+    [Fact]
+    public void Model_ConfiguresQuoteLineWithoutOrganizationIdAndCascadeDelete()
+    {
+        using var context = CreateContext();
+
+        var quoteLine = context.Model.FindEntityType(typeof(QuoteLine));
+
+        Assert.Null(quoteLine!.FindProperty("OrganizationId"));
+
+        var toQuoteVersionFk = Assert.Single(
+            quoteLine.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(QuoteVersion));
+        Assert.Equal(DeleteBehavior.Cascade, toQuoteVersionFk.DeleteBehavior);
+
+        var toCatalogItemFk = Assert.Single(
+            quoteLine.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(CatalogItem));
+        Assert.Equal(DeleteBehavior.NoAction, toCatalogItemFk.DeleteBehavior);
+    }
+
+    [Fact]
+    public void Model_ConfiguresQuoteResponseWithoutOrganizationId()
+    {
+        using var context = CreateContext();
+
+        var quoteResponse = context.Model.FindEntityType(typeof(QuoteResponse));
+
+        Assert.Null(quoteResponse!.FindProperty("OrganizationId"));
+        Assert.Equal(2, quoteResponse.GetForeignKeys().Count());
     }
 }
