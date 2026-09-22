@@ -2,6 +2,7 @@ using FieldOps.Domain.Branches;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Invoices;
+using FieldOps.Domain.Notifications;
 using FieldOps.Domain.Organizations;
 using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
@@ -117,6 +118,10 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<PaymentAllocation> PaymentAllocations => Set<PaymentAllocation>();
 
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Declares the enums with labels in enum declaration order.
@@ -131,6 +136,7 @@ public sealed class FieldOpsDbContext(
         modelBuilder.HasPostgresEnum<VisitStatus>(name: "visit_status");
         modelBuilder.HasPostgresEnum<InvoiceStatus>(name: "invoice_status");
         modelBuilder.HasPostgresEnum<PaymentMethod>(name: "payment_method");
+        modelBuilder.HasPostgresEnum<NotificationStatus>(name: "notification_status");
 
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(FieldOpsDbContext).Assembly);

@@ -1,6 +1,8 @@
+using FieldOps.Domain.Branches;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Invoices;
+using FieldOps.Domain.Notifications;
 using FieldOps.Domain.Organizations;
 using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
@@ -9,6 +11,7 @@ using FieldOps.Domain.Users;
 using FieldOps.Domain.WorkOrders;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace FieldOps.UnitTests.Persistence;
 
@@ -35,7 +38,8 @@ public class FieldOpsDbContextModelTests
                     .MapEnum<WorkOrderStatus>("work_order_status")
                     .MapEnum<VisitStatus>("visit_status")
                     .MapEnum<InvoiceStatus>("invoice_status")
-                    .MapEnum<PaymentMethod>("payment_method"))
+                    .MapEnum<PaymentMethod>("payment_method")
+                    .MapEnum<NotificationStatus>("notification_status"))
             .UseSnakeCaseNamingConvention()
             .Options;
 
@@ -81,6 +85,8 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(InvoiceLine), "invoice_lines")]
     [InlineData(typeof(Payment), "payments")]
     [InlineData(typeof(PaymentAllocation), "payment_allocations")]
+    [InlineData(typeof(Notification), "notifications")]
+    [InlineData(typeof(AuditLog), "audit_logs")]
     public void Model_MapsEntityToExpectedTable(Type entityType, string expectedTableName)
     {
         using var context = CreateContext();
@@ -379,5 +385,60 @@ public class FieldOpsDbContextModelTests
 
         var payment = context.Model.FindEntityType(typeof(Payment));
         Assert.NotNull(payment!.FindProperty("OrganizationId"));
+    }
+
+    [Fact]
+    public void Model_ConfiguresAuditLogBigintIdentityPrimaryKey()
+    {
+        using var context = CreateContext();
+
+        var auditLog = context.Model.FindEntityType(typeof(AuditLog));
+        var idProperty = auditLog!.FindPrimaryKey()!.Properties.Single();
+
+        Assert.Equal(typeof(long), idProperty.ClrType);
+        Assert.Equal(ValueGenerated.OnAdd, idProperty.ValueGenerated);
+    }
+
+    [Fact]
+    public void Model_ConfiguresAuditLogHistoryPreservingForeignKeys()
+    {
+        using var context = CreateContext();
+
+        var auditLog = context.Model.FindEntityType(typeof(AuditLog));
+
+        // Historical audit records must not be cascade deleted when a User
+        // or Branch is removed.
+        var toUserFk = Assert.Single(
+            auditLog!.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(User));
+        Assert.Equal(DeleteBehavior.NoAction, toUserFk.DeleteBehavior);
+
+        var toBranchFk = Assert.Single(
+            auditLog.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(Branch));
+        Assert.Equal(DeleteBehavior.NoAction, toBranchFk.DeleteBehavior);
+
+        // Organization, User and Branch are the only foreign keys:
+        // entity_type/entity_id stay generic and are not targeted by one.
+        Assert.Equal(3, auditLog.GetForeignKeys().Count());
+    }
+
+    [Fact]
+    public void Model_ConfiguresNotificationForeignKeys()
+    {
+        using var context = CreateContext();
+
+        var notification = context.Model.FindEntityType(typeof(Notification));
+
+        var toUserFk = Assert.Single(
+            notification!.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(User));
+        Assert.Equal(DeleteBehavior.NoAction, toUserFk.DeleteBehavior);
+
+        var toContactFk = Assert.Single(
+            notification.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(CustomerContact));
+        Assert.Single(toContactFk.Properties);
+        Assert.Equal(DeleteBehavior.NoAction, toContactFk.DeleteBehavior);
     }
 }
