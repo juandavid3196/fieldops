@@ -2,6 +2,7 @@ using FieldOps.Domain.Branches;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Organizations;
+using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using FieldOps.Domain.Technicians;
 using FieldOps.Domain.Users;
@@ -72,6 +73,14 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<AssessmentAttachment> AssessmentAttachments => Set<AssessmentAttachment>();
 
+    public DbSet<Quote> Quotes => Set<Quote>();
+
+    public DbSet<QuoteVersion> QuoteVersions => Set<QuoteVersion>();
+
+    public DbSet<QuoteLine> QuoteLines => Set<QuoteLine>();
+
+    public DbSet<QuoteResponse> QuoteResponses => Set<QuoteResponse>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Declares the enums with labels in enum declaration order.
@@ -81,6 +90,7 @@ public sealed class FieldOpsDbContext(
         modelBuilder.HasPostgresEnum<RequestStatus>(name: "request_status");
         modelBuilder.HasPostgresEnum<AssessmentStatus>(name: "assessment_status");
         modelBuilder.HasPostgresEnum<MessageVisibility>(name: "message_visibility");
+        modelBuilder.HasPostgresEnum<QuoteStatus>(name: "quote_status");
 
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(FieldOpsDbContext).Assembly);
