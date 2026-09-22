@@ -5,6 +5,7 @@ using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using FieldOps.Domain.Technicians;
 using FieldOps.Domain.Users;
+using FieldOps.Domain.WorkOrders;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,7 +30,9 @@ public class FieldOpsDbContextModelTests
                     .MapEnum<RequestStatus>("request_status")
                     .MapEnum<AssessmentStatus>("assessment_status")
                     .MapEnum<MessageVisibility>("message_visibility")
-                    .MapEnum<QuoteStatus>("quote_status"))
+                    .MapEnum<QuoteStatus>("quote_status")
+                    .MapEnum<WorkOrderStatus>("work_order_status")
+                    .MapEnum<VisitStatus>("visit_status"))
             .UseSnakeCaseNamingConvention()
             .Options;
 
@@ -59,6 +62,18 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(QuoteVersion), "quote_versions")]
     [InlineData(typeof(QuoteLine), "quote_lines")]
     [InlineData(typeof(QuoteResponse), "quote_responses")]
+    [InlineData(typeof(WorkOrder), "work_orders")]
+    [InlineData(typeof(WorkOrderRequiredSkill), "work_order_required_skills")]
+    [InlineData(typeof(WorkOrderChecklistTemplate), "work_order_checklist_templates")]
+    [InlineData(typeof(Visit), "visits")]
+    [InlineData(typeof(VisitAssignment), "visit_assignments")]
+    [InlineData(typeof(VisitStatusHistory), "visit_status_history")]
+    [InlineData(typeof(VisitTimeEntry), "visit_time_entries")]
+    [InlineData(typeof(VisitChecklistItem), "visit_checklist_items")]
+    [InlineData(typeof(VisitMaterial), "visit_materials")]
+    [InlineData(typeof(VisitEvidence), "visit_evidence")]
+    [InlineData(typeof(VisitIncident), "visit_incidents")]
+    [InlineData(typeof(CustomerSignoff), "customer_signoffs")]
     public void Model_MapsEntityToExpectedTable(Type entityType, string expectedTableName)
     {
         using var context = CreateContext();
@@ -220,5 +235,85 @@ public class FieldOpsDbContextModelTests
 
         Assert.Null(quoteResponse!.FindProperty("OrganizationId"));
         Assert.Equal(2, quoteResponse.GetForeignKeys().Count());
+    }
+
+    [Fact]
+    public void Model_ConfiguresWorkOrderUniqueQuoteVersion()
+    {
+        using var context = CreateContext();
+
+        var workOrder = context.Model.FindEntityType(typeof(WorkOrder));
+
+        // quote_version_id uuid NOT NULL UNIQUE: enforces one WorkOrder per
+        // approved QuoteVersion.
+        var quoteVersionIndex = Assert.Single(
+            workOrder!.GetIndexes(),
+            index => index.IsUnique
+                && index.Properties.Select(p => p.Name).SequenceEqual(["QuoteVersionId"]));
+        Assert.NotNull(quoteVersionIndex);
+    }
+
+    [Fact]
+    public void Model_ConfiguresVisitAssignmentPartialUniqueIndexAndCascade()
+    {
+        using var context = CreateContext();
+
+        var visitAssignment = context.Model.FindEntityType(typeof(VisitAssignment));
+
+        var activeUniqueIndex = Assert.Single(
+            visitAssignment!.GetIndexes(),
+            index => index.IsUnique
+                && index.Properties.Select(p => p.Name).SequenceEqual(["VisitId", "TechnicianId"]));
+        Assert.Equal("unassigned_at IS NULL", activeUniqueIndex.GetFilter());
+
+        var toVisitFk = Assert.Single(
+            visitAssignment.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(Visit));
+        Assert.Equal(DeleteBehavior.Cascade, toVisitFk.DeleteBehavior);
+    }
+
+    [Fact]
+    public void Model_ConfiguresCustomerSignoffNoActionExceptionAndUniqueVisit()
+    {
+        using var context = CreateContext();
+
+        var customerSignoff = context.Model.FindEntityType(typeof(CustomerSignoff));
+
+        var toVisitFk = Assert.Single(
+            customerSignoff!.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(Visit));
+        Assert.Equal(DeleteBehavior.NoAction, toVisitFk.DeleteBehavior);
+
+        var uniqueVisitIndex = Assert.Single(
+            customerSignoff.GetIndexes(),
+            index => index.IsUnique
+                && index.Properties.Select(p => p.Name).SequenceEqual(["VisitId"]));
+        Assert.NotNull(uniqueVisitIndex);
+    }
+
+    [Fact]
+    public void Model_ConfiguresVisitChildTablesWithCascadeDelete()
+    {
+        using var context = CreateContext();
+
+        Type[] visitChildEntityTypes =
+        [
+            typeof(VisitAssignment),
+            typeof(VisitStatusHistory),
+            typeof(VisitTimeEntry),
+            typeof(VisitChecklistItem),
+            typeof(VisitMaterial),
+            typeof(VisitEvidence),
+            typeof(VisitIncident),
+        ];
+
+        foreach (var entityType in visitChildEntityTypes)
+        {
+            var entity = context.Model.FindEntityType(entityType);
+            var toVisitFk = Assert.Single(
+                entity!.GetForeignKeys(),
+                fk => fk.PrincipalEntityType.ClrType == typeof(Visit));
+            Assert.Equal(DeleteBehavior.Cascade, toVisitFk.DeleteBehavior);
+        }
     }
 }

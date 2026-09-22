@@ -6,6 +6,7 @@ using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using FieldOps.Domain.Technicians;
 using FieldOps.Domain.Users;
+using FieldOps.Domain.WorkOrders;
 using Microsoft.EntityFrameworkCore;
 
 namespace FieldOps.Infrastructure.Persistence;
@@ -81,6 +82,32 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<QuoteResponse> QuoteResponses => Set<QuoteResponse>();
 
+    public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();
+
+    public DbSet<WorkOrderRequiredSkill> WorkOrderRequiredSkills =>
+        Set<WorkOrderRequiredSkill>();
+
+    public DbSet<WorkOrderChecklistTemplate> WorkOrderChecklistTemplates =>
+        Set<WorkOrderChecklistTemplate>();
+
+    public DbSet<Visit> Visits => Set<Visit>();
+
+    public DbSet<VisitAssignment> VisitAssignments => Set<VisitAssignment>();
+
+    public DbSet<VisitStatusHistory> VisitStatusHistories => Set<VisitStatusHistory>();
+
+    public DbSet<VisitTimeEntry> VisitTimeEntries => Set<VisitTimeEntry>();
+
+    public DbSet<VisitChecklistItem> VisitChecklistItems => Set<VisitChecklistItem>();
+
+    public DbSet<VisitMaterial> VisitMaterials => Set<VisitMaterial>();
+
+    public DbSet<VisitEvidence> VisitEvidences => Set<VisitEvidence>();
+
+    public DbSet<VisitIncident> VisitIncidents => Set<VisitIncident>();
+
+    public DbSet<CustomerSignoff> CustomerSignoffs => Set<CustomerSignoff>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Declares the enums with labels in enum declaration order.
@@ -91,6 +118,8 @@ public sealed class FieldOpsDbContext(
         modelBuilder.HasPostgresEnum<AssessmentStatus>(name: "assessment_status");
         modelBuilder.HasPostgresEnum<MessageVisibility>(name: "message_visibility");
         modelBuilder.HasPostgresEnum<QuoteStatus>(name: "quote_status");
+        modelBuilder.HasPostgresEnum<WorkOrderStatus>(name: "work_order_status");
+        modelBuilder.HasPostgresEnum<VisitStatus>(name: "visit_status");
 
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(FieldOpsDbContext).Assembly);
