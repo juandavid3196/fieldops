@@ -3,6 +3,7 @@ using FieldOps.Domain.Customers;
 using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using FieldOps.Domain.Users;
+using FieldOps.Domain.WorkOrders;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -36,7 +37,9 @@ public static class DependencyInjection
                         .MapEnum<RequestStatus>("request_status")
                         .MapEnum<AssessmentStatus>("assessment_status")
                         .MapEnum<MessageVisibility>("message_visibility")
-                        .MapEnum<QuoteStatus>("quote_status"))
+                        .MapEnum<QuoteStatus>("quote_status")
+                        .MapEnum<WorkOrderStatus>("work_order_status")
+                        .MapEnum<VisitStatus>("visit_status"))
                 .UseSnakeCaseNamingConvention());
 
         return services;
