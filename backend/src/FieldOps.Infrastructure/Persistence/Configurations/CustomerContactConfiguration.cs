@@ -72,6 +72,11 @@ internal sealed class CustomerContactConfiguration
         builder.HasIndex(contact => new { contact.OrganizationId, contact.Email })
             .HasDatabaseName("ix_contacts_org_email");
 
+        builder.HasOne<Organization>()
+            .WithMany()
+            .HasForeignKey(contact => contact.OrganizationId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         // FOREIGN KEY (organization_id, customer_id) REFERENCES customers (organization_id, id)
         builder.HasOne<Customer>()
             .WithMany()

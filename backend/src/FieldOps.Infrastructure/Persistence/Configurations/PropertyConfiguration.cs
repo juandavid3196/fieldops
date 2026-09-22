@@ -1,5 +1,6 @@
 using FieldOps.Domain.Branches;
 using FieldOps.Domain.Customers;
+using FieldOps.Domain.Organizations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -87,6 +88,11 @@ internal sealed class PropertyConfiguration : IEntityTypeConfiguration<Property>
         // CREATE INDEX ix_properties_customer ON properties (organization_id, customer_id)
         builder.HasIndex(property => new { property.OrganizationId, property.CustomerId })
             .HasDatabaseName("ix_properties_customer");
+
+        builder.HasOne<Organization>()
+            .WithMany()
+            .HasForeignKey(property => property.OrganizationId)
+            .OnDelete(DeleteBehavior.NoAction);
 
         // FOREIGN KEY (organization_id, customer_id) REFERENCES customers (organization_id, id)
         builder.HasOne<Customer>()
