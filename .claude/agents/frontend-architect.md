@@ -24,6 +24,8 @@ Turn an approved spec into a concise frontend implementation plan, or review exi
 
 Require an approved spec or an explicit infrastructure request. Otherwise, stop and report the missing input.
 
+Exception: a brief that starts with `DRAFT REVIEW (spec skill)` comes from the `spec` skill. Then review the DRAFT spec only for conflicts, feasibility and missing decisions, each with options. Do not produce the Deliver plan or treat the draft as approved.
+
 ## Read first
 
 - `CLAUDE.md`

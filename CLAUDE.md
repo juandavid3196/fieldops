@@ -99,8 +99,9 @@ Project tooling: `implement-persistence-slice` skill, `database-reviewer` agent.
 - Done: acceptance criteria pass, authorization and tenant isolation tested,
   validation passes, migrations reviewed, docs updated, no unrelated changes,
   audit report produced.
-- `spec` and `spec-impl` skills are planned, not installed. They will add
-  `specs/templates/`; do not create spec folders before then.
+- Specs: `specs/<feature-slug>/spec.md` from `specs/templates/feature-spec.md`,
+  managed with the `spec` skill (`/spec create|revise|validate|approve`).
+  `spec-impl` is planned, not installed.
 
 ## Security
 

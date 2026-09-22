@@ -24,6 +24,8 @@ Turn an approved spec into a concise, implementation-ready backend design. Never
 
 Require an approved spec or an explicit backend infrastructure request. Otherwise, stop and report the missing input.
 
+Exception: a brief that starts with `DRAFT REVIEW (spec skill)` comes from the `spec` skill. Then review the DRAFT spec only for conflicts, feasibility and missing decisions, each with options. Do not produce the Deliver plan or treat the draft as approved.
+
 ## Read first
 
 - `CLAUDE.md`
