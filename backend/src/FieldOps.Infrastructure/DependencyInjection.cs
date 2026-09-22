@@ -1,6 +1,7 @@
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Invoices;
+using FieldOps.Domain.Notifications;
 using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using FieldOps.Domain.Users;
@@ -42,7 +43,8 @@ public static class DependencyInjection
                         .MapEnum<WorkOrderStatus>("work_order_status")
                         .MapEnum<VisitStatus>("visit_status")
                         .MapEnum<InvoiceStatus>("invoice_status")
-                        .MapEnum<PaymentMethod>("payment_method"))
+                        .MapEnum<PaymentMethod>("payment_method")
+                        .MapEnum<NotificationStatus>("notification_status"))
                 .UseSnakeCaseNamingConvention());
 
         return services;
