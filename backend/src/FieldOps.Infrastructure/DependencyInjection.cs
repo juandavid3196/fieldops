@@ -1,3 +1,4 @@
+using FieldOps.Domain.Users;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +23,9 @@ public static class DependencyInjection
 
         services.AddDbContext<FieldOpsDbContext>(options =>
             options
-                .UseNpgsql(connectionString)
+                .UseNpgsql(
+                    connectionString,
+                    npgsql => npgsql.MapEnum<UserStatus>("user_status"))
                 .UseSnakeCaseNamingConvention());
 
         return services;

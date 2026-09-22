@@ -23,9 +23,29 @@ public sealed class Organization
 
     public string? TaxId { get; private set; }
 
+    public string? Email { get; private set; }
+
+    public string? Phone { get; private set; }
+
     public string Timezone { get; private set; } = "UTC";
 
     public string Currency { get; private set; } = "USD";
+
+    public decimal DefaultTaxRate { get; private set; }
+
+    public string QuotePrefix { get; private set; } = "Q";
+
+    public string WorkOrderPrefix { get; private set; } = "WO";
+
+    public string InvoicePrefix { get; private set; } = "INV";
+
+    public long NextQuoteNumber { get; private set; } = 1;
+
+    public long NextWorkOrderNumber { get; private set; } = 1;
+
+    public long NextInvoiceNumber { get; private set; } = 1;
+
+    public bool RequireCustomerSignature { get; private set; }
 
     public bool IsActive { get; private set; }
 
