@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eu
+
+echo "Testing Angular..."
+(cd frontend && npm run test -- --watch=false)
+
+echo "Building Angular..."
+(cd frontend && npm run build -- --configuration production)
+
+echo "Building backend..."
+(cd backend && dotnet build FieldOps.slnx --configuration Release)
+
+echo "Running backend unit tests..."
+(cd backend && dotnet test tests/FieldOps.UnitTests/FieldOps.UnitTests.csproj \
+  --configuration Release \
+  --no-build)
+
+echo "Pre-push checks passed."

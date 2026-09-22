@@ -1,0 +1,13 @@
+#!/bin/sh
+set -eu
+
+echo "Checking Angular formatting..."
+(cd frontend && npm run format:check)
+
+echo "Running Angular lint..."
+(cd frontend && npm run lint)
+
+echo "Checking .NET formatting..."
+(cd backend && dotnet format FieldOps.slnx --verify-no-changes --no-restore)
+
+echo "Pre-commit checks passed."

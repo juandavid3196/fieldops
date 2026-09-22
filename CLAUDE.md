@@ -159,6 +159,17 @@ Controllers must not contain business logic.
 - Never modify an existing committed migration.
 - Never apply migrations automatically to production.
 
+## Database safety
+
+Agents may generate, inspect and script EF Core migrations, but must never:
+
+- Run `dotnet ef database update`.
+- Run `dotnet ef database drop`.
+- Drop PostgreSQL databases.
+- Delete Docker database volumes.
+
+Database migrations must be reviewed and applied manually by the user.
+
 ## Frontend architecture
 
 Use feature-oriented organization.
