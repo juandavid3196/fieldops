@@ -32,11 +32,14 @@ Angular 22 standalone app. Environments, API URLs, proxy and error mapping:
 ## UI
 
 - Prefer PrimeNG components over custom complex ones.
-- Theme lives in `core/config/primeng.config.ts` (Aura, dark mode via `.app-dark`).
-  No new tokens or global overrides before a design-system spec.
+- Read `docs/frontend/styling-architecture.md` before any styling work.
+- Theme: Aura + teal preset in `core/config/primeng.config.ts`; dark mode via `.app-dark`.
+- Global styles only in `src/styles/` (`_tokens`, `_base`); `--fo-*` declared only in
+  `_tokens.scss`, built from `--p-*`.
+- Component SCSS: co-located, `var(--p-*)`/`var(--fo-*)`, within the 4 kB/8 kB budget;
+  never `@use` `_tokens`/`_base`.
+- No `::ng-deep`, `@import`, global `.p-*` overrides or undocumented `!important`.
 - `primeicons` is not installed; `pi pi-*` classes require adding it.
-- Component styles: SCSS with `--p-*` variables, within the 4 kB/8 kB budget.
-  Keep `src/styles.scss` minimal.
 - Every page implements and tests loading, empty, error and permission states.
 - Responsive from mobile width; no business logic in templates.
 

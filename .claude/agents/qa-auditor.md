@@ -36,6 +36,7 @@ Stop and report any missing required input.
 
 - `CLAUDE.md`
 - Relevant nested `CLAUDE.md` files
+- `docs/frontend/styling-architecture.md` when frontend styles change
 - The approved spec or infrastructure request
 - Relevant architect and UI designer output
 - Complete branch and working-tree diff

@@ -1,0 +1,41 @@
+// Global base rules: document, focus-visible fallback and reduced motion.
+// No class, feature or `.p-*` selectors here.
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
+  background: var(--fo-color-app-background);
+  color: var(--p-text-color);
+  -webkit-font-smoothing: antialiased;
+}
+
+// Zero-specificity fallback so PrimeNG component focus styles always win.
+:where(a, button, [tabindex]):where(:focus-visible) {
+  outline: var(--p-focus-ring-width) var(--p-focus-ring-style) var(--p-focus-ring-color);
+  outline-offset: var(--p-focus-ring-offset);
+}
+
+// `!important` is required to beat PrimeNG styles injected at runtime.
+// 0.01ms (not 0) keeps animationend/transitionend firing so overlays still close.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

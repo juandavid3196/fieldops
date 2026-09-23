@@ -32,6 +32,7 @@ Exception: a brief that starts with `DRAFT REVIEW (spec skill)` comes from the `
 - `frontend/CLAUDE.md`
 - The approved spec
 - `docs/frontend/frontend-configuration.md`
+- `docs/frontend/styling-architecture.md`
 - Relevant code under `frontend/src/app`
 
 ## Deliver

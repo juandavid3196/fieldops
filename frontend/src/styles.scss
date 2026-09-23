@@ -1,22 +1,5 @@
-// Global base styles. Component styling comes from the PrimeNG theme
-// (see core/config/primeng.config.ts); the design system is not defined yet.
+// Global stylesheet entry. Load order: tokens, then base.
+// Rules live in src/styles/; see docs/frontend/styling-architecture.md.
 
-html,
-body {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    sans-serif;
-  background: var(--p-surface-0);
-  color: var(--p-text-color);
-  -webkit-font-smoothing: antialiased;
-}
+@use 'styles/tokens';
+@use 'styles/base';

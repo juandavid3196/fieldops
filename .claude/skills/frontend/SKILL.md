@@ -94,6 +94,7 @@ Design sources:
 | Approved spec                        | Behavior (wins on conflict)     |
 | Approved mockups / Claude Design handoff | Visual intent, interactions |
 | `frontend/CLAUDE.md`                 | Implementation conventions      |
+| `docs/frontend/styling-architecture.md` | Tokens, style placement, PrimeNG overrides; every agent reads it |
 
 - Handoff `*.html`/`*.js` is never copied into Angular; rebuild with PrimeNG
   and semantic HTML before any custom primitive.
