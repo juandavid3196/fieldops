@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://unpkg.com/primeicons@7.0.0/primeicons.css">
+<style>
+html,body{margin:0;background:#F4F7FA;color:#172B4D;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#0B8583;text-decoration:none}a:hover{color:#0F9D9A;text-decoration:underline}
+input:disabled,button:disabled{cursor:not-allowed}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;overflow:hidden;font-size:14px;line-height:1.45">
+  <aside aria-label="Main navigation" style="width:256px;flex-shrink:0;background:#102A43;display:flex;flex-direction:column;color:#BCCCDC">
+    <div style="height:64px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <i class="pi pi-cog" style="font-size:26px;color:#0F9D9A"></i>
+      <span style="font-size:21px;font-weight:700;color:#FFFFFF;letter-spacing:-0.01em">FieldOps</span>
+    </div>
+    <nav style="flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:2px">
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-th-large" style="font-size:16px;width:18px"></i><span>Overview</span></a>
+      <div style="padding:14px 12px 6px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9AA5B1">Operations</div>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-inbox" style="font-size:16px;width:18px"></i><span>Requests</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-file-edit" style="font-size:16px;width:18px"></i><span>Quotes</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-wrench" style="font-size:16px;width:18px"></i><span>Work orders</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-calendar" style="font-size:16px;width:18px"></i><span>Schedule</span></a>
+      <div style="padding:14px 12px 6px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9AA5B1">People</div>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-users" style="font-size:16px;width:18px"></i><span>Customers</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-id-card" style="font-size:16px;width:18px"></i><span>Team</span></a>
+      <div style="padding:14px 12px 6px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9AA5B1">Finance</div>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-box" style="font-size:16px;width:18px"></i><span>Products and services</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-receipt" style="font-size:16px;width:18px"></i><span>Invoices</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-chart-bar" style="font-size:16px;width:18px"></i><span>Reports</span></a>
+      <div style="height:1px;background:rgba(255,255,255,0.08);margin:12px 0"></div>
+      <a href="#" aria-current="page" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#FFFFFF;font-weight:600;text-decoration:none;background:rgba(15,157,154,0.2);box-shadow:inset 3px 0 0 #0F9D9A"><i class="pi pi-cog" style="font-size:16px;width:18px;color:#5FD3CF"></i><span>Administration</span></a>
+    </nav>
+    <button type="button" style="height:52px;display:flex;align-items:center;gap:12px;padding:0 24px;background:transparent;border:0;border-top:1px solid rgba(255,255,255,0.08);color:#BCCCDC;font:inherit;font-size:14px;cursor:pointer" style-hover="color:#FFFFFF"><i class="pi pi-angle-double-left" style="font-size:16px"></i><span>Collapse</span></button>
+  </aside>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="height:64px;flex-shrink:0;background:#FFFFFF;border-bottom:1px solid #D9E2EC;display:flex;align-items:center;gap:16px;padding:0 24px">
+      <label style="flex:1;max-width:440px;position:relative;display:block">
+        <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+        <i class="pi pi-search" style="position:absolute;left:12px;top:12px;color:#7B8794"></i>
+        <input placeholder="Search requests, customers, work orders…" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px 0 36px;font:inherit;font-size:14px;color:#172B4D;background:#F8FAFC;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24);background:#FFFFFF">
+      </label>
+      <div style="flex:1"></div>
+      <button type="button" aria-label="Organization" style="height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;font-weight:600;color:#172B4D;cursor:pointer"><i class="pi pi-building" style="color:#52606D"></i>FieldOps Services<i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button>
+      <button type="button" aria-label="Help" style="width:40px;height:40px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#F4F7FA"><i class="pi pi-question-circle" style="font-size:18px"></i></button>
+      <button type="button" aria-label="Notifications, 3 unread" style="position:relative;width:40px;height:40px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#F4F7FA"><i class="pi pi-bell" style="font-size:18px"></i><span style="position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:#C93C3C;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px">3</span></button>
+      <button type="button" aria-label="User menu" style="display:flex;align-items:center;gap:10px;padding:4px 8px;border:0;border-radius:6px;background:transparent;font:inherit;cursor:pointer;text-align:left" style-hover="background:#F4F7FA">
+        <span style="width:36px;height:36px;border-radius:999px;background:#E7F6F5;color:#0B8583;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center">AM</span>
+        <span style="display:flex;flex-direction:column;line-height:1.25"><span style="font-size:14px;font-weight:600;color:#172B4D">Alex Morgan</span><span style="font-size:12px;color:#52606D">Owner</span></span>
+        <i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i>
+      </button>
+    </header>
+
+    <div style="flex:1;min-height:0;display:flex">
+      <sc-if value="{{ showSubnav }}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="Administration" style="width:224px;flex-shrink:0;background:#FFFFFF;border-right:1px solid #D9E2EC;padding:20px 12px;overflow:auto;display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:16px;font-weight:700;padding:0 12px 12px">Administration</div>
+        <a href="#" aria-current="page" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;background:#E7F6F5;color:#0B8583;font-weight:600;text-decoration:none"><i class="pi pi-building"></i>Company profile</a>
+        <a href="#branches" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-map-marker"></i>Branches</a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-clock"></i>Business hours</a>
+        <a href="Users and Permissions.dc.html" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-user-edit"></i>Users &amp; permissions</a>
+        <a href="#taxes" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-dollar"></i>Taxes &amp; currency</a>
+        <a href="#numbering" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-hashtag"></i>Document numbering</a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-bell"></i>Notifications</a>
+      </nav>
+      </sc-if>
+
+      <main style="flex:1;min-width:320px;overflow:auto;padding:20px 24px 40px">
+        <nav aria-label="Breadcrumb" style="display:flex;gap:8px;font-size:13px;color:#52606D;margin-bottom:8px"><a href="#" style="color:#52606D">Administration</a><span aria-hidden="true">/</span><span style="color:#172B4D;font-weight:500">Company</span></nav>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+          <div>
+            <h1 style="margin:0;font-size:28px;font-weight:700;line-height:1.25;letter-spacing:-0.01em">Company setup</h1>
+            <p style="margin:4px 0 0;color:#52606D;text-wrap:pretty">Manage your organization details, branches, billing defaults, and document numbering.</p>
+          </div>
+          <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;gap:8px">
+              <button type="button" style="height:40px;padding:0 16px;border:1px solid #BCCCDC;border-radius:6px;background:#FFFFFF;color:#172B4D;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#F8FAFC">Discard changes</button>
+              <button type="button" onClick="{{ save }}" style="height:40px;padding:0 16px;border:0;border-radius:6px;background:#0F9D9A;color:#FFFFFF;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#0B8583">Save changes</button>
+            </div>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ isReadOnly }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #BFDCE8;border-radius:8px;background:#EAF4F8;color:#1D6485;margin-bottom:16px"><i class="pi pi-eye"></i><span>You have view-only access to company settings. Contact an Owner to request changes.</span></div>
+        </sc-if>
+
+        <fieldset disabled="{{ isReadOnly }}" style="border:0;padding:0;margin:0;min-width:0;display:flex;flex-direction:column;gap:16px">
+          <section aria-labelledby="h-profile" style="background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px;padding:20px 24px 24px">
+            <h2 id="h-profile" style="margin:0 0 16px;font-size:20px;font-weight:700">Company profile</h2>
+            <div style="font-size:13px;font-weight:600;margin-bottom:8px">Company logo</div>
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+              <div style="width:168px;height:72px;border:1px solid #D9E2EC;border-radius:8px;display:flex;align-items:center;justify-content:center;gap:8px;background:#FFFFFF"><i class="pi pi-cog" style="font-size:26px;color:#0F9D9A"></i><span style="font-size:20px;font-weight:700;color:#102A43">FieldOps</span></div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <button type="button" style="height:36px;align-self:flex-start;display:flex;align-items:center;gap:8px;padding:0 14px;border:1px solid #BCCCDC;border-radius:6px;background:#FFFFFF;color:#172B4D;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#F8FAFC"><i class="pi pi-upload"></i>Change logo</button>
+                <span style="font-size:12px;color:#52606D">JPG, PNG or SVG. Max 2 MB.</span>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px 16px">
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Legal business name <span style="color:#C93C3C">*</span></span><input defaultValue="FieldOps Services LLC" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Display name <span style="color:#C93C3C">*</span></span><input defaultValue="FieldOps" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Website</span><input defaultValue="www.fieldops.com" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Business email <span style="color:#C93C3C">*</span></span><input type="email" defaultValue="hello@fieldops.com" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Phone number <span style="color:#C93C3C">*</span></span><input type="tel" defaultValue="(512) 555-0199" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Tax ID (EIN)</span><input defaultValue="74-1234567" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:16px">
+              <div style="display:flex;flex-direction:column;gap:6px;grid-column:1 / -1">
+                <span style="font-size:13px;font-weight:600">Company address <span style="color:#C93C3C">*</span></span>
+                <div style="display:grid;grid-template-columns:minmax(180px,2fr) minmax(120px,1fr) 96px 104px;gap:8px">
+                  <input aria-label="Street address" defaultValue="1234 Service Way" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)">
+                  <input aria-label="City" defaultValue="Austin" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)">
+                  <button type="button" aria-label="State" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>TX</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button>
+                  <input aria-label="ZIP code" defaultValue="78701" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)">
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Default country <span style="color:#C93C3C">*</span></span><button type="button" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>United States</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button></div>
+              <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Default time zone <span style="color:#C93C3C">*</span></span><button type="button" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>(UTC−06:00) Central Time</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button></div>
+            </div>
+          </section>
+
+          <section id="branches" aria-labelledby="h-branches" style="background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px;padding:20px 24px 16px">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+              <h2 id="h-branches" style="margin:0;font-size:20px;font-weight:700">Branches</h2>
+              <span style="color:#52606D">3 branches</span>
+              <div style="flex:1"></div>
+              <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+                <button type="button" style="height:36px;display:flex;align-items:center;gap:8px;padding:0 14px;border:0;border-radius:6px;background:#0F9D9A;color:#FFFFFF;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#0B8583"><i class="pi pi-plus"></i>Add branch</button>
+              </sc-if>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+              <label style="flex:1;min-width:200px;max-width:380px;position:relative;display:block"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search branches</span><i class="pi pi-search" style="position:absolute;left:12px;top:12px;color:#7B8794"></i><input placeholder="Search branches…" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px 0 36px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <button type="button" aria-label="Status filter" style="height:40px;width:180px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>All statuses</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button>
+            </div>
+            <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+              <div role="alert" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #F2C4C4;border-radius:8px;background:#FDECEC;color:#A12F2F"><i class="pi pi-exclamation-circle"></i><span style="flex:1">We couldn't load branches. Check your connection and try again.</span><button type="button" style="height:32px;padding:0 12px;border:1px solid #C93C3C;border-radius:6px;background:#FFFFFF;color:#A12F2F;font:inherit;font-weight:600;cursor:pointer"><i class="pi pi-refresh" style="font-size:12px;margin-right:6px"></i>Retry</button></div>
+            </sc-if>
+            <sc-if value="{{ showTable }}" hint-placeholder-val="{{ true }}">
+              <div style="overflow-x:auto;border:1px solid #D9E2EC;border-radius:8px">
+                <table style="width:100%;border-collapse:collapse;min-width:720px">
+                  <thead><tr style="background:#F8FAFC;text-align:left;font-size:13px;color:#52606D">
+                    <th scope="col" aria-sort="ascending" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Branch <i class="pi pi-arrow-up" style="font-size:11px;margin-left:4px"></i></th>
+                    <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Address</th>
+                    <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Time zone</th>
+                    <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Team</th>
+                    <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Status</th>
+                    <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC;text-align:right"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Actions</span></th>
+                  </tr></thead>
+                  <tbody>
+                    <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+                      <sc-for list="{{ skeletonRows }}" as="s" hint-placeholder-count="3">
+                        <tr><td colspan="6" style="padding:14px 16px;border-bottom:1px solid #E9EEF3"><div style="display:flex;gap:24px"><div style="height:14px;width:18%;border-radius:4px;background:#E9EEF3"></div><div style="height:14px;width:30%;border-radius:4px;background:#E9EEF3"></div><div style="height:14px;width:14%;border-radius:4px;background:#E9EEF3"></div><div style="height:14px;width:12%;border-radius:4px;background:#E9EEF3"></div></div></td></tr>
+                      </sc-for>
+                    </sc-if>
+                    <sc-if value="{{ showRows }}" hint-placeholder-val="{{ true }}">
+                      <sc-for list="{{ branches }}" as="b" hint-placeholder-count="3">
+                        <tr onClick="{{ b.select }}" style="cursor:pointer;background:{{ b.bg }};box-shadow:{{ b.ring }}" style-hover="background:#F8FAFC">
+                          <td style="padding:12px 16px;border-bottom:1px solid #E9EEF3"><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:600;color:#172B4D">{{ b.name }}</span><sc-if value="{{ b.main }}"><span style="height:22px;display:inline-flex;align-items:center;padding:0 8px;border-radius:999px;background:#E7F6F5;color:#0B8583;font-size:12px;font-weight:600">Main branch</span></sc-if></div></td>
+                          <td style="padding:12px 16px;border-bottom:1px solid #E9EEF3;color:#172B4D">{{ b.address }}</td>
+                          <td style="padding:12px 16px;border-bottom:1px solid #E9EEF3">Central Time</td>
+                          <td style="padding:12px 16px;border-bottom:1px solid #E9EEF3">{{ b.team }}</td>
+                          <td style="padding:12px 16px;border-bottom:1px solid #E9EEF3"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;background:#E7F6EE;color:#136F4A;font-size:12px;font-weight:600"><i class="pi pi-check-circle" style="font-size:11px"></i>Active</span></td>
+                          <td style="padding:8px 12px;border-bottom:1px solid #E9EEF3;text-align:right"><button type="button" aria-label="Branch actions" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#E9EEF3"><i class="pi pi-ellipsis-h"></i></button></td>
+                        </tr>
+                      </sc-for>
+                    </sc-if>
+                  </tbody>
+                </table>
+              </div>
+            </sc-if>
+          </section>
+
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px">
+            <section id="taxes" aria-labelledby="h-tax" style="background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px;padding:20px 24px">
+              <h2 id="h-tax" style="margin:0 0 16px;font-size:20px;font-weight:700">Taxes &amp; currency</h2>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;align-items:end">
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Currency <span style="color:#C93C3C">*</span></span><button type="button" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer;white-space:nowrap;overflow:hidden"><span style="overflow:hidden;text-overflow:ellipsis">USD — US Dollar</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button></div>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Default sales tax rate <span style="color:#C93C3C">*</span></span><span style="display:flex"><input defaultValue="8.25" style="height:40px;width:100%;min-width:0;border:1px solid #D9E2EC;border-right:0;border-radius:6px 0 0 6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"><span style="height:40px;width:40px;flex-shrink:0;display:flex;align-items:center;justify-content:center;border:1px solid #D9E2EC;border-radius:0 6px 6px 0;background:#F8FAFC;color:#52606D">%</span></span></label>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;margin-top:16px">
+                <span role="switch" aria-checked="false" tabindex="0" style="width:40px;height:22px;flex-shrink:0;border-radius:999px;background:#BCCCDC;position:relative;cursor:pointer"><span style="position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:999px;background:#FFFFFF"></span></span>
+                <span><span style="font-weight:600">Prices include tax</span><span style="display:block;font-size:12px;color:#52606D">Show prices with tax included on quotes and invoices.</span></span>
+              </div>
+              <div role="note" style="display:flex;gap:10px;padding:10px 12px;margin-top:16px;border:1px solid #F1D9A8;border-radius:8px;background:#FFF4DD;color:#8A5509;font-size:13px"><i class="pi pi-exclamation-triangle" style="margin-top:2px"></i><span>Changing the currency after invoices exist requires confirmation and may affect historical records.</span></div>
+              <a href="#" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-weight:600;font-size:13px">Manage tax rates<i class="pi pi-arrow-right" style="font-size:11px"></i></a>
+            </section>
+            <section id="numbering" aria-labelledby="h-num" style="background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px;padding:20px 24px">
+              <h2 id="h-num" style="margin:0 0 16px;font-size:20px;font-weight:700">Document numbering</h2>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px">
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Quote prefix <span style="color:#C93C3C">*</span></span><input defaultValue="QTE-" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Work order prefix <span style="color:#C93C3C">*</span></span><input defaultValue="WO-" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Invoice prefix <span style="color:#C93C3C">*</span></span><input defaultValue="INV-" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+                <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Next invoice number <span style="color:#C93C3C">*</span></span><input defaultValue="1049" inputMode="numeric" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              </div>
+              <p style="margin:12px 0 0;font-size:12px;color:#52606D">Prefixes appear before the sequential number, for example INV-1049.</p>
+              <a href="#" style="display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-weight:600;font-size:13px">Edit sequences<i class="pi pi-arrow-right" style="font-size:11px"></i></a>
+            </section>
+          </div>
+        </fieldset>
+      </main>
+
+      <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ overlay }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeAny }}" style="position:fixed;left:0;right:0;top:64px;bottom:0;background:rgba(16,42,67,0.32);z-index:39"></div></sc-if>
+        <aside role="dialog" aria-labelledby="h-drawer" style="width:420px;max-width:100vw;flex-shrink:0;position:{{ dPos }};top:{{ dTop }};right:0;bottom:0;z-index:40;background:#FFFFFF;border-left:1px solid #D9E2EC;display:flex;flex-direction:column;min-height:0;box-shadow:-8px 0 24px rgba(16,42,67,0.06)">
+          <div style="display:flex;align-items:center;gap:10px;padding:18px 20px;border-bottom:1px solid #D9E2EC">
+            <h2 id="h-drawer" style="margin:0;font-size:20px;font-weight:700">{{ sel.name }}</h2>
+            <span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;background:#E7F6EE;color:#136F4A;font-size:12px;font-weight:600"><i class="pi pi-check-circle" style="font-size:11px"></i>Active</span>
+            <div style="flex:1"></div>
+            <button type="button" aria-label="Close branch details" onClick="{{ closeDrawer }}" style="width:36px;height:36px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#F4F7FA"><i class="pi pi-times"></i></button>
+          </div>
+          <fieldset disabled="{{ isReadOnly }}" style="border:0;margin:0;min-width:0;min-height:0;flex:1;overflow:auto;padding:20px">
+            <h3 style="margin:0 0 12px;font-size:16px;font-weight:600">Details</h3>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px 12px">
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Branch name <span style="color:#C93C3C">*</span></span><input defaultValue="{{ sel.name }}" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Branch code <span style="color:#C93C3C">*</span></span><input defaultValue="{{ sel.code }}" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"><span style="font-size:12px;color:#52606D">Used in document numbering and reports.</span></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Contact phone</span><input type="tel" defaultValue="{{ sel.phone }}" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Contact email</span><input type="email" defaultValue="{{ sel.email }}" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <div style="display:flex;flex-direction:column;gap:6px;grid-column:1 / -1"><span style="font-size:13px;font-weight:600">Time zone <span style="color:#C93C3C">*</span></span><button type="button" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>(UTC−06:00) Central Time</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button></div>
+              <label style="display:flex;flex-direction:column;gap:6px;grid-column:1 / -1"><span style="font-size:13px;font-weight:600">Service area ZIP codes</span><input defaultValue="{{ sel.zips }}" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"><span style="font-size:12px;color:#52606D">Separate ZIP codes with commas.</span></label>
+            </div>
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-top:16px">
+              <span role="switch" aria-checked="{{ billingAria }}" tabindex="0" onClick="{{ toggleBilling }}" style="width:40px;height:22px;flex-shrink:0;border-radius:999px;background:{{ billingBg }};position:relative;cursor:pointer;margin-top:1px"><span style="position:absolute;top:2px;left:{{ billingKnob }};width:18px;height:18px;border-radius:999px;background:#FFFFFF;transition:left .15s"></span></span>
+              <span><span style="font-weight:600">Use company billing settings</span><span style="display:block;font-size:12px;color:#52606D">Inherit tax rates, currency, and document numbering from company settings.</span></span>
+            </div>
+            <div style="height:1px;background:#D9E2EC;margin:20px 0"></div>
+            <h3 style="margin:0 0 12px;font-size:16px;font-weight:600">Business hours</h3>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <sc-for list="{{ hours }}" as="h" hint-placeholder-count="7">
+                <div style="display:grid;grid-template-columns:88px 44px minmax(0,1fr) 16px minmax(0,1fr);align-items:center;gap:8px">
+                  <span style="font-size:13px;font-weight:500">{{ h.day }}</span>
+                  <span role="switch" aria-checked="{{ h.aria }}" aria-label="{{ h.label }}" tabindex="0" onClick="{{ h.toggle }}" style="width:40px;height:22px;border-radius:999px;background:{{ h.bg }};position:relative;cursor:pointer"><span style="position:absolute;top:2px;left:{{ h.knob }};width:18px;height:18px;border-radius:999px;background:#FFFFFF;transition:left .15s"></span></span>
+                  <sc-if value="{{ h.open }}" hint-placeholder-val="{{ true }}">
+                    <span style="height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border:1px solid #D9E2EC;border-radius:6px;font-size:13px">{{ h.from }}<i class="pi pi-clock" style="font-size:12px;color:#7B8794"></i></span>
+                    <i class="pi pi-arrow-right" aria-hidden="true" style="font-size:11px;color:#7B8794"></i>
+                    <span style="height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;border:1px solid #D9E2EC;border-radius:6px;font-size:13px">{{ h.to }}<i class="pi pi-clock" style="font-size:12px;color:#7B8794"></i></span>
+                  </sc-if>
+                  <sc-if value="{{ h.closed }}" hint-placeholder-val="{{ false }}">
+                    <span style="grid-column:3 / -1;font-size:13px;color:#52606D;height:34px;display:flex;align-items:center">Closed</span>
+                  </sc-if>
+                </div>
+              </sc-for>
+            </div>
+            <div role="note" style="display:flex;gap:10px;padding:10px 12px;margin-top:20px;border:1px solid #BFDCE8;border-radius:8px;background:#EAF4F8;color:#1D6485;font-size:13px"><i class="pi pi-info-circle" style="margin-top:2px"></i><span>Deactivating a branch prevents new records. All historical data is preserved.</span></div>
+          </fieldset>
+          <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:8px;padding:14px 20px;border-top:1px solid #D9E2EC;background:#FFFFFF">
+              <button type="button" style="height:40px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#C93C3C;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap" style-hover="background:#FDECEC"><i class="pi pi-ban" style="margin-right:6px"></i>Deactivate branch</button>
+              <div style="flex:1"></div>
+              <button type="button" onClick="{{ closeDrawer }}" style="white-space:nowrap;height:40px;padding:0 16px;border:1px solid #BCCCDC;border-radius:6px;background:#FFFFFF;color:#172B4D;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#F8FAFC">Cancel</button>
+              <button type="button" onClick="{{ updateBranch }}" style="white-space:nowrap;height:40px;padding:0 16px;border:0;border-radius:6px;background:#0F9D9A;color:#FFFFFF;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#0B8583">Update branch</button>
+            </div>
+          </sc-if>
+        </aside>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position:fixed;top:76px;right:24px;z-index:50;display:flex;align-items:center;gap:10px;min-width:300px;padding:12px 16px;background:#FFFFFF;border:1px solid #D9E2EC;border-left:0;border-radius:8px;box-shadow:0 8px 24px rgba(16,42,67,0.14)"><i class="pi pi-check-circle" style="color:#168A5B;font-size:18px"></i><span style="flex:1;font-weight:500">{{ toast }}</span></div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;viewState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Default&quot;,&quot;Loading&quot;,&quot;Error&quot;,&quot;Read-only (Viewer)&quot;],&quot;default&quot;:&quot;Default&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = {
+    selected: 0, drawer: true, billing: true, toast: null,
+    hours: [
+      { day: 'Monday', open: true, from: '8:00 AM', to: '5:00 PM' },
+      { day: 'Tuesday', open: true, from: '8:00 AM', to: '5:00 PM' },
+      { day: 'Wednesday', open: true, from: '8:00 AM', to: '5:00 PM' },
+      { day: 'Thursday', open: true, from: '8:00 AM', to: '5:00 PM' },
+      { day: 'Friday', open: true, from: '8:00 AM', to: '5:00 PM' },
+      { day: 'Saturday', open: true, from: '9:00 AM', to: '1:00 PM' },
+      { day: 'Sunday', open: false, from: '9:00 AM', to: '1:00 PM' }
+    ]
+  };
+  data = [
+    { name: 'Austin Central', main: true, code: 'AUS-C', address: '1234 Service Way, Austin, TX 78701', team: '12 technicians', phone: '(512) 555-0101', email: 'austin@fieldops.com', zips: '78701, 78702, 78703, 78704, 78705' },
+    { name: 'North Austin', main: false, code: 'AUS-N', address: '8900 Research Blvd, Austin, TX 78758', team: '4 technicians', phone: '(512) 555-0134', email: 'north@fieldops.com', zips: '78727, 78729, 78758, 78759' },
+    { name: 'Round Rock', main: false, code: 'RRK', address: '220 Main St, Round Rock, TX 78664', team: '2 technicians', phone: '(512) 555-0177', email: 'roundrock@fieldops.com', zips: '78664, 78665, 78681' }
+  ];
+  componentDidMount() { this.onR = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onR); }
+  componentWillUnmount() { clearTimeout(this.t); window.removeEventListener('resize', this.onR); }
+  toast(msg) { clearTimeout(this.t); this.setState({ toast: msg }); this.t = setTimeout(() => this.setState({ toast: null }), 3500); }
+  renderVals() {
+    const vs = this.props.viewState ?? 'Default';
+    const isReadOnly = vs === 'Read-only (Viewer)', isLoading = vs === 'Loading', isError = vs === 'Error';
+    const s = this.state;
+    const W = s.w ?? window.innerWidth, overlayMode = W < 1440;
+    const layout = { showSubnav: W >= 1100, dPos: overlayMode ? 'fixed' : 'relative', dTop: overlayMode ? '64px' : '0' };
+    return {
+      isReadOnly, isLoading, isError, canEdit: !isReadOnly, ...layout,
+      overlay: overlayMode && s.drawer && !isLoading && !isError, closeAny: () => this.setState({ drawer: false }),
+      showTable: !isError, showRows: !isLoading && !isError,
+      skeletonRows: [1, 2, 3],
+      drawerOpen: s.drawer && !isLoading && !isError,
+      sel: this.data[s.selected],
+      branches: this.data.map((b, i) => ({
+        ...b,
+        bg: i === s.selected && s.drawer ? '#E7F6F5' : 'transparent',
+        ring: i === s.selected && s.drawer ? 'inset 3px 0 0 #0F9D9A' : 'none',
+        select: () => this.setState({ selected: i, drawer: true })
+      })),
+      hours: s.hours.map((h, i) => ({
+        ...h, closed: !h.open, aria: h.open ? 'true' : 'false', label: h.day + ' open',
+        bg: h.open ? '#0F9D9A' : '#BCCCDC', knob: h.open ? '20px' : '2px',
+        toggle: () => { if (isReadOnly) return; this.setState(st => ({ hours: st.hours.map((x, j) => j === i ? { ...x, open: !x.open } : x) })); }
+      })),
+      billingAria: s.billing ? 'true' : 'false', billingBg: s.billing ? '#0F9D9A' : '#BCCCDC', billingKnob: s.billing ? '20px' : '2px',
+      toggleBilling: () => !isReadOnly && this.setState(st => ({ billing: !st.billing })),
+      closeDrawer: () => this.setState({ drawer: false }),
+      save: () => this.toast('Company settings saved'),
+      updateBranch: () => this.toast(this.data[s.selected].name + ' updated'),
+      toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>
