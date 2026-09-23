@@ -1,0 +1,7 @@
+// FieldOps app tokens. The only place `--fo-*` custom properties are declared.
+// Values are built from PrimeNG `--p-*` tokens and follow `.app-dark` via light-dark().
+
+:root {
+  // App page ground (handoff #F4F7FA is approximately surface-50).
+  --fo-color-app-background: light-dark(var(--p-surface-50), var(--p-surface-950));
+}

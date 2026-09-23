@@ -2,31 +2,44 @@ import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { PrimeNGConfigType } from 'primeng/config';
 
-/** Basic Aura-based preset. The final design system is not defined yet. */
+/**
+ * FieldOps preset: Aura with the teal palette as primary.
+ * `primary.color` is darkened to teal.700 in light mode so white text on it meets WCAG AA.
+ * See docs/frontend/styling-architecture.md.
+ */
 const FieldOpsPreset = definePreset(Aura, {
   semantic: {
     primary: {
-      50: '{blue.50}',
-      100: '{blue.100}',
-      200: '{blue.200}',
-      300: '{blue.300}',
-      400: '{blue.400}',
-      500: '{blue.500}',
-      600: '{blue.600}',
-      700: '{blue.700}',
-      800: '{blue.800}',
-      900: '{blue.900}',
-      950: '{blue.950}',
+      50: '{teal.50}',
+      100: '{teal.100}',
+      200: '{teal.200}',
+      300: '{teal.300}',
+      400: '{teal.400}',
+      500: '{teal.500}',
+      600: '{teal.600}',
+      700: '{teal.700}',
+      800: '{teal.800}',
+      900: '{teal.900}',
+      950: '{teal.950}',
+      color: 'light-dark({primary.700}, {primary.400})',
+      hoverColor: 'light-dark({primary.800}, {primary.300})',
+      activeColor: 'light-dark({primary.900}, {primary.200})',
     },
   },
 });
 
+/** Evaluated once at bootstrap; safe where `window` or `matchMedia` is unavailable. */
+const prefersReducedMotion =
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 export const primeNgConfig: PrimeNGConfigType = {
-  ripple: true,
+  ripple: !prefersReducedMotion,
   theme: {
     preset: FieldOpsPreset,
     options: {
-      // Dark mode is opt-in through this class until the design system defines it.
+      // Dark mode applies when `.app-dark` is set on <html>.
       darkModeSelector: '.app-dark',
     },
   },

@@ -32,7 +32,7 @@ Exception: a brief that starts with `DRAFT REVIEW (spec skill)` comes from the `
 - `frontend/CLAUDE.md`
 - The approved spec and relevant mockups
 - `frontend/src/app/core/config/primeng.config.ts`
-- Existing global styles and design tokens
+- `docs/frontend/styling-architecture.md` and existing tokens in `frontend/src/styles/`
 - Relevant `shared/` and `layout/` components
 - `frontend/package.json` when component or icon availability matters
 

@@ -26,6 +26,7 @@ Implement the active approved frontend spec and verify the result with focused t
 - `CLAUDE.md`
 - `frontend/CLAUDE.md`
 - `docs/frontend/frontend-configuration.md`
+- `docs/frontend/styling-architecture.md`
 - The approved spec
 - Available frontend architect and UI designer output
 - Existing code related to the feature
