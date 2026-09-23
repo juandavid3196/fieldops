@@ -1,4 +1,10 @@
 {
+  "permissions": {
+    "deny": [
+      "mcp__angular-cli__onpush_zoneless_migration",
+      "mcp__playwright__browser_run_code_unsafe"
+    ]
+  },
   "hooks": {
     "PreToolUse": [
       {

@@ -9,7 +9,8 @@ disable-model-invocation: true
 
 Orchestrates one APPROVED spec through the `backend`, `frontend` and
 `final-audit` skills, then records `IMPLEMENTED → AUDITED`. It writes no
-application code, invokes no agent directly, never applies migrations,
+application code, invokes no agent or MCP tool directly (child reports carry
+MCP evidence), never applies migrations,
 commits, pushes or merges, and never changes approved behavior. Only the user
 starts it.
 

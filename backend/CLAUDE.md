@@ -68,6 +68,11 @@ dotnet ef migrations script --idempotent --project src/FieldOps.Infrastructure/F
   --startup-project src/FieldOps.Api/FieldOps.Api.csproj --output database-migration-script.sql
 ```
 
+## Microsoft Learn MCP
+
+- Documentation only; ask version-specific questions (.NET 10, ASP.NET Core
+  10, EF Core 10). It never authorizes a package, schema change or migration.
+
 ## API and tests
 
 - Settings: class in `Configuration/` + `IValidateOptions<T>` + `ValidateOnStart()`;

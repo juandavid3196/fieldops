@@ -1,7 +1,7 @@
 ---
 name: qa-auditor
 description: Audits a completed FieldOps implementation against its approved spec and acceptance criteria. Reviews tests, edge cases, accessibility, security, tenant isolation and regressions, runs relevant validations and reports findings by severity. Read-only and does not fix findings.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, mcp__angular-cli__list_projects, mcp__angular-cli__get_best_practices, mcp__primeng__get_component, mcp__primeng__validate_usage, mcp__playwright__browser_navigate, mcp__playwright__browser_navigate_back, mcp__playwright__browser_snapshot, mcp__playwright__browser_find, mcp__playwright__browser_click, mcp__playwright__browser_hover, mcp__playwright__browser_type, mcp__playwright__browser_fill_form, mcp__playwright__browser_select_option, mcp__playwright__browser_press_key, mcp__playwright__browser_handle_dialog, mcp__playwright__browser_wait_for, mcp__playwright__browser_resize, mcp__playwright__browser_emulate_media, mcp__playwright__browser_evaluate, mcp__playwright__browser_console_messages, mcp__playwright__browser_network_requests, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_close
 model: inherit
 color: red
 ---
@@ -60,6 +60,15 @@ Stop and report any missing required input.
 14. Persistence changes have an approved `database-reviewer` result.
 
 Do not claim visual, runtime accessibility or responsive verification without browser or automated evidence. Mark it `NOT VERIFIED`.
+
+## Browser evidence (Playwright MCP)
+
+- Only the already-running local app (`http://localhost:4200`, API `http://localhost:5034`); never start it or Docker.
+- No real credentials, personal profiles or production data. Data-changing submissions only against disposable test data or with user approval.
+- Use accessibility snapshots, keyboard/focus, `browser_resize` for breakpoints and `browser_emulate_media` or the `.app-dark` class for dark mode, as the spec requires.
+- Screenshots only as required evidence, with the default output (never an explicit file name).
+- Browser evidence complements tests and builds; it never replaces them.
+- Playwright unavailable: only ACs that need browser evidence become `NOT VERIFIED`.
 
 ## Validation
 

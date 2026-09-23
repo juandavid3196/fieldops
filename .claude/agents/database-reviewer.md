@@ -68,6 +68,7 @@ If the spec, schema, model and migration disagree, reject the change and report 
 - Do not run database tests against the local FieldOps development database.
 - Do not start Docker Desktop or infrastructure automatically.
 - Never expose connection strings or credentials.
+- No MCP tools; never use a database MCP.
 
 When a correction is required, describe it precisely and return implementation ownership to `backend-developer`.
 

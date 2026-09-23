@@ -12,6 +12,25 @@ itself, never touches `backend/`, and never runs final QA.
 
 Request: `$ARGUMENTS`
 
+## MCP support
+
+Agents call MCP tools; this skill only briefs and checks their evidence.
+
+| MCP         | Use |
+| ----------- | --- |
+| Angular CLI | Workspace discovery (`list_projects`), version-aligned guidance (`get_best_practices`, `search_documentation`). Read-only: targets run through the §5 npm commands. |
+| PrimeNG     | Component selection, API verification, `validate_usage` on new templates. |
+| Playwright  | Runtime UI checks after implementation, only when the spec needs browser evidence and the app already runs locally. |
+
+- MCP never overrides the approved spec, writable area, baseline protection,
+  validation commands or the correction-pass limit.
+- PrimeNG docs conflicting with the installed `primeng` version: the installed
+  package wins; report the conflict.
+- MCP output never justifies installing dependencies or speculative code.
+  Any file an MCP writes is a workflow change checked in §5.
+- MCP unavailable: continue with the existing workflow and report the missing
+  verification.
+
 ## 1. Gate (read-only; any failure → `FRONTEND BLOCKED`, stop)
 
 Read `CLAUDE.md` and `frontend/CLAUDE.md` first.
@@ -137,8 +156,9 @@ status, commit, push or merge.
 4. Changed files.
 5. FR/AC matrix: ID · implementation · test evidence · status.
 6. Validation: each command, pass/fail, error excerpt.
-7. Visual checks not performed (breakpoints, dark mode, mockup comparison),
-   or N/A when the spec has no visual changes.
+7. MCP verification used or unavailable. Visual checks not performed
+   (breakpoints, dark mode, mockup comparison), or N/A when the spec has no
+   visual changes.
 8. Deviations, risks, backend dependencies, pending decisions.
 9. Result:
 

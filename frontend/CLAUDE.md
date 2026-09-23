@@ -40,6 +40,15 @@ Angular 22 standalone app. Environments, API URLs, proxy and error mapping:
 - Every page implements and tests loading, empty, error and permission states.
 - Responsive from mobile width; no business logic in templates.
 
+## MCP
+
+- `angular-cli` runs the local CLI read-only: no `run_target`/devserver; run
+  targets with the npm scripts.
+- `@primeng/mcp` in `.mcp.json` matches the installed `primeng`; update both
+  together. On any API conflict the installed package wins.
+- Playwright screenshots use the default `.playwright-mcp/` output (ignored);
+  never pass an explicit file name.
+
 ## Conventions
 
 - Files: `*.service.ts`, `*.interceptor.ts`, `*.model.ts`, `*.config.ts`,

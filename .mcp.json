@@ -1,0 +1,36 @@
+{
+  "mcpServers": {
+    "angular-cli": {
+      "command": "node",
+      "args": [
+        "frontend/node_modules/@angular/cli/bin/ng.js",
+        "mcp",
+        "--read-only"
+      ]
+    },
+    "primeng": {
+      "command": "cmd",
+      "args": ["/c", "npx", "-y", "@primeng/mcp@22.1.1"]
+    },
+    "microsoft-learn": {
+      "type": "http",
+      "url": "https://learn.microsoft.com/api/mcp"
+    },
+    "playwright": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@playwright/mcp@0.0.82",
+        "--isolated",
+        "--headless",
+        "--allowed-origins",
+        "http://localhost:4200;http://localhost:5034",
+        "--output-dir",
+        ".playwright-mcp",
+        "--no-webmcp"
+      ]
+    }
+  }
+}
