@@ -35,7 +35,7 @@ Run all checks and report every failure at once.
 
 ## 2. Change set
 
-The implementation = union of:
+Candidates:
 
 1. Committed branch changes: `git diff --name-status <base>...HEAD`, where
    `<base>` is `main` (`CLAUDE.md` default branch; prefer `origin/main` when
@@ -43,9 +43,28 @@ The implementation = union of:
 2. Staged and unstaged changes: `git diff --name-status HEAD`.
 3. Untracked files from the baseline.
 
-`git diff` alone is never the implementation. Stop with `AUDIT BLOCKED` when
-the base cannot be resolved, the merge base is missing, the branch contains
-unrelated merged work that cannot be separated, or the change set is empty.
+Pre-existing work: a `SPEC-IMPL AUDIT BASELINE` block from `spec-impl` for
+this spec lists unrelated baseline paths and resume-authorized paths, each
+with status and hash. The audited implementation contains only:
+
+| Included | Rule |
+| -------- | ---- |
+| Committed | Candidate 1 paths traceable to this spec. |
+| New work | Paths new or altered since the `spec-impl` baseline. |
+| Resumed | Resume-authorized paths from the block. |
+
+An unrelated baseline path whose current status and hash match the block is
+excluded from §3 classification, out-of-scope findings and the verdict; it is
+checked only in §7. One that no longer matches was altered by the workflow:
+include it as an out-of-scope change.
+
+Without the block (direct `/final-audit`), uncommitted paths not traceable
+to this spec are not assumed to be implementation.
+
+Stop with `AUDIT BLOCKED`, asking the user who owns the paths, when any
+committed or uncommitted path's ownership is ambiguous. Also stop when the
+base cannot be resolved, the merge base is missing, or the change set is
+empty. `git diff` alone is never the implementation.
 
 ## 3. Scope
 
@@ -54,7 +73,7 @@ scope, API contract rows, authorization and tenant-isolation rules (or public
 /pre-tenant protections), required tests, approved design paths, required
 documentation and non-goals.
 
-Classify every changed path:
+Classify every path in the §2 implementation:
 
 | Class       | Examples |
 | ----------- | -------- |
@@ -131,9 +150,11 @@ area:
 ## 7. Read-only integrity
 
 After all agents and commands, compare
-`git status --porcelain --untracked-files=all` and hashes with the baseline. Any new, removed or
-altered path, other than build/test output ignored by the repository's
-`.gitignore`, → `AUDIT FAIL`. Report it; never clean, delete or revert.
+`git status --porcelain --untracked-files=all` and hashes with this audit's
+§1 baseline, and every unrelated path with the `SPEC-IMPL AUDIT BASELINE`
+block. Any new, removed or altered path, other than build/test output
+ignored by the repository's `.gitignore`, or any altered unrelated baseline
+path → `AUDIT FAIL`. Report it; never clean, delete or revert.
 
 ## 8. Visual limits
 
@@ -165,7 +186,8 @@ is `NOT VERIFIED`.
 9. Validation: each command, pass/fail/not run, error excerpt.
 10. Visual/browser checks not performed.
 11. Items not verified.
-12. Out-of-scope changes.
+12. Out-of-scope changes; unrelated baseline paths excluded and whether
+    they stayed unaltered.
 13. Read-only integrity result.
 14. Verdict.
 15. Follow-up owner per finding: `frontend-developer`, `backend-developer`,
