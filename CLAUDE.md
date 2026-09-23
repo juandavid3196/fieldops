@@ -9,6 +9,7 @@ its own workforce. Not a marketplace.
 | `backend/`           | .NET 10 Web API, EF Core 10, PostgreSQL 17, `FieldOps.slnx` | `backend/CLAUDE.md`  |
 | `docs/`              | Backend, frontend and database reference docs               |                      |
 | `.claude/`           | Settings, DB-safety hook, agents, skills                    |                      |
+| `.mcp.json`          | Project MCP servers (see MCP below)                         |                      |
 | `.githooks/`         | `pre-commit`, `pre-push`                                    |                      |
 | `.github/workflows/` | Frontend, backend and integration CI                        |                      |
 | `docker-compose.yml` | Local PostgreSQL; reads `.env` (template `.env.example`)    |                      |
@@ -84,6 +85,25 @@ Only when explicitly requested:
 
 `.claude/hooks/block-database-mutations.mjs` is a safety net, not permission.
 Project tooling: `implement-persistence-slice` skill, `database-reviewer` agent.
+
+## MCP
+
+| MCP             | Owner                   | Purpose                                                         |
+| --------------- | ----------------------- | --------------------------------------------------------------- |
+| Angular CLI     | Frontend workflows      | Workspace, official Angular guidance (`--read-only`: no targets) |
+| PrimeNG         | Frontend workflows      | Component/API validation, pinned to the installed `primeng`     |
+| Microsoft Learn | Backend workflows       | Current Microsoft documentation                                 |
+| Playwright      | Frontend QA/final audit | Local browser evidence (`localhost:4200`/`5034` only)           |
+
+- Specs and repository conventions stay authoritative; MCP output is
+  supporting evidence, never permission to widen scope.
+- MCP cannot bypass hooks, edit boundaries, migration rules or user approval.
+- No database MCP. No MCP may access or mutate the local FieldOps PostgreSQL
+  database, directly or through data-changing UI submissions.
+- Grant agents only the exact `mcp__<server>__<tool>` names they need.
+- Unavailable MCP: continue with the existing workflow and report the missing
+  verification.
+- Report concise MCP results; never paste large documentation responses.
 
 ## Spec workflow
 

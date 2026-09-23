@@ -12,6 +12,18 @@ no application code itself, never touches `frontend/`, and never runs final QA.
 
 Request: `$ARGUMENTS`
 
+## MCP support
+
+`backend-architect` and `backend-developer` may use Microsoft Learn MCP for
+narrow, version-sensitive .NET 10, ASP.NET Core and EF Core questions.
+
+- The approved spec, repository code, `fieldops-schema.sql` and `CLAUDE.md`
+  stay authoritative for FieldOps behavior.
+- Documentation cannot authorize packages, schema changes or migrations: a
+  suggested new NuGet package is a §3 stop until the user approves it.
+- No database MCP; migrations are never applied.
+- Unavailable: continue and report which question went unverified.
+
 ## 1. Gate (read-only; any failure → `BACKEND BLOCKED`, stop)
 
 Read `CLAUDE.md` and `backend/CLAUDE.md` first.

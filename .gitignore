@@ -25,6 +25,9 @@
 **/appsettings.Local.json
 **/appsettings.*.local.json
 
+# Playwright MCP output (screenshots, snapshots)
+.playwright-mcp/
+
 # Logs
 *.log
 logs/

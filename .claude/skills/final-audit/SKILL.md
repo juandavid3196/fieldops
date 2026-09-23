@@ -114,7 +114,8 @@ Either missing → migration status `NOT VERIFIED` → `AUDIT FAIL`.
 Invoke `qa-auditor` after §4. Brief: `FINAL AUDIT (final-audit skill) — make
 no changes`, the spec path, the §2 change set and classification, frontend
 /backend workflow reports if provided, the §4 result or skip reason, the
-validations required by §6 and the approved design paths.
+validations required by §6, the §8 rules with the ACs needing browser
+evidence, and the approved design paths.
 
 Require evidence for every active FR and AC (`MET`, `NOT MET`, `NOT
 VERIFIED`) and for: scope and non-goals, API contract implementation, domain
@@ -156,12 +157,26 @@ block. Any new, removed or altered path, other than build/test output
 ignored by the repository's `.gitignore`, or any altered unrelated baseline
 path → `AUDIT FAIL`. Report it; never clean, delete or revert.
 
-## 8. Visual limits
+## 8. Browser evidence
 
-Without browser, screenshot or automated evidence, list as not performed:
-breakpoints, dark mode, pixel comparison with designs, runtime focus,
-browser accessibility, end-to-end navigation. An AC that needs any of them
-is `NOT VERIFIED`.
+`qa-auditor` uses Playwright MCP for ACs that need browser evidence, only
+against the already-running local app (`http://localhost:4200`, API
+`http://localhost:5034`). Never start Docker Desktop or the app, apply
+migrations, or use real credentials, personal profiles or production data.
+Data-changing submissions only against disposable test data or with user
+approval; otherwise verify up to the request and mark persistence
+`NOT VERIFIED`.
+
+- Check what the spec requires: navigation, loading, empty, error,
+  permission and submission states, keyboard/focus, accessibility
+  snapshots, supported breakpoints, dark mode.
+- Screenshots only as required evidence, in the ignored `.playwright-mcp/`
+  output; any other written path fails §7.
+- Browser checks never replace frontend tests, build or static review.
+- Playwright unavailable or app not running: only ACs requiring browser
+  evidence become `NOT VERIFIED`; list breakpoints, dark mode, pixel
+  comparison, runtime focus, browser accessibility and end-to-end navigation
+  as not performed.
 
 ## 9. Verdict
 
@@ -184,7 +199,7 @@ is `NOT VERIFIED`.
    `NOT VERIFIED`.
 8. QA findings: Critical, Important, Minor.
 9. Validation: each command, pass/fail/not run, error excerpt.
-10. Visual/browser checks not performed.
+10. Browser evidence per AC (Playwright) and checks not performed.
 11. Items not verified.
 12. Out-of-scope changes; unrelated baseline paths excluded and whether
     they stayed unaltered.

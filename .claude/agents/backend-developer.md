@@ -1,7 +1,7 @@
 ---
 name: backend-developer
 description: Implements approved FieldOps backend specs in .NET 10 and EF Core with focused tests. Edits only backend/ and explicitly requested backend documentation, then runs backend validation. Generates migrations only when explicitly requested and never applies them.
-tools: Read, Grep, Glob, Edit, Write, Bash, Skill
+tools: Read, Grep, Glob, Edit, Write, Bash, Skill, mcp__microsoft-learn__microsoft_docs_search, mcp__microsoft-learn__microsoft_docs_fetch, mcp__microsoft-learn__microsoft_code_sample_search
 model: inherit
 color: orange
 ---
@@ -32,6 +32,8 @@ Implement the active approved backend spec while preserving layer boundaries, te
 - Existing code related to the requested change
 
 Use `implement-persistence-slice` only if the skill exists, has been reviewed and the task requires an entity plus EF configuration slice. Otherwise, do not invoke or assume it.
+
+Microsoft Learn MCP: narrow, version-specific documentation questions only. It never authorizes a package, schema change or migration; a suggested new NuGet package is reported and blocks until the user approves it.
 
 ## Edit scope
 

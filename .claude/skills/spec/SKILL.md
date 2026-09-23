@@ -39,6 +39,8 @@ Mode = first word. Anything else: show the four modes and stop.
   IMPLEMENTED or AUDITED.
 - Never invoke `backend-developer`, `frontend-developer`, `database-reviewer`
   or `qa-auditor`.
+- Never call MCP tools directly; only the consulted read-only agents may use
+  their documentation MCP tools.
 - Never invent material decisions. Ask the user when a choice changes
   behavior, security, permissions, data, schema or scope. Record only minor,
   non-behavioral choices as assumptions (`AS-xx`).
