@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://unpkg.com/primeicons@7.0.0/primeicons.css">
+<style>
+html,body{margin:0;background:#F4F7FA;color:#172B4D;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#0B8583;text-decoration:none}a:hover{color:#0F9D9A;text-decoration:underline}
+</style>
+</helmet>
+<div style="display:flex;height:100vh;overflow:hidden;font-size:14px;line-height:1.45">
+  <aside aria-label="Main navigation" style="width:256px;flex-shrink:0;background:#102A43;display:flex;flex-direction:column;color:#BCCCDC">
+    <div style="height:64px;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,0.08)">
+      <i class="pi pi-cog" style="font-size:26px;color:#0F9D9A"></i>
+      <span style="font-size:21px;font-weight:700;color:#FFFFFF;letter-spacing:-0.01em">FieldOps</span>
+    </div>
+    <nav style="flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:2px">
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-th-large" style="font-size:16px;width:18px"></i><span>Overview</span></a>
+      <div style="padding:14px 12px 6px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9AA5B1">Operations</div>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-inbox" style="font-size:16px;width:18px"></i><span>Requests</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-file-edit" style="font-size:16px;width:18px"></i><span>Quotes</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-wrench" style="font-size:16px;width:18px"></i><span>Work orders</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-calendar" style="font-size:16px;width:18px"></i><span>Schedule</span></a>
+      <div style="padding:14px 12px 6px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9AA5B1">People</div>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-users" style="font-size:16px;width:18px"></i><span>Customers</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-id-card" style="font-size:16px;width:18px"></i><span>Team</span></a>
+      <div style="padding:14px 12px 6px;font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#9AA5B1">Finance</div>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-box" style="font-size:16px;width:18px"></i><span>Products and services</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-receipt" style="font-size:16px;width:18px"></i><span>Invoices</span></a>
+      <a href="#" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#BCCCDC;font-weight:500;text-decoration:none" style-hover="background:rgba(255,255,255,0.06);color:#FFFFFF"><i class="pi pi-chart-bar" style="font-size:16px;width:18px"></i><span>Reports</span></a>
+      <div style="height:1px;background:rgba(255,255,255,0.08);margin:12px 0"></div>
+      <a href="#" aria-current="page" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:6px;color:#FFFFFF;font-weight:600;text-decoration:none;background:rgba(15,157,154,0.2);box-shadow:inset 3px 0 0 #0F9D9A"><i class="pi pi-cog" style="font-size:16px;width:18px;color:#5FD3CF"></i><span>Administration</span></a>
+    </nav>
+    <button type="button" style="height:52px;display:flex;align-items:center;gap:12px;padding:0 24px;background:transparent;border:0;border-top:1px solid rgba(255,255,255,0.08);color:#BCCCDC;font:inherit;font-size:14px;cursor:pointer" style-hover="color:#FFFFFF"><i class="pi pi-angle-double-left" style="font-size:16px"></i><span>Collapse</span></button>
+  </aside>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="height:64px;flex-shrink:0;background:#FFFFFF;border-bottom:1px solid #D9E2EC;display:flex;align-items:center;gap:16px;padding:0 24px">
+      <label style="flex:1;max-width:440px;position:relative;display:block">
+        <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search</span>
+        <i class="pi pi-search" style="position:absolute;left:12px;top:12px;color:#7B8794"></i>
+        <input placeholder="Search requests, customers, work orders…" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px 0 36px;font:inherit;font-size:14px;color:#172B4D;background:#F8FAFC;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24);background:#FFFFFF">
+      </label>
+      <div style="flex:1"></div>
+      <button type="button" aria-label="Organization" style="height:40px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;font-weight:600;color:#172B4D;cursor:pointer"><i class="pi pi-building" style="color:#52606D"></i>FieldOps Services<i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button>
+      <button type="button" aria-label="Help" style="width:40px;height:40px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#F4F7FA"><i class="pi pi-question-circle" style="font-size:18px"></i></button>
+      <button type="button" aria-label="Notifications, 3 unread" style="position:relative;width:40px;height:40px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#F4F7FA"><i class="pi pi-bell" style="font-size:18px"></i><span style="position:absolute;top:4px;right:4px;min-width:18px;height:18px;border-radius:999px;background:#C93C3C;color:#FFFFFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 5px">3</span></button>
+      <button type="button" aria-label="User menu" style="display:flex;align-items:center;gap:10px;padding:4px 8px;border:0;border-radius:6px;background:transparent;font:inherit;cursor:pointer;text-align:left" style-hover="background:#F4F7FA">
+        <span style="width:36px;height:36px;border-radius:999px;background:#E7F6F5;color:#0B8583;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center">AM</span>
+        <span style="display:flex;flex-direction:column;line-height:1.25"><span style="font-size:14px;font-weight:600;color:#172B4D">Alex Morgan</span><span style="font-size:12px;color:#52606D">Owner</span></span>
+        <i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i>
+      </button>
+    </header>
+
+    <div style="flex:1;min-height:0;display:flex">
+      <sc-if value="{{ showSubnav }}" hint-placeholder-val="{{ true }}">
+      <nav aria-label="Administration" style="width:224px;flex-shrink:0;background:#FFFFFF;border-right:1px solid #D9E2EC;padding:20px 12px;overflow:auto;display:flex;flex-direction:column;gap:2px">
+        <div style="font-size:16px;font-weight:700;padding:0 12px 12px">Administration</div>
+        <a href="Company Setup.dc.html" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-building"></i>Company profile</a>
+        <a href="Company Setup.dc.html#branches" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-map-marker"></i>Branches</a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-clock"></i>Business hours</a>
+        <a href="#" aria-current="page" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;background:#E7F6F5;color:#0B8583;font-weight:600;text-decoration:none"><i class="pi pi-user-edit"></i>Users &amp; permissions</a>
+        <a href="Company Setup.dc.html#taxes" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-dollar"></i>Taxes &amp; currency</a>
+        <a href="Company Setup.dc.html#numbering" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-hashtag"></i>Document numbering</a>
+        <a href="#" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 12px;border-radius:6px;color:#52606D;font-weight:500;text-decoration:none" style-hover="background:#F4F7FA;color:#172B4D"><i class="pi pi-bell"></i>Notifications</a>
+      </nav>
+      </sc-if>
+
+      <main style="flex:1;min-width:320px;overflow:auto;padding:20px 24px 40px">
+        <nav aria-label="Breadcrumb" style="display:flex;gap:8px;font-size:13px;color:#52606D;margin-bottom:8px"><a href="#" style="color:#52606D">Administration</a><span aria-hidden="true">/</span><span style="color:#172B4D;font-weight:500">Users &amp; permissions</span></nav>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+          <div>
+            <h1 style="margin:0;font-size:28px;font-weight:700;line-height:1.25;letter-spacing:-0.01em">Users &amp; permissions</h1>
+            <p style="margin:4px 0 0;color:#52606D;text-wrap:pretty">Manage sign-in access, predefined roles, and branch visibility.</p>
+          </div>
+          <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+            <button type="button" onClick="{{ openInvite }}" style="height:40px;display:flex;align-items:center;gap:8px;padding:0 16px;border:0;border-radius:6px;background:#0F9D9A;color:#FFFFFF;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#0B8583"><i class="pi pi-user-plus"></i>Invite user</button>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ isReadOnly }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #BFDCE8;border-radius:8px;background:#EAF4F8;color:#1D6485;margin-bottom:16px"><i class="pi pi-eye"></i><span>You have view-only access. Inviting users and editing access requires the Owner role.</span></div>
+        </sc-if>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px"><span style="width:40px;height:40px;border-radius:999px;background:#E7F6EE;color:#168A5B;display:flex;align-items:center;justify-content:center"><i class="pi pi-users"></i></span><span><span style="display:block;font-size:13px;color:#52606D">Active users</span><span style="display:block;font-size:26px;font-weight:700;line-height:1.2">21</span></span></div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px"><span style="width:40px;height:40px;border-radius:999px;background:#FFF4DD;color:#C47A12;display:flex;align-items:center;justify-content:center"><i class="pi pi-envelope"></i></span><span><span style="display:block;font-size:13px;color:#52606D">Pending invitations</span><span style="display:block;font-size:26px;font-weight:700;line-height:1.2">2</span></span></div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px"><span style="width:40px;height:40px;border-radius:999px;background:#FDECEC;color:#C93C3C;display:flex;align-items:center;justify-content:center"><i class="pi pi-ban"></i></span><span><span style="display:block;font-size:13px;color:#52606D">Suspended</span><span style="display:block;font-size:26px;font-weight:700;line-height:1.2">1</span></span></div>
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px"><span style="width:40px;height:40px;border-radius:999px;background:#E7F6F5;color:#0B8583;display:flex;align-items:center;justify-content:center"><i class="pi pi-shield"></i></span><span><span style="display:block;font-size:13px;color:#52606D">Owners</span><span style="display:block;font-size:26px;font-weight:700;line-height:1.2">1</span></span></div>
+        </div>
+
+        <section aria-labelledby="h-users" style="background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px;padding:20px 24px 16px;margin-bottom:16px">
+          <h2 id="h-users" style="margin:0 0 12px;font-size:20px;font-weight:700">Users</h2>
+          <div role="note" style="display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid #BFDCE8;border-radius:8px;background:#EAF4F8;color:#1D6485;font-size:13px;margin-bottom:16px"><i class="pi pi-info-circle"></i><span>User access controls sign-in and permissions. Skills, workload, and availability are managed in <a href="#" style="color:#1D6485;text-decoration:underline;font-weight:600">Team</a>.</span></div>
+          <div style="display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <label style="flex:1;min-width:220px;max-width:320px;position:relative;display:block"><span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search users</span><i class="pi pi-search" style="position:absolute;left:12px;top:12px;color:#7B8794"></i><input placeholder="Search by name or email…" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px 0 36px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+            <div style="display:flex;flex-direction:column;gap:4px;width:170px"><span style="font-size:12px;font-weight:600;color:#52606D">Role</span><button type="button" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>All roles</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button></div>
+            <div style="display:flex;flex-direction:column;gap:4px;width:180px"><span style="font-size:12px;font-weight:600;color:#52606D">Branch access</span><button type="button" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>All branches</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button></div>
+            <div style="display:flex;flex-direction:column;gap:4px;width:170px"><span style="font-size:12px;font-weight:600;color:#52606D">Account status</span><button type="button" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>All statuses</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button></div>
+            <button type="button" style="height:40px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#0B8583;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#E7F6F5">Clear filters</button>
+          </div>
+
+          <sc-if value="{{ isError }}" hint-placeholder-val="{{ false }}">
+            <div role="alert" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #F2C4C4;border-radius:8px;background:#FDECEC;color:#A12F2F"><i class="pi pi-exclamation-circle"></i><span style="flex:1">We couldn't load users. Check your connection and try again.</span><button type="button" style="height:32px;padding:0 12px;border:1px solid #C93C3C;border-radius:6px;background:#FFFFFF;color:#A12F2F;font:inherit;font-weight:600;cursor:pointer"><i class="pi pi-refresh" style="font-size:12px;margin-right:6px"></i>Retry</button></div>
+          </sc-if>
+          <sc-if value="{{ showTable }}" hint-placeholder-val="{{ true }}">
+            <div style="overflow-x:auto;border:1px solid #D9E2EC;border-radius:8px">
+              <table style="width:100%;border-collapse:collapse;min-width:900px">
+                <thead><tr style="background:#F8FAFC;text-align:left;font-size:13px;color:#52606D">
+                  <th scope="col" aria-sort="ascending" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">User <i class="pi pi-arrow-up" style="font-size:11px;margin-left:4px"></i></th>
+                  <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Role</th>
+                  <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Branch access</th>
+                  <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Linked team profile</th>
+                  <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Status</th>
+                  <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC">Last active</th>
+                  <th scope="col" style="padding:10px 16px;font-weight:600;border-bottom:1px solid #D9E2EC;text-align:right">Actions</th>
+                </tr></thead>
+                <tbody>
+                  <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+                    <sc-for list="{{ skeletonRows }}" as="s" hint-placeholder-count="6">
+                      <tr><td colspan="7" style="padding:14px 16px;border-bottom:1px solid #E9EEF3"><div style="display:flex;align-items:center;gap:20px"><div style="width:32px;height:32px;border-radius:999px;background:#E9EEF3"></div><div style="height:14px;width:18%;border-radius:4px;background:#E9EEF3"></div><div style="height:14px;width:12%;border-radius:4px;background:#E9EEF3"></div><div style="height:14px;width:20%;border-radius:4px;background:#E9EEF3"></div><div style="height:14px;width:10%;border-radius:4px;background:#E9EEF3"></div></div></td></tr>
+                    </sc-for>
+                  </sc-if>
+                  <sc-if value="{{ showRows }}" hint-placeholder-val="{{ true }}">
+                    <sc-for list="{{ users }}" as="u" hint-placeholder-count="6">
+                      <tr style-hover="background:#F8FAFC">
+                        <td style="padding:10px 16px;border-bottom:1px solid #E9EEF3"><div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:32px;flex-shrink:0;border-radius:999px;background:#EEF2F6;color:#102A43;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center">{{ u.initials }}</span><span style="display:flex;flex-direction:column;line-height:1.3"><span style="font-weight:600">{{ u.name }}</span><span style="font-size:12px;color:#52606D">{{ u.email }}</span></span></div></td>
+                        <td style="padding:10px 16px;border-bottom:1px solid #E9EEF3"><span style="display:inline-flex;align-items:center;height:24px;padding:0 10px;border-radius:999px;background:#EEF2F6;color:#3E4C59;font-size:12px;font-weight:600;white-space:nowrap">{{ u.role }}</span></td>
+                        <td style="padding:10px 16px;border-bottom:1px solid #E9EEF3">{{ u.branches }}</td>
+                        <td style="padding:10px 16px;border-bottom:1px solid #E9EEF3"><span style="display:inline-flex;align-items:center;gap:6px;color:{{ u.linkColor }}"><i class="{{ u.linkIcon }}" style="font-size:12px"></i>{{ u.link }}</span></td>
+                        <td style="padding:10px 16px;border-bottom:1px solid #E9EEF3"><span style="display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 10px;border-radius:999px;background:{{ u.statusBg }};color:{{ u.statusFg }};font-size:12px;font-weight:600;white-space:nowrap"><i class="{{ u.statusIcon }}" style="font-size:11px"></i>{{ u.status }}</span></td>
+                        <td style="padding:10px 16px;border-bottom:1px solid #E9EEF3;color:#52606D;white-space:nowrap">{{ u.last }}</td>
+                        <td style="padding:8px 12px;border-bottom:1px solid #E9EEF3;text-align:right;white-space:nowrap">
+                          <sc-if value="{{ canEdit }}" hint-placeholder-val="{{ true }}">
+                            <div style="display:inline-flex;align-items:center;gap:4px"><button type="button" style="height:32px;padding:0 12px;border:1px solid #BCCCDC;border-radius:6px;background:#FFFFFF;color:#172B4D;font:inherit;font-size:13px;font-weight:600;cursor:pointer" style-hover="background:#F8FAFC">Edit access</button><button type="button" aria-label="{{ u.menuLabel }}" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#E9EEF3"><i class="pi pi-ellipsis-v"></i></button></div>
+                          </sc-if>
+                          <sc-if value="{{ isReadOnly }}" hint-placeholder-val="{{ false }}"><span style="color:#7B8794;font-size:13px">View only</span></sc-if>
+                        </td>
+                      </tr>
+                    </sc-for>
+                  </sc-if>
+                </tbody>
+              </table>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:12px;font-size:13px;color:#52606D">
+              <span>Showing 1–6 of 24 users</span>
+              <div style="display:flex;align-items:center;gap:4px">
+                <button type="button" aria-label="Previous page" disabled="{{ true }}" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:#9AA5B1"><i class="pi pi-chevron-left" style="font-size:12px"></i></button>
+                <button type="button" aria-current="page" style="width:32px;height:32px;border:0;border-radius:6px;background:#E7F6F5;color:#0B8583;font:inherit;font-weight:700">1</button>
+                <button type="button" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:#172B4D;font:inherit;cursor:pointer" style-hover="background:#F4F7FA">2</button>
+                <button type="button" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:#172B4D;font:inherit;cursor:pointer" style-hover="background:#F4F7FA">3</button>
+                <button type="button" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:#172B4D;font:inherit;cursor:pointer" style-hover="background:#F4F7FA">4</button>
+                <button type="button" aria-label="Next page" style="width:32px;height:32px;border:0;border-radius:6px;background:transparent;color:#172B4D;cursor:pointer" style-hover="background:#F4F7FA"><i class="pi pi-chevron-right" style="font-size:12px"></i></button>
+              </div>
+            </div>
+          </sc-if>
+        </section>
+
+        <section aria-labelledby="h-matrix" style="background:#FFFFFF;border:1px solid #D9E2EC;border-radius:10px;padding:20px 24px 20px">
+          <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:12px">
+            <h2 id="h-matrix" style="margin:0;font-size:20px;font-weight:700">Permission matrix</h2>
+            <span style="font-size:13px;color:#52606D">Predefined roles. Access is also limited to each user's assigned branches.</span>
+          </div>
+          <div style="overflow-x:auto;border:1px solid #D9E2EC;border-radius:8px">
+            <table style="width:100%;border-collapse:collapse;min-width:880px;font-size:13px">
+              <thead><tr style="background:#F8FAFC;color:#52606D">
+                <th scope="col" style="padding:10px 16px;text-align:left;font-weight:600;border-bottom:1px solid #D9E2EC">Module</th>
+                <th scope="col" style="padding:10px 8px;font-weight:600;border-bottom:1px solid #D9E2EC">Owner</th>
+                <th scope="col" style="padding:10px 8px;font-weight:600;border-bottom:1px solid #D9E2EC">Operations Manager</th>
+                <th scope="col" style="padding:10px 8px;font-weight:600;border-bottom:1px solid #D9E2EC">Dispatcher</th>
+                <th scope="col" style="padding:10px 8px;font-weight:600;border-bottom:1px solid #D9E2EC">Technician</th>
+                <th scope="col" style="padding:10px 8px;font-weight:600;border-bottom:1px solid #D9E2EC">Accounting</th>
+                <th scope="col" style="padding:10px 8px;font-weight:600;border-bottom:1px solid #D9E2EC">Viewer</th>
+              </tr></thead>
+              <tbody>
+                <sc-for list="{{ matrix }}" as="m" hint-placeholder-count="9">
+                  <tr>
+                    <th scope="row" style="padding:8px 16px;text-align:left;font-weight:500;border-bottom:1px solid #E9EEF3;white-space:nowrap"><i class="{{ m.icon }}" style="font-size:13px;color:#52606D;margin-right:10px;width:14px"></i>{{ m.module }}</th>
+                    <sc-for list="{{ m.cells }}" as="c" hint-placeholder-count="6">
+                      <td style="padding:6px 8px;text-align:center;border-bottom:1px solid #E9EEF3"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:96px;height:22px;padding:0 10px;border-radius:999px;background:{{ c.bg }};color:{{ c.fg }};font-size:12px;font-weight:600;white-space:nowrap">{{ c.label }}</span></td>
+                    </sc-for>
+                  </tr>
+                </sc-for>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:#52606D">
+            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:999px;background:#0F9D9A"></span>Full / Edit: create and change records</span>
+            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:999px;background:#247BA0"></span>View: read only</span>
+            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:999px;background:#C47A12"></span>Limited: scoped subset</span>
+            <span style="display:inline-flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:999px;background:#9AA5B1"></span>None: no access</span>
+          </div>
+        </section>
+      </main>
+
+      <sc-if value="{{ inviteOpen }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ overlay }}" hint-placeholder-val="{{ false }}"><div onClick="{{ closeAny }}" style="position:fixed;left:0;right:0;top:64px;bottom:0;background:rgba(16,42,67,0.32);z-index:39"></div></sc-if>
+        <aside role="dialog" aria-labelledby="h-invite" style="width:400px;max-width:100vw;flex-shrink:0;position:{{ dPos }};top:{{ dTop }};right:0;bottom:0;z-index:40;background:#FFFFFF;border-left:1px solid #D9E2EC;display:flex;flex-direction:column;min-height:0;box-shadow:-8px 0 24px rgba(16,42,67,0.06)">
+          <div style="display:flex;align-items:center;gap:10px;padding:18px 20px;border-bottom:1px solid #D9E2EC">
+            <h2 id="h-invite" style="margin:0;font-size:20px;font-weight:700;flex:1">Invite user</h2>
+            <button type="button" aria-label="Close invite user" onClick="{{ closeInvite }}" style="width:36px;height:36px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#F4F7FA"><i class="pi pi-times"></i></button>
+          </div>
+          <div style="flex:1;min-height:0;overflow:auto;padding:20px;display:flex;flex-direction:column;gap:16px">
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Email address <span style="color:#C93C3C">*</span></span><input type="email" defaultValue="olivia.carter@company.com" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px">
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">First name <span style="color:#C93C3C">*</span></span><input defaultValue="Olivia" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+              <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Last name <span style="color:#C93C3C">*</span></span><input defaultValue="Carter" style="height:40px;width:100%;border:1px solid #D9E2EC;border-radius:6px;padding:0 12px;font:inherit;font-size:14px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)"></label>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600">Role <span style="color:#C93C3C">*</span></span><button type="button" style="height:40px;width:100%;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>Dispatcher</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button></div>
+            <fieldset style="border:0;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
+              <legend style="font-size:13px;font-weight:600;padding:0;margin-bottom:10px">Branch access <span style="color:#C93C3C">*</span></legend>
+              <sc-for list="{{ branchChecks }}" as="bc" hint-placeholder-count="4">
+                <label style="display:flex;align-items:center;gap:10px;cursor:pointer" onClick="{{ bc.toggle }}">
+                  <span role="checkbox" aria-checked="{{ bc.aria }}" tabindex="0" style="width:20px;height:20px;border-radius:4px;border:1px solid {{ bc.border }};background:{{ bc.bg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center"><i class="pi pi-check" style="font-size:11px;opacity:{{ bc.opacity }}"></i></span>
+                  <span>{{ bc.name }}</span>
+                </label>
+              </sc-for>
+            </fieldset>
+            <div style="display:flex;gap:12px;padding:14px 16px;border-radius:8px;background:#F8FAFC;border:1px solid #D9E2EC">
+              <i class="pi pi-id-card" style="color:#0B8583;margin-top:3px"></i>
+              <div><div style="font-weight:600;margin-bottom:4px">Dispatcher role summary</div><p style="margin:0;font-size:13px;color:#52606D;text-wrap:pretty">Can manage customers, requests, quotes, work orders, scheduling, and technician assignment in assigned branches. Cannot change company settings or view the audit log.</p></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <i class="pi pi-link" style="color:#52606D"></i>
+              <span style="flex:1">Link operational team profile after acceptance</span>
+              <span role="switch" aria-checked="{{ linkAria }}" aria-label="Link operational team profile after acceptance" tabindex="0" onClick="{{ toggleLink }}" style="width:40px;height:22px;flex-shrink:0;border-radius:999px;background:{{ linkBg }};position:relative;cursor:pointer"><span style="position:absolute;top:2px;left:{{ linkKnob }};width:18px;height:18px;border-radius:999px;background:#FFFFFF;transition:left .15s"></span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <i class="pi pi-clock" style="color:#52606D"></i>
+              <span style="flex:1">Invitation expires in</span>
+              <button type="button" aria-label="Invitation expires in" style="height:36px;width:120px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border:1px solid #D9E2EC;border-radius:6px;background:#FFFFFF;font:inherit;font-size:14px;color:#172B4D;cursor:pointer"><span>7 days</span><i class="pi pi-chevron-down" style="font-size:11px;color:#52606D"></i></button>
+            </div>
+            <div role="note" style="display:flex;gap:10px;padding:12px 14px;border:1px solid #BFDCE8;border-radius:8px;background:#EAF4F8;color:#1D6485;font-size:13px">
+              <i class="pi pi-info-circle" style="margin-top:2px"></i>
+              <div><div style="font-weight:600;margin-bottom:4px">Safety notes</div>
+                <ul style="margin:0;padding-left:16px;display:flex;flex-direction:column;gap:2px">
+                  <li>The last Owner cannot be suspended or downgraded.</li>
+                  <li>Suspending access preserves work orders and audit history.</li>
+                  <li>Viewers only see modules explicitly granted. Company settings and audit log stay unavailable.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;padding:14px 20px;border-top:1px solid #D9E2EC">
+            <button type="button" onClick="{{ closeInvite }}" style="flex:1;height:40px;border:1px solid #BCCCDC;border-radius:6px;background:#FFFFFF;color:#172B4D;font:inherit;font-weight:600;cursor:pointer" style-hover="background:#F8FAFC">Cancel</button>
+            <button type="button" onClick="{{ sendInvite }}" style="flex:1;height:40px;border:0;border-radius:6px;background:#0F9D9A;color:#FFFFFF;font:inherit;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#0B8583"><i class="pi pi-send"></i>Send invitation</button>
+          </div>
+        </aside>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div role="status" aria-live="polite" style="position:fixed;top:76px;right:24px;z-index:50;display:flex;align-items:center;gap:10px;min-width:300px;padding:12px 16px;background:#FFFFFF;border:1px solid #D9E2EC;border-radius:8px;box-shadow:0 8px 24px rgba(16,42,67,0.14)"><i class="pi pi-check-circle" style="color:#168A5B;font-size:18px"></i><span style="flex:1;font-weight:500">{{ toast }}</span></div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;viewState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Default&quot;,&quot;Loading&quot;,&quot;Error&quot;,&quot;Read-only (Viewer)&quot;],&quot;default&quot;:&quot;Default&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { invite: true, link: true, toast: null, checks: [true, true, false, false] };
+  componentDidMount() { this.onR = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onR); }
+  componentWillUnmount() { clearTimeout(this.t); window.removeEventListener('resize', this.onR); }
+  toast(msg) { clearTimeout(this.t); this.setState({ toast: msg }); this.t = setTimeout(() => this.setState({ toast: null }), 3500); }
+  renderVals() {
+    const vs = this.props.viewState ?? 'Default';
+    const isReadOnly = vs === 'Read-only (Viewer)', isLoading = vs === 'Loading', isError = vs === 'Error';
+    const s = this.state;
+    const W = s.w ?? window.innerWidth, overlayMode = W < 1440;
+    const layout = { showSubnav: W >= 1100, dPos: overlayMode ? 'fixed' : 'relative', dTop: overlayMode ? '64px' : '0' };
+    const ST = {
+      'Active': ['#E7F6EE', '#136F4A', 'pi pi-check-circle'],
+      'Pending invitation': ['#FFF4DD', '#8A5509', 'pi pi-clock'],
+      'Suspended': ['#FDECEC', '#A12F2F', 'pi pi-ban']
+    };
+    const users = [
+      ['AM', 'Alex Morgan', 'alex@fieldops.com', 'Owner', 'All branches', null, 'Active', 'Now'],
+      ['MT', 'Maya Thompson', 'maya@fieldops.com', 'Operations Manager', 'All branches', 'Maya Thompson', 'Active', '8 min ago'],
+      ['DK', 'Daniel Kim', 'daniel@fieldops.com', 'Accounting', 'All branches', 'Daniel Kim', 'Active', '22 min ago'],
+      ['OB', 'Olivia Bennett', 'olivia@fieldops.com', 'Dispatcher', 'Austin Central, North Austin', 'Olivia Bennett', 'Active', '5 min ago'],
+      ['CR', 'Carlos Rivera', 'carlos@fieldops.com', 'Technician', 'Austin Central', 'Carlos Rivera', 'Active', '1 hr ago'],
+      ['SL', 'Samantha Lee', 'samantha@fieldops.com', 'Viewer', 'North Austin', '', 'Pending invitation', 'Never']
+    ].map(([initials, name, email, role, branches, link, status, last]) => ({
+      initials, name, email, role, branches, status, last, menuLabel: 'More actions for ' + name,
+      link: link === null ? 'Not applicable' : link || 'Not linked',
+      linkIcon: link ? 'pi pi-id-card' : 'pi pi-minus',
+      linkColor: link ? '#172B4D' : '#7B8794',
+      statusBg: ST[status][0], statusFg: ST[status][1], statusIcon: ST[status][2]
+    }));
+    const L = {
+      Full: ['#E7F6F5', '#0B6E6C'], Edit: ['#E7F6F5', '#0B6E6C'], View: ['#EAF4F8', '#1D6485'],
+      None: ['#EEF2F6', '#52606D']
+    };
+    const cell = l => { const c = L[l] || ['#FFF4DD', '#8A5509']; return { label: l, bg: c[0], fg: c[1] }; };
+    const matrix = [
+      ['pi pi-th-large', 'Overview', ['Full', 'View', 'View', 'None', 'View', 'View if granted']],
+      ['pi pi-users', 'Customers', ['Full', 'View', 'Edit', 'Assigned only', 'View', 'View if granted']],
+      ['pi pi-inbox', 'Requests & quotes', ['Full', 'View', 'Edit', 'None', 'View', 'View if granted']],
+      ['pi pi-wrench', 'Work orders & schedule', ['Full', 'Edit', 'Edit', 'Assigned only', 'Completed only', 'View if granted']],
+      ['pi pi-receipt', 'Invoices & payments', ['Full', 'View', 'View', 'None', 'Edit', 'View if granted']],
+      ['pi pi-chart-bar', 'Reports', ['Full', 'View', 'View', 'None', 'Financial only', 'View if granted']],
+      ['pi pi-id-card', 'Team', ['Full', 'Edit', 'View', 'Own profile', 'None', 'None']],
+      ['pi pi-cog', 'Company settings', ['Full', 'None', 'None', 'None', 'None', 'None']],
+      ['pi pi-history', 'Audit log', ['Full', 'View', 'None', 'None', 'Financial only', 'None']]
+    ].map(([icon, module, cells]) => ({ icon, module, cells: cells.map(cell) }));
+    const names = ['Austin Central', 'North Austin', 'Round Rock', 'All branches'];
+    return {
+      isReadOnly, isLoading, isError, canEdit: !isReadOnly, ...layout,
+      overlay: overlayMode && s.invite && !isReadOnly, closeAny: () => this.setState({ invite: false }),
+      showTable: !isError, showRows: !isLoading && !isError, skeletonRows: [1, 2, 3, 4, 5, 6],
+      users, matrix,
+      inviteOpen: s.invite && !isReadOnly,
+      openInvite: () => this.setState({ invite: true }),
+      closeInvite: () => this.setState({ invite: false }),
+      sendInvite: () => { this.setState({ invite: false }); this.toast('Invitation sent to olivia.carter@company.com'); },
+      branchChecks: names.map((name, i) => {
+        const on = s.checks[i];
+        return {
+          name, aria: on ? 'true' : 'false', bg: on ? '#0F9D9A' : '#FFFFFF', border: on ? '#0F9D9A' : '#BCCCDC', opacity: on ? 1 : 0,
+          toggle: e => {
+            e.preventDefault();
+            this.setState(st => {
+              let c = st.checks.slice();
+              if (i === 3) c = c[3] ? [false, false, false, false] : [true, true, true, true];
+              else { c[i] = !c[i]; c[3] = c[0] && c[1] && c[2]; }
+              return { checks: c };
+            });
+          }
+        };
+      }),
+      linkAria: s.link ? 'true' : 'false', linkBg: s.link ? '#0F9D9A' : '#BCCCDC', linkKnob: s.link ? '20px' : '2px',
+      toggleLink: () => this.setState(st => ({ link: !st.link })),
+      toast: s.toast
+    };
+  }
+}
+</script>
+</body>
+</html>

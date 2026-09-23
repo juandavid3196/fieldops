@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://unpkg.com/primeicons@7.0.0/primeicons.css">
+<script src="./image-slot.js"></script>
+<style>
+html,body{margin:0;background:#FFFFFF;color:#172B4D;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#0B8583;text-decoration:none}a:hover{color:#0F9D9A;text-decoration:underline}
+</style>
+</helmet>
+<div style="display:flex;min-height:100vh;font-size:14px;line-height:1.45">
+  <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+    <aside aria-hidden="false" style="flex:1 1 55%;min-width:0;position:relative;background:#102A43;color:#FFFFFF;overflow:hidden;display:flex;flex-direction:column">
+      <img src="assets/signin-background.png" alt="FieldOps technician reviewing a job on a tablet next to a service van" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center bottom">
+      <div style="position:absolute;left:0;right:0;top:0;height:78%;background:linear-gradient(180deg,rgba(11,34,57,0.35) 0%,rgba(11,34,57,0.25) 70%,rgba(11,34,57,0) 100%);pointer-events:none"></div>
+      <div style="position:relative;padding:28px clamp(32px,3.5vw,56px) 32px clamp(40px,12vw,22%);max-width:100%;display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:12px"><svg width="56" height="40" viewBox="0 0 56 40" aria-hidden="true"><path d="M20 2 L38 36 H2 Z" fill="#2BB5B0"></path><path d="M34 12 L54 36 H22 Z" fill="#8FDCD8"></path><path d="M20 2 L30 21 L22 36 H2 Z" fill="#0F9D9A"></path></svg><span style="font-size:30px;font-weight:700;letter-spacing:-0.02em;line-height:1"><span style="color:#FFFFFF">Field</span><span style="color:#2BB5B0">Ops</span></span></div>
+        <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;font-size:11px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;color:#D9E2EC"><span>People</span><span>Work</span><span>Customers</span><span>For a brighter tomorrow</span></div>
+        <h1 style="margin:36px 0 0;font-size:clamp(34px,2.8vw,46px);line-height:1.06;font-weight:700;letter-spacing:-0.025em;color:#FFFFFF;max-width:600px">Run every service job from one place</h1>
+        <p style="margin:18px 0 0;font-size:18px;line-height:1.4;color:#E9EEF3;max-width:580px;text-wrap:pretty">Schedule, dispatch, track field work, delight customers, and get paid — all in FieldOps.</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:16px;margin-top:28px;max-width:664px">
+          <div style="background:#E7F6EE;border:1px solid #C6E8D6;color:#172B4D;border-radius:10px;padding:16px;display:flex;gap:14px;align-items:flex-start;min-height:100px"><span style="width:40px;height:40px;flex-shrink:0;border-radius:9px;background:#168A5B;color:#FFFFFF;display:flex;align-items:center;justify-content:center"><i class="pi pi-check" style="font-size:20px"></i></span><span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:600;line-height:1.25;color:#172B4D">Request approved</span><span style="font-size:12px;line-height:1.4;color:#52606D">Customer request in, ready to schedule.</span></span></div>
+          <div style="background:#EAF4F8;border:1px solid #C9E1EC;color:#172B4D;border-radius:10px;padding:16px;display:flex;gap:14px;align-items:flex-start;min-height:100px"><span style="width:40px;height:40px;flex-shrink:0;border-radius:9px;background:#247BA0;color:#FFFFFF;display:flex;align-items:center;justify-content:center"><i class="pi pi-user" style="font-size:20px"></i></span><span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:600;line-height:1.25;color:#172B4D">Technician assigned</span><span style="font-size:12px;line-height:1.4;color:#52606D">The right person for the job.</span></span></div>
+          <div style="background:#EFEEFB;border:1px solid #D9D6F3;color:#172B4D;border-radius:10px;padding:16px;display:flex;gap:14px;align-items:flex-start;min-height:100px"><span style="width:40px;height:40px;flex-shrink:0;border-radius:9px;background:#7C74D6;color:#FFFFFF;display:flex;align-items:center;justify-content:center"><i class="pi pi-file" style="font-size:20px"></i></span><span style="display:flex;flex-direction:column;gap:6px"><span style="font-size:15px;font-weight:600;line-height:1.25;color:#172B4D">Invoice paid</span><span style="font-size:12px;line-height:1.4;color:#52606D">Work complete. Payment received.</span></span></div>
+        </div>
+        <ul style="list-style:none;margin:32px 0 0;padding:0 0 0 clamp(0px,4vw,80px);display:flex;flex-direction:column;gap:22px">
+          <li style="display:flex;gap:28px;align-items:center"><i class="pi pi-calendar" style="font-size:26px;color:#FFFFFF;width:32px;text-align:center"></i><span><span style="display:block;font-size:15px;font-weight:600;color:#FFFFFF">Work runs smoother</span><span style="display:block;font-size:14px;color:#D9E2EC">From requests to payments, all in one place.</span></span></li>
+          <li style="display:flex;gap:28px;align-items:center"><i class="pi pi-users" style="font-size:26px;color:#FFFFFF;width:32px;text-align:center"></i><span><span style="display:block;font-size:15px;font-weight:600;color:#FFFFFF">Happier customers</span><span style="display:block;font-size:14px;color:#D9E2EC">Faster response times and clear communication.</span></span></li>
+          <li style="display:flex;gap:28px;align-items:center"><i class="pi pi-chart-bar" style="font-size:26px;color:#FFFFFF;width:32px;text-align:center"></i><span><span style="display:block;font-size:15px;font-weight:600;color:#FFFFFF">A more profitable business</span><span style="display:block;font-size:14px;color:#D9E2EC">Less admin work. More time for what matters.</span></span></li>
+        </ul>
+      </div>
+    </aside>
+  </sc-if>
+
+  <main style="flex:1 1 45%;min-width:0;display:flex;flex-direction:column;padding:24px 32px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px">
+      <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:8px"><svg width="34" height="24" viewBox="0 0 56 40" aria-hidden="true"><path d="M20 2 L38 36 H2 Z" fill="#2BB5B0"></path><path d="M34 12 L54 36 H22 Z" fill="#8FDCD8"></path><path d="M20 2 L30 21 L22 36 H2 Z" fill="#0F9D9A"></path></svg><span style="font-size:22px;font-weight:700;letter-spacing:-0.02em"><span style="color:#102A43">Field</span><span style="color:#0F9D9A">Ops</span></span></div></sc-if>
+      <div style="flex:1"></div>
+      <span style="color:#52606D">Need service?</span>
+      <a href="#" style="height:40px;display:inline-flex;align-items:center;padding:0 16px;border:1px solid #0F9D9A;border-radius:6px;color:#0B8583;font-weight:600;text-decoration:none" style-hover="background:#E7F6F5">Request a service</a>
+    </div>
+
+    <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:32px 0">
+      <div style="width:100%;max-width:440px">
+        <h2 style="margin:0;font-size:32px;font-weight:700;text-align:center;letter-spacing:-0.01em;color:#102A43">Welcome back</h2>
+        <p style="margin:6px 0 28px;text-align:center;color:#52606D;font-size:16px">Sign in to continue to FieldOps</p>
+
+        <sc-if value="{{ authError }}" hint-placeholder-val="{{ false }}">
+          <div role="alert" style="display:flex;gap:10px;padding:12px 14px;margin-bottom:16px;border:1px solid #F2C4C4;border-radius:8px;background:#FDECEC;color:#A12F2F;font-size:13px"><i class="pi pi-exclamation-circle" style="margin-top:2px"></i><span>The email or password is incorrect. Check your details and try again.</span></div>
+        </sc-if>
+
+        <form onSubmit="{{ submit }}" noValidate="{{ true }}" style="display:flex;flex-direction:column;gap:16px">
+          <label style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Email</span>
+            <input type="email" autoComplete="email" value="{{ email }}" onChange="{{ onEmail }}" aria-invalid="{{ emailInvalid }}" aria-describedby="email-err" style="height:48px;width:100%;border:1px solid {{ emailBorder }};border-radius:8px;padding:0 14px;font:inherit;font-size:15px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)">
+            <sc-if value="{{ emailErr }}" hint-placeholder-val="{{ false }}"><span id="email-err" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#C93C3C"><i class="pi pi-exclamation-circle" style="font-size:12px"></i>{{ emailErr }}</span></sc-if>
+          </label>
+          <label style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Password</span>
+            <span style="position:relative;display:block">
+              <input type="{{ pwType }}" autoComplete="current-password" value="{{ password }}" onChange="{{ onPassword }}" aria-invalid="{{ pwInvalid }}" aria-describedby="pw-err" style="height:48px;width:100%;border:1px solid {{ pwBorder }};border-radius:8px;padding:0 48px 0 14px;font:inherit;font-size:15px;color:#172B4D;background:#FFFFFF;outline:none" style-focus="border-color:#0F9D9A;box-shadow:0 0 0 3px rgba(15,157,154,0.24)">
+              <button type="button" onClick="{{ togglePw }}" aria-label="{{ pwToggleLabel }}" style="position:absolute;right:4px;top:4px;width:40px;height:40px;border:0;border-radius:6px;background:transparent;color:#52606D;cursor:pointer" style-hover="background:#F4F7FA"><i class="{{ pwIcon }}" style="font-size:16px"></i></button>
+            </span>
+            <sc-if value="{{ pwErr }}" hint-placeholder-val="{{ false }}"><span id="pw-err" style="display:flex;align-items:center;gap:6px;font-size:12px;color:#C93C3C"><i class="pi pi-exclamation-circle" style="font-size:12px"></i>{{ pwErr }}</span></sc-if>
+          </label>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+            <label onClick="{{ toggleRemember }}" style="display:flex;align-items:center;gap:10px;cursor:pointer">
+              <span role="checkbox" aria-checked="{{ rememberAria }}" tabindex="0" style="width:20px;height:20px;border-radius:4px;border:1px solid {{ rememberBorder }};background:{{ rememberBg }};color:#FFFFFF;display:flex;align-items:center;justify-content:center"><i class="pi pi-check" style="font-size:11px;opacity:{{ rememberOpacity }}"></i></span>
+              <span>Remember me</span>
+            </label>
+            <a href="#" style="font-weight:600">Forgot password?</a>
+          </div>
+          <button type="submit" disabled="{{ busy }}" style="height:48px;border:0;border-radius:8px;background:{{ submitBg }};color:#FFFFFF;font:inherit;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px" style-hover="background:#0B8583"><sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}"><i class="pi pi-spin pi-spinner"></i></sc-if>{{ submitLabel }}</button>
+        </form>
+
+        <section aria-labelledby="h-other" style="margin-top:28px;border:1px solid #D9E2EC;border-radius:10px;background:#F8FAFC;padding:16px">
+          <h3 id="h-other" style="margin:0 0 12px;font-size:16px;font-weight:600">Other ways to get started</h3>
+          <div style="background:#FFFFFF;border:1px solid #D9E2EC;border-radius:8px;overflow:hidden">
+            <a href="#" style="display:flex;align-items:center;gap:14px;padding:12px 14px;text-decoration:none;border-bottom:1px solid #E9EEF3" style-hover="background:#F8FAFC"><i class="pi pi-envelope" style="font-size:20px;color:#0B8583;width:24px"></i><span style="flex:1"><span style="display:block;font-weight:600;color:#102A43">Accept an invitation</span><span style="display:block;font-size:13px;color:#52606D">Join your company or customer portal</span></span><i class="pi pi-chevron-right" style="font-size:12px;color:#7B8794"></i></a>
+            <a href="#" style="display:flex;align-items:center;gap:14px;padding:12px 14px;text-decoration:none;border-bottom:1px solid #E9EEF3" style-hover="background:#F8FAFC"><i class="pi pi-building" style="font-size:20px;color:#0B8583;width:24px"></i><span style="flex:1"><span style="display:block;font-weight:600;color:#102A43">Create a company account</span><span style="display:block;font-size:13px;color:#52606D">For service business owners</span></span><i class="pi pi-chevron-right" style="font-size:12px;color:#7B8794"></i></a>
+            <a href="#" style="display:flex;align-items:center;gap:14px;padding:12px 14px;text-decoration:none" style-hover="background:#F8FAFC"><i class="pi pi-user" style="font-size:20px;color:#0B8583;width:24px"></i><span style="flex:1"><span style="display:block;font-weight:600;color:#102A43">Request a service</span><span style="display:block;font-size:13px;color:#52606D">Continue as a guest</span></span><i class="pi pi-chevron-right" style="font-size:12px;color:#7B8794"></i></a>
+          </div>
+          <p style="display:flex;gap:8px;margin:12px 0 0;font-size:13px;color:#1D6485"><i class="pi pi-info-circle" style="margin-top:2px"></i><span>Guest requests don't create an account. You can accept an invitation later.</span></p>
+        </section>
+      </div>
+    </div>
+
+    <footer style="display:flex;align-items:center;gap:20px;font-size:13px;flex-wrap:wrap">
+      <a href="#" style="color:#52606D">Privacy</a><a href="#" style="color:#52606D">Terms</a><a href="#" style="color:#52606D">Help</a>
+      <div style="flex:1"></div>
+      <button type="button" aria-label="Language" style="height:36px;display:flex;align-items:center;gap:8px;padding:0 10px;border:0;border-radius:6px;background:transparent;color:#172B4D;font:inherit;cursor:pointer" style-hover="background:#F4F7FA"><i class="pi pi-globe"></i>English<i class="pi pi-chevron-down" style="font-size:11px"></i></button>
+    </footer>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;viewState&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Default&quot;,&quot;Validation error&quot;,&quot;Invalid credentials&quot;,&quot;Signing in&quot;],&quot;default&quot;:&quot;Default&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  state = { email: 'sofia.martinez@example.com', password: 'fieldops2026', showPw: false, remember: true, touched: false, busy: false, w: window.innerWidth };
+  componentDidMount() { this.onR = () => this.setState({ w: window.innerWidth }); window.addEventListener('resize', this.onR); }
+  componentWillUnmount() { window.removeEventListener('resize', this.onR); clearTimeout(this.t); }
+  componentDidUpdate(pp) {
+    if (pp.viewState !== this.props.viewState) {
+      const v = this.props.viewState;
+      if (v === 'Validation error') this.setState({ email: 'sofia.martinez@', password: '', touched: true, busy: false });
+      else this.setState({ email: 'sofia.martinez@example.com', password: 'fieldops2026', touched: false, busy: false });
+    }
+  }
+  renderVals() {
+    const s = this.state, vs = this.props.viewState ?? 'Default';
+    const busy = s.busy || vs === 'Signing in';
+    const emailErr = s.touched ? (!s.email ? 'Enter your email address.' : !/^\S+@\S+\.\S+$/.test(s.email) ? 'Enter a valid email address, for example name@company.com.' : '') : '';
+    const pwErr = s.touched && !s.password ? 'Enter your password.' : '';
+    const bad = c => c ? '#C93C3C' : '#D9E2EC';
+    return {
+      wide: s.w >= 1024, narrow: s.w < 1024,
+      email: s.email, password: s.password,
+      onEmail: e => this.setState({ email: e.target.value }),
+      onPassword: e => this.setState({ password: e.target.value }),
+      emailErr, pwErr, emailInvalid: emailErr ? 'true' : 'false', pwInvalid: pwErr ? 'true' : 'false',
+      emailBorder: bad(emailErr), pwBorder: bad(pwErr),
+      authError: vs === 'Invalid credentials',
+      pwType: s.showPw ? 'text' : 'password', pwIcon: s.showPw ? 'pi pi-eye-slash' : 'pi pi-eye',
+      pwToggleLabel: s.showPw ? 'Hide password' : 'Show password',
+      togglePw: () => this.setState(st => ({ showPw: !st.showPw })),
+      rememberAria: s.remember ? 'true' : 'false', rememberBg: s.remember ? '#0F9D9A' : '#FFFFFF', rememberBorder: s.remember ? '#0F9D9A' : '#BCCCDC', rememberOpacity: s.remember ? 1 : 0,
+      toggleRemember: e => { e.preventDefault(); this.setState(st => ({ remember: !st.remember })); },
+      busy, submitLabel: busy ? 'Signing in…' : 'Sign in', submitBg: busy ? '#0B8583' : '#0F9D9A',
+      submit: e => {
+        e.preventDefault();
+        const ok = /^\S+@\S+\.\S+$/.test(s.email) && s.password;
+        this.setState({ touched: true });
+        if (!ok) return;
+        this.setState({ busy: true }); this.t = setTimeout(() => this.setState({ busy: false }), 1600);
+      }
+    };
+  }
+}
+</script>
+</body>
+</html>
