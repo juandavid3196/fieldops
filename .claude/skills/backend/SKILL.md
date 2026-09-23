@@ -1,0 +1,159 @@
+---
+name: backend
+description: Implement the backend portion of an approved FieldOps spec by coordinating backend architecture, .NET implementation, persistence review and validation.
+argument-hint: <spec-path> [--generate-migration]
+---
+
+# FieldOps backend
+
+Orchestrates the backend of one APPROVED spec: `backend-architect` →
+`backend-developer` → `database-reviewer` (if persistence changes). It writes
+no application code itself, never touches `frontend/`, and never runs final QA.
+
+Request: `$ARGUMENTS`
+
+## 1. Gate (read-only; any failure → `BACKEND BLOCKED`, stop)
+
+Read `CLAUDE.md` and `backend/CLAUDE.md` first.
+
+| Check          | Rule |
+| -------------- | ---- |
+| Arguments      | `<spec-path>` optionally followed by `--generate-migration`. Anything else → reject. |
+| Path           | Relative, matching `^specs/[a-z0-9]+(-[a-z0-9]+)*/spec\.md$`, slug not `templates`. |
+| Path safety    | Reject absolute paths (`/`, `\`, `~`, drive letters), backslashes, any `..`, anything outside `specs/`. Never normalize or guess. |
+| File           | Exists. |
+| Status         | `APPROVED`. DRAFT, IMPLEMENTED or AUDITED → stop. |
+| Type           | `Backend` or `Full-stack`. `Frontend`, `UI-only`, `Infrastructure` → stop. |
+| FR/AC          | ≥1 active FR and ≥1 active AC with backend-observable behavior (API, domain, persistence). |
+| API            | Every required endpoint is a complete `API contracts` row (method, path, request, success, errors, permission) with no placeholder, `Pending` marker or unresolved decision. |
+| Tenancy/auth   | `Tenant isolation and authorization` states how the organization is resolved server-side, cross-organization behavior and the permission per action. Explicitly defined public or pre-tenant workflows (e.g. organization onboarding, login) instead state: who may call, abuse protection, ownership creation, atomicity and how the caller is associated with the tenant after success. An existing `OrganizationId` is never required when the feature creates the organization. Client-provided organization identifiers are always validated server-side, never trusted. |
+| Data impact    | `Data and persistence impact` lists tables/columns used and schema amendments (`None` or already present in `docs/database/fieldops-schema.sql`). |
+| Decisions      | No Open decision with `Blocking: Yes` and no resolution. |
+| Branch         | Not `main` or `master`. |
+| Baseline       | Record every changed and untracked path (`git status --porcelain --untracked-files=all`) with its status. Record `git hash-object` only for existing regular files; for deleted paths, keep the status entry. Pre-existing user work: never edited, reverted or reformatted. If the plan needs one, ask the user. |
+
+Migration authorization (same gate):
+
+| Spec requires a migration? | Flag present | Outcome |
+| -------------------------- | ------------ | ------- |
+| Yes, and every expected table/column/constraint is in `fieldops-schema.sql` | Yes | Authorized |
+| Yes | No | `BACKEND BLOCKED` before implementation: rerun with `--generate-migration` |
+| Yes, but schema SQL lacks the structure | Any | `BACKEND BLOCKED`: schema amendment needed |
+| No | Yes | Reject the unnecessary flag |
+| No | No | No migration |
+
+"Requires" = the data-impact section explicitly states that the EF model or
+database changes. Run all checks and report every failure at once.
+
+## 2. Scope
+
+From the spec, list: backend FR/AC IDs, commands and queries, API contracts,
+domain invariants, input validation, authorization, tenant isolation,
+persistence impact, required unit/integration tests, and whether persistence
+review applies. Frontend-only FR/AC are listed as out of scope.
+
+## 3. Plan
+
+Invoke `backend-architect` with `APPROVED SPEC (backend skill)`, the spec
+path, in-scope FR/AC IDs, API contract rows, the data-impact section, relevant
+code paths and the migration authorization state. Require an
+implementation-ready plan (its Deliver list) including safe ProblemDetails,
+tenant resolution, and transactions/concurrency/idempotency where relevant.
+Reject speculative repositories, base classes, packages or abstractions.
+
+Stop and ask the user (one `AskUserQuestion` batch) when:
+
+- The plan conflicts with the spec, or schema and spec disagree.
+- Authorization or tenancy turns out undefined.
+- A new package or public contract is needed but not approved.
+- A material architecture decision is unresolved.
+- The plan needs model changes the migration authorization does not cover.
+
+If the answer would change approved behavior, end `BACKEND BLOCKED` and point
+to `/spec revise <spec-path>`; never edit the spec. When invoked by another
+skill, return the questions in the report instead of guessing.
+
+## 4. Implement
+
+Invoke `backend-developer` only once no blocking issue remains. At most two
+invocations: one implementation pass, one correction pass. Brief:
+
+- Consolidated plan, in-scope FR/AC IDs, API contracts, persistence scope and
+  migration authorization, baseline paths to leave untouched.
+- Edit only `backend/`; implement only approved scope; no frontend, CI, hook,
+  `.claude/` or unrelated doc changes; no new NuGet packages unless approved.
+- Focused unit tests plus relevant integration, authorization and
+  tenant-isolation tests.
+- Never modify committed migrations or hand-edit snapshot/`*.Designer.cs`.
+- Generate a migration only if authorized; never apply it, never run
+  `dotnet ef database update|drop`, never delete Docker volumes.
+- Run the backend validations; integration tests only on isolated disposable
+  infrastructure (Testcontainers), never the local FieldOps database.
+
+## 5. Persistence review
+
+Invoke `database-reviewer` only for mapping-relevant changes: persisted entity
+shape (properties, types, nullability, new entities), EF configuration,
+`FieldOpsDbContext` or its model, migration or snapshot, or a constraint,
+index, enum or provider-specific mapping. Domain-method-only changes (behavior
+without shape change) do not trigger it. When skipped, record why.
+
+| Review result | Next |
+| ------------- | ---- |
+| `APPROVED` / `APPROVED WITH NOTES` | Continue; report notes. |
+| `REJECTED` (first) | Findings go into the single correction pass; then re-review. |
+| `REJECTED` (after correction) | `BACKEND FAILED`. |
+
+The developer never approves its own persistence.
+
+## 6. Verify
+
+1. Compare `git status --porcelain --untracked-files=all` and hashes with the
+   baseline. Workflow changes = new paths plus altered baseline paths. Any
+   change outside `backend/`, any altered baseline path, or out-of-scope path
+   → `BACKEND FAILED`. Untouched baseline paths are excluded from the report.
+2. Re-run from `backend/` the `CLAUDE.md` commands: tool restore, restore,
+   format verification, Release build, unit tests.
+3. Integration tests only if `docker info` succeeds without starting anything;
+   otherwise report them as not run with the reason.
+4. Map every backend FR/AC to implementation and test evidence.
+5. Migration status: none, or generated + reviewed + not applied.
+6. Confirm from the command log that no `database update`, `database drop`,
+   `migrations remove --force` or volume removal ran.
+
+The correction-pass budget is one, global across validation, tests,
+evidence and persistence review. Collect all failures from §5 and §6 first,
+then run one correction pass with: failing commands, concise error excerpts,
+uncovered FR/AC IDs, reviewer findings. Re-verify and re-review. Still
+failing → `BACKEND FAILED`; no third invocation.
+
+In the correction pass only, the developer may run
+`dotnet ef migrations remove`
+(never `--force`) to discard the migration this workflow generated, if it is
+uncommitted and unapplied. If authorized, it may be regenerated within the
+same approved scope, and `database-reviewer` must review it again. Never
+remove a committed, applied or baseline migration.
+
+Never: invoke `qa-auditor`, modify `frontend/`, change spec status, commit,
+push, merge, apply migrations or start Docker Desktop.
+
+## 7. Report
+
+1. Spec path and backend scope.
+2. In-scope and out-of-scope FR/AC IDs.
+3. Agents invoked or skipped, with reason.
+4. Architecture decisions used.
+5. Changed files.
+6. FR/AC matrix: ID · implementation · test evidence · status.
+7. Validation: each command, pass/fail, error excerpt.
+8. Integration tests not executed and why.
+9. Persistence-review result.
+10. Migration status.
+11. Deviations, risks and pending decisions.
+12. Result:
+
+| Result             | When |
+| ------------------ | ---- |
+| `BACKEND COMPLETE` | All in-scope FRs implemented, every AC has evidence, required validations pass, persistence review approved when applicable, any migration generated but not applied, no unapproved package, schema or scope change. |
+| `BACKEND BLOCKED`  | Gate failed or a decision is unresolved; nothing implemented after the stop. |
+| `BACKEND FAILED`   | Implementation started but validation, persistence review, scope or evidence is still invalid after the correction pass. |
