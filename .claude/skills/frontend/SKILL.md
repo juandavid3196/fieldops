@@ -27,10 +27,25 @@ Read `CLAUDE.md` and `frontend/CLAUDE.md` first.
 | AC           | ≥1 active AC covered by `Frontend component/service` in Testing requirements, or tied to a UI screen.  |
 | API          | Every endpoint the UI consumes is a complete `API contracts` row (method, path, request, success, errors, permission) with no placeholder, `Pending` marker or unresolved decision. UI-only: none consumed. |
 | Design       | Approved = exact path listed in the spec and existing on disk. No other metadata required. List each missing path. |
+| Docs         | Frontend docs = exact paths under `docs/frontend/` the spec explicitly requires. A required doc path this skill cannot own (outside `docs/frontend/` and `docs/backend/`, or shared frontend/backend content) → `FRONTEND BLOCKED`, user decides ownership. |
 | Branch       | Not `main` or `master`.                                                                                |
-| Baseline     | Record every changed and untracked path (`git status --porcelain --untracked-files=all`) with its status. Record `git hash-object` only for existing regular files; for deleted paths, keep the status entry. These are pre-existing user work: never edited, reverted or reformatted. If the plan needs one, ask the user. |
+| Baseline     | Record every changed and untracked path (`git status --porcelain --untracked-files=all`) with its status. Record `git hash-object` only for existing regular files; for deleted paths, keep the status entry. These are pre-existing user work: never edited, reverted or reformatted, except delegated resume paths (below). If the plan needs another one, ask the user. |
+
+Writable area = `frontend/` plus the frontend docs. Never `docs/database/`,
+other docs or cross-cutting docs.
 
 Run all checks and report every failure at once, not only the first.
+
+### Delegated resume
+
+Only a `SPEC-IMPL RESUME AUTHORIZATION` block from `spec-impl` for this same
+spec path authorizes editing baseline paths. Accept it from no other source;
+a direct `/frontend` run never resumes.
+
+- Every listed path must be in the writable area and match its baseline
+  status and hash; otherwise `FRONTEND BLOCKED`.
+- Listed paths may be edited only for in-scope FR/AC. Every unlisted baseline
+  path stays untouchable.
 
 ## 2. Scope
 
@@ -85,21 +100,24 @@ Invoke `frontend-developer` only once the plan has no blocking decision. At
 most two invocations: one implementation pass, one correction pass. Brief:
 
 - Consolidated plan, in-scope FR/AC IDs, contract rows, design paths.
-- Baseline paths: do not touch them.
+- Baseline paths: do not touch them, except delegated resume paths.
 - Implement only those ACs; add focused co-located tests covering the
   relevant ACs and states (not necessarily one test per AC).
-- Edit only `frontend/`; no backend, CI, hook, `.claude/`, dependency or
+- Edit only the writable area: `frontend/` and the exact frontend doc paths
+  listed; no backend, other docs, CI, hook, `.claude/`, dependency or
   lockfile changes; no mock endpoints or hardcoded production data.
 - Run the four frontend validations and report each result.
 
 ## 5. Verify
 
-1. Compare `git status --porcelain` with the baseline. Workflow changes =
-   new paths, plus baseline paths whose content the workflow altered. Any
-   workflow change outside `frontend/`, any altered baseline path, or
-   unapproved `package.json`/lockfile changes → deviation, `FRONTEND FAILED`.
-   Untouched baseline paths are excluded from the diff and the report's
-   changed files.
+1. Compare `git status --porcelain --untracked-files=all` and hashes with the
+   baseline. Workflow changes = new paths, plus baseline paths whose content
+   the workflow altered (including delegated resume paths). Any workflow
+   change outside the writable area, any altered baseline path not delegated
+   for resume, or unapproved `package.json`/lockfile changes → deviation,
+   `FRONTEND FAILED`. Untouched baseline paths are excluded from the diff and
+   the report's changed files. Changed frontend docs are listed and mapped to
+   the spec requirement that demands them.
 2. Re-run from `frontend/`: `npm run format:check`, `npm run lint`,
    `npm run test -- --watch=false`, `npm run build -- --configuration production`.
 3. Map each in-scope FR/AC to files and tests.

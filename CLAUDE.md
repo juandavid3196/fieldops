@@ -101,7 +101,11 @@ Project tooling: `implement-persistence-slice` skill, `database-reviewer` agent.
   audit report produced.
 - Specs: `specs/<feature-slug>/spec.md` from `specs/templates/feature-spec.md`,
   managed with the `spec` skill (`/spec create|revise|validate|approve`).
-  `spec-impl` is planned, not installed.
+- Route: `spec` → `spec-impl` → `backend`/`frontend` → `final-audit`.
+  `/spec-impl <spec-path> [--generate-migration] [--resume]` is user-invoked
+  only; it sets IMPLEMENTED → AUDITED after the audit passes.
+  `--generate-migration` authorizes a migration (never applied); `--resume`
+  continues an earlier incomplete run of the same spec.
 
 ## Security
 
