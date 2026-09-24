@@ -54,6 +54,11 @@ connection details or exception messages.
 | Empty `4xx`, such as an unknown route | `UseStatusCodePages` writes ProblemDetails. |
 
 - The full exception is written only to server logs, correlated by `traceId`.
+- Errors raised at or after `UseCors` (endpoints, authorization), including
+  handled and empty-body `500`s, carry CORS headers for configured origins
+  only: CORS applies them when the response starts, after the exception
+  handler writes it. Failures in middleware before `UseCors` get no CORS
+  headers. Covered by `CorsTests`.
 - Future `404`/`409`/validation mappings belong to the use-case spec that
   introduces them: a dedicated `IExceptionHandler` registered before
   `GlobalExceptionHandler`, or explicit results from the endpoint.

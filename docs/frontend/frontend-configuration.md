@@ -66,9 +66,17 @@ Registered in `src/app/app.config.ts`, in order:
 The API returns RFC 9457 ProblemDetails. `ApiErrorService` maps each failure to
 a category and a fixed, user-friendly message chosen by HTTP status:
 
-- Backend `title` and `detail` are never shown. In Development the API places
-  exception messages in `detail`.
-- `traceId` is kept as a support reference.
+- Backend `title` and `detail` are never shown, and `ApiErrorService` never
+  depends on backend exception text.
+- A `500` never contains the exception message, type or stack trace, in any
+  environment including Development: the client receives a generic
+  ProblemDetails. Full exception details exist only in backend logs.
+- `traceId` is kept as a support reference and correlates with the backend
+  logs.
+- API endpoint errors, including handled `500`s, carry the CORS headers for
+  allowed origins, so the app served from `http://localhost:4200` receives the
+  real status instead of a network error (see
+  `docs/backend/api-configuration.md`).
 - For `400`/`422` responses with an `errors` object, field-level messages are
   kept in `ApiError.fieldErrors`.
 
