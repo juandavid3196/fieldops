@@ -34,31 +34,81 @@ variables.
 
 | Endpoint | Environments | Purpose |
 | --- | --- | --- |
-| `GET /health` | All | `self` and `postgresql` checks. `200` when healthy, `503` otherwise. |
+| `GET /health` | All | Same as `/health/ready`. Kept for frontend compatibility (`ApiHealthService`). |
+| `GET /health/live` | All | Liveness: `self` check only; never touches dependencies. Always `200` while the process runs. |
+| `GET /health/ready` | All | Readiness: every registered check, including `postgresql`. `200` when healthy, `503` otherwise. |
 | `GET /openapi/v1.json` | Development | OpenAPI document. |
 | `GET /swagger` | Development | Swagger UI over the OpenAPI document. |
 
-The health response contains only check names, statuses and durations; no
+Health responses are `application/json` with `Cache-Control: no-store, no-cache`
+and contain only check names, statuses and durations; no descriptions,
 connection details or exception messages.
 
 ## Error responses
 
-Unhandled exceptions return `500` as `application/problem+json`
-(RFC 9457) with a `traceId`. The exception message is included as `detail`
-only in Development. Empty error responses such as `404` also use
-ProblemDetails.
+| Case | Response |
+| --- | --- |
+| Unhandled exception | `500` `application/problem+json` with `type`, `title`, `status` and `traceId`, in every environment. Never exception messages, types or stack traces. |
+| Unhandled exception, client does not accept JSON | `500` with an empty body. |
+| Invalid model binding (`[ApiController]`) | Automatic `400` `ValidationProblemDetails` with `errors` and `traceId`. Not customized. |
+| Empty `4xx`, such as an unknown route | `UseStatusCodePages` writes ProblemDetails. |
+
+- The full exception is written only to server logs, correlated by `traceId`.
+- Future `404`/`409`/validation mappings belong to the use-case spec that
+  introduces them: a dedicated `IExceptionHandler` registered before
+  `GlobalExceptionHandler`, or explicit results from the endpoint.
+- Result pattern, validation library usage and authentication are deferred to
+  their own specs.
 
 ## Logging
 
 Logging uses the built-in `ILogger` console provider:
 
 - Development: single-line `simple` formatter, EF Core SQL commands visible.
-- Other environments: `json` formatter with UTC timestamps, EF Core at
-  `Warning`.
+- Other environments: `json` formatter with UTC timestamps and scopes (which
+  carry `TraceId`), EF Core at `Warning`.
+
+`RequestLoggingMiddleware` (first in the pipeline) writes one line per request:
+
+```text
+HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {ElapsedMs:0.0} ms (traceId {TraceId})
+```
+
+| Status | Level |
+| --- | --- |
+| `2xx`/`3xx` | `Information` (`Debug` for successful `/health*` probes) |
+| `4xx` | `Warning` |
+| `5xx` | `Error` |
+
+- If an exception escapes the pipeline, the status is `500`, or the status
+  already sent when the response had started.
+- The ProblemDetails and request-log `traceId` is the full W3C Activity id
+  (`00-<trace-id>-<span-id>-<flags>`); the JSON console scope `TraceId` is only
+  the 32-hex trace id, so correlate by the trace-id segment.
 
 Rules:
 
-- Never log passwords, tokens, connection strings or sensitive customer data.
-- The exception handler logs the request method and path only, not the query
-  string.
+- `GlobalExceptionHandler` logs each unhandled exception exactly once. .NET 10
+  suppresses the exception middleware's own diagnostics for handled
+  exceptions; the request line carries no exception.
+- Never log query strings, bodies, headers, passwords, tokens, connection
+  strings or sensitive customer data. Only method and path are logged.
+- Keep `Microsoft.AspNetCore` at `Warning`: the built-in hosting request logs
+  include the query string.
 - EF Core sensitive data logging stays disabled.
+
+## Test isolation
+
+- `FieldOpsApiFactory` passes settings through `UseSetting`; they are applied
+  with command-line argument precedence, above user-secrets and environment
+  variables.
+- Tests without a database use an unreachable connection string (`127.0.0.1`,
+  port `1`) that fails fast.
+- Database-dependent tests use Testcontainers (`postgres:17-alpine`), never the
+  local FieldOps database.
+- Every new required setting must be set in `FieldOpsApiFactory`.
+
+## Deferred to deployment
+
+HSTS, forwarded headers, `AllowedHosts` and how probes interact with HTTPS
+redirection are decided with the deployment work.

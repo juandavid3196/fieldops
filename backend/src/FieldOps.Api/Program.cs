@@ -1,6 +1,7 @@
 using FieldOps.Api.Configuration;
 using FieldOps.Api.Extensions;
 using FieldOps.Api.HealthChecks;
+using FieldOps.Api.Middleware;
 using FieldOps.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -20,6 +21,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+// First so it observes the final status code, including handled 500s.
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
@@ -36,8 +39,20 @@ app.UseCors(CorsSettings.PolicyName);
 
 app.UseAuthorization();
 
-app.MapHealthChecks("/health", new HealthCheckOptions
+// Readiness runs every registered check, including the database.
+var readinessOptions = new HealthCheckOptions
 {
+    ResponseWriter = HealthCheckResponseWriter.WriteAsync,
+};
+
+// Kept for frontend compatibility; identical to /health/ready.
+app.MapHealthChecks("/health", readinessOptions);
+app.MapHealthChecks("/health/ready", readinessOptions);
+
+// Liveness checks the process only and never touches dependencies.
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = registration => registration.Name == ApiServiceCollectionExtensions.SelfHealthCheckName,
     ResponseWriter = HealthCheckResponseWriter.WriteAsync,
 });
 
