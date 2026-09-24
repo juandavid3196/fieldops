@@ -1,0 +1,35 @@
+<main class="overview">
+  <h1 class="overview__title">{{ heading() }}</h1>
+
+  @if (session(); as current) {
+    <dl class="overview__details">
+      <div class="overview__detail">
+        <dt class="overview__term">Organization</dt>
+        <dd class="overview__value">{{ current.organization.name }}</dd>
+      </div>
+      <div class="overview__detail">
+        <dt class="overview__term">Role</dt>
+        <dd class="overview__value">{{ current.role.name }}</dd>
+      </div>
+    </dl>
+  }
+
+  @if (signOutFailed()) {
+    <p-message class="overview__message" severity="error">{{ signOutErrorMessage }}</p-message>
+  }
+
+  <button
+    #signOutButton
+    pButton
+    type="button"
+    severity="secondary"
+    class="overview__sign-out"
+    [disabled]="signingOut()"
+    (click)="signOut()"
+  >
+    @if (signingOut()) {
+      <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+    }
+    Sign out
+  </button>
+</main>

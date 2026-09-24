@@ -2,6 +2,7 @@ using FieldOps.Api.Configuration;
 using FieldOps.Api.Extensions;
 using FieldOps.Api.HealthChecks;
 using FieldOps.Api.Middleware;
+using FieldOps.Application;
 using FieldOps.Infrastructure;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
@@ -12,10 +13,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApiErrorHandling();
 builder.Services.AddApiCors(builder.Configuration);
 builder.Services.AddApiHealthChecks();
+builder.Services.AddApiAuthentication();
+builder.Services.AddApiRateLimiting();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -37,6 +41,12 @@ app.UseHttpsRedirection();
 
 app.UseCors(CorsSettings.PolicyName);
 
+// After UseCors so rejections and 401s carry CORS headers.
+app.UseRateLimiter();
+app.UseAuthentication();
+
+// Deletes a session cookie that did not authenticate, on every endpoint.
+app.UseMiddleware<InvalidSessionCookieMiddleware>();
 app.UseAuthorization();
 
 // Readiness runs every registered check, including the database.

@@ -1,3 +1,4 @@
+using FieldOps.Application.Authentication;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Invoices;
@@ -6,10 +7,12 @@ using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using FieldOps.Domain.Users;
 using FieldOps.Domain.WorkOrders;
+using FieldOps.Infrastructure.Authentication;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FieldOps.Infrastructure;
 
@@ -52,6 +55,13 @@ public static class DependencyInjection
         services
             .AddHealthChecks()
             .AddDbContextCheck<FieldOpsDbContext>(PostgreSqlHealthCheckName);
+
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddScoped<IAuthenticationStore, AuthenticationStore>();
+        services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+
+        // In memory and per process: counters reset on restart.
+        services.AddSingleton<ISignInThrottle, InMemorySignInThrottle>();
 
         return services;
     }

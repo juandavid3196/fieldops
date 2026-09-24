@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -59,8 +60,16 @@ public sealed class FieldOpsApiFactory(
         }
 
         builder.ConfigureTestServices(services =>
+        {
             services
                 .AddControllers()
-                .AddApplicationPart(typeof(FieldOpsApiFactory).Assembly));
+                .AddApplicationPart(typeof(FieldOpsApiFactory).Assembly);
+
+            // Keys live in memory per host: nothing is written to the
+            // developer profile and each factory has its own key ring.
+            services.AddDataProtection().UseEphemeralDataProtectionProvider();
+
+            services.AddSingleton<IStartupFilter, TestClientIpStartupFilter>();
+        });
     }
 }

@@ -5,6 +5,8 @@ import { PrimeNGConfigType } from 'primeng/config';
 /**
  * FieldOps preset: Aura with the teal palette as primary.
  * `primary.color` is darkened to teal.700 in light mode so white text on it meets WCAG AA.
+ * Success and error message text is darkened one step in light mode (and error text
+ * lightened one step in dark mode) for the same reason.
  * See docs/frontend/styling-architecture.md.
  */
 const FieldOpsPreset = definePreset(Aura, {
@@ -24,6 +26,22 @@ const FieldOpsPreset = definePreset(Aura, {
       color: 'light-dark({primary.700}, {primary.400})',
       hoverColor: 'light-dark({primary.800}, {primary.300})',
       activeColor: 'light-dark({primary.900}, {primary.200})',
+    },
+  },
+  components: {
+    // Aura's light success/error message text (green.600/red.600) fails WCAG AA
+    // on the message background; one step darker passes (sign-in spec, AC-56).
+    // Dark error text uses red.400 (red.500 is 3.98:1 on the dark message background);
+    // dark success keeps green.500, which already passes.
+    message: {
+      success: {
+        color: 'light-dark({green.700}, {green.500})',
+        simple: { color: 'light-dark({green.700}, {green.500})' },
+      },
+      error: {
+        color: 'light-dark({red.700}, {red.400})',
+        simple: { color: 'light-dark({red.700}, {red.400})' },
+      },
     },
   },
 });

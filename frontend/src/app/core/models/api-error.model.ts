@@ -24,6 +24,12 @@ export interface ApiError {
   /** Field-level validation messages keyed by field name. Empty when not applicable. */
   readonly fieldErrors: Readonly<Record<string, readonly string[]>>;
   readonly traceId?: string;
+  /**
+   * Seconds to wait before retrying, from the `Retry-After` header of a `429`
+   * response. `undefined` for other statuses or when the header is absent or
+   * not a non-negative integer of seconds.
+   */
+  readonly retryAfterSeconds?: number;
 }
 
 export function isApiError(value: unknown): value is ApiError {

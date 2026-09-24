@@ -45,12 +45,16 @@ export class ApiErrorService {
     const fieldErrors = readFieldErrors(problem);
     const kind = resolveKind(error.status, Object.keys(fieldErrors).length > 0);
 
-    return createApiError(
+    const apiError = createApiError(
       kind,
       error.status,
       kind === 'validation' ? fieldErrors : {},
       readTraceId(problem),
     );
+    const retryAfterSeconds =
+      error.status === 429 ? readRetryAfterSeconds(error.headers?.get('Retry-After')) : undefined;
+
+    return retryAfterSeconds === undefined ? apiError : { ...apiError, retryAfterSeconds };
   }
 
   getMessage(error: unknown): string {
@@ -104,6 +108,20 @@ function readProblemDetails(body: unknown): ProblemDetails | null {
 
 function readTraceId(problem: ProblemDetails | null): string | undefined {
   return typeof problem?.traceId === 'string' ? problem.traceId : undefined;
+}
+
+/**
+ * Parses `Retry-After` as whole seconds. HTTP-date, negative, decimal, empty
+ * or unsafe values are ignored (`undefined`).
+ */
+function readRetryAfterSeconds(header: string | null | undefined): number | undefined {
+  const value = header?.trim() ?? '';
+  if (!/^\d+$/.test(value)) {
+    return undefined;
+  }
+
+  const seconds = Number(value);
+  return Number.isSafeInteger(seconds) ? seconds : undefined;
 }
 
 function readFieldErrors(problem: ProblemDetails | null): ApiError['fieldErrors'] {

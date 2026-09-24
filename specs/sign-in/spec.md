@@ -4,7 +4,7 @@
 | -------- | ------------ |
 | Feature  | `sign-in`    |
 | Type     | Full-stack   |
-| Status   | APPROVED     |
+| Status   | AUDITED      |
 | Created  | 2026-09-24   |
 | Updated  | 2026-09-24   |
 | Approved | 2026-09-24   |
@@ -480,3 +480,5 @@ password toggle's text.
 | 2026-09-24 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-09-24 | APPROVED → DRAFT | Revised by user request during /spec-impl: BR-15 singular "1 minute" (added AC-67); FR-17/AC-48 Overview labels "Organization" and "Role"; `axe-core` devDependency for AC-56; app-wide preset override of message colors for WCAG AA; FR-03 and API contract: missing `Content-Type` → `415`, empty or `null` body → keyless `400` (added AC-68, AC-69) |
 | 2026-09-24 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-09-24 | APPROVED → IMPLEMENTED | Required implementation workflows completed |
+| 2026-09-24 | IMPLEMENTED → AUDITED | final-audit returned `AUDIT PASS WITH MINOR FINDINGS` |

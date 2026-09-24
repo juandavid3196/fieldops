@@ -1,3 +1,4 @@
+using System.Net;
 using FieldOps.Domain.Notifications;
 
 namespace FieldOps.UnitTests.Notifications;
@@ -41,6 +42,20 @@ public class AuditLogTests
         Assert.Null(auditLog.ActorUserId);
         Assert.Null(auditLog.EntityId);
         Assert.Null(auditLog.BranchId);
+    }
+
+    [Fact]
+    public void Create_WithIpAddress_SetsIpAddress()
+    {
+        var ipAddress = IPAddress.Parse("203.0.113.7");
+
+        var auditLog = AuditLog.Create(
+            Guid.NewGuid(),
+            "auth.signed_in",
+            "user",
+            ipAddress: ipAddress);
+
+        Assert.Equal(ipAddress, auditLog.IpAddress);
     }
 
     [Fact]

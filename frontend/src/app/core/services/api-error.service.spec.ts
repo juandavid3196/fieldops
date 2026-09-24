@@ -1,4 +1,4 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
 
 import { ApiError } from '../models/api-error.model';
@@ -95,6 +95,53 @@ describe('ApiErrorService', () => {
     const apiError: ApiError = { kind: 'forbidden', status: 403, message: 'm', fieldErrors: {} };
 
     expect(service.toApiError(apiError)).toBe(apiError);
+  });
+
+  describe('retryAfterSeconds (AC-45)', () => {
+    function withRetryAfter(status: number, value?: string): HttpErrorResponse {
+      return new HttpErrorResponse({
+        status,
+        url: 'http://api.test/sessions',
+        headers:
+          value === undefined ? new HttpHeaders() : new HttpHeaders({ 'Retry-After': value }),
+      });
+    }
+
+    it('reads Retry-After seconds from a 429', () => {
+      expect(service.toApiError(withRetryAfter(429, '30')).retryAfterSeconds).toBe(30);
+    });
+
+    it('accepts zero and surrounding whitespace', () => {
+      expect(service.toApiError(withRetryAfter(429, '0')).retryAfterSeconds).toBe(0);
+      expect(service.toApiError(withRetryAfter(429, ' 90 ')).retryAfterSeconds).toBe(90);
+    });
+
+    it('is undefined for a 429 without Retry-After', () => {
+      expect(service.toApiError(withRetryAfter(429)).retryAfterSeconds).toBeUndefined();
+    });
+
+    it('is undefined for a 500', () => {
+      const result = service.toApiError(httpError(500));
+
+      expect(result.retryAfterSeconds).toBeUndefined();
+      expect('retryAfterSeconds' in result).toBe(false);
+    });
+
+    it('is undefined for a non-429 status even with the header', () => {
+      expect(service.toApiError(withRetryAfter(503, '30')).retryAfterSeconds).toBeUndefined();
+    });
+
+    it.each([
+      'Wed, 21 Oct 2026 07:28:00 GMT',
+      '-5',
+      '1.5',
+      '',
+      '   ',
+      '30s',
+      '99999999999999999999',
+    ])('ignores the invalid value %j', (value) => {
+      expect(service.toApiError(withRetryAfter(429, value)).retryAfterSeconds).toBeUndefined();
+    });
   });
 
   it('provides the user-friendly message directly', () => {

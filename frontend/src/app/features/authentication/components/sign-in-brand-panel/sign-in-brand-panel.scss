@@ -1,0 +1,130 @@
+:host {
+  display: block;
+}
+
+.brand {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+  background: light-dark(var(--p-surface-900), var(--p-surface-950));
+  color: var(--p-surface-0);
+
+  &__photo {
+    z-index: 0;
+    object-fit: cover;
+    object-position: center bottom;
+  }
+
+  // Scrim behind the whole text block, full panel width: at least 70% surface-950 keeps
+  // every text line at WCAG AA even over white photo pixels, at any panel height.
+  // Below the text it fades out so the photo stays visible.
+  &__content {
+    position: relative;
+    z-index: 1;
+    padding-block: 2rem 3rem;
+    // The text column stays at most 41.5rem wide inside the full-width block.
+    padding-inline: clamp(2.5rem, 8vw, 6rem) max(3rem, 100% - 41.5rem - clamp(2.5rem, 8vw, 6rem));
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--p-surface-950) 85%, transparent),
+      color-mix(in srgb, var(--p-surface-950) 70%, transparent)
+    );
+  }
+
+  &__content::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 100%;
+    height: 6rem;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--p-surface-950) 70%, transparent),
+      transparent
+    );
+    pointer-events: none;
+  }
+
+  &__wordmark {
+    margin: 0;
+    font-size: 1.875rem;
+    font-weight: 700;
+  }
+
+  &__accent {
+    color: var(--p-primary-400);
+  }
+
+  &__tagline {
+    margin: 0.5rem 0 0;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--p-surface-200);
+  }
+
+  &__heading {
+    margin: 2rem 0 0;
+    font-size: clamp(2.125rem, 2.8vw, 2.875rem);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  &__subhead {
+    margin: 1rem 0 0;
+    font-size: 1.125rem;
+    color: var(--p-surface-200);
+  }
+
+  &__cards,
+  &__benefits {
+    margin: 2rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12.25rem, 1fr));
+    gap: 1rem;
+  }
+
+  &__card {
+    min-height: 6.25rem;
+    padding: 1rem;
+    background: light-dark(var(--p-primary-50), var(--p-surface-800));
+    border: 1px solid light-dark(var(--p-primary-200), var(--p-surface-700));
+    border-radius: var(--p-content-border-radius);
+  }
+
+  &__card-title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: light-dark(var(--p-surface-900), var(--p-surface-0));
+  }
+
+  &__card-text {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: light-dark(var(--p-surface-600), var(--p-surface-300));
+  }
+
+  &__benefits {
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  &__benefit-title {
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  &__benefit-text {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    color: var(--p-surface-200);
+  }
+}
