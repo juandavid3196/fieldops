@@ -21,8 +21,10 @@ const MESSAGES: Readonly<Record<ApiErrorKind, string>> = {
 /**
  * Converts HTTP failures into user-safe {@link ApiError} values.
  *
- * Backend `title` and `detail` are intentionally not shown: in Development
- * the API places exception messages in `detail`.
+ * Messages are chosen by HTTP status only; backend `title` and `detail` are
+ * never shown or parsed. A `500` is a generic ProblemDetails in every
+ * environment, including Development: the exception details exist only in
+ * backend logs, correlated by the preserved `traceId`.
  */
 @Injectable({ providedIn: 'root' })
 export class ApiErrorService {
