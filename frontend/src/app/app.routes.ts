@@ -1,5 +1,17 @@
 import { Routes } from '@angular/router';
 
-// Feature routes are lazy loaded, e.g.:
-// { path: 'customers', loadChildren: () => import('./features/customers/customers.routes') }
-export const routes: Routes = [];
+import { authGuard } from './core/guards/auth.guard';
+
+export const routes: Routes = [
+  { path: '', pathMatch: 'full', redirectTo: 'auth/sign-in' },
+  {
+    path: 'auth',
+    loadChildren: () => import('./features/authentication/authentication.routes'),
+  },
+  {
+    path: 'overview',
+    canActivate: [authGuard],
+    loadChildren: () => import('./features/overview/overview.routes'),
+  },
+  { path: '**', redirectTo: 'auth/sign-in' },
+];

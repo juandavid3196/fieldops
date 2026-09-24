@@ -1,0 +1,20 @@
+// Compile-time breakpoints. Emits no CSS: components may `@use` this partial.
+// Mobile-first: `up($name)` wraps rules in a `min-width` media query.
+// See docs/frontend/styling-architecture.md §7.
+
+@use 'sass:map';
+
+$breakpoints: (
+  md: 48rem,
+  lg: 64rem,
+);
+
+@mixin up($name) {
+  @if not map.has-key($breakpoints, $name) {
+    @error 'Unknown breakpoint `#{$name}`. Expected one of: #{map.keys($breakpoints)}.';
+  }
+
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}

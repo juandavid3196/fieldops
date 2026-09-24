@@ -1,10 +1,16 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+
+import { API_CONFIG, isApiUrl } from '../config/api.config';
 
 /**
- * Placeholder for attaching credentials to FieldOps API requests.
+ * Sends the HttpOnly session cookie with FieldOps API requests only.
  *
- * Authentication is not implemented yet, so requests pass through unchanged
- * and no token is sent. When authentication is specified, credentials must
- * only be attached to requests that satisfy `isApiUrl`.
+ * The session lives in a cookie the browser manages, so no token or
+ * `Authorization` header is ever added. Requests to other origins or static
+ * assets are left untouched so the cookie is never exposed to them.
  */
-export const authInterceptor: HttpInterceptorFn = (request, next) => next(request);
+export const authInterceptor: HttpInterceptorFn = (request, next) =>
+  isApiUrl(inject(API_CONFIG), request.url)
+    ? next(request.clone({ withCredentials: true }))
+    : next(request);

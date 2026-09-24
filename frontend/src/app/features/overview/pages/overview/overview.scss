@@ -1,0 +1,49 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.overview {
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: 2rem 1rem;
+  overflow-wrap: anywhere;
+
+  &__title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--p-text-color);
+  }
+
+  &__details {
+    display: grid;
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  &__term {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--p-text-muted-color);
+  }
+
+  &__value {
+    margin: 0.25rem 0 0;
+    color: var(--p-text-color);
+  }
+
+  &__message {
+    margin-bottom: 1rem;
+  }
+
+  &__sign-out {
+    width: 100%;
+    min-height: 2.75rem;
+
+    @include bp.up(md) {
+      width: auto;
+    }
+  }
+}

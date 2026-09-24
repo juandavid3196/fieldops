@@ -24,9 +24,11 @@ Angular 22 standalone app. Environments, API URLs, proxy and error mapping:
 - Components never inject `HttpClient`; services do.
 - Build URLs with `buildApiUrl(inject(API_CONFIG), path)`; never hard-code the origin.
 - Interceptors (`core/interceptors/`) act only on `isApiUrl` URLs.
-  `authInterceptor` is a placeholder and sends no token.
+  `authInterceptor` sets `withCredentials` (HttpOnly session cookie); never add tokens.
 - Handle `ApiError`, not `HttpErrorResponse`. Show `ApiError.message`, never
   ProblemDetails `title` or `detail`.
+- Pages may show page-specific copy chosen by `ApiError.kind` (e.g. sign-in BR-15);
+  never backend text.
 - Environment files are public: no secrets.
 
 ## UI

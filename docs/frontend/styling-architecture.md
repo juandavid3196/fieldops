@@ -18,19 +18,21 @@ frontend/src/
 ├── styles.scss          # entry: header comment + @use only, no rules
 └── styles/
     ├── _tokens.scss     # emits CSS: :root --fo-* tokens
-    └── _base.scss       # emits CSS: html/body, focus-visible fallback, reduced motion
+    ├── _base.scss       # emits CSS: html/body, focus-visible fallback, reduced motion
+    └── _breakpoints.scss # no CSS: breakpoint map and up() mixin
 ```
 
-| File                  | Output     | Responsibility                             |
-| --------------------- | ---------- | ------------------------------------------ |
-| `styles.scss`         | Global CSS | Load order: `styles/tokens`, `styles/base` |
-| `styles/_tokens.scss` | Emits CSS  | Only place `--fo-*` is declared            |
-| `styles/_base.scss`   | Emits CSS  | Document base and global a11y rules        |
-| Component `name.scss` | Scoped CSS | Styles for that component only             |
+| File                       | Output     | Responsibility                                            |
+| -------------------------- | ---------- | --------------------------------------------------------- |
+| `styles.scss`              | Global CSS | Load order: `styles/tokens`, `styles/base`                |
+| `styles/_tokens.scss`      | Emits CSS  | Only place `--fo-*` is declared                           |
+| `styles/_base.scss`        | Emits CSS  | Document base and global a11y rules                       |
+| `styles/_breakpoints.scss` | No CSS     | `md`/`lg` map and `up($name)` mixin; components `@use` it |
+| Component `name.scss`      | Scoped CSS | Styles for that component only                            |
 
-- Both partials emit CSS. Components must **never** `@use` `_tokens` or `_base`: it
+- `_tokens` and `_base` emit CSS. Components must **never** `@use` `_tokens` or `_base`: it
   duplicates their CSS into every component bundle. Components consume tokens with `var()`.
-- Future compile-time partials (e.g. `_breakpoints.scss`) must emit no CSS; components
+- Compile-time partials (e.g. `_breakpoints.scss`) must emit no CSS; components
   may `@use` those.
 - `angular.json` has no `includePaths`: use relative `@use` paths
   (e.g. `@use '../../../styles/breakpoints' as bp;`).
@@ -101,8 +103,9 @@ Pattern: `--fo-<category>-<role>[-<variant>]`, category ∈ `color | space | siz
 Responsive:
 
 - Mobile-first: base styles for small screens, `min-width` queries upward.
-- Breakpoints are deferred. The first responsive screen creates `src/styles/_breakpoints.scss`:
-  compile-time map `md: 48rem`, `lg: 64rem` and an `up($name)` mixin (emits no CSS).
+- Breakpoints live in `src/styles/_breakpoints.scss`: compile-time map `md: 48rem`,
+  `lg: 64rem` and an `up($name)` mixin that raises `@error` for unknown names (emits
+  no CSS). Use `@include bp.up(md) { ... }` after `@use '<relative>/styles/breakpoints' as bp;`.
 - Shell-only widths (1100px / 1440px from the handoff) stay local to the shell component.
 - Media queries use `rem`.
 - Touch targets ≥ 2.75rem (44px) on mobile.
@@ -200,5 +203,4 @@ Need a separate approved decision before use:
 - Lavender accent.
 - PrimeIcons.
 
-Breakpoints are not a pending decision: the convention in section 7 is approved and
-`_breakpoints.scss` is created with its first consumer.
+Breakpoints are not a pending decision: `_breakpoints.scss` exists (section 7).

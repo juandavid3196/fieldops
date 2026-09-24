@@ -1,0 +1,30 @@
+<aside class="brand" aria-labelledby="brand-heading">
+  <img class="brand__photo" ngSrc="/images/signin-background.jpg" fill alt="" />
+
+  <div class="brand__content">
+    <p class="brand__wordmark"><span>Field</span><span class="brand__accent">Ops</span></p>
+    <p class="brand__tagline">People · Work · Customers · For a brighter tomorrow</p>
+    <h2 class="brand__heading" id="brand-heading">Run every service job from one place</h2>
+    <p class="brand__subhead">
+      Schedule, dispatch, track field work, delight customers, and get paid — all in FieldOps.
+    </p>
+
+    <ul class="brand__cards">
+      @for (card of statusCards; track card.title) {
+        <li class="brand__card">
+          <p class="brand__card-title">{{ card.title }}</p>
+          <p class="brand__card-text">{{ card.text }}</p>
+        </li>
+      }
+    </ul>
+
+    <ul class="brand__benefits">
+      @for (benefit of benefits; track benefit.title) {
+        <li>
+          <p class="brand__benefit-title">{{ benefit.title }}</p>
+          <p class="brand__benefit-text">{{ benefit.text }}</p>
+        </li>
+      }
+    </ul>
+  </div>
+</aside>

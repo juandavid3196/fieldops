@@ -8,16 +8,14 @@ Clean Architecture + DDD. Configuration, endpoints, errors and logging:
 | Project                           | Contains                                                                                      |
 | --------------------------------- | --------------------------------------------------------------------------------------------- |
 | `src/FieldOps.Domain`             | Entities and enums by aggregate folder. No EF Core or ASP.NET dependencies.                   |
-| `src/FieldOps.Application`        | No code yet: `.gitkeep` folders, FluentValidation packages; no project references either way. |
+| `src/FieldOps.Application`        | Use cases by feature (`Authentication/`: handlers, validators, ports), `DependencyInjection.cs`. |
 | `src/FieldOps.Infrastructure`     | `DependencyInjection.cs`, `Persistence/` (DbContext, `Configurations/`, `Migrations/`).       |
 | `src/FieldOps.Api`                | Controllers without business logic, `Configuration/`, `Extensions/`, `Middleware/`.           |
 | `tests/FieldOps.UnitTests`        | Entity rules per aggregate; `Persistence/FieldOpsDbContextModelTests.cs` builds the model.    |
 | `tests/FieldOps.IntegrationTests` | API pipeline via `FieldOpsApiFactory`; database tests via Testcontainers.                     |
 
-- Current references: `Api → Infrastructure → Domain`.
-- Target references, added with the first use case and not before:
-  `Api → Application + Infrastructure`, `Infrastructure → Application + Domain`,
-  `Application → Domain`.
+- Current references: `Api → Application + Infrastructure`,
+  `Infrastructure → Application + Domain`, `Application → Domain`.
 - Template leftovers (`Class1.cs`, `UnitTest1.cs`, `WeatherForecast*.cs`): do
   not extend or remove; a separate chore will.
 

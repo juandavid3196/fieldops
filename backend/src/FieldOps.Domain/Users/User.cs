@@ -86,4 +86,26 @@ public sealed class User
             firstName.Trim(),
             lastName.Trim());
     }
+
+    /// <summary>
+    /// Records a successful sign-in. Only active users can sign in.
+    /// </summary>
+    public void RecordSignIn(DateTimeOffset signedInAt)
+    {
+        if (signedInAt == default)
+        {
+            throw new ArgumentException(
+                "Sign-in time is required.",
+                nameof(signedInAt));
+        }
+
+        if (Status != UserStatus.Active)
+        {
+            throw new InvalidOperationException(
+                "Only active users can sign in.");
+        }
+
+        LastLoginAt = signedInAt;
+        UpdatedAt = signedInAt;
+    }
 }

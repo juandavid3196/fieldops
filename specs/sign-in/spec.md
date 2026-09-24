@@ -4,7 +4,7 @@
 | -------- | ------------ |
 | Feature  | `sign-in`    |
 | Type     | Full-stack   |
-| Status   | APPROVED     |
+| Status   | AUDITED      |
 | Created  | 2026-09-24   |
 | Updated  | 2026-09-24   |
 | Approved | 2026-09-24   |
@@ -98,7 +98,7 @@ The role is returned for display only.
 | ----- | ----------- |
 | FR-01 | The frontend must serve `/auth/sign-in` from `features/authentication`, lazy loaded, protected by `guestGuard`. `''` and every unmatched path (`**`) must redirect to `/auth/sign-in`. |
 | FR-02 | The frontend must validate email and password per BR-01 and BR-02 on submit, and on blur after the first submit attempt. Each invalid field shows exactly one message (BR-03). Invalid forms are never sent. |
-| FR-03 | The backend must expose anonymous `POST /sessions`, accepting only `application/json` with a body of at most 4 KB. It normalizes and validates per BR-01 and BR-02 and returns `400` ValidationProblemDetails (keys `email`, `password`, BR-03 messages) when invalid, `415` for other content types, `413` for larger bodies and `400` without field keys for malformed JSON. |
+| FR-03 | The backend must expose anonymous `POST /sessions`, accepting only `application/json` with a body of at most 4 KB. It normalizes and validates per BR-01 and BR-02 and returns `400` ValidationProblemDetails (keys `email`, `password`, BR-03 messages) when invalid, `415` for other or missing content types, `413` for larger bodies and `400` without field keys for malformed JSON, an empty body or a JSON `null` body. |
 | FR-04 | The backend must verify credentials per BR-04 to BR-06 and return the same `401` response (BR-07) for an unknown email, a wrong password, an unreadable hash, a user whose status is not `active`, and a user with no eligible membership (BR-08). |
 | FR-05 | The backend must resolve the active organization server-side per BR-08. The request body has no organization field, and any identifier properties sent by the client are ignored. |
 | FR-06 | On valid credentials, the backend must, in one transaction, set `users.last_login_at` to now and insert the BR-13 audit row; then set the session cookie (BR-09, BR-10) and return `200` with the session body (API contracts). If the transaction fails, it returns `500` and sets no cookie. |
@@ -112,7 +112,7 @@ The role is returned for display only.
 | FR-14 | The frontend must provide a core session service holding the current session as a signal, loaded from `GET /sessions/current`. `authInterceptor` must set `withCredentials` on API URLs only. `authGuard` protects `/overview` and redirects to `/auth/sign-in` when the session request returns anything other than `200`. `guestGuard` redirects to `/overview` when it returns `200`. |
 | FR-15 | The Sign In page must implement the states in UI behavior: registered message, submitting, field errors and the response errors in Error behavior. While a request is in flight, further submits are ignored so exactly one request is sent per attempt. After `429`, submit stays disabled for `retryAfterSeconds` (60 if absent). |
 | FR-16 | On `200` from `POST /sessions`, the frontend must store the returned session and navigate to `/overview`, replacing the Sign In entry in history. No toast. |
-| FR-17 | The frontend must serve `/overview` from `features/overview`, lazy loaded, protected by `authGuard`. It shows a `h1` "Welcome, {firstName}", the organization name, the role name and a **Sign out** button that calls `DELETE /sessions/current`; on `204` it clears the session and navigates to `/auth/sign-in`; on failure it stays and shows "We couldn't sign you out. Try again." |
+| FR-17 | The frontend must serve `/overview` from `features/overview`, lazy loaded, protected by `authGuard`. It shows a `h1` "Welcome, {firstName}", the organization name labelled "Organization", the role name labelled "Role" (a description list) and a **Sign out** button that calls `DELETE /sessions/current`; on `204` it clears the session and navigates to `/auth/sign-in`; on failure it stays and shows "We couldn't sign you out. Try again." |
 | FR-18 | `ApiError` must carry `retryAfterSeconds`: the `Retry-After` header parsed as a non-negative integer of seconds on `429` responses, otherwise `undefined`. |
 | FR-19 | The Sign In page must render the controls and layout in UI behavior and omit every control listed as omitted there. |
 | FR-20 | The Sign In and Overview pages must meet the accessibility and responsive rules in UI behavior. |
@@ -135,7 +135,7 @@ The role is returned for display only.
 | BR-12 | Per-email throttle (in memory, keyed by a SHA-256 of the normalized email): after 5 failed attempts (`401`) within a sliding 15-minute window, further `POST /sessions` for that email return `429` before password verification, with `Retry-After` = seconds until the oldest counted failure leaves the window. Unknown emails are counted the same way. A successful sign-in clears the counter. `400`, `413`, `415` and `429` do not count as failures. Counters reset on restart and are not shared across instances. | Backend |
 | BR-13 | Audit row on success: `action = 'auth.signed_in'`, `entity_type = 'user'`, `entity_id` = user id, `organization_id` = resolved organization id, `actor_user_id` = user id, `ip_address` = client IP, `branch_id`, `before_data`, `after_data` null, `metadata` `{}`. Failed attempts are not audited. | Backend |
 | BR-14 | Never log request bodies, emails, passwords, password hashes, cookie values or `Set-Cookie` headers. Failed sign-ins may be logged only with the failure category and, when known, the user id; never the email. | Backend |
-| BR-15 | Page messages: registered → "Your organization was created. Sign in to continue."; `401` → "The email or password is incorrect. Check your details and try again."; `429` → "Too many sign-in attempts. Try again in {n} minutes.", where `n` = `retryAfterSeconds` / 60 rounded up (minimum 1, 60 seconds when absent); network, `5xx`, `413`, `415`, `400` without mappable keys and any other status → "We couldn't sign you in right now. Try again in a moment." These page messages are an explicit exception to showing `ApiError.message`; backend text is still never shown. | Frontend |
+| BR-15 | Page messages: registered → "Your organization was created. Sign in to continue."; `401` → "The email or password is incorrect. Check your details and try again."; `429` → "Too many sign-in attempts. Try again in {n} minutes.", where `n` = `retryAfterSeconds` / 60 rounded up (minimum 1, 60 seconds when absent); when `n` = 1 the text is "Too many sign-in attempts. Try again in 1 minute."; network, `5xx`, `413`, `415`, `400` without mappable keys and any other status → "We couldn't sign you in right now. Try again in a moment." These page messages are an explicit exception to showing `ApiError.message`; backend text is still never shown. | Frontend |
 
 ## States and transitions
 
@@ -207,7 +207,7 @@ Session body (`200`):
 
 | Method | Path | Request | Success | Errors | Permission |
 | ------ | ---- | ------- | ------- | ------ | ---------- |
-| POST | `/sessions` | `application/json` `{ "email": "…", "password": "…", "rememberMe": false }`, ≤4 KB | `200` session body + `Set-Cookie: fieldops_session` (BR-09, BR-10), `Cache-Control: no-store` | `400` ValidationProblemDetails (`email`, `password`; BR-03) or without keys for malformed JSON · `401` generic ProblemDetails (BR-07) · `413` · `415` · `429` + `Retry-After` · `500` generic ProblemDetails | Anonymous |
+| POST | `/sessions` | `application/json` `{ "email": "…", "password": "…", "rememberMe": false }`, ≤4 KB | `200` session body + `Set-Cookie: fieldops_session` (BR-09, BR-10), `Cache-Control: no-store` | `400` ValidationProblemDetails (`email`, `password`; BR-03) or without keys for malformed JSON, an empty body or a JSON `null` body · `401` generic ProblemDetails (BR-07) · `413` · `415` (other or missing content type) · `429` + `Retry-After` · `500` generic ProblemDetails | Anonymous |
 | GET | `/sessions/current` | Cookie | `200` session body, `Cache-Control: no-store` | `401` ProblemDetails (cookie deleted when present but invalid) | Valid session |
 | DELETE | `/sessions/current` | Cookie (optional), no body | `204`, `Set-Cookie` deleting `fieldops_session` | `500` generic ProblemDetails | Anonymous |
 
@@ -285,6 +285,10 @@ password toggle's text.
   contrast (a scrim token is allowed). The photo is served as an optimized
   image of at most 300 KB with a dark surface background as fallback.
   `primeicons` and `@primeicons/angular` are not added.
+- Message contrast: Aura's default success and error `p-message` text colors
+  fail WCAG AA. They are overridden once, app-wide, in the PrimeNG preset
+  (`core/config/primeng.config.ts`) to darker `green`/`red` shades in light
+  mode so every message meets AA (AC-56).
 
 ## Error behavior
 
@@ -294,7 +298,7 @@ password toggle's text.
 | `400` with `email`/`password` keys | Field messages (BR-03 filter) | None |
 | `400` without mappable keys, `413`, `415` | "We couldn't sign you in right now. Try again in a moment." | None |
 | `401` (any credential failure) | "The email or password is incorrect. Check your details and try again."; password cleared and focused | None; the per-email failure counter increases |
-| `429` | "Too many sign-in attempts. Try again in {n} minutes."; submit disabled for `retryAfterSeconds` (60 if absent) | None |
+| `429` | "Too many sign-in attempts. Try again in {n} minutes." ("1 minute" when `n` = 1); submit disabled for `retryAfterSeconds` (60 if absent) | None |
 | `500`, including a failed `last_login_at`/audit transaction | "We couldn't sign you in right now. Try again in a moment."; no cookie | None (transaction rolled back) |
 | Network failure (status 0) | "We couldn't sign you in right now. Try again in a moment."; form unlocked | None, or a completed sign-in whose response was lost |
 | Session invalid on a later request | `401`; cookie deleted; `authGuard` sends the user to `/auth/sign-in` | None |
@@ -351,7 +355,7 @@ password toggle's text.
 | AC-45 | A `429` with `Retry-After: 30`; a `429` without it; a `500` | `ApiErrorService` maps them | `retryAfterSeconds` is `30`, `undefined` and `undefined` |
 | AC-46 | An API request and a non-API request | `authInterceptor` handles them | Only the API request has `withCredentials: true` |
 | AC-47 | A visitor without a session | They open `/overview` | The browser is on `/auth/sign-in` |
-| AC-48 | A signed-in user | They open `/overview` | The page shows "Welcome, {firstName}", the organization name, the role name and **Sign out** |
+| AC-48 | A signed-in user | They open `/overview` | The page shows "Welcome, {firstName}", the organization name labelled "Organization", the role name labelled "Role" and **Sign out** |
 | AC-49 | A signed-in user on `/overview` | They select **Sign out** and receive `204` | The session service is empty and the browser is on `/auth/sign-in` |
 | AC-50 | A signed-in user on `/overview` | Sign out fails | "We couldn't sign you out. Try again." is shown and the page stays |
 | AC-51 | The Sign In page | The "Create a company account" row is inspected | It links to `/auth/register-company` |
@@ -370,16 +374,19 @@ password toggle's text.
 | AC-64 | A successful sign-in with `rememberMe = true` | A request with that cookie is made after 14 days without requests | The response is `401` |
 | AC-65 | A request with credentials from an origin that is not configured | Any session endpoint answers | The response has no CORS headers |
 | AC-66 | A successful sign-in | `audit_logs` is read | Exactly one new row exists and it matches every BR-13 value |
+| AC-67 | A `429` response with `Retry-After: 45` | The frontend handles it | The message reads "Too many sign-in attempts. Try again in 1 minute." |
+| AC-68 | A request without a `Content-Type` header | It is posted to `POST /sessions` | The response is `415` ProblemDetails with no `Set-Cookie` |
+| AC-69 | A request with an empty body, or with the JSON body `null` | It is posted to `POST /sessions` | The response is `400` ProblemDetails with a `traceId`, no field keys and no `Set-Cookie` |
 
 ## Testing requirements
 
 | Level | Covers |
 | ----- | ------ |
 | Backend unit | Password verifier and dummy hash: AC-16, AC-17. Email normalization and validators: AC-08. Organization resolution ordering: AC-18, AC-19. Per-email throttle window: AC-31, AC-32, AC-33. `User` last sign-in update |
-| Backend integration (Testcontainers; users seeded directly) | AC-08, AC-09, AC-10, AC-11, AC-12, AC-58, AC-13, AC-14, AC-15, AC-18, AC-19, AC-20, AC-21, AC-22, AC-23, AC-24, AC-25, AC-26, AC-27, AC-28, AC-29, AC-30, AC-31, AC-32, AC-33, AC-34, AC-35, AC-36, AC-37, AC-38, AC-57, AC-59, AC-60, AC-61, AC-62, AC-63, AC-64, AC-65, AC-66. Time-based ACs use an injected `TimeProvider`. Tests run over HTTP, so they read `Set-Cookie` headers directly and forward the cookie explicitly instead of relying on a cookie container that drops `Secure` cookies |
+| Backend integration (Testcontainers; users seeded directly) | AC-08, AC-09, AC-68, AC-69, AC-10, AC-11, AC-12, AC-58, AC-13, AC-14, AC-15, AC-18, AC-19, AC-20, AC-21, AC-22, AC-23, AC-24, AC-25, AC-26, AC-27, AC-28, AC-29, AC-30, AC-31, AC-32, AC-33, AC-34, AC-35, AC-36, AC-37, AC-38, AC-57, AC-59, AC-60, AC-61, AC-62, AC-63, AC-64, AC-65, AC-66. Time-based ACs use an injected `TimeProvider`. Tests run over HTTP, so they read `Set-Cookie` headers directly and forward the cookie explicitly instead of relying on a cookie container that drops `Secure` cookies |
 | Authorization/tenant isolation | AC-13, AC-14 (no state leak); AC-18, AC-19, AC-20 (server-side resolution, client id ignored); AC-21, AC-22, AC-23 (per-request re-check); AC-24 (tampered cookie); AC-25 (header ignored); AC-36 (anonymous gets `401`) |
-| Frontend component/service/guard | AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07, AC-39, AC-40, AC-41, AC-42, AC-43, AC-44, AC-45, AC-46, AC-47, AC-48, AC-49, AC-50, AC-51 |
-| Frontend QA (Playwright, final audit) | AC-52, AC-53, AC-54, AC-55, AC-56. Only client-validation and failed-credential submissions; no successful sign-in against the local database (it writes `last_login_at` and `audit_logs`) |
+| Frontend component/service/guard | AC-01, AC-02, AC-03, AC-04, AC-05, AC-06, AC-07, AC-39, AC-40, AC-41, AC-42, AC-67, AC-43, AC-44, AC-45, AC-46, AC-47, AC-48, AC-49, AC-50, AC-51 |
+| Frontend QA (Playwright, final audit) | AC-52, AC-53, AC-54, AC-55, AC-56 (axe via the `axe-core` devDependency). Only client-validation and failed-credential submissions; no successful sign-in against the local database (it writes `last_login_at` and `audit_logs`) |
 
 ## Dependencies
 
@@ -393,6 +400,8 @@ password toggle's text.
 - `/auth/register-company` (`organization-onboarding`, APPROVED, not
   implemented): until it lands, the "Create a company account" link falls
   through `**` back to `/auth/sign-in`. AC-51 checks only the link target.
+- `axe-core` is added as a frontend devDependency for the AC-56 accessibility
+  check. Approved 2026-09-24.
 - Seeded roles in `roles`: present.
 - Identity and tenancy tables migrated (`InitialIdentityAndTenancy`): present.
 - Documentation updated with the implementation: `docs/backend/api-configuration.md`
@@ -442,7 +451,7 @@ password toggle's text.
 | ----- | -- |
 | FR-01 | AC-01, AC-02, AC-03 |
 | FR-02 | AC-05, AC-06, AC-07 |
-| FR-03 | AC-08, AC-09, AC-59, AC-60 |
+| FR-03 | AC-08, AC-09, AC-59, AC-60, AC-68, AC-69 |
 | FR-04 | AC-13, AC-14, AC-15, AC-16, AC-17 |
 | FR-05 | AC-18, AC-19, AC-20 |
 | FR-06 | AC-10, AC-11, AC-12, AC-26, AC-27, AC-28, AC-58, AC-61, AC-62, AC-64, AC-66 |
@@ -454,7 +463,7 @@ password toggle's text.
 | FR-12 | AC-36, AC-37, AC-65 |
 | FR-13 | AC-38 |
 | FR-14 | AC-03, AC-46, AC-47 |
-| FR-15 | AC-04, AC-39, AC-41, AC-42, AC-43, AC-44 |
+| FR-15 | AC-04, AC-39, AC-41, AC-42, AC-43, AC-44, AC-67 |
 | FR-16 | AC-40 |
 | FR-17 | AC-48, AC-49, AC-50 |
 | FR-18 | AC-45 |
@@ -469,3 +478,7 @@ password toggle's text.
 | 2026-09-24 | DRAFT → DRAFT | Fixed validation findings F1–F7: split AC-09, AC-10, AC-11 and AC-34 into single-outcome ACs (added AC-59 to AC-63); FR-08 `no-store` on `200` and `401`; Overview mockup note; `frontend/CLAUDE.md` update listed in Dependencies; integration-test note for `Secure` cookies over HTTP |
 | 2026-09-24 | DRAFT → DRAFT | Fixed validation findings F8–F9: split AC-12 (added AC-64) and AC-37 (added AC-65); also split AC-26 into `last_login_at` and audit row (added AC-66) |
 | 2026-09-24 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-09-24 | APPROVED → DRAFT | Revised by user request during /spec-impl: BR-15 singular "1 minute" (added AC-67); FR-17/AC-48 Overview labels "Organization" and "Role"; `axe-core` devDependency for AC-56; app-wide preset override of message colors for WCAG AA; FR-03 and API contract: missing `Content-Type` → `415`, empty or `null` body → keyless `400` (added AC-68, AC-69) |
+| 2026-09-24 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-09-24 | APPROVED → IMPLEMENTED | Required implementation workflows completed |
+| 2026-09-24 | IMPLEMENTED → AUDITED | final-audit returned `AUDIT PASS WITH MINOR FINDINGS` |
