@@ -13,10 +13,18 @@
 Rules:
 - Delete any section that truly does not apply; do not leave it empty.
 - Precise, testable language. No "fast", "intuitive", "etc.", "should ideally".
-- Implementation details only when they are architectural constraints.
+- Implementation details only when they are architectural constraints; no
+  volatile ones (component selectors, deprecated APIs, CSS classes, test file
+  names).
 - Status values: DRAFT | APPROVED | IMPLEMENTED | AUDITED.
 - Only `/spec approve` sets APPROVED. Any change after approval returns the
-  status to DRAFT with a Change log entry.
+  status to DRAFT with a Change log entry, except non-behavioral corrections
+  through `/spec amend` (status stays APPROVED, labelled Change log row).
+- Acceptance criteria: each one independently verifiable behavior; keep
+  related assertions together. Aim for ~15–30 active ACs; more than 30 needs
+  consolidation, a split, or a security justification.
+- Testing requirements: behaviors and risks per level (`CLAUDE.md` Testing
+  policy), not one test per AC. Several FRs/ACs may share evidence.
 - IDs are never renumbered or reused. A removed item keeps its row as
   `Removed YYYY-MM-DD: <reason>` and is excluded from Traceability.
 - Pending schema amendments, pending API contracts, behavior awaiting a
@@ -104,16 +112,17 @@ Contract status: Final | Pending (Pending blocks approval).
 
 | ID    | Given        | When     | Then                    |
 | ----- | ------------ | -------- | ----------------------- |
-| AC-01 | <precondition> | <action> | <single observable result> |
+| AC-01 | <precondition> | <action> | <observable result of one behavior> |
 
 ## Testing requirements
 
-| Level                         | Covers           |
-| ----------------------------- | ---------------- |
-| Backend unit                  | AC-xx            |
-| Backend integration           | AC-xx            |
-| Authorization/tenant isolation| AC-xx            |
-| Frontend component/service    | AC-xx            |
+| Level                          | Behavior or risk to prove | Evidence for |
+| ------------------------------ | ------------------------- | ------------ |
+| Backend unit                   | <non-trivial rule only>   | FR-xx, AC-xx |
+| Backend integration            | <endpoint/use-case group> | AC-xx, AC-xx |
+| Authorization/tenant isolation | <one representative cross-tenant denial; permission checks> | AC-xx |
+| Frontend component/service     | <UI behavior and states with distinct logic> | AC-xx, AC-xx |
+| Browser (final audit)          | <happy path; critical failure flow if valuable> | AC-xx |
 
 ## Dependencies
 

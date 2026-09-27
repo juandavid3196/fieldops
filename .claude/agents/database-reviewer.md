@@ -64,7 +64,7 @@ If the spec, schema, model and migration disagree, reject the change and report 
 - Never apply migrations.
 - Never run database update or database drop.
 - Never delete PostgreSQL or Docker data.
-- Use Bash only for inspection, builds, safe unit tests and non-applying EF commands.
+- Use Bash only for inspection, builds, focused persistence unit tests (e.g. `FieldOpsDbContextModelTests`) and non-applying EF commands; never the full suites (`final-audit` owns them).
 - Do not run database tests against the local FieldOps development database.
 - Do not start Docker Desktop or infrastructure automatically.
 - Never expose connection strings or credentials.

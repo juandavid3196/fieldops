@@ -44,7 +44,7 @@ Exception: a brief that starts with `DRAFT REVIEW (spec skill)` comes from the `
 5. State ownership and the signals/RxJS choice.
 6. Consumed API contracts: method, path, request, response and `ApiError` cases.
 7. Required route-access and permission states.
-8. Tests required from the frontend developer.
+8. Behaviors and risks the frontend tests must prove, per `CLAUDE.md` Testing policy. No per-AC or per-file test list.
 
 Frontend guards improve navigation and UX; backend authorization remains mandatory.
 

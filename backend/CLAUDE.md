@@ -80,3 +80,14 @@ dotnet ef migrations script --idempotent --project src/FieldOps.Infrastructure/F
   frontend depends on it.
 - Test names: `Method_Condition_ExpectedResult`. Integration tests pass
   settings through `FieldOpsApiFactory`, never user-secrets.
+- Focused tests (xUnit v2/VSTest filter on the test folder namespace, e.g.
+  `FieldOps.IntegrationTests.Sessions`, or narrower `<Namespace>.<Class>[.<Method>]`;
+  combine with `|`), after the Release build:
+
+  ```bash
+  dotnet test tests/FieldOps.UnitTests/FieldOps.UnitTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~FieldOps.UnitTests.<Folder>"
+  dotnet test tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~FieldOps.IntegrationTests.<Folder>"
+  ```
+
+  Integration: only when `docker info` succeeds (Testcontainers); never the
+  local FieldOps database.

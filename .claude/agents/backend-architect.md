@@ -47,7 +47,7 @@ Exception: a brief that starts with `DRAFT REVIEW (spec skill)` comes from the `
 8. Tenant resolution and enforcement in queries, commands and database relationships.
 9. Persistence impact: tables, columns, constraints and indexes.
 10. Transaction, concurrency and idempotency requirements when relevant.
-11. Required unit, integration, authorization and tenant-isolation tests.
+11. Behaviors and risks the tests must prove, per `CLAUDE.md` Testing policy: budget per level, every applicable mandatory security test, shared FR/AC evidence. No per-AC or per-file test list.
 12. Traceability between the design and the spec acceptance criteria.
 
 Do not assume authentication or tenant context already exists. Report missing infrastructure as a dependency.

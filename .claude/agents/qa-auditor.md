@@ -45,9 +45,9 @@ Stop and report any missing required input.
 
 ## Check
 
-1. Every acceptance criterion: `MET`, `NOT MET` or `NOT VERIFIED`, with evidence.
+1. Every acceptance criterion: `MET`, `NOT MET`, `NOT VERIFIED` or `N/A` (with reason), with evidence. One test may evidence several ACs.
 2. Implementation traceability to the approved scope.
-3. Tests assert meaningful behavior rather than only execution.
+3. Tests assert meaningful behavior rather than only execution, per `CLAUDE.md` Testing policy. A missing per-AC or per-file test is not a finding when the behavior is proven; missing mandatory security evidence is.
 4. Missing boundary, error and regression cases.
 5. Backend authorization and tenant isolation.
 6. Organization context is resolved or authorized server-side and never trusted solely from client input.
@@ -65,15 +65,15 @@ Do not claim visual, runtime accessibility or responsive verification without br
 ## Browser evidence (Playwright MCP)
 
 - Only the already-running local app (`http://localhost:4200`, API `http://localhost:5034`); never start it or Docker.
-- No real credentials, personal profiles or production data. Data-changing submissions only against disposable test data or with user approval.
-- Use accessibility snapshots, keyboard/focus, `browser_resize` for breakpoints and `browser_emulate_media` or the `.app-dark` class for dark mode, as the spec requires.
+- Only when UI changed. No real credentials, personal profiles or production data. Never mutate the local FieldOps development database: read-only flows may use the running local API; data-changing flows only with mocked/intercepted API responses or explicitly isolated disposable test infrastructure. Never require a real data-changing submission when static, component, integration or mocked-browser evidence proves the AC.
+- Scope defaults (the `final-audit` brief may narrow or name more): one happy path, one critical failure flow when valuable; one mobile (320px) and one desktop (1280px) viewport plus widths an AC names; dark mode (`browser_emulate_media` or `.app-dark`) only when the feature changes it or an AC requires it; axe on the primary state and one meaningful error state; pixel comparison only when an AC requires it.
 - Screenshots only as required evidence, with the default output (never an explicit file name).
 - Browser evidence complements tests and builds; it never replaces them.
 - Playwright unavailable: only ACs that need browser evidence become `NOT VERIFIED`.
 
 ## Validation
 
-Run the commands defined in the applicable `CLAUDE.md` files for every changed area.
+Run exactly the commands the `final-audit` brief lists: the `CLAUDE.md` Full profile, once per changed area, minus commands with fresh reused evidence. Without such a brief, run the Full profile for each changed area once. Never rerun a command that already passed on the same fingerprint.
 
 - Do not format or modify source files.
 - Restore dependencies only when required to execute validation.
@@ -100,7 +100,7 @@ Then provide:
 2. Critical findings.
 3. Important findings.
 4. Minor findings.
-5. Validation results.
+5. Validation ledger rows (`CLAUDE.md`): run and reused.
 6. Items not verified.
 7. Required follow-up owner.
 
@@ -113,4 +113,4 @@ Every finding must include:
 - Expected versus actual behavior.
 - Recommended correction.
 
-Any unresolved Critical or Important finding requires `FAIL`. Missing required validation or persistence approval also requires `FAIL`. Only Minor findings may produce `PASS WITH MINOR FINDINGS`.
+Any unresolved Critical or Important finding requires `FAIL`. Missing required validation, persistence approval, or applicable security or tenant-isolation evidence also requires `FAIL`. Only Minor findings may produce `PASS WITH MINOR FINDINGS`. `N/A` with a reason is not `NOT VERIFIED`. Keep the report concise; do not restate the spec.

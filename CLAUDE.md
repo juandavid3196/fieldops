@@ -65,9 +65,59 @@ dotnet test tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj --c
 ```
 
 - Use `FieldOps.slnx`; there is no `FieldOps.sln`.
+- Focused test commands: `frontend/CLAUDE.md`, `backend/CLAUDE.md`.
 - Hooks (`git config core.hooksPath .githooks`): pre-commit runs format and lint
   checks; pre-push runs frontend test/build and backend build/unit tests.
-  Integration tests run only in CI or manually.
+  Integration tests and browser audits run only in CI, `final-audit` or manually.
+
+## Testing policy
+
+Tests prove behavior and risk, not files, classes, FRs or ACs. One focused
+test may be evidence for several FRs/ACs.
+
+| Level               | Default budget per feature (guidance, not a limit)                        |
+| ------------------- | ------------------------------------------------------------------------- |
+| Frontend            | ~3–6 focused tests                                                        |
+| Backend integration | ~3–6 focused tests per endpoint/use-case group                            |
+| Backend unit        | Only non-trivial domain rules, calculations, validators, security utilities |
+| Browser (audit)     | One happy path; one critical failure flow only when valuable              |
+
+- Exceeding a budget needs a one-line justification in the workflow report.
+- Never required: one test file per production file; one test per FR/AC; the
+  same rule at unit, integration and browser level (unless security-critical);
+  tests of trivial DTOs, interfaces, getters, constants, wrappers or
+  configuration already exercised by an integration test.
+- Always required when the feature touches them (never reduced by budgets):
+  authentication and sessions; authorization and permissions; cross-organization
+  access; password hashing and sensitive data; cookie security and CSRF;
+  destructive or unsafe migrations; rollback of important multi-record writes;
+  payment or financial integrity; upload validation.
+- A normal tenant-owned endpoint needs one representative cross-tenant denial
+  test; add more only for distinct code paths with distinct risk.
+
+## Validation profiles
+
+| Profile | Contents | Who runs it |
+| ------- | -------- | ----------- |
+| Focused | Per changed area: format verification, lint (frontend), build, and only the tests for the changed feature and affected shared behavior, including relevant integration tests. | Developers and the `frontend`/`backend` skills |
+| Full    | Per changed area: every command in Commands above (backend integration when `docker info` succeeds). | Locally, only `final-audit`, once, at the end. CI is the authoritative post-push run. |
+
+- Run the full suite outside `final-audit` only when the change is
+  cross-cutting or no focused selection is possible; say why in the report.
+- Validation ledger: every command in a workflow report is one row
+  `command · area · focused|full · pass|fail · stage/time · fingerprint`.
+  Evidence is fresh only while the area fingerprint is unchanged; stale or
+  missing evidence is rerun, never trusted. Fingerprint (repo root, Git Bash;
+  `<area>` = `frontend` or `backend`):
+
+  ```bash
+  { git rev-parse HEAD; git diff HEAD --binary -- <area>; git ls-files -o --exclude-standard -- <area>; \
+    git ls-files -o --exclude-standard -z -- <area> | xargs -0 -r git hash-object --; } | git hash-object --stdin
+  ```
+
+- Workflow reports: changed files; focused tests added and why; shared FR/AC
+  evidence; validation ledger; security checks; skipped checks with reason;
+  result. Never paste the spec or large agent output.
 
 ## Agent boundaries
 
@@ -120,12 +170,13 @@ Project tooling: `implement-persistence-slice` skill, `database-reviewer` agent.
   validation passes, migrations reviewed, docs updated, no unrelated changes,
   audit report produced.
 - Specs: `specs/<feature-slug>/spec.md` from `specs/templates/feature-spec.md`,
-  managed with the `spec` skill (`/spec create|revise|validate|approve`).
+  managed with the `spec` skill (`/spec create|revise|validate|approve|amend`).
+  `amend` only makes non-behavioral corrections and keeps APPROVED.
 - Route: `spec` → `spec-impl` → `backend`/`frontend` → `final-audit`.
   `/spec-impl <spec-path> [--generate-migration] [--resume]` is user-invoked
   only; it sets IMPLEMENTED → AUDITED after the audit passes.
   `--generate-migration` authorizes a migration (never applied); `--resume`
-  continues an earlier incomplete run of the same spec.
+  continues an earlier incomplete run of the same spec from its failed stage.
 
 ## Security
 

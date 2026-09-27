@@ -43,7 +43,7 @@ Read `CLAUDE.md` and `frontend/CLAUDE.md` first.
 | Status       | `APPROVED`. DRAFT, IMPLEMENTED or AUDITED → stop.                                                      |
 | Type         | `Frontend`, `Full-stack` or `UI-only`. `Backend`/`Infrastructure` → stop.                              |
 | Decisions    | No Open decision with `Blocking: Yes` and no resolution.                                               |
-| AC           | ≥1 active AC covered by `Frontend component/service` in Testing requirements, or tied to a UI screen.  |
+| AC           | ≥1 active AC with UI-observable behavior (a `Frontend component/service` Testing requirements row, or tied to a UI screen). |
 | API          | Every endpoint the UI consumes is a complete `API contracts` row (method, path, request, success, errors, permission) with no placeholder, `Pending` marker or unresolved decision. UI-only: none consumed. |
 | Design       | Approved = exact path listed in the spec and existing on disk. No other metadata required. List each missing path. |
 | Docs         | Frontend docs = exact paths under `docs/frontend/` the spec explicitly requires. A required doc path this skill cannot own (outside `docs/frontend/` and `docs/backend/`, or shared frontend/backend content) → `FRONTEND BLOCKED`, user decides ownership. |
@@ -65,6 +65,8 @@ a direct `/frontend` run never resumes.
   status and hash; otherwise `FRONTEND BLOCKED`.
 - Listed paths may be edited only for in-scope FR/AC. Every unlisted baseline
   path stays untouchable.
+- A `Corrections:` list in the block is the audit findings this run must fix
+  (§3 skip rule).
 
 ## 2. Scope
 
@@ -86,6 +88,10 @@ in-scope FR/AC IDs, the API contract rows and relevant files.
    design paths and the architect's page/component list. State that handoff
    HTML/JS is reference only.
 3. Consolidate in your own words; do not paste agent output.
+
+Skip both agents, recording why, when the resume block's `Corrections:` fully
+define every frontend change and none needs an architecture or UI decision.
+Brief the developer with those findings as the plan.
 
 Design sources:
 
@@ -121,12 +127,14 @@ most two invocations: one implementation pass, one correction pass. Brief:
 
 - Consolidated plan, in-scope FR/AC IDs, contract rows, design paths.
 - Baseline paths: do not touch them, except delegated resume paths.
-- Implement only those ACs; add focused co-located tests covering the
-  relevant ACs and states (not necessarily one test per AC).
+- Implement only those ACs; add the smallest focused co-located test set per
+  `CLAUDE.md` Testing policy (no test or test file per AC); report shared
+  FR/AC evidence.
 - Edit only the writable area: `frontend/` and the exact frontend doc paths
   listed; no backend, other docs, CI, hook, `.claude/`, dependency or
   lockfile changes; no mock endpoints or hardcoded production data.
-- Run the four frontend validations and report each result.
+- Focused profile only (`CLAUDE.md`), once after the final pass; never the
+  full test suite (`final-audit` owns it). Report ledger rows.
 
 ## 5. Verify
 
@@ -138,33 +146,38 @@ most two invocations: one implementation pass, one correction pass. Brief:
    `FRONTEND FAILED`. Untouched baseline paths are excluded from the diff and
    the report's changed files. Changed frontend docs are listed and mapped to
    the spec requirement that demands them.
-2. Re-run from `frontend/`: `npm run format:check`, `npm run lint`,
-   `npm run test -- --watch=false`, `npm run build -- --configuration production`.
-3. Map each in-scope FR/AC to files and tests.
-4. On failure after the first pass, invoke `frontend-developer` once more as a
-   correction pass with concise evidence: failing command, error excerpt,
-   uncovered AC IDs. Re-verify. Still failing → `FRONTEND FAILED`; no third
-   invocation.
+2. Recompute the `frontend` fingerprint. Accept the developer's passing
+   Focused-profile ledger rows only when their fingerprint matches; run from
+   `frontend/` only the missing, failed or stale Focused-profile commands
+   (format check, lint, focused tests, production build). Never the full suite.
+3. Map each in-scope FR/AC to files and tests; several may share one test.
+4. The correction-pass budget is one, global. Collect every failure from
+   steps 1–3 first, then invoke `frontend-developer` once more with concise
+   evidence: failing commands, error excerpts, uncovered AC IDs. Do not
+   re-invoke the architect or designer unless a finding needs their decision.
+   Re-verify. Still failing → `FRONTEND FAILED`; no third invocation.
 
 Never: invoke `qa-auditor` (final audit belongs to `final-audit`), change spec
 status, commit, push or merge.
 
 ## 6. Report
 
-1. Spec path, Type and frontend scope (in/out FR/AC IDs).
-2. Agents invoked (and skipped, with reason).
-3. Architecture and UI decisions used.
-4. Changed files.
-5. FR/AC matrix: ID · implementation · test evidence · status.
-6. Validation: each command, pass/fail, error excerpt.
-7. MCP verification used or unavailable. Visual checks not performed
-   (breakpoints, dark mode, mockup comparison), or N/A when the spec has no
-   visual changes.
+Concise (`CLAUDE.md` Workflow reports); never paste agent output.
+
+1. Spec path, spec `git hash-object`, Type, in/out FR/AC IDs.
+2. Agents invoked or skipped, with reason; architecture and UI decisions used.
+3. Changed files.
+4. Focused tests added and why; budget overruns justified.
+5. FR/AC matrix: ID · implementation · test evidence · status (shared
+   evidence explicit).
+6. Validation ledger with the final `frontend` fingerprint; failure excerpts.
+7. MCP verification used or unavailable; visual checks left to `final-audit`,
+   or N/A when the spec has no visual changes.
 8. Deviations, risks, backend dependencies, pending decisions.
 9. Result:
 
 | Result              | When                                                                   |
 | ------------------- | ---------------------------------------------------------------------- |
-| `FRONTEND COMPLETE` | Every in-scope FR implemented, every AC has evidence, required design states covered, all four validations pass, no unapproved dependency or scope change. |
+| `FRONTEND COMPLETE` | Every in-scope FR implemented, every AC has evidence, required design states covered, Focused-profile validations pass, no unapproved dependency or scope change. |
 | `FRONTEND BLOCKED`  | Gate failed or a decision is pending; nothing implemented after the stop. |
 | `FRONTEND FAILED`   | Implementation ran but a validation failed, was skipped without reason, an AC lacks evidence, or out-of-scope changes exist. |
