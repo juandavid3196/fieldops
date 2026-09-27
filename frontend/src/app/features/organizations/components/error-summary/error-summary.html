@@ -1,0 +1,27 @@
+@if (leadingMessage() !== null || links().length > 0) {
+  <p-message
+    id="register-company-error-summary"
+    class="error-summary"
+    severity="error"
+    [closable]="false"
+    tabindex="-1"
+  >
+    <ng-template #icon>
+      <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+    </ng-template>
+
+    @if (leadingMessage(); as message) {
+      <p class="error-summary__message">{{ message }}</p>
+    }
+
+    @if (links().length > 0) {
+      <ul class="error-summary__list">
+        @for (link of links(); track link.fieldId) {
+          <li>
+            <a [href]="'#' + link.fieldId">{{ link.label }}: {{ link.message }}</a>
+          </li>
+        }
+      </ul>
+    }
+  </p-message>
+}

@@ -1,0 +1,240 @@
+<section class="first-branch" aria-labelledby="first-branch-heading" [formGroup]="group()">
+  <h2 id="first-branch-heading">First branch</h2>
+
+  <div class="first-branch__grid">
+    <app-form-field
+      label="Branch name"
+      controlId="branch-name"
+      [required]="true"
+      [error]="error('branch.name')"
+    >
+      <input
+        pInputText
+        id="branch-name"
+        formControlName="name"
+        fluid
+        required
+        [invalid]="error('branch.name') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('branch.name') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('branch.name') !== null ? 'branch-name-error' : null"
+        (blur)="fieldBlur.emit('branch.name')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Branch code"
+      controlId="branch-code"
+      [required]="true"
+      [error]="error('branch.code')"
+      [helper]="error('branch.code') === null ? 'Used in document numbering and reports.' : null"
+    >
+      <input
+        pInputText
+        id="branch-code"
+        formControlName="code"
+        fluid
+        required
+        [invalid]="error('branch.code') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('branch.code') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('branch.code') !== null ? 'branch-code-error' : 'branch-code-helper'
+        "
+        (blur)="fieldBlur.emit('branch.code')"
+      />
+    </app-form-field>
+
+    <app-form-field label="Branch phone" controlId="branch-phone" [error]="error('branch.phone')">
+      <input
+        pInputText
+        id="branch-phone"
+        type="tel"
+        formControlName="phone"
+        fluid
+        [invalid]="error('branch.phone') !== null"
+        [readonly]="submitting()"
+        [attr.aria-invalid]="error('branch.phone') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('branch.phone') !== null ? 'branch-phone-error' : null"
+        (blur)="fieldBlur.emit('branch.phone')"
+      />
+    </app-form-field>
+
+    <app-form-field label="Branch email" controlId="branch-email" [error]="error('branch.email')">
+      <input
+        pInputText
+        id="branch-email"
+        type="email"
+        formControlName="email"
+        fluid
+        [invalid]="error('branch.email') !== null"
+        [readonly]="submitting()"
+        [attr.aria-invalid]="error('branch.email') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('branch.email') !== null ? 'branch-email-error' : null"
+        (blur)="fieldBlur.emit('branch.email')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Branch time zone"
+      controlId="branch-timezone"
+      [required]="true"
+      [error]="error('branch.timezone')"
+    >
+      <p-select
+        inputId="branch-timezone"
+        formControlName="timezone"
+        [options]="timezoneOptions()"
+        optionLabel="label"
+        optionValue="code"
+        [filter]="true"
+        ariaLabel="Branch time zone"
+        fluid
+        [invalid]="error('branch.timezone') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('branch.timezone') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('branch.timezone') !== null ? 'branch-timezone-error' : null"
+        (onChange)="branchTimezoneChanged.emit()"
+        (onBlur)="fieldBlur.emit('branch.timezone')"
+      />
+    </app-form-field>
+
+    <fieldset class="first-branch__address">
+      <legend>Company address *</legend>
+      <div class="first-branch__address-grid">
+        <app-form-field
+          label="Address line 1"
+          controlId="branch-addressLine1"
+          [required]="true"
+          [error]="error('branch.addressLine1')"
+        >
+          <input
+            pInputText
+            id="branch-addressLine1"
+            formControlName="addressLine1"
+            fluid
+            required
+            placeholder="Address line 1"
+            aria-label="Address line 1"
+            [invalid]="error('branch.addressLine1') !== null"
+            [readonly]="submitting()"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.addressLine1') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.addressLine1') !== null ? 'branch-addressLine1-error' : null
+            "
+            (blur)="fieldBlur.emit('branch.addressLine1')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="City"
+          controlId="branch-city"
+          [required]="true"
+          [error]="error('branch.city')"
+        >
+          <input
+            pInputText
+            id="branch-city"
+            formControlName="city"
+            fluid
+            required
+            placeholder="City"
+            aria-label="City"
+            [invalid]="error('branch.city') !== null"
+            [readonly]="submitting()"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.city') !== null ? 'true' : null"
+            [attr.aria-describedby]="error('branch.city') !== null ? 'branch-city-error' : null"
+            (blur)="fieldBlur.emit('branch.city')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="State/Region"
+          controlId="branch-stateRegion"
+          [error]="error('branch.stateRegion')"
+        >
+          <input
+            pInputText
+            id="branch-stateRegion"
+            formControlName="stateRegion"
+            fluid
+            placeholder="State/Region"
+            aria-label="State/Region"
+            [invalid]="error('branch.stateRegion') !== null"
+            [readonly]="submitting()"
+            [attr.aria-invalid]="error('branch.stateRegion') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.stateRegion') !== null ? 'branch-stateRegion-error' : null
+            "
+            (blur)="fieldBlur.emit('branch.stateRegion')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Postal code"
+          controlId="branch-postalCode"
+          [required]="true"
+          [error]="error('branch.postalCode')"
+        >
+          <input
+            pInputText
+            id="branch-postalCode"
+            formControlName="postalCode"
+            fluid
+            required
+            placeholder="Postal code"
+            aria-label="Postal code"
+            [invalid]="error('branch.postalCode') !== null"
+            [readonly]="submitting()"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.postalCode') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.postalCode') !== null ? 'branch-postalCode-error' : null
+            "
+            (blur)="fieldBlur.emit('branch.postalCode')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Default country"
+          controlId="branch-countryCode"
+          [required]="true"
+          [error]="error('branch.countryCode')"
+        >
+          <p-select
+            inputId="branch-countryCode"
+            formControlName="countryCode"
+            [options]="countryOptions()"
+            optionLabel="label"
+            optionValue="code"
+            [filter]="true"
+            ariaLabel="Default country"
+            fluid
+            [invalid]="error('branch.countryCode') !== null"
+            [readonly]="submitting()"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.countryCode') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.countryCode') !== null ? 'branch-countryCode-error' : null
+            "
+            (onBlur)="fieldBlur.emit('branch.countryCode')"
+          />
+        </app-form-field>
+      </div>
+    </fieldset>
+
+    <app-business-hours-editor
+      class="first-branch__business-hours"
+      [group]="group().controls.businessHours"
+      [fieldErrors]="fieldErrors()"
+      [rootError]="fieldErrors()['branch.businessHours'] ?? null"
+      [submitting]="submitting()"
+      (fieldBlur)="fieldBlur.emit($event)"
+    />
+  </div>
+</section>

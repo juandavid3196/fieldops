@@ -9,6 +9,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/authentication/authentication.routes'),
   },
   {
+    // Compound path, sibling to 'auth': public registration, no guestGuard.
+    path: 'auth/register-company',
+    loadChildren: () => import('./features/organizations/organizations.routes'),
+  },
+  {
     path: 'overview',
     canActivate: [authGuard],
     loadChildren: () => import('./features/overview/overview.routes'),

@@ -1,0 +1,76 @@
+<div class="business-hours">
+  @if (rootError(); as message) {
+    <p class="business-hours__root-error">
+      <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+      {{ message }}
+    </p>
+  }
+
+  @for (day of weekdays; track day) {
+    <div class="business-hours__row">
+      <div class="business-hours__toggle-cell">
+        <p-toggleswitch
+          [inputId]="controlId(day, 'open')"
+          [formControl]="dayGroup(day).controls.open"
+          [ariaLabel]="dayLabel(day) + ' open'"
+          [readonly]="submitting()"
+        />
+        <label class="business-hours__day-label" [for]="controlId(day, 'open')">{{
+          dayLabel(day)
+        }}</label>
+      </div>
+
+      @if (isOpen(day)) {
+        <div class="business-hours__times">
+          <div class="business-hours__time-field">
+            <input
+              type="time"
+              class="business-hours__time-input"
+              [id]="controlId(day, 'start')"
+              [formControl]="dayGroup(day).controls.start"
+              [attr.aria-label]="dayLabel(day) + ' start time'"
+              [attr.aria-invalid]="startError(day) !== null ? 'true' : null"
+              [attr.aria-describedby]="
+                startError(day) !== null ? controlId(day, 'start') + '-error' : null
+              "
+              [readonly]="submitting()"
+              (blur)="onBlur(day, 'start')"
+            />
+            @if (startError(day); as message) {
+              <p class="business-hours__error" [id]="controlId(day, 'start') + '-error'">
+                <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+                {{ message }}
+              </p>
+            }
+          </div>
+
+          <span class="business-hours__separator" aria-hidden="true">–</span>
+
+          <div class="business-hours__time-field">
+            <input
+              type="time"
+              class="business-hours__time-input"
+              [id]="controlId(day, 'end')"
+              [formControl]="dayGroup(day).controls.end"
+              [attr.aria-label]="dayLabel(day) + ' end time'"
+              [attr.aria-invalid]="endError(day) !== null ? 'true' : null"
+              [attr.aria-describedby]="
+                endError(day) !== null ? controlId(day, 'end') + '-error' : null
+              "
+              [readonly]="submitting()"
+              (blur)="onBlur(day, 'end')"
+            />
+            @if (endError(day); as message) {
+              <p class="business-hours__error" [id]="controlId(day, 'end') + '-error'">
+                <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+                {{ message }}
+              </p>
+            }
+          </div>
+        </div>
+      } @else {
+        <span class="business-hours__closed">Closed</span>
+      }
+    </div>
+  }
+</div>

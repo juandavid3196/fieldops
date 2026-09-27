@@ -56,6 +56,21 @@ describe('ApiErrorService', () => {
     });
   });
 
+  it('keeps fieldErrors on 409', () => {
+    const result = service.toApiError(
+      httpError(409, {
+        title: 'Conflict',
+        status: 409,
+        errors: { 'owner.email': ['An account with this email already exists. Sign in instead.'] },
+      }),
+    );
+
+    expect(result.kind).toBe('conflict');
+    expect(result.fieldErrors).toEqual({
+      'owner.email': ['An account with this email already exists. Sign in instead.'],
+    });
+  });
+
   it('maps a 400 without field errors to bad-request', () => {
     const result = service.toApiError(httpError(400, { title: 'Bad Request', status: 400 }));
 
