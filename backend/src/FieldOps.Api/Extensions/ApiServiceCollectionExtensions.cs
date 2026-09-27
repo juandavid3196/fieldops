@@ -18,6 +18,7 @@ public static class ApiServiceCollectionExtensions
 
         // Handlers run in registration order; the global handler is last.
         services.AddExceptionHandler<BadHttpRequestExceptionHandler>();
+        services.AddExceptionHandler<DuplicateEmailExceptionHandler>();
         services.AddExceptionHandler<GlobalExceptionHandler>();
 
         return services;

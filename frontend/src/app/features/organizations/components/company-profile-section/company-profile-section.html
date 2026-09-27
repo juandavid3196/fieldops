@@ -1,0 +1,145 @@
+<section class="company-profile" aria-labelledby="company-profile-heading" [formGroup]="group()">
+  <h2 id="company-profile-heading">Company profile</h2>
+
+  <div class="company-profile__grid">
+    <app-form-field
+      label="Display name"
+      controlId="organization-name"
+      [required]="true"
+      [error]="error('organization.name')"
+    >
+      <input
+        pInputText
+        id="organization-name"
+        formControlName="name"
+        fluid
+        required
+        [invalid]="error('organization.name') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.name') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.name') !== null ? 'organization-name-error' : null
+        "
+        (blur)="fieldBlur.emit('organization.name')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Legal business name"
+      controlId="organization-legalName"
+      [required]="true"
+      [error]="error('organization.legalName')"
+    >
+      <input
+        pInputText
+        id="organization-legalName"
+        formControlName="legalName"
+        fluid
+        required
+        [invalid]="error('organization.legalName') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.legalName') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.legalName') !== null ? 'organization-legalName-error' : null
+        "
+        (blur)="fieldBlur.emit('organization.legalName')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Tax ID"
+      controlId="organization-taxId"
+      [error]="error('organization.taxId')"
+    >
+      <input
+        pInputText
+        id="organization-taxId"
+        formControlName="taxId"
+        fluid
+        [invalid]="error('organization.taxId') !== null"
+        [readonly]="submitting()"
+        [attr.aria-invalid]="error('organization.taxId') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.taxId') !== null ? 'organization-taxId-error' : null
+        "
+        (blur)="fieldBlur.emit('organization.taxId')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Business email"
+      controlId="organization-email"
+      [required]="true"
+      [error]="error('organization.email')"
+    >
+      <input
+        pInputText
+        id="organization-email"
+        type="email"
+        formControlName="email"
+        fluid
+        required
+        [invalid]="error('organization.email') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.email') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.email') !== null ? 'organization-email-error' : null
+        "
+        (blur)="fieldBlur.emit('organization.email')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Business phone"
+      controlId="organization-phone"
+      [required]="true"
+      [error]="error('organization.phone')"
+    >
+      <input
+        pInputText
+        id="organization-phone"
+        type="tel"
+        formControlName="phone"
+        fluid
+        required
+        [invalid]="error('organization.phone') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.phone') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.phone') !== null ? 'organization-phone-error' : null
+        "
+        (blur)="fieldBlur.emit('organization.phone')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Company time zone"
+      controlId="organization-timezone"
+      [required]="true"
+      [error]="error('organization.timezone')"
+    >
+      <p-select
+        inputId="organization-timezone"
+        formControlName="timezone"
+        [options]="timezoneOptions()"
+        optionLabel="label"
+        optionValue="code"
+        [filter]="true"
+        [ariaLabel]="'Company time zone'"
+        fluid
+        [invalid]="error('organization.timezone') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.timezone') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.timezone') !== null ? 'organization-timezone-error' : null
+        "
+        (onBlur)="fieldBlur.emit('organization.timezone')"
+      />
+    </app-form-field>
+  </div>
+</section>

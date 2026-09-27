@@ -46,7 +46,9 @@ public sealed class OrganizationUser
     public static OrganizationUser Create(
         Guid organizationId,
         Guid userId,
-        short roleId)
+        short roleId,
+        bool isAllBranches = false,
+        DateTimeOffset? joinedAt = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -73,6 +75,10 @@ public sealed class OrganizationUser
             Guid.NewGuid(),
             organizationId,
             userId,
-            roleId);
+            roleId)
+        {
+            IsAllBranches = isAllBranches,
+            JoinedAt = joinedAt,
+        };
     }
 }

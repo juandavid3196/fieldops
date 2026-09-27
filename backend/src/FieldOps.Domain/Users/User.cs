@@ -49,7 +49,8 @@ public sealed class User
         string email,
         string passwordHash,
         string firstName,
-        string lastName)
+        string lastName,
+        string? phone = null)
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -84,7 +85,27 @@ public sealed class User
             email.Trim(),
             passwordHash,
             firstName.Trim(),
-            lastName.Trim());
+            lastName.Trim())
+        {
+            Phone = phone?.Trim(),
+        };
+    }
+
+    /// <summary>
+    /// Activates a pending user immediately after registration (BR states:
+    /// User `status = active`). Leaves <see cref="EmailVerifiedAt"/> null:
+    /// registration does not verify the email.
+    /// </summary>
+    public void Activate()
+    {
+        if (Status != UserStatus.Pending)
+        {
+            throw new InvalidOperationException(
+                "Only pending users can be activated.");
+        }
+
+        Status = UserStatus.Active;
+        UpdatedAt = DateTimeOffset.UtcNow;
     }
 
     /// <summary>

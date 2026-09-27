@@ -94,4 +94,14 @@ describe('app routes', () => {
     expect(router.url).toBe('/auth/sign-in');
     expect(harness.routeNativeElement?.querySelector('form')).not.toBeNull();
   });
+
+  it('resolves the compound path /auth/register-company as a sibling of auth, with no guard', async () => {
+    await harness.navigateByUrl('/auth/register-company');
+    await harness.fixture.whenStable();
+
+    expect(router.url).toBe('/auth/register-company');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain(
+      'Create your organization',
+    );
+  });
 });

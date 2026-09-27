@@ -45,12 +45,10 @@ export class ApiErrorService {
     const fieldErrors = readFieldErrors(problem);
     const kind = resolveKind(error.status, Object.keys(fieldErrors).length > 0);
 
-    const apiError = createApiError(
-      kind,
-      error.status,
-      kind === 'validation' ? fieldErrors : {},
-      readTraceId(problem),
-    );
+    // `fieldErrors` is kept whenever the body has an `errors` object,
+    // regardless of `kind`: a `409` (e.g. duplicate email) carries field
+    // errors too, not only `400`/`422` validation responses.
+    const apiError = createApiError(kind, error.status, fieldErrors, readTraceId(problem));
     const retryAfterSeconds =
       error.status === 429 ? readRetryAfterSeconds(error.headers?.get('Retry-After')) : undefined;
 

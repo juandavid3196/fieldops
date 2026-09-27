@@ -1,0 +1,19 @@
+<div class="form-field">
+  <label class="form-field__label" [for]="controlId()">
+    {{ label() }}
+    @if (required()) {
+      <span class="form-field__required" aria-hidden="true">*</span>
+    }
+  </label>
+
+  <ng-content />
+
+  @if (error(); as message) {
+    <p class="form-field__error" [id]="controlId() + '-error'">
+      <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+      {{ message }}
+    </p>
+  } @else if (helper(); as helperText) {
+    <p class="form-field__helper" [id]="controlId() + '-helper'">{{ helperText }}</p>
+  }
+</div>

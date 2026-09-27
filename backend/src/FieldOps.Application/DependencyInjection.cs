@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Organizations;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,6 +14,7 @@ public static class DependencyInjection
 
         services.AddScoped<SignInHandler>();
         services.AddScoped<GetCurrentSessionHandler>();
+        services.AddScoped<RegisterOrganizationHandler>();
 
         return services;
     }

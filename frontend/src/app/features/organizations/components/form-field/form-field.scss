@@ -1,0 +1,44 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-width: 0;
+
+  &__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--p-text-color);
+  }
+
+  &__required {
+    color: light-dark(var(--p-red-700), var(--p-red-400));
+  }
+
+  &__helper {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--p-text-muted-color);
+  }
+
+  &__error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin: 0;
+    font-size: 0.8125rem;
+    // Primitive tokens always exist (unlike p-message tokens); AA on the form background.
+    color: light-dark(var(--p-red-700), var(--p-red-400));
+
+    svg {
+      flex-shrink: 0;
+      inline-size: 1rem;
+      block-size: 1rem;
+      margin-block-start: 0.125rem;
+    }
+  }
+}

@@ -1,0 +1,112 @@
+<section
+  class="document-numbering"
+  aria-labelledby="document-numbering-heading"
+  [formGroup]="group()"
+>
+  <h2 id="document-numbering-heading">Document numbering</h2>
+  <p class="document-numbering__helper">
+    Prefixes appear before the sequential number, for example INV-1049.
+  </p>
+
+  <div class="document-numbering__grid">
+    <app-form-field
+      label="Quote prefix"
+      controlId="organization-quotePrefix"
+      [required]="true"
+      [error]="error('organization.quotePrefix')"
+    >
+      <input
+        pInputText
+        id="organization-quotePrefix"
+        formControlName="quotePrefix"
+        fluid
+        required
+        [invalid]="error('organization.quotePrefix') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.quotePrefix') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.quotePrefix') !== null ? 'organization-quotePrefix-error' : null
+        "
+        (blur)="fieldBlur.emit('organization.quotePrefix')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Work order prefix"
+      controlId="organization-workOrderPrefix"
+      [required]="true"
+      [error]="error('organization.workOrderPrefix')"
+    >
+      <input
+        pInputText
+        id="organization-workOrderPrefix"
+        formControlName="workOrderPrefix"
+        fluid
+        required
+        [invalid]="error('organization.workOrderPrefix') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.workOrderPrefix') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.workOrderPrefix') !== null
+            ? 'organization-workOrderPrefix-error'
+            : null
+        "
+        (blur)="fieldBlur.emit('organization.workOrderPrefix')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Invoice prefix"
+      controlId="organization-invoicePrefix"
+      [required]="true"
+      [error]="error('organization.invoicePrefix')"
+    >
+      <input
+        pInputText
+        id="organization-invoicePrefix"
+        formControlName="invoicePrefix"
+        fluid
+        required
+        [invalid]="error('organization.invoicePrefix') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.invoicePrefix') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.invoicePrefix') !== null ? 'organization-invoicePrefix-error' : null
+        "
+        (blur)="fieldBlur.emit('organization.invoicePrefix')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Next invoice number"
+      controlId="organization-nextInvoiceNumber"
+      [required]="true"
+      [error]="error('organization.nextInvoiceNumber')"
+    >
+      <p-inputnumber
+        inputId="organization-nextInvoiceNumber"
+        formControlName="nextInvoiceNumber"
+        mode="decimal"
+        [minFractionDigits]="0"
+        [maxFractionDigits]="0"
+        [min]="1"
+        [max]="999999999999"
+        fluid
+        [invalid]="error('organization.nextInvoiceNumber') !== null"
+        [readonly]="submitting()"
+        [ariaLabel]="'Next invoice number'"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.nextInvoiceNumber') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.nextInvoiceNumber') !== null
+            ? 'organization-nextInvoiceNumber-error'
+            : null
+        "
+        (onBlur)="fieldBlur.emit('organization.nextInvoiceNumber')"
+      />
+    </app-form-field>
+  </div>
+</section>

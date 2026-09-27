@@ -1,0 +1,144 @@
+<section class="owner-account" aria-labelledby="owner-account-heading">
+  <h2 id="owner-account-heading">Owner account</h2>
+
+  <div class="owner-account__grid" [formGroup]="group()">
+    <app-form-field
+      label="First name"
+      controlId="owner-firstName"
+      [required]="true"
+      [error]="error('owner.firstName')"
+    >
+      <input
+        pInputText
+        id="owner-firstName"
+        formControlName="firstName"
+        fluid
+        required
+        [invalid]="error('owner.firstName') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('owner.firstName') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('owner.firstName') !== null ? 'owner-firstName-error' : null"
+        (blur)="fieldBlur.emit('owner.firstName')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Last name"
+      controlId="owner-lastName"
+      [required]="true"
+      [error]="error('owner.lastName')"
+    >
+      <input
+        pInputText
+        id="owner-lastName"
+        formControlName="lastName"
+        fluid
+        required
+        [invalid]="error('owner.lastName') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('owner.lastName') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('owner.lastName') !== null ? 'owner-lastName-error' : null"
+        (blur)="fieldBlur.emit('owner.lastName')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Email"
+      controlId="owner-email"
+      [required]="true"
+      [error]="error('owner.email')"
+    >
+      <input
+        pInputText
+        id="owner-email"
+        type="email"
+        formControlName="email"
+        fluid
+        required
+        [invalid]="error('owner.email') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('owner.email') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('owner.email') !== null ? 'owner-email-error' : null"
+        (blur)="fieldBlur.emit('owner.email')"
+      />
+    </app-form-field>
+
+    <app-form-field label="Phone" controlId="owner-phone" [error]="error('owner.phone')">
+      <input
+        pInputText
+        id="owner-phone"
+        type="tel"
+        formControlName="phone"
+        fluid
+        [invalid]="error('owner.phone') !== null"
+        [readonly]="submitting()"
+        [attr.aria-invalid]="error('owner.phone') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('owner.phone') !== null ? 'owner-phone-error' : null"
+        (blur)="fieldBlur.emit('owner.phone')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Password"
+      controlId="owner-password"
+      [required]="true"
+      [error]="error('owner.password')"
+      [helper]="error('owner.password') === null ? 'Use at least 12 characters.' : null"
+    >
+      <div class="owner-account__password">
+        <p-password
+          #ownerPassword
+          inputId="owner-password"
+          formControlName="password"
+          [toggleMask]="false"
+          [feedback]="false"
+          fluid
+          [invalid]="error('owner.password') !== null"
+          [pt]="passwordReadonlyPt()"
+          aria-required="true"
+          [attr.aria-invalid]="error('owner.password') !== null ? 'true' : null"
+          [attr.aria-describedby]="
+            error('owner.password') !== null ? 'owner-password-error' : 'owner-password-helper'
+          "
+          (onBlur)="fieldBlur.emit('owner.password')"
+        />
+        <button
+          pButton
+          type="button"
+          variant="text"
+          class="owner-account__password-toggle"
+          aria-controls="owner-password"
+          [attr.aria-label]="ownerPassword.unmasked() ? 'Hide password' : 'Show password'"
+          [attr.aria-pressed]="ownerPassword.unmasked()"
+          (click)="ownerPassword.onMaskToggle()"
+        >
+          {{ ownerPassword.unmasked() ? 'Hide password' : 'Show password' }}
+        </button>
+      </div>
+    </app-form-field>
+
+    <app-form-field
+      label="Confirm password"
+      controlId="confirmPassword"
+      [required]="true"
+      [error]="error('confirmPassword')"
+    >
+      <p-password
+        inputId="confirmPassword"
+        [formControl]="confirmPasswordControl()"
+        [toggleMask]="false"
+        [feedback]="false"
+        fluid
+        [invalid]="error('confirmPassword') !== null"
+        [pt]="passwordReadonlyPt()"
+        aria-required="true"
+        [attr.aria-invalid]="error('confirmPassword') !== null ? 'true' : null"
+        [attr.aria-describedby]="error('confirmPassword') !== null ? 'confirmPassword-error' : null"
+        (onBlur)="fieldBlur.emit('confirmPassword')"
+      />
+    </app-form-field>
+  </div>
+</section>

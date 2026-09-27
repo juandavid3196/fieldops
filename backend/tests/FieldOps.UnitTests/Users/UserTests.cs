@@ -37,4 +37,42 @@ public class UserTests
 
         Assert.Throws<ArgumentException>(() => user.RecordSignIn(default));
     }
+
+    [Fact]
+    public void Create_WithPhone_TrimsPhone()
+    {
+        var user = User.Create("owner@acme.com", "hash", "Ada", "Lovelace", " +1 555 111 2222 ");
+
+        Assert.Equal("+1 555 111 2222", user.Phone);
+    }
+
+    [Fact]
+    public void Create_WithoutPhone_LeavesItNull()
+    {
+        var user = User.Create("owner@acme.com", "hash", "Ada", "Lovelace");
+
+        Assert.Null(user.Phone);
+    }
+
+    [Fact]
+    public void Activate_PendingUser_SetsActiveAndLeavesEmailVerifiedAtNull()
+    {
+        var user = User.Create("owner@acme.com", "hash", "Ada", "Lovelace");
+
+        user.Activate();
+
+        Assert.Equal(UserStatus.Active, user.Status);
+        Assert.Null(user.EmailVerifiedAt);
+    }
+
+    [Theory]
+    [InlineData(UserStatus.Active)]
+    [InlineData(UserStatus.Suspended)]
+    [InlineData(UserStatus.Disabled)]
+    public void Activate_NotPending_Throws(UserStatus status)
+    {
+        var user = TestUsers.Create(status);
+
+        Assert.Throws<InvalidOperationException>(() => user.Activate());
+    }
 }

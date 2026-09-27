@@ -1,0 +1,18 @@
+:host {
+  display: block;
+  min-width: 0;
+  grid-column: 1 / -1;
+}
+
+.error-summary {
+  display: block;
+
+  &__message {
+    margin: 0 0 0.5rem;
+  }
+
+  &__list {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+  }
+}

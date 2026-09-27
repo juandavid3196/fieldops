@@ -4,4 +4,6 @@
 :root {
   // App page ground (handoff #F4F7FA is approximately surface-50).
   --fo-color-app-background: light-dark(var(--p-surface-50), var(--p-surface-950));
+  // Minimum touch target size (WCAG 2.5.5, styling-architecture.md §7).
+  --fo-size-touch-target: 2.75rem;
 }

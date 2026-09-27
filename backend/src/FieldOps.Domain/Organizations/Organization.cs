@@ -53,7 +53,26 @@ public sealed class Organization
 
     public DateTimeOffset UpdatedAt { get; private set; }
 
-    public static Organization Create(string name)
+    /// <summary>
+    /// Creates a new organization for registration (BR-03 to BR-12).
+    /// <paramref name="legalName"/>, <paramref name="taxId"/>,
+    /// <paramref name="email"/> and <paramref name="phone"/> are nullable
+    /// columns; business-required-ness for them is enforced by the caller's
+    /// validator, not here.
+    /// </summary>
+    public static Organization Create(
+        string name,
+        string? legalName,
+        string? taxId,
+        string? email,
+        string? phone,
+        string timezone,
+        string currency,
+        decimal defaultTaxRate,
+        string quotePrefix,
+        string workOrderPrefix,
+        string invoicePrefix,
+        long nextInvoiceNumber)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -62,6 +81,61 @@ public sealed class Organization
                 nameof(name));
         }
 
-        return new Organization(Guid.NewGuid(), name.Trim());
+        if (string.IsNullOrWhiteSpace(timezone))
+        {
+            throw new ArgumentException(
+                "Organization time zone is required.",
+                nameof(timezone));
+        }
+
+        if (string.IsNullOrWhiteSpace(currency))
+        {
+            throw new ArgumentException(
+                "Organization currency is required.",
+                nameof(currency));
+        }
+
+        if (string.IsNullOrWhiteSpace(quotePrefix))
+        {
+            throw new ArgumentException(
+                "Quote prefix is required.",
+                nameof(quotePrefix));
+        }
+
+        if (string.IsNullOrWhiteSpace(workOrderPrefix))
+        {
+            throw new ArgumentException(
+                "Work order prefix is required.",
+                nameof(workOrderPrefix));
+        }
+
+        if (string.IsNullOrWhiteSpace(invoicePrefix))
+        {
+            throw new ArgumentException(
+                "Invoice prefix is required.",
+                nameof(invoicePrefix));
+        }
+
+        if (nextInvoiceNumber < 1)
+        {
+            throw new ArgumentException(
+                "Next invoice number must be at least 1.",
+                nameof(nextInvoiceNumber));
+        }
+
+        return new Organization(Guid.NewGuid(), name.Trim())
+        {
+            LegalName = legalName?.Trim(),
+            TaxId = taxId?.Trim(),
+            Email = email?.Trim(),
+            Phone = phone?.Trim(),
+            Timezone = timezone.Trim(),
+            Currency = currency.Trim(),
+            DefaultTaxRate = defaultTaxRate,
+            QuotePrefix = quotePrefix.Trim(),
+            WorkOrderPrefix = workOrderPrefix.Trim(),
+            InvoicePrefix = invoicePrefix.Trim(),
+            NextInvoiceNumber = nextInvoiceNumber,
+        };
     }
 }

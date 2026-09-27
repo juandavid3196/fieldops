@@ -1,0 +1,48 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.register-company {
+  box-sizing: border-box;
+  max-width: 64rem;
+  margin-inline: auto;
+  padding: 1.5rem 1rem 3rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  @include bp.up(md) {
+    padding: 2.5rem 2rem 3rem;
+  }
+
+  &__title {
+    margin: 0 0 1.5rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--p-text-color);
+
+    @include bp.up(md) {
+      font-size: 2rem;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    min-width: 0;
+  }
+
+  &__submit {
+    min-height: var(--fo-size-touch-target);
+    inline-size: 100%;
+
+    @include bp.up(md) {
+      align-self: flex-end;
+      inline-size: auto;
+      min-inline-size: 14rem;
+    }
+  }
+}

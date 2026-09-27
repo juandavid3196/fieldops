@@ -1,0 +1,58 @@
+<section class="taxes-currency" aria-labelledby="taxes-currency-heading" [formGroup]="group()">
+  <h2 id="taxes-currency-heading">Taxes &amp; currency</h2>
+
+  <div class="taxes-currency__grid">
+    <app-form-field
+      label="Currency"
+      controlId="organization-currency"
+      [required]="true"
+      [error]="error('organization.currency')"
+    >
+      <p-select
+        inputId="organization-currency"
+        formControlName="currency"
+        [options]="currencyOptions()"
+        optionLabel="label"
+        optionValue="code"
+        [filter]="true"
+        ariaLabel="Currency"
+        fluid
+        [invalid]="error('organization.currency') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.currency') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.currency') !== null ? 'organization-currency-error' : null
+        "
+        (onBlur)="fieldBlur.emit('organization.currency')"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Default tax rate"
+      controlId="organization-defaultTaxRate"
+      [required]="true"
+      [error]="error('organization.defaultTaxRate')"
+    >
+      <p-inputnumber
+        inputId="organization-defaultTaxRate"
+        formControlName="defaultTaxRate"
+        mode="decimal"
+        suffix=" %"
+        [min]="0"
+        [max]="100"
+        [maxFractionDigits]="4"
+        fluid
+        [invalid]="error('organization.defaultTaxRate') !== null"
+        [readonly]="submitting()"
+        [ariaLabel]="'Default tax rate'"
+        aria-required="true"
+        [attr.aria-invalid]="error('organization.defaultTaxRate') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.defaultTaxRate') !== null ? 'organization-defaultTaxRate-error' : null
+        "
+        (onBlur)="fieldBlur.emit('organization.defaultTaxRate')"
+      />
+    </app-form-field>
+  </div>
+</section>

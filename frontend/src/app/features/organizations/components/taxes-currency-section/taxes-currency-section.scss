@@ -1,0 +1,31 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.taxes-currency {
+  min-width: 0;
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    min-width: 0;
+
+    @include bp.up(md) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  p-select,
+  p-inputnumber {
+    min-height: var(--fo-size-touch-target);
+  }
+}

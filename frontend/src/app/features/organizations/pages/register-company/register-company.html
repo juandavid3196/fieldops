@@ -1,0 +1,57 @@
+<main class="register-company">
+  <h1 class="register-company__title">Create your organization</h1>
+
+  <form class="register-company__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
+    <app-error-summary [leadingMessage]="pageMessage()" [links]="errorLinks()" />
+
+    <app-company-profile-section
+      [group]="form.controls.organization"
+      [fieldErrors]="fieldErrors()"
+      [submitting]="submitting()"
+      [timezoneOptions]="timezoneOptionsList"
+      (fieldBlur)="onFieldBlur($event)"
+    />
+
+    <app-first-branch-section
+      [group]="form.controls.branch"
+      [fieldErrors]="fieldErrors()"
+      [submitting]="submitting()"
+      [timezoneOptions]="timezoneOptionsList"
+      [countryOptions]="countryOptionsList"
+      (fieldBlur)="onFieldBlur($event)"
+      (branchTimezoneChanged)="onBranchTimezoneChanged()"
+    />
+
+    <app-taxes-currency-section
+      [group]="form.controls.organization"
+      [fieldErrors]="fieldErrors()"
+      [submitting]="submitting()"
+      [currencyOptions]="currencyOptionsList"
+      (fieldBlur)="onFieldBlur($event)"
+    />
+
+    <app-document-numbering-section
+      [group]="form.controls.organization"
+      [fieldErrors]="fieldErrors()"
+      [submitting]="submitting()"
+      (fieldBlur)="onFieldBlur($event)"
+    />
+
+    <app-owner-account-section
+      [group]="form.controls.owner"
+      [confirmPasswordControl]="form.controls.confirmPassword"
+      [fieldErrors]="fieldErrors()"
+      [submitting]="submitting()"
+      (fieldBlur)="onFieldBlur($event)"
+    />
+
+    <button pButton type="submit" class="register-company__submit" [disabled]="submitDisabled()">
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        Creating organization…
+      } @else {
+        Create organization
+      }
+    </button>
+  </form>
+</main>

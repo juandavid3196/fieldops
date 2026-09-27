@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Organizations;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Invoices;
@@ -58,6 +59,7 @@ public static class DependencyInjection
 
         services.TryAddSingleton(TimeProvider.System);
         services.AddScoped<IAuthenticationStore, AuthenticationStore>();
+        services.AddScoped<IOrganizationRegistrationStore, OrganizationRegistrationStore>();
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
         // In memory and per process: counters reset on restart.

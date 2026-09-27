@@ -1,0 +1,108 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.business-hours {
+  min-width: 0;
+
+  &__root-error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    color: light-dark(var(--p-red-700), var(--p-red-400));
+
+    svg {
+      flex-shrink: 0;
+      inline-size: 1rem;
+      block-size: 1rem;
+      margin-block-start: 0.125rem;
+    }
+  }
+
+  &__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+    border-bottom: 1px solid var(--p-content-border-color);
+    min-width: 0;
+
+    @include bp.up(md) {
+      display: grid;
+      grid-template-columns: 10rem 1fr auto 1fr;
+      align-items: center;
+      gap: 0.75rem;
+    }
+  }
+
+  &__toggle-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: var(--fo-size-touch-target);
+  }
+
+  &__day-label {
+    font-weight: 600;
+  }
+
+  &__times {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+
+    @include bp.up(md) {
+      display: contents;
+    }
+  }
+
+  &__time-field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__time-input {
+    inline-size: 100%;
+    min-height: var(--fo-size-touch-target);
+    padding-inline: 0.75rem;
+    border: 1px solid var(--p-content-border-color);
+    border-radius: var(--p-content-border-radius);
+    background: var(--p-content-background);
+    color: var(--p-text-color);
+  }
+
+  &__separator {
+    color: var(--p-text-muted-color);
+  }
+
+  &__closed {
+    color: var(--p-text-muted-color);
+    font-style: italic;
+
+    @include bp.up(md) {
+      grid-column: 2 / -1;
+    }
+  }
+
+  &__error {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.375rem;
+    margin: 0.375rem 0 0;
+    font-size: 0.8125rem;
+    color: light-dark(var(--p-red-700), var(--p-red-400));
+
+    svg {
+      flex-shrink: 0;
+      inline-size: 1rem;
+      block-size: 1rem;
+      margin-block-start: 0.125rem;
+    }
+  }
+}
