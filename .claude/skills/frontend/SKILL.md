@@ -28,8 +28,22 @@ Agents call MCP tools; this skill only briefs and checks their evidence.
   package wins; report the conflict.
 - MCP output never justifies installing dependencies or speculative code.
   Any file an MCP writes is a workflow change checked in §5.
+- When invoked with a `SPEC-IMPL MCP PREFLIGHT`/context-packet brief, use its
+  recorded Angular CLI/PrimeNG/Playwright results; never re-probe a server it
+  marked UNAVAILABLE. Invoked directly (no packet), check once and do not
+  retry.
 - MCP unavailable: continue with the existing workflow and report the missing
   verification.
+
+## Dependency research order
+
+For any package/API question (Angular, PrimeNG or another installed
+dependency's behavior): (1) existing repository precedent and `docs/`; (2) a
+healthy official MCP server (Angular CLI, PrimeNG); (3) one targeted local
+inspection of the exact package API in question, preferring its published
+`.d.ts` typings or docs over source — never a recursive `node_modules` scan,
+and never a broad compiled bundle when a narrower source exists. Record the
+result in the workflow report so `final-audit` never repeats it.
 
 ## 1. Gate (read-only; any failure → `FRONTEND BLOCKED`, stop)
 
@@ -89,9 +103,31 @@ in-scope FR/AC IDs, the API contract rows and relevant files.
    HTML/JS is reference only.
 3. Consolidate in your own words; do not paste agent output.
 
-Skip both agents, recording why, when the resume block's `Corrections:` fully
-define every frontend change and none needs an architecture or UI decision.
-Brief the developer with those findings as the plan.
+Skip `frontend-architect`, recording the satisfied gate, when either holds:
+
+- The resume block's `Corrections:` fully define every frontend change and
+  none needs an architecture decision. Brief the developer with those
+  findings as the plan.
+- Routes, consumed contracts, state behavior and feature ownership are
+  sufficiently defined by the approved spec and existing conventions, and
+  the change introduces no cross-feature state, shared abstraction, routing
+  conflict or new dependency.
+
+Skip `ui-designer`, recording the satisfied gate, when either holds:
+
+- The resume block's `Corrections:` fully define every frontend change and
+  none needs a UI decision.
+- An approved mockup/handoff plus the spec completely defines layout,
+  states, responsiveness and accessibility, and the change is not an actual
+  design conflict or missing material UI behavior.
+
+When skipped, brief the developer directly from the spec's own sections
+(§1b packet rows); small local implementation choices that existing
+conventions decide are the developer's call, not an invented approval.
+
+An audit correction that already states the required fix never invokes
+`frontend-architect` or `ui-designer` unless implementing it exposes a new
+material decision the correction did not cover.
 
 Design sources:
 
@@ -129,7 +165,11 @@ most two invocations: one implementation pass, one correction pass. Brief:
 - Baseline paths: do not touch them, except delegated resume paths.
 - Implement only those ACs; add the smallest focused co-located test set per
   `CLAUDE.md` Testing policy (no test or test file per AC); report shared
-  FR/AC evidence.
+  FR/AC evidence. If the developer's test matrix projects exceeding a
+  `CLAUDE.md` budget, it stops before writing the excess tests and reports
+  the matrix, projected count and risk reason instead of writing them; ask
+  the user (one `AskUserQuestion`) for approval before the correction pass
+  writes the approved excess.
 - Edit only the writable area: `frontend/` and the exact frontend doc paths
   listed; no backend, other docs, CI, hook, `.claude/`, dependency or
   lockfile changes; no mock endpoints or hardcoded production data.

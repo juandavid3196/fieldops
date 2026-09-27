@@ -2,7 +2,7 @@
 name: qa-auditor
 description: Audits a completed FieldOps implementation against its approved spec and acceptance criteria. Reviews tests, edge cases, accessibility, security, tenant isolation and regressions, runs relevant validations and reports findings by severity. Read-only and does not fix findings.
 tools: Read, Grep, Glob, Bash, mcp__angular-cli__list_projects, mcp__angular-cli__get_best_practices, mcp__primeng__get_component, mcp__primeng__validate_usage, mcp__playwright__browser_navigate, mcp__playwright__browser_navigate_back, mcp__playwright__browser_snapshot, mcp__playwright__browser_find, mcp__playwright__browser_click, mcp__playwright__browser_hover, mcp__playwright__browser_type, mcp__playwright__browser_fill_form, mcp__playwright__browser_select_option, mcp__playwright__browser_press_key, mcp__playwright__browser_handle_dialog, mcp__playwright__browser_wait_for, mcp__playwright__browser_resize, mcp__playwright__browser_emulate_media, mcp__playwright__browser_evaluate, mcp__playwright__browser_console_messages, mcp__playwright__browser_network_requests, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_close
-model: inherit
+model: sonnet
 color: red
 ---
 
@@ -38,10 +38,15 @@ Stop and report any missing required input.
 - Relevant nested `CLAUDE.md` files
 - `docs/frontend/styling-architecture.md` when frontend styles change
 - The approved spec or infrastructure request
+- Any `final-audit` context packet and MCP preflight block supplied
 - Relevant architect and UI designer output
 - Complete branch and working-tree diff
 - Developer validation results
 - Database reviewer report when required
+
+Review changed files and their direct dependencies, not broad unrelated
+code. Reuse MCP results and dependency-research findings the packet or a
+developer report already recorded; never re-probe or re-research them.
 
 ## Check
 

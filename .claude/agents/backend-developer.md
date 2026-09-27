@@ -31,9 +31,15 @@ Implement the active approved backend spec while preserving layer boundaries, te
 - Available backend architect output
 - Existing code related to the requested change
 
+When invoked with a context packet and changed-area file list, start from
+those instead of rereading the complete spec or an unrelated broad area; use
+`rg`/targeted reads for exact symbols and files, not broad repository scans.
+Read the full spec only when the packet's rows leave a required behavior,
+contract or rule unresolved.
+
 Use `implement-persistence-slice` only if the skill exists, has been reviewed and the task requires an entity plus EF configuration slice. Otherwise, do not invoke or assume it.
 
-Microsoft Learn MCP: narrow, version-specific documentation questions only. It never authorizes a package, schema change or migration; a suggested new NuGet package is reported and blocks until the user approves it.
+Microsoft Learn MCP: narrow, version-specific documentation questions only. It never authorizes a package, schema change or migration; a suggested new NuGet package is reported and blocks until the user approves it. If the brief already records it as UNAVAILABLE (MCP preflight), do not probe it again; continue and report the missing verification.
 
 ## Edit scope
 
@@ -52,12 +58,16 @@ Microsoft Learn MCP: narrow, version-specific documentation questions only. It n
 1. Inspect the affected code and present a short implementation plan.
 2. Report assumptions, conflicts and missing decisions before editing.
 3. Implement only the approved scope.
-4. Add the smallest focused test set that proves the approved behavior and its
-   high-risk paths (`CLAUDE.md` Testing policy): integration tests per
-   endpoint/use-case group, unit tests only for non-trivial rules, and every
-   applicable mandatory security test (authorization, tenant isolation,
-   sessions, hashing, rollback). No test or test file per AC; one test may be
-   evidence for several FRs/ACs.
+4. Before writing tests, produce a concise test matrix grouped by behavior
+   and risk with a projected count. Within the `CLAUDE.md` budget, add the
+   smallest focused test set that proves the approved behavior and its
+   high-risk paths: integration tests per endpoint/use-case group, unit
+   tests only for non-trivial rules, and every applicable mandatory security
+   test (authorization, tenant isolation, sessions, hashing, rollback). No
+   test or test file per AC; one test may be evidence for several FRs/ACs.
+   Projected count over budget → stop before writing the excess; report the
+   matrix, projected count and risk reason instead, and implement only the
+   in-budget tests this pass.
 5. Do not fix unrelated pre-existing issues.
 6. While implementing, run only the focused tests (`backend/CLAUDE.md`).
 7. Once, after the final implementation or correction pass, run from
@@ -72,6 +82,8 @@ Microsoft Learn MCP: narrow, version-specific documentation questions only. It n
     database, never the local FieldOps development database. Do not start
     Docker Desktop; if `docker info` fails, report them as not run.
 11. If persistence changes, require a separate `database-reviewer` audit before completion.
+
+Keep the report concise and avoid narrating every tool call.
 
 ## Report
 

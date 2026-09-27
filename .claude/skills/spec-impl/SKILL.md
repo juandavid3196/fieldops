@@ -9,10 +9,11 @@ disable-model-invocation: true
 
 Orchestrates one APPROVED spec through the `backend`, `frontend` and
 `final-audit` skills, then records `IMPLEMENTED → AUDITED`. It writes no
-application code, invokes no agent or MCP tool directly (child reports carry
-MCP evidence), never applies migrations,
+application code, invokes no agent directly, never applies migrations,
 commits, pushes or merges, and never changes approved behavior. Only the user
-starts it.
+starts it. Its only direct tool use beyond reading files is the bounded MCP
+preflight in §1a; every other MCP or agent call happens inside a child skill,
+whose report carries the evidence.
 
 Request: `$ARGUMENTS`
 
@@ -41,6 +42,65 @@ Read `CLAUDE.md`, `frontend/CLAUDE.md`, `backend/CLAUDE.md` and the spec.
 | Prior work  | §3. |
 
 Run all checks and report every failure at once.
+
+## 1a. MCP preflight (read-only, bounded, no retries)
+
+Relevant servers by spec Type:
+
+| Type                    | Relevant servers |
+| ----------------------- | ----------------- |
+| Frontend, UI-only       | `angular-cli`, `primeng`, `playwright` |
+| Backend                 | `microsoft-learn`, only if the spec's data-impact or API contract needs a version-specific .NET 10/EF Core/ASP.NET Core answer; otherwise skip the check and mark it `not checked (not needed)` |
+| Full-stack              | Union of both rows |
+
+For each relevant server, make exactly one minimal, bounded, read-only
+discovery call (e.g. workspace/component/tool listing) with a short timeout.
+Never retry a call that fails or times out. Record `AVAILABLE`, or
+`UNAVAILABLE (<exact failure or timeout text>)`.
+
+Build once and keep unchanged for the rest of the run:
+
+```text
+SPEC-IMPL MCP PREFLIGHT
+- <server>: AVAILABLE | UNAVAILABLE (<reason>) | not checked (not relevant/needed)
+```
+
+Forward this block to every child skill invocation. A server marked
+`UNAVAILABLE` here is never retried by this run, by any child skill, or by any
+agent it invokes — they use the recorded result instead. Documentation MCP
+(`microsoft-learn`) unavailability never blocks implementation. Playwright
+unavailability blocks only an AC that explicitly requires browser evidence
+and has no permitted static/mocked fallback (`final-audit` §8 decides this,
+using the recorded result, not a fresh check).
+
+## 1b. Context packet
+
+Build one packet, once, from the spec and the §1 baseline already read:
+
+```text
+SPEC-IMPL CONTEXT PACKET
+Spec: <path> · Type: <type> · Status: APPROVED
+In-scope FR/AC: <ids>
+API contract: Final · <the exact contract rows the child needs>
+Tenant/authorization: <organization resolution, cross-org behavior, permission per action, one line each>
+Persistence impact: <tables/columns touched> · Migration authorized: yes (--generate-migration) | no
+Design: <approved design paths>
+Precedents: <relevant existing files/patterns already identified in this run>
+Baseline: HEAD <hash> · authorized paths: <resume list, or "none — first run">
+MCP: <§1a block>
+Test budget: <CLAUDE.md Testing policy budgets>
+Prior stage reports: <valid reports being reused, only when --resume>
+```
+
+Send each child only its relevant rows: `backend` gets FR/AC, API contract,
+tenant/authorization, persistence, MCP (backend-relevant rows only), test
+budget and baseline; `frontend` gets FR/AC, API contract (as consumed),
+design, MCP (frontend-relevant rows only), test budget and baseline;
+`final-audit` gets the full packet plus the consolidated child reports and
+the exact change set. Keep each child's brief concise (target under ~1,500
+words); never paste full agent output. Children still read their nested
+`CLAUDE.md` and the exact files the packet names — they do not rescan
+unrelated areas the packet already resolved.
 
 ## 2. Migration flag
 
@@ -104,6 +164,13 @@ With `--resume`:
   report; pass that report and its ledger rows to later stages and
   `final-audit`, marked as from the earlier run. No valid report → run the
   stage.
+- The APPROVED spec's architecture, contract, tenancy, persistence and design
+  decisions are already authoritative; resume never re-derives them through
+  an architect or `ui-designer`. A skipped architect/designer stays skipped
+  during resume unless a new material conflict appears that the recorded
+  decisions do not cover.
+- Backend and frontend evidence stay area-scoped: a frontend-only correction
+  never invalidates a valid backend report or ledger row, and vice versa.
 - `final-audit` always reruns after any correction. Minor findings alone
   never require a correction cycle.
 - Scope stays the approved spec; resume never widens it.
@@ -135,10 +202,50 @@ With `--resume`:
 | Frontend   | `frontend` → `final-audit` |
 | UI-only    | `frontend` → `final-audit` |
 | Backend    | `backend` → `final-audit` |
-| Full-stack | `backend` → `frontend` → `final-audit` |
+| Full-stack | `backend` → `frontend` → `final-audit` (§4a: run `backend`/`frontend` concurrently when eligible) |
 
-Invoke each stage with the Skill tool and wait for its result line. Never
-start a stage after an earlier one ended other than COMPLETE/PASS.
+Invoke each stage with the Skill tool, briefed with its §1b packet rows and
+the §1a MCP block, and wait for its result line. Never start a stage after an
+earlier one ended other than COMPLETE/PASS.
+
+## 4a. Parallel Full-stack execution
+
+Run `backend` and `frontend` concurrently — one message, two Skill tool
+calls — only when every condition holds:
+
+- Type is Full-stack.
+- API contract status is Final and every row the frontend consumes is
+  complete (already required by §1).
+- No unresolved blocking decision remains from §1/§3.
+- Writable areas do not overlap: `backend/` + backend docs vs. `frontend/` +
+  frontend docs never do.
+- This harness supports parallel Skill invocations in one message.
+
+Brief both with the same §1b packet and §1a MCP block. `frontend` implements
+against the approved contract and does not wait for backend code or its
+report.
+
+After both return:
+
+- Both `BACKEND COMPLETE` and `FRONTEND COMPLETE` → confirm every backend
+  endpoint the frontend consumes matches the approved contract (method,
+  path, request, response, status codes, permission) using both reports. A
+  mismatch, or a consumed endpoint backend did not implement, →
+  `SPEC IMPLEMENTATION FAILED`.
+- Either stage BLOCKED/FAILED → stop per the Backend/Frontend rules below;
+  do not invoke `final-audit`.
+- Run `final-audit` only once both stages have returned.
+
+Any condition failing, or the harness not safely supporting parallel Skill
+calls this run, falls back to the sequential §4 route; report which
+condition failed or that parallel execution was unavailable. Never simulate
+concurrency with background shell processes.
+
+On `--resume`, run backend and frontend concurrently only when §3's resume
+route requires running both stages (not one skipped as valid) and every §4a
+condition still holds; each still receives only its own
+`SPEC-IMPL RESUME AUTHORIZATION` block. A resume route needing only one
+stage runs it alone, per §3.
 
 ### Backend
 
@@ -153,8 +260,11 @@ not applied), risks, pending decisions.
 
 ### Frontend
 
-`/frontend <spec-path>`. For Full-stack, run only after `BACKEND COMPLETE`
-and brief it with the approved API contract rows and the backend report.
+`/frontend <spec-path>`, briefed with the §1b packet's API contract rows.
+Sequential Full-stack (§4a conditions not met): run only after
+`BACKEND COMPLETE` and also brief it with the backend report. Parallel
+Full-stack (§4a): run alongside `backend`, briefed only with the approved
+contract — it does not wait for the backend report.
 
 - `FRONTEND COMPLETE` → continue.
 - `FRONTEND BLOCKED` / `FRONTEND FAILED` → stop; no audit.
@@ -167,9 +277,10 @@ decisions.
 
 ### Final audit
 
-`/final-audit <spec-path>`. Provide: child reports, migration status and
-non-application evidence, the complete workflow change set, the approved
-design paths, and:
+`/final-audit <spec-path>`. Provide: the full §1b packet, the §1a MCP block,
+child reports (including any dependency-research results they recorded),
+migration status and non-application evidence, the complete workflow change
+set, the approved design paths, and:
 
 ```text
 SPEC-IMPL AUDIT BASELINE
@@ -231,18 +342,22 @@ Concise (`CLAUDE.md` Workflow reports); summarize child reports, never paste
 them or the spec.
 
 1. Spec path, Type, initial status, flags.
-2. Baseline (HEAD, pre-existing paths); resume status, resumed stage,
+2. MCP preflight results (§1a); whether backend/frontend ran in parallel
+   (§4a) or sequentially, and why.
+3. Baseline (HEAD, pre-existing paths); resume status, resumed stage,
    authorized paths, reused reports and why they are still valid.
-3. Stages run and skipped, with reason; child result lines.
-4. Changed files.
-5. Focused tests added and why; budget overruns justified.
-6. FR/AC evidence matrix (backend and frontend), shared evidence explicit.
-7. Validation ledger (all rows, focused and full, run and reused).
-8. Security checks and migration status.
-9. Final-audit verdict and structured findings (§4 format).
-10. Skipped checks with reason.
-11. Lifecycle changes (or "none"); remaining minor findings and risks.
-12. Result, and a suggested Conventional Commit message; never commit.
+4. Stages run and skipped, with reason (including skipped architects/
+   `ui-designer` and the satisfied gate); child result lines.
+5. Changed files.
+6. Focused tests added and why; any test-budget approval obtained and from
+   whom.
+7. FR/AC evidence matrix (backend and frontend), shared evidence explicit.
+8. Validation ledger (all rows, focused and full, run and reused).
+9. Security checks and migration status.
+10. Final-audit verdict and structured findings (§4 format).
+11. Skipped checks with reason.
+12. Lifecycle changes (or "none"); remaining minor findings and risks.
+13. Result, and a suggested Conventional Commit message; never commit.
 
 | Result | When |
 | ------ | ---- |

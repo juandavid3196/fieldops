@@ -75,14 +75,22 @@ dotnet test tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj --c
 Tests prove behavior and risk, not files, classes, FRs or ACs. One focused
 test may be evidence for several FRs/ACs.
 
-| Level               | Default budget per feature (guidance, not a limit)                        |
+| Level               | Default maximum per feature, without user approval                        |
 | ------------------- | ------------------------------------------------------------------------- |
-| Frontend            | ~3–6 focused tests                                                        |
-| Backend integration | ~3–6 focused tests per endpoint/use-case group                            |
-| Backend unit        | Only non-trivial domain rules, calculations, validators, security utilities |
-| Browser (audit)     | One happy path; one critical failure flow only when valuable              |
+| Frontend            | 3–8 new test methods covering the feature                                 |
+| Backend integration | 3–8 new test methods per endpoint/use-case group                          |
+| Backend unit        | 0–6 new test methods; only non-trivial domain rules, calculations, validators, security utilities |
+| Browser/E2E (audit) | 0–2 scenarios: one happy path; one critical failure flow only when valuable |
 
-- Exceeding a budget needs a one-line justification in the workflow report.
+- These are enforceable maximums, not guidance. Before writing tests, the
+  developer produces a concise test matrix grouped by behavior and risk with
+  a projected count. Parameterized/table-driven cases count as one test
+  method regardless of data-row count; use them for repetitive field
+  validation instead of one test per row.
+- To exceed a budget: stop before writing the additional tests, report the
+  proposed matrix, projected count and the specific security/risk reason, and
+  get the user's approval before writing them. A large field or endpoint
+  count is not by itself a justification.
 - Never required: one test file per production file; one test per FR/AC; the
   same rule at unit, integration and browser level (unless security-critical);
   tests of trivial DTOs, interfaces, getters, constants, wrappers or
@@ -154,6 +162,10 @@ Project tooling: `implement-persistence-slice` skill, `database-reviewer` agent.
 - Unavailable MCP: continue with the existing workflow and report the missing
   verification.
 - Report concise MCP results; never paste large documentation responses.
+- `spec-impl` runs one bounded MCP preflight per relevant server before
+  routing to `backend`/`frontend`, and forwards the AVAILABLE/UNAVAILABLE
+  result to every child. A server marked UNAVAILABLE is never retried by that
+  run; documentation MCP unavailability never blocks implementation.
 
 ## Spec workflow
 
@@ -172,7 +184,10 @@ Project tooling: `implement-persistence-slice` skill, `database-reviewer` agent.
 - Specs: `specs/<feature-slug>/spec.md` from `specs/templates/feature-spec.md`,
   managed with the `spec` skill (`/spec create|revise|validate|approve|amend`).
   `amend` only makes non-behavioral corrections and keeps APPROVED.
-- Route: `spec` → `spec-impl` → `backend`/`frontend` → `final-audit`.
+- Route: `spec` → `spec-impl` → `backend`/`frontend` → `final-audit`. For an
+  eligible Full-stack spec (Final complete contract, no overlapping edit
+  scope, no unresolved decision), `spec-impl` runs `backend` and `frontend`
+  concurrently instead of sequentially; see `spec-impl` §4a.
   `/spec-impl <spec-path> [--generate-migration] [--resume]` is user-invoked
   only; it sets IMPLEMENTED → AUDITED after the audit passes.
   `--generate-migration` authorizes a migration (never applied); `--resume`

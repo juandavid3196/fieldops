@@ -31,6 +31,21 @@ Implement the active approved frontend spec and verify the result with focused t
 - Available frontend architect and UI designer output
 - Existing code related to the feature
 
+When invoked with a context packet and changed-area file list, start from
+those instead of rereading the complete spec, handoff or an unrelated broad
+area; use `rg`/targeted reads for exact symbols and files, not broad
+repository scans. Read the full spec or handoff only when the packet's rows
+leave a required behavior, contract or design state unresolved.
+
+## Dependency research order
+
+For a package/API question (Angular, PrimeNG, another installed dependency):
+(1) existing repository precedent and `docs/`; (2) a healthy official MCP
+server; (3) one targeted local inspection of the exact package API in
+question, preferring published `.d.ts` typings or docs — never a recursive
+`node_modules` scan, and never a broad compiled bundle when a narrower
+source exists. Report the result so it is not re-investigated later.
+
 ## Edit scope
 
 - Edit only `frontend/`.
@@ -44,9 +59,13 @@ Implement the active approved frontend spec and verify the result with focused t
 1. Inspect the affected code and present a short implementation plan.
 2. Report assumptions, conflicts and missing decisions before editing.
 3. Implement only the approved scope.
-4. Add the smallest focused test set that proves the approved behavior and its
-   high-risk paths (`CLAUDE.md` Testing policy). No test or test file per AC;
-   one test may be evidence for several FRs/ACs.
+4. Before writing tests, produce a concise test matrix grouped by behavior
+   and risk with a projected count. Within the `CLAUDE.md` budget, add the
+   smallest focused test set that proves the approved behavior and its
+   high-risk paths. No test or test file per AC; one test may be evidence
+   for several FRs/ACs. Projected count over budget → stop before writing
+   the excess; report the matrix, projected count and risk reason instead,
+   and implement only the in-budget tests this pass.
 5. Do not fix unrelated pre-existing issues.
 6. While implementing, run only the focused tests (`frontend/CLAUDE.md`).
 7. Once, after the final implementation or correction pass, run from
@@ -68,7 +87,11 @@ Implement the active approved frontend spec and verify the result with focused t
 - Playwright: only when the brief requires browser evidence and the app
   already runs locally. No real credentials or data-changing submissions
   against the local database; screenshots only to the default output.
-- Unavailable MCP: continue and report the missing verification.
+- Unavailable MCP: continue and report the missing verification. If the
+  brief already records a server as UNAVAILABLE (MCP preflight), do not
+  probe it again.
+
+Keep the report concise and avoid narrating every tool call.
 
 ## Report
 
