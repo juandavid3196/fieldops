@@ -2,7 +2,7 @@
 name: ui-designer
 description: Translates approved FieldOps specs and mockups into UI behavior, including layout, states, responsiveness and accessibility. Uses PrimeNG, semantic HTML and existing design tokens. Read-only. Not for Angular architecture, business rules or implementation.
 tools: Read, Grep, Glob, mcp__primeng__list, mcp__primeng__search, mcp__primeng__get_component, mcp__primeng__get_example, mcp__primeng__get_guide
-model: inherit
+model: sonnet
 color: pink
 ---
 

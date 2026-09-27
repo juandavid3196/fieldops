@@ -22,7 +22,19 @@ narrow, version-sensitive .NET 10, ASP.NET Core and EF Core questions.
 - Documentation cannot authorize packages, schema changes or migrations: a
   suggested new NuGet package is a §3 stop until the user approves it.
 - No database MCP; migrations are never applied.
+- When invoked with a `SPEC-IMPL MCP PREFLIGHT`/context-packet brief, use its
+  recorded `microsoft-learn` result; never re-probe a server it marked
+  UNAVAILABLE. Invoked directly (no packet), check once and do not retry.
 - Unavailable: continue and report which question went unverified.
+
+## Dependency research order
+
+For any package or API question (NuGet package behavior, .NET/EF/ASP.NET
+API shape): (1) existing repository precedent and `docs/`; (2) Microsoft
+Learn MCP when healthy; (3) one targeted local inspection of the exact
+package API in question (installed package's own docs/XML comments), never
+a recursive dependency scan. Record the result in the workflow report so
+`final-audit` never repeats it.
 
 ## 1. Gate (read-only; any failure → `BACKEND BLOCKED`, stop)
 
@@ -87,17 +99,31 @@ Testing policy), and whether persistence review applies. Frontend-only FR/AC are
 
 ## 3. Plan
 
-Invoke `backend-architect` with `APPROVED SPEC (backend skill)`, the spec
-path, in-scope FR/AC IDs, API contract rows, the data-impact section, relevant
-code paths and the migration authorization state. Require an
-implementation-ready plan (its Deliver list) including safe ProblemDetails,
-tenant resolution, and transactions/concurrency/idempotency where relevant.
-Reject speculative repositories, base classes, packages or abstractions.
+Skip `backend-architect`, recording the satisfied gate, when either holds:
 
-Skip the architect, recording why, when the resume block's `Corrections:`
-fully define every backend change and none needs an architectural decision
-(layering, contract, tenancy, transaction or persistence design). Brief the
-developer with those findings as the plan.
+- The resume block's `Corrections:` fully define every backend change and
+  none needs an architectural decision (layering, contract, tenancy,
+  transaction or persistence design). Brief the developer with those
+  findings as the plan.
+- The APPROVED spec already has complete API contracts, tenant
+  isolation/authorization, persistence impact and validation rules, and the
+  change introduces no new layering, transaction, concurrency, shared
+  abstraction, dependency or architecture conflict. Brief the developer
+  directly from the spec's own sections (§1b packet rows); small local
+  implementation choices that existing conventions decide are the
+  developer's call, not an invented approval.
+
+Otherwise invoke `backend-architect` with `APPROVED SPEC (backend skill)`,
+the spec path, in-scope FR/AC IDs, API contract rows, the data-impact
+section, relevant code paths and the migration authorization state. Require
+an implementation-ready plan (its Deliver list) including safe
+ProblemDetails, tenant resolution, and transactions/concurrency/idempotency
+where relevant. Reject speculative repositories, base classes, packages or
+abstractions.
+
+An audit correction that already states the required fix never invokes the
+architect unless implementing it exposes a new material decision the
+correction did not cover.
 
 Stop and ask the user (one `AskUserQuestion` batch) when:
 
@@ -125,7 +151,11 @@ invocations: one implementation pass, one correction pass. Brief:
   approved.
 - Smallest focused test set per `CLAUDE.md` Testing policy, including every
   applicable mandatory security test; no test or test file per AC; report
-  shared FR/AC evidence.
+  shared FR/AC evidence. If the developer's test matrix projects exceeding a
+  `CLAUDE.md` budget, it stops before writing the excess tests and reports
+  the matrix, projected count and risk reason instead of writing them; ask
+  the user (one `AskUserQuestion`) for approval before the correction pass
+  writes the approved excess.
 - Never modify committed migrations or hand-edit snapshot/`*.Designer.cs`.
 - Generate a migration only if authorized; never apply it, never run
   `dotnet ef database update|drop`, never delete Docker volumes.

@@ -2,7 +2,7 @@
 name: database-reviewer
 description: Audits FieldOps entities, EF Core configurations, migrations, constraints and indexes against the authoritative schema and approved spec. Detects destructive, unsafe or unrelated persistence changes. Read-only. Not for persistence design, implementation or complete feature QA.
 tools: Read, Grep, Glob, Bash
-model: inherit
+model: sonnet
 color: yellow
 ---
 

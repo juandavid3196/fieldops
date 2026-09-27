@@ -112,10 +112,13 @@ Either missing → migration status `NOT VERIFIED` → `AUDIT FAIL`.
 ## 5. QA audit
 
 Invoke `qa-auditor` after §4. Brief: `FINAL AUDIT (final-audit skill) — make
-no changes`, the spec path, the §2 change set and classification, frontend
-/backend workflow reports if provided (summaries, not pasted output), the §4
-result or skip reason, the §6 command list and reused ledger rows, the §8
-rules with the ACs needing browser evidence, and the approved design paths.
+no changes`, the spec path, any `spec-impl` context packet and MCP preflight
+block supplied, the §2 change set and classification, frontend/backend
+workflow reports if provided (summaries, not pasted output, including any
+recorded MCP or dependency-research results — reuse them, never re-run),
+the §4 result or skip reason, the §6 command list and reused ledger rows,
+the §8 rules with the ACs needing browser evidence, and the approved design
+paths.
 
 Require evidence for every active FR and AC (`MET`, `NOT MET`, `NOT
 VERIFIED`) and for: scope and non-goals, API contract implementation, domain
@@ -207,7 +210,9 @@ cite that evidence instead.
   output; any other written path fails §7.
 - Browser checks never replace frontend tests, build or static review.
 - Playwright unavailable or app not running: only ACs requiring browser
-  evidence become `NOT VERIFIED`; list the checks not performed.
+  evidence become `NOT VERIFIED`; list the checks not performed. When a
+  `spec-impl` MCP preflight block already marked Playwright UNAVAILABLE, use
+  that result; do not re-probe it.
 
 ## 9. Verdict
 
