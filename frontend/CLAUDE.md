@@ -42,7 +42,8 @@ Angular 22 standalone app. Environments, API URLs, proxy and error mapping:
   never `@use` `_tokens`/`_base`.
 - No `::ng-deep`, `@import`, global `.p-*` overrides or undocumented `!important`.
 - `primeicons` is not installed; `pi pi-*` classes require adding it.
-- Every page implements and tests loading, empty, error and permission states.
+- Every page implements loading, empty, error and permission states; tests cover
+  the states with distinct logic (one test may cover several).
 - Responsive from mobile width; no business logic in templates.
 
 ## MCP
@@ -62,3 +63,9 @@ Angular 22 standalone app. Environments, API URLs, proxy and error mapping:
 - Tests: co-located `*.spec.ts` with `TestBed`; HTTP via
   `provideHttpClientTesting()` and `HttpTestingController.verify()`, with a
   fake `API_CONFIG`.
+- Focused tests (Vitest via `@angular/build:unit-test`; `--include` takes spec
+  files or directories relative to `frontend/`, repeatable):
+
+  ```bash
+  npm run test -- --watch=false --include src/app/features/<feature> --include src/app/core/<changed-file>.spec.ts
+  ```

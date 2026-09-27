@@ -113,9 +113,9 @@ Either missing → migration status `NOT VERIFIED` → `AUDIT FAIL`.
 
 Invoke `qa-auditor` after §4. Brief: `FINAL AUDIT (final-audit skill) — make
 no changes`, the spec path, the §2 change set and classification, frontend
-/backend workflow reports if provided, the §4 result or skip reason, the
-validations required by §6, the §8 rules with the ACs needing browser
-evidence, and the approved design paths.
+/backend workflow reports if provided (summaries, not pasted output), the §4
+result or skip reason, the §6 command list and reused ledger rows, the §8
+rules with the ACs needing browser evidence, and the approved design paths.
 
 Require evidence for every active FR and AC (`MET`, `NOT MET`, `NOT
 VERIFIED`) and for: scope and non-goals, API contract implementation, domain
@@ -125,16 +125,35 @@ error, permission and submission states, static accessibility, sensitive data
 in responses/logs/source, test quality and missing cases, spec-required docs,
 regressions and unrelated changes, and persistence approval when applicable.
 
+Test evidence follows `CLAUDE.md` Testing policy: one test may cover several
+FRs/ACs, and a missing per-AC test is not a finding when the behavior is
+proven. Missing evidence for an applicable mandatory security area
+(authentication, authorization, tenant isolation, hashing/sensitive data,
+cookies/CSRF, unsafe migrations, rollback, financial integrity, uploads) is
+Important or Critical. An item that does not apply is `N/A` with a reason,
+not `NOT VERIFIED`.
+
 ## 6. Validation
 
-Run, or confirm `qa-auditor` ran, the `CLAUDE.md` commands for every changed
-area:
+This is the only local owner of the `CLAUDE.md` Full profile. It runs once
+per changed area, executed by `qa-auditor` from the §5 brief; this skill
+never reruns what `qa-auditor` ran.
 
-| Area     | Working directory | Commands |
-| -------- | ----------------- | -------- |
-| Frontend | `frontend/`       | Format check, lint, tests, production build |
-| Backend  | `backend/`        | Tool restore, restore, format verification, Release build, unit tests |
+| Area     | Working directory | Full profile |
+| -------- | ----------------- | ------------ |
+| Frontend | `frontend/`       | Format check, lint, `npm run test -- --watch=false`, production build |
+| Backend  | `backend/`        | Tool restore, restore, format verification, Release build, unit tests, integration tests |
 
+Build the command list before briefing: recompute each changed area's
+fingerprint and compare it with the ledger rows from the workflow reports.
+
+- Fresh passing `full` row for a command → reuse it; do not rerun.
+- Fresh passing `focused` row for an area-wide command (format, lint, build)
+  → reuse it. Focused test rows never replace the full test suites.
+- Stale, failed, missing or unfingerprinted evidence → run the command.
+  Never trust stale evidence.
+- Backend tests use `--no-build`: run the Release build first unless its
+  fresh row is reused.
 - Integration tests only when backend changed and `docker info` succeeds
   without starting anything (Testcontainers). Otherwise `NOT VERIFIED` with
   the reason. Never target the local FieldOps database.
@@ -159,51 +178,71 @@ path → `AUDIT FAIL`. Report it; never clean, delete or revert.
 
 ## 8. Browser evidence
 
-`qa-auditor` uses Playwright MCP for ACs that need browser evidence, only
-against the already-running local app (`http://localhost:4200`, API
+Only when the change set alters UI (frontend templates, styles or routed
+pages); otherwise `N/A`. `qa-auditor` uses Playwright MCP only against the
+already-running local app (`http://localhost:4200`, API
 `http://localhost:5034`). Never start Docker Desktop or the app, apply
 migrations, or use real credentials, personal profiles or production data.
-Data-changing submissions only against disposable test data or with user
-approval; otherwise verify up to the request and mark persistence
-`NOT VERIFIED`.
+Never mutate the local FieldOps development database.
 
-- Check what the spec requires: navigation, loading, empty, error,
-  permission and submission states, keyboard/focus, accessibility
-  snapshots, supported breakpoints, dark mode.
+| Browser flow | Allowed against |
+| ------------ | --------------- |
+| Read-only (navigation, rendering, client validation, requests that change no data) | The running local API |
+| Data-changing (creates, changes or deletes data, or writes audit/login records) | Only mocked/intercepted API responses or explicitly isolated disposable test infrastructure; never the local API |
+
+A real data-changing submission is never required when static review,
+component tests, integration tests or mocked-browser evidence prove the AC;
+cite that evidence instead.
+
+| Check | Default scope |
+| ----- | ------------- |
+| Flows | One happy path; one critical failure flow when valuable |
+| Viewports | One mobile (320px) and one desktop (1280px), plus widths an AC names |
+| Dark mode | Only when the feature changes dark styling or an AC requires it |
+| Axe (`axe-core` devDependency) | Primary state and one meaningful error state, unless an AC lists more |
+| Pixel/mockup comparison | Only when an AC requires it |
+| Keyboard/focus | Primary flow |
+
 - Screenshots only as required evidence, in the ignored `.playwright-mcp/`
   output; any other written path fails §7.
 - Browser checks never replace frontend tests, build or static review.
 - Playwright unavailable or app not running: only ACs requiring browser
-  evidence become `NOT VERIFIED`; list breakpoints, dark mode, pixel
-  comparison, runtime focus, browser accessibility and end-to-end navigation
-  as not performed.
+  evidence become `NOT VERIFIED`; list the checks not performed.
 
 ## 9. Verdict
 
 | Verdict                          | When |
 | -------------------------------- | ---- |
-| `AUDIT FAIL`                     | Any Critical or Important finding; `database-reviewer` `REJECTED`; a required validation failed, was skipped or is `NOT VERIFIED`; any required FR/AC `NOT MET` or `NOT VERIFIED`; migration status `NOT VERIFIED`; integrity check failed. |
-| `AUDIT PASS WITH MINOR FINDINGS` | Only Minor findings; everything else complete. |
+| `AUDIT FAIL`                     | Any Critical or Important finding; `database-reviewer` `REJECTED`; a required validation failed, was skipped or is `NOT VERIFIED`; any required FR/AC `NOT MET` or `NOT VERIFIED`; applicable mandatory security or tenant-isolation evidence missing; migration status `NOT VERIFIED`; integrity check failed. |
+| `AUDIT PASS WITH MINOR FINDINGS` | Only Minor findings; everything else complete. Minor findings never trigger another implementation cycle. |
 | `AUDIT PASS`                     | No findings and complete evidence. |
 | `AUDIT BLOCKED`                  | Gate failed; nothing audited. |
 
+`N/A` with a reason (area unchanged, check not applicable) never counts as
+`NOT VERIFIED`.
+
 ## 10. Report
+
+Concise (`CLAUDE.md` Workflow reports); never paste agent output.
 
 1. Spec path, status and Type.
 2. Base, commit range and uncommitted/untracked scope audited.
 3. Changed-file classification.
 4. Agents invoked or skipped, with reason.
-5. FR/AC matrix: ID · implementation · test evidence · status.
-6. `database-reviewer` result and findings.
-7. Migration status: none, or reviewed + not applied with evidence, or
-   `NOT VERIFIED`.
+5. FR/AC matrix: ID · implementation · test evidence · status (shared
+   evidence explicit; `N/A` with reason).
+6. Security checks: authorization, tenant isolation and each applicable
+   mandatory area, with evidence.
+7. `database-reviewer` result and migration status: none, or reviewed + not
+   applied with evidence, or `NOT VERIFIED`.
 8. QA findings: Critical, Important, Minor.
-9. Validation: each command, pass/fail/not run, error excerpt.
-10. Browser evidence per AC (Playwright) and checks not performed.
+9. Validation ledger: rows run here and rows reused (with fingerprint).
+10. Browser evidence and checks not performed or `N/A`.
 11. Items not verified.
 12. Out-of-scope changes; unrelated baseline paths excluded and whether
     they stayed unaltered.
 13. Read-only integrity result.
 14. Verdict.
 15. Follow-up owner per finding: `frontend-developer`, `backend-developer`,
-    user decision or infrastructure task.
+    user decision or infrastructure task; say whether the correction is
+    fully specified (no architect needed).

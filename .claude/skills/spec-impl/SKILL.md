@@ -82,22 +82,30 @@ With `--resume`:
   baseline status and hash. Every other baseline path stays untouchable.
 - Report the stage being resumed and its evidence (earlier report or findings
   in this conversation, or supplied by the user; otherwise "not available").
-- Start at the first incomplete or responsible stage, then continue the §4
-  route from there:
+- An earlier child COMPLETE report is valid only when its spec hash equals the
+  §1 spec hash (or Git history shows only `/spec amend` non-behavioral
+  amendments since that hash; unverifiable → invalid) and its area fingerprint (`CLAUDE.md` Validation
+  profiles) equals the current one. Any changed file in that area, security
+  behavior or approved requirement invalidates the report and its ledger rows.
+- Start at the last incomplete or failed stage, run only it and the later
+  required stages, and skip any other stage whose earlier report is valid:
 
   | Prior result | Resume route |
   | ------------ | ------------ |
-  | Backend BLOCKED/FAILED | `backend` → `frontend` if Full-stack → `final-audit` |
-  | Frontend BLOCKED/FAILED | `frontend` → `final-audit` |
-  | `AUDIT FAIL`, any finding owned by `backend-developer` | `backend` → `frontend` if Full-stack → `final-audit` |
+  | Backend BLOCKED/FAILED | `backend` → `frontend` if Full-stack and no valid report → `final-audit` |
+  | Frontend BLOCKED/FAILED | Full-stack: `backend` only if its report is invalid → `frontend` → `final-audit` |
+  | `AUDIT FAIL`, findings owned by `backend-developer` | `backend` → `frontend` only if it owns findings or its report is invalid → `final-audit` |
   | `AUDIT FAIL`, findings owned only by `frontend-developer` | `frontend` → `final-audit` |
   | `AUDIT BLOCKED` with no code finding | `final-audit` |
   | Finding owned by user decision or infrastructure | Blocked: resolve it first (`/spec revise` if behavior changes) |
   | Evidence not available or ambiguous | Full §4 route |
 
-- A skipped stage counts as complete only with its earlier COMPLETE report;
-  pass that report to later stages and `final-audit`, marked as from the
-  earlier run. No report → run the stage.
+- A skipped stage counts as complete only with its valid earlier COMPLETE
+  report; pass that report and its ledger rows to later stages and
+  `final-audit`, marked as from the earlier run. No valid report → run the
+  stage.
+- `final-audit` always reruns after any correction. Minor findings alone
+  never require a correction cycle.
 - Scope stays the approved spec; resume never widens it.
 - Route authorized paths by area: `frontend/**` and `docs/frontend/**` to
   `frontend`; `backend/**` and `docs/backend/**` to `backend`. Never
@@ -110,7 +118,13 @@ With `--resume`:
   Resumed stage: <stage and prior result>
   Authorized paths:
   - <status> <path> <hash>
+  Corrections:
+  - <finding ID> · <severity> · <file:line or FR/AC> · <issue> · fully specified: yes|no
   ```
+
+  `Corrections:` lists only this area's audit findings (or `none`), so a
+  child skips its architect when every correction is fully specified and
+  needs no architectural decision.
 
   Without `--resume`, never send this block.
 
@@ -133,8 +147,9 @@ start a stage after an earlier one ended other than COMPLETE/PASS.
 - `BACKEND COMPLETE` → continue.
 - `BACKEND BLOCKED` / `BACKEND FAILED` → stop; no frontend, no audit.
 
-Retain: scope, changed files, FR/AC matrix, validation, persistence review,
-migration status (generated, reviewed, not applied), risks, pending decisions.
+Retain: spec hash, scope, changed files, FR/AC matrix, validation ledger
+with fingerprint, persistence review, migration status (generated, reviewed,
+not applied), risks, pending decisions.
 
 ### Frontend
 
@@ -146,8 +161,9 @@ and brief it with the approved API contract rows and the backend report.
 - Full-stack: any consumed endpoint still reported as a missing backend
   dependency → `SPEC IMPLEMENTATION FAILED`; no audit.
 
-Retain: scope, changed files, FR/AC matrix, validation, design limitations,
-backend dependencies, risks, pending decisions.
+Retain: spec hash, scope, changed files, FR/AC matrix, validation ledger
+with fingerprint, design limitations, backend dependencies, risks, pending
+decisions.
 
 ### Final audit
 
@@ -163,9 +179,14 @@ Unrelated baseline paths:
 - <status> <path> <hash>
 Resume-authorized paths:
 - <status> <path> <hash>
+Validation ledger:
+- <command> · <area> · focused|full · <result> · <stage/run> · <fingerprint>
 ```
 
-Unrelated = every §1 baseline path not authorized by §3.
+Unrelated = every §1 baseline path not authorized by §3. The ledger holds the
+rows of every child report used (this run or valid earlier ones); never
+invent or edit rows. `final-audit` reuses only rows whose fingerprint is
+still current.
 
 | Verdict | Next |
 | ------- | ---- |
@@ -174,7 +195,8 @@ Unrelated = every §1 baseline path not authorized by §3.
 | `AUDIT BLOCKED` | `SPEC IMPLEMENTATION BLOCKED` |
 
 On FAIL/BLOCKED: status stays APPROVED; invoke no developer. A correction
-requires the user to rerun with `--resume`. Report every finding, keeping the
+requires the user to rerun with `--resume`. Minor findings never start a
+correction cycle. Report every finding, keeping the
 audit's severity, as: `ID · severity · area · file:line or FR/AC · issue ·
 required owner`. Never omit, merge away or downgrade a finding.
 
@@ -205,21 +227,22 @@ baseline so `--resume` can pick them up.
 
 ## 7. Report
 
-1. Spec path, Type, initial status.
-2. Invocation flags.
-3. Initial baseline (HEAD, pre-existing paths).
-4. Resume status, resumed stage, authorized paths.
-5. Workflow order run and skipped (resume: starting stage and why).
-6. Child results (exact lines).
-7. Backend FR/AC matrix.
-8. Frontend FR/AC matrix.
-9. Migration status.
-10. Final-audit verdict and structured findings (§4 format).
-11. Validation summary per command.
-12. Lifecycle changes (or "none").
-13. Remaining minor findings and risks.
-14. Result.
-15. Suggested Conventional Commit message; never commit.
+Concise (`CLAUDE.md` Workflow reports); summarize child reports, never paste
+them or the spec.
+
+1. Spec path, Type, initial status, flags.
+2. Baseline (HEAD, pre-existing paths); resume status, resumed stage,
+   authorized paths, reused reports and why they are still valid.
+3. Stages run and skipped, with reason; child result lines.
+4. Changed files.
+5. Focused tests added and why; budget overruns justified.
+6. FR/AC evidence matrix (backend and frontend), shared evidence explicit.
+7. Validation ledger (all rows, focused and full, run and reused).
+8. Security checks and migration status.
+9. Final-audit verdict and structured findings (§4 format).
+10. Skipped checks with reason.
+11. Lifecycle changes (or "none"); remaining minor findings and risks.
+12. Result, and a suggested Conventional Commit message; never commit.
 
 | Result | When |
 | ------ | ---- |

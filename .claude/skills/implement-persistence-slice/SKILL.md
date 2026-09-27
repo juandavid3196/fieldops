@@ -26,10 +26,13 @@ Implement a group of related FieldOps entities using .NET 10, EF Core 10 and Pos
 7. Update FieldOpsDbContext only when necessary.
 8. Add domain and persistence tests.
 9. Build the complete solution.
-10. Generate one migration for the complete slice.
+10. Migration: generate one for the complete slice only when the invoking
+    `backend`/`spec-impl` workflow explicitly authorized
+    `--generate-migration`. Otherwise report that a migration is required
+    and stop.
 11. Inspect the generated migration.
 12. Compare it against the relational model.
-13. Run tests.
+13. Run the focused tests (Validation commands).
 14. Produce an implementation report.
 
 # Rules
@@ -41,13 +44,17 @@ Implement a group of related FieldOps entities using .NET 10, EF Core 10 and Pos
 - Use timestamptz for UTC timestamps.
 - Use snake_case in PostgreSQL.
 - Avoid cascade delete unless explicitly approved.
-- Never apply a migration automatically.
+- Never apply a migration (`dotnet ef database update|drop`).
+- Never modify or remove a committed or applied migration.
 - Never place business rules inside controllers.
 - Do not generate repositories without a demonstrated requirement.
 - Stop if the specification and relational model conflict.
 
 # Validation commands
 
-dotnet format --verify-no-changes
-dotnet build
-dotnet test
+Focused profile from `CLAUDE.md` (run from `backend/`); the full suites belong
+to `final-audit`:
+
+dotnet format FieldOps.slnx --verify-no-changes --no-restore
+dotnet build FieldOps.slnx --configuration Release --no-restore
+Focused unit/persistence tests with the `--filter` command in `backend/CLAUDE.md`.
