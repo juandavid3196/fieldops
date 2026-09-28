@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
+import { companyAdminRoute } from './features/organizations/organizations.routes';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'auth/sign-in' },
@@ -9,15 +10,24 @@ export const routes: Routes = [
     loadChildren: () => import('./features/authentication/authentication.routes'),
   },
   {
-    // Routes declare their own full paths (public registration and the
-    // authenticated company settings page live at different prefixes).
+    // Routes declare their own full paths (public registration lives at `auth/register-company`).
     path: '',
     loadChildren: () => import('./features/organizations/organizations.routes'),
   },
   {
-    path: 'overview',
+    // Pathless authenticated shell: the guard revalidates the session on every
+    // navigation between its children and resolves before the shell renders.
+    path: '',
     canActivate: [authGuard],
-    loadChildren: () => import('./features/overview/overview.routes'),
+    runGuardsAndResolvers: 'always',
+    loadComponent: () => import('./layout/app-shell/app-shell').then((m) => m.AppShell),
+    children: [
+      {
+        path: 'overview',
+        loadChildren: () => import('./features/overview/overview.routes'),
+      },
+      companyAdminRoute,
+    ],
   },
   { path: '**', redirectTo: 'auth/sign-in' },
 ];

@@ -1,7 +1,15 @@
-import { Routes } from '@angular/router';
+import { Route, Routes } from '@angular/router';
 
-import { authGuard } from '../../core/guards/auth.guard';
 import { companySettingsUnsavedChangesGuard } from './guards/company-settings-unsaved-changes.guard';
+
+/** Authenticated company settings; mounted inside the app shell, which owns the auth guard. */
+export const companyAdminRoute: Route = {
+  path: 'admin/company',
+  pathMatch: 'full',
+  title: 'Company setup · FieldOps',
+  canDeactivate: [companySettingsUnsavedChangesGuard],
+  loadComponent: () => import('./pages/company-setup/company-setup').then((m) => m.CompanySetup),
+};
 
 export default [
   {
@@ -11,13 +19,5 @@ export default [
     title: 'Create your organization · FieldOps',
     loadComponent: () =>
       import('./pages/register-company/register-company').then((m) => m.RegisterCompany),
-  },
-  {
-    path: 'admin/company',
-    pathMatch: 'full',
-    title: 'Company setup · FieldOps',
-    canActivate: [authGuard],
-    canDeactivate: [companySettingsUnsavedChangesGuard],
-    loadComponent: () => import('./pages/company-setup/company-setup').then((m) => m.CompanySetup),
   },
 ] satisfies Routes;

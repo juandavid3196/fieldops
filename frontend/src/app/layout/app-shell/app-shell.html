@@ -1,0 +1,136 @@
+<div class="shell">
+  <header class="shell__topbar">
+    @if (!isDesktop()) {
+      <button
+        #navButton
+        type="button"
+        class="shell__control shell__nav-button"
+        aria-haspopup="dialog"
+        (click)="openDrawer()"
+      >
+        <span aria-hidden="true">Menu</span>
+        <span class="shell__hidden">Open navigation</span>
+      </button>
+    }
+
+    <p class="shell__wordmark"><span>Field</span><span class="shell__accent">Ops</span></p>
+
+    @if (session(); as current) {
+      <p class="shell__org shell__responsive">{{ current.organization.name }}</p>
+    }
+
+    <div #userContainer class="shell__user" (focusout)="onUserFocusOut($event, userContainer)">
+      <button
+        #userButton
+        type="button"
+        class="shell__control shell__user-button"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="accountLabel()"
+        (click)="toggleMenu()"
+        (keydown)="onUserKeydown($event)"
+      >
+        <span class="shell__initials" aria-hidden="true">{{ initials() }}</span>
+        <span class="shell__identity shell__responsive">
+          <span class="shell__name">{{ fullName() }}</span>
+          <span class="shell__role">{{ session()?.role.name }}</span>
+        </span>
+      </button>
+
+      @if (menuOpen()) {
+        <div #userMenu class="shell__menu" role="menu" aria-label="Account">
+          <button
+            type="button"
+            role="menuitem"
+            class="shell__control shell__menu-item"
+            [attr.aria-disabled]="signingOut()"
+            (click)="signOut()"
+            (keydown)="onMenuKeydown($event)"
+          >
+            @if (signingOut()) {
+              <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+            }
+            Sign out
+          </button>
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (signOutFailed()) {
+    <p-message class="shell__alert" severity="error">{{ signOutErrorMessage }}</p-message>
+  }
+
+  <div class="shell__body">
+    @if (isDesktop()) {
+      <div class="shell__sidebar">
+        <ng-container *ngTemplateOutlet="navigation" />
+      </div>
+    }
+
+    <main class="shell__main">
+      <router-outlet />
+    </main>
+  </div>
+
+  @if (!isDesktop()) {
+    <p-drawer
+      pFocusTrap
+      [pFocusTrapDisabled]="!drawerOpen()"
+      position="left"
+      [visible]="drawerOpen()"
+      (visibleChange)="drawerOpen.set($event)"
+      (onHide)="onDrawerHide()"
+      [modal]="true"
+      [showCloseIcon]="false"
+      [pt]="drawerPt"
+    >
+      <ng-template #header>
+        <div class="shell__drawer-header">
+          <span class="shell__drawer-title" id="shell-drawer-title">Navigation</span>
+          <button type="button" class="shell__control" (click)="closeDrawer()">
+            <span aria-hidden="true">Close</span>
+            <span class="shell__hidden">Close navigation</span>
+          </button>
+        </div>
+      </ng-template>
+      <ng-container *ngTemplateOutlet="navigation" />
+    </p-drawer>
+  }
+</div>
+
+<ng-template #navigation>
+  <nav class="shell__nav" aria-label="Main navigation">
+    <ul class="shell__list">
+      <li>
+        <a
+          class="shell__link"
+          routerLink="/overview"
+          routerLinkActive="shell__link--active"
+          ariaCurrentWhenActive="page"
+          [routerLinkActiveOptions]="{ exact: true }"
+          (click)="closeDrawer()"
+          >Overview</a
+        >
+      </li>
+      @if (showAdministration()) {
+        <li>
+          <p class="shell__group-label">Administration</p>
+          <ul class="shell__list">
+            <li>
+              <a
+                class="shell__link"
+                routerLink="/admin/company"
+                routerLinkActive="shell__link--active"
+                ariaCurrentWhenActive="page"
+                [routerLinkActiveOptions]="{ exact: true }"
+                (click)="closeDrawer()"
+                >Company settings</a
+              >
+            </li>
+          </ul>
+        </li>
+      }
+    </ul>
+  </nav>
+</ng-template>

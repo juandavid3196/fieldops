@@ -41,18 +41,21 @@ describe('app routes', () => {
   afterEach(() => httpTesting.verify());
 
   /** Answers the next `GET /sessions/current` once the lazy route has issued it. */
-  async function answerSessionRequest(ok: boolean): Promise<void> {
+  async function answerSessionRequest(ok: boolean | Session): Promise<void> {
     const request = await vi.waitFor(() =>
       httpTesting.expectOne({ method: 'GET', url: SESSION_URL }),
     );
     if (ok) {
-      request.flush(SESSION);
+      request.flush(ok === true ? SESSION : ok);
     } else {
       request.flush(null, { status: 401, statusText: 'Unauthorized' });
     }
   }
 
-  async function navigate(url: string, sessionResponses: readonly boolean[]): Promise<void> {
+  async function navigate(
+    url: string,
+    sessionResponses: readonly (boolean | Session)[],
+  ): Promise<void> {
     const navigation = harness.navigateByUrl(url);
     for (const ok of sessionResponses) {
       await answerSessionRequest(ok);
@@ -86,6 +89,7 @@ describe('app routes', () => {
     await navigate('/overview', [false, false]);
 
     expect(router.url).toBe('/auth/sign-in');
+    expect(harness.fixture.nativeElement.querySelector('app-shell')).toBeNull();
   });
 
   it('renders Sign In for a visitor without a session (AC-01)', async () => {
@@ -93,6 +97,34 @@ describe('app routes', () => {
 
     expect(router.url).toBe('/auth/sign-in');
     expect(harness.routeNativeElement?.querySelector('form')).not.toBeNull();
+  });
+
+  it('wraps only Overview and Company settings in the shell and revalidates the session on each navigation (FR-01, AC-04, AC-10)', async () => {
+    await navigate('/overview', [true]);
+
+    expect(harness.routeNativeElement?.tagName).toBe('APP-SHELL');
+    const links = () =>
+      Array.from(
+        harness.routeNativeElement?.querySelectorAll('nav[aria-label="Main navigation"] a') ?? [],
+        (link) => link.textContent?.trim(),
+      );
+    expect(links()).toEqual(['Overview', 'Company settings']);
+
+    // Same shell, one new GET /sessions/current: the role changed to a non-admin one.
+    const navigation = harness.navigateByUrl('/admin/company');
+    await answerSessionRequest({ ...SESSION, role: { code: 'technician', name: 'Technician' } });
+    for (const url of ['organization-settings', 'branches']) {
+      const request = await vi.waitFor(() => httpTesting.expectOne(`${API_BASE_URL}/${url}`), {
+        timeout: 5000,
+      });
+      request.flush(null, { status: 500, statusText: 'Server Error' });
+    }
+    await navigation;
+    await harness.fixture.whenStable();
+
+    expect(router.url).toBe('/admin/company');
+    expect(harness.routeNativeElement?.tagName).toBe('APP-SHELL');
+    expect(links()).toEqual(['Overview']);
   });
 
   it('resolves the compound path /auth/register-company as a sibling of auth, with no guard', async () => {
@@ -103,5 +135,6 @@ describe('app routes', () => {
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain(
       'Create your organization',
     );
+    expect(harness.fixture.nativeElement.querySelector('app-shell')).toBeNull();
   });
 });
