@@ -30,18 +30,23 @@ public static class BusinessHoursValidator
     /// Validates the shape of <paramref name="businessHours"/>, reporting
     /// every failure through <paramref name="addError"/> (dotted key,
     /// message), and returns the canonical compact JSON via
-    /// <paramref name="canonicalJson"/> when valid.
+    /// <paramref name="canonicalJson"/> when valid. <paramref name="rootKey"/>
+    /// lets callers with a different request shape (e.g. company settings and
+    /// branches BR-03: <c>businessHours</c> instead of
+    /// <c>branch.businessHours</c>) reuse this logic without duplicating it
+    /// (AS-03).
     /// </summary>
     public static bool TryValidate(
         JsonElement? businessHours,
         Action<string, string> addError,
-        out string canonicalJson)
+        out string canonicalJson,
+        string rootKey = RootKey)
     {
         canonicalJson = "{}";
 
         if (businessHours is not { ValueKind: JsonValueKind.Object } root)
         {
-            addError(RootKey, StructuralInvalidMessage);
+            addError(rootKey, StructuralInvalidMessage);
             return false;
         }
 
@@ -54,7 +59,7 @@ public static class BusinessHoursValidator
 
             if (dayIndex < 0 || property.Value.ValueKind != JsonValueKind.Object)
             {
-                addError(RootKey, StructuralInvalidMessage);
+                addError(rootKey, StructuralInvalidMessage);
                 isValid = false;
                 continue;
             }
@@ -64,14 +69,14 @@ public static class BusinessHoursValidator
 
             if (extraProperties)
             {
-                addError(RootKey, StructuralInvalidMessage);
+                addError(rootKey, StructuralInvalidMessage);
                 isValid = false;
                 continue;
             }
 
             var day = property.Name;
-            var startKey = $"{RootKey}.{day}.start";
-            var endKey = $"{RootKey}.{day}.end";
+            var startKey = $"{rootKey}.{day}.start";
+            var endKey = $"{rootKey}.{day}.end";
 
             var start = TryGetString(property.Value, "start");
             var end = TryGetString(property.Value, "end");

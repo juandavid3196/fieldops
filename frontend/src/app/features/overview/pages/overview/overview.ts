@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Message } from 'primeng/message';
@@ -22,7 +22,7 @@ export const SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
 /** Minimal authenticated landing page (FR-17). */
 @Component({
   selector: 'app-overview',
-  imports: [ButtonDirective, Message, SpinnerIcon],
+  imports: [ButtonDirective, Message, SpinnerIcon, RouterLink],
   templateUrl: './overview.html',
   styleUrl: './overview.scss',
 })

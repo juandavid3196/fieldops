@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Organizations;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +16,14 @@ public static class DependencyInjection
         services.AddScoped<SignInHandler>();
         services.AddScoped<GetCurrentSessionHandler>();
         services.AddScoped<RegisterOrganizationHandler>();
+        services.AddScoped<GetOrganizationSettingsHandler>();
+        services.AddScoped<UpdateOrganizationSettingsHandler>();
+        services.AddScoped<ListBranchesHandler>();
+        services.AddScoped<GetBranchDetailHandler>();
+        services.AddScoped<CreateBranchHandler>();
+        services.AddScoped<UpdateBranchHandler>();
+        services.AddScoped<DeactivateBranchHandler>();
+        services.AddScoped<ReactivateBranchHandler>();
 
         return services;
     }

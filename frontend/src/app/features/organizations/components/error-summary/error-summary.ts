@@ -22,6 +22,7 @@ export interface FieldErrorLink {
   styleUrl: './error-summary.scss',
 })
 export class ErrorSummary {
+  readonly id = input.required<string>();
   readonly leadingMessage = input<string | null>(null);
   readonly links = input<readonly FieldErrorLink[]>([]);
 }

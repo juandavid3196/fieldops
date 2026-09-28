@@ -18,6 +18,16 @@
     <p-message class="overview__message" severity="error">{{ signOutErrorMessage }}</p-message>
   }
 
+  <a
+    pButton
+    routerLink="/admin/company"
+    severity="secondary"
+    [outlined]="true"
+    class="overview__company-settings"
+  >
+    Company settings
+  </a>
+
   <button
     #signOutButton
     pButton

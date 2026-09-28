@@ -1,0 +1,92 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: contents;
+}
+
+.branch-drawer {
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--p-text-color);
+    overflow-wrap: anywhere;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__load-error {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    color: var(--p-text-color);
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  &__readonly-note {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-radius: var(--p-content-border-radius);
+    background: var(--p-surface-100);
+    color: var(--p-text-color);
+    font-size: 0.875rem;
+  }
+
+  &__reload {
+    align-self: flex-start;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    min-width: 0;
+
+    @include bp.up(md) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  &__business-hours {
+    grid-column: 1 / -1;
+  }
+
+  &__note {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--p-text-muted-color);
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    inline-size: 100%;
+    flex-wrap: wrap;
+  }
+
+  &__footer-spacer {
+    flex: 1;
+  }
+
+  &__deactivate-wrap {
+    display: inline-flex;
+  }
+}

@@ -9,8 +9,9 @@ export const routes: Routes = [
     loadChildren: () => import('./features/authentication/authentication.routes'),
   },
   {
-    // Compound path, sibling to 'auth': public registration, no guestGuard.
-    path: 'auth/register-company',
+    // Routes declare their own full paths (public registration and the
+    // authenticated company settings page live at different prefixes).
+    path: '',
     loadChildren: () => import('./features/organizations/organizations.routes'),
   },
   {

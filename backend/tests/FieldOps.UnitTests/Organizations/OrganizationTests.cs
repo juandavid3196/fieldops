@@ -106,4 +106,46 @@ public class OrganizationTests
         Assert.Throws<ArgumentException>(() => Organization.Create(
             "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", nextInvoiceNumber));
     }
+
+    [Fact]
+    public void UpdateSettings_WithValidValues_TrimsAndSetsFieldsAndTimestamp()
+    {
+        var organization = Organization.Create(
+            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1);
+        var updatedAt = DateTimeOffset.UtcNow.AddMinutes(5);
+
+        organization.UpdateSettings(
+            " Acme Renamed ",
+            " Acme Renamed LLC ",
+            " 98-7654321 ",
+            " new-ops@acme.com ",
+            " +1 555 999 8888 ",
+            " America/New_York ",
+            "eur",
+            9.5m,
+            "q2",
+            "wo2",
+            "inv2",
+            42,
+            updatedAt);
+
+        Assert.Equal("Acme Renamed", organization.Name);
+        Assert.Equal("Acme Renamed LLC", organization.LegalName);
+        Assert.Equal("new-ops@acme.com", organization.Email);
+        Assert.Equal("eur", organization.Currency);
+        Assert.Equal(42, organization.NextInvoiceNumber);
+        Assert.Equal(updatedAt, organization.UpdatedAt);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void UpdateSettings_WithBlankName_Throws(string name)
+    {
+        var organization = Organization.Create(
+            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1);
+
+        Assert.Throws<ArgumentException>(() => organization.UpdateSettings(
+            name, "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1, DateTimeOffset.UtcNow));
+    }
 }

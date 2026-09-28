@@ -57,7 +57,9 @@ public sealed class AuditLog
         Guid? actorUserId = null,
         Guid? entityId = null,
         Guid? branchId = null,
-        IPAddress? ipAddress = null)
+        IPAddress? ipAddress = null,
+        string? beforeData = null,
+        string? afterData = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -89,6 +91,8 @@ public sealed class AuditLog
             EntityId = entityId,
             BranchId = branchId,
             IpAddress = ipAddress,
+            BeforeData = beforeData,
+            AfterData = afterData,
         };
     }
 }

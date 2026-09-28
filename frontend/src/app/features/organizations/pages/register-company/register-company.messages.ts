@@ -15,6 +15,11 @@ export const PASSWORD_EQUALS_EMAIL_MESSAGE = 'Choose a password that is differen
 export const PASSWORDS_DONT_MATCH_MESSAGE = "Passwords don't match.";
 export const DUPLICATE_EMAIL_MESSAGE =
   'An account with this email already exists. Sign in instead.';
+/** BR-02 (company-settings-and-branches): `nextInvoiceNumber` at or below the floor. */
+export const NEXT_INVOICE_NUMBER_FLOOR_MESSAGE =
+  'Enter a number greater than the last invoice number.';
+/** BR-04 (company-settings-and-branches): duplicate branch `code` within the organization. */
+export const DUPLICATE_BRANCH_CODE_MESSAGE = 'Another branch already uses this code.';
 /** Replaces any server field message outside the BR-24 catalog. */
 export const FALLBACK_FIELD_MESSAGE = 'Enter a valid value.';
 

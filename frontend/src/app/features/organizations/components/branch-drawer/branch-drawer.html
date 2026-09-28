@@ -1,0 +1,352 @@
+<p-drawer
+  class="branch-drawer"
+  pFocusTrap
+  [pFocusTrapDisabled]="!open()"
+  position="right"
+  [visible]="open()"
+  (visibleChange)="requestClose()"
+  (onShow)="onDrawerShow()"
+  (onHide)="onDrawerHide()"
+  [modal]="true"
+  [fullScreen]="isBelowMd()"
+  [style]="drawerStyle()"
+  [pt]="drawerPt"
+>
+  <ng-template #header>
+    <div class="branch-drawer__header">
+      <h2 class="branch-drawer__title" [id]="titleId" tabindex="-1">
+        {{ isCreate() ? 'New branch' : title() }}
+      </h2>
+      @if (!isCreate() && detail(); as branch) {
+        <p-tag
+          class="branch-drawer__status"
+          [value]="branch.isActive ? 'Active' : 'Inactive'"
+          [severity]="branch.isActive ? 'success' : 'secondary'"
+        />
+      }
+    </div>
+  </ng-template>
+
+  @if (loading()) {
+    <div class="branch-drawer__skeletons" aria-busy="true">
+      <p-skeleton height="2.5rem" />
+      <p-skeleton height="2.5rem" />
+      <p-skeleton height="2.5rem" />
+      <p-skeleton height="2.5rem" />
+    </div>
+  } @else if (loadError()) {
+    <div class="branch-drawer__load-error">
+      <p>{{ loadErrorMessage }}</p>
+      <button pButton type="button" severity="secondary" (click)="retryLoad()">Retry</button>
+    </div>
+  } @else {
+    <form class="branch-drawer__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
+      <app-error-summary
+        [id]="errorSummaryId"
+        [leadingMessage]="pageMessage()"
+        [links]="errorLinks()"
+      />
+
+      @if (staleConflict()) {
+        <button pButton type="button" class="branch-drawer__reload" (click)="reload()">
+          Reload
+        </button>
+      }
+
+      @if (readOnly()) {
+        <p class="branch-drawer__readonly-note">You have view-only access to company settings.</p>
+      }
+
+      <div class="branch-drawer__grid">
+        <app-form-field
+          label="Branch name"
+          controlId="branch-name"
+          [required]="true"
+          [error]="error('branch.name')"
+        >
+          <input
+            pInputText
+            id="branch-name"
+            formControlName="name"
+            fluid
+            required
+            [invalid]="error('branch.name') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.name') !== null ? 'true' : null"
+            [attr.aria-describedby]="error('branch.name') !== null ? 'branch-name-error' : null"
+            (blur)="onFieldBlur('branch.name')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Code"
+          controlId="branch-code"
+          [required]="true"
+          [error]="error('branch.code')"
+          [helper]="
+            error('branch.code') === null ? 'Used in document numbering and reports.' : null
+          "
+        >
+          <input
+            pInputText
+            id="branch-code"
+            formControlName="code"
+            fluid
+            required
+            [invalid]="error('branch.code') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.code') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.code') !== null ? 'branch-code-error' : 'branch-code-helper'
+            "
+            (blur)="onFieldBlur('branch.code')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Contact phone"
+          controlId="branch-phone"
+          [error]="error('branch.phone')"
+        >
+          <input
+            pInputText
+            id="branch-phone"
+            type="tel"
+            formControlName="phone"
+            fluid
+            [invalid]="error('branch.phone') !== null"
+            [attr.aria-invalid]="error('branch.phone') !== null ? 'true' : null"
+            [attr.aria-describedby]="error('branch.phone') !== null ? 'branch-phone-error' : null"
+            (blur)="onFieldBlur('branch.phone')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Contact email"
+          controlId="branch-email"
+          [error]="error('branch.email')"
+        >
+          <input
+            pInputText
+            id="branch-email"
+            type="email"
+            formControlName="email"
+            fluid
+            [invalid]="error('branch.email') !== null"
+            [attr.aria-invalid]="error('branch.email') !== null ? 'true' : null"
+            [attr.aria-describedby]="error('branch.email') !== null ? 'branch-email-error' : null"
+            (blur)="onFieldBlur('branch.email')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Time zone"
+          controlId="branch-timezone"
+          [required]="true"
+          [error]="error('branch.timezone')"
+        >
+          <p-select
+            inputId="branch-timezone"
+            formControlName="timezone"
+            [options]="timezoneOptions()"
+            optionLabel="label"
+            optionValue="code"
+            [filter]="true"
+            ariaLabel="Time zone"
+            fluid
+            [invalid]="error('branch.timezone') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.timezone') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.timezone') !== null ? 'branch-timezone-error' : null
+            "
+            (onBlur)="onFieldBlur('branch.timezone')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Address line 1"
+          controlId="branch-addressLine1"
+          [required]="true"
+          [error]="error('branch.addressLine1')"
+        >
+          <input
+            pInputText
+            id="branch-addressLine1"
+            formControlName="addressLine1"
+            fluid
+            required
+            [invalid]="error('branch.addressLine1') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.addressLine1') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.addressLine1') !== null ? 'branch-addressLine1-error' : null
+            "
+            (blur)="onFieldBlur('branch.addressLine1')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Address line 2"
+          controlId="branch-addressLine2"
+          [error]="error('branch.addressLine2')"
+        >
+          <input
+            pInputText
+            id="branch-addressLine2"
+            formControlName="addressLine2"
+            fluid
+            [invalid]="error('branch.addressLine2') !== null"
+            [attr.aria-invalid]="error('branch.addressLine2') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.addressLine2') !== null ? 'branch-addressLine2-error' : null
+            "
+            (blur)="onFieldBlur('branch.addressLine2')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="City"
+          controlId="branch-city"
+          [required]="true"
+          [error]="error('branch.city')"
+        >
+          <input
+            pInputText
+            id="branch-city"
+            formControlName="city"
+            fluid
+            required
+            [invalid]="error('branch.city') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.city') !== null ? 'true' : null"
+            [attr.aria-describedby]="error('branch.city') !== null ? 'branch-city-error' : null"
+            (blur)="onFieldBlur('branch.city')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="State/region"
+          controlId="branch-stateRegion"
+          [error]="error('branch.stateRegion')"
+        >
+          <input
+            pInputText
+            id="branch-stateRegion"
+            formControlName="stateRegion"
+            fluid
+            [invalid]="error('branch.stateRegion') !== null"
+            [attr.aria-invalid]="error('branch.stateRegion') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.stateRegion') !== null ? 'branch-stateRegion-error' : null
+            "
+            (blur)="onFieldBlur('branch.stateRegion')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Postal code"
+          controlId="branch-postalCode"
+          [required]="true"
+          [error]="error('branch.postalCode')"
+        >
+          <input
+            pInputText
+            id="branch-postalCode"
+            formControlName="postalCode"
+            fluid
+            required
+            [invalid]="error('branch.postalCode') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.postalCode') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.postalCode') !== null ? 'branch-postalCode-error' : null
+            "
+            (blur)="onFieldBlur('branch.postalCode')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Country"
+          controlId="branch-countryCode"
+          [required]="true"
+          [error]="error('branch.countryCode')"
+        >
+          <p-select
+            inputId="branch-countryCode"
+            formControlName="countryCode"
+            [options]="countryOptions()"
+            optionLabel="label"
+            optionValue="code"
+            [filter]="true"
+            ariaLabel="Country"
+            fluid
+            [invalid]="error('branch.countryCode') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('branch.countryCode') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.countryCode') !== null ? 'branch-countryCode-error' : null
+            "
+            (onBlur)="onFieldBlur('branch.countryCode')"
+          />
+        </app-form-field>
+
+        <app-business-hours-editor
+          class="branch-drawer__business-hours"
+          [group]="form.controls.businessHours"
+          [fieldErrors]="fieldErrors()"
+          [rootError]="error('branch.businessHours')"
+          [submitting]="submitting()"
+          (fieldBlur)="onFieldBlur($event)"
+        />
+      </div>
+
+      <p class="branch-drawer__note">
+        Deactivating a branch prevents new records. All historical data is preserved.
+      </p>
+    </form>
+  }
+
+  <ng-template #footer>
+    @if (readOnly()) {
+      <button pButton type="button" severity="secondary" (click)="requestClose()">Close</button>
+    } @else if (!loading() && !loadError()) {
+      <div class="branch-drawer__footer">
+        @if (!isCreate() && detail(); as branch) {
+          <span
+            class="branch-drawer__deactivate-wrap"
+            [pTooltip]="branch.isActive && onlyActiveBranch() ? onlyActiveTooltip : undefined"
+          >
+            <button
+              pButton
+              type="button"
+              class="branch-drawer__deactivate"
+              [severity]="branch.isActive ? 'danger' : 'secondary'"
+              [outlined]="true"
+              [disabled]="deactivating() || (branch.isActive && onlyActiveBranch())"
+              (click)="deactivateOrReactivate()"
+            >
+              {{ branch.isActive ? 'Deactivate branch' : 'Reactivate branch' }}
+            </button>
+          </span>
+        }
+        <span class="branch-drawer__footer-spacer"></span>
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          (click)="requestClose()"
+        >
+          Cancel
+        </button>
+        <button pButton type="button" [disabled]="submitting()" (click)="submit()">
+          @if (submitting()) {
+            <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+          }
+          {{ isCreate() ? 'Create branch' : 'Update branch' }}
+        </button>
+      </div>
+    }
+  </ng-template>
+</p-drawer>

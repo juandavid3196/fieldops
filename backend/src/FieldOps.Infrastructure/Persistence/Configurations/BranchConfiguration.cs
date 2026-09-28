@@ -78,8 +78,13 @@ internal sealed class BranchConfiguration : IEntityTypeConfiguration<Branch>
             .HasDefaultValueSql("now()")
             .IsRequired();
 
+        // Concurrency token (BR-07): every write sets it explicitly, and the
+        // store compares the client's submitted value against it before
+        // mutating, then relies on this token to catch a race between that
+        // check and SaveChangesAsync. Pure model annotation: no DDL change.
         builder.Property(branch => branch.UpdatedAt)
             .HasDefaultValueSql("now()")
+            .IsConcurrencyToken()
             .IsRequired();
 
         // UNIQUE (organization_id, code)

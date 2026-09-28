@@ -64,6 +64,7 @@ public sealed class Branch
         string? email,
         string? phone,
         string? addressLine1,
+        string? addressLine2,
         string? city,
         string? stateRegion,
         string? postalCode,
@@ -108,6 +109,7 @@ public sealed class Branch
             Email = email?.Trim(),
             Phone = phone?.Trim(),
             AddressLine1 = addressLine1?.Trim(),
+            AddressLine2 = addressLine2?.Trim(),
             City = city?.Trim(),
             StateRegion = stateRegion?.Trim(),
             PostalCode = postalCode?.Trim(),
@@ -115,5 +117,97 @@ public sealed class Branch
             Timezone = timezone?.Trim(),
             BusinessHours = businessHours,
         };
+    }
+
+    /// <summary>
+    /// Updates the branch's profile, contact, address, time zone and
+    /// business hours (BR-03). Same invariants, trimming and
+    /// <see cref="ArgumentException"/> pattern as <see cref="Create"/>. May be
+    /// called on an inactive branch (FR-08). <paramref name="updatedAt"/> is
+    /// the new <c>updated_at</c> value, supplied by the caller so the entity
+    /// never reads the system clock.
+    /// </summary>
+    public void UpdateDetails(
+        string name,
+        string code,
+        string? email,
+        string? phone,
+        string? addressLine1,
+        string? addressLine2,
+        string? city,
+        string? stateRegion,
+        string? postalCode,
+        string? countryCode,
+        string? timezone,
+        string businessHours,
+        DateTimeOffset updatedAt)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException(
+                "Branch name is required.",
+                nameof(name));
+        }
+
+        if (string.IsNullOrWhiteSpace(code))
+        {
+            throw new ArgumentException(
+                "Branch code is required.",
+                nameof(code));
+        }
+
+        if (string.IsNullOrWhiteSpace(businessHours))
+        {
+            throw new ArgumentException(
+                "Branch business hours are required.",
+                nameof(businessHours));
+        }
+
+        Name = name.Trim();
+        Code = code.Trim();
+        Email = email?.Trim();
+        Phone = phone?.Trim();
+        AddressLine1 = addressLine1?.Trim();
+        AddressLine2 = addressLine2?.Trim();
+        City = city?.Trim();
+        StateRegion = stateRegion?.Trim();
+        PostalCode = postalCode?.Trim();
+        CountryCode = countryCode?.Trim();
+        Timezone = timezone?.Trim();
+        BusinessHours = businessHours;
+        UpdatedAt = updatedAt;
+    }
+
+    /// <summary>
+    /// Deactivates the branch (BR-06 is enforced by the caller, not here).
+    /// Returns <c>false</c> without changing anything when already inactive
+    /// (BR-08 no-op).
+    /// </summary>
+    public bool Deactivate(DateTimeOffset updatedAt)
+    {
+        if (!IsActive)
+        {
+            return false;
+        }
+
+        IsActive = false;
+        UpdatedAt = updatedAt;
+        return true;
+    }
+
+    /// <summary>
+    /// Reactivates the branch. Returns <c>false</c> without changing
+    /// anything when already active (BR-08 no-op).
+    /// </summary>
+    public bool Reactivate(DateTimeOffset updatedAt)
+    {
+        if (IsActive)
+        {
+            return false;
+        }
+
+        IsActive = true;
+        UpdatedAt = updatedAt;
+        return true;
     }
 }

@@ -1,0 +1,131 @@
+<main class="company-setup">
+  <p-toast />
+  <p-confirmdialog />
+
+  <header class="company-setup__header">
+    <p class="company-setup__breadcrumb">Administration / Company</p>
+    <h1 class="company-setup__title">Company setup</h1>
+
+    @if (!forbidden()) {
+      <p class="company-setup__description">
+        Manage your organization details, branches, taxes and document numbering.
+      </p>
+
+      @if (showForm() && canManage()) {
+        <div class="company-setup__actions">
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="!canSave()"
+            (click)="discard()"
+          >
+            Discard changes
+          </button>
+          <button pButton type="button" [disabled]="!canSave()" (click)="save()">
+            @if (submitting()) {
+              <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+            }
+            Save changes
+          </button>
+        </div>
+      }
+    }
+  </header>
+
+  @if (forbidden()) {
+    <p class="company-setup__forbidden">{{ forbiddenMessage }}</p>
+  } @else {
+    <nav class="company-setup__nav" aria-label="Company settings sections">
+      <a href="#company-profile-heading">Company profile</a>
+      <a href="#branch-list-heading">Branches</a>
+      <a href="#taxes-currency-heading">Taxes &amp; currency</a>
+      <a href="#document-numbering-heading">Document numbering</a>
+    </nav>
+
+    @if (settingsLoading()) {
+      <div class="company-setup__skeletons" aria-busy="true">
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+      </div>
+    } @else if (settingsError()) {
+      <div class="company-setup__load-error">
+        <p>{{ loadErrorMessage }}</p>
+        <button pButton type="button" severity="secondary" (click)="retrySettings()">Retry</button>
+      </div>
+    } @else {
+      @if (!canManage()) {
+        <p class="company-setup__readonly-banner">{{ readOnlyMessage }}</p>
+      }
+
+      <div [formGroup]="form">
+        <app-error-summary
+          [id]="errorSummaryId"
+          [leadingMessage]="pageMessage()"
+          [links]="errorLinks()"
+        />
+
+        @if (staleConflict()) {
+          <button pButton type="button" class="company-setup__reload" (click)="reloadStale()">
+            Reload
+          </button>
+        }
+
+        <app-company-profile-section
+          [group]="form"
+          [fieldErrors]="fieldErrors()"
+          [submitting]="submitting()"
+          [timezoneOptions]="timezoneOptionsList"
+          (fieldBlur)="onFieldBlur($event)"
+        />
+      </div>
+    }
+
+    <app-branch-list
+      [branches]="branches()"
+      [loading]="branchesLoading()"
+      [loadError]="branchesError()"
+      [canManage]="canManage()"
+      (rowActivated)="openBranch($event)"
+      (addBranch)="openAddBranch()"
+      (changed)="onBranchesChanged()"
+      (retry)="retryBranches()"
+      (unauthorized)="onUnauthorized()"
+    />
+
+    @if (showForm()) {
+      <div class="company-setup__grouped" [formGroup]="form">
+        <app-taxes-currency-section
+          [group]="form"
+          [fieldErrors]="fieldErrors()"
+          [submitting]="submitting()"
+          [currencyOptions]="currencyOptionsList"
+          (fieldBlur)="onFieldBlur($event)"
+        />
+
+        <app-document-numbering-section
+          [group]="form"
+          [fieldErrors]="fieldErrors()"
+          [submitting]="submitting()"
+          (fieldBlur)="onFieldBlur($event)"
+        />
+      </div>
+    }
+  }
+
+  <app-branch-drawer
+    [open]="drawerOpen()"
+    [branchId]="selectedBranchId()"
+    [canManage]="canManage()"
+    [organizationTimezone]="form.controls.timezone.value"
+    [timezoneOptions]="timezoneOptionsList"
+    [countryOptions]="countryOptionsList"
+    [branches]="branches()"
+    (saved)="onBranchesChanged()"
+    (closed)="onDrawerClosed()"
+    (unauthorized)="onUnauthorized()"
+  />
+</main>

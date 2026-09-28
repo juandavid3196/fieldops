@@ -1,5 +1,7 @@
 using FieldOps.Api.Authentication;
+using FieldOps.Api.Authorization;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace FieldOps.Api.Extensions;
@@ -40,7 +42,17 @@ public static class ApiAuthenticationExtensions
             .AddOptions<CookieAuthenticationOptions>(SessionCookie.Scheme)
             .Configure<TimeProvider>((options, timeProvider) => options.TimeProvider = timeProvider);
 
-        services.AddAuthorization();
+        // BR-10: owner/viewer read the GET endpoints; owner only writes.
+        // AddAuthorizationBuilder still configures the same default policy
+        // (authenticated user) that bare [Authorize] endpoints (e.g.
+        // SessionsController) rely on.
+        services.AddHttpContextAccessor();
+        services.AddScoped<IAuthorizationHandler, MembershipRoleAuthorizationHandler>();
+        services.AddAuthorizationBuilder()
+            .AddPolicy(CompanySettingsPolicies.View, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement("owner", "viewer")))
+            .AddPolicy(CompanySettingsPolicies.Manage, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement("owner")));
 
         return services;
     }

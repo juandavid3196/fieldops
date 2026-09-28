@@ -1,11 +1,5 @@
 @if (leadingMessage() !== null || links().length > 0) {
-  <p-message
-    id="register-company-error-summary"
-    class="error-summary"
-    severity="error"
-    [closable]="false"
-    tabindex="-1"
-  >
+  <p-message [id]="id()" class="error-summary" severity="error" [closable]="false" tabindex="-1">
     <ng-template #icon>
       <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
     </ng-template>
