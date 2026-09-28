@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
 
 import { API_CONFIG, buildApiUrl } from '../config/api.config';
+import { isApiError } from '../models/api-error.model';
 import { Session, SignInRequest } from '../models/session.model';
 
 /**
@@ -41,11 +42,20 @@ export class SessionService {
       .pipe(tap((session) => this.currentSession.set(session)));
   }
 
-  /** Signs out with `DELETE /sessions/current`; the session is kept if it fails. */
+  /**
+   * Signs out with `DELETE /sessions/current`. `204` and `401` (already signed
+   * out) clear the session; any other failure keeps it and is rethrown.
+   */
   signOut(): Observable<void> {
     return this.http.delete<unknown>(buildApiUrl(this.config, 'sessions/current')).pipe(
-      tap(() => this.currentSession.set(null)),
       map(() => undefined),
+      catchError((error: unknown) => {
+        if (isApiError(error) && error.status === 401) {
+          return of(undefined);
+        }
+        return throwError(() => error);
+      }),
+      tap(() => this.currentSession.set(null)),
     );
   }
 }

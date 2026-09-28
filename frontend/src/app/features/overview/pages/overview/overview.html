@@ -1,4 +1,4 @@
-<main class="overview">
+<div class="overview">
   <h1 class="overview__title">{{ heading() }}</h1>
 
   @if (session(); as current) {
@@ -13,33 +13,4 @@
       </div>
     </dl>
   }
-
-  @if (signOutFailed()) {
-    <p-message class="overview__message" severity="error">{{ signOutErrorMessage }}</p-message>
-  }
-
-  <a
-    pButton
-    routerLink="/admin/company"
-    severity="secondary"
-    [outlined]="true"
-    class="overview__company-settings"
-  >
-    Company settings
-  </a>
-
-  <button
-    #signOutButton
-    pButton
-    type="button"
-    severity="secondary"
-    class="overview__sign-out"
-    [disabled]="signingOut()"
-    (click)="signOut()"
-  >
-    @if (signingOut()) {
-      <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-    }
-    Sign out
-  </button>
-</main>
+</div>

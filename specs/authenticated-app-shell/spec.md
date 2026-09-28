@@ -4,7 +4,7 @@
 | -------- | ------------------------ |
 | Feature  | `authenticated-app-shell` |
 | Type     | Frontend                 |
-| Status   | APPROVED                 |
+| Status   | AUDITED                  |
 | Created  | 2026-09-28               |
 | Updated  | 2026-09-28               |
 | Approved | 2026-09-28               |
@@ -286,3 +286,5 @@ one method.
 | 2026-09-28 | — → DRAFT     | Created |
 | 2026-09-28 | DRAFT → DRAFT | Fixed validation findings F1 (AC-11 history: entry replaced, Back to a shell route ends on Sign In), F2 (exact top bar display below/from `md`; AC-19 updated; AC-08 set to 1280px) and W1 (full name defined in BR-02) |
 | 2026-09-28 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-09-28 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-09-28 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |
