@@ -79,6 +79,9 @@ describe('Overview', () => {
 
     expect(signOutButton().textContent?.trim()).toBe('Sign out');
     expect(host.querySelector('p-message')).toBeNull();
+    expect(host.querySelector('.overview__company-settings')?.getAttribute('href')).toBe(
+      '/admin/company',
+    );
   });
 
   it('clears the session and navigates to Sign In on 204 (AC-49)', async () => {

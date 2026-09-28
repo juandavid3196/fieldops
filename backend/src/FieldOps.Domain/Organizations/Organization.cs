@@ -138,4 +138,90 @@ public sealed class Organization
             NextInvoiceNumber = nextInvoiceNumber,
         };
     }
+
+    /// <summary>
+    /// Updates the organization's profile, taxes, currency and document
+    /// numbering (BR-01, BR-02). Same invariants, trimming and
+    /// <see cref="ArgumentException"/> pattern as <see cref="Create"/>.
+    /// <paramref name="updatedAt"/> is the new <c>updated_at</c> value,
+    /// supplied by the caller so the entity never reads the system clock.
+    /// </summary>
+    public void UpdateSettings(
+        string name,
+        string? legalName,
+        string? taxId,
+        string? email,
+        string? phone,
+        string timezone,
+        string currency,
+        decimal defaultTaxRate,
+        string quotePrefix,
+        string workOrderPrefix,
+        string invoicePrefix,
+        long nextInvoiceNumber,
+        DateTimeOffset updatedAt)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException(
+                "Organization name is required.",
+                nameof(name));
+        }
+
+        if (string.IsNullOrWhiteSpace(timezone))
+        {
+            throw new ArgumentException(
+                "Organization time zone is required.",
+                nameof(timezone));
+        }
+
+        if (string.IsNullOrWhiteSpace(currency))
+        {
+            throw new ArgumentException(
+                "Organization currency is required.",
+                nameof(currency));
+        }
+
+        if (string.IsNullOrWhiteSpace(quotePrefix))
+        {
+            throw new ArgumentException(
+                "Quote prefix is required.",
+                nameof(quotePrefix));
+        }
+
+        if (string.IsNullOrWhiteSpace(workOrderPrefix))
+        {
+            throw new ArgumentException(
+                "Work order prefix is required.",
+                nameof(workOrderPrefix));
+        }
+
+        if (string.IsNullOrWhiteSpace(invoicePrefix))
+        {
+            throw new ArgumentException(
+                "Invoice prefix is required.",
+                nameof(invoicePrefix));
+        }
+
+        if (nextInvoiceNumber < 1)
+        {
+            throw new ArgumentException(
+                "Next invoice number must be at least 1.",
+                nameof(nextInvoiceNumber));
+        }
+
+        Name = name.Trim();
+        LegalName = legalName?.Trim();
+        TaxId = taxId?.Trim();
+        Email = email?.Trim();
+        Phone = phone?.Trim();
+        Timezone = timezone.Trim();
+        Currency = currency.Trim();
+        DefaultTaxRate = defaultTaxRate;
+        QuotePrefix = quotePrefix.Trim();
+        WorkOrderPrefix = workOrderPrefix.Trim();
+        InvoicePrefix = invoicePrefix.Trim();
+        NextInvoiceNumber = nextInvoiceNumber;
+        UpdatedAt = updatedAt;
+    }
 }

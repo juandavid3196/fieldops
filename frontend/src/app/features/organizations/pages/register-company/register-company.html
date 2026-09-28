@@ -2,7 +2,11 @@
   <h1 class="register-company__title">Create your organization</h1>
 
   <form class="register-company__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
-    <app-error-summary [leadingMessage]="pageMessage()" [links]="errorLinks()" />
+    <app-error-summary
+      id="register-company-error-summary"
+      [leadingMessage]="pageMessage()"
+      [links]="errorLinks()"
+    />
 
     <app-company-profile-section
       [group]="form.controls.organization"

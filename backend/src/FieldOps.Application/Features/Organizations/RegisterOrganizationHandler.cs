@@ -93,6 +93,7 @@ public sealed class RegisterOrganizationHandler(
             branchEmail,
             NullIfEmpty(command.Branch.Phone),
             (command.Branch.AddressLine1 ?? string.Empty).Trim(),
+            null,
             (command.Branch.City ?? string.Empty).Trim(),
             NullIfEmpty(command.Branch.StateRegion),
             (command.Branch.PostalCode ?? string.Empty).Trim(),

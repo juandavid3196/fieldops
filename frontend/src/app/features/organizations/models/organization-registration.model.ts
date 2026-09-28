@@ -260,7 +260,8 @@ export function buildRegistrationRequest(
   };
 }
 
-function buildBusinessHoursPayload(
+/** Exported for reuse by the company-settings-and-branches branch drawer. */
+export function buildBusinessHoursPayload(
   days: Record<Weekday, { open: boolean; start: string; end: string }>,
 ): BusinessHoursPayload {
   const payload: Record<string, BusinessHoursDay> = {};

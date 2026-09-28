@@ -386,8 +386,12 @@ export function businessHoursEndKey(day: Weekday): `branch.businessHours.${Weekd
   return `branch.businessHours.${day}.end`;
 }
 
-/** DOM id for a field's control: the dotted BR-01 key with dots replaced by hyphens. */
-export function fieldControlId(field: FieldKey): string {
+/**
+ * DOM id for a field's control: the dotted key with dots replaced by hyphens.
+ * Accepts any dotted key string so `company-settings-and-branches` can reuse
+ * it for its own (wider) field-key namespaces without duplicating this logic.
+ */
+export function fieldControlId(field: string): string {
   return field.replace(/\./g, '-');
 }
 
