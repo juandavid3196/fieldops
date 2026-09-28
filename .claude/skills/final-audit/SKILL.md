@@ -1,253 +1,142 @@
 ---
 name: final-audit
-description: Independently audit a completed FieldOps implementation against its approved spec by coordinating persistence review and final QA, without fixing code.
+description: Independently audit a completed FieldOps implementation using a supplied change manifest, reusable persistence evidence, risk-based QA, one full validation pass and browser checks only when an acceptance criterion requires them.
 argument-hint: <spec-path>
 ---
 
 # FieldOps final audit
 
-Audits one implemented APPROVED spec: `database-reviewer` (if persistence
-changed) → `qa-auditor`. Read-only: it fixes nothing, invokes no architect or
-developer, never changes spec status, commits, pushes, merges or applies
-migrations. It returns a verdict to `spec-impl`, which owns lifecycle
-transitions.
+Audit one implemented APPROVED spec without fixing code, changing lifecycle, committing, applying migrations or invoking developers.
 
 Request: `$ARGUMENTS`
 
-## 1. Gate (read-only; any failure → `AUDIT BLOCKED`, stop)
+## 1. Invocation mode and gate
 
-Read `CLAUDE.md`, `frontend/CLAUDE.md` and `backend/CLAUDE.md` first.
+### Delegated by spec-impl
 
-| Check       | Rule |
-| ----------- | ---- |
-| Argument    | Exactly one relative path matching `^specs/[a-z0-9]+(-[a-z0-9]+)*/spec\.md$`, slug not `templates`. |
-| Path safety | Reject absolute paths (`/`, `\`, `~`, drive letters), backslashes, any `..`, anything outside `specs/`. Never normalize or guess. |
-| File        | Exists. |
-| Status      | `APPROVED`. DRAFT, IMPLEMENTED or AUDITED → stop. |
-| Type        | `Frontend`, `Backend`, `Full-stack` or `UI-only`. `Infrastructure` → stop (not audited by this workflow). |
-| Decisions   | No Open decision with `Blocking: Yes` and no resolution. |
-| FR/AC       | ≥1 active FR and ≥1 active AC. |
-| Branch      | Not `main` or `master`. |
-| Baseline    | Record `git status --porcelain --untracked-files=all` and `git hash-object` for every existing changed or untracked regular file; for deleted paths keep the status entry. |
-| Change set  | Resolvable (§2). |
+Require `SPEC-IMPL FINAL AUDIT PACKET` containing spec path/hash/type, grouped FR/AC evidence, exact workflow change manifest, baseline exclusions, child validation ledgers/fingerprints, persistence result/fingerprint, migration evidence, required browser-dependent ACs and MCP evidence.
 
-Run all checks and report every failure at once.
+Verify only:
 
-## 2. Change set
+- Spec still matches the supplied clean hash and remains APPROVED.
+- Branch is not protected.
+- Change manifest and current status are resolvable.
+- Child fingerprints correspond to current changed areas.
 
-Candidates:
+Do not rebuild the parent gate, reclassify unchanged baseline paths or reread complete child/architect reports.
 
-1. Committed branch changes: `git diff --name-status <base>...HEAD`, where
-   `<base>` is `main` (`CLAUDE.md` default branch; prefer `origin/main` when
-   present) and `git log <base>..HEAD` lists the audited commits.
-2. Staged and unstaged changes: `git diff --name-status HEAD`.
-3. Untracked files from the baseline.
+### Direct invocation
 
-Pre-existing work: a `SPEC-IMPL AUDIT BASELINE` block from `spec-impl` for
-this spec lists unrelated baseline paths and resume-authorized paths, each
-with status and hash. The audited implementation contains only:
+Validate one safe relative spec path, APPROVED auditable type, active FR/AC, no blocking decision and non-protected branch. Resolve the implementation from committed branch changes, staged/unstaged changes and untracked files. Exclude clearly unrelated work; ambiguous ownership → `AUDIT BLOCKED`.
 
-| Included | Rule |
-| -------- | ---- |
-| Committed | Candidate 1 paths traceable to this spec. |
-| New work | Paths new or altered since the `spec-impl` baseline. |
-| Resumed | Resume-authorized paths from the block. |
+Record an integrity baseline before any agent or command.
 
-An unrelated baseline path whose current status and hash match the block is
-excluded from §3 classification, out-of-scope findings and the verdict; it is
-checked only in §7. One that no longer matches was altered by the workflow:
-include it as an out-of-scope change.
+## 2. Change and scope
 
-Without the block (direct `/final-audit`), uncommitted paths not traceable
-to this spec are not assumed to be implementation.
+Use the delegated manifest or direct-mode resolved change set. Classify paths as frontend, backend, persistence, tests, required docs or out of scope.
 
-Stop with `AUDIT BLOCKED`, asking the user who owns the paths, when any
-committed or uncommitted path's ownership is ambiguous. Also stop when the
-base cannot be resolved, the merge base is missing, or the change set is
-empty. `git diff` alone is never the implementation.
+Create a compact audit packet:
 
-## 3. Scope
+- Grouped FR/AC → implementation/test evidence.
+- Final contract, authorization, tenancy, security and non-goal references.
+- Required UI states and browser-dependent ACs.
+- Changed files and direct dependencies.
+- Validation and persistence evidence with fingerprints.
 
-From the spec, list: active FR/AC IDs, frontend, backend and persistence
-scope, API contract rows, authorization and tenant-isolation rules (or public
-/pre-tenant protections), required tests, approved design paths, required
-documentation and non-goals.
+Inspect changed files, targeted diffs, relevant tests and direct dependencies. Do not scan unrelated code, docs, snapshots or `node_modules`.
 
-Classify every path in the §2 implementation:
+## 3. Persistence evidence
 
-| Class       | Examples |
-| ----------- | -------- |
-| Frontend    | `frontend/src/**` except tests |
-| Backend     | `backend/src/**` outside persistence |
-| Persistence | Persisted entities, `Persistence/Configurations/`, `FieldOpsDbContext`, `Migrations/` (incl. snapshot, `*.Designer.cs`), `database-migration-script.sql` |
-| Tests       | `*.spec.ts`, `backend/tests/**` |
-| Docs        | `docs/**`, `*.md` required by the spec |
-| Out of scope | Anything not traceable to an active FR/AC or required doc; `.claude/`, CI, hooks, dependencies unless the spec requires them |
+Mapping-relevant persistence changes require an independent `database-reviewer` approval.
 
-## 4. Persistence review
+Reuse the backend-stage result instead of rerunning it when all match:
 
-Invoke `database-reviewer` when the change set contains any mapping-relevant
-change: persisted entity shape, EF configuration, `FieldOpsDbContext` or its
-model, migration or snapshot, or a constraint, index, enum or provider-specific
-mapping. Always run a fresh review, even if the `backend` skill already
-approved. Otherwise record why it was skipped (e.g. frontend-only, or
-domain-behavior-only changes).
+- Approved spec hash.
+- Exact persistence changed-path set and persistence fingerprint.
+- Migration fingerprint/status.
+- Result is `APPROVED` or `APPROVED WITH NOTES`.
+- No persistence path changed after the review.
 
-Brief: `FINAL AUDIT (final-audit skill) — make no changes`, the spec path,
-the §2 base, commit range and path list (committed + uncommitted + untracked),
-`docs/database/fieldops-schema.sql`, and the relevant entities,
-configurations and migrations.
+Invoke a fresh reviewer only when evidence is missing, stale, rejected or the persistence fingerprint changed. Never review the same fingerprint twice in one workflow.
 
-`REJECTED` → final `AUDIT FAIL`; never route it to a developer.
+A migration must be reviewed and have explicit non-application evidence. Missing evidence → `NOT VERIFIED`.
 
-Migration status, when the change set adds a migration:
+## 4. QA audit
 
-| Evidence | Source |
-| -------- | ------ |
-| Reviewed | This audit's `database-reviewer` result covers the migration, snapshot and `*.Designer.cs`. |
-| Not applied | `backend` workflow report or command log states it was not applied, with no `dotnet ef database update\|drop` run. Never connect to the development database to check. |
+Invoke `qa-auditor` once with this exact header, followed by the compact packet, change manifest, reused persistence evidence or review result, validation command list, current fingerprints and browser-dependent AC list:
 
-Either missing → migration status `NOT VERIFIED` → `AUDIT FAIL`.
+```text
+FINAL AUDIT CONTEXT PACKET
+Mode: READ ONLY
+```
 
-## 5. QA audit
+Require:
 
-Invoke `qa-auditor` after §4. Brief: `FINAL AUDIT (final-audit skill) — make
-no changes`, the spec path, any `spec-impl` context packet and MCP preflight
-block supplied, the §2 change set and classification, frontend/backend
-workflow reports if provided (summaries, not pasted output, including any
-recorded MCP or dependency-research results — reuse them, never re-run),
-the §4 result or skip reason, the §6 command list and reused ledger rows,
-the §8 rules with the ACs needing browser evidence, and the approved design
-paths.
+- Evidence for every active FR/AC, grouped by behavior and compact ID ranges.
+- Exhaustive review of authentication, sessions, authorization, tenant isolation, cross-organization access, sensitive data, public contracts, transactions/rollback/concurrency, destructive operations and migration safety when applicable.
+- Representative review for repetitive fields, layout variants and equivalent validation cases.
+- Scope/non-goals, meaningful tests, required states, static accessibility, required docs and regressions.
 
-Require evidence for every active FR and AC (`MET`, `NOT MET`, `NOT
-VERIFIED`) and for: scope and non-goals, API contract implementation, domain
-and validation rules, authorization, tenant isolation and cross-organization
-behavior, public/pre-tenant protections where applicable, loading, empty,
-error, permission and submission states, static accessibility, sensitive data
-in responses/logs/source, test quality and missing cases, spec-required docs,
-regressions and unrelated changes, and persistence approval when applicable.
+Do not require one test or prose row per AC. Do not pass architect/UI output unless an approved decision cannot be located in the spec.
 
-Test evidence follows `CLAUDE.md` Testing policy: one test may cover several
-FRs/ACs, and a missing per-AC test is not a finding when the behavior is
-proven. Missing evidence for an applicable mandatory security area
-(authentication, authorization, tenant isolation, hashing/sensitive data,
-cookies/CSRF, unsafe migrations, rollback, financial integrity, uploads) is
-Important or Critical. An item that does not apply is `N/A` with a reason,
-not `NOT VERIFIED`.
+## 5. Validation
 
-## 6. Validation
+Final audit is the only local owner of the Full profile.
 
-This is the only local owner of the `CLAUDE.md` Full profile. It runs once
-per changed area, executed by `qa-auditor` from the §5 brief; this skill
-never reruns what `qa-auditor` ran.
+For each changed area:
 
-| Area     | Working directory | Full profile |
-| -------- | ----------------- | ------------ |
-| Frontend | `frontend/`       | Format check, lint, `npm run test -- --watch=false`, production build |
-| Backend  | `backend/`        | Tool restore, restore, format verification, Release build, unit tests, integration tests |
+1. Recompute fingerprint.
+2. Reuse fresh passing full rows.
+3. Reuse fresh focused rows for area-wide format/lint/build commands.
+4. Run only stale, missing or failed commands.
+5. Focused test rows never replace required full suites.
 
-Build the command list before briefing: recompute each changed area's
-fingerprint and compare it with the ledger rows from the workflow reports.
+Run the Full profile at most once per changed area. Use concise command output and report only summaries/failure excerpts. Integration tests use disposable isolated infrastructure and never start Docker Desktop or target the local database.
 
-- Fresh passing `full` row for a command → reuse it; do not rerun.
-- Fresh passing `focused` row for an area-wide command (format, lint, build)
-  → reuse it. Focused test rows never replace the full test suites.
-- Stale, failed, missing or unfingerprinted evidence → run the command.
-  Never trust stale evidence.
-- Backend tests use `--no-build`: run the Release build first unless its
-  fresh row is reused.
-- Integration tests only when backend changed and `docker info` succeeds
-  without starting anything (Testcontainers). Otherwise `NOT VERIFIED` with
-  the reason. Never target the local FieldOps database.
-- Restore only from existing lockfiles and manifests when needed to run
-  validation: `npm ci` (from `frontend/`), `dotnet tool restore` and
-  `dotnet restore FieldOps.slnx` (from `backend/`). `frontend/package.json`,
-  `frontend/package-lock.json`, `*.csproj` and `backend/dotnet-tools.json`
-  must stay unchanged (§7).
-- Never: format that writes files, add, update or remove packages
-  (`npm install`, `dotnet add package`), generate, remove or apply
-  migrations, touch snapshots, delete Docker volumes, print secrets or
-  connection strings.
+Never format, install/change packages, generate/remove/apply migrations, alter snapshots or print secrets.
 
-## 7. Read-only integrity
+## 6. Browser evidence
 
-After all agents and commands, compare
-`git status --porcelain --untracked-files=all` and hashes with this audit's
-§1 baseline, and every unrelated path with the `SPEC-IMPL AUDIT BASELINE`
-block. Any new, removed or altered path, other than build/test output
-ignored by the repository's `.gitignore`, or any altered unrelated baseline
-path → `AUDIT FAIL`. Report it; never clean, delete or revert.
+Do not check Playwright merely because frontend files changed.
 
-## 8. Browser evidence
+Use it only when an active AC needs runtime evidence that static review or automated tests cannot provide: responsive rendering, browser navigation, runtime focus/keyboard, contrast/axe or explicit visual comparison.
 
-Only when the change set alters UI (frontend templates, styles or routed
-pages); otherwise `N/A`. `qa-auditor` uses Playwright MCP only against the
-already-running local app (`http://localhost:4200`, API
-`http://localhost:5034`). Never start Docker Desktop or the app, apply
-migrations, or use real credentials, personal profiles or production data.
-Never mutate the local FieldOps development database.
+- Reuse evidence on the same frontend fingerprint.
+- Use an already-running local app only.
+- Never use real credentials or mutate the local FieldOps database.
+- Data-changing behavior uses mocked/intercepted responses or disposable infrastructure.
+- Maximum one happy and one critical failure flow.
+- Mobile/desktop only for responsive ACs.
+- Axe only for accessibility ACs, primary state plus at most one error state.
+- Pixel comparison only when explicitly required.
 
-| Browser flow | Allowed against |
-| ------------ | --------------- |
-| Read-only (navigation, rendering, client validation, requests that change no data) | The running local API |
-| Data-changing (creates, changes or deletes data, or writes audit/login records) | Only mocked/intercepted API responses or explicitly isolated disposable test infrastructure; never the local API |
+Check Playwright availability lazily at first required use, once, with no retry. If unavailable, only browser-dependent ACs become `NOT VERIFIED`.
 
-A real data-changing submission is never required when static review,
-component tests, integration tests or mocked-browser evidence prove the AC;
-cite that evidence instead.
+## 7. Integrity and verdict
 
-| Check | Default scope |
-| ----- | ------------- |
-| Flows | One happy path; one critical failure flow when valuable |
-| Viewports | One mobile (320px) and one desktop (1280px), plus widths an AC names |
-| Dark mode | Only when the feature changes dark styling or an AC requires it |
-| Axe (`axe-core` devDependency) | Primary state and one meaningful error state, unless an AC lists more |
-| Pixel/mockup comparison | Only when an AC requires it |
-| Keyboard/focus | Primary flow |
+After all reads/commands, compare status and hashes with the audit baseline. Any workflow-created/altered tracked path, altered unrelated baseline path or non-ignored output → `AUDIT FAIL`; never clean or revert.
 
-- Screenshots only as required evidence, in the ignored `.playwright-mcp/`
-  output; any other written path fails §7.
-- Browser checks never replace frontend tests, build or static review.
-- Playwright unavailable or app not running: only ACs requiring browser
-  evidence become `NOT VERIFIED`; list the checks not performed. When a
-  `spec-impl` MCP preflight block already marked Playwright UNAVAILABLE, use
-  that result; do not re-probe it.
+Verdicts:
 
-## 9. Verdict
+- `AUDIT PASS`: complete evidence, no findings.
+- `AUDIT PASS WITH MINOR FINDINGS`: only Minor findings; no correction cycle.
+- `AUDIT FAIL`: Critical/Important finding, rejected/stale persistence, failed/missing required validation, required FR/AC not met/verified, unsafe migration evidence or integrity failure.
+- `AUDIT BLOCKED`: gate/change ownership cannot be resolved.
 
-| Verdict                          | When |
-| -------------------------------- | ---- |
-| `AUDIT FAIL`                     | Any Critical or Important finding; `database-reviewer` `REJECTED`; a required validation failed, was skipped or is `NOT VERIFIED`; any required FR/AC `NOT MET` or `NOT VERIFIED`; applicable mandatory security or tenant-isolation evidence missing; migration status `NOT VERIFIED`; integrity check failed. |
-| `AUDIT PASS WITH MINOR FINDINGS` | Only Minor findings; everything else complete. Minor findings never trigger another implementation cycle. |
-| `AUDIT PASS`                     | No findings and complete evidence. |
-| `AUDIT BLOCKED`                  | Gate failed; nothing audited. |
+`N/A` with a reason is not `NOT VERIFIED`.
 
-`N/A` with a reason (area unchanged, check not applicable) never counts as
-`NOT VERIFIED`.
+## 8. Compact report
 
-## 10. Report
+Maximum 1,500 words unless findings require more:
 
-Concise (`CLAUDE.md` Workflow reports); never paste agent output.
+- Verdict first.
+- Spec hash, base and audited change groups.
+- Agents invoked/skipped; persistence evidence reused or rerun.
+- Grouped FR/AC evidence matrix.
+- Security evidence.
+- Findings by severity with file/line or FR/AC, expected/actual and owner.
+- Validation ledger with fingerprints.
+- Browser checks required/performed/not verified.
+- Out-of-scope paths and read-only integrity.
 
-1. Spec path, status and Type.
-2. Base, commit range and uncommitted/untracked scope audited.
-3. Changed-file classification.
-4. Agents invoked or skipped, with reason.
-5. FR/AC matrix: ID · implementation · test evidence · status (shared
-   evidence explicit; `N/A` with reason).
-6. Security checks: authorization, tenant isolation and each applicable
-   mandatory area, with evidence.
-7. `database-reviewer` result and migration status: none, or reviewed + not
-   applied with evidence, or `NOT VERIFIED`.
-8. QA findings: Critical, Important, Minor.
-9. Validation ledger: rows run here and rows reused (with fingerprint).
-10. Browser evidence and checks not performed or `N/A`.
-11. Items not verified.
-12. Out-of-scope changes; unrelated baseline paths excluded and whether
-    they stayed unaltered.
-13. Read-only integrity result.
-14. Verdict.
-15. Follow-up owner per finding: `frontend-developer`, `backend-developer`,
-    user decision or infrastructure task; say whether the correction is
-    fully specified (no architect needed).
+Never reproduce the spec or paste child reports.

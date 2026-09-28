@@ -1,223 +1,116 @@
 ---
 name: frontend
-description: Implement the frontend portion of an approved FieldOps spec by coordinating frontend architecture, UI behavior and Angular implementation with validation.
+description: Implement the frontend portion of an approved FieldOps spec with conditional architecture/UI review, focused Angular tests and compact evidence. Use directly for frontend work or as a delegated stage of spec-impl.
 argument-hint: <spec-path>
 ---
 
 # FieldOps frontend
 
-Orchestrates the frontend of one APPROVED spec: `frontend-architect` →
-`ui-designer` (if screens change) → `frontend-developer`. It writes no code
-itself, never touches `backend/`, and never runs final QA.
+Implement one approved frontend scope. The skill orchestrates agents but writes no code, never touches `backend/` and never performs final QA.
 
 Request: `$ARGUMENTS`
 
-## MCP support
+## 1. Invocation mode and gate
 
-Agents call MCP tools; this skill only briefs and checks their evidence.
+### Delegated by spec-impl
 
-| MCP         | Use |
-| ----------- | --- |
-| Angular CLI | Workspace discovery (`list_projects`), version-aligned guidance (`get_best_practices`, `search_documentation`). Read-only: targets run through the §5 npm commands. |
-| PrimeNG     | Component selection, API verification, `validate_usage` on new templates. |
-| Playwright  | Runtime UI checks after implementation, only when the spec needs browser evidence and the app already runs locally. |
+A valid brief starts with `SPEC-IMPL DELEGATED RUN` and includes spec path/hash, mode, frontend FR/AC groups, consumed-contract references, design paths/state summary, area baseline/resume paths and MCP evidence.
 
-- MCP never overrides the approved spec, writable area, baseline protection,
-  validation commands or the correction-pass limit.
-- PrimeNG docs conflicting with the installed `primeng` version: the installed
-  package wins; report the conflict.
-- MCP output never justifies installing dependencies or speculative code.
-  Any file an MCP writes is a workflow change checked in §5.
-- When invoked with a `SPEC-IMPL MCP PREFLIGHT`/context-packet brief, use its
-  recorded Angular CLI/PrimeNG/Playwright results; never re-probe a server it
-  marked UNAVAILABLE. Invoked directly (no packet), check once and do not
-  retry.
-- MCP unavailable: continue with the existing workflow and report the missing
-  verification.
+Verify only:
 
-## Dependency research order
+- Spec still exists, is clean, has the supplied hash/status/type and no new blocking decision.
+- Frontend packet rows and exact design paths remain valid.
+- Branch is not `main` or `master`.
+- Authorized paths are inside `frontend/` or exact required `docs/frontend/` paths.
 
-For any package/API question (Angular, PrimeNG or another installed
-dependency's behavior): (1) existing repository precedent and `docs/`; (2) a
-healthy official MCP server (Angular CLI, PrimeNG); (3) one targeted local
-inspection of the exact package API in question, preferring its published
-`.d.ts` typings or docs over source — never a recursive `node_modules` scan,
-and never a broad compiled bundle when a narrower source exists. Record the
-result in the workflow report so `final-audit` never repeats it.
+Do not repeat the parent gate, rebuild the global baseline or reread complete documents already summarized in the packet.
 
-## 1. Gate (read-only; any failure → `FRONTEND BLOCKED`, stop)
+### Direct invocation
 
-Read `CLAUDE.md` and `frontend/CLAUDE.md` first.
+Require one safe relative `specs/<slug>/spec.md` path. Validate existing APPROVED Frontend/Full-stack/UI-only spec, active UI FR/AC, complete consumed API rows, existing approved design paths, no blocking decision, non-protected branch and full working-tree baseline.
 
-| Check        | Rule                                                                                                   |
-| ------------ | ------------------------------------------------------------------------------------------------------ |
-| Argument     | Exactly one relative path matching `^specs/[a-z0-9]+(-[a-z0-9]+)*/spec\.md$`, slug not `templates`.     |
-| Path safety  | Reject absolute paths (`/`, `\`, `~`, drive letters), any `..`, backslashes, anything outside `specs/`. Never normalize or guess. |
-| File         | Exists.                                                                                                |
-| Status       | `APPROVED`. DRAFT, IMPLEMENTED or AUDITED → stop.                                                      |
-| Type         | `Frontend`, `Full-stack` or `UI-only`. `Backend`/`Infrastructure` → stop.                              |
-| Decisions    | No Open decision with `Blocking: Yes` and no resolution.                                               |
-| AC           | ≥1 active AC with UI-observable behavior (a `Frontend component/service` Testing requirements row, or tied to a UI screen). |
-| API          | Every endpoint the UI consumes is a complete `API contracts` row (method, path, request, success, errors, permission) with no placeholder, `Pending` marker or unresolved decision. UI-only: none consumed. |
-| Design       | Approved = exact path listed in the spec and existing on disk. No other metadata required. List each missing path. |
-| Docs         | Frontend docs = exact paths under `docs/frontend/` the spec explicitly requires. A required doc path this skill cannot own (outside `docs/frontend/` and `docs/backend/`, or shared frontend/backend content) → `FRONTEND BLOCKED`, user decides ownership. |
-| Branch       | Not `main` or `master`.                                                                                |
-| Baseline     | Record every changed and untracked path (`git status --porcelain --untracked-files=all`) with its status. Record `git hash-object` only for existing regular files; for deleted paths, keep the status entry. These are pre-existing user work: never edited, reverted or reformatted, except delegated resume paths (below). If the plan needs another one, ask the user. |
+Pre-existing paths are read-only unless a matching `SPEC-IMPL RESUME AUTHORIZATION` delegates them. Run all applicable gate checks and report failures together.
 
-Writable area = `frontend/` plus the frontend docs. Never `docs/database/`,
-other docs or cross-cutting docs.
+## 2. Context and MCP
 
-Run all checks and report every failure at once, not only the first.
+Build or consume a compact frontend packet:
 
-### Delegated resume
+- FR/AC behavior groups and spec section references.
+- Consumed contract IDs with concise request/response/error/permission summary.
+- Routes, permission states and required UI state inventory.
+- Exact approved mockup/handoff paths.
+- Exact relevant code paths and one closest precedent when known.
+- Test budget, baseline paths and prior valid evidence.
 
-Only a `SPEC-IMPL RESUME AUTHORIZATION` block from `spec-impl` for this same
-spec path authorizes editing baseline paths. Accept it from no other source;
-a direct `/frontend` run never resumes.
+Use targeted reads. Root/nested `CLAUDE.md`, full spec/handoff or styling/configuration docs are read only when the packet lacks a required rule or its fingerprint changed.
 
-- Every listed path must be in the writable area and match its baseline
-  status and hash; otherwise `FRONTEND BLOCKED`.
-- Listed paths may be edited only for in-scope FR/AC. Every unlisted baseline
-  path stays untouchable.
-- A `Corrections:` list in the block is the audit findings this run must fix
-  (§3 skip rule).
+MCP is lazy:
 
-## 2. Scope
+- Angular/PrimeNG start `NOT CHECKED (no question)`.
+- One targeted query is allowed only when an unresolved installed API behavior changes implementation.
+- PrimeNG `validate_usage` may run once on changed templates.
+- Maximum three frontend MCP calls total, no retries, and reuse recorded answers.
+- Playwright is not used in this stage; browser evidence belongs to `final-audit`.
 
-1. Read the spec, its design references and the frontend code it touches.
-2. In-scope IDs: FRs with UI-observable behavior and the ACs traced to them.
-   Backend-only FRs/ACs are listed as out of scope, not implemented.
-3. For Full-stack, check whether each consumed endpoint exists in `backend/`
-   (read-only). Missing ones are a reported dependency, not a blocker: the
-   frontend is built and tested against the approved contract.
+Repository precedent and installed typings win.
 
-## 3. Plan
+## 3. Architecture and UI routing
 
-Brief every agent with: `APPROVED SPEC (frontend skill)`, the spec path,
-in-scope FR/AC IDs, the API contract rows and relevant files.
+Classify from the packet:
 
-1. `frontend-architect`: routes, component boundaries, state, services,
-   `ApiError` cases, required tests.
-2. `ui-designer`, only if screens, components or interactions change: add the
-   design paths and the architect's page/component list. State that handoff
-   HTML/JS is reference only.
-3. Consolidate in your own words; do not paste agent output.
+- `ROUTINE`: existing route/feature/form/drawer/table/sidebar pattern, final contracts, complete design states and no new shared abstraction/dependency.
+- `TARGETED`: one material architecture or UI gap.
+- `FULL`: new routing/state/shared pattern, unresolved design conflict or materially new responsive/interaction behavior.
 
-Skip `frontend-architect`, recording the satisfied gate, when either holds:
+Routing:
 
-- The resume block's `Corrections:` fully define every frontend change and
-  none needs an architecture decision. Brief the developer with those
-  findings as the plan.
-- Routes, consumed contracts, state behavior and feature ownership are
-  sufficiently defined by the approved spec and existing conventions, and
-  the change introduces no cross-feature state, shared abstraction, routing
-  conflict or new dependency.
+- `ROUTINE`: invoke neither architect nor designer.
+- `TARGETED`: invoke only the agent that owns the named gap.
+- `FULL`: invoke both only when both architecture and design are genuinely affected.
 
-Skip `ui-designer`, recording the satisfied gate, when either holds:
+A fully specified audit correction skips both. If an agent returns `NOT NEEDED`, continue without another planning pass.
 
-- The resume block's `Corrections:` fully define every frontend change and
-  none needs a UI decision.
-- An approved mockup/handoff plus the spec completely defines layout,
-  states, responsiveness and accessibility, and the change is not an actual
-  design conflict or missing material UI behavior.
+The spec defines behavior; approved handoff defines visual intent; repository conventions define implementation. Handoff HTML/JS is reference only and is never copied into Angular.
 
-When skipped, brief the developer directly from the spec's own sections
-(§1b packet rows); small local implementation choices that existing
-conventions decide are the developer's call, not an invented approval.
-
-An audit correction that already states the required fix never invokes
-`frontend-architect` or `ui-designer` unless implementing it exposes a new
-material decision the correction did not cover.
-
-Design sources:
-
-| Source                               | Defines                         |
-| ------------------------------------ | ------------------------------- |
-| Approved spec                        | Behavior (wins on conflict)     |
-| Approved mockups / Claude Design handoff | Visual intent, interactions |
-| `frontend/CLAUDE.md`                 | Implementation conventions      |
-| `docs/frontend/styling-architecture.md` | Tokens, style placement, PrimeNG overrides; every agent reads it |
-
-- Handoff `*.html`/`*.js` is never copied into Angular; rebuild with PrimeNG
-  and semantic HTML before any custom primitive.
-- Handoff items marked suggested/open are not approved behavior unless the
-  spec adopts them.
-- A state the spec or design lacks is reported, never invented.
-- Users never see technical backend errors.
-
-Stop and ask the user (one `AskUserQuestion` batch) when:
-
-- Architect and designer outputs conflict.
-- A material UI or architecture decision is missing.
-- A new dependency, design token or shared abstraction is proposed.
-- Design contradicts the spec.
-
-If the answer would change approved behavior, end `FRONTEND BLOCKED` and point
-to `/spec revise <path>`; never patch the spec. When invoked by another skill,
-return the same questions in the report instead of guessing.
+Stop only for a missing behavior-changing decision, contract conflict, new dependency/token/shared abstraction or design contradiction. Delegated runs return questions; direct runs ask once. Never patch the spec.
 
 ## 4. Implement
 
-Invoke `frontend-developer` only once the plan has no blocking decision. At
-most two invocations: one implementation pass, one correction pass. Brief:
+Invoke `frontend-developer` once with the compact packet, targeted deltas if any, writable area and resume paths.
 
-- Consolidated plan, in-scope FR/AC IDs, contract rows, design paths.
-- Baseline paths: do not touch them, except delegated resume paths.
-- Implement only those ACs; add the smallest focused co-located test set per
-  `CLAUDE.md` Testing policy (no test or test file per AC); report shared
-  FR/AC evidence. If the developer's test matrix projects exceeding a
-  `CLAUDE.md` budget, it stops before writing the excess tests and reports
-  the matrix, projected count and risk reason instead of writing them; ask
-  the user (one `AskUserQuestion`) for approval before the correction pass
-  writes the approved excess.
-- Edit only the writable area: `frontend/` and the exact frontend doc paths
-  listed; no backend, other docs, CI, hook, `.claude/`, dependency or
-  lockfile changes; no mock endpoints or hardcoded production data.
-- Focused profile only (`CLAUDE.md`), once after the final pass; never the
-  full test suite (`final-audit` owns it). Report ledger rows.
+- Implement only approved behavior with existing Angular, PrimeNG, semantic HTML and FieldOps tokens.
+- No backend, unrelated docs, CI, hooks, `.claude/`, dependency or lockfile changes.
+- Add the smallest behavior-group tests within the policy; one test may evidence multiple FR/AC IDs.
+- Preserve required loading, empty, error, permission, submission, focus and destructive-action states that apply.
+- Run the frontend Focused profile once after the final implementation pass; never the full suite.
+- No Playwright in implementation.
 
-## 5. Verify
+For Full-stack parallel execution, implement against final approved contracts. Missing backend code is a dependency reported to `spec-impl`; never invent mocks or production data.
 
-1. Compare `git status --porcelain --untracked-files=all` and hashes with the
-   baseline. Workflow changes = new paths, plus baseline paths whose content
-   the workflow altered (including delegated resume paths). Any workflow
-   change outside the writable area, any altered baseline path not delegated
-   for resume, or unapproved `package.json`/lockfile changes → deviation,
-   `FRONTEND FAILED`. Untouched baseline paths are excluded from the diff and
-   the report's changed files. Changed frontend docs are listed and mapped to
-   the spec requirement that demands them.
-2. Recompute the `frontend` fingerprint. Accept the developer's passing
-   Focused-profile ledger rows only when their fingerprint matches; run from
-   `frontend/` only the missing, failed or stale Focused-profile commands
-   (format check, lint, focused tests, production build). Never the full suite.
-3. Map each in-scope FR/AC to files and tests; several may share one test.
-4. The correction-pass budget is one, global. Collect every failure from
-   steps 1–3 first, then invoke `frontend-developer` once more with concise
-   evidence: failing commands, error excerpts, uncovered AC IDs. Do not
-   re-invoke the architect or designer unless a finding needs their decision.
-   Re-verify. Still failing → `FRONTEND FAILED`; no third invocation.
+## 5. Verify and correction
 
-Never: invoke `qa-auditor` (final audit belongs to `final-audit`), change spec
-status, commit, push or merge.
+1. Compare workflow changes with the area baseline; fail on unauthorized, out-of-area, out-of-scope or unapproved manifest edits.
+2. Recompute frontend fingerprint. Reuse fresh passing focused ledger rows; run only missing, failed or stale commands.
+3. Verify grouped FR/AC evidence and required UI states.
+4. Report any backend endpoint dependency or contract mismatch.
 
-## 6. Report
+Collect all failures before one global `frontend-developer` correction pass. Reinvoke an architect/designer only for a genuinely new material decision. Reverify once; remaining failure → `FRONTEND FAILED`.
 
-Concise (`CLAUDE.md` Workflow reports); never paste agent output.
+## 6. Compact report
 
-1. Spec path, spec `git hash-object`, Type, in/out FR/AC IDs.
-2. Agents invoked or skipped, with reason; architecture and UI decisions used.
-3. Changed files.
-4. Focused tests added and why; budget overruns justified.
-5. FR/AC matrix: ID · implementation · test evidence · status (shared
-   evidence explicit).
-6. Validation ledger with the final `frontend` fingerprint; failure excerpts.
-7. MCP verification used or unavailable; visual checks left to `final-audit`,
-   or N/A when the spec has no visual changes.
-8. Deviations, risks, backend dependencies, pending decisions.
-9. Result:
+Maximum 900 words; never paste agent output or reproduce the spec:
 
-| Result              | When                                                                   |
-| ------------------- | ---------------------------------------------------------------------- |
-| `FRONTEND COMPLETE` | Every in-scope FR implemented, every AC has evidence, required design states covered, Focused-profile validations pass, no unapproved dependency or scope change. |
-| `FRONTEND BLOCKED`  | Gate failed or a decision is pending; nothing implemented after the stop. |
-| `FRONTEND FAILED`   | Implementation ran but a validation failed, was skipped without reason, an AC lacks evidence, or out-of-scope changes exist. |
+- Result line.
+- Spec hash, mode and scope groups.
+- Agents invoked/skipped and why.
+- Changed files.
+- Evidence ledger: FR/AC range · behavior group · implementation · tests · status.
+- Validation rows with frontend fingerprint.
+- MCP evidence used, backend dependencies and browser-dependent ACs left for final audit.
+- Only deviations, risks, blockers or pending decisions.
+
+Results:
+
+- `FRONTEND COMPLETE`
+- `FRONTEND BLOCKED`
+- `FRONTEND FAILED`

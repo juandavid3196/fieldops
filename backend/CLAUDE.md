@@ -1,93 +1,73 @@
 # Backend
 
-Clean Architecture + DDD. Configuration, endpoints, errors and logging:
-`docs/backend/api-configuration.md`.
+Clean Architecture + DDD. API configuration: `docs/backend/api-configuration.md`.
 
 ## Projects
 
-| Project                           | Contains                                                                                      |
-| --------------------------------- | --------------------------------------------------------------------------------------------- |
-| `src/FieldOps.Domain`             | Entities and enums by aggregate folder. No EF Core or ASP.NET dependencies.                   |
-| `src/FieldOps.Application`        | Use cases by feature (`Authentication/`: handlers, validators, ports), `DependencyInjection.cs`. |
-| `src/FieldOps.Infrastructure`     | `DependencyInjection.cs`, `Persistence/` (DbContext, `Configurations/`, `Migrations/`).       |
-| `src/FieldOps.Api`                | Controllers without business logic, `Configuration/`, `Extensions/`, `Middleware/`.           |
-| `tests/FieldOps.UnitTests`        | Entity rules per aggregate; `Persistence/FieldOpsDbContextModelTests.cs` builds the model.    |
-| `tests/FieldOps.IntegrationTests` | API pipeline via `FieldOpsApiFactory`; database tests via Testcontainers.                     |
-
-- Current references: `Api → Application + Infrastructure`,
-  `Infrastructure → Application + Domain`, `Application → Domain`.
-- Template leftovers (`Class1.cs`, `UnitTest1.cs`, `WeatherForecast*.cs`): do
-  not extend or remove; a separate chore will.
+- `Domain`: aggregates/enums; no EF/ASP.NET.
+- `Application`: use cases, validators, ports and DI.
+- `Infrastructure`: DI and persistence.
+- `Api`: thin controllers, configuration, extensions and middleware.
+- Unit tests: non-trivial domain/application/model rules. Integration: API pipeline and Testcontainers.
+- References: `Api → Application + Infrastructure`, `Infrastructure → Application + Domain`, `Application → Domain`.
+- Template leftovers are outside feature scope.
 
 ## Entities
 
-- `public sealed class`, private parameterless constructor for EF,
-  `{ get; private set; }`, no navigation properties.
-- `static Create(...)` validates (`ArgumentException` + `nameof`), trims
-  strings and assigns `Guid.NewGuid()`.
-- `DateTimeOffset` (UTC), `DateOnly`/`TimeOnly`, `decimal` for money. Never `DateTime`.
+- `public sealed`, private EF constructor, private setters, no navigation properties.
+- `Create(...)` validates invariants, trims strings and assigns `Guid.NewGuid()`.
+- Use UTC `DateTimeOffset`, `DateOnly`/`TimeOnly` and `decimal`; never `DateTime`.
+- Test only non-trivial/distinct rules; parameterize equivalent field cases.
 
-## EF Core mapping
+## EF Core
 
-- One `internal sealed <Entity>Configuration` per entity in
-  `Persistence/Configurations/`, plus a `DbSet<T>` in `FieldOpsDbContext`.
-- Match `docs/database/fieldops-schema.sql` exactly: table, index and
-  constraint names, lengths, `char(n)`, precision, `text`/`jsonb`/`inet`,
-  `gen_random_uuid()` and `now()` defaults. Snake_case comes from
-  `UseSnakeCaseNamingConvention()`.
-- `true`-default booleans: `HasDefaultValue(true).HasSentinel(true)`.
-- Register PostgreSQL enums in `FieldOpsDbContext` (`HasPostgresEnum`),
-  `DependencyInjection` (`MapEnum`) and `FieldOpsDbContextModelTests`.
-- `DeleteBehavior.NoAction`; `Cascade` only for schema `ON DELETE CASCADE`.
-- Comment the source SQL above non-obvious keys, indexes and constraints.
-- Tenancy: tenant-owned tables get a required `OrganizationId` FK to
-  `organizations`. Children of tenant-owned parents also get the composite FK
-  `(OrganizationId, ParentId) → parent (OrganizationId, Id)` against the
-  parent's alternate key. Tables without `organization_id` in the schema
-  inherit tenancy; do not add it.
+- One internal sealed configuration/entity plus required `DbSet<T>`.
+- Match exact affected schema definitions: columns, keys, constraints, indexes, lengths, precision, provider types/defaults. Inspect targeted schema/configuration/snapshot diffs, not the complete model by default.
+- Snake case via `UseSnakeCaseNamingConvention()`; true defaults use `HasDefaultValue(true).HasSentinel(true)`.
+- PostgreSQL enums require `HasPostgresEnum`, `MapEnum` and focused model-test registration.
+- `DeleteBehavior.NoAction`; Cascade only when schema says so.
+- Tenant relationships follow authoritative organization/composite FKs; never add `organization_id` where tenancy is inherited.
+- Mapping changes require one `database-reviewer` approval per exact persistence fingerprint; final audit reuses it unchanged.
 
 ## Migrations
 
-- Generate only when asked, only for the active task's model changes; stop if
-  unrelated pending changes appear.
-- Never modify a committed or applied migration; add a corrective one.
-- Never hand-edit `FieldOpsDbContextModelSnapshot.cs` or `*.Designer.cs`.
-- Inspect every generated migration against the schema before reporting.
-- Discard an uncommitted migration with `dotnet ef migrations remove`, never
-  `--force` (it reverts the database).
-- EF model and schema disagree: stop and report.
-- `database-migration-script.sql` is committed; regenerate only when asked.
+- Generate only with explicit workflow authorization; stop on unrelated pending changes.
+- Never edit committed/applied migrations or hand-edit snapshot/designer files.
+- Inspect generated operations against the expected schema delta.
+- Remove only the workflow's uncommitted/unapplied migration with `dotnet ef migrations remove`, never `--force`.
+- Never apply/drop databases. Regenerate the SQL script only when requested.
 
-```bash
-# Needs ConnectionStrings:FieldOpsDatabase in user-secrets.
-dotnet ef migrations add <Name> --project src/FieldOps.Infrastructure/FieldOps.Infrastructure.csproj \
-  --startup-project src/FieldOps.Api/FieldOps.Api.csproj --output-dir Persistence/Migrations
-dotnet ef migrations script --idempotent --project src/FieldOps.Infrastructure/FieldOps.Infrastructure.csproj \
-  --startup-project src/FieldOps.Api/FieldOps.Api.csproj --output database-migration-script.sql
-```
+Commands from `backend/`:
 
-## Microsoft Learn MCP
+- `dotnet ef migrations add <Name> --project src/FieldOps.Infrastructure/FieldOps.Infrastructure.csproj --startup-project src/FieldOps.Api/FieldOps.Api.csproj --output-dir Persistence/Migrations`
+- `dotnet ef migrations script --idempotent --project src/FieldOps.Infrastructure/FieldOps.Infrastructure.csproj --startup-project src/FieldOps.Api/FieldOps.Api.csproj --output database-migration-script.sql`
 
-- Documentation only; ask version-specific questions (.NET 10, ASP.NET Core
-  10, EF Core 10). It never authorizes a package, schema change or migration.
+User-secrets may supply design-time connection strings; never read/print them.
 
-## API and tests
+## API
 
-- Settings: class in `Configuration/` + `IValidateOptions<T>` + `ValidateOnStart()`;
-  register services via `Extensions/`.
-- Connection strings: user-secrets or environment variables, never `appsettings*.json`.
-- Run locally with `--launch-profile http` (`http://localhost:5034`); the
-  frontend depends on it.
-- Test names: `Method_Condition_ExpectedResult`. Integration tests pass
-  settings through `FieldOpsApiFactory`, never user-secrets.
-- Focused tests (xUnit v2/VSTest filter on the test folder namespace, e.g.
-  `FieldOps.IntegrationTests.Sessions`, or narrower `<Namespace>.<Class>[.<Method>]`;
-  combine with `|`), after the Release build:
+- Settings: configuration class + `IValidateOptions<T>` + `ValidateOnStart()`; register through Extensions.
+- Connection strings: user-secrets/environment only.
+- Local profile: `http` at `http://localhost:5034`.
+- Controllers delegate to Application; preserve approved safe ProblemDetails.
+- Resolve and authorize organization context server-side.
 
-  ```bash
-  dotnet test tests/FieldOps.UnitTests/FieldOps.UnitTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~FieldOps.UnitTests.<Folder>"
-  dotnet test tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~FieldOps.IntegrationTests.<Folder>"
-  ```
+## MCP
 
-  Integration: only when `docker info` succeeds (Testcontainers); never the
-  local FieldOps database.
+Microsoft Learn is lazy: one targeted unresolved .NET/ASP.NET/EF version question, no retry; record/reuse the answer. It never authorizes dependencies, contracts, schema or migrations.
+
+## Tests
+
+- Integration settings use `FieldOpsApiFactory`, never user-secrets.
+- Prefer clear `Method_Condition_ExpectedResult` names; naming alone is not a finding when intent is clear.
+- Do not duplicate identical unit/integration validation.
+- One grouped integration test may evidence contract, authorization and tenancy for a flow.
+- Add shared auth/session/tenant infrastructure tests only when that boundary or a distinct authorization path changes.
+- One representative cross-tenant denial per distinct path, not per endpoint/field.
+
+Focused after Release build:
+
+- Unit: `dotnet test tests/FieldOps.UnitTests/FieldOps.UnitTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~FieldOps.UnitTests.<Folder>"`
+- Integration: `dotnet test tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj --configuration Release --no-build --filter "FullyQualifiedName~FieldOps.IntegrationTests.<Folder>"`
+
+Integration runs only when `docker info` already succeeds, using Testcontainers—not the local database. Full suites belong to final audit.

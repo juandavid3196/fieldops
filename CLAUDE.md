@@ -1,211 +1,169 @@
 # FieldOps
 
-Multi-tenant field service platform: each organization schedules and assigns
-its own workforce. Not a marketplace.
+Multi-tenant field service platform: each organization schedules and assigns its own workforce. Not a marketplace.
 
-| Path                 | Contents                                                    | Rules                |
-| -------------------- | ----------------------------------------------------------- | -------------------- |
-| `frontend/`          | Angular 22, PrimeNG 22, SCSS, Vitest                        | `frontend/CLAUDE.md` |
-| `backend/`           | .NET 10 Web API, EF Core 10, PostgreSQL 17, `FieldOps.slnx` | `backend/CLAUDE.md`  |
-| `docs/`              | Backend, frontend and database reference docs               |                      |
-| `.claude/`           | Settings, DB-safety hook, agents, skills                    |                      |
-| `.mcp.json`          | Project MCP servers (see MCP below)                         |                      |
-| `.githooks/`         | `pre-commit`, `pre-push`                                    |                      |
-| `.github/workflows/` | Frontend, backend and integration CI                        |                      |
-| `docker-compose.yml` | Local PostgreSQL; reads `.env` (template `.env.example`)    |                      |
+| Path | Contents | Rules |
+| --- | --- | --- |
+| `frontend/` | Angular 22, PrimeNG 22, SCSS, Vitest | `frontend/CLAUDE.md` |
+| `backend/` | .NET 10, EF Core 10, PostgreSQL 17, `FieldOps.slnx` | `backend/CLAUDE.md` |
+| `docs/` | Backend, frontend and database references | |
+| `.claude/` | Settings, safety hook, agents and skills | |
+| `.mcp.json` | Optional project MCP servers | |
+| `.githooks/` | Pre-commit and pre-push checks | |
+| `.github/workflows/` | CI | |
 
 ## Source of truth
 
 1. Approved functional spec.
 2. `docs/database/fieldops-schema.sql`.
-3. Existing architecture and conventions (`docs/`, CLAUDE.md files, code).
+3. Current architecture/conventions: relevant docs, CLAUDE files and code.
 4. Tests.
-5. Mockups and design references.
+5. Approved design references.
 
-On any conflict: stop and report both sources and the options.
+On conflict, stop and report the exact sources and material options.
 
 ## Working rules
 
-- Inspect before changing. Present a short plan with assumptions, conflicts
-  and missing decisions first.
-- Stay in scope: no unrelated refactors or speculative features.
-- Check `git status` first; never discard, overwrite or reformat others' work.
-- Do not commit, push, merge or open PRs unless asked.
-- Never bypass validation (`--no-verify`, skipped hooks, disabled tests or rules).
-- Run the commands for every area changed. Never claim completion after a
-  failed or skipped check.
+- Inspect only affected files and direct dependencies before changing.
+- For direct/unstructured work, give a short plan and material assumptions. A delegated spec workflow already supplies a context packet: do not create another plan or reread complete cited documents.
+- Stay in approved scope; no unrelated refactors or speculative abstractions.
+- Check `git status`; never overwrite, revert or reformat unrelated work.
+- Do not commit, push, merge or open PRs unless explicitly asked.
+- Never bypass hooks, validation, tests or rules.
+- Run the validation profile owned by the current workflow. Reuse passing evidence only on the exact same area fingerprint.
 
 ## Git
 
-- Default branch `main` (`master` is stale); never work on it directly.
-- One concern per branch and PR.
-- Branches: `feature|fix|chore|docs/<kebab-description>`, plus the spec ID
-  when one exists (`feature/FEAT-012-customer-list`).
-- Commits: Conventional Commits, e.g. `chore(frontend): configure core architecture`.
+- Default branch is `main`; `master` is stale. Treat both as protected.
+- One concern per branch/PR.
+- Branch: `feature|fix|chore|docs/<kebab-description>`, adding the spec ID when available.
+- Conventional Commits.
 
 ## Commands
 
-```bash
-# frontend/
-npm ci
-npm run format:check
-npm run lint
-npm run test -- --watch=false
-npm run build -- --configuration production
+Setup commands are conditional, not part of every validation run:
 
-# backend/
-dotnet tool restore
-dotnet restore FieldOps.slnx
-dotnet format FieldOps.slnx --verify-no-changes --no-restore
-dotnet build FieldOps.slnx --configuration Release --no-restore
-dotnet test tests/FieldOps.UnitTests/FieldOps.UnitTests.csproj --configuration Release --no-build
+- Frontend: `npm ci` only when dependencies are missing or package manifests changed.
+- Backend: `dotnet tool restore` when tools are unavailable/manifest changed; `dotnet restore FieldOps.slnx` when assets are missing or project/manifests changed.
 
-# backend/ integration (requires Docker Desktop running: Testcontainers)
-dotnet test tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj --configuration Release --no-build
-```
+Frontend validation from `frontend/`:
 
-- Use `FieldOps.slnx`; there is no `FieldOps.sln`.
-- Focused test commands: `frontend/CLAUDE.md`, `backend/CLAUDE.md`.
-- Hooks (`git config core.hooksPath .githooks`): pre-commit runs format and lint
-  checks; pre-push runs frontend test/build and backend build/unit tests.
-  Integration tests and browser audits run only in CI, `final-audit` or manually.
+- `npm run format:check`
+- `npm run lint`
+- `npm run test -- --watch=false`
+- `npm run build -- --configuration production`
+
+Backend validation from `backend/`:
+
+- `dotnet format FieldOps.slnx --verify-no-changes --no-restore`
+- `dotnet build FieldOps.slnx --configuration Release --no-restore`
+- `dotnet test tests/FieldOps.UnitTests/FieldOps.UnitTests.csproj --configuration Release --no-build`
+- Integration when required and Docker is already available:
+  `dotnet test tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj --configuration Release --no-build`
+
+Use `FieldOps.slnx`; there is no `FieldOps.sln`. Focused commands live in nested CLAUDE files.
+
+Hooks: pre-commit checks format/lint; pre-push checks frontend test/build and backend build/unit. Integration and browser checks run in CI, final audit or manually when relevant.
 
 ## Testing policy
 
-Tests prove behavior and risk, not files, classes, FRs or ACs. One focused
-test may be evidence for several FRs/ACs.
+Tests prove distinct behavior and risk, not files, classes, FRs or ACs. One focused test may evidence several requirements.
 
-| Level               | Default maximum per feature, without user approval                        |
-| ------------------- | ------------------------------------------------------------------------- |
-| Frontend            | 3–8 new test methods covering the feature                                 |
-| Backend integration | 3–8 new test methods per endpoint/use-case group                          |
-| Backend unit        | 0–6 new test methods; only non-trivial domain rules, calculations, validators, security utilities |
-| Browser/E2E (audit) | 0–2 scenarios: one happy path; one critical failure flow only when valuable |
+Default new-test range per feature:
 
-- These are enforceable maximums, not guidance. Before writing tests, the
-  developer produces a concise test matrix grouped by behavior and risk with
-  a projected count. Parameterized/table-driven cases count as one test
-  method regardless of data-row count; use them for repetitive field
-  validation instead of one test per row.
-- To exceed a budget: stop before writing the additional tests, report the
-  proposed matrix, projected count and the specific security/risk reason, and
-  get the user's approval before writing them. A large field or endpoint
-  count is not by itself a justification.
-- Never required: one test file per production file; one test per FR/AC; the
-  same rule at unit, integration and browser level (unless security-critical);
-  tests of trivial DTOs, interfaces, getters, constants, wrappers or
-  configuration already exercised by an integration test.
-- Always required when the feature touches them (never reduced by budgets):
-  authentication and sessions; authorization and permissions; cross-organization
-  access; password hashing and sensitive data; cookie security and CSRF;
-  destructive or unsafe migrations; rollback of important multi-record writes;
-  payment or financial integrity; upload validation.
-- A normal tenant-owned endpoint needs one representative cross-tenant denial
-  test; add more only for distinct code paths with distinct risk.
+| Level | Default |
+| --- | --- |
+| Frontend | 3–6 test methods total |
+| Backend integration | 3–8 test methods total |
+| Backend unit | 0–4; only non-trivial domain, validation, calculation or security utilities |
+| Browser/E2E | 0–2 scenarios; only when an AC needs browser evidence |
+
+These are consolidation targets, not reasons to stop approved implementation. Use parameterized/table-driven cases for equivalent inputs. Exceed a default only for distinct high-risk behavior and explain it in the report; no separate user approval is needed when the approved spec already requires that evidence.
+
+Never require:
+
+- One test/file per production file.
+- One test per FR/AC or form field.
+- The same rule at unit, integration and browser levels.
+- Tests for trivial DTOs, interfaces, getters, constants, wrappers or configuration already exercised meaningfully.
+
+New evidence is mandatory only when the feature creates or changes the applicable boundary:
+
+- Authentication/session behavior.
+- Authorization/permissions or tenant/branch isolation.
+- Hashing, secrets, sensitive responses/logging, cookies or CSRF.
+- Destructive/unsafe migrations.
+- Important multi-record rollback/concurrency.
+- Financial integrity.
+- Upload authorization/type/size validation.
+
+Do not recreate feature tests for unchanged shared infrastructure when fresh existing tests already prove it. A normal tenant endpoint needs one representative cross-tenant denial per distinct authorization path, not per endpoint/field.
 
 ## Validation profiles
 
-| Profile | Contents | Who runs it |
-| ------- | -------- | ----------- |
-| Focused | Per changed area: format verification, lint (frontend), build, and only the tests for the changed feature and affected shared behavior, including relevant integration tests. | Developers and the `frontend`/`backend` skills |
-| Full    | Per changed area: every command in Commands above (backend integration when `docker info` succeeds). | Locally, only `final-audit`, once, at the end. CI is the authoritative post-push run. |
+| Profile | Contents | Owner |
+| --- | --- | --- |
+| Focused | Format verification, frontend lint, build and tests for changed behavior plus affected shared boundaries. Relevant focused integration only. | Developers and backend/frontend skills |
+| Full | All non-setup validation commands for the changed area, once. Full backend integration when endpoints, persistence, auth/tenancy or other integration behavior changed and Docker is available; otherwise N/A with reason. | Final audit only; CI is authoritative after push |
 
-- Run the full suite outside `final-audit` only when the change is
-  cross-cutting or no focused selection is possible; say why in the report.
-- Validation ledger: every command in a workflow report is one row
-  `command · area · focused|full · pass|fail · stage/time · fingerprint`.
-  Evidence is fresh only while the area fingerprint is unchanged; stale or
-  missing evidence is rerun, never trusted. Fingerprint (repo root, Git Bash;
-  `<area>` = `frontend` or `backend`):
+Run Full outside final audit only for cross-cutting work or when focused selection is impossible.
 
-  ```bash
-  { git rev-parse HEAD; git diff HEAD --binary -- <area>; git ls-files -o --exclude-standard -- <area>; \
-    git ls-files -o --exclude-standard -z -- <area> | xargs -0 -r git hash-object --; } | git hash-object --stdin
-  ```
+Evidence row: `command · area · focused|full · pass|fail · fingerprint`. Evidence is fresh only on the same area fingerprint:
 
-- Workflow reports: changed files; focused tests added and why; shared FR/AC
-  evidence; validation ledger; security checks; skipped checks with reason;
-  result. Never paste the spec or large agent output.
+`{ git rev-parse HEAD; git diff HEAD --binary -- <area>; git ls-files -o --exclude-standard -- <area>; git ls-files -o --exclude-standard -z -- <area> | xargs -0 -r git hash-object --; } | git hash-object --stdin`
 
-## Agent boundaries
+Reports contain changed files, grouped FR/AC evidence, validation rows, applicable security evidence, skipped checks with reason and result. Never paste specs or large agent output.
+
+## Boundaries
 
 Never:
 
-- Run `dotnet ef database update` or `dotnet ef database drop`, drop databases
-  or remove Docker volumes. The user or approved CI applies migrations.
-- Read, print or commit secrets (`.env`, user-secrets).
+- Apply/drop databases, run `dotnet ef database update|drop`, use `migrations remove --force` or remove Docker volumes.
+- Read, print or commit `.env`, user-secrets, passwords, tokens or connection strings.
 
-Only when explicitly requested:
+Only when explicitly requested and within approved scope:
 
 - Generate migrations or SQL scripts.
-- Change CI, hooks, `.claude/`, dependencies, architecture or public API contracts.
-- Delete files or branches, `git reset --hard`, force push or rewrite history.
+- Change CI, hooks, `.claude/`, dependencies, architecture or public contracts.
+- Delete files/branches, rewrite history, force-push or hard reset.
 
-`.claude/hooks/block-database-mutations.mjs` is a safety net, not permission.
-Project tooling: `implement-persistence-slice` skill, `database-reviewer` agent.
+`.claude/hooks/block-database-mutations.mjs` is a safety net, not authorization. Mapping changes use `database-reviewer`; never invoke nested persistence implementation skills.
 
 ## MCP
 
-| MCP             | Owner                   | Purpose                                                         |
-| --------------- | ----------------------- | --------------------------------------------------------------- |
-| Angular CLI     | Frontend workflows      | Workspace, official Angular guidance (`--read-only`: no targets) |
-| PrimeNG         | Frontend workflows      | Component/API validation, pinned to the installed `primeng`     |
-| Microsoft Learn | Backend workflows       | Current Microsoft documentation                                 |
-| Playwright      | Frontend QA/final audit | Local browser evidence (`localhost:4200`/`5034` only)           |
+MCP is supporting evidence, never a mandatory preflight or authority.
 
-- Specs and repository conventions stay authoritative; MCP output is
-  supporting evidence, never permission to widen scope.
-- MCP cannot bypass hooks, edit boundaries, migration rules or user approval.
-- No database MCP. No MCP may access or mutate the local FieldOps PostgreSQL
-  database, directly or through data-changing UI submissions.
-- Grant agents only the exact `mcp__<server>__<tool>` names they need.
-- Unavailable MCP: continue with the existing workflow and report the missing
-  verification.
-- Report concise MCP results; never paste large documentation responses.
-- `spec-impl` runs one bounded MCP preflight per relevant server before
-  routing to `backend`/`frontend`, and forwards the AVAILABLE/UNAVAILABLE
-  result to every child. A server marked UNAVAILABLE is never retried by that
-  run; documentation MCP unavailability never blocks implementation.
+- Start each server `NOT CHECKED (no material question)`.
+- Query only when repository precedent, installed typings/code and approved docs cannot answer a material version/API question.
+- One targeted check by the first stage that needs it; record and reuse the answer. No retries after unavailable/timeout.
+- Angular CLI/PrimeNG: frontend API questions. Microsoft Learn: .NET/ASP.NET/EF version questions. Playwright: final-audit browser-dependent ACs only.
+- No database MCP or data-changing UI interaction with the local FieldOps database.
+- MCP cannot widen scope, install dependencies, alter contracts or bypass safety/edit boundaries.
+- Report only concise conclusions, never documentation dumps.
 
 ## Spec workflow
 
-- Business functionality requires an approved spec. Infrastructure and
-  configuration work needs an explicit request instead.
-- Lifecycle: draft → review → approval → implementation → tests → audit.
-- Sections: objective, roles and permissions, main flow, business rules, states
-  and transitions, entities and relationships, API contract, frontend
-  requirements, error cases, acceptance criteria, required tests, out of scope.
-- Implement only the active approved spec.
-- Never change acceptance criteria silently. Report deviations; update the spec
-  only after approval.
-- Done: acceptance criteria pass, authorization and tenant isolation tested,
-  validation passes, migrations reviewed, docs updated, no unrelated changes,
-  audit report produced.
-- Specs: `specs/<feature-slug>/spec.md` from `specs/templates/feature-spec.md`,
-  managed with the `spec` skill (`/spec create|revise|validate|approve|amend`).
-  `amend` only makes non-behavioral corrections and keeps APPROVED.
-- Route: `spec` → `spec-impl` → `backend`/`frontend` → `final-audit`. For an
-  eligible Full-stack spec (Final complete contract, no overlapping edit
-  scope, no unresolved decision), `spec-impl` runs `backend` and `frontend`
-  concurrently instead of sequentially; see `spec-impl` §4a.
-  `/spec-impl <spec-path> [--generate-migration] [--resume]` is user-invoked
-  only; it sets IMPLEMENTED → AUDITED after the audit passes.
-  `--generate-migration` authorizes a migration (never applied); `--resume`
-  continues an earlier incomplete run of the same spec from its failed stage.
+- Business functionality requires an approved spec; explicit infrastructure tasks may proceed without one.
+- Route: `spec` → `spec-impl` → delegated `backend`/`frontend` → `final-audit`.
+- `spec-impl` classifies each area `ROUTINE`, `TARGETED` or `FULL`; mode changes consultation depth, never security or validation.
+- Eligible Full-stack areas run concurrently against final contracts.
+- Architects/designers are skipped for routine established patterns and fully specified corrections.
+- Only `spec-impl` changes lifecycle after a passing independent audit.
+- `--generate-migration` authorizes generation, never application. `--resume` continues the same spec from invalid/incomplete stages using exact fingerprints and authorized paths.
+- Never change approved behavior silently.
+
+Done means approved behavior is evidenced, applicable authorization/tenant boundaries are proven, required validation passes, persistence is reviewed, migration is not applied, docs are current, no unrelated work changed and final audit passed.
 
 ## Security
 
-- Resolve `OrganizationId` from the authenticated context; never trust the client.
-- Authorize in the backend; frontend guards are UX only.
-- Validate uploads by size, type and authorization.
-- Never log passwords, tokens, connection strings or sensitive customer data.
+- Resolve organization context server-side; never trust a client organization identifier without authorization.
+- Backend authorization is mandatory; frontend guards are UX only.
+- Validate uploads by authorization, size and type.
+- Never expose sensitive information in responses, logs, source or reports.
 
 ## Instruction style
 
-- Concise, operational rules; state each rule once, in its narrowest scope.
-  Root rules are not repeated in nested files.
-- Tables, bullets and commands over prose. Document current repository
-  behavior only, and only what changes agent decisions.
-- Link to `docs/` instead of copying it. Update rules instead of appending.
-- Report relevant results only (changed files, validation, risks, pending
-  decisions), without narration.
+- State rules once at the narrowest scope.
+- Use targeted reads and compact reports.
+- Link to docs instead of copying them.
+- Report outcomes, evidence, risks and decisions—not tool narration.
