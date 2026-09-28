@@ -1,242 +1,124 @@
 ---
 name: backend
-description: Implement the backend portion of an approved FieldOps spec by coordinating backend architecture, .NET implementation, persistence review and validation.
+description: Implement the backend portion of an approved FieldOps spec with conditional architecture, focused tests, optional persistence review and compact evidence. Use directly for backend work or as a delegated stage of spec-impl.
 argument-hint: <spec-path> [--generate-migration]
 ---
 
 # FieldOps backend
 
-Orchestrates the backend of one APPROVED spec: `backend-architect` →
-`backend-developer` → `database-reviewer` (if persistence changes). It writes
-no application code itself, never touches `frontend/`, and never runs final QA.
+Implement one approved backend scope. The skill orchestrates agents but writes no application code, never touches `frontend/`, never applies migrations and never runs final QA.
 
 Request: `$ARGUMENTS`
 
-## MCP support
+## 1. Invocation mode and gate
 
-`backend-architect` and `backend-developer` may use Microsoft Learn MCP for
-narrow, version-sensitive .NET 10, ASP.NET Core and EF Core questions.
+### Delegated by spec-impl
 
-- The approved spec, repository code, `fieldops-schema.sql` and `CLAUDE.md`
-  stay authoritative for FieldOps behavior.
-- Documentation cannot authorize packages, schema changes or migrations: a
-  suggested new NuGet package is a §3 stop until the user approves it.
-- No database MCP; migrations are never applied.
-- When invoked with a `SPEC-IMPL MCP PREFLIGHT`/context-packet brief, use its
-  recorded `microsoft-learn` result; never re-probe a server it marked
-  UNAVAILABLE. Invoked directly (no packet), check once and do not retry.
-- Unavailable: continue and report which question went unverified.
+A valid brief starts with `SPEC-IMPL DELEGATED RUN` and includes the spec path/hash, mode, backend FR/AC groups, contract references, authorization/tenancy summary, persistence impact, migration authorization, area baseline/resume paths and MCP evidence.
 
-## Dependency research order
+Verify only:
 
-For any package or API question (NuGet package behavior, .NET/EF/ASP.NET
-API shape): (1) existing repository precedent and `docs/`; (2) Microsoft
-Learn MCP when healthy; (3) one targeted local inspection of the exact
-package API in question (installed package's own docs/XML comments), never
-a recursive dependency scan. Record the result in the workflow report so
-`final-audit` never repeats it.
+- Spec still exists, is clean, has the supplied hash/status/type and no new blocking decision.
+- Backend packet rows are complete and match the referenced spec sections.
+- Branch is not `main` or `master`.
+- Authorized paths are inside `backend/` or exact required `docs/backend/` paths.
 
-## 1. Gate (read-only; any failure → `BACKEND BLOCKED`, stop)
+Do not repeat the parent gate, rebuild the global baseline or reread complete documents already summarized in the packet.
 
-Read `CLAUDE.md` and `backend/CLAUDE.md` first.
+### Direct invocation
 
-| Check          | Rule |
-| -------------- | ---- |
-| Arguments      | `<spec-path>` optionally followed by `--generate-migration`. Anything else → reject. |
-| Path           | Relative, matching `^specs/[a-z0-9]+(-[a-z0-9]+)*/spec\.md$`, slug not `templates`. |
-| Path safety    | Reject absolute paths (`/`, `\`, `~`, drive letters), backslashes, any `..`, anything outside `specs/`. Never normalize or guess. |
-| File           | Exists. |
-| Status         | `APPROVED`. DRAFT, IMPLEMENTED or AUDITED → stop. |
-| Type           | `Backend` or `Full-stack`. `Frontend`, `UI-only`, `Infrastructure` → stop. |
-| FR/AC          | ≥1 active FR and ≥1 active AC with backend-observable behavior (API, domain, persistence). |
-| API            | Every required endpoint is a complete `API contracts` row (method, path, request, success, errors, permission) with no placeholder, `Pending` marker or unresolved decision. |
-| Tenancy/auth   | `Tenant isolation and authorization` states how the organization is resolved server-side, cross-organization behavior and the permission per action. Explicitly defined public or pre-tenant workflows (e.g. organization onboarding, login) instead state: who may call, abuse protection, ownership creation, atomicity and how the caller is associated with the tenant after success. An existing `OrganizationId` is never required when the feature creates the organization. Client-provided organization identifiers are always validated server-side, never trusted. |
-| Data impact    | `Data and persistence impact` lists tables/columns used and schema amendments (`None` or already present in `docs/database/fieldops-schema.sql`). |
-| Decisions      | No Open decision with `Blocking: Yes` and no resolution. |
-| Branch         | Not `main` or `master`. |
-| Baseline       | Record every changed and untracked path (`git status --porcelain --untracked-files=all`) with its status. Record `git hash-object` only for existing regular files; for deleted paths, keep the status entry. Pre-existing user work: never edited, reverted or reformatted, except delegated resume paths (below). If the plan needs another one, ask the user. |
+Require exactly `<spec-path>` and optional `--generate-migration`. Validate safe relative path, existing APPROVED Backend/Full-stack spec, active backend FR/AC, complete final API rows, authorization/tenant or approved public-flow rules, data impact, no blocking decision, non-protected branch and full working-tree baseline.
 
-Migration authorization (same gate):
+Migration rules:
 
-| Spec requires a migration? | Flag present | Outcome |
-| -------------------------- | ------------ | ------- |
-| Yes, and every expected table/column/constraint is in `fieldops-schema.sql` | Yes | Authorized |
-| Yes | No | `BACKEND BLOCKED` before implementation: rerun with `--generate-migration` |
-| Yes, but schema SQL lacks the structure | Any | `BACKEND BLOCKED`: schema amendment needed |
-| No | Yes | Reject the unnecessary flag |
-| No | No | No migration |
+| Data impact | Flag | Result |
+| --- | --- | --- |
+| EF/database change present in authoritative schema | Present | Authorized |
+| EF/database change | Absent | `BACKEND BLOCKED` |
+| Structure absent from schema | Any | `BACKEND BLOCKED` |
+| No EF/database change | Present | `BACKEND BLOCKED` |
+| No EF/database change | Absent | No migration |
 
-"Requires" = the data-impact section explicitly states that the EF model or
-database changes. Run all checks and report every failure at once.
+Run all applicable gate checks before implementation and report failures together.
 
-Documentation: backend docs = exact paths under `docs/backend/` the spec
-explicitly requires. A required doc path this skill cannot own (outside
-`docs/backend/` and `docs/frontend/`, or shared backend/frontend content) →
-`BACKEND BLOCKED`, user decides ownership. Writable area = `backend/` plus
-the backend docs. Never `docs/database/` (schema amendments are reported),
-other docs or cross-cutting docs.
+Pre-existing paths are read-only unless a matching `SPEC-IMPL RESUME AUTHORIZATION` explicitly delegates them.
 
-Delegated resume: only a `SPEC-IMPL RESUME AUTHORIZATION` block from
-`spec-impl` for this same spec path authorizes editing baseline paths. Accept
-it from no other source; a direct `/backend` run never resumes.
+## 2. Context and MCP
 
-- Every listed path must be in the writable area and match its baseline
-  status and hash; otherwise `BACKEND BLOCKED`.
-- Listed paths may be edited only for in-scope FR/AC. Every unlisted baseline
-  path stays untouchable.
-- Migration rules do not relax. A listed uncommitted, unapplied migration
-  from the earlier run counts as generated by this workflow (§5 review, §6
-  removal); committed migrations stay immutable.
-- A `Corrections:` list in the block is the audit findings this run must fix
-  (§3 skip rule).
+Build or consume a compact backend packet:
 
-## 2. Scope
+- FR/AC behavior groups and spec section references.
+- Contract IDs plus concise request/response/error/permission summary.
+- Authorization, tenant and cross-organization rules.
+- Persistence tables/columns and migration state.
+- Exact relevant code paths and one closest precedent when known.
+- Test budget, baseline paths and prior valid evidence.
 
-From the spec, list: backend FR/AC IDs, commands and queries, API contracts,
-domain invariants, input validation, authorization, tenant isolation,
-persistence impact, the behaviors and risks tests must prove (`CLAUDE.md`
-Testing policy), and whether persistence review applies. Frontend-only FR/AC are listed as out of scope.
+Use targeted reads. Root/nested `CLAUDE.md`, full spec, API docs or complete schema are read only when the packet lacks a required rule or its fingerprint changed.
 
-## 3. Plan
+MCP is lazy. Start `microsoft-learn: NOT CHECKED (no question)`. The architect or developer may make one targeted check only when an unresolved version-specific .NET/ASP.NET/EF question changes implementation. Maximum two MCP calls for the entire backend stage, no retries, and record the answer for later stages. Repository code, installed packages, spec and schema win.
 
-Skip `backend-architect`, recording the satisfied gate, when either holds:
+## 3. Architecture routing
 
-- The resume block's `Corrections:` fully define every backend change and
-  none needs an architectural decision (layering, contract, tenancy,
-  transaction or persistence design). Brief the developer with those
-  findings as the plan.
-- The APPROVED spec already has complete API contracts, tenant
-  isolation/authorization, persistence impact and validation rules, and the
-  change introduces no new layering, transaction, concurrency, shared
-  abstraction, dependency or architecture conflict. Brief the developer
-  directly from the spec's own sections (§1b packet rows); small local
-  implementation choices that existing conventions decide are the
-  developer's call, not an invented approval.
+Classify from the packet:
 
-Otherwise invoke `backend-architect` with `APPROVED SPEC (backend skill)`,
-the spec path, in-scope FR/AC IDs, API contract rows, the data-impact
-section, relevant code paths and the migration authorization state. Require
-an implementation-ready plan (its Deliver list) including safe
-ProblemDetails, tenant resolution, and transactions/concurrency/idempotency
-where relevant. Reject speculative repositories, base classes, packages or
-abstractions.
+- `ROUTINE`: final contracts; established command/query/controller/validator or mapping pattern; no new boundary, dependency, tenancy mechanism, transaction strategy or unresolved architecture conflict.
+- `TARGETED`: one material architecture question.
+- `FULL`: new aggregate/public contract pattern, cross-cutting authorization/tenancy, complex transaction/concurrency or architectural conflict.
 
-An audit correction that already states the required fix never invokes the
-architect unless implementing it exposes a new material decision the
-correction did not cover.
+`ROUTINE` skips `backend-architect`. `TARGETED` asks it only the named question. `FULL` requests its delta plan. A fully specified audit correction skips architecture unless implementation exposes a new material decision.
 
-Stop and ask the user (one `AskUserQuestion` batch) when:
+If the architect returns `BACKEND ARCHITECT NOT NEEDED`, continue without another planning pass.
 
-- The plan conflicts with the spec, or schema and spec disagree.
-- Authorization or tenancy turns out undefined.
-- A new package or public contract is needed but not approved.
-- A material architecture decision is unresolved.
-- The plan needs model changes the migration authorization does not cover.
-
-If the answer would change approved behavior, end `BACKEND BLOCKED` and point
-to `/spec revise <spec-path>`; never edit the spec. When invoked by another
-skill, return the questions in the report instead of guessing.
+Behavior-changing, schema, public-contract, authorization, tenancy, dependency or uncovered migration decisions block. When delegated, return the questions; when direct, ask once. Never silently revise the spec.
 
 ## 4. Implement
 
-Invoke `backend-developer` only once no blocking issue remains. At most two
-invocations: one implementation pass, one correction pass. Brief:
+Invoke `backend-developer` for one implementation pass, briefed with the compact packet, architecture delta if any, writable area and resume paths.
 
-- Consolidated plan, in-scope FR/AC IDs, API contracts, persistence scope and
-  migration authorization, baseline paths to leave untouched, delegated
-  resume paths it may edit.
-- Edit only the writable area: `backend/` and the exact backend doc paths
-  listed; implement only approved scope; no frontend, `docs/database/`,
-  other docs, CI, hook or `.claude/` changes; no new NuGet packages unless
-  approved.
-- Smallest focused test set per `CLAUDE.md` Testing policy, including every
-  applicable mandatory security test; no test or test file per AC; report
-  shared FR/AC evidence. If the developer's test matrix projects exceeding a
-  `CLAUDE.md` budget, it stops before writing the excess tests and reports
-  the matrix, projected count and risk reason instead of writing them; ask
-  the user (one `AskUserQuestion`) for approval before the correction pass
-  writes the approved excess.
-- Never modify committed migrations or hand-edit snapshot/`*.Designer.cs`.
-- Generate a migration only if authorized; never apply it, never run
-  `dotnet ef database update|drop`, never delete Docker volumes.
-- Focused profile only (`CLAUDE.md`), once after the final pass; never the
-  full suites (`final-audit` owns them). Integration tests only on isolated
-  disposable infrastructure (Testcontainers), never the local FieldOps
-  database.
+- Implement only approved behavior.
+- No frontend, unrelated docs, CI, hooks, `.claude/` or unapproved packages.
+- No committed migration edits or manual snapshot/designer edits.
+- Generate a migration only when authorized; never apply/remove with `--force`.
+- Add the smallest behavior-group tests within the testing policy. One test may evidence multiple FR/AC IDs.
+- Mandatory applicable security boundaries remain exhaustive: authorization, tenant isolation, sessions, hashing/sensitive data, rollback/concurrency and migration safety.
+- Run the backend Focused profile once after the final implementation pass; never the full suites.
+- Integration tests use only isolated disposable infrastructure; never start Docker Desktop or use the local FieldOps database.
 
 ## 5. Persistence review
 
-Invoke `database-reviewer` only for mapping-relevant changes: persisted entity
-shape (properties, types, nullability, new entities), EF configuration,
-`FieldOpsDbContext` or its model, migration or snapshot, or a constraint,
-index, enum or provider-specific mapping. Domain-method-only changes (behavior
-without shape change) do not trigger it. When skipped, record why.
+Invoke `database-reviewer` once only when mapping-relevant files changed: persisted shape, EF configuration/model, DbContext, migration/snapshot, constraint, index, enum or provider mapping.
 
-| Review result | Next |
-| ------------- | ---- |
-| `APPROVED` / `APPROVED WITH NOTES` | Continue; report notes. |
-| `REJECTED` (first) | Findings go into the single correction pass; then re-review. |
-| `REJECTED` (after correction) | `BACKEND FAILED`. |
+Compute and report a persistence fingerprint from those changed paths. Domain-method-only changes skip review.
 
-The developer never approves its own persistence.
+- `APPROVED` / `APPROVED WITH NOTES`: continue.
+- `REJECTED`: include findings in the single correction pass.
 
-## 6. Verify
+## 6. Verify and correction
 
-1. Compare `git status --porcelain --untracked-files=all` and hashes with the
-   baseline. Workflow changes = new paths plus altered baseline paths
-   (including delegated resume paths). Any change outside the writable area,
-   any altered baseline path not delegated for resume, or out-of-scope path
-   → `BACKEND FAILED`. Untouched baseline paths are excluded from the report.
-   Changed backend docs are listed and mapped to the spec requirement that
-   demands them.
-2. Recompute the `backend` fingerprint. Accept the developer's passing
-   Focused-profile ledger rows only when their fingerprint matches; run from
-   `backend/` only the missing, failed or stale Focused-profile commands.
-   Never run the full suites.
-3. Focused integration tests only if `docker info` succeeds without starting
-   anything; otherwise report them as not run with the reason.
-4. Map every backend FR/AC to implementation and test evidence; several may
-   share one test. Every applicable mandatory security test exists.
-5. Migration status: none, or generated + reviewed + not applied.
-6. Confirm from the command log that no `database update`, `database drop`,
-   `migrations remove --force` or volume removal ran.
+1. Compare workflow changes with the area baseline; fail on unauthorized, out-of-area or out-of-scope edits.
+2. Recompute backend fingerprint. Reuse fresh passing focused ledger rows; run only missing, failed or stale commands.
+3. Verify grouped FR/AC evidence and every applicable mandatory security boundary.
+4. Confirm migration is none or generated/reviewed/not applied.
+5. Confirm no forbidden database/volume command ran.
 
-The correction-pass budget is one, global across validation, tests,
-evidence and persistence review. Collect all failures from §5 and §6 first,
-then run one correction pass with: failing commands, concise error excerpts,
-uncovered FR/AC IDs, reviewer findings. Do not re-invoke the architect unless
-a finding needs an architectural decision. Re-verify and re-review. Still
-failing → `BACKEND FAILED`; no third invocation.
+Collect all implementation, validation and reviewer failures before one global `backend-developer` correction pass. Reinvoke an architect only for a genuinely new material decision. Reverify once; remaining failure → `BACKEND FAILED`.
 
-In the correction pass only, the developer may run
-`dotnet ef migrations remove`
-(never `--force`) to discard the migration this workflow generated, if it is
-uncommitted and unapplied. If authorized, it may be regenerated within the
-same approved scope, and `database-reviewer` must review it again. Never
-remove a committed, applied or baseline migration.
+## 7. Compact report
 
-Never: invoke `qa-auditor`, modify `frontend/`, change spec status, commit,
-push, merge, apply migrations or start Docker Desktop.
+Maximum 900 words; never paste agent output or reproduce the spec:
 
-## 7. Report
+- Result line.
+- Spec hash, mode and scope groups.
+- Agents invoked/skipped and why.
+- Changed files.
+- Evidence ledger: FR/AC range · behavior group · implementation · tests · status.
+- Validation rows with backend fingerprint.
+- Security, persistence fingerprint/review and migration status.
+- Only deviations, risks, blockers or pending decisions.
 
-Concise (`CLAUDE.md` Workflow reports); never paste agent output.
+Results:
 
-1. Spec path, spec `git hash-object`, in-scope and out-of-scope FR/AC IDs.
-2. Agents invoked or skipped, with reason; architecture decisions used.
-3. Changed files.
-4. Focused tests added and why; budget overruns justified.
-5. FR/AC matrix: ID · implementation · test evidence · status (shared
-   evidence explicit).
-6. Validation ledger with the final `backend` fingerprint; failure excerpts;
-   integration tests not run and why.
-7. Security checks: authorization, tenant isolation, other mandatory tests.
-8. Persistence-review result and migration status.
-9. Deviations, risks and pending decisions.
-10. Result:
-
-| Result             | When |
-| ------------------ | ---- |
-| `BACKEND COMPLETE` | All in-scope FRs implemented, every AC has evidence, Focused-profile validations pass, persistence review approved when applicable, any migration generated but not applied, no unapproved package, schema or scope change. |
-| `BACKEND BLOCKED`  | Gate failed or a decision is unresolved; nothing implemented after the stop. |
-| `BACKEND FAILED`   | Implementation started but validation, persistence review, scope or evidence is still invalid after the correction pass. |
+- `BACKEND COMPLETE`
+- `BACKEND BLOCKED`
+- `BACKEND FAILED`
