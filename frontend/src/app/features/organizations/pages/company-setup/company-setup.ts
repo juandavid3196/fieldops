@@ -604,10 +604,10 @@ function buildOrganizationForm(): FormGroup<CompanySetupFormControls> {
 function toFormValue(response: OrganizationSettingsResponse): OrganizationFormValue {
   return {
     name: response.name,
-    legalName: response.legalName,
-    taxId: response.taxId,
-    email: response.email,
-    phone: response.phone,
+    legalName: response.legalName ?? '',
+    taxId: response.taxId ?? '',
+    email: response.email ?? '',
+    phone: response.phone ?? '',
     timezone: response.timezone,
     currency: response.currency,
     defaultTaxRate: response.defaultTaxRate,

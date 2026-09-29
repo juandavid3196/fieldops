@@ -63,7 +63,7 @@ Backend validation from `backend/`:
 
 Use `FieldOps.slnx`; there is no `FieldOps.sln`. Focused commands live in nested CLAUDE files.
 
-Hooks: pre-commit checks format/lint; pre-push checks frontend test/build and backend build/unit. Integration and browser checks run in CI, final audit or manually when relevant.
+Hooks: pre-commit checks format/lint; pre-push checks frontend test/build and backend build/unit. Integration runs in CI/final audit when relevant; runtime visual QA is manual and user-owned.
 
 ## Testing policy
 
@@ -76,7 +76,7 @@ Default new-test range per feature:
 | Frontend | 3–6 test methods total |
 | Backend integration | 3–8 test methods total |
 | Backend unit | 0–4; only non-trivial domain, validation, calculation or security utilities |
-| Browser/E2E | 0–2 scenarios; only when an AC needs browser evidence |
+| Automated browser/E2E by agents | 0; runtime visual QA is supplied by the user |
 
 These are consolidation targets, not reasons to stop approved implementation. Use parameterized/table-driven cases for equivalent inputs. Exceed a default only for distinct high-risk behavior and explain it in the report; no separate user approval is needed when the approved spec already requires that evidence.
 
@@ -84,7 +84,7 @@ Never require:
 
 - One test/file per production file.
 - One test per FR/AC or form field.
-- The same rule at unit, integration and browser levels.
+- The same rule at unit, integration and manual visual-QA levels.
 - Tests for trivial DTOs, interfaces, getters, constants, wrappers or configuration already exercised meaningfully.
 
 New evidence is mandatory only when the feature creates or changes the applicable boundary:
@@ -136,7 +136,8 @@ MCP is supporting evidence, never a mandatory preflight or authority.
 - Start each server `NOT CHECKED (no material question)`.
 - Query only when repository precedent, installed typings/code and approved docs cannot answer a material version/API question.
 - One targeted check by the first stage that needs it; record and reuse the answer. No retries after unavailable/timeout.
-- Angular CLI/PrimeNG: frontend API questions. Microsoft Learn: .NET/ASP.NET/EF version questions. Playwright: final-audit browser-dependent ACs only.
+- Angular CLI/PrimeNG: frontend API questions. Microsoft Learn: .NET/ASP.NET/EF version questions.
+- Agents never invoke Playwright, browser MCPs, runtime Axe, screenshot capture or pixel comparison. The user supplies a fingerprint-matched `USER VISUAL QA REPORT` for applicable visual ACs.
 - No database MCP or data-changing UI interaction with the local FieldOps database.
 - MCP cannot widen scope, install dependencies, alter contracts or bypass safety/edit boundaries.
 - Report only concise conclusions, never documentation dumps.
@@ -152,7 +153,7 @@ MCP is supporting evidence, never a mandatory preflight or authority.
 - `--generate-migration` authorizes generation, never application. `--resume` continues the same spec from invalid/incomplete stages using exact fingerprints and authorized paths.
 - Never change approved behavior silently.
 
-Done means approved behavior is evidenced, applicable authorization/tenant boundaries are proven, required validation passes, persistence is reviewed, migration is not applied, docs are current, no unrelated work changed and final audit passed.
+Done means approved behavior is evidenced, applicable authorization/tenant boundaries are proven, required validation passes, persistence is reviewed, migration is not applied, applicable user visual QA passed on the current frontend fingerprint, docs are current, no unrelated work changed and final audit passed.
 
 ## Security
 

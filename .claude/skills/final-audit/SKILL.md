@@ -1,6 +1,6 @@
 ---
 name: final-audit
-description: Independently audit a completed FieldOps implementation using a supplied change manifest, reusable persistence evidence, risk-based QA, one full validation pass and browser checks only when an acceptance criterion requires them.
+description: Independently audit a completed FieldOps implementation using a supplied change manifest, reusable persistence evidence, risk-based QA, one full validation pass and a user-supplied visual QA report when runtime UI evidence is required.
 argument-hint: <spec-path>
 ---
 
@@ -14,7 +14,7 @@ Request: `$ARGUMENTS`
 
 ### Delegated by spec-impl
 
-Require `SPEC-IMPL FINAL AUDIT PACKET` containing spec path/hash/type, grouped FR/AC evidence, exact workflow change manifest, baseline exclusions, child validation ledgers/fingerprints, persistence result/fingerprint, migration evidence, required browser-dependent ACs and MCP evidence.
+Require `SPEC-IMPL FINAL AUDIT PACKET` containing spec path/hash/type, grouped FR/AC evidence, exact workflow change manifest, baseline exclusions, child validation ledgers/fingerprints, persistence result/fingerprint, migration evidence, runtime visual ACs, the current user visual QA report when applicable and targeted MCP evidence.
 
 Verify only:
 
@@ -39,7 +39,7 @@ Create a compact audit packet:
 
 - Grouped FR/AC → implementation/test evidence.
 - Final contract, authorization, tenancy, security and non-goal references.
-- Required UI states and browser-dependent ACs.
+- Required UI states, runtime visual ACs and user visual QA evidence.
 - Changed files and direct dependencies.
 - Validation and persistence evidence with fingerprints.
 
@@ -63,7 +63,7 @@ A migration must be reviewed and have explicit non-application evidence. Missing
 
 ## 4. QA audit
 
-Invoke `qa-auditor` once with this exact header, followed by the compact packet, change manifest, reused persistence evidence or review result, validation command list, current fingerprints and browser-dependent AC list:
+Invoke `qa-auditor` once with this exact header, followed by the compact packet, change manifest, reused persistence evidence or review result, validation command list, current fingerprints, runtime visual AC list and matching user visual QA report:
 
 ```text
 FINAL AUDIT CONTEXT PACKET
@@ -95,22 +95,16 @@ Run the Full profile at most once per changed area. Use concise command output a
 
 Never format, install/change packages, generate/remove/apply migrations, alter snapshots or print secrets.
 
-## 6. Browser evidence
+## 6. User visual QA evidence
 
-Do not check Playwright merely because frontend files changed.
+Never invoke Playwright, a browser MCP, runtime Axe, screenshot capture or pixel comparison. The user owns runtime visual QA.
 
-Use it only when an active AC needs runtime evidence that static review or automated tests cannot provide: responsive rendering, browser navigation, runtime focus/keyboard, contrast/axe or explicit visual comparison.
+When active ACs require visual fidelity, responsive rendering, browser navigation, focus or keyboard evidence, require a `USER VISUAL QA REPORT` tied to the current frontend fingerprint or commit. It must identify the approved design/handoff, applicable checks, findings and explicit `PASS` or `FAIL`.
 
-- Reuse evidence on the same frontend fingerprint.
-- Use an already-running local app only.
-- Never use real credentials or mutate the local FieldOps database.
-- Data-changing behavior uses mocked/intercepted responses or disposable infrastructure.
-- Maximum one happy and one critical failure flow.
-- Mobile/desktop only for responsive ACs.
-- Axe only for accessibility ACs, primary state plus at most one error state.
-- Pixel comparison only when explicitly required.
-
-Check Playwright availability lazily at first required use, once, with no retry. If unavailable, only browser-dependent ACs become `NOT VERIFIED`.
+- `PASS` is accepted for the listed runtime visual ACs; static accessibility and implementation evidence remain independently audited.
+- `FAIL` produces findings and `AUDIT FAIL`.
+- Missing or stale required evidence produces exact verdict `AUDIT BLOCKED` with reason `USER VISUAL QA REQUIRED`, without invoking QA or any browser tool.
+- No applicable runtime visual ACs → `N/A` with reason.
 
 ## 7. Integrity and verdict
 
@@ -121,7 +115,7 @@ Verdicts:
 - `AUDIT PASS`: complete evidence, no findings.
 - `AUDIT PASS WITH MINOR FINDINGS`: only Minor findings; no correction cycle.
 - `AUDIT FAIL`: Critical/Important finding, rejected/stale persistence, failed/missing required validation, required FR/AC not met/verified, unsafe migration evidence or integrity failure.
-- `AUDIT BLOCKED`: gate/change ownership cannot be resolved.
+- `AUDIT BLOCKED`: gate/change ownership cannot be resolved, or required user visual QA evidence is missing/stale.
 
 `N/A` with a reason is not `NOT VERIFIED`.
 
@@ -136,7 +130,7 @@ Maximum 1,500 words unless findings require more:
 - Security evidence.
 - Findings by severity with file/line or FR/AC, expected/actual and owner.
 - Validation ledger with fingerprints.
-- Browser checks required/performed/not verified.
+- User visual QA report fingerprint/result/covered AC groups, or N/A.
 - Out-of-scope paths and read-only integrity.
 
 Never reproduce the spec or paste child reports.

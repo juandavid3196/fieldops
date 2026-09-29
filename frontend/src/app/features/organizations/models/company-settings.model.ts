@@ -22,10 +22,11 @@ export interface OrganizationLogoMetadata {
 /** Flat body of `GET`/`PUT /organization-settings` (base fields, BR-04 fields, `hasInvoices`, `logo`). */
 export interface OrganizationSettingsResponse {
   readonly name: string;
-  readonly legalName: string;
-  readonly taxId: string;
-  readonly email: string;
-  readonly phone: string;
+  /** The `organizations` columns below are nullable in the schema and the API returns `null` for them. */
+  readonly legalName: string | null;
+  readonly taxId: string | null;
+  readonly email: string | null;
+  readonly phone: string | null;
   readonly timezone: string;
   readonly currency: string;
   readonly defaultTaxRate: number;
@@ -114,9 +115,10 @@ export interface BranchListItem {
   readonly name: string;
   readonly code: string;
   readonly addressLine1: string;
-  readonly addressLine2: string;
+  /** Nullable in the schema; the API returns `null` when unset. */
+  readonly addressLine2: string | null;
   readonly city: string;
-  readonly stateRegion: string;
+  readonly stateRegion: string | null;
   readonly postalCode: string;
   readonly countryCode: string;
   readonly timezone: string;
@@ -133,8 +135,8 @@ export interface BranchListResponse {
 
 /** Body of `GET /branches/{id}`, and the `201`/`200` response of create/update. */
 export interface BranchDetail extends BranchListItem {
-  readonly email: string;
-  readonly phone: string;
+  readonly email: string | null;
+  readonly phone: string | null;
   readonly businessHours: BusinessHoursPayload;
   readonly servicePostalCodes: readonly string[];
   readonly usesCompanyBilling: boolean;
