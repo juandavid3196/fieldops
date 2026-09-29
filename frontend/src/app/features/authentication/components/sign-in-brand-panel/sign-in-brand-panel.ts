@@ -4,6 +4,11 @@ import { Component } from '@angular/core';
 interface BrandItem {
   readonly title: string;
   readonly text: string;
+  readonly icon: string;
+}
+
+interface StatusCard extends BrandItem {
+  readonly tone: 'green' | 'blue' | 'purple';
 }
 
 /**
@@ -21,15 +26,42 @@ interface BrandItem {
   styleUrl: './sign-in-brand-panel.scss',
 })
 export class SignInBrandPanel {
-  readonly statusCards: readonly BrandItem[] = [
-    { title: 'Request approved', text: 'Customer request in, ready to schedule.' },
-    { title: 'Technician assigned', text: 'The right person for the job.' },
-    { title: 'Invoice paid', text: 'Work complete. Payment received.' },
+  readonly statusCards: readonly StatusCard[] = [
+    {
+      title: 'Request approved',
+      text: 'Customer request in, ready to schedule.',
+      icon: 'pi-check',
+      tone: 'green',
+    },
+    {
+      title: 'Technician assigned',
+      text: 'The right person for the job.',
+      icon: 'pi-user',
+      tone: 'blue',
+    },
+    {
+      title: 'Invoice paid',
+      text: 'Work complete. Payment received.',
+      icon: 'pi-file',
+      tone: 'purple',
+    },
   ];
 
   readonly benefits: readonly BrandItem[] = [
-    { title: 'Work runs smoother', text: 'From requests to payments, all in one place.' },
-    { title: 'Happier customers', text: 'Faster response times and clear communication.' },
-    { title: 'A more profitable business', text: 'Less admin work. More time for what matters.' },
+    {
+      title: 'Work runs smoother',
+      text: 'From requests to payments, all in one place.',
+      icon: 'pi-calendar',
+    },
+    {
+      title: 'Happier customers',
+      text: 'Faster response times and clear communication.',
+      icon: 'pi-users',
+    },
+    {
+      title: 'A more profitable business',
+      text: 'Less admin work. More time for what matters.',
+      icon: 'pi-chart-bar',
+    },
   ];
 }

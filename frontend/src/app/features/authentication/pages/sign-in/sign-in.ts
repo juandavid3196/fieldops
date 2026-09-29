@@ -1,4 +1,4 @@
-import {
+﻿import {
   Component,
   DestroyRef,
   ElementRef,
@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
 import { SpinnerIcon } from 'primeng/icons/spinner';
@@ -22,6 +22,7 @@ import { Message } from 'primeng/message';
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
 import { SignInBrandPanel } from '../../components/sign-in-brand-panel/sign-in-brand-panel';
+import { SignInOtherWays } from '../../components/sign-in-other-ways/sign-in-other-ways';
 import {
   GENERIC_SIGN_IN_ERROR_MESSAGE,
   INVALID_CREDENTIALS_MESSAGE,
@@ -48,7 +49,6 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
   selector: 'app-sign-in',
   imports: [
     ReactiveFormsModule,
-    RouterLink,
     ButtonDirective,
     Checkbox,
     InputPassword,
@@ -56,6 +56,7 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
     Message,
     SpinnerIcon,
     SignInBrandPanel,
+    SignInOtherWays,
   ],
   templateUrl: './sign-in.html',
   styleUrl: './sign-in.scss',
