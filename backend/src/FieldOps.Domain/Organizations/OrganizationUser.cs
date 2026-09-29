@@ -81,4 +81,64 @@ public sealed class OrganizationUser
             JoinedAt = joinedAt,
         };
     }
+
+    /// <summary>Active to suspended; returns false when already suspended.</summary>
+    public bool Suspend(DateTimeOffset now)
+    {
+        if (Status == UserStatus.Suspended)
+        {
+            return false;
+        }
+
+        if (Status != UserStatus.Active)
+        {
+            throw new InvalidOperationException("Only an active membership can be suspended.");
+        }
+
+        Status = UserStatus.Suspended;
+        UpdatedAt = now;
+
+        return true;
+    }
+
+    /// <summary>Suspended to active; returns false when already active.</summary>
+    public bool Reactivate(DateTimeOffset now)
+    {
+        if (Status == UserStatus.Active)
+        {
+            return false;
+        }
+
+        if (Status != UserStatus.Suspended)
+        {
+            throw new InvalidOperationException("Only a suspended membership can be reactivated.");
+        }
+
+        Status = UserStatus.Active;
+        UpdatedAt = now;
+
+        return true;
+    }
+
+    /// <summary>Returns whether the role or all-branches flag changed.</summary>
+    public bool ChangeAccess(short roleId, bool isAllBranches, DateTimeOffset now)
+    {
+        if (roleId <= 0)
+        {
+            throw new ArgumentException(
+                "Role id is required.",
+                nameof(roleId));
+        }
+
+        if (RoleId == roleId && IsAllBranches == isAllBranches)
+        {
+            return false;
+        }
+
+        RoleId = roleId;
+        IsAllBranches = isAllBranches;
+        UpdatedAt = now;
+
+        return true;
+    }
 }

@@ -1534,9 +1534,33 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("expires_at");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("first_name");
+
                     b.Property<Guid>("InvitedByUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("invited_by_user_id");
+
+                    b.Property<bool>("IsAllBranches")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_all_branches");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("last_name");
+
+                    b.Property<bool>("LinkTeamProfile")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("link_team_profile");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
@@ -1561,9 +1585,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("InvitedByUserId")
                         .HasDatabaseName("ix_user_invitations_invited_by_user_id");
 
-                    b.HasIndex("OrganizationId")
-                        .HasDatabaseName("ix_user_invitations_organization_id");
-
                     b.HasIndex("RoleId")
                         .HasDatabaseName("ix_user_invitations_role_id");
 
@@ -1571,7 +1592,15 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_user_invitations_token_hash");
 
-                    b.ToTable("user_invitations", (string)null);
+                    b.HasIndex("OrganizationId", "Email")
+                        .IsUnique()
+                        .HasDatabaseName("ux_user_invitations_open_email")
+                        .HasFilter("accepted_at IS NULL AND revoked_at IS NULL");
+
+                    b.ToTable("user_invitations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_user_invitations_expires_after_created", "expires_at > created_at");
+                        });
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Quotes.Quote", b =>

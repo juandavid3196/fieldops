@@ -1,5 +1,6 @@
 using FieldOps.Api.Configuration;
 using FieldOps.Api.Middleware;
+using FieldOps.Application.Features.Users;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Options;
@@ -35,6 +36,8 @@ public static class ApiServiceCollectionExtensions
             .ValidateOnStart();
 
         services.AddSingleton<IValidateOptions<CorsSettings>, CorsSettingsValidator>();
+
+        services.AddSingleton<IInvitationLinkBuilder, CorsOriginInvitationLinkBuilder>();
 
         services.AddCors();
         services

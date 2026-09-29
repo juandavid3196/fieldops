@@ -9,7 +9,6 @@ export const COMING_SOON_MODULES: Readonly<Record<string, string>> = {
   'products-and-services': 'Products and services',
   invoices: 'Invoices',
   reports: 'Reports',
-  'users-and-permissions': 'Users & permissions',
   'business-hours': 'Business hours',
   notifications: 'Notifications',
   help: 'Help',

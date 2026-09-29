@@ -8,9 +8,17 @@ namespace FieldOps.Infrastructure.Persistence.Configurations;
 internal sealed class UserInvitationConfiguration
     : IEntityTypeConfiguration<UserInvitation>
 {
+    public const string OpenEmailIndexName = "ux_user_invitations_open_email";
+
+    public const string ExpiresAfterCreatedConstraintName = "ck_user_invitations_expires_after_created";
+
     public void Configure(EntityTypeBuilder<UserInvitation> builder)
     {
-        builder.ToTable("user_invitations");
+        builder.ToTable(
+            "user_invitations",
+            table => table.HasCheckConstraint(
+                ExpiresAfterCreatedConstraintName,
+                "expires_at > created_at"));
 
         builder.HasKey(invitation => invitation.Id);
 
@@ -24,7 +32,23 @@ internal sealed class UserInvitationConfiguration
             .HasMaxLength(254)
             .IsRequired();
 
+        builder.Property(invitation => invitation.FirstName)
+            .HasMaxLength(100)
+            .IsRequired();
+
+        builder.Property(invitation => invitation.LastName)
+            .HasMaxLength(100)
+            .IsRequired();
+
         builder.Property(invitation => invitation.RoleId)
+            .IsRequired();
+
+        builder.Property(invitation => invitation.IsAllBranches)
+            .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.Property(invitation => invitation.LinkTeamProfile)
+            .HasDefaultValue(false)
             .IsRequired();
 
         builder.Property(invitation => invitation.TokenHash)
@@ -48,6 +72,16 @@ internal sealed class UserInvitationConfiguration
         // UNIQUE (token_hash)
         builder.HasIndex(invitation => invitation.TokenHash)
             .IsUnique();
+
+        // At most one open invitation per organization and email (BR-16).
+        builder.HasIndex(invitation => new
+        {
+            invitation.OrganizationId,
+            invitation.Email,
+        })
+            .IsUnique()
+            .HasDatabaseName(OpenEmailIndexName)
+            .HasFilter("accepted_at IS NULL AND revoked_at IS NULL");
 
         builder.HasOne<Organization>()
             .WithMany()

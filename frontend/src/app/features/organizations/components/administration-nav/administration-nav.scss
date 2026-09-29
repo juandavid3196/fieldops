@@ -3,6 +3,16 @@
 :host {
   display: block;
   min-width: 0;
+
+  // From 1100px the host is the full-height 224px column; the inner nav stays sticky within it.
+  @include bp.up(admin) {
+    box-sizing: border-box;
+    align-self: stretch;
+    inline-size: var(--fo-size-admin-column);
+    min-block-size: calc(100dvh - var(--fo-size-topbar));
+    background: var(--fo-color-surface);
+    border-inline-end: 1px solid var(--fo-color-border);
+  }
 }
 
 // Below 1100px: horizontal, scrollable link row above the page header.
@@ -48,7 +58,8 @@
       background: var(--fo-color-surface-hover);
     }
 
-    &[aria-current='location'] {
+    &[aria-current='location'],
+    &[aria-current='page'] {
       font-weight: 600;
       color: var(--fo-color-primary-strong);
       background: var(--fo-color-primary-soft);
@@ -59,12 +70,11 @@
     position: sticky;
     inset-block-start: var(--fo-size-topbar);
     align-self: start;
-    inline-size: var(--fo-size-admin-column);
     max-block-size: calc(100dvh - var(--fo-size-topbar));
     padding: 1.25rem 0.75rem;
     overflow: auto;
+    background: transparent;
     border-block-end: 0;
-    border-inline-end: 1px solid var(--fo-color-border);
 
     &__title {
       position: static;

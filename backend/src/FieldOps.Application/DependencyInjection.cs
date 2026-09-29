@@ -1,6 +1,7 @@
 using FieldOps.Application.Authentication;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Organizations;
+using FieldOps.Application.Features.Users;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -28,6 +29,16 @@ public static class DependencyInjection
         services.AddScoped<GetOrganizationLogoHandler>();
         services.AddScoped<UploadOrganizationLogoHandler>();
         services.AddScoped<RemoveOrganizationLogoHandler>();
+        services.AddScoped<ListUsersHandler>();
+        services.AddScoped<GetUsersSummaryHandler>();
+        services.AddSingleton<GetPermissionMatrixHandler>();
+        services.AddScoped<InviteUserHandler>();
+        services.AddScoped<ResendInvitationHandler>();
+        services.AddScoped<RevokeInvitationHandler>();
+        services.AddScoped<UpdateMemberAccessHandler>();
+        services.AddScoped<UpdateInvitationAccessHandler>();
+        services.AddScoped<SuspendMemberHandler>();
+        services.AddScoped<ReactivateMemberHandler>();
 
         return services;
     }

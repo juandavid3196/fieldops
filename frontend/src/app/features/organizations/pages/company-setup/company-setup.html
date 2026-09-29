@@ -73,7 +73,6 @@
           [id]="errorSummaryId"
           [leadingMessage]="pageMessage()"
           [links]="errorLinks()"
-          (linkAction)="onErrorLink($event)"
         />
 
         @if (staleConflict()) {

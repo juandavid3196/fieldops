@@ -522,7 +522,7 @@ describe('CompanySetup', () => {
     expect(page().form.controls.nextQuoteNumber.value).toBe(15);
     expect(page().form.dirty).toBe(true);
 
-    // A server 400 for the quote number: summary link opens the dialog; focus goes to the link.
+    // A server 400 for the quote number: summary is plain text; focus goes to the Edit sequences link.
     button('Save changes')?.click();
     await stable();
     httpTesting.expectOne({ method: 'PUT', url: SETTINGS_URL }).flush(
@@ -534,12 +534,10 @@ describe('CompanySetup', () => {
     );
     await stable();
     expect(document.activeElement?.textContent).toContain('Edit sequences');
-    const link = host.querySelector<HTMLAnchorElement>('#company-setup-error-summary a')!;
-    expect(link.textContent).toContain('Next quote number');
-    link.click();
-    await stable();
-    expect(document.body.textContent).toContain(
-      'Enter a number greater than the last quote number.',
+    const summary = host.querySelector('#company-setup-error-summary')!;
+    expect(summary.querySelector('a')).toBeNull();
+    expect(summary.textContent).toContain(
+      'Next quote number: Enter a number greater than the last quote number.',
     );
   });
 
@@ -658,9 +656,8 @@ describe('CompanySetup', () => {
     });
     await stable();
     expect(host.querySelector<HTMLInputElement>('#branch-usesCompanyBilling')?.disabled).toBe(true);
-    const footerButtons = Array.from(
-      host.querySelectorAll('.branch-drawer__footer-bar button'),
-      (b) => b.textContent?.trim(),
+    const footerButtons = Array.from(host.querySelectorAll('.drawer-shell__footer button'), (b) =>
+      b.textContent?.trim(),
     );
     expect(footerButtons).toEqual(['Close']);
   });
@@ -706,7 +703,12 @@ describe('CompanySetup', () => {
     type(host.querySelector<HTMLInputElement>('#branch-name')!, 'New Branch Draft');
     await stable();
 
-    const cancelButton = Array.from(host.querySelectorAll('.branch-drawer button')).find(
+    expect(
+      Array.from(host.querySelectorAll('.drawer-shell__footer button'), (b) =>
+        b.textContent?.trim(),
+      ),
+    ).toEqual(['Cancel', 'Create branch']);
+    const cancelButton = Array.from(host.querySelectorAll('.drawer-shell__footer button')).find(
       (b) => b.textContent?.trim() === 'Cancel',
     ) as HTMLButtonElement;
     cancelButton.click();

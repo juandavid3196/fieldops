@@ -11,11 +11,7 @@
     @if (links().length > 0) {
       <ul class="error-summary__list">
         @for (link of links(); track link.fieldId) {
-          <li>
-            <a [href]="'#' + link.fieldId" (click)="onLinkClick($event, link)"
-              >{{ link.label }}: {{ link.message }}</a
-            >
-          </li>
+          <li>{{ link.label }}: {{ link.message }}</li>
         }
       </ul>
     }

@@ -1,0 +1,92 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Mobile: 2x2; from 1100px: one row of four.
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include bp.up(admin) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  &__card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 0.875rem 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    font-size: 1.125rem;
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__card--primary &__icon {
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+  }
+
+  &__card--warning &__icon {
+    color: var(--fo-color-warning-text);
+    background: var(--fo-color-warning-background);
+  }
+
+  &__card--danger &__icon {
+    color: var(--fo-color-danger-text);
+    background: var(--fo-color-danger-background);
+  }
+
+  &__card--info &__icon {
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__value {
+    font-size: 1.625rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--fo-color-heading);
+
+    &--empty {
+      color: var(--fo-color-text-muted);
+      cursor: help;
+    }
+  }
+
+  &__skeleton {
+    display: block;
+    margin-block-start: 0.25rem;
+  }
+}

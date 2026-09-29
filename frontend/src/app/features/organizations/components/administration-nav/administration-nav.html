@@ -4,16 +4,26 @@
     @for (item of items; track item.label) {
       <li>
         @if (item.section; as section) {
+          @if (current() === 'company') {
+            <a
+              class="admin-nav__link"
+              [href]="'#' + section"
+              [attr.aria-current]="activeSection() === section ? 'location' : null"
+              (click)="select($event, section)"
+            >
+              <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
+            </a>
+          } @else {
+            <a class="admin-nav__link" [routerLink]="companyPath" [fragment]="section">
+              <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
+            </a>
+          }
+        } @else {
           <a
             class="admin-nav__link"
-            [href]="'#' + section"
-            [attr.aria-current]="activeSection() === section ? 'location' : null"
-            (click)="select($event, section)"
+            [routerLink]="item.link"
+            [attr.aria-current]="item.page !== undefined && item.page === current() ? 'page' : null"
           >
-            <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
-          </a>
-        } @else {
-          <a class="admin-nav__link" [routerLink]="item.link">
             <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
           </a>
         }

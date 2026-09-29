@@ -183,7 +183,6 @@ export class CompanySetup {
         fieldId: fieldControlId(field),
         label: ORGANIZATION_FIELD_LABELS[field],
         message,
-        action: DIALOG_ONLY_KEYS.includes(field) ? 'sequences' : undefined,
       }),
     ),
   );
@@ -353,12 +352,6 @@ export class CompanySetup {
 
   onSequencesClosed(): void {
     afterNextRender(() => this.numbering()?.focusSequencesLink(), { injector: this.injector });
-  }
-
-  onErrorLink(link: FieldErrorLink): void {
-    if (link.action === 'sequences') {
-      this.openSequences();
-    }
   }
 
   openAddBranch(): void {

@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
+import { usersAdminRoute } from './features/users/users.routes';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'auth/sign-in' },
@@ -29,6 +30,7 @@ export const routes: Routes = [
       },
       comingSoonRoute,
       companyAdminRoute,
+      usersAdminRoute,
     ],
   },
   { path: '**', redirectTo: 'auth/sign-in' },

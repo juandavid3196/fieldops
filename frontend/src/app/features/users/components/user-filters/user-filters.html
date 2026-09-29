@@ -1,0 +1,72 @@
+<div class="user-filters" role="search" aria-label="Filter users">
+  <p-iconfield class="user-filters__search-field">
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      class="user-filters__search"
+      placeholder="Search by name or email…"
+      aria-label="Search by name or email"
+      fluid
+      [ngModel]="searchText()"
+      (ngModelChange)="searchTextChange.emit($event)"
+    />
+  </p-iconfield>
+
+  <div class="user-filters__field">
+    <label class="user-filters__label" for="user-filter-role">Role</label>
+    <p-select
+      inputId="user-filter-role"
+      class="user-filters__select"
+      appendTo="body"
+      fluid
+      [options]="roleOptions()"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="roleCode()"
+      (ngModelChange)="roleChange.emit($event)"
+    />
+  </div>
+
+  <div class="user-filters__field">
+    <label class="user-filters__label" for="user-filter-branch">Branch access</label>
+    <p-select
+      inputId="user-filter-branch"
+      class="user-filters__select"
+      appendTo="body"
+      fluid
+      [options]="branchOptions()"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="branchId()"
+      (ngModelChange)="branchChange.emit($event)"
+    />
+  </div>
+
+  <div class="user-filters__field">
+    <label class="user-filters__label" for="user-filter-status">Account status</label>
+    <p-select
+      inputId="user-filter-status"
+      class="user-filters__select"
+      appendTo="body"
+      fluid
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="status()"
+      (ngModelChange)="statusChange.emit($event)"
+    />
+  </div>
+
+  <button
+    pButton
+    type="button"
+    class="user-filters__clear"
+    severity="secondary"
+    [text]="true"
+    [disabled]="!hasFilters()"
+    (click)="cleared.emit()"
+  >
+    Clear filters
+  </button>
+</div>

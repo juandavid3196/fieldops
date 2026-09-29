@@ -1,0 +1,101 @@
+<div class="user-table">
+  <table class="user-table__table">
+    <thead>
+      <tr>
+        <th scope="col" [attr.aria-sort]="sort() === 'name' ? 'ascending' : 'descending'">
+          <button type="button" class="user-table__sort-button" (click)="sortToggled.emit()">
+            User
+            <i
+              class="pi"
+              [class.pi-arrow-up]="sort() === 'name'"
+              [class.pi-arrow-down]="sort() === '-name'"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </th>
+        <th scope="col">Role</th>
+        <th scope="col">Branch access</th>
+        <th scope="col">Linked team profile</th>
+        <th scope="col">Status</th>
+        <th scope="col">Last active</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.id) {
+        @let status = displayStatus(row);
+        <tr class="user-table__row">
+          <td data-label="User">
+            <span class="user-table__user">
+              <p-avatar
+                class="user-table__avatar"
+                shape="circle"
+                [label]="initials(row)"
+                aria-hidden="true"
+              />
+              <span class="user-table__identity">
+                <span class="user-table__name">{{ fullName(row) }}</span>
+                <span class="user-table__email">{{ row.email }}</span>
+              </span>
+            </span>
+          </td>
+          <td data-label="Role">
+            <p-tag [rounded]="true" severity="secondary" [value]="row.roleName" />
+          </td>
+          <td class="user-table__wide" data-label="Branch access">{{ branchAccessText(row) }}</td>
+          <td class="user-table__wide" data-label="Linked team profile">
+            @if (row.teamProfile.applicable && row.teamProfile.name) {
+              <a class="user-table__link" [routerLink]="teamPath">{{ row.teamProfile.name }}</a>
+            } @else {
+              <span class="user-table__muted">{{ teamProfileText(row) }}</span>
+            }
+          </td>
+          <td data-label="Status">
+            <span class="user-table__status">
+              <p-tag
+                [rounded]="true"
+                [icon]="statusPresentation[status].icon"
+                [severity]="statusPresentation[status].severity"
+                [value]="statusLabels[status]"
+              />
+              @if (row.isExpired) {
+                <span class="user-table__expired">Expired</span>
+              }
+            </span>
+          </td>
+          <td class="user-table__wide" data-label="Last active">{{ lastActive(row) }}</td>
+          <td class="user-table__actions">
+            @if (canManage()) {
+              <span class="user-table__actions-group">
+                <button
+                  pButton
+                  type="button"
+                  class="user-table__edit"
+                  severity="secondary"
+                  size="small"
+                  [outlined]="true"
+                  [disabled]="busyId() === row.id"
+                  (click)="editRequested.emit(row)"
+                >
+                  Edit access
+                </button>
+                <button
+                  type="button"
+                  class="user-table__menu-button"
+                  aria-haspopup="menu"
+                  [attr.aria-label]="'More actions for ' + fullName(row)"
+                  [disabled]="busyId() === row.id"
+                  (click)="menuRequested.emit({ event: $event, row })"
+                >
+                  <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+                </button>
+              </span>
+            } @else {
+              <span class="user-table__muted">View only</span>
+            }
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

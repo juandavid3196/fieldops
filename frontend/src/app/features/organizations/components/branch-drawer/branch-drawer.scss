@@ -1,115 +1,13 @@
 @use '../../../../../styles/breakpoints' as bp;
+@use '../../../../shared/components/drawer-shell/drawer-content' as dc;
 
 :host {
   display: contents;
 }
 
-// The overlay drawer's host must not become an (empty) grid item of the page.
-p-drawer.branch-drawer {
-  display: contents;
-}
-
+// Chrome (docked/overlay/full screen) lives in `app-drawer-shell`; this styles the projected content.
 .branch-drawer {
-  // Docked (>= 1440px): a labelled non-modal region beside the content; no mask, no trap.
-  &--docked {
-    grid-column: 3;
-    align-self: start;
-    position: sticky;
-    inset-block-start: var(--fo-size-topbar);
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    inline-size: var(--fo-size-drawer);
-    block-size: calc(100dvh - var(--fo-size-topbar));
-    min-height: 0;
-    background: var(--fo-color-surface);
-    border-inline-start: 1px solid var(--fo-color-border);
-    box-shadow: var(--fo-shadow-drawer);
-  }
-
-  &--docked &__body {
-    flex: 1;
-    min-height: 0;
-    padding: 1.25rem;
-    overflow: auto;
-  }
-
-  &__header-bar {
-    display: flex;
-    flex: none;
-    align-items: center;
-    gap: 0.625rem;
-    min-width: 0;
-    padding: 1.125rem 1.25rem;
-    border-block-end: 1px solid var(--fo-color-border);
-
-    &--overlay {
-      inline-size: 100%;
-      box-sizing: border-box;
-      margin: 0;
-    }
-  }
-
-  &__title {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: var(--fo-color-text);
-    overflow-wrap: anywhere;
-  }
-
-  &__spacer {
-    flex: 1;
-  }
-
-  &__close {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    inline-size: var(--fo-size-touch-target);
-    block-size: var(--fo-size-touch-target);
-    color: var(--fo-color-text-secondary);
-    background: transparent;
-    border: 0;
-    border-radius: var(--fo-radius-control);
-    cursor: pointer;
-
-    @include bp.up(md) {
-      inline-size: 2.25rem;
-      block-size: 2.25rem;
-    }
-
-    &:hover {
-      background: var(--fo-color-surface-hover);
-    }
-  }
-
-  &__footer-bar {
-    display: flex;
-    flex: none;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.5rem;
-    box-sizing: border-box;
-    padding: 0.875rem 1.25rem;
-    background: var(--fo-color-surface);
-    border-block-start: 1px solid var(--fo-color-border);
-
-    &--overlay {
-      inline-size: 100%;
-      padding-block-end: max(0.875rem, env(safe-area-inset-bottom));
-    }
-
-    button {
-      min-height: var(--fo-size-touch-target);
-      white-space: nowrap;
-
-      @include bp.up(md) {
-        min-height: var(--fo-size-control);
-      }
-    }
-  }
+  @include dc.parts;
 
   &__deactivate-wrap {
     display: inline-flex;
@@ -137,6 +35,15 @@ p-drawer.branch-drawer {
     flex-direction: column;
     gap: 1rem;
     min-width: 0;
+
+    input[pInputText],
+    p-select {
+      min-height: var(--fo-size-touch-target);
+
+      @include bp.up(md) {
+        min-height: var(--fo-size-control);
+      }
+    }
   }
 
   &__section-title {
@@ -169,6 +76,10 @@ p-drawer.branch-drawer {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
+
+    p-toggleswitch {
+      flex: none;
+    }
   }
 
   &__switch-title {
@@ -202,15 +113,6 @@ p-drawer.branch-drawer {
 
     i {
       margin-block-start: 0.125rem;
-    }
-  }
-
-  input[pInputText],
-  p-select {
-    min-height: var(--fo-size-touch-target);
-
-    @include bp.up(md) {
-      min-height: var(--fo-size-control);
     }
   }
 }

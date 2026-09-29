@@ -123,6 +123,7 @@
     @include bp.up(md) {
       position: static;
       padding: 0;
+      background: transparent;
       border-block-start: none;
 
       button {

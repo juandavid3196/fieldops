@@ -63,8 +63,11 @@ CREATE TABLE organization_users (
 CREATE TABLE organization_user_branches (organization_user_id uuid NOT NULL REFERENCES organization_users(id) ON DELETE CASCADE, branch_id uuid NOT NULL REFERENCES branches(id) ON DELETE CASCADE, PRIMARY KEY(organization_user_id,branch_id));
 CREATE TABLE user_invitations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), email varchar(254) NOT NULL,
-  role_id smallint NOT NULL REFERENCES roles(id), token_hash text UNIQUE NOT NULL, invited_by_user_id uuid NOT NULL REFERENCES users(id),
-  expires_at timestamptz NOT NULL, accepted_at timestamptz, revoked_at timestamptz, created_at timestamptz NOT NULL DEFAULT now()
+  first_name varchar(100) NOT NULL, last_name varchar(100) NOT NULL,
+  role_id smallint NOT NULL REFERENCES roles(id), is_all_branches boolean NOT NULL DEFAULT false, link_team_profile boolean NOT NULL DEFAULT false,
+  token_hash text UNIQUE NOT NULL, invited_by_user_id uuid NOT NULL REFERENCES users(id),
+  expires_at timestamptz NOT NULL, accepted_at timestamptz, revoked_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ck_user_invitations_expires_after_created CHECK (expires_at > created_at)
 );
 CREATE TABLE invitation_branches (invitation_id uuid NOT NULL REFERENCES user_invitations(id) ON DELETE CASCADE, branch_id uuid NOT NULL REFERENCES branches(id), PRIMARY KEY(invitation_id,branch_id));
 
@@ -203,6 +206,7 @@ CREATE TABLE audit_logs (id bigserial PRIMARY KEY, organization_id uuid NOT NULL
 
 CREATE INDEX ix_branches_org_active ON branches(organization_id,is_active);
 CREATE UNIQUE INDEX ux_branches_org_main ON branches(organization_id) WHERE is_main;
+CREATE UNIQUE INDEX ux_user_invitations_open_email ON user_invitations(organization_id,email) WHERE accepted_at IS NULL AND revoked_at IS NULL;
 CREATE INDEX ix_customers_org_name ON customers(organization_id,display_name);
 CREATE INDEX ix_contacts_org_email ON customer_contacts(organization_id,email);
 CREATE INDEX ix_properties_customer ON properties(organization_id,customer_id);
