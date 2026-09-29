@@ -8,14 +8,9 @@ body {
 
 body {
   margin: 0;
-  font-family:
-    system-ui,
-    -apple-system,
-    'Segoe UI',
-    Roboto,
-    'Helvetica Neue',
-    Arial,
-    sans-serif;
+  font-family: var(--fo-font-family);
+  font-size: 0.875rem;
+  line-height: 1.45;
   background: var(--fo-color-app-background);
   color: var(--p-text-color);
   -webkit-font-smoothing: antialiased;

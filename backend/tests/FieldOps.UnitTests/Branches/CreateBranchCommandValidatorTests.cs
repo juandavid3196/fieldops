@@ -87,6 +87,8 @@ public class CreateBranchCommandValidatorTests
         "60601",
         "US",
         ParseBusinessHours("""{"monday":{"start":"08:00","end":"17:00"}}"""),
+        null,
+        null,
         Guid.NewGuid(),
         null);
 

@@ -102,6 +102,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<bool>("IsMain")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_main");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(140)
@@ -122,6 +128,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(30)")
                         .HasColumnName("postal_code");
 
+                    b.PrimitiveCollection<string[]>("ServicePostalCodes")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("varchar(30)[]")
+                        .HasColumnName("service_postal_codes")
+                        .HasDefaultValueSql("'{}'");
+
                     b.Property<string>("StateRegion")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -133,16 +146,28 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("timezone");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("UsesCompanyBilling")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("uses_company_billing");
 
                     b.HasKey("Id")
                         .HasName("pk_branches");
 
                     b.HasAlternateKey("OrganizationId", "Id")
                         .HasName("ak_branches_organization_id_id");
+
+                    b.HasIndex("OrganizationId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_branches_org_main")
+                        .HasFilter("is_main");
 
                     b.HasIndex("OrganizationId", "Code")
                         .IsUnique()
@@ -151,7 +176,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId", "IsActive")
                         .HasDatabaseName("ix_branches_org_active");
 
-                    b.ToTable("branches", (string)null);
+                    b.ToTable("branches", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_branches_main_active", "NOT is_main OR is_active");
+                        });
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Catalog.CatalogItem", b =>
@@ -1182,6 +1210,22 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<string>("AddressLine1")
+                        .HasMaxLength(180)
+                        .HasColumnType("character varying(180)")
+                        .HasColumnName("address_line1");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("city");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character(2)")
+                        .HasColumnName("country_code")
+                        .IsFixedLength();
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -1257,6 +1301,17 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(40)")
                         .HasColumnName("phone");
 
+                    b.Property<string>("PostalCode")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("postal_code");
+
+                    b.Property<bool>("PricesIncludeTax")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("prices_include_tax");
+
                     b.Property<string>("QuotePrefix")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1270,6 +1325,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false)
                         .HasColumnName("require_customer_signature");
+
+                    b.Property<string>("StateRegion")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("state_region");
 
                     b.Property<string>("TaxId")
                         .HasMaxLength(60)
@@ -1285,10 +1345,16 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("timezone");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("website");
 
                     b.Property<string>("WorkOrderPrefix")
                         .IsRequired()
@@ -1304,6 +1370,50 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.ToTable("organizations", null, t =>
                         {
                             t.HasCheckConstraint("ck_organizations_default_tax_rate", "default_tax_rate BETWEEN 0 AND 100");
+                        });
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Organizations.OrganizationLogo", b =>
+                {
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("content");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("SizeBytes")
+                        .HasColumnType("integer")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("OrganizationId")
+                        .HasName("pk_organization_logos");
+
+                    b.ToTable("organization_logos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_organization_logos_content_type", "content_type IN ('image/png','image/jpeg','image/svg+xml')");
+
+                            t.HasCheckConstraint("ck_organization_logos_size_bytes", "size_bytes BETWEEN 1 AND 2097152");
                         });
                 });
 
@@ -3771,6 +3881,16 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_invitation_branches_user_invitations_invitation_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Organizations.OrganizationLogo", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_organization_logos_organizations_organization_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Organizations.OrganizationUser", b =>

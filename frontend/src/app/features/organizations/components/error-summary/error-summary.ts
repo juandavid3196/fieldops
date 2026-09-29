@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { ExclamationTriangleIcon } from 'primeng/icons/exclamationtriangle';
 import { Message } from 'primeng/message';
 
@@ -7,6 +7,8 @@ export interface FieldErrorLink {
   readonly fieldId: string;
   readonly label: string;
   readonly message: string;
+  /** When set, the link runs an action (for example opening a dialog) instead of jumping to a field. */
+  readonly action?: 'sequences';
 }
 
 /**
@@ -25,4 +27,12 @@ export class ErrorSummary {
   readonly id = input.required<string>();
   readonly leadingMessage = input<string | null>(null);
   readonly links = input<readonly FieldErrorLink[]>([]);
+  readonly linkAction = output<FieldErrorLink>();
+
+  onLinkClick(event: Event, link: FieldErrorLink): void {
+    if (link.action !== undefined) {
+      event.preventDefault();
+      this.linkAction.emit(link);
+    }
+  }
 }

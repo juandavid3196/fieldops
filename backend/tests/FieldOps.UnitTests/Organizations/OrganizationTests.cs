@@ -127,9 +127,23 @@ public class OrganizationTests
             "wo2",
             "inv2",
             42,
+            7,
+            8,
+            " acme.com ",
+            " 1 Main St ",
+            " Austin ",
+            "TX",
+            " 78701 ",
+            "US",
+            true,
             updatedAt);
 
         Assert.Equal("Acme Renamed", organization.Name);
+        Assert.Equal("acme.com", organization.Website);
+        Assert.Equal("Austin", organization.City);
+        Assert.Equal(7, organization.NextQuoteNumber);
+        Assert.Equal(8, organization.NextWorkOrderNumber);
+        Assert.True(organization.PricesIncludeTax);
         Assert.Equal("Acme Renamed LLC", organization.LegalName);
         Assert.Equal("new-ops@acme.com", organization.Email);
         Assert.Equal("eur", organization.Currency);
@@ -146,6 +160,6 @@ public class OrganizationTests
             "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1);
 
         Assert.Throws<ArgumentException>(() => organization.UpdateSettings(
-            name, "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1, DateTimeOffset.UtcNow));
+            name, "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1, 1, 1, null, "1 Main St", "Austin", null, "78701", "US", false, DateTimeOffset.UtcNow));
     }
 }

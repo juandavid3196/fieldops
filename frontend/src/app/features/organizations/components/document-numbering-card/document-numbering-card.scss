@@ -1,0 +1,74 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.numbering-card {
+  box-sizing: border-box;
+  min-width: 0;
+  height: 100%;
+  padding: 1.25rem 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+  scroll-margin-block-start: calc(var(--fo-size-topbar) + 1rem);
+
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem;
+  }
+
+  h2 {
+    margin: 0 0 1rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-text);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(6.875rem, 100%), 1fr));
+    gap: 0.75rem;
+    min-width: 0;
+  }
+
+  &__helper {
+    margin: 0.75rem 0 0;
+    font-size: 0.75rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: var(--fo-size-touch-target);
+    margin-block-start: 0.5rem;
+    padding: 0;
+    font: inherit;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    i {
+      font-size: 0.6875rem;
+    }
+  }
+
+  input[pInputText],
+  p-inputnumber {
+    min-height: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      min-height: var(--fo-size-control);
+    }
+  }
+}

@@ -14,4 +14,6 @@ public sealed record BranchListItemResponse(
     string? PostalCode,
     string? CountryCode,
     string? Timezone,
-    bool IsActive);
+    bool IsActive,
+    bool IsMain,
+    int TechnicianCount);

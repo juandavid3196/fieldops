@@ -21,6 +21,38 @@ internal sealed class OrganizationSettingsStore(FieldOpsDbContext dbContext) : I
         return max ?? 0L;
     }
 
+    public async Task<long> GetMaxQuoteNumberAsync(Guid organizationId, CancellationToken cancellationToken)
+    {
+        var max = await dbContext.Quotes.AsNoTracking()
+            .Where(quote => quote.OrganizationId == organizationId)
+            .Select(quote => (long?)quote.QuoteNumber)
+            .MaxAsync(cancellationToken);
+
+        return max ?? 0L;
+    }
+
+    public async Task<long> GetMaxWorkOrderNumberAsync(Guid organizationId, CancellationToken cancellationToken)
+    {
+        var max = await dbContext.WorkOrders.AsNoTracking()
+            .Where(workOrder => workOrder.OrganizationId == organizationId)
+            .Select(workOrder => (long?)workOrder.WorkOrderNumber)
+            .MaxAsync(cancellationToken);
+
+        return max ?? 0L;
+    }
+
+    public Task<bool> HasInvoicesAsync(Guid organizationId, CancellationToken cancellationToken) =>
+        dbContext.Invoices.AsNoTracking()
+            .AnyAsync(invoice => invoice.OrganizationId == organizationId, cancellationToken);
+
+    // Projects only the metadata columns: the bytea content is never read here.
+    public Task<OrganizationLogoMetadata?> GetLogoMetadataAsync(
+        Guid organizationId, CancellationToken cancellationToken) =>
+        dbContext.OrganizationLogos.AsNoTracking()
+            .Where(logo => logo.OrganizationId == organizationId)
+            .Select(logo => new OrganizationLogoMetadata(logo.ContentType, logo.SizeBytes, logo.UpdatedAt))
+            .SingleOrDefaultAsync(cancellationToken);
+
     // One SaveChangesAsync call: the organization update and the audit
     // insert are written together, or neither is (FR-04). UpdatedAt is a
     // concurrency token (BR-07): a row changed since it was loaded makes

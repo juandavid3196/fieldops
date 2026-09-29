@@ -74,6 +74,20 @@ internal sealed class BranchConfiguration : IEntityTypeConfiguration<Branch>
             .HasSentinel(true)
             .IsRequired();
 
+        builder.Property(branch => branch.IsMain)
+            .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.Property(branch => branch.ServicePostalCodes)
+            .HasColumnType("varchar(30)[]")
+            .HasDefaultValueSql("'{}'")
+            .IsRequired();
+
+        builder.Property(branch => branch.UsesCompanyBilling)
+            .HasDefaultValue(true)
+            .HasSentinel(true)
+            .IsRequired();
+
         builder.Property(branch => branch.CreatedAt)
             .HasDefaultValueSql("now()")
             .IsRequired();
@@ -94,6 +108,16 @@ internal sealed class BranchConfiguration : IEntityTypeConfiguration<Branch>
         // CREATE INDEX ix_branches_org_active ON branches (organization_id, is_active)
         builder.HasIndex(branch => new { branch.OrganizationId, branch.IsActive })
             .HasDatabaseName("ix_branches_org_active");
+
+        // CREATE UNIQUE INDEX ux_branches_org_main ON branches (organization_id) WHERE is_main
+        builder.HasIndex(branch => branch.OrganizationId)
+            .IsUnique()
+            .HasDatabaseName("ux_branches_org_main")
+            .HasFilter("is_main");
+
+        builder.ToTable(table => table.HasCheckConstraint(
+            "ck_branches_main_active",
+            "NOT is_main OR is_active"));
 
         builder.HasOne<Organization>()
             .WithMany()

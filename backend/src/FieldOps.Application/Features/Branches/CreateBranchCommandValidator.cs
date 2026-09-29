@@ -25,6 +25,24 @@ public sealed class CreateBranchCommandValidator : FieldRulesValidatorBase<Creat
         RequiredTextRule("postalCode", c => c.PostalCode, 30);
         CountryRule("countryCode", c => c.CountryCode);
         BusinessHoursRule();
+        BranchBillingRules();
+    }
+
+    private void BranchBillingRules()
+    {
+        RuleFor(command => command).Custom((command, context) =>
+        {
+            if (!ServicePostalCodes.TryRead(command.ServicePostalCodes, required: false, out _, out var codesError))
+            {
+                context.AddFailure("servicePostalCodes", codesError!);
+            }
+
+            if (!ServicePostalCodes.TryReadBoolean(
+                    command.UsesCompanyBilling, required: false, defaultValue: true, out _, out var billingError))
+            {
+                context.AddFailure("usesCompanyBilling", billingError!);
+            }
+        });
     }
 
     private void BusinessHoursRule()

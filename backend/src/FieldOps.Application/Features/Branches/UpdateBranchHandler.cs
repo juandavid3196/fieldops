@@ -66,6 +66,11 @@ public sealed class UpdateBranchHandler(
         var email = NullIfEmpty(command.Email) is { } rawEmail ? EmailNormalizer.Normalize(rawEmail) : null;
         var now = timeProvider.GetUtcNow();
 
+        // The validator already guarantees these parse.
+        ServicePostalCodes.TryRead(command.ServicePostalCodes, required: true, out var servicePostalCodes, out _);
+        ServicePostalCodes.TryReadBoolean(
+            command.UsesCompanyBilling, required: true, defaultValue: true, out var usesCompanyBilling, out _);
+
         branch.UpdateDetails(
             (command.Name ?? string.Empty).Trim(),
             code,
@@ -79,6 +84,8 @@ public sealed class UpdateBranchHandler(
             (command.CountryCode ?? string.Empty).Trim().ToUpperInvariant(),
             (command.Timezone ?? string.Empty).Trim(),
             businessHoursJson,
+            servicePostalCodes,
+            usesCompanyBilling,
             now);
 
         var afterFields = CreateBranchHandler.ToFieldMap(branch);

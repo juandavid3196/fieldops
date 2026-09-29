@@ -1,32 +1,80 @@
-<p-drawer
-  class="branch-drawer"
-  pFocusTrap
-  [pFocusTrapDisabled]="!open()"
-  position="right"
-  [visible]="open()"
-  (visibleChange)="requestClose()"
-  (onShow)="onDrawerShow()"
-  (onHide)="onDrawerHide()"
-  [modal]="true"
-  [fullScreen]="isBelowMd()"
-  [style]="drawerStyle()"
-  [pt]="drawerPt"
->
-  <ng-template #header>
-    <div class="branch-drawer__header">
-      <h2 class="branch-drawer__title" [id]="titleId" tabindex="-1">
-        {{ isCreate() ? 'New branch' : title() }}
-      </h2>
-      @if (!isCreate() && detail(); as branch) {
-        <p-tag
-          class="branch-drawer__status"
-          [value]="branch.isActive ? 'Active' : 'Inactive'"
-          [severity]="branch.isActive ? 'success' : 'secondary'"
-        />
-      }
-    </div>
-  </ng-template>
+@if (mode() === 'docked') {
+  @if (open()) {
+    <aside
+      class="branch-drawer branch-drawer--docked"
+      role="region"
+      [attr.aria-labelledby]="titleId"
+      (keydown)="onDockedKeydown($event)"
+    >
+      <div class="branch-drawer__header-bar">
+        <ng-container *ngTemplateOutlet="headerContent" />
+      </div>
+      <div class="branch-drawer__body">
+        <ng-container *ngTemplateOutlet="bodyContent" />
+      </div>
+      <div class="branch-drawer__footer-bar">
+        <ng-container *ngTemplateOutlet="footerContent" />
+      </div>
+    </aside>
+  }
+} @else {
+  <p-drawer
+    class="branch-drawer"
+    pFocusTrap
+    [pFocusTrapDisabled]="!open()"
+    position="right"
+    [visible]="open()"
+    (visibleChange)="requestClose()"
+    (onShow)="onDrawerShow()"
+    (onHide)="onDrawerHide()"
+    [modal]="true"
+    [showCloseIcon]="false"
+    [fullScreen]="isBelowMd()"
+    [style]="overlayStyle()"
+    [maskStyle]="maskStyle"
+    [pt]="drawerPt"
+  >
+    <ng-template #header>
+      <div class="branch-drawer__header-bar branch-drawer__header-bar--overlay">
+        <ng-container *ngTemplateOutlet="headerContent" />
+      </div>
+    </ng-template>
 
+    <ng-container *ngTemplateOutlet="bodyContent" />
+
+    <ng-template #footer>
+      <div class="branch-drawer__footer-bar branch-drawer__footer-bar--overlay">
+        <ng-container *ngTemplateOutlet="footerContent" />
+      </div>
+    </ng-template>
+  </p-drawer>
+}
+
+<ng-template #headerContent>
+  <h2 class="branch-drawer__title" [id]="titleId" tabindex="-1">
+    {{ isCreate() ? 'New branch' : title() }}
+  </h2>
+  @if (!isCreate() && detail(); as branch) {
+    <p-tag
+      class="branch-drawer__status"
+      [rounded]="true"
+      [icon]="branch.isActive ? 'pi pi-check-circle' : 'pi pi-ban'"
+      [value]="branch.isActive ? 'Active' : 'Inactive'"
+      [severity]="branch.isActive ? 'success' : 'secondary'"
+    />
+  }
+  <span class="branch-drawer__spacer"></span>
+  <button
+    type="button"
+    class="branch-drawer__close"
+    aria-label="Close branch details"
+    (click)="requestClose()"
+  >
+    <i class="pi pi-times" aria-hidden="true"></i>
+  </button>
+</ng-template>
+
+<ng-template #bodyContent>
   @if (loading()) {
     <div class="branch-drawer__skeletons" aria-busy="true">
       <p-skeleton height="2.5rem" />
@@ -53,10 +101,7 @@
         </button>
       }
 
-      @if (readOnly()) {
-        <p class="branch-drawer__readonly-note">You have view-only access to company settings.</p>
-      }
-
+      <h3 class="branch-drawer__section-title">Details</h3>
       <div class="branch-drawer__grid">
         <app-form-field
           label="Branch name"
@@ -69,7 +114,6 @@
             id="branch-name"
             formControlName="name"
             fluid
-            required
             [invalid]="error('branch.name') !== null"
             aria-required="true"
             [attr.aria-invalid]="error('branch.name') !== null ? 'true' : null"
@@ -79,7 +123,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Code"
+          label="Branch code"
           controlId="branch-code"
           [required]="true"
           [error]="error('branch.code')"
@@ -92,7 +136,6 @@
             id="branch-code"
             formControlName="code"
             fluid
-            required
             [invalid]="error('branch.code') !== null"
             aria-required="true"
             [attr.aria-invalid]="error('branch.code') !== null ? 'true' : null"
@@ -140,6 +183,7 @@
         </app-form-field>
 
         <app-form-field
+          class="branch-drawer__wide"
           label="Time zone"
           controlId="branch-timezone"
           [required]="true"
@@ -153,6 +197,7 @@
             optionValue="code"
             [filter]="true"
             ariaLabel="Time zone"
+            appendTo="body"
             fluid
             [invalid]="error('branch.timezone') !== null"
             aria-required="true"
@@ -175,7 +220,6 @@
             id="branch-addressLine1"
             formControlName="addressLine1"
             fluid
-            required
             [invalid]="error('branch.addressLine1') !== null"
             aria-required="true"
             [attr.aria-invalid]="error('branch.addressLine1') !== null ? 'true' : null"
@@ -216,7 +260,6 @@
             id="branch-city"
             formControlName="city"
             fluid
-            required
             [invalid]="error('branch.city') !== null"
             aria-required="true"
             [attr.aria-invalid]="error('branch.city') !== null ? 'true' : null"
@@ -255,7 +298,6 @@
             id="branch-postalCode"
             formControlName="postalCode"
             fluid
-            required
             [invalid]="error('branch.postalCode') !== null"
             aria-required="true"
             [attr.aria-invalid]="error('branch.postalCode') !== null ? 'true' : null"
@@ -280,6 +322,7 @@
             optionValue="code"
             [filter]="true"
             ariaLabel="Country"
+            appendTo="body"
             fluid
             [invalid]="error('branch.countryCode') !== null"
             aria-required="true"
@@ -291,62 +334,109 @@
           />
         </app-form-field>
 
-        <app-business-hours-editor
-          class="branch-drawer__business-hours"
-          [group]="form.controls.businessHours"
-          [fieldErrors]="fieldErrors()"
-          [rootError]="error('branch.businessHours')"
-          [submitting]="submitting()"
-          (fieldBlur)="onFieldBlur($event)"
-        />
+        <app-form-field
+          class="branch-drawer__wide"
+          label="Service area ZIP codes"
+          controlId="branch-servicePostalCodes"
+          [error]="error('branch.servicePostalCodes')"
+          [helper]="
+            error('branch.servicePostalCodes') === null ? 'Separate ZIP codes with commas.' : null
+          "
+        >
+          <input
+            pInputText
+            id="branch-servicePostalCodes"
+            formControlName="servicePostalCodes"
+            fluid
+            [invalid]="error('branch.servicePostalCodes') !== null"
+            [attr.aria-invalid]="error('branch.servicePostalCodes') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('branch.servicePostalCodes') !== null
+                ? 'branch-servicePostalCodes-error'
+                : 'branch-servicePostalCodes-helper'
+            "
+            (blur)="onFieldBlur('branch.servicePostalCodes')"
+          />
+        </app-form-field>
       </div>
 
-      <p class="branch-drawer__note">
-        Deactivating a branch prevents new records. All historical data is preserved.
-      </p>
+      <div class="branch-drawer__switch">
+        <p-toggleswitch
+          inputId="branch-usesCompanyBilling"
+          formControlName="usesCompanyBilling"
+          ariaLabel="Use company billing settings"
+        />
+        <span>
+          <span class="branch-drawer__switch-title">Use company billing settings</span>
+          <span class="branch-drawer__switch-helper">
+            Inherit tax rates, currency, and document numbering from company settings.
+          </span>
+        </span>
+      </div>
+
+      <hr class="branch-drawer__divider" />
+
+      <h3 class="branch-drawer__section-title">Business hours</h3>
+      <app-business-hours-editor
+        [group]="form.controls.businessHours"
+        [fieldErrors]="fieldErrors()"
+        [rootError]="error('branch.businessHours')"
+        [submitting]="submitting()"
+        (fieldBlur)="onFieldBlur($event)"
+      />
+
+      <div class="branch-drawer__note" role="note">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        <span>Deactivating a branch prevents new records. All historical data is preserved.</span>
+      </div>
     </form>
   }
+</ng-template>
 
-  <ng-template #footer>
-    @if (readOnly()) {
-      <button pButton type="button" severity="secondary" (click)="requestClose()">Close</button>
-    } @else if (!loading() && !loadError()) {
-      <div class="branch-drawer__footer">
-        @if (!isCreate() && detail(); as branch) {
-          <span
-            class="branch-drawer__deactivate-wrap"
-            [pTooltip]="branch.isActive && onlyActiveBranch() ? onlyActiveTooltip : undefined"
-          >
-            <button
-              pButton
-              type="button"
-              class="branch-drawer__deactivate"
-              [severity]="branch.isActive ? 'danger' : 'secondary'"
-              [outlined]="true"
-              [disabled]="deactivating() || (branch.isActive && onlyActiveBranch())"
-              (click)="deactivateOrReactivate()"
-            >
-              {{ branch.isActive ? 'Deactivate branch' : 'Reactivate branch' }}
-            </button>
-          </span>
-        }
-        <span class="branch-drawer__footer-spacer"></span>
+<ng-template #footerContent>
+  @if (readOnly()) {
+    <span class="branch-drawer__spacer"></span>
+    <button pButton type="button" severity="secondary" (click)="requestClose()">Close</button>
+  } @else if (!loading() && !loadError()) {
+    @if (!isCreate() && detail(); as branch) {
+      <span
+        class="branch-drawer__deactivate-wrap"
+        [pTooltip]="
+          branch.isActive && branch.isMain
+            ? mainTooltip
+            : branch.isActive && onlyActiveBranch()
+              ? onlyActiveTooltip
+              : undefined
+        "
+      >
         <button
           pButton
           type="button"
-          severity="secondary"
-          [outlined]="true"
-          (click)="requestClose()"
+          class="branch-drawer__deactivate"
+          [severity]="branch.isActive ? 'danger' : 'secondary'"
+          [text]="true"
+          [disabled]="deactivating() || (branch.isActive && (branch.isMain || onlyActiveBranch()))"
+          (click)="deactivateOrReactivate()"
         >
-          Cancel
+          <i
+            class="pi"
+            [class.pi-ban]="branch.isActive"
+            [class.pi-refresh]="!branch.isActive"
+            aria-hidden="true"
+          ></i>
+          {{ branch.isActive ? 'Deactivate branch' : 'Reactivate branch' }}
         </button>
-        <button pButton type="button" [disabled]="submitting()" (click)="submit()">
-          @if (submitting()) {
-            <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-          }
-          {{ isCreate() ? 'Create branch' : 'Update branch' }}
-        </button>
-      </div>
+      </span>
     }
-  </ng-template>
-</p-drawer>
+    <span class="branch-drawer__spacer"></span>
+    <button pButton type="button" severity="secondary" [outlined]="true" (click)="requestClose()">
+      Cancel
+    </button>
+    <button pButton type="button" [disabled]="submitting()" (click)="submit()">
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      {{ isCreate() ? 'Create branch' : 'Update branch' }}
+    </button>
+  }
+</ng-template>

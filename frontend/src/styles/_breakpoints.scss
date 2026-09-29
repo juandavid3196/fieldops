@@ -1,12 +1,17 @@
 // Compile-time breakpoints. Emits no CSS: components may `@use` this partial.
 // Mobile-first: `up($name)` wraps rules in a `min-width` media query.
-// See docs/frontend/styling-architecture.md §7.
+// See docs/frontend/styling-architecture.md §7. Script mirrors live in
+// `app/core/config/breakpoints.ts`; keep both in sync.
+//   md 768px: drawer nav -> rail. `admin` 1100px: full sidebar and Administration column.
+//   `dock` 1440px: branch drawer docks beside the content.
 
 @use 'sass:map';
 
 $breakpoints: (
   md: 48rem,
   lg: 64rem,
+  admin: 68.75rem,
+  dock: 90rem,
 );
 
 @mixin up($name) {

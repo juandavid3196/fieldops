@@ -12,7 +12,9 @@ public sealed record BranchListItemView(
     string? PostalCode,
     string? CountryCode,
     string? Timezone,
-    bool IsActive);
+    bool IsActive,
+    bool IsMain,
+    int TechnicianCount);
 
 /// <summary>Detail fields, including business hours and the concurrency token (FR-06).</summary>
 public sealed record BranchDetailView(
@@ -30,4 +32,7 @@ public sealed record BranchDetailView(
     string? Timezone,
     string BusinessHours,
     bool IsActive,
+    bool IsMain,
+    IReadOnlyList<string> ServicePostalCodes,
+    bool UsesCompanyBilling,
     DateTimeOffset UpdatedAt);

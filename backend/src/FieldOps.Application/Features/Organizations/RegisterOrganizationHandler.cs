@@ -99,7 +99,8 @@ public sealed class RegisterOrganizationHandler(
             (command.Branch.PostalCode ?? string.Empty).Trim(),
             (command.Branch.CountryCode ?? string.Empty).Trim().ToUpperInvariant(),
             (command.Branch.Timezone ?? string.Empty).Trim(),
-            businessHoursJson);
+            businessHoursJson,
+            isMain: true);
 
         var user = User.Create(
             ownerEmail,

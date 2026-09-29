@@ -196,6 +196,15 @@ public class OrganizationSettingsEndpointTests(CompanySettingsDatabaseFixture da
         ["workOrderPrefix"] = "WO",
         ["invoicePrefix"] = "INV",
         ["nextInvoiceNumber"] = 1,
+        ["nextQuoteNumber"] = 1,
+        ["nextWorkOrderNumber"] = 1,
+        ["website"] = "https://acme.com",
+        ["addressLine1"] = "1 Main St",
+        ["city"] = "Austin",
+        ["stateRegion"] = "TX",
+        ["postalCode"] = "78701",
+        ["countryCode"] = "US",
+        ["pricesIncludeTax"] = false,
         ["updatedAt"] = updatedAt,
     };
 }
@@ -213,5 +222,18 @@ public sealed record OrganizationSettingsBody(
     string WorkOrderPrefix,
     string InvoicePrefix,
     long NextInvoiceNumber,
+    long NextQuoteNumber,
+    long NextWorkOrderNumber,
+    string? Website,
+    string? AddressLine1,
+    string? City,
+    string? StateRegion,
+    string? PostalCode,
+    string? CountryCode,
+    bool PricesIncludeTax,
+    bool HasInvoices,
+    OrganizationLogoBody? Logo,
     DateTimeOffset UpdatedAt,
     bool CanManage);
+
+public sealed record OrganizationLogoBody(string ContentType, int SizeBytes, DateTimeOffset UpdatedAt);

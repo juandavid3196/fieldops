@@ -12,7 +12,9 @@
       <ul class="error-summary__list">
         @for (link of links(); track link.fieldId) {
           <li>
-            <a [href]="'#' + link.fieldId">{{ link.label }}: {{ link.message }}</a>
+            <a [href]="'#' + link.fieldId" (click)="onLinkClick($event, link)"
+              >{{ link.label }}: {{ link.message }}</a
+            >
           </li>
         }
       </ul>

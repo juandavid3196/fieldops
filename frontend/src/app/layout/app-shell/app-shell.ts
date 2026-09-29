@@ -1,4 +1,3 @@
-import { NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -11,32 +10,41 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { Drawer } from 'primeng/drawer';
 import { FocusTrap } from 'primeng/focustrap';
+import { IconField } from 'primeng/iconfield';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { InputIcon } from 'primeng/inputicon';
+import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 
+import { ADMIN_QUERY, MD_QUERY, watchMedia } from '../../core/config/breakpoints';
+import { comingSoonPath } from '../../core/config/coming-soon-modules';
 import { SessionService } from '../../core/services/session.service';
+import { ShellSidebar } from '../shell-sidebar/shell-sidebar';
+import { ADMINISTRATION_ROLE_CODES, NAV_GROUPS } from './app-shell.nav';
 
 export const SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
+export const SEARCH_PLACEHOLDER = 'Search requests, customers, work orders…';
 
-/** BR-01: role codes allowed to see the Administration group. */
-const COMPANY_SETTINGS_ROLE_CODES: readonly string[] = ['owner', 'viewer'];
-/** `lg` from `styles/_breakpoints.scss`. */
-const DESKTOP_QUERY = '(min-width: 64rem)';
+/** FR-02: below 768px a drawer, 768-1099px the rail, from 1100px the full sidebar. */
+export type LayoutMode = 'drawer' | 'rail' | 'full';
+type MenuKind = 'org' | 'user';
 
-/** Authenticated layout: top bar, navigation (sidebar or drawer) and the single `main`. */
+/** Authenticated layout: navy sidebar (rail or drawer), top bar and the single `main`. */
 @Component({
   selector: 'app-shell',
   imports: [
-    NgTemplateOutlet,
     RouterLink,
-    RouterLinkActive,
     RouterOutlet,
     Drawer,
     FocusTrap,
+    IconField,
+    InputIcon,
+    InputText,
     Message,
+    ShellSidebar,
     SpinnerIcon,
   ],
   templateUrl: './app-shell.html',
@@ -48,24 +56,56 @@ export class AppShell {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
+  private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
   private readonly navButton = viewChild<ElementRef<HTMLButtonElement>>('navButton');
   private readonly userButton = viewChild.required<ElementRef<HTMLButtonElement>>('userButton');
-  private readonly userMenu = viewChild<ElementRef<HTMLElement>>('userMenu');
+  private readonly orgButton = viewChild<ElementRef<HTMLButtonElement>>('orgButton');
 
   readonly session = this.sessionService.session;
   readonly signOutErrorMessage = SIGN_OUT_ERROR_MESSAGE;
+  readonly searchPlaceholder = SEARCH_PLACEHOLDER;
+  readonly helpLink = comingSoonPath('help');
+  readonly notificationsLink = comingSoonPath('notifications');
   readonly drawerPt = {
     root: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'shell-drawer-title' },
   };
 
-  readonly isDesktop = signal(true);
+  /**
+   * Navy drawer through PrimeNG's own `--p-drawer-*` design-token variables (no `.p-*` overrides).
+   * `[dt]` is not used: it is also an input of the `pFocusTrap` directive on the same element.
+   */
+  readonly drawerStyle = {
+    'inline-size': 'min(16rem, 88vw)',
+    '--p-drawer-background': 'var(--fo-color-navy)',
+    '--p-drawer-color': 'var(--fo-color-navy-text)',
+    '--p-drawer-border-color': 'transparent',
+    '--p-drawer-header-padding': '0',
+    '--p-drawer-content-padding': '0',
+  };
+
+  readonly layoutMode = signal<LayoutMode>('full');
+  /** Per page visit only (never persisted); `null` follows the layout mode default. Reset on mode change. */
+  readonly collapsed = signal<boolean | null>(null);
   readonly drawerOpen = signal(false);
-  readonly menuOpen = signal(false);
+  readonly openMenu = signal<MenuKind | null>(null);
   readonly signingOut = signal(false);
   readonly signOutFailed = signal(false);
 
+  readonly isDrawer = computed(() => this.layoutMode() === 'drawer');
+  readonly railActive = computed(
+    () => !this.isDrawer() && (this.collapsed() ?? this.layoutMode() === 'rail'),
+  );
+  readonly menuOpen = computed(() => this.openMenu() === 'user');
+  readonly orgMenuOpen = computed(() => this.openMenu() === 'org');
+
+  readonly groups = computed(() =>
+    NAV_GROUPS.filter(
+      (group) =>
+        !group.adminOnly || ADMINISTRATION_ROLE_CODES.includes(this.session()?.role.code ?? ''),
+    ),
+  );
   readonly showAdministration = computed(() =>
-    COMPANY_SETTINGS_ROLE_CODES.includes(this.session()?.role.code ?? ''),
+    this.groups().some((group) => group.adminOnly === true),
   );
   readonly fullName = computed(() => {
     const user = this.session()?.user;
@@ -84,20 +124,36 @@ export class AppShell {
   readonly accountLabel = computed(
     () => `Account menu, ${this.fullName()}, ${this.session()?.role.name ?? ''}`,
   );
+  readonly organizationName = computed(() => this.session()?.organization.name ?? '');
 
   constructor() {
-    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      const query = window.matchMedia(DESKTOP_QUERY);
-      this.isDesktop.set(query.matches);
-      const listener = (event: MediaQueryListEvent): void => {
-        this.isDesktop.set(event.matches);
-        if (event.matches) {
+    let mdMatches = true;
+    let adminMatches = true;
+    const apply = (): void => {
+      const mode: LayoutMode = !mdMatches ? 'drawer' : adminMatches ? 'full' : 'rail';
+      if (mode !== this.layoutMode()) {
+        this.layoutMode.set(mode);
+        this.collapsed.set(null);
+        if (mode !== 'drawer') {
           this.drawerOpen.set(false);
         }
-      };
-      query.addEventListener('change', listener);
-      this.destroyRef.onDestroy(() => query.removeEventListener('change', listener));
-    }
+      }
+    };
+    const md = watchMedia(MD_QUERY, (matches) => {
+      mdMatches = matches;
+      apply();
+    });
+    const admin = watchMedia(ADMIN_QUERY, (matches) => {
+      adminMatches = matches;
+      apply();
+    });
+    mdMatches = md.matches;
+    adminMatches = admin.matches;
+    apply();
+    this.destroyRef.onDestroy(() => {
+      md.stop();
+      admin.stop();
+    });
   }
 
   openDrawer(): void {
@@ -113,17 +169,32 @@ export class AppShell {
     this.navButton()?.nativeElement.focus();
   }
 
-  toggleMenu(): void {
-    if (this.menuOpen()) {
+  toggleCollapsed(): void {
+    this.collapsed.set(!this.railActive());
+  }
+
+  /** Enter in the search field opens the Coming soon page; there are no suggestions. */
+  onSearch(event: Event): void {
+    event.preventDefault();
+    void this.router.navigateByUrl(comingSoonPath('search'));
+  }
+
+  toggleMenu(kind: MenuKind = 'user'): void {
+    if (this.openMenu() === kind) {
       this.closeMenu(true);
       return;
     }
-    this.menuOpen.set(true);
+    this.openMenu.set(kind);
     this.focusMenuItem();
   }
 
+  /** The organization menu has one current entry: selecting it changes nothing and sends nothing. */
+  selectOrganization(): void {
+    this.closeMenu(true);
+  }
+
   onMenuKeydown(event: KeyboardEvent): void {
-    if (!this.menuOpen()) {
+    if (this.openMenu() === null) {
       return;
     }
     if (event.key === 'Escape') {
@@ -135,18 +206,18 @@ export class AppShell {
     }
   }
 
-  onUserKeydown(event: KeyboardEvent): void {
-    if (event.key === 'ArrowDown' && !this.menuOpen()) {
+  onButtonKeydown(event: KeyboardEvent, kind: MenuKind): void {
+    if (event.key === 'ArrowDown' && this.openMenu() !== kind) {
       event.preventDefault();
-      this.toggleMenu();
+      this.toggleMenu(kind);
     } else {
       this.onMenuKeydown(event);
     }
   }
 
-  onUserFocusOut(event: FocusEvent, container: HTMLElement): void {
+  onMenuFocusOut(event: FocusEvent, container: HTMLElement): void {
     const next = event.relatedTarget;
-    if (this.menuOpen() && next instanceof Node && !container.contains(next)) {
+    if (this.openMenu() !== null && next instanceof Node && !container.contains(next)) {
       this.closeMenu(false);
     }
   }
@@ -154,9 +225,9 @@ export class AppShell {
   onDocumentClick(event: Event): void {
     const target = event.target;
     if (
-      this.menuOpen() &&
-      target instanceof Node &&
-      !this.userButton().nativeElement.parentElement?.contains(target)
+      this.openMenu() !== null &&
+      target instanceof Element &&
+      target.closest('.shell__menu-wrap') === null
     ) {
       this.closeMenu(false);
     }
@@ -196,15 +267,19 @@ export class AppShell {
   }
 
   private closeMenu(returnFocus: boolean): void {
-    this.menuOpen.set(false);
-    if (returnFocus) {
-      afterNextRender(() => this.userButton().nativeElement.focus(), { injector: this.injector });
+    const kind = this.openMenu();
+    this.openMenu.set(null);
+    if (returnFocus && kind !== null) {
+      afterNextRender(
+        () => (kind === 'org' ? this.orgButton() : this.userButton())?.nativeElement.focus(),
+        { injector: this.injector },
+      );
     }
   }
 
   private focusMenuItem(): void {
     afterNextRender(
-      () => this.userMenu()?.nativeElement.querySelector<HTMLElement>('[role="menuitem"]')?.focus(),
+      () => this.host.querySelector<HTMLElement>('.shell__menu [role="menuitem"]')?.focus(),
       { injector: this.injector },
     );
   }

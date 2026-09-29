@@ -124,21 +124,22 @@ public sealed class CompanySettingsDatabaseFixture : IAsyncLifetime
     }
 
     public async Task<SeededBranch> SeedBranchAsync(
-        Guid organizationId, string? name = null, string? code = null, bool isActive = true)
+        Guid organizationId, string? name = null, string? code = null, bool isActive = true, bool isMain = false)
     {
         var id = Guid.NewGuid();
         var branchCode = code ?? $"B{id:N}".ToUpperInvariant()[..8];
 
         await ExecuteAsync(
             """
-            INSERT INTO branches (id, organization_id, name, code, is_active)
-            VALUES (@id, @organizationId, @name, @code, @isActive)
+            INSERT INTO branches (id, organization_id, name, code, is_active, is_main)
+            VALUES (@id, @organizationId, @name, @code, @isActive, @isMain)
             """,
             ("id", id),
             ("organizationId", organizationId),
             ("name", name ?? $"Branch {id:N}"[..20]),
             ("code", branchCode),
-            ("isActive", isActive));
+            ("isActive", isActive),
+            ("isMain", isMain));
 
         var updatedAt = await ScalarAsync<DateTimeOffset>(
             "SELECT updated_at FROM branches WHERE id = @id", ("id", id));
@@ -204,6 +205,122 @@ public sealed class CompanySettingsDatabaseFixture : IAsyncLifetime
             await command.ExecuteNonQueryAsync();
         }
     }
+
+    public Task SeedTechnicianAsync(Guid organizationId, Guid branchId, string status = "active") =>
+        ExecuteAsync(
+            """
+            INSERT INTO technician_profiles (organization_id, branch_id, first_name, last_name, status)
+            VALUES (@organizationId, @branchId, 'Tech', 'Nician', @status)
+            """,
+            ("organizationId", organizationId),
+            ("branchId", branchId),
+            ("status", status));
+
+    /// <summary>
+    /// Seeds a minimal quote, work order and invoice for the organization with
+    /// the given numbers. Foreign keys to unrelated parents are bypassed for
+    /// this throwaway container only (session_replication_role = replica).
+    /// </summary>
+    public async Task SeedDocumentNumbersAsync(
+        Guid organizationId, Guid userId, Guid branchId, long? quoteNumber = null, long? workOrderNumber = null, long? invoiceNumber = null)
+    {
+        await using var connection = new NpgsqlConnection(ConnectionString);
+        await connection.OpenAsync();
+
+        await using (var replica = new NpgsqlCommand("SET session_replication_role = replica", connection))
+        {
+            await replica.ExecuteNonQueryAsync();
+        }
+
+        var statements = new List<string>();
+
+        if (quoteNumber is not null)
+        {
+            statements.Add(
+                """
+                INSERT INTO quotes (organization_id, request_id, quote_number, status, current_version_no, created_by_user_id)
+                VALUES (@org, gen_random_uuid(), @quote, 'draft', 0, @user)
+                """);
+        }
+
+        if (workOrderNumber is not null)
+        {
+            statements.Add(
+                """
+                INSERT INTO work_orders (organization_id, branch_id, work_order_number, quote_version_id, customer_id, property_id, status, priority, scope_snapshot, created_by_user_id)
+                VALUES (@org, @branch, @workOrder, gen_random_uuid(), gen_random_uuid(), gen_random_uuid(), 'draft', 3, 'scope', @user)
+                """);
+        }
+
+        if (invoiceNumber is not null)
+        {
+            statements.Add(
+                """
+                INSERT INTO invoices (organization_id, branch_id, invoice_number, work_order_id, customer_id, status, currency, subtotal, tax_total, total, amount_paid, balance_due, created_by_user_id)
+                VALUES (@org, @branch, @invoice, gen_random_uuid(), gen_random_uuid(), 'draft', 'USD', 0, 0, 0, 0, 0, @user)
+                """);
+        }
+
+        foreach (var sql in statements)
+        {
+            await using var command = new NpgsqlCommand(sql, connection);
+            command.Parameters.AddWithValue("org", organizationId);
+            command.Parameters.AddWithValue("user", userId);
+            command.Parameters.AddWithValue("branch", branchId);
+            command.Parameters.AddWithValue("quote", quoteNumber ?? 0L);
+            command.Parameters.AddWithValue("workOrder", workOrderNumber ?? 0L);
+            command.Parameters.AddWithValue("invoice", invoiceNumber ?? 0L);
+            await command.ExecuteNonQueryAsync();
+        }
+    }
+
+    /// <summary>The latest audit row's before/after/metadata JSON text for the action.</summary>
+    public async Task<(string? Before, string? After, string? Metadata)> GetLatestAuditAsync(
+        Guid organizationId, string action)
+    {
+        await using var connection = new NpgsqlConnection(ConnectionString);
+        await connection.OpenAsync();
+        await using var command = CreateCommand(
+            connection,
+            """
+            SELECT before_data::text, after_data::text, metadata::text FROM audit_logs
+            WHERE organization_id = @organizationId AND action = @action
+            ORDER BY occurred_at DESC, id DESC
+            LIMIT 1
+            """,
+            [("organizationId", organizationId), ("action", action)]);
+
+        await using var reader = await command.ExecuteReaderAsync();
+        Assert.True(await reader.ReadAsync(), $"No audit row for {action}");
+
+        return (
+            reader.IsDBNull(0) ? null : reader.GetString(0),
+            reader.IsDBNull(1) ? null : reader.GetString(1),
+            reader.IsDBNull(2) ? null : reader.GetString(2));
+    }
+
+    public async Task<Guid[]> QueryGuidsAsync(string sql, params (string Name, object? Value)[] parameters)
+    {
+        await using var connection = new NpgsqlConnection(ConnectionString);
+        await connection.OpenAsync();
+        await using var command = CreateCommand(connection, sql, parameters);
+        await using var reader = await command.ExecuteReaderAsync();
+        var ids = new List<Guid>();
+
+        while (await reader.ReadAsync())
+        {
+            ids.Add(reader.GetGuid(0));
+        }
+
+        return [.. ids];
+    }
+
+    public Task SeedLogoAsync(Guid organizationId, byte[] content) =>
+        ExecuteAsync(
+            "INSERT INTO organization_logos (organization_id, content_type, content, size_bytes) VALUES (@o, 'image/png', @c, @s)",
+            ("o", organizationId),
+            ("c", content),
+            ("s", content.Length));
 
     public async Task ExecuteAsync(string sql, params (string Name, object? Value)[] parameters)
     {

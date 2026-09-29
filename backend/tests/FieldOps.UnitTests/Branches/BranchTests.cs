@@ -86,6 +86,8 @@ public class BranchTests
             " US ",
             " America/Denver ",
             """{"tuesday":{"start":"09:00","end":"18:00"}}""",
+            ["78701", "78702"],
+            false,
             updatedAt);
 
         Assert.Equal("Updated Branch", branch.Name);
@@ -94,6 +96,9 @@ public class BranchTests
         Assert.Equal("Suite 3", branch.AddressLine2);
         Assert.Equal("""{"tuesday":{"start":"09:00","end":"18:00"}}""", branch.BusinessHours);
         Assert.Equal(updatedAt, branch.UpdatedAt);
+        Assert.Equal(["78701", "78702"], branch.ServicePostalCodes);
+        Assert.False(branch.UsesCompanyBilling);
+        Assert.False(branch.IsMain);
     }
 
     [Theory]
@@ -105,7 +110,7 @@ public class BranchTests
             OrganizationId, "Main", "MAIN", null, null, null, null, null, null, null, null, null, "{}");
 
         Assert.Throws<ArgumentException>(() => branch.UpdateDetails(
-            name!, "MAIN", null, null, null, null, null, null, null, null, null, "{}", DateTimeOffset.UtcNow));
+            name!, "MAIN", null, null, null, null, null, null, null, null, null, "{}", [], true, DateTimeOffset.UtcNow));
     }
 
     [Fact]

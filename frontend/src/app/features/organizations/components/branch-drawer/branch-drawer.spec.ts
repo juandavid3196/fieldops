@@ -29,6 +29,10 @@ const EXISTING_BRANCH: BranchDetail = {
   timezone: 'America/Chicago',
   businessHours: {},
   isActive: true,
+  isMain: false,
+  technicianCount: 0,
+  servicePostalCodes: [],
+  usesCompanyBilling: true,
   updatedAt: '2026-01-01T00:00:00.000000Z',
 };
 
@@ -130,6 +134,87 @@ describe('BranchDrawer (AC-27, AC-36, AC-44)', () => {
     fixture.detectChanges();
     expect(closed).toBe(true);
     expect(saved).toBe(true);
+  });
+
+  it('opens new branches with the FR-16 defaults and sends normalized ZIP codes and billing inheritance (FR-14, FR-16, AC-15, AC-23)', () => {
+    create(null);
+
+    expect(component.form.controls.servicePostalCodes.value).toBe('');
+    expect(component.form.controls.usesCompanyBilling.value).toBe(true);
+    expect(component.form.controls.timezone.value).toBe('America/Chicago');
+    expect(host.querySelectorAll('.business-hours__closed')).toHaveLength(7);
+    expect(host.textContent).toContain('Separate ZIP codes with commas.');
+    expect(host.textContent).toContain('Used in document numbering and reports.');
+    expect(host.textContent).toContain(
+      'Inherit tax rates, currency, and document numbering from company settings.',
+    );
+    expect(host.textContent).toContain(
+      'Deactivating a branch prevents new records. All historical data is preserved.',
+    );
+    expect(host.querySelector('#branch-usesCompanyBilling')?.getAttribute('role')).toBe('switch');
+
+    component.form.patchValue({
+      name: 'Cedar Park',
+      code: 'CP',
+      addressLine1: '400 Cedar Ave',
+      city: 'Cedar Park',
+      postalCode: '78613',
+      countryCode: 'US',
+      servicePostalCodes: ' 78701, 78702,78701 ',
+      usesCompanyBilling: false,
+    });
+    submitButton().click();
+    fixture.detectChanges();
+
+    const request = httpTesting.expectOne({ method: 'POST', url: BRANCHES_URL });
+    expect(request.request.body).toMatchObject({
+      servicePostalCodes: ['78701', '78702'],
+      usesCompanyBilling: false,
+    });
+    request.flush(
+      {
+        status: 400,
+        errors: { servicePostalCodes: ['Enter valid ZIP codes separated by commas.'] },
+      },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    fixture.detectChanges();
+    expect(host.querySelector('#branch-servicePostalCodes-error')?.textContent?.trim()).toBe(
+      'Enter valid ZIP codes separated by commas.',
+    );
+  });
+
+  it.each([
+    ['docked', { dock: true, md: true }],
+    ['overlay', { dock: false, md: true }],
+    ['fullscreen', { dock: false, md: false }],
+  ] as const)('renders the %s presentation (FR-16, AC-22)', (mode, viewport) => {
+    const original = window.matchMedia;
+    window.matchMedia = ((query: string) => ({
+      matches: query.includes('90rem') ? viewport.dock : viewport.md,
+      media: query,
+      addEventListener: () => undefined,
+      removeEventListener: () => undefined,
+    })) as unknown as typeof window.matchMedia;
+
+    try {
+      create(null);
+      expect(component.mode()).toBe(mode);
+      const region = host.querySelector('aside[role="region"]');
+      if (mode === 'docked') {
+        expect(region?.getAttribute('aria-labelledby')).toBe('branch-drawer-title');
+        expect(host.querySelector('[role="dialog"]')).toBeNull();
+        let closed = false;
+        component.closed.subscribe(() => (closed = true));
+        region!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        expect(closed).toBe(true);
+      } else {
+        expect(region).toBeNull();
+        expect(host.querySelector('[role="dialog"]')?.getAttribute('aria-modal')).toBe('true');
+      }
+    } finally {
+      window.matchMedia = original;
+    }
   });
 
   it('maps a 409 duplicate code to the Code field and keeps the drawer open (AC-36)', () => {

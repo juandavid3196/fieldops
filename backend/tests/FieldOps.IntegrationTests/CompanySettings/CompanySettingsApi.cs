@@ -49,6 +49,31 @@ public static class CompanySettingsApi
         return client.SendAsync(request);
     }
 
+    public static async Task<string> SignInCookieAsync(HttpClient client, string email) =>
+        SessionApi.GetIssuedCookie(
+            await SessionApi.SignInAsync(client, email, CompanySettingsDatabaseFixture.Password));
+
+    /// <summary>Sends a multipart/form-data request whose <c>file</c> part has the given bytes and declared type.</summary>
+    public static Task<HttpResponseMessage> PutFileAsync(
+        HttpClient client, string path, byte[] bytes, string declaredType, string? cookie, string fileName = "logo.bin")
+    {
+        var part = new ByteArrayContent(bytes);
+        part.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(declaredType);
+
+        var form = new MultipartFormDataContent { { part, "file", fileName } };
+
+        var request = new HttpRequestMessage(HttpMethod.Put, path) { Content = form };
+
+        if (cookie is not null)
+        {
+            request.Headers.Add("Cookie", cookie);
+        }
+
+        request.Headers.Add(Api.TestClientIpStartupFilter.HeaderName, SessionApi.NewClientIp());
+
+        return client.SendAsync(request);
+    }
+
     public static async Task<JsonDocument> ReadJsonAsync(HttpResponseMessage response) =>
         JsonDocument.Parse(await response.Content.ReadAsStringAsync());
 

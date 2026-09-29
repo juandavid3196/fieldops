@@ -54,6 +54,11 @@ public sealed class CreateBranchHandler(
 
         var email = NullIfEmpty(command.Email) is { } rawEmail ? EmailNormalizer.Normalize(rawEmail) : null;
 
+        // The validator already guarantees these parse.
+        ServicePostalCodes.TryRead(command.ServicePostalCodes, required: false, out var servicePostalCodes, out _);
+        ServicePostalCodes.TryReadBoolean(
+            command.UsesCompanyBilling, required: false, defaultValue: true, out var usesCompanyBilling, out _);
+
         var branch = Branch.Create(
             command.OrganizationId,
             (command.Name ?? string.Empty).Trim(),
@@ -67,7 +72,10 @@ public sealed class CreateBranchHandler(
             (command.PostalCode ?? string.Empty).Trim(),
             (command.CountryCode ?? string.Empty).Trim().ToUpperInvariant(),
             (command.Timezone ?? string.Empty).Trim(),
-            businessHoursJson);
+            businessHoursJson,
+            isMain: false,
+            servicePostalCodes,
+            usesCompanyBilling);
 
         var afterFields = ToFieldMap(branch);
         var (before, after) = AuditFieldDiff.ForCreate(afterFields);
@@ -111,6 +119,9 @@ public sealed class CreateBranchHandler(
             branch.Timezone,
             branch.BusinessHours,
             branch.IsActive,
+            branch.IsMain,
+            branch.ServicePostalCodes,
+            branch.UsesCompanyBilling,
             branch.UpdatedAt);
 
     internal static Dictionary<string, object?> ToFieldMap(Branch branch) =>
@@ -128,6 +139,8 @@ public sealed class CreateBranchHandler(
             ["postalCode"] = branch.PostalCode,
             ["countryCode"] = branch.CountryCode,
             ["businessHours"] = branch.BusinessHours,
+            ["servicePostalCodes"] = branch.ServicePostalCodes,
+            ["usesCompanyBilling"] = branch.UsesCompanyBilling,
         };
 
     private static IReadOnlyDictionary<string, string[]> GroupErrors(

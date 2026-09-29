@@ -1,9 +1,85 @@
 // FieldOps app tokens. The only place `--fo-*` custom properties are declared.
-// Values are built from PrimeNG `--p-*` tokens and follow `.app-dark` via light-dark().
+// Handoff values (design/identity-access/handoff, §5) as `light-dark()` pairs; PrimeNG sets
+// `color-scheme` per mode, so the dark value applies under `.app-dark`.
 
 :root {
-  // App page ground (handoff #F4F7FA is approximately surface-50).
-  --fo-color-app-background: light-dark(var(--p-surface-50), var(--p-surface-950));
-  // Minimum touch target size (WCAG 2.5.5, styling-architecture.md §7).
+  // Surfaces
+  --fo-color-app-background: light-dark(#f4f7fa, #0b1620);
+  --fo-color-surface: light-dark(#fff, #14202b);
+  --fo-color-surface-muted: light-dark(#f8fafc, #1a2733);
+  --fo-color-surface-hover: light-dark(#f4f7fa, #1f2f3d);
+
+  // Text
+  --fo-color-text: light-dark(#172b4d, #e6edf3);
+  --fo-color-text-secondary: light-dark(#52606d, #aab8c5);
+  --fo-color-text-muted: light-dark(#7b8794, #8b9aa8);
+  --fo-color-heading: light-dark(#102a43, #e6edf3);
+
+  // Borders
+  --fo-color-border: light-dark(#d9e2ec, #2a3a49);
+  --fo-color-border-strong: light-dark(#bccddc, #435a6f);
+  --fo-color-row-divider: light-dark(#e9eef3, #22303d);
+
+  // Primary (teal)
+  --fo-color-primary: #0f9d9a;
+  --fo-color-primary-strong: light-dark(#0b8583, #5fd3cf);
+  --fo-color-primary-hover: #0b8583;
+  --fo-color-primary-soft: light-dark(#e7f6f5, rgb(15 157 154 / 18%));
+  --fo-color-on-primary: #fff;
+  --fo-focus-ring: 0 0 0 3px rgb(15 157 154 / 24%);
+
+  // Disabled
+  --fo-color-disabled-background: light-dark(#e9eef3, #24313e);
+  --fo-color-disabled-text: light-dark(#9aa5b1, #6b7a89);
+  --fo-color-switch-off: light-dark(#bccddc, #435a6f);
+
+  // Statuses
+  --fo-color-success-solid: #168a5b;
+  --fo-color-success-text: light-dark(#136f4a, #6fd4a5);
+  --fo-color-success-background: light-dark(#e7f6ee, rgb(22 138 91 / 20%));
+  --fo-color-info-text: light-dark(#1d6485, #7cc4e0);
+  --fo-color-info-background: light-dark(#eaf4f8, rgb(36 123 160 / 20%));
+  --fo-color-info-border: light-dark(#bfdce8, rgb(124 196 224 / 35%));
+  --fo-color-warning-text: light-dark(#8a5509, #f0c274);
+  --fo-color-warning-background: light-dark(#fff4dd, rgb(196 122 18 / 20%));
+  --fo-color-warning-border: light-dark(#f1d9a8, rgb(240 194 116 / 35%));
+  --fo-color-danger-solid: #c93c3c;
+  --fo-color-danger-text: light-dark(#a12f2f, #f19a9a);
+  --fo-color-danger-background: light-dark(#fdecec, rgb(201 60 60 / 20%));
+  --fo-color-danger-border: light-dark(#f2c4c4, rgb(241 154 154 / 35%));
+  --fo-color-neutral-text: light-dark(#66788a, #a3b2c0);
+  --fo-color-neutral-background: light-dark(#eef2f6, #22303d);
+
+  // Navy sidebar (dark in both modes)
+  --fo-color-navy: light-dark(#102a43, #0b2239);
+  --fo-color-navy-text: #bccddc;
+  --fo-color-navy-muted: #9aa5b1;
+  --fo-color-navy-hover: rgb(255 255 255 / 6%);
+  --fo-color-navy-divider: rgb(255 255 255 / 8%);
+  --fo-color-navy-active: rgb(15 157 154 / 20%);
+  --fo-color-navy-active-icon: #5fd3cf;
+  --fo-color-on-navy: #fff;
+
+  // Overlay and elevation
+  --fo-color-mask: rgb(16 42 67 / 32%);
+  --fo-shadow-overlay: 0 8px 24px rgb(16 42 67 / 14%);
+  --fo-shadow-drawer: -8px 0 24px rgb(16 42 67 / 6%);
+
+  // Sizes
   --fo-size-touch-target: 2.75rem;
+  --fo-size-topbar: 4rem;
+  --fo-size-sidebar: 16rem;
+  --fo-size-sidebar-rail: 4.5rem;
+  --fo-size-admin-column: 14rem;
+  --fo-size-drawer: 26.25rem;
+  --fo-size-control: 2.5rem;
+  --fo-radius-control: 6px;
+  --fo-radius-card: 10px;
+  --fo-radius-panel: 8px;
+  --fo-radius-pill: 999px;
+
+  // Type
+  --fo-font-family:
+    'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
 }

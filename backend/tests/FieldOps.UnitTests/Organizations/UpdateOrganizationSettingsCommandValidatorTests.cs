@@ -43,6 +43,21 @@ public class UpdateOrganizationSettingsCommandValidatorTests
         yield return Case(c => c with { NextInvoiceNumber = 0 }, "nextInvoiceNumber", NextInvoiceNumberMessage);
         yield return Case(
             c => c with { NextInvoiceNumber = 1_000_000_000_000 }, "nextInvoiceNumber", NextInvoiceNumberMessage);
+        yield return Case(c => c with { Website = "no spaces.com x" }, "website", "Enter a valid website.");
+        yield return Case(c => c with { Website = "nodot" }, "website", "Enter a valid website.");
+        yield return Case(c => c with { Website = new string('a', 256) }, "website", TooLong(255));
+        yield return Case(c => c with { AddressLine1 = "" }, "addressLine1", Required);
+        yield return Case(c => c with { City = "" }, "city", Required);
+        yield return Case(c => c with { PostalCode = "" }, "postalCode", Required);
+        yield return Case(c => c with { CountryCode = "ZZZ" }, "countryCode", "Select a country.");
+        yield return Case(c => c with { StateRegion = "" }, "stateRegion", "Select a state.");
+        yield return Case(c => c with { StateRegion = "ZZ" }, "stateRegion", "Select a state.");
+        yield return Case(
+            c => c with { PricesIncludeTax = null }, "pricesIncludeTax", Required);
+        yield return Case(
+            c => c with { PricesIncludeTax = Json("\"yes\"") }, "pricesIncludeTax", "Enter a valid value.");
+        yield return Case(c => c with { NextQuoteNumber = 0 }, "nextQuoteNumber", NextInvoiceNumberMessage);
+        yield return Case(c => c with { NextWorkOrderNumber = null }, "nextWorkOrderNumber", Required);
         yield return Case(c => c with { UpdatedAt = null }, "updatedAt", UpdatedAtInvalid);
         yield return Case(c => c with { UpdatedAt = "" }, "updatedAt", UpdatedAtInvalid);
         yield return Case(c => c with { UpdatedAt = "not-a-timestamp" }, "updatedAt", UpdatedAtInvalid);
@@ -83,9 +98,22 @@ public class UpdateOrganizationSettingsCommandValidatorTests
         "WO",
         "INV",
         1,
+        1,
+        1,
+        "acme.com",
+        "1 Main St",
+        "Austin",
+        "TX",
+        "78701",
+        "US",
+        System.Text.Json.JsonDocument.Parse("false").RootElement,
+        false,
         "2026-01-01T00:00:00.000000Z",
         Guid.NewGuid(),
         null);
+
+    private static System.Text.Json.JsonElement Json(string json) =>
+        System.Text.Json.JsonDocument.Parse(json).RootElement;
 
     private const string Required = RegisterOrganizationCommandValidator.RequiredMessage;
 

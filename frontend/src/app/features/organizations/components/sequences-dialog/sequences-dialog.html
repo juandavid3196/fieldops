@@ -1,0 +1,50 @@
+<p-dialog
+  [header]="canManage() ? 'Edit sequences' : 'Sequences'"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="true"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  (onHide)="onHide()"
+  [style]="{ width: '26rem', maxWidth: '94vw' }"
+>
+  <form class="sequences" [formGroup]="form" novalidate (ngSubmit)="apply()">
+    @for (field of fields; track field.key) {
+      <app-form-field
+        [label]="field.label"
+        [controlId]="fieldId(field.key)"
+        [error]="errors[field.key] ?? null"
+      >
+        <p-inputnumber
+          [inputId]="fieldId(field.key)"
+          [formControlName]="field.key"
+          mode="decimal"
+          [useGrouping]="false"
+          [minFractionDigits]="0"
+          [maxFractionDigits]="0"
+          [min]="1"
+          [max]="999999999999"
+          fluid
+          [invalid]="errors[field.key] !== undefined"
+          [ariaLabel]="field.label"
+          [attr.aria-invalid]="errors[field.key] !== undefined ? 'true' : null"
+          [attr.aria-describedby]="
+            errors[field.key] !== undefined ? fieldId(field.key) + '-error' : null
+          "
+        />
+      </app-form-field>
+    }
+  </form>
+
+  <ng-template #footer>
+    @if (canManage()) {
+      <button pButton type="button" severity="secondary" [outlined]="true" (click)="close()">
+        Cancel
+      </button>
+      <button pButton type="button" (click)="apply()">Apply</button>
+    } @else {
+      <button pButton type="button" severity="secondary" (click)="close()">Close</button>
+    }
+  </ng-template>
+</p-dialog>

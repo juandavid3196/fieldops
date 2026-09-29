@@ -1,5 +1,7 @@
-// Global stylesheet entry. Load order: tokens, then base.
+// Global stylesheet entry. Load order: fonts, tokens, then base.
 // Rules live in src/styles/; see docs/frontend/styling-architecture.md.
+// PrimeIcons CSS is added through angular.json `styles`.
 
+@use 'styles/fonts';
 @use 'styles/tokens';
 @use 'styles/base';

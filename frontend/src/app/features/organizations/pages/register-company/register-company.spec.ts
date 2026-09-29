@@ -196,6 +196,10 @@ describe('RegisterCompany', () => {
     beforeEach(() => setup());
 
     it('shows the submitting state, locks inputs and sends exactly one request', async () => {
+      // Password fields must be editable until the request starts (not `readonly="false"`).
+      expect(query<HTMLInputElement>('#owner-password')?.readOnly).toBe(false);
+      expect(query<HTMLInputElement>('#confirmPassword')?.readOnly).toBe(false);
+
       const request = await submitValid();
 
       expect(submitButton().textContent?.trim()).toBe('Creating organization…');

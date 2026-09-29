@@ -26,6 +26,24 @@ public sealed class UpdateBranchCommandValidator : FieldRulesValidatorBase<Updat
         CountryRule("countryCode", c => c.CountryCode);
         BusinessHoursRule();
         UpdatedAtRule("updatedAt", c => c.UpdatedAt);
+        BranchBillingRules();
+    }
+
+    private void BranchBillingRules()
+    {
+        RuleFor(command => command).Custom((command, context) =>
+        {
+            if (!ServicePostalCodes.TryRead(command.ServicePostalCodes, required: true, out _, out var codesError))
+            {
+                context.AddFailure("servicePostalCodes", codesError!);
+            }
+
+            if (!ServicePostalCodes.TryReadBoolean(
+                    command.UsesCompanyBilling, required: true, defaultValue: true, out _, out var billingError))
+            {
+                context.AddFailure("usesCompanyBilling", billingError!);
+            }
+        });
     }
 
     private void BusinessHoursRule()

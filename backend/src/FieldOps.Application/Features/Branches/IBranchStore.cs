@@ -65,6 +65,19 @@ public interface IBranchStore
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Makes an active branch the organization's only main branch (BR-11)
+    /// inside the same row-locking transaction as deactivation, writing the
+    /// <c>branch.set_as_main</c> audit row only when the state changes.
+    /// </summary>
+    Task<SetMainBranchOutcome> SetMainAsync(
+        Guid organizationId,
+        Guid branchId,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Reactivates a branch and writes the audit row only when the state
     /// actually changes (BR-08).
     /// </summary>

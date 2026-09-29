@@ -18,4 +18,7 @@ public sealed record BranchDetailResponse(
     string? Timezone,
     JsonElement BusinessHours,
     bool IsActive,
+    bool IsMain,
+    IReadOnlyList<string> ServicePostalCodes,
+    bool UsesCompanyBilling,
     DateTimeOffset UpdatedAt);

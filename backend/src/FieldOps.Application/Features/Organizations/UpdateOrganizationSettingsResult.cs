@@ -11,4 +11,7 @@ public abstract record UpdateOrganizationSettingsResult
     public sealed record Invalid(IReadOnlyDictionary<string, string[]> Errors) : UpdateOrganizationSettingsResult;
 
     public sealed record Stale : UpdateOrganizationSettingsResult;
+
+    /// <summary>The currency changed while invoices exist and was not confirmed (BR-06).</summary>
+    public sealed record CurrencyChangeNotConfirmed : UpdateOrganizationSettingsResult;
 }

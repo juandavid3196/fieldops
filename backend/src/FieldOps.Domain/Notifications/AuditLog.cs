@@ -59,7 +59,8 @@ public sealed class AuditLog
         Guid? branchId = null,
         IPAddress? ipAddress = null,
         string? beforeData = null,
-        string? afterData = null)
+        string? afterData = null,
+        string? metadata = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -93,6 +94,7 @@ public sealed class AuditLog
             IpAddress = ipAddress,
             BeforeData = beforeData,
             AfterData = afterData,
+            Metadata = string.IsNullOrWhiteSpace(metadata) ? "{}" : metadata,
         };
     }
 }

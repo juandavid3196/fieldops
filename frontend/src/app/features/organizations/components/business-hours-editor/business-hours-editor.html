@@ -9,15 +9,15 @@
   @for (day of weekdays; track day) {
     <div class="business-hours__row">
       <div class="business-hours__toggle-cell">
+        <label class="business-hours__day-label" [for]="controlId(day, 'open')">{{
+          dayLabel(day)
+        }}</label>
         <p-toggleswitch
           [inputId]="controlId(day, 'open')"
           [formControl]="dayGroup(day).controls.open"
           [ariaLabel]="dayLabel(day) + ' open'"
           [readonly]="submitting()"
         />
-        <label class="business-hours__day-label" [for]="controlId(day, 'open')">{{
-          dayLabel(day)
-        }}</label>
       </div>
 
       @if (isOpen(day)) {

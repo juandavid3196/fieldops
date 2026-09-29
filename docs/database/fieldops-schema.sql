@@ -24,6 +24,14 @@ CREATE TABLE organizations (
   invoice_prefix varchar(20) NOT NULL DEFAULT 'INV', next_quote_number bigint NOT NULL DEFAULT 1,
   next_work_order_number bigint NOT NULL DEFAULT 1, next_invoice_number bigint NOT NULL DEFAULT 1,
   require_customer_signature boolean NOT NULL DEFAULT false, is_active boolean NOT NULL DEFAULT true,
+  website varchar(255), address_line1 varchar(180), city varchar(100), state_region varchar(100),
+  postal_code varchar(30), country_code char(2), prices_include_tax boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE TABLE organization_logos (
+  organization_id uuid PRIMARY KEY REFERENCES organizations(id) ON DELETE CASCADE,
+  content_type varchar(40) NOT NULL CHECK (content_type IN ('image/png','image/jpeg','image/svg+xml')),
+  content bytea NOT NULL, size_bytes integer NOT NULL CHECK (size_bytes BETWEEN 1 AND 2097152),
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE TABLE branches (
@@ -31,7 +39,10 @@ CREATE TABLE branches (
   name varchar(140) NOT NULL, code varchar(30) NOT NULL, email varchar(254), phone varchar(40),
   address_line1 varchar(180), address_line2 varchar(180), city varchar(100), state_region varchar(100),
   postal_code varchar(30), country_code char(2), timezone varchar(80), business_hours jsonb NOT NULL DEFAULT '{}'::jsonb,
-  is_active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  is_active boolean NOT NULL DEFAULT true, is_main boolean NOT NULL DEFAULT false,
+  service_postal_codes varchar(30)[] NOT NULL DEFAULT '{}', uses_company_billing boolean NOT NULL DEFAULT true,
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ck_branches_main_active CHECK (NOT is_main OR is_active),
   UNIQUE (organization_id, code), UNIQUE (organization_id, id)
 );
 CREATE TABLE users (
@@ -191,6 +202,7 @@ CREATE TABLE notifications (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organ
 CREATE TABLE audit_logs (id bigserial PRIMARY KEY, organization_id uuid NOT NULL REFERENCES organizations(id), actor_user_id uuid REFERENCES users(id), action varchar(100) NOT NULL, entity_type varchar(100) NOT NULL, entity_id uuid, branch_id uuid REFERENCES branches(id), before_data jsonb, after_data jsonb, metadata jsonb NOT NULL DEFAULT '{}'::jsonb, ip_address inet, occurred_at timestamptz NOT NULL DEFAULT now());
 
 CREATE INDEX ix_branches_org_active ON branches(organization_id,is_active);
+CREATE UNIQUE INDEX ux_branches_org_main ON branches(organization_id) WHERE is_main;
 CREATE INDEX ix_customers_org_name ON customers(organization_id,display_name);
 CREATE INDEX ix_contacts_org_email ON customer_contacts(organization_id,email);
 CREATE INDEX ix_properties_customer ON properties(organization_id,customer_id);

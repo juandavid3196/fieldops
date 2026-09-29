@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
+import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
 
 export const routes: Routes = [
@@ -26,6 +27,7 @@ export const routes: Routes = [
         path: 'overview',
         loadChildren: () => import('./features/overview/overview.routes'),
       },
+      comingSoonRoute,
       companyAdminRoute,
     ],
   },

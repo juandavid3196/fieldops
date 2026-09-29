@@ -25,7 +25,7 @@ Angular 22 standalone. Configuration: `docs/frontend/frontend-configuration.md`.
 - Routine CSS: inspect the nearest precedent/tokens. Read full styling architecture only for global styles, tokens, PrimeNG overrides, breakpoints or shared patterns.
 - Aura + teal; dark mode via `.app-dark`. Global styles/tokens stay in `src/styles/`; component SCSS is co-located and uses `--p-*`/`--fo-*` within the 4/8 kB budget.
 - No `::ng-deep`, `@import`, global `.p-*` overrides or undocumented `!important`.
-- `primeicons` is not installed.
+- Icons: `primeicons` 7 (`pi pi-*` classes, CSS via `angular.json`). Inter is self-hosted under `public/fonts/inter/` (OFL).
 - Implement/test only approved applicable states (loading, empty, error, permission, submission, success); non-applicable states are N/A, never invented.
 - Mobile-first; no business logic in templates.
 

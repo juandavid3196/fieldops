@@ -27,6 +27,12 @@ const FieldOpsPreset = definePreset(Aura, {
       hoverColor: 'light-dark({primary.800}, {primary.300})',
       activeColor: 'light-dark({primary.900}, {primary.200})',
     },
+    // Handoff form controls (§5): 14px text, 6px radius; heights are set per component.
+    formField: {
+      fontSize: '0.875rem',
+      paddingY: '0.5rem',
+      borderRadius: '6px',
+    },
   },
   components: {
     // Aura's light success/error message text (green.600/red.600) fails WCAG AA

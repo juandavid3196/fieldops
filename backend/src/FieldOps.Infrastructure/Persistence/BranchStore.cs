@@ -1,8 +1,10 @@
 using System.Net;
+using System.Text.Json;
 using FieldOps.Application.Auditing;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Domain.Branches;
 using FieldOps.Domain.Notifications;
+using FieldOps.Domain.Technicians;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -37,7 +39,12 @@ internal sealed class BranchStore(FieldOpsDbContext dbContext) : IBranchStore
                 branch.PostalCode,
                 branch.CountryCode,
                 branch.Timezone,
-                branch.IsActive))
+                branch.IsActive,
+                branch.IsMain,
+                dbContext.TechnicianProfiles.Count(technician =>
+                    technician.OrganizationId == organizationId
+                    && technician.BranchId == branch.Id
+                    && technician.Status == TechnicianStatus.Active)))
             .ToListAsync(cancellationToken);
     }
 
@@ -70,6 +77,9 @@ internal sealed class BranchStore(FieldOpsDbContext dbContext) : IBranchStore
                 branch.Timezone,
                 branch.BusinessHours,
                 branch.IsActive,
+                branch.IsMain,
+                branch.ServicePostalCodes,
+                branch.UsesCompanyBilling,
                 branch.UpdatedAt))
             .SingleOrDefaultAsync(cancellationToken);
     }
@@ -192,22 +202,28 @@ internal sealed class BranchStore(FieldOpsDbContext dbContext) : IBranchStore
                 """)
             .ToListAsync(cancellationToken);
 
-        if (!lockedActiveIds.Contains(branch.Id))
+        // The tracked row was read before the lock: reload it now that the
+        // lock is held, so IsActive/IsMain reflect any change that committed
+        // while this call was waiting (BR-11).
+        await dbContext.Entry(branch).ReloadAsync(cancellationToken);
+
+        if (!branch.IsActive || !lockedActiveIds.Contains(branch.Id))
         {
             // A concurrent duplicate call deactivated this exact branch while
             // this call's FOR UPDATE was blocked behind it: branch.Id is
             // absent from the locked active set purely because it is no
             // longer active, not because it is the organization's last one.
             // BR-08 requires this to resolve as an idempotent NoOp, not a
-            // BR-06 LastActiveConflict. Roll back, reload the row's current
-            // state and re-evaluate once — the top-of-method !IsActive check
-            // above returns NoOp on that immediate re-entry, so this cannot
-            // recurse further.
+            // BR-06 LastActiveConflict.
             await transaction.RollbackAsync(cancellationToken);
-            await dbContext.Entry(branch).ReloadAsync(cancellationToken);
+            return DeactivateBranchOutcome.NoOp;
+        }
 
-            return await DeactivateLoadedAsync(
-                branch, actorUserId, clientIp, now, allowConcurrencyRetry, cancellationToken);
+        // BR-11: the main branch is checked before the last-active rule.
+        if (branch.IsMain)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return DeactivateBranchOutcome.MainBranchConflict;
         }
 
         if (lockedActiveIds.Count <= 1)
@@ -246,6 +262,118 @@ internal sealed class BranchStore(FieldOpsDbContext dbContext) : IBranchStore
             await dbContext.Entry(branch).ReloadAsync(cancellationToken);
 
             return await DeactivateLoadedAsync(
+                branch, actorUserId, clientIp, now, allowConcurrencyRetry: false, cancellationToken);
+        }
+    }
+
+    // BR-11: takes the same lock as deactivation (the organization's active
+    // rows, ORDER BY id FOR UPDATE) so set-main and deactivate serialize. The
+    // previous main is cleared with a set-based UPDATE and the target is set
+    // by the tracked SaveChanges: never both in one statement, so the partial
+    // unique index ux_branches_org_main is never violated mid-transaction.
+    public async Task<SetMainBranchOutcome> SetMainAsync(
+        Guid organizationId,
+        Guid branchId,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var branch = await dbContext.Branches.SingleOrDefaultAsync(
+            b => b.OrganizationId == organizationId && b.Id == branchId, cancellationToken);
+
+        if (branch is null)
+        {
+            return SetMainBranchOutcome.NotFound;
+        }
+
+        return await SetMainLoadedAsync(
+            branch, actorUserId, clientIp, now, allowConcurrencyRetry: true, cancellationToken);
+    }
+
+    private async Task<SetMainBranchOutcome> SetMainLoadedAsync(
+        Branch branch,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        bool allowConcurrencyRetry,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = branch.OrganizationId;
+
+        await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        var lockedActiveIds = await dbContext.Database
+            .SqlQuery<Guid>(
+                $"""
+                SELECT id FROM branches
+                WHERE organization_id = {organizationId} AND is_active = true
+                ORDER BY id
+                FOR UPDATE
+                """)
+            .ToListAsync(cancellationToken);
+
+        await dbContext.Entry(branch).ReloadAsync(cancellationToken);
+
+        if (!branch.IsActive || !lockedActiveIds.Contains(branch.Id))
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return SetMainBranchOutcome.InactiveConflict;
+        }
+
+        if (branch.IsMain)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return SetMainBranchOutcome.NoOp;
+        }
+
+        var targetId = branch.Id;
+
+        var previousMainId = await dbContext.Branches.AsNoTracking()
+            .Where(b => b.OrganizationId == organizationId && b.IsMain && b.Id != targetId)
+            .Select(b => (Guid?)b.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        await dbContext.Branches
+            .Where(b => b.OrganizationId == organizationId && b.IsMain && b.Id != targetId)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(b => b.IsMain, false)
+                    .SetProperty(b => b.UpdatedAt, now),
+                cancellationToken);
+
+        branch.SetMain(now);
+
+        var (before, after) = AuditFieldDiff.ForSetAsMain();
+
+        var auditLog = AuditLog.Create(
+            organizationId,
+            SetMainBranchHandler.SetAsMainAuditAction,
+            "branch",
+            actorUserId: actorUserId,
+            entityId: branch.Id,
+            branchId: branch.Id,
+            ipAddress: clientIp,
+            beforeData: before,
+            afterData: after,
+            metadata: JsonSerializer.Serialize(
+                new Dictionary<string, object?> { ["previousMainBranchId"] = previousMainId }));
+        dbContext.AuditLogs.Add(auditLog);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return SetMainBranchOutcome.Changed;
+        }
+        catch (DbUpdateConcurrencyException) when (allowConcurrencyRetry)
+        {
+            dbContext.AuditLogs.Remove(auditLog);
+            await transaction.RollbackAsync(cancellationToken);
+            await dbContext.Entry(branch).ReloadAsync(cancellationToken);
+
+            return await SetMainLoadedAsync(
                 branch, actorUserId, clientIp, now, allowConcurrencyRetry: false, cancellationToken);
         }
     }

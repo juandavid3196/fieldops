@@ -1,0 +1,70 @@
+<div class="branch-table">
+  <table class="branch-table__table">
+    <thead>
+      <tr>
+        <th scope="col" class="branch-table__sort-header" [attr.aria-sort]="sortDirection()">
+          <button type="button" class="branch-table__sort-button" (click)="sortToggled.emit()">
+            Branch
+            <i
+              class="pi"
+              [class.pi-arrow-up]="sortDirection() === 'ascending'"
+              [class.pi-arrow-down]="sortDirection() === 'descending'"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </th>
+        <th scope="col">Address</th>
+        <th scope="col">Time zone</th>
+        <th scope="col">Team</th>
+        <th scope="col">Status</th>
+        <th scope="col"><span class="branch-table__sr-only">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.branch.id) {
+        <tr
+          class="branch-table__row"
+          tabindex="0"
+          [class.branch-table__row--selected]="row.branch.id === selectedId()"
+          [attr.aria-label]="row.branch.name"
+          [attr.aria-current]="row.branch.id === selectedId() ? 'true' : null"
+          (click)="rowActivated.emit(row.branch)"
+          (keydown)="onRowKeydown($event, row.branch)"
+        >
+          <td [attr.data-label]="'Branch'">
+            <span class="branch-table__name-cell">
+              <span class="branch-table__name">{{ row.branch.name }}</span>
+              @if (row.branch.isMain) {
+                <span class="branch-table__main-tag">Main branch</span>
+              }
+            </span>
+          </td>
+          <td [attr.data-label]="'Address'">{{ row.address }}</td>
+          <td class="branch-table__wide" [attr.data-label]="'Time zone'">
+            {{ row.timezoneName }}
+          </td>
+          <td class="branch-table__wide" [attr.data-label]="'Team'">{{ row.team }}</td>
+          <td [attr.data-label]="'Status'">
+            <p-tag
+              [rounded]="true"
+              [icon]="row.branch.isActive ? 'pi pi-check-circle' : 'pi pi-ban'"
+              [value]="row.branch.isActive ? 'Active' : 'Inactive'"
+              [severity]="row.branch.isActive ? 'success' : 'secondary'"
+            />
+          </td>
+          <td class="branch-table__actions">
+            <button
+              type="button"
+              class="branch-table__menu-button"
+              aria-haspopup="menu"
+              [attr.aria-label]="'More actions for ' + row.branch.name"
+              (click)="menuRequested.emit({ event: $event, branch: row.branch })"
+            >
+              <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

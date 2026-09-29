@@ -1,7 +1,8 @@
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpEventType, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { Observable } from 'rxjs';
@@ -9,11 +10,13 @@ import { Observable } from 'rxjs';
 import { API_CONFIG } from '../../../../core/config/api.config';
 import { authInterceptor } from '../../../../core/interceptors/auth.interceptor';
 import { errorInterceptor } from '../../../../core/interceptors/error.interceptor';
+import { SequencesDialog } from '../../components/sequences-dialog/sequences-dialog';
 import { companySettingsUnsavedChangesGuard } from '../../guards/company-settings-unsaved-changes.guard';
 import { CompanySetup } from './company-setup';
 
 const API_BASE_URL = 'http://api.test';
 const SETTINGS_URL = `${API_BASE_URL}/organization-settings`;
+const LOGO_URL = `${SETTINGS_URL}/logo`;
 const BRANCHES_URL = `${API_BASE_URL}/branches`;
 const SESSION_URL = `${API_BASE_URL}/sessions/current`;
 
@@ -30,8 +33,25 @@ const SETTINGS_RESPONSE = {
   workOrderPrefix: 'WO',
   invoicePrefix: 'INV',
   nextInvoiceNumber: 1050,
+  website: 'www.acme.com',
+  addressLine1: '100 Main St',
+  city: 'Austin',
+  stateRegion: 'TX',
+  postalCode: '78701',
+  countryCode: 'US',
+  pricesIncludeTax: false,
+  nextQuoteNumber: 10,
+  nextWorkOrderNumber: 20,
+  hasInvoices: false,
+  logo: null as unknown,
   updatedAt: '2026-01-01T00:00:00.000000Z',
   canManage: true,
+};
+
+const LOGO_METADATA = {
+  contentType: 'image/png',
+  sizeBytes: 1200,
+  updatedAt: '2026-01-01T00:00:00.000000Z',
 };
 
 const BRANCH_A = {
@@ -46,9 +66,18 @@ const BRANCH_A = {
   countryCode: 'US',
   timezone: 'America/Chicago',
   isActive: true,
+  isMain: true,
+  technicianCount: 1,
 };
 
-const BRANCH_B = { ...BRANCH_A, id: 'b-2', name: 'Round Rock', code: 'RR', isActive: true };
+const BRANCH_B = {
+  ...BRANCH_A,
+  id: 'b-2',
+  name: 'Round Rock',
+  code: 'RR',
+  isMain: false,
+  technicianCount: 3,
+};
 
 @Component({ template: '<p>Sign in stub</p>' })
 class SignInStub {}
@@ -74,6 +103,7 @@ describe('CompanySetup', () => {
             ...(withGuard ? { canDeactivate: [companySettingsUnsavedChangesGuard] } : {}),
           },
           { path: 'auth/sign-in', component: SignInStub },
+          { path: 'coming-soon/:module', component: OtherStub },
           { path: 'other', component: OtherStub },
         ]),
         provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
@@ -92,6 +122,8 @@ describe('CompanySetup', () => {
     await harness.fixture.whenStable();
   }
 
+  const page = () => harness.routeDebugElement!.componentInstance as CompanySetup;
+
   function flushInitial(
     settings: Record<string, unknown> = SETTINGS_RESPONSE,
     settingsStatus = 200,
@@ -108,6 +140,10 @@ describe('CompanySetup', () => {
     Array.from(host.querySelectorAll('button')).find((b) => b.textContent?.trim() === label) as
       HTMLButtonElement | undefined;
 
+  const bodyButton = (label: string): HTMLButtonElement | undefined =>
+    Array.from(document.querySelectorAll('button')).find((b) => b.textContent?.trim() === label) as
+      HTMLButtonElement | undefined;
+
   const dialogButton = (label: string): HTMLButtonElement | undefined =>
     Array.from(document.querySelectorAll('[role="alertdialog"] button')).find(
       (b) => b.textContent?.trim() === label,
@@ -116,14 +152,31 @@ describe('CompanySetup', () => {
   const dialogVisible = (): boolean =>
     document.querySelectorAll('[role="alertdialog"] button').length > 0;
 
+  /** Opens a row menu and clicks an item by its label. */
+  async function rowMenu(branchName: string, itemLabel: string): Promise<void> {
+    host.querySelector<HTMLButtonElement>(`[aria-label="More actions for ${branchName}"]`)!.click();
+    await stable();
+    const item = Array.from(document.querySelectorAll('[role="menuitem"]')).find(
+      (li) => li.textContent?.trim() === itemLabel,
+    );
+    item?.querySelector<HTMLElement>('a')?.click();
+    await stable();
+  }
+
   function type(input: HTMLInputElement, value: string): void {
     input.value = value;
     input.dispatchEvent(new Event('input'));
   }
 
+  beforeEach(() => {
+    Element.prototype.scrollIntoView = vi.fn();
+    URL.createObjectURL = vi.fn(() => 'blob:preview');
+    URL.revokeObjectURL = vi.fn();
+  });
+
   afterEach(() => httpTesting.verify());
 
-  it('shows loading skeletons, a load error with Retry, the forbidden state, and (separately) the read-only banner with disabled inputs (AC-20,21,34,35)', async () => {
+  it('shows loading skeletons, a load error with Retry, the forbidden state, and the read-only banner with disabled inputs (AC-20)', async () => {
     await setup();
     expect(host.querySelectorAll('p-skeleton').length).toBeGreaterThan(0);
 
@@ -139,17 +192,22 @@ describe('CompanySetup', () => {
     await stable();
     expect(host.textContent).toContain("You don't have access to company settings.");
     expect(host.querySelector('#organization-name')).toBeNull();
-    expect(host.querySelector('.company-setup__nav')).toBeNull();
+    expect(host.querySelector('app-administration-nav')).toBeNull();
 
     await setup();
     flushInitial({ ...SETTINGS_RESPONSE, canManage: false }, 200, { items: [] });
     await stable();
-    expect(host.textContent).toContain('You have view-only access to company settings.');
+    expect(host.textContent).toContain(
+      'You have view-only access to company settings. Contact an Owner to request changes.',
+    );
+    expect(host.textContent).toContain(
+      'Manage your organization details, branches, billing defaults, and document numbering.',
+    );
     expect(host.querySelector<HTMLInputElement>('#organization-name')?.disabled).toBe(true);
     expect(button('Save changes')).toBeUndefined();
   });
 
-  it('enables Save/Discard once dirty, restores values on Discard, and locks/saves/reloads the session on Save (AC-22,23)', async () => {
+  it('enables Save/Discard once dirty, restores values on Discard, and sends normalized values once on Save (AC-07, AC-22)', async () => {
     await setup();
     flushInitial();
     await stable();
@@ -161,7 +219,6 @@ describe('CompanySetup', () => {
     type(nameInput, 'Acme Renamed');
     await stable();
     expect(button('Save changes')?.disabled).toBe(false);
-    expect(button('Discard changes')?.disabled).toBe(false);
 
     button('Discard changes')?.click();
     await stable();
@@ -181,10 +238,19 @@ describe('CompanySetup', () => {
 
     // Exactly one request: a second click while submitting sent nothing further.
     const request = httpTesting.expectOne({ method: 'PUT', url: SETTINGS_URL });
+    expect(request.request.body).toMatchObject({
+      name: 'Acme Renamed',
+      website: 'www.acme.com',
+      countryCode: 'US',
+      stateRegion: 'TX',
+      pricesIncludeTax: false,
+      nextQuoteNumber: 10,
+    });
+    expect(request.request.body).not.toHaveProperty('confirmCurrencyChange');
     request.flush({
       ...SETTINGS_RESPONSE,
       name: 'Acme Renamed',
-      updatedAt: '2026-01-02T00:00:00.000000Z',
+      updatedAt: '2026-01-02T00:00:00Z',
     });
     await stable();
 
@@ -199,13 +265,15 @@ describe('CompanySetup', () => {
     expect(button('Save changes')?.disabled).toBe(true);
   });
 
-  it('blocks client-invalid saves with the summary and first-invalid focus, and clears a field error on blur after the attempt (AC-24,46)', async () => {
+  it('blocks client-invalid saves (required, website, US state) with the summary and first-invalid focus (AC-08)', async () => {
     await setup();
     flushInitial();
     await stable();
 
-    const nameInput = host.querySelector<HTMLInputElement>('#organization-name')!;
-    type(nameInput, '');
+    type(host.querySelector<HTMLInputElement>('#organization-name')!, '');
+    type(host.querySelector<HTMLInputElement>('#organization-website')!, 'not a site');
+    type(host.querySelector<HTMLInputElement>('#organization-city')!, '');
+    page().form.controls.stateRegion.setValue('');
     await stable();
     button('Save changes')?.click();
     await stable();
@@ -214,16 +282,26 @@ describe('CompanySetup', () => {
     expect(host.querySelector('#organization-name-error')?.textContent?.trim()).toBe(
       'This field is required.',
     );
+    expect(host.querySelector('#organization-website-error')?.textContent?.trim()).toBe(
+      'Enter a valid website.',
+    );
+    expect(host.querySelector('#organization-city-error')?.textContent).toContain(
+      'This field is required.',
+    );
+    expect(host.querySelector('#organization-stateRegion-error')?.textContent).toContain(
+      'Select a state.',
+    );
     expect(document.activeElement?.id).toBe('organization-name');
     expect(host.querySelector('#company-setup-error-summary')).not.toBeNull();
 
+    const nameInput = host.querySelector<HTMLInputElement>('#organization-name')!;
     type(nameInput, 'Acme Field Services');
     nameInput.dispatchEvent(new Event('blur'));
     await stable();
     expect(host.querySelector('#organization-name-error')).toBeNull();
   });
 
-  it('shows the stale-409 Reload flow with edits kept, and clears the session and navigates on 401 without a discard prompt (AC-25,50)', async () => {
+  it('shows the stale-409 Reload flow with edits kept, and clears the session on 401 without a discard prompt', async () => {
     await setup();
     flushInitial();
     await stable();
@@ -251,10 +329,8 @@ describe('CompanySetup', () => {
     expect(host.querySelector<HTMLInputElement>('#organization-name')?.value).toBe(
       'Acme From Server',
     );
-    expect(button('Save changes')?.disabled).toBe(true);
 
-    const nameInput2 = host.querySelector<HTMLInputElement>('#organization-name')!;
-    type(nameInput2, 'Dirty again');
+    type(host.querySelector<HTMLInputElement>('#organization-name')!, 'Dirty again');
     await stable();
     button('Save changes')?.click();
     await stable();
@@ -267,89 +343,329 @@ describe('CompanySetup', () => {
     expect(dialogVisible()).toBe(false);
   });
 
-  it('confirms Deactivate from the row, pre-disables the only active branch on both surfaces, and reactivates without a prompt (AC-28,37,45)', async () => {
+  it('renders the Administration column anchors and Coming soon items (FR-05, AC-06)', async () => {
     await setup();
-    flushInitial(SETTINGS_RESPONSE, 200, { items: [BRANCH_A, BRANCH_B] });
+    flushInitial();
     await stable();
 
-    const deactivateButtons = Array.from(host.querySelectorAll('button')).filter(
-      (b) => b.textContent?.trim() === 'Deactivate',
+    const nav = host.querySelector('nav[aria-label="Administration"]')!;
+    const links = () => Array.from(nav.querySelectorAll('a'));
+    expect(links().map((link) => link.textContent?.trim())).toEqual([
+      'Company profile',
+      'Branches',
+      'Business hours',
+      'Users & permissions',
+      'Taxes & currency',
+      'Document numbering',
+      'Notifications',
+    ]);
+    expect(links()[0].getAttribute('aria-current')).toBe('location');
+
+    links()[4].click();
+    await stable();
+    expect(links()[4].getAttribute('aria-current')).toBe('location');
+    expect(links()[0].getAttribute('aria-current')).toBeNull();
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    expect(router.url).toBe('/admin/company');
+
+    links()[2].click();
+    await stable();
+    expect(router.url).toBe('/coming-soon/business-hours');
+  });
+
+  it('uploads, previews, replaces and removes the logo without dirtying the form (FR-10, AC-13)', async () => {
+    await setup();
+    flushInitial();
+    await stable();
+    expect(host.textContent).toContain('No logo');
+    expect(host.textContent).toContain('JPG, PNG or SVG. Max 2 MB.');
+
+    const pick = async (file: File): Promise<void> => {
+      const input = host.querySelector<HTMLInputElement>('input[type="file"]')!;
+      Object.defineProperty(input, 'files', {
+        value: { item: () => file, length: 1 },
+        configurable: true,
+      });
+      input.dispatchEvent(new Event('change'));
+      await stable();
+    };
+
+    await pick(new File(['x'], 'logo.gif', { type: 'image/gif' }));
+    expect(host.querySelector('#organization-logo-error')?.textContent).toContain(
+      'Choose a JPG, PNG or SVG file.',
     );
-    expect(deactivateButtons.length).toBe(2);
-    deactivateButtons[0].click();
+    await pick(new File([new Uint8Array(3 * 1024 * 1024)], 'big.png', { type: 'image/png' }));
+    expect(host.querySelector('#organization-logo-error')?.textContent).toContain(
+      'Choose a file of 2 MB or smaller.',
+    );
+    httpTesting.expectNone({ method: 'PUT', url: LOGO_URL });
+
+    await pick(new File([new Uint8Array(10)], 'logo.png', { type: 'image/png' }));
+    const upload = httpTesting.expectOne({ method: 'PUT', url: LOGO_URL });
+    expect(upload.request.body instanceof FormData).toBe(true);
+    expect((upload.request.body as FormData).get('file')).toBeInstanceOf(File);
+    upload.event({ type: HttpEventType.UploadProgress, loaded: 5, total: 10 });
+    await stable();
+    expect(host.querySelector('[role="progressbar"]')).not.toBeNull();
+    upload.flush(LOGO_METADATA);
     await stable();
 
+    expect(host.querySelector('img')?.getAttribute('alt')).toBe('Acme Field Services logo');
+    expect(host.textContent).toContain('Logo updated');
+    expect(host.querySelector('#organization-logo-error')).toBeNull();
+    expect(button('Save changes')?.disabled).toBe(true);
+
+    button('Remove logo')?.click();
+    await stable();
+    httpTesting
+      .expectOne({ method: 'DELETE', url: LOGO_URL })
+      .flush(null, { status: 204, statusText: 'No Content' });
+    await stable();
+    expect(host.querySelector('img')).toBeNull();
+    expect(host.textContent).toContain('No logo');
+    expect(host.textContent).toContain('Logo removed');
+    expect(button('Save changes')?.disabled).toBe(true);
+  });
+
+  it.each([
+    ['confirms before sending when invoices exist', true],
+    ['sends first and confirms after a server 409', false],
+  ])('asks to confirm a currency change and %s (FR-08, AC-10)', async (_name, hasInvoices) => {
+    await setup();
+    flushInitial({ ...SETTINGS_RESPONSE, hasInvoices });
+    await stable();
+
+    page().form.markAsDirty();
+    page().form.controls.currency.setValue('EUR');
+    await stable();
+
+    const save = async () => {
+      button('Save changes')?.click();
+      await stable();
+    };
+    const dialogText = 'Change currency to EUR? Existing invoices keep their original currency.';
+
+    if (hasInvoices) {
+      await save();
+      httpTesting.expectNone({ method: 'PUT', url: SETTINGS_URL });
+      expect(document.body.textContent).toContain(dialogText);
+      dialogButton('Cancel')?.click();
+      await stable();
+      expect(page().form.controls.currency.value).toBe('EUR');
+      await save();
+    } else {
+      await save();
+      const first = httpTesting.expectOne({ method: 'PUT', url: SETTINGS_URL });
+      expect(first.request.body).not.toHaveProperty('confirmCurrencyChange');
+      first.flush(
+        { status: 409, errors: { currency: ['Confirm the currency change.'] } },
+        { status: 409, statusText: 'Conflict' },
+      );
+      await stable();
+      expect(document.body.textContent).toContain(dialogText);
+      expect(page().form.controls.currency.value).toBe('EUR');
+    }
+
+    dialogButton('Change currency')?.click();
+    await stable();
+    const confirmed = httpTesting.expectOne({ method: 'PUT', url: SETTINGS_URL });
+    expect(confirmed.request.body).toMatchObject({ currency: 'EUR', confirmCurrencyChange: true });
+    confirmed.flush({ ...SETTINGS_RESPONSE, hasInvoices, currency: 'EUR' });
+    await stable();
+    httpTesting.expectOne(SESSION_URL).flush({
+      user: { id: 'u-1', firstName: 'Jane', lastName: 'Doe', email: 'owner@acme.com' },
+      organization: { id: 'o-1', name: 'Acme' },
+      role: { code: 'owner', name: 'Owner' },
+    });
+    await stable();
+  });
+
+  it('binds the Prices include tax switch and edits sequences through the dialog, routing server errors to it (FR-11, FR-12, AC-19)', async () => {
+    await setup();
+    flushInitial();
+    await stable();
+
+    const taxSwitch = host.querySelector<HTMLInputElement>('#organization-pricesIncludeTax')!;
+    expect(taxSwitch.getAttribute('role')).toBe('switch');
+    taxSwitch.click();
+    await stable();
+    expect(page().form.controls.pricesIncludeTax.value).toBe(true);
+    expect(button('Save changes')?.disabled).toBe(false);
+    expect(host.querySelector('a[href="/coming-soon/tax-rates"]')).not.toBeNull();
+
+    button('Edit sequences')?.click();
+    await stable();
+    const dialog = harness.fixture.debugElement.query(By.directive(SequencesDialog))
+      .componentInstance as SequencesDialog;
+    expect(document.body.textContent).toContain('Edit sequences');
+    expect(dialog.form.getRawValue()).toEqual({
+      nextQuoteNumber: 10,
+      nextWorkOrderNumber: 20,
+      nextInvoiceNumber: 1050,
+    });
+
+    // Cancel discards; an invalid value shows a field message; Apply copies valid values.
+    dialog.form.patchValue({ nextQuoteNumber: 99 });
+    bodyButton('Cancel')?.click();
+    await stable();
+    expect(page().form.controls.nextQuoteNumber.value).toBe(10);
+
+    button('Edit sequences')?.click();
+    await stable();
+    dialog.form.patchValue({ nextQuoteNumber: null });
+    bodyButton('Apply')?.click();
+    await stable();
+    expect(document.body.textContent).toContain('This field is required.');
+    dialog.form.patchValue({ nextQuoteNumber: 15 });
+    bodyButton('Apply')?.click();
+    await stable();
+    expect(page().form.controls.nextQuoteNumber.value).toBe(15);
+    expect(page().form.dirty).toBe(true);
+
+    // A server 400 for the quote number: summary link opens the dialog; focus goes to the link.
+    button('Save changes')?.click();
+    await stable();
+    httpTesting.expectOne({ method: 'PUT', url: SETTINGS_URL }).flush(
+      {
+        status: 400,
+        errors: { nextQuoteNumber: ['Enter a number greater than the last quote number.'] },
+      },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    await stable();
+    expect(document.activeElement?.textContent).toContain('Edit sequences');
+    const link = host.querySelector<HTMLAnchorElement>('#company-setup-error-summary a')!;
+    expect(link.textContent).toContain('Next quote number');
+    link.click();
+    await stable();
+    expect(document.body.textContent).toContain(
+      'Enter a number greater than the last quote number.',
+    );
+  });
+
+  it('shows the Main branch tag, Team and generic time zone, and runs Set as main and Deactivate from the row menu (FR-13, FR-15, AC-14, AC-16, AC-17)', async () => {
+    await setup();
+    flushInitial();
+    await stable();
+
+    const rows = Array.from(host.querySelectorAll('tbody tr'));
+    expect(rows[0].textContent).toContain('Austin Central');
+    expect(rows[0].textContent).toContain('Main branch');
+    expect(rows[0].textContent).toContain('1 technician');
+    expect(rows[0].textContent).not.toContain('1 technicians');
+    expect(rows[0].textContent).toContain('Central Time');
+    expect(rows[1].textContent).toContain('3 technicians');
+    expect(rows[1].textContent).not.toContain('Main branch');
+
+    // Set as main: Round Rock becomes main after the list reloads.
+    await rowMenu('Round Rock', 'Set as main branch');
+    httpTesting
+      .expectOne({ method: 'POST', url: `${BRANCHES_URL}/b-2/set-main` })
+      .flush(null, { status: 204, statusText: 'No Content' });
+    await stable();
+    httpTesting.expectOne(BRANCHES_URL).flush({
+      items: [
+        { ...BRANCH_A, isMain: false },
+        { ...BRANCH_B, isMain: true },
+      ],
+    });
+    await stable();
+    expect(host.textContent).toContain('Round Rock is now the main branch');
+
+    // Deactivate is disabled for the main branch; enabled (with confirmation) for the other.
+    await rowMenu('Round Rock', 'Deactivate');
+    httpTesting.expectNone({ method: 'POST', url: `${BRANCHES_URL}/b-2/deactivate` });
+    expect(dialogVisible()).toBe(false);
+    document.body.click();
+    await stable();
+
+    await rowMenu('Austin Central', 'Deactivate');
     expect(document.body.textContent).toContain(
       'No new requests, quotes or work orders can be created for this branch.',
     );
     dialogButton('Deactivate')?.click();
     await stable();
-
     httpTesting
       .expectOne({ method: 'POST', url: `${BRANCHES_URL}/b-1/deactivate` })
       .flush(null, { status: 204, statusText: 'No Content' });
     await stable();
-    httpTesting
-      .expectOne(BRANCHES_URL)
-      .flush({ items: [{ ...BRANCH_A, isActive: false }, BRANCH_B] });
-    await stable();
-
-    expect(host.textContent).toContain('Austin Central deactivated');
-
-    // Only Round Rock is active now: its row Deactivate is pre-disabled with the BR-06 tooltip.
-    const onlyActiveDeactivate = Array.from(host.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Deactivate',
-    ) as HTMLButtonElement;
-    expect(onlyActiveDeactivate.disabled).toBe(true);
-
-    // Opening its drawer pre-disables the same action there too.
-    const roundRockRow = Array.from(host.querySelectorAll('.branch-list__row')).find((row) =>
-      row.textContent?.includes('Round Rock'),
-    ) as HTMLElement;
-    roundRockRow.click();
-    await stable();
-    httpTesting.expectOne({ method: 'GET', url: `${BRANCHES_URL}/b-2` }).flush({
-      ...BRANCH_B,
-      email: '',
-      phone: '',
-      businessHours: {},
-      updatedAt: '2026-01-01T00:00:00.000000Z',
+    httpTesting.expectOne(BRANCHES_URL).flush({
+      items: [
+        { ...BRANCH_A, isMain: false, isActive: false },
+        { ...BRANCH_B, isMain: true },
+      ],
     });
     await stable();
+    expect(host.textContent).toContain('Austin Central deactivated');
 
-    const drawerDeactivate = host.querySelector<HTMLButtonElement>('.branch-drawer__deactivate');
-    expect(drawerDeactivate?.disabled).toBe(true);
-
-    const drawerCancel = Array.from(host.querySelectorAll('.branch-drawer button')).find(
-      (b) => b.textContent?.trim() === 'Cancel',
-    ) as HTMLButtonElement;
-    drawerCancel.click();
-    await stable();
-
-    // Reactivate the inactive branch: no confirmation dialog.
-    const reactivateButton = Array.from(host.querySelectorAll('button')).find(
-      (b) => b.textContent?.trim() === 'Reactivate',
-    ) as HTMLButtonElement;
-    reactivateButton.click();
-    await stable();
+    // Reactivate needs no confirmation.
+    await rowMenu('Austin Central', 'Reactivate');
     expect(dialogVisible()).toBe(false);
-
     httpTesting
       .expectOne({ method: 'POST', url: `${BRANCHES_URL}/b-1/reactivate` })
       .flush(null, { status: 204, statusText: 'No Content' });
     await stable();
     httpTesting.expectOne(BRANCHES_URL).flush({ items: [BRANCH_A, BRANCH_B] });
     await stable();
-
-    expect(host.textContent).toContain('Austin Central reactivated');
   });
 
-  it('prompts "Discard unsaved changes?" via the route-leave guard and on closing a dirty drawer; Keep editing cancels both (AC-29)', async () => {
-    // --- Route leave with a dirty organization form: exercise the guard's
-    // decision function directly (`companySettingsUnsavedChangesGuard` is a
-    // one-line delegation to it, see the guard file) rather than through a
-    // real `Router` navigation, whose cancellation handling is flaky under
-    // Zone.js test teardown timing. ---
+  it('shows every new control read-only for a Viewer (FR-17, AC-20)', async () => {
+    await setup();
+    flushInitial({ ...SETTINGS_RESPONSE, canManage: false, logo: LOGO_METADATA });
+    await stable();
+    httpTesting
+      .expectOne({ method: 'GET', url: LOGO_URL })
+      .flush(new Blob(['x'], { type: 'image/png' }));
+    await stable();
+
+    expect(host.querySelector('img')).not.toBeNull();
+    for (const label of [
+      'Change logo',
+      'Remove logo',
+      'Save changes',
+      'Discard changes',
+      'Add branch',
+    ]) {
+      expect(button(label), label).toBeUndefined();
+    }
+    expect(host.querySelector<HTMLInputElement>('#organization-pricesIncludeTax')?.disabled).toBe(
+      true,
+    );
+
+    // Sequences: "View sequences" opens a read-only dialog with only Close.
+    button('View sequences')?.click();
+    await stable();
+    expect(document.body.textContent).toContain('Sequences');
+    expect(bodyButton('Apply')).toBeUndefined();
+    expect(bodyButton('Cancel')).toBeUndefined();
+    expect(bodyButton('Close')).toBeDefined();
+    expect(document.querySelector<HTMLInputElement>('#sequence-nextQuoteNumber')?.disabled).toBe(
+      true,
+    );
+    bodyButton('Close')?.click();
+    await stable();
+
+    // Row menu offers only View; the drawer footer only Close and its switch is disabled.
+    await rowMenu('Round Rock', 'View');
+    httpTesting.expectOne({ method: 'GET', url: `${BRANCHES_URL}/b-2` }).flush({
+      ...BRANCH_B,
+      email: '',
+      phone: '',
+      businessHours: {},
+      servicePostalCodes: [],
+      usesCompanyBilling: true,
+      updatedAt: '2026-01-01T00:00:00.000000Z',
+    });
+    await stable();
+    expect(host.querySelector<HTMLInputElement>('#branch-usesCompanyBilling')?.disabled).toBe(true);
+    const footerButtons = Array.from(
+      host.querySelectorAll('.branch-drawer__footer-bar button'),
+      (b) => b.textContent?.trim(),
+    );
+    expect(footerButtons).toEqual(['Close']);
+  });
+
+  it('prompts "Discard unsaved changes?" via the route-leave guard and on closing a dirty drawer; Keep editing cancels both', async () => {
     await setup();
     flushInitial(SETTINGS_RESPONSE, 200, { items: [BRANCH_A] });
     await stable();
@@ -380,15 +696,14 @@ describe('CompanySetup', () => {
     await stable();
     expect(secondValue).toBe(true);
 
-    // --- Closing a dirty drawer (fresh instance; no route guard needed here) ---
+    // Closing a dirty drawer (fresh instance).
     await setup();
     flushInitial(SETTINGS_RESPONSE, 200, { items: [BRANCH_A] });
     await stable();
 
     button('Add branch')?.click();
     await stable();
-    const drawerNameInput = host.querySelector<HTMLInputElement>('#branch-name')!;
-    type(drawerNameInput, 'New Branch Draft');
+    type(host.querySelector<HTMLInputElement>('#branch-name')!, 'New Branch Draft');
     await stable();
 
     const cancelButton = Array.from(host.querySelectorAll('.branch-drawer button')).find(

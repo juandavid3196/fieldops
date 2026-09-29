@@ -26,7 +26,8 @@ public sealed class BranchesController(
     CreateBranchHandler createHandler,
     UpdateBranchHandler updateHandler,
     DeactivateBranchHandler deactivateHandler,
-    ReactivateBranchHandler reactivateHandler) : ControllerBase
+    ReactivateBranchHandler reactivateHandler,
+    SetMainBranchHandler setMainHandler) : ControllerBase
 {
     public const int MaxRequestBodyBytes = 32 * 1024;
 
@@ -113,6 +114,8 @@ public sealed class BranchesController(
             request.PostalCode,
             request.CountryCode,
             request.BusinessHours,
+            request.ServicePostalCodes,
+            request.UsesCompanyBilling,
             ticket.UserId,
             GetClientIpAddress());
 
@@ -181,6 +184,8 @@ public sealed class BranchesController(
             request.PostalCode,
             request.CountryCode,
             request.BusinessHours,
+            request.ServicePostalCodes,
+            request.UsesCompanyBilling,
             request.UpdatedAt,
             ticket.UserId,
             GetClientIpAddress());
@@ -233,8 +238,37 @@ public sealed class BranchesController(
         {
             DeactivateBranchOutcome.NotFound => NotFound(),
             DeactivateBranchOutcome.LastActiveConflict => LastActiveConflictProblem(),
+            DeactivateBranchOutcome.MainBranchConflict => MainBranchConflictProblem(),
             DeactivateBranchOutcome.NoOp or DeactivateBranchOutcome.Changed => NoContent(),
             _ => throw new InvalidOperationException("Unknown deactivate branch outcome."),
+        };
+    }
+
+    [HttpPost("{id:guid}/set-main")]
+    [Authorize(Policy = CompanySettingsPolicies.Manage)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> SetMain(Guid id, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        var outcome = await setMainHandler.HandleAsync(
+            ticket.OrganizationId, id, ticket.UserId, GetClientIpAddress(), cancellationToken);
+
+        return outcome switch
+        {
+            SetMainBranchOutcome.NotFound => NotFound(),
+            SetMainBranchOutcome.InactiveConflict => InactiveMainConflictProblem(),
+            SetMainBranchOutcome.NoOp or SetMainBranchOutcome.Changed => NoContent(),
+            _ => throw new InvalidOperationException("Unknown set main branch outcome."),
         };
     }
 
@@ -276,7 +310,9 @@ public sealed class BranchesController(
             item.PostalCode,
             item.CountryCode,
             item.Timezone,
-            item.IsActive);
+            item.IsActive,
+            item.IsMain,
+            item.TechnicianCount);
 
     private static BranchDetailResponse ToDetailResponse(BranchDetailView detail) =>
         new(
@@ -294,6 +330,9 @@ public sealed class BranchesController(
             detail.Timezone,
             JsonSerializer.Deserialize<JsonElement>(detail.BusinessHours),
             detail.IsActive,
+            detail.IsMain,
+            detail.ServicePostalCodes,
+            detail.UsesCompanyBilling,
             detail.UpdatedAt);
 
     private IActionResult DuplicateCodeProblem()
@@ -317,6 +356,20 @@ public sealed class BranchesController(
         {
             Status = StatusCodes.Status409Conflict,
             Title = "At least one branch must stay active.",
+        });
+
+    private IActionResult MainBranchConflictProblem() =>
+        Conflict(new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "The main branch can't be deactivated.",
+        });
+
+    private IActionResult InactiveMainConflictProblem() =>
+        Conflict(new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = "Only an active branch can be the main branch.",
         });
 
     private IActionResult StaleProblem() =>

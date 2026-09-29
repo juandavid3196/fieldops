@@ -22,5 +22,7 @@ public sealed record CreateBranchCommand(
     string? PostalCode,
     string? CountryCode,
     JsonElement? BusinessHours,
+    JsonElement? ServicePostalCodes,
+    JsonElement? UsesCompanyBilling,
     Guid ActorUserId,
     IPAddress? ClientIp);

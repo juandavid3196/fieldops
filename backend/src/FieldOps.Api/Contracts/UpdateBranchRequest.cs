@@ -21,4 +21,6 @@ public sealed record UpdateBranchRequest(
     string? PostalCode,
     string? CountryCode,
     JsonElement? BusinessHours,
+    JsonElement? ServicePostalCodes,
+    JsonElement? UsesCompanyBilling,
     string? UpdatedAt);
