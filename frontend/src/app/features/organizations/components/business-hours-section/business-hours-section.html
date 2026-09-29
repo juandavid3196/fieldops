@@ -1,0 +1,99 @@
+<app-wizard-card
+  headingId="business-hours-heading"
+  title="Business hours"
+  description="Set the days and times your work is available. These hours will be shown on quotes and customer communications."
+  icon="pi-clock"
+>
+  @if (rootError(); as message) {
+    <p class="business-hours__root-error">
+      <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+      {{ message }}
+    </p>
+  }
+
+  <div class="business-hours__rows">
+    @for (day of weekdays; track day) {
+      <div class="business-hours__row">
+        <div class="business-hours__day">
+          <span class="business-hours__day-label">{{ dayLabel(day) }}</span>
+          <p-toggleswitch
+            [inputId]="controlId(day, 'open')"
+            [formControl]="dayGroup(day).controls.open"
+            [ariaLabel]="dayLabel(day) + ' open'"
+            [readonly]="submitting()"
+          />
+          <span class="business-hours__state">{{ isOpen(day) ? 'Open' : 'Closed' }}</span>
+        </div>
+
+        <div class="business-hours__times">
+          <div class="business-hours__time-field">
+            <p-select
+              [inputId]="controlId(day, 'start')"
+              appendTo="body"
+              [formControl]="dayGroup(day).controls.start"
+              [options]="timeOptions"
+              optionLabel="label"
+              optionValue="code"
+              [ariaLabel]="dayLabel(day) + ' start time'"
+              fluid
+              [readonly]="submitting()"
+              [invalid]="startError(day) !== null"
+              [attr.aria-invalid]="startError(day) !== null ? 'true' : null"
+              [attr.aria-describedby]="
+                startError(day) !== null ? controlId(day, 'start') + '-error' : null
+              "
+              (onBlur)="blur(day, 'start')"
+            />
+            @if (startError(day); as message) {
+              <p class="business-hours__error" [id]="controlId(day, 'start') + '-error'">
+                <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+                {{ message }}
+              </p>
+            }
+          </div>
+
+          <span class="business-hours__separator" aria-hidden="true">–</span>
+
+          <div class="business-hours__time-field">
+            <p-select
+              [inputId]="controlId(day, 'end')"
+              appendTo="body"
+              [formControl]="dayGroup(day).controls.end"
+              [options]="timeOptions"
+              optionLabel="label"
+              optionValue="code"
+              [ariaLabel]="dayLabel(day) + ' end time'"
+              fluid
+              [readonly]="submitting()"
+              [invalid]="endError(day) !== null"
+              [attr.aria-invalid]="endError(day) !== null ? 'true' : null"
+              [attr.aria-describedby]="
+                endError(day) !== null ? controlId(day, 'end') + '-error' : null
+              "
+              (onBlur)="blur(day, 'end')"
+            />
+            @if (endError(day); as message) {
+              <p class="business-hours__error" [id]="controlId(day, 'end') + '-error'">
+                <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+                {{ message }}
+              </p>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <button
+    pButton
+    type="button"
+    severity="secondary"
+    variant="outlined"
+    class="business-hours__copy"
+    [disabled]="submitting()"
+    (click)="copyMonday.emit()"
+  >
+    <i class="pi pi-copy" aria-hidden="true"></i>
+    Copy Monday to weekdays
+  </button>
+</app-wizard-card>

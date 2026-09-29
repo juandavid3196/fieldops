@@ -1,0 +1,122 @@
+<div class="review-step__banner">
+  <span class="review-step__banner-icon" aria-hidden="true"><i class="pi pi-check"></i></span>
+  <div>
+    <h2 class="review-step__banner-title">Everything is ready</h2>
+    <p class="review-step__banner-text">
+      Your organization is configured and ready to be created. You can change these settings later.
+    </p>
+  </div>
+</div>
+
+<div class="review-step__grid">
+  <app-wizard-card
+    headingId="review-company-heading"
+    title="Company profile"
+    description="Your company information and location details."
+    icon="pi-building"
+  >
+    <button
+      cardAside
+      type="button"
+      class="review-step__edit"
+      aria-label="Edit Company profile"
+      [disabled]="submitting()"
+      (click)="edit.emit(1)"
+    >
+      Edit
+    </button>
+    <dl class="review-step__rows">
+      @for (row of companyRows(); track row.label) {
+        <div class="review-step__row">
+          <dt>{{ row.label }}</dt>
+          <dd>{{ row.lines[0] }}</dd>
+        </div>
+      }
+    </dl>
+  </app-wizard-card>
+
+  <app-wizard-card
+    headingId="review-branch-heading"
+    title="First branch"
+    description="Your primary operating location."
+    icon="pi-map-marker"
+  >
+    <button
+      cardAside
+      type="button"
+      class="review-step__edit"
+      aria-label="Edit First branch"
+      [disabled]="submitting()"
+      (click)="edit.emit(1)"
+    >
+      Edit
+    </button>
+    <dl class="review-step__rows">
+      @for (row of branchRows(); track row.label) {
+        <div class="review-step__row">
+          <dt>{{ row.label }}</dt>
+          <dd>
+            @for (line of row.lines; track $index) {
+              <span class="review-step__line">{{ line }}</span>
+            }
+          </dd>
+        </div>
+      }
+    </dl>
+  </app-wizard-card>
+
+  <app-wizard-card
+    headingId="review-settings-heading"
+    title="Business settings"
+    description="Your financial and operational preferences."
+    icon="pi-file"
+  >
+    <button
+      cardAside
+      type="button"
+      class="review-step__edit"
+      aria-label="Edit Business settings"
+      [disabled]="submitting()"
+      (click)="edit.emit(2)"
+    >
+      Edit
+    </button>
+    <dl class="review-step__rows">
+      @for (row of settingsRows(); track row.label) {
+        <div class="review-step__row">
+          <dt>{{ row.label }}</dt>
+          <dd>{{ row.lines[0] }}</dd>
+        </div>
+      }
+    </dl>
+  </app-wizard-card>
+
+  <app-wizard-card
+    headingId="review-owner-heading"
+    title="Owner account"
+    description="Your account information and role."
+    icon="pi-user"
+  >
+    <button
+      cardAside
+      type="button"
+      class="review-step__edit"
+      aria-label="Edit Owner account"
+      [disabled]="submitting()"
+      (click)="edit.emit(3)"
+    >
+      Edit
+    </button>
+    <div class="review-step__owner">
+      <span class="review-step__initials" aria-hidden="true">{{ owner().initials }}</span>
+      <div class="review-step__owner-details">
+        <p class="review-step__owner-name">
+          {{ owner().name }}
+          <span class="review-step__tag">Owner</span>
+        </p>
+        <p class="review-step__owner-email">{{ owner().email }}</p>
+        <p class="review-step__owner-phone"><span>Phone</span> {{ owner().phone }}</p>
+      </div>
+    </div>
+  </app-wizard-card>
+</div>

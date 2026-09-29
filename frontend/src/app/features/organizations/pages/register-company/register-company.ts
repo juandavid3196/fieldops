@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -5,22 +6,29 @@ import {
   Injector,
   afterNextRender,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { ConfirmationService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
+import { ConfirmDialog } from 'primeng/confirmdialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { Observable, map } from 'rxjs';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
+import { BusinessHoursSection } from '../../components/business-hours-section/business-hours-section';
 import { CompanyProfileSection } from '../../components/company-profile-section/company-profile-section';
 import { DocumentNumberingSection } from '../../components/document-numbering-section/document-numbering-section';
 import { ErrorSummary, FieldErrorLink } from '../../components/error-summary/error-summary';
 import { FirstBranchSection } from '../../components/first-branch-section/first-branch-section';
 import { OwnerAccountSection } from '../../components/owner-account-section/owner-account-section';
+import { ReviewStep } from '../../components/review-step/review-step';
 import { TaxesCurrencySection } from '../../components/taxes-currency-section/taxes-currency-section';
+import { WizardSidePanel } from '../../components/wizard-side-panel/wizard-side-panel';
 import { SUPPORTED_COUNTRY_CODES } from '../../data/supported-countries';
 import { SUPPORTED_CURRENCY_CODES } from '../../data/supported-currencies';
 import {
@@ -42,6 +50,14 @@ import {
 } from '../../models/organization-registration.model';
 import { OrganizationRegistrationService } from '../../services/organization-registration.service';
 import {
+  FormStep,
+  WizardStep,
+  copyMondayToWeekdays,
+  numberingExamples,
+  passwordRequirements,
+  stepOfField,
+} from './register-company.helpers';
+import {
   FIELD_LABELS,
   SIMPLE_FIELD_KEYS,
   businessHoursEndKey,
@@ -58,27 +74,61 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
 const BUSINESS_HOURS_FIELD_PATTERN = /^branch\.businessHours\.(\w+)\.(start|end)$/;
 
+const STEP_HEADERS: Readonly<Record<WizardStep, { title: string; description: string }>> = {
+  1: {
+    title: 'Create your organization',
+    description:
+      'Tell us about your company and first location. You can change these details later.',
+  },
+  2: {
+    title: 'Business settings',
+    description: 'Set your operating hours, currency, taxes, and document numbering.',
+  },
+  3: {
+    title: 'Owner account',
+    description: "Create the account you'll use to manage this organization.",
+  },
+  4: {
+    title: 'Review and create',
+    description: 'Confirm your details before creating your FieldOps workspace.',
+  },
+};
+
+type FocusTarget = 'title' | 'invalid' | 'summary';
+
+/**
+ * Organization onboarding wizard (`/auth/register-company`): four steps over one reactive form
+ * held only in memory (BR-11), validated per step, sent in a single request from Review.
+ */
 @Component({
   selector: 'app-register-company',
   imports: [
     ReactiveFormsModule,
+    RouterLink,
     ButtonDirective,
+    ConfirmDialog,
     SpinnerIcon,
+    ErrorSummary,
+    WizardSidePanel,
     CompanyProfileSection,
     FirstBranchSection,
+    BusinessHoursSection,
     TaxesCurrencySection,
     DocumentNumberingSection,
     OwnerAccountSection,
-    ErrorSummary,
+    ReviewStep,
   ],
+  providers: [ConfirmationService],
   templateUrl: './register-company.html',
   styleUrl: './register-company.scss',
 })
 export class RegisterCompany {
   private readonly registrationService = inject(OrganizationRegistrationService);
   private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
+  private readonly window = inject(DOCUMENT).defaultView;
   private readonly hostElement: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
   private submitAttempted = false;
@@ -89,23 +139,47 @@ export class RegisterCompany {
   readonly currencyOptionsList = currencyOptions(SUPPORTED_CURRENCY_CODES);
 
   readonly form = buildRegisterCompanyForm();
+  private readonly initialValue = JSON.stringify(this.form.getRawValue());
 
+  /** Memory-only mirror of the form value for derived, live UI (examples, requirements, review). */
+  readonly formValue = toSignal(this.form.valueChanges.pipe(map(() => this.form.getRawValue())), {
+    initialValue: this.form.getRawValue(),
+  });
+
+  readonly step = signal<WizardStep>(1);
+  readonly reached = signal<ReadonlySet<WizardStep>>(new Set<WizardStep>([1]));
+  readonly completed = signal<ReadonlySet<WizardStep>>(new Set<WizardStep>());
   readonly fieldErrors = signal<FieldErrors>({});
   readonly pageMessage = signal<string | null>(null);
   readonly submitting = signal(false);
   readonly retryLocked = signal(false);
   readonly branchTimezoneDirty = signal(false);
-  readonly submitDisabled = computed(() => this.submitting() || this.retryLocked());
+  private readonly registered = signal(false);
+
+  readonly header = computed(() => STEP_HEADERS[this.step()]);
+  readonly reviewReached = computed(() => this.reached().has(4));
+  readonly primaryLabel = computed(() =>
+    this.step() < 4 && this.reviewReached() ? 'Back to review' : 'Continue',
+  );
+  readonly createDisabled = computed(() => this.submitting() || this.retryLocked());
+  readonly changed = computed(() => JSON.stringify(this.formValue()) !== this.initialValue);
+
+  readonly examples = computed(() => numberingExamples(this.formValue().organization));
+  readonly requirements = computed(() =>
+    passwordRequirements(this.formValue().owner.password, this.formValue().owner.email),
+  );
 
   readonly errorLinks = computed<readonly FieldErrorLink[]>(() =>
     (Object.entries(this.fieldErrors()) as [FieldKey, string][])
-      .filter(([field]) => field !== 'branch.businessHours')
+      .filter(([field]) => stepOfField(field) === this.step())
       .map(([field, message]) => ({
         fieldId: fieldControlId(field),
         label: FIELD_LABELS[field],
         message,
       })),
   );
+
+  private readonly beforeUnload = (event: BeforeUnloadEvent): void => event.preventDefault();
 
   constructor() {
     this.destroyRef.onDestroy(() => clearTimeout(this.retryTimer));
@@ -117,10 +191,47 @@ export class RegisterCompany {
           this.form.controls.branch.controls.timezone.setValue(value, { emitEvent: false });
         }
       });
+
+    // FR-12: the browser leave prompt exists only while the wizard holds changed data.
+    effect((onCleanup) => {
+      const target = this.window;
+      if (target && this.changed() && !this.registered()) {
+        target.addEventListener('beforeunload', this.beforeUnload);
+        onCleanup(() => target.removeEventListener('beforeunload', this.beforeUnload));
+      }
+    });
+  }
+
+  /** Consulted by `registerCompanyLeaveGuard` (FR-12, BR-08). */
+  canLeave(): boolean | Observable<boolean> {
+    if (this.registered() || JSON.stringify(this.form.getRawValue()) === this.initialValue) {
+      return true;
+    }
+    return new Observable<boolean>((subscriber) => {
+      this.confirmationService.confirm({
+        header: 'Discard setup?',
+        message: "Your organization hasn't been created. The details you entered will be lost.",
+        acceptButtonProps: { label: 'Discard', severity: 'danger' },
+        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
+        accept: () => {
+          subscriber.next(true);
+          subscriber.complete();
+        },
+        reject: () => {
+          subscriber.next(false);
+          subscriber.complete();
+        },
+      });
+    });
   }
 
   onBranchTimezoneChanged(): void {
     this.branchTimezoneDirty.set(true);
+  }
+
+  copyMonday(): void {
+    const hours = this.form.controls.branch.controls.businessHours;
+    hours.patchValue(copyMondayToWeekdays(hours.getRawValue()));
   }
 
   onFieldBlur(field: FieldKey): void {
@@ -130,18 +241,67 @@ export class RegisterCompany {
     this.setFieldError(field, this.computeFieldError(field));
   }
 
-  submit(): void {
-    if (this.submitDisabled()) {
+  back(): void {
+    if (this.submitting() || this.step() === 1) {
+      return;
+    }
+    this.goTo((this.step() - 1) as WizardStep, 'title');
+  }
+
+  selectStep(step: WizardStep): void {
+    if (this.submitting() || !this.reached().has(step)) {
+      return;
+    }
+    this.goTo(step, 'title');
+  }
+
+  edit(step: FormStep): void {
+    if (!this.submitting()) {
+      this.goTo(step, 'title');
+    }
+  }
+
+  /** Form submit (Enter or the primary button): Continue / Back to review, or Create. */
+  primaryAction(): void {
+    if (this.submitting()) {
+      return;
+    }
+    if (this.step() === 4) {
+      this.create();
+    } else {
+      this.continueFromStep(this.step() as FormStep);
+    }
+  }
+
+  private continueFromStep(step: FormStep): void {
+    this.submitAttempted = true;
+    const errors = this.validateStep(step);
+    this.fieldErrors.update((current) => ({ ...withoutStep(current, step), ...errors }));
+    if (Object.keys(errors).length > 0) {
+      this.focusAfterRender('invalid');
+      return;
+    }
+    this.completed.update((set) => new Set<WizardStep>(set).add(step));
+    this.goTo(this.reviewReached() ? 4 : ((step + 1) as WizardStep), 'title');
+  }
+
+  private create(): void {
+    if (this.createDisabled()) {
       return;
     }
 
     this.submitAttempted = true;
     this.pageMessage.set(null);
 
-    const errors = this.validateForm();
+    const errors: FieldErrors = {
+      ...this.validateStep(1),
+      ...this.validateStep(2),
+      ...this.validateStep(3),
+    };
     this.fieldErrors.set(errors);
-    if (Object.keys(errors).length > 0) {
-      this.focusFirstInvalid();
+    const invalid = Object.keys(errors) as FieldKey[];
+    if (invalid.length > 0) {
+      this.goTo(Math.min(...invalid.map(stepOfField)) as WizardStep, 'invalid');
       return;
     }
 
@@ -157,60 +317,45 @@ export class RegisterCompany {
   }
 
   private handleRegistered(): void {
-    // The submitting state stays until the navigation replaces this page.
+    // The submitting state stays until the navigation replaces this page; success skips FR-12.
+    this.registered.set(true);
     this.router.navigateByUrl('/auth/sign-in?registered=true', { replaceUrl: true }).then(
       (navigated) => {
         if (!navigated) {
+          this.registered.set(false);
           this.submitting.set(false);
         }
       },
-      () => this.submitting.set(false),
+      () => {
+        this.registered.set(false);
+        this.submitting.set(false);
+      },
     );
   }
 
+  /** BR-10: mapped field errors open the earliest step with one; everything else stays on Review. */
   private handleRegistrationError(error: unknown): void {
     this.submitting.set(false);
-    this.form.controls.owner.controls.password.setValue('');
-    this.form.controls.confirmPassword.setValue('');
 
     const apiError: ApiError | null = isApiError(error) ? error : null;
 
-    switch (apiError?.kind) {
-      case 'validation': {
-        const mapped = mapServerFieldErrors(apiError.fieldErrors);
-        this.fieldErrors.set(mapped);
-        if (Object.keys(mapped).length > 0) {
-          this.pageMessage.set(apiError.message);
-          this.focusFirstInvalid();
-        } else {
-          this.pageMessage.set(apiError.message);
-          this.focusSummary();
-        }
-        return;
-      }
-      case 'conflict': {
-        const mapped = mapServerFieldErrors(apiError.fieldErrors);
+    if (apiError?.kind === 'validation' || apiError?.kind === 'conflict') {
+      const mapped = mapServerFieldErrors(apiError.fieldErrors);
+      const keys = Object.keys(mapped) as FieldKey[];
+      if (keys.length > 0) {
         this.fieldErrors.set(mapped);
         this.pageMessage.set(null);
-        this.focusFirstInvalid();
+        this.goTo(Math.min(...keys.map(stepOfField)) as WizardStep, 'invalid');
         return;
       }
-      case 'rate-limited':
-        this.fieldErrors.set({});
-        this.pageMessage.set(apiError.message);
-        this.lockAfterRateLimit(apiError.retryAfterSeconds ?? DEFAULT_RETRY_AFTER_SECONDS);
-        this.focusSummary();
-        return;
-      case 'bad-request':
-        this.fieldErrors.set({});
-        this.pageMessage.set(apiError.message);
-        this.focusSummary();
-        return;
     }
 
     this.fieldErrors.set({});
     this.pageMessage.set(apiError?.message ?? 'An unexpected error occurred. Please try again.');
-    this.focusSummary();
+    if (apiError?.kind === 'rate-limited') {
+      this.lockAfterRateLimit(apiError.retryAfterSeconds ?? DEFAULT_RETRY_AFTER_SECONDS);
+    }
+    this.goTo(4, 'summary');
   }
 
   private lockAfterRateLimit(seconds: number): void {
@@ -219,29 +364,40 @@ export class RegisterCompany {
     this.retryTimer = setTimeout(() => this.retryLocked.set(false), seconds * 1000);
   }
 
-  private validateForm(): FieldErrors {
+  private goTo(step: WizardStep, focus: FocusTarget): void {
+    this.step.set(step);
+    this.reached.update((set) => new Set<WizardStep>(set).add(step));
+    this.focusAfterRender(focus);
+  }
+
+  private validateStep(step: FormStep): FieldErrors {
     const errors: FieldErrors = {};
     const values = this.form.getRawValue();
 
     for (const field of SIMPLE_FIELD_KEYS) {
+      if (stepOfField(field) !== step) {
+        continue;
+      }
       const message = validateField(field, values);
       if (message !== null) {
         errors[field] = message;
       }
     }
 
-    for (const day of WEEKDAYS) {
-      const dayValue = values.branch.businessHours[day];
-      if (!dayValue.open) {
-        continue;
-      }
-      const startMessage = validateBusinessHoursStart(dayValue.start);
-      if (startMessage !== null) {
-        errors[businessHoursStartKey(day)] = startMessage;
-      }
-      const endMessage = validateBusinessHoursEnd(dayValue.start, dayValue.end);
-      if (endMessage !== null) {
-        errors[businessHoursEndKey(day)] = endMessage;
+    if (step === 2) {
+      for (const day of WEEKDAYS) {
+        const dayValue = values.branch.businessHours[day];
+        if (!dayValue.open) {
+          continue;
+        }
+        const startMessage = validateBusinessHoursStart(dayValue.start);
+        if (startMessage !== null) {
+          errors[businessHoursStartKey(day)] = startMessage;
+        }
+        const endMessage = validateBusinessHoursEnd(dayValue.start, dayValue.end);
+        if (endMessage !== null) {
+          errors[businessHoursEndKey(day)] = endMessage;
+        }
       }
     }
 
@@ -284,12 +440,13 @@ export class RegisterCompany {
     });
   }
 
-  private focusFirstInvalid(): void {
+  private focusAfterRender(target: FocusTarget): void {
     afterNextRender(
       () => {
-        const firstInvalid = this.hostElement.querySelector<HTMLElement>('[aria-invalid="true"]');
-        if (firstInvalid) {
-          firstInvalid.focus();
+        if (target === 'title') {
+          this.hostElement.querySelector<HTMLElement>('#register-company-title')?.focus();
+        } else if (target === 'invalid') {
+          this.focusFirstInvalidNow();
         } else {
           this.focusSummaryNow();
         }
@@ -298,8 +455,17 @@ export class RegisterCompany {
     );
   }
 
-  private focusSummary(): void {
-    afterNextRender(() => this.focusSummaryNow(), { injector: this.injector });
+  private focusFirstInvalidNow(): void {
+    const firstInvalid = this.hostElement.querySelector<HTMLElement>('[aria-invalid="true"]');
+    if (firstInvalid === null) {
+      this.focusSummaryNow();
+      return;
+    }
+    // PrimeNG hosts carry the attribute; the focusable control is inside them.
+    const focusable = firstInvalid.matches('input, button, select, textarea')
+      ? firstInvalid
+      : (firstInvalid.querySelector<HTMLElement>('input, [role="combobox"]') ?? firstInvalid);
+    focusable.focus();
   }
 
   private focusSummaryNow(): void {
@@ -307,10 +473,20 @@ export class RegisterCompany {
   }
 }
 
+function withoutStep(errors: FieldErrors, step: FormStep): FieldErrors {
+  const remaining: FieldErrors = {};
+  for (const [field, message] of Object.entries(errors) as [FieldKey, string][]) {
+    if (stepOfField(field) !== step) {
+      remaining[field] = message;
+    }
+  }
+  return remaining;
+}
+
 function buildRegisterCompanyForm(): FormGroup<RegisterCompanyFormControls> {
   const companyTimezone = browserTimezone();
 
-  return new FormGroup({
+  const form = new FormGroup({
     organization: new FormGroup({
       name: new FormControl('', { nonNullable: true }),
       legalName: new FormControl('', { nonNullable: true }),
@@ -355,6 +531,24 @@ function buildRegisterCompanyForm(): FormGroup<RegisterCompanyFormControls> {
     }),
     confirmPassword: new FormControl('', { nonNullable: true }),
   });
+
+  // FR-05: a closed day's dropdowns are disabled. Raw values still feed validation and the body.
+  for (const day of WEEKDAYS) {
+    const group = form.controls.branch.controls.businessHours.controls[day];
+    const sync = (open: boolean): void => {
+      if (open) {
+        group.controls.start.enable({ emitEvent: false });
+        group.controls.end.enable({ emitEvent: false });
+      } else {
+        group.controls.start.disable({ emitEvent: false });
+        group.controls.end.disable({ emitEvent: false });
+      }
+    };
+    sync(group.controls.open.value);
+    group.controls.open.valueChanges.subscribe(sync);
+  }
+
+  return form;
 }
 
 function businessHoursDayGroup(

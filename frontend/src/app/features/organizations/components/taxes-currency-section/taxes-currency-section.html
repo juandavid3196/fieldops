@@ -1,7 +1,10 @@
-<section class="taxes-currency" aria-labelledby="taxes-currency-heading" [formGroup]="group()">
-  <h2 id="taxes-currency-heading">Taxes &amp; currency</h2>
-
-  <div class="taxes-currency__grid">
+<app-wizard-card
+  headingId="taxes-currency-heading"
+  title="Taxes & currency"
+  description="Choose your currency and default tax rate. These settings will be used on new quotes and invoices."
+  icon="pi-wallet"
+>
+  <div class="taxes-currency__grid" [formGroup]="group()">
     <app-form-field
       label="Currency"
       controlId="organization-currency"
@@ -10,6 +13,7 @@
     >
       <p-select
         inputId="organization-currency"
+        appendTo="body"
         formControlName="currency"
         [options]="currencyOptions()"
         optionLabel="label"
@@ -54,5 +58,10 @@
         (onBlur)="fieldBlur.emit('organization.defaultTaxRate')"
       />
     </app-form-field>
+
+    <app-wizard-note>
+      The selected currency will be used on new quotes and invoices. You can change this later in
+      your settings.
+    </app-wizard-note>
   </div>
-</section>
+</app-wizard-card>

@@ -1,0 +1,71 @@
+<aside class="side-panel">
+  <p class="side-panel__brand">
+    <i class="pi pi-cog" aria-hidden="true"></i>
+    <span>FieldOps</span>
+  </p>
+
+  <div class="side-panel__compact">
+    <p class="side-panel__compact-label">Step {{ current() }} of 4 · {{ labels[current()] }}</p>
+    <div class="side-panel__segments" aria-hidden="true">
+      @for (step of steps; track step) {
+        <span
+          class="side-panel__segment"
+          [class.side-panel__segment--done]="step <= current()"
+        ></span>
+      }
+    </div>
+  </div>
+
+  <div class="side-panel__intro">
+    <p class="side-panel__heading">Set up your workspace</p>
+    <p class="side-panel__text">Get your organization up and running in a few simple steps.</p>
+  </div>
+
+  <nav class="side-panel__nav" aria-label="Setup steps">
+    <ol class="side-panel__steps">
+      @for (step of steps; track step) {
+        @let entry = item(step);
+        <li class="side-panel__step" [class.side-panel__step--completed]="entry.completed">
+          @if (entry.selectable) {
+            <button
+              type="button"
+              class="side-panel__step-control"
+              [attr.aria-current]="entry.current ? 'step' : null"
+              [attr.aria-label]="accessibleName(entry)"
+              [disabled]="locked()"
+              (click)="stepSelected.emit(step)"
+            >
+              <span
+                class="side-panel__marker"
+                [class.side-panel__marker--active]="entry.current || entry.completed"
+                aria-hidden="true"
+              >
+                @if (entry.completed && !entry.current) {
+                  <i class="pi pi-check"></i>
+                } @else {
+                  {{ step }}
+                }
+              </span>
+              <span class="side-panel__step-label">{{ entry.label }}</span>
+            </button>
+          } @else {
+            <span class="side-panel__step-control side-panel__step-control--pending">
+              <span class="side-panel__marker" aria-hidden="true">{{ step }}</span>
+              <span class="side-panel__step-label">{{ entry.label }}</span>
+            </span>
+          }
+        </li>
+      }
+    </ol>
+  </nav>
+
+  <div class="side-panel__footer">
+    <p class="side-panel__secure">
+      <i class="pi pi-lock" aria-hidden="true"></i>
+      <span>Your information is secure and encrypted.</span>
+    </p>
+    <p class="side-panel__signin">
+      Already have an account? <a routerLink="/auth/sign-in">Sign in</a>
+    </p>
+  </div>
+</aside>

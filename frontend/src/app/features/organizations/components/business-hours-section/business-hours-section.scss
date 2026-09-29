@@ -1,0 +1,93 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.business-hours {
+  &__rows {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block: 0.75rem;
+    border-block-start: 1px solid var(--fo-color-row-divider);
+
+    @include bp.up(md) {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+  }
+
+  &__day {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.75rem;
+    min-block-size: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      inline-size: 15rem;
+    }
+  }
+
+  &__day-label {
+    inline-size: 6rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__state {
+    color: var(--fo-color-text-secondary);
+    font-size: 0.875rem;
+  }
+
+  &__times {
+    display: flex;
+    flex: 1;
+    align-items: flex-start;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  &__time-field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__separator {
+    align-self: center;
+    color: var(--fo-color-text-muted);
+  }
+
+  &__error,
+  &__root-error {
+    display: flex;
+    gap: 0.25rem;
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+
+    svg {
+      flex: none;
+      inline-size: 1rem;
+      block-size: 1rem;
+    }
+  }
+
+  &__copy {
+    margin-block-start: 1rem;
+    min-block-size: var(--fo-size-touch-target);
+    gap: 0.5rem;
+  }
+
+  p-select {
+    min-block-size: var(--fo-size-touch-target);
+  }
+}

@@ -5,44 +5,168 @@
   min-width: 0;
 }
 
-.register-company {
-  box-sizing: border-box;
-  max-width: 64rem;
-  margin-inline: auto;
-  padding: 1.5rem 1rem 3rem;
-  min-width: 0;
-  overflow-wrap: anywhere;
+.wizard {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+  background: var(--fo-color-app-background);
+  color: var(--fo-color-text);
 
-  @include bp.up(md) {
-    padding: 2.5rem 2rem 3rem;
+  @include bp.up(lg) {
+    display: grid;
+    grid-template-columns: 20rem minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    block-size: 100dvh;
+  }
+
+  &__main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-width: 0;
+    min-block-size: 0;
+  }
+
+  &__scroll {
+    flex: 1;
+    box-sizing: border-box;
+    inline-size: 100%;
+    padding: 1rem;
+    overflow-wrap: anywhere;
+
+    @include bp.up(md) {
+      padding: 1.5rem max(2rem, calc((100% - 72rem) / 2));
+    }
+
+    @include bp.up(lg) {
+      overflow-y: auto;
+    }
+  }
+
+  &__scroll app-error-summary {
+    display: block;
+    margin-block-end: 1.25rem;
+  }
+
+  &__eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--fo-color-text-secondary);
   }
 
   &__title {
-    margin: 0 0 1.5rem;
+    margin: 0.25rem 0 0.25rem;
     font-size: 1.75rem;
     font-weight: 700;
-    color: var(--p-text-color);
+    color: var(--fo-color-heading);
 
-    @include bp.up(md) {
-      font-size: 2rem;
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
     }
   }
 
-  &__form {
+  &__description {
+    margin: 0 0 1.25rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__stack {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.25rem;
     min-width: 0;
   }
 
-  &__submit {
-    min-height: var(--fo-size-touch-target);
+  &__columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+
+    @include bp.up(lg) {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  &__footer-links {
+    margin-block-start: 1.5rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+
+    @include bp.up(lg) {
+      display: none;
+    }
+
+    p {
+      margin: 0 0 0.5rem;
+    }
+
+    a {
+      color: var(--fo-color-primary-strong);
+      font-weight: 600;
+    }
+  }
+
+  &__actions {
+    position: sticky;
+    inset-block-end: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+    border-block-start: 1px solid var(--fo-color-border);
+    background: var(--fo-color-surface);
+
+    @include bp.up(md) {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding-inline: 2rem;
+    }
+  }
+
+  &__note {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__buttons {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+
+    @include bp.up(md) {
+      flex-direction: row;
+      align-items: flex-start;
+    }
+  }
+
+  &__create {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.25rem;
+  }
+
+  &__button {
+    gap: 0.5rem;
+    min-block-size: var(--fo-size-touch-target);
     inline-size: 100%;
 
     @include bp.up(md) {
-      align-self: flex-end;
       inline-size: auto;
-      min-inline-size: 14rem;
+      min-inline-size: 8rem;
     }
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--fo-color-text-muted);
   }
 }

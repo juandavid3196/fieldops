@@ -1,6 +1,7 @@
 import { Route, Routes } from '@angular/router';
 
 import { companySettingsUnsavedChangesGuard } from './guards/company-settings-unsaved-changes.guard';
+import { registerCompanyLeaveGuard } from './guards/register-company-leave.guard';
 
 /** Authenticated company settings; mounted inside the app shell, which owns the auth guard. */
 export const companyAdminRoute: Route = {
@@ -17,6 +18,7 @@ export default [
     path: 'auth/register-company',
     pathMatch: 'full',
     title: 'Create your organization · FieldOps',
+    canDeactivate: [registerCompanyLeaveGuard],
     loadComponent: () =>
       import('./pages/register-company/register-company').then((m) => m.RegisterCompany),
   },

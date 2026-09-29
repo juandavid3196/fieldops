@@ -6,11 +6,12 @@
 }
 
 .first-branch {
-  min-width: 0;
+  &__note {
+    flex: 1 1 18rem;
 
-  h2 {
-    margin: 0 0 1rem;
-    font-size: 1.25rem;
+    @include bp.up(lg) {
+      max-inline-size: 22rem;
+    }
   }
 
   &__grid {
@@ -28,20 +29,27 @@
     grid-column: 1 / -1;
     min-width: 0;
     margin: 0;
-    padding: 1rem;
-    border: 1px solid var(--p-content-border-color);
-    border-radius: var(--p-content-border-radius);
+    padding: 1.25rem 1.5rem 1.5rem;
+    border: 0;
+    border-radius: var(--fo-radius-panel);
+    background: var(--fo-color-surface-muted);
 
     legend {
-      padding-inline: 0.25rem;
-      font-weight: 600;
+      float: inline-start;
+      inline-size: 100%;
+      padding: 0;
+      margin-block-end: 0.75rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
     }
   }
 
   &__address-grid {
     display: grid;
+    clear: both;
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 1.25rem;
     min-width: 0;
 
     @include bp.up(md) {
@@ -49,9 +57,10 @@
     }
   }
 
-  &__business-hours {
-    grid-column: 1 / -1;
-    min-width: 0;
+  &__country {
+    @include bp.up(md) {
+      grid-column: 1 / -1;
+    }
   }
 
   input[pInputText],

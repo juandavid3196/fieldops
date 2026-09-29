@@ -1,6 +1,9 @@
-<section class="owner-account" aria-labelledby="owner-account-heading">
-  <h2 id="owner-account-heading">Owner account</h2>
-
+<app-wizard-card
+  headingId="owner-account-heading"
+  title="Your account"
+  description="This user will receive the Owner role and have full access to manage your organization in FieldOps."
+  icon="pi-user"
+>
   <div class="owner-account__grid" [formGroup]="group()">
     <app-form-field
       label="First name"
@@ -12,6 +15,7 @@
         pInputText
         id="owner-firstName"
         formControlName="firstName"
+        autocomplete="given-name"
         fluid
         required
         [invalid]="error('owner.firstName') !== null"
@@ -33,6 +37,7 @@
         pInputText
         id="owner-lastName"
         formControlName="lastName"
+        autocomplete="family-name"
         fluid
         required
         [invalid]="error('owner.lastName') !== null"
@@ -55,6 +60,7 @@
         id="owner-email"
         type="email"
         formControlName="email"
+        autocomplete="email"
         fluid
         required
         [invalid]="error('owner.email') !== null"
@@ -66,12 +72,13 @@
       />
     </app-form-field>
 
-    <app-form-field label="Phone" controlId="owner-phone" [error]="error('owner.phone')">
+    <app-form-field label="Phone (optional)" controlId="owner-phone" [error]="error('owner.phone')">
       <input
         pInputText
         id="owner-phone"
         type="tel"
         formControlName="phone"
+        autocomplete="tel"
         fluid
         [invalid]="error('owner.phone') !== null"
         [readonly]="submitting()"
@@ -86,38 +93,26 @@
       controlId="owner-password"
       [required]="true"
       [error]="error('owner.password')"
-      [helper]="error('owner.password') === null ? 'Use at least 12 characters.' : null"
     >
-      <div class="owner-account__password">
-        <p-password
-          #ownerPassword
-          inputId="owner-password"
-          formControlName="password"
-          [toggleMask]="false"
-          [feedback]="false"
-          fluid
-          [invalid]="error('owner.password') !== null"
-          [pt]="passwordReadonlyPt()"
-          aria-required="true"
-          [attr.aria-invalid]="error('owner.password') !== null ? 'true' : null"
-          [attr.aria-describedby]="
-            error('owner.password') !== null ? 'owner-password-error' : 'owner-password-helper'
-          "
-          (onBlur)="fieldBlur.emit('owner.password')"
-        />
-        <button
-          pButton
-          type="button"
-          variant="text"
-          class="owner-account__password-toggle"
-          aria-controls="owner-password"
-          [attr.aria-label]="ownerPassword.unmasked() ? 'Hide password' : 'Show password'"
-          [attr.aria-pressed]="ownerPassword.unmasked()"
-          (click)="ownerPassword.onMaskToggle()"
-        >
-          {{ ownerPassword.unmasked() ? 'Hide password' : 'Show password' }}
-        </button>
-      </div>
+      <input
+        pInputText
+        id="owner-password"
+        formControlName="password"
+        autocomplete="new-password"
+        fluid
+        required
+        [type]="passwordsVisible() ? 'text' : 'password'"
+        [invalid]="error('owner.password') !== null"
+        [readonly]="submitting()"
+        aria-required="true"
+        [attr.aria-invalid]="error('owner.password') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('owner.password') !== null
+            ? 'owner-password-error owner-password-requirements'
+            : 'owner-password-requirements'
+        "
+        (blur)="fieldBlur.emit('owner.password')"
+      />
     </app-form-field>
 
     <app-form-field
@@ -126,19 +121,74 @@
       [required]="true"
       [error]="error('confirmPassword')"
     >
-      <p-password
-        inputId="confirmPassword"
+      <input
+        pInputText
+        id="confirmPassword"
         [formControl]="confirmPasswordControl()"
-        [toggleMask]="false"
-        [feedback]="false"
+        autocomplete="new-password"
         fluid
+        required
+        [type]="passwordsVisible() ? 'text' : 'password'"
         [invalid]="error('confirmPassword') !== null"
-        [pt]="passwordReadonlyPt()"
+        [readonly]="submitting()"
         aria-required="true"
         [attr.aria-invalid]="error('confirmPassword') !== null ? 'true' : null"
-        [attr.aria-describedby]="error('confirmPassword') !== null ? 'confirmPassword-error' : null"
-        (onBlur)="fieldBlur.emit('confirmPassword')"
+        [attr.aria-describedby]="
+          error('confirmPassword') !== null
+            ? 'confirmPassword-error owner-password-requirements'
+            : 'owner-password-requirements'
+        "
+        (blur)="fieldBlur.emit('confirmPassword')"
       />
     </app-form-field>
+
+    <div class="owner-account__show">
+      <p-checkbox
+        inputId="owner-show-password"
+        [formControl]="showPassword"
+        [binary]="true"
+        [readonly]="submitting()"
+      />
+      <label for="owner-show-password">Show password</label>
+    </div>
   </div>
-</section>
+
+  <div class="owner-account__requirements" id="owner-password-requirements">
+    <p class="owner-account__requirements-title">Password requirements</p>
+    <ul>
+      <li [class.owner-account__met]="requirements().lengthMet">
+        <i
+          class="pi"
+          [class.pi-check-circle]="requirements().lengthMet"
+          [class.pi-circle]="!requirements().lengthMet"
+          aria-hidden="true"
+        ></i>
+        12–128 characters
+        <span class="owner-account__sr">{{
+          requirements().lengthMet ? '(met)' : '(not met)'
+        }}</span>
+      </li>
+      <li [class.owner-account__met]="requirements().differsFromEmailMet">
+        <i
+          class="pi"
+          [class.pi-check-circle]="requirements().differsFromEmailMet"
+          [class.pi-circle]="!requirements().differsFromEmailMet"
+          aria-hidden="true"
+        ></i>
+        Must not match your email
+        <span class="owner-account__sr">{{
+          requirements().differsFromEmailMet ? '(met)' : '(not met)'
+        }}</span>
+      </li>
+    </ul>
+  </div>
+
+  <app-wizard-note class="owner-account__note">
+    You'll be the first Owner and can invite your team after setup.
+  </app-wizard-note>
+
+  <p class="owner-account__secure">
+    <i class="pi pi-lock" aria-hidden="true"></i>
+    Your password is securely hashed and never stored as plain text.
+  </p>
+</app-wizard-card>

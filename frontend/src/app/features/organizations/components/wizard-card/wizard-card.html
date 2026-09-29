@@ -1,0 +1,14 @@
+<section class="wizard-card" [attr.aria-labelledby]="headingId()">
+  <header class="wizard-card__header">
+    <span class="wizard-card__badge" aria-hidden="true">
+      <i [class]="'pi ' + icon()"></i>
+    </span>
+    <div class="wizard-card__heading">
+      <h2 class="wizard-card__title" [id]="headingId()">{{ title() }}</h2>
+      <p class="wizard-card__description">{{ description() }}</p>
+    </div>
+    <ng-content select="[cardAside]" />
+  </header>
+
+  <ng-content />
+</section>
