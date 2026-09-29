@@ -74,6 +74,8 @@ public static class UserAuditActions
 
     public const string Reactivated = "user.reactivated";
 
+    public const string InvitationAccepted = "user.invitation_accepted";
+
     public const string InvitationEntity = "user_invitation";
 
     public const string MemberEntity = "organization_user";

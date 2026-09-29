@@ -57,7 +57,7 @@ public class UsersInvitationTests(CompanySettingsDatabaseFixture database)
         Assert.Equal("new.person@example.com", message.RecipientEmail);
         Assert.Equal("Nina", message.FirstName);
         Assert.Equal("Olivia Owner", message.InviterName);
-        Assert.StartsWith($"{Api.FieldOpsApiFactory.AllowedOrigin}/auth/invitation?token=", message.AcceptLink, StringComparison.Ordinal);
+        Assert.StartsWith($"{Api.FieldOpsApiFactory.AllowedOrigin}/auth/invitation#token=", message.AcceptLink, StringComparison.Ordinal);
         Assert.Equal(await database.TextAsync("SELECT name FROM roles WHERE code = 'dispatcher'"), message.RoleName);
 
         var id = row["id"]!.GetValue<Guid>();

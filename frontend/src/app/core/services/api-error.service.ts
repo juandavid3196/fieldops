@@ -51,8 +51,14 @@ export class ApiErrorService {
     const apiError = createApiError(kind, error.status, fieldErrors, readTraceId(problem));
     const retryAfterSeconds =
       error.status === 429 ? readRetryAfterSeconds(error.headers?.get('Retry-After')) : undefined;
+    const code =
+      error.status === 409 && typeof problem?.['code'] === 'string' ? problem['code'] : undefined;
 
-    return retryAfterSeconds === undefined ? apiError : { ...apiError, retryAfterSeconds };
+    return {
+      ...apiError,
+      ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
+      ...(code === undefined ? {} : { code }),
+    };
   }
 
   getMessage(error: unknown): string {

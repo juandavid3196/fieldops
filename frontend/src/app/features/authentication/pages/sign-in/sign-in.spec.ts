@@ -154,8 +154,8 @@ describe('SignIn', () => {
         'Need service?',
         'Request a service',
         'Forgot password?',
-        'Accept an invitation',
-        'Guest requests',
+        'Guest requests do not create an account.',
+        'Create a company account',
         'Privacy',
         'Terms',
         'Help',
@@ -163,6 +163,9 @@ describe('SignIn', () => {
       ]) {
         expect(text).toContain(shown);
       }
+      // FR-16/AC-21: the invitation row and the old note tail are gone.
+      expect(text).not.toContain('Accept an invitation');
+      expect(text).not.toContain('accept an invitation later');
       const routed = Array.from(host.querySelectorAll('a')).filter(
         (a) => a.getAttribute('href') !== '#',
       );

@@ -29,6 +29,7 @@ var app = builder.Build();
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+app.UseMiddleware<InvitationNoStoreMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

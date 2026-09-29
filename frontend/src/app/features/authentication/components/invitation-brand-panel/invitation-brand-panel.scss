@@ -1,0 +1,97 @@
+:host {
+  display: block;
+}
+
+.brand {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  overflow: hidden;
+  background: light-dark(var(--p-surface-900), var(--p-surface-950));
+  color: var(--p-surface-0);
+
+  &__photo {
+    z-index: 0;
+    object-fit: cover;
+    object-position: center top;
+  }
+
+  // Navy scrim keeps the wordmark and the copy at WCAG AA over the photo.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--p-blue-950) 55%, transparent) 0%,
+      transparent 25%,
+      transparent 55%,
+      color-mix(in srgb, var(--p-blue-950) 90%, transparent) 100%
+    );
+    pointer-events: none;
+  }
+
+  &__content,
+  &__copy {
+    position: relative;
+    z-index: 2;
+    padding-inline: clamp(1.8rem, 6vw, 3rem);
+  }
+
+  &__content {
+    padding-block-start: 2.25rem;
+  }
+
+  &__copy {
+    padding-block-end: 2.7rem;
+  }
+
+  &__wordmark {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    font-size: 2.024rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  &__mark {
+    flex: none;
+    inline-size: 2.25rem;
+    block-size: 1.89rem;
+    margin-inline-end: 0.45rem;
+  }
+
+  &__accent {
+    color: var(--p-primary-400);
+  }
+
+  &__heading {
+    max-inline-size: 30rem;
+    margin: 0;
+    font-size: clamp(2rem, 2.75vw, 3rem);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  &__subhead {
+    max-inline-size: 34rem;
+    margin: 1.124rem 0 0;
+    font-size: clamp(1rem, 1.12vw, 1.238rem);
+    line-height: 1.3;
+    color: var(--p-surface-100);
+  }
+
+  &__rule {
+    display: block;
+    inline-size: 3.15rem;
+    block-size: 0.225rem;
+    margin-block-start: 1.8rem;
+    border-radius: var(--p-content-border-radius);
+    background: var(--p-primary-400);
+  }
+}
