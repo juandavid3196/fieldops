@@ -39,9 +39,8 @@
                 <a
                   class="sidebar__link"
                   [routerLink]="item.link"
-                  routerLinkActive="sidebar__link--active"
-                  ariaCurrentWhenActive="page"
-                  [routerLinkActiveOptions]="{ exact: item.exact }"
+                  [class.sidebar__link--active]="isActive(item)"
+                  [attr.aria-current]="isActive(item) ? 'page' : null"
                   [attr.aria-label]="rail() ? item.label : null"
                   [pTooltip]="rail() ? item.label : undefined"
                   tooltipPosition="right"

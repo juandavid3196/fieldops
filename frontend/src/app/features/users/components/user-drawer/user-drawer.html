@@ -1,0 +1,274 @@
+<app-drawer-shell
+  size="25rem"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="user-drawer__title" [id]="titleId" tabindex="-1">{{ title() }}</h2>
+    <span class="user-drawer__spacer"></span>
+    <button
+      type="button"
+      class="user-drawer__close"
+      aria-label="Close user drawer"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    <form
+      class="user-drawer__form"
+      ngNoForm
+      novalidate
+      (submit)="$event.preventDefault(); submit()"
+    >
+      <app-error-summary [id]="summaryId" [leadingMessage]="pageMessage()" [links]="errorLinks()" />
+
+      @if (isInvite()) {
+        <app-form-field
+          label="Email address"
+          [controlId]="controlIds.email"
+          [required]="true"
+          [error]="error('email')"
+        >
+          <input
+            pInputText
+            type="email"
+            fluid
+            autocomplete="off"
+            [id]="controlIds.email"
+            [ngModel]="email()"
+            (ngModelChange)="onFieldInput('email', $event)"
+            [disabled]="submitting()"
+            [invalid]="error('email') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('email') !== null ? 'true' : null"
+            [attr.aria-describedby]="error('email') !== null ? controlIds.email + '-error' : null"
+            (blur)="onFieldBlur('email')"
+          />
+        </app-form-field>
+
+        <div class="user-drawer__names">
+          <app-form-field
+            label="First name"
+            [controlId]="controlIds.firstName"
+            [required]="true"
+            [error]="error('firstName')"
+          >
+            <input
+              pInputText
+              fluid
+              autocomplete="off"
+              [id]="controlIds.firstName"
+              [ngModel]="firstName()"
+              (ngModelChange)="onFieldInput('firstName', $event)"
+              [disabled]="submitting()"
+              [invalid]="error('firstName') !== null"
+              aria-required="true"
+              [attr.aria-invalid]="error('firstName') !== null ? 'true' : null"
+              [attr.aria-describedby]="
+                error('firstName') !== null ? controlIds.firstName + '-error' : null
+              "
+              (blur)="onFieldBlur('firstName')"
+            />
+          </app-form-field>
+          <app-form-field
+            label="Last name"
+            [controlId]="controlIds.lastName"
+            [required]="true"
+            [error]="error('lastName')"
+          >
+            <input
+              pInputText
+              fluid
+              autocomplete="off"
+              [id]="controlIds.lastName"
+              [ngModel]="lastName()"
+              (ngModelChange)="onFieldInput('lastName', $event)"
+              [disabled]="submitting()"
+              [invalid]="error('lastName') !== null"
+              aria-required="true"
+              [attr.aria-invalid]="error('lastName') !== null ? 'true' : null"
+              [attr.aria-describedby]="
+                error('lastName') !== null ? controlIds.lastName + '-error' : null
+              "
+              (blur)="onFieldBlur('lastName')"
+            />
+          </app-form-field>
+        </div>
+      } @else if (row(); as person) {
+        <dl class="user-drawer__identity">
+          <dt>Email address</dt>
+          <dd>{{ person.email }}</dd>
+          <dt>Name</dt>
+          <dd>{{ fullName(person) }}</dd>
+        </dl>
+      }
+
+      <app-form-field
+        label="Role"
+        [controlId]="controlIds.roleCode"
+        [required]="true"
+        [error]="error('roleCode')"
+      >
+        <span
+          class="user-drawer__role-wrap"
+          [pTooltip]="lockedToLastOwner() ? lastOwnerTooltip : undefined"
+        >
+          <p-select
+            [inputId]="controlIds.roleCode"
+            [options]="roleOptions()"
+            optionLabel="name"
+            optionValue="code"
+            optionDisabled="disabled"
+            placeholder="Select a role"
+            ariaLabel="Role"
+            appendTo="body"
+            fluid
+            [ngModel]="roleCode()"
+            (ngModelChange)="onRoleChange($event)"
+            [disabled]="submitting()"
+            [invalid]="error('roleCode') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('roleCode') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('roleCode') !== null ? controlIds.roleCode + '-error' : null
+            "
+            (onBlur)="onFieldBlur('roleCode')"
+          />
+        </span>
+      </app-form-field>
+
+      <fieldset class="user-drawer__branches" [disabled]="submitting()">
+        <legend class="user-drawer__legend">Branch access <span aria-hidden="true">*</span></legend>
+        <div class="user-drawer__check">
+          <p-checkbox
+            [inputId]="controlIds.branchIds"
+            [binary]="true"
+            [ngModel]="allChecked()"
+            (ngModelChange)="onAllBranchesChange($event)"
+            [disabled]="branchesForced() || submitting()"
+            [attr.aria-invalid]="error('branchIds') !== null ? 'true' : null"
+            [attr.aria-describedby]="error('branchIds') !== null ? 'invite-branches-error' : null"
+          />
+          <label [for]="controlIds.branchIds">All branches</label>
+        </div>
+        @for (branch of branches(); track branch.id) {
+          <div class="user-drawer__check">
+            <p-checkbox
+              [inputId]="'invite-branch-' + branch.id"
+              [binary]="true"
+              [ngModel]="isBranchChecked(branch.id)"
+              (ngModelChange)="onBranchChange(branch.id, $event)"
+              [disabled]="branchesForced() || submitting()"
+            />
+            <label [for]="'invite-branch-' + branch.id">{{ branch.name }}</label>
+          </div>
+        }
+        @if (branchesForced()) {
+          <p class="user-drawer__helper">This role always has access to every branch.</p>
+        }
+        @if (error('branchIds'); as message) {
+          <p class="user-drawer__error" id="invite-branches-error">
+            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ message }}
+          </p>
+        }
+      </fieldset>
+
+      @if (selectedRole(); as role) {
+        @if (role.summary) {
+          <section class="user-drawer__summary" aria-labelledby="user-drawer-summary-title">
+            <i class="pi pi-users" aria-hidden="true"></i>
+            <div>
+              <h3 id="user-drawer-summary-title">{{ role.name }} role summary</h3>
+              <p>{{ role.summary }}</p>
+            </div>
+          </section>
+        }
+      }
+
+      @if (showTeamLink()) {
+        <div class="user-drawer__switch">
+          <p-toggleswitch
+            inputId="invite-team-link"
+            ariaLabel="Link operational team profile after acceptance"
+            [ngModel]="linkTeamProfile()"
+            (ngModelChange)="linkTeamProfile.set($event)"
+            [disabled]="submitting()"
+          />
+          <label for="invite-team-link">Link operational team profile after acceptance</label>
+        </div>
+      }
+
+      @if (isInvite()) {
+        <app-form-field
+          label="Invitation expires in"
+          [controlId]="controlIds.expiresInDays"
+          [error]="error('expiresInDays')"
+        >
+          <p-select
+            [inputId]="controlIds.expiresInDays"
+            [options]="expiryOptions"
+            optionLabel="label"
+            optionValue="days"
+            ariaLabel="Invitation expires in"
+            appendTo="body"
+            fluid
+            [ngModel]="expiresInDays()"
+            (ngModelChange)="onExpiryChange($event)"
+            [disabled]="submitting()"
+            [invalid]="error('expiresInDays') !== null"
+            [attr.aria-invalid]="error('expiresInDays') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('expiresInDays') !== null ? controlIds.expiresInDays + '-error' : null
+            "
+          />
+        </app-form-field>
+      }
+
+      <p-message class="user-drawer__notes" severity="info" [closable]="false">
+        <div>
+          <h3 class="user-drawer__notes-title">Safety notes</h3>
+          <ul>
+            <li>The last Owner cannot be suspended or downgraded.</li>
+            <li>Suspending access preserves work orders and audit history.</li>
+            <li>
+              Viewers only see modules explicitly granted. Company settings and audit log stay
+              unavailable.
+            </li>
+          </ul>
+        </div>
+      </p-message>
+    </form>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <span class="user-drawer__spacer"></span>
+    <button
+      pButton
+      type="button"
+      class="user-drawer__action"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      Cancel
+    </button>
+    <button
+      pButton
+      type="button"
+      class="user-drawer__action"
+      [disabled]="submitting()"
+      (click)="submit()"
+    >
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      {{ submitLabel() }}
+    </button>
+  </ng-container>
+</app-drawer-shell>

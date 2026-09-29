@@ -1,0 +1,56 @@
+@if (mode() === 'docked') {
+  @if (open()) {
+    <aside
+      class="drawer-shell drawer-shell--docked"
+      role="region"
+      [attr.aria-labelledby]="titleId()"
+      [style.--drawer-shell-size]="size()"
+      (keydown)="onDockedKeydown($event)"
+    >
+      <div class="drawer-shell__header">
+        <ng-container *ngTemplateOutlet="headerSlot" />
+      </div>
+      <div class="drawer-shell__body">
+        <ng-container *ngTemplateOutlet="bodySlot" />
+      </div>
+      <div class="drawer-shell__footer">
+        <ng-container *ngTemplateOutlet="footerSlot" />
+      </div>
+    </aside>
+  }
+} @else {
+  <p-drawer
+    class="drawer-shell"
+    pFocusTrap
+    [pFocusTrapDisabled]="!open()"
+    position="right"
+    [visible]="open()"
+    (visibleChange)="closeRequested.emit()"
+    (onShow)="onDrawerShow()"
+    (onHide)="onDrawerHide()"
+    [modal]="true"
+    [showCloseIcon]="false"
+    [fullScreen]="isBelowMd()"
+    [style]="overlayStyle()"
+    [maskStyle]="maskStyle"
+    [pt]="drawerPt()"
+  >
+    <ng-template #header>
+      <div class="drawer-shell__header drawer-shell__header--overlay">
+        <ng-container *ngTemplateOutlet="headerSlot" />
+      </div>
+    </ng-template>
+
+    <ng-container *ngTemplateOutlet="bodySlot" />
+
+    <ng-template #footer>
+      <div class="drawer-shell__footer drawer-shell__footer--overlay">
+        <ng-container *ngTemplateOutlet="footerSlot" />
+      </div>
+    </ng-template>
+  </p-drawer>
+}
+
+<ng-template #headerSlot><ng-content select="[drawerHeader]" /></ng-template>
+<ng-template #bodySlot><ng-content select="[drawerBody]" /></ng-template>
+<ng-template #footerSlot><ng-content select="[drawerFooter]" /></ng-template>

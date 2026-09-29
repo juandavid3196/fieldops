@@ -1,0 +1,153 @@
+<p-toast />
+<p-confirmdialog />
+<p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+
+<div class="users">
+  @if (!forbidden()) {
+    <app-administration-nav class="users__admin-nav" current="users" />
+  }
+
+  <div class="users__main">
+    <nav class="users__breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/admin/company">Administration</a>
+      <span aria-hidden="true">/</span>
+      <span class="users__current" aria-current="page">Users &amp; permissions</span>
+    </nav>
+
+    <header class="users__header">
+      <div>
+        <h1 class="users__title">Users &amp; permissions</h1>
+        @if (!forbidden()) {
+          <p class="users__description">{{ descriptionMessage }}</p>
+        }
+      </div>
+
+      @if (!forbidden() && canManage()) {
+        <button pButton type="button" class="users__invite" (click)="openInvite()">
+          <i class="pi pi-plus" aria-hidden="true"></i>
+          Invite user
+        </button>
+      }
+    </header>
+
+    @if (forbidden()) {
+      <p class="users__forbidden">{{ forbiddenMessage }}</p>
+    } @else {
+      @if (isViewer()) {
+        <div class="users__readonly-banner" role="status">
+          <i class="pi pi-eye" aria-hidden="true"></i>
+          <span>{{ readOnlyMessage }}</span>
+        </div>
+      }
+
+      <div class="users__sections">
+        <app-user-metrics
+          [summary]="summary()"
+          [loading]="summaryLoading()"
+          [failed]="summaryFailed()"
+        />
+
+        <section class="users__card" aria-labelledby="users-heading">
+          <h2 class="users__heading" id="users-heading">Users</h2>
+
+          <div class="users__note" role="note">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            <span>{{ noteMessage }} <a [routerLink]="teamPath">Team</a>.</span>
+          </div>
+
+          <app-user-filters
+            [searchText]="searchText()"
+            [roleCode]="roleFilter()"
+            [branchId]="branchFilter()"
+            [status]="statusFilter()"
+            [roles]="roles()"
+            [branches]="branches()"
+            [hasFilters]="hasFilters()"
+            (searchTextChange)="onSearchText($event)"
+            (roleChange)="onRoleFilter($event)"
+            (branchChange)="onBranchFilter($event)"
+            (statusChange)="onStatusFilter($event)"
+            (cleared)="clearFilters()"
+          />
+
+          <div class="users__results" [attr.aria-busy]="loading()">
+            @if (listError()) {
+              <p-message severity="error" [closable]="false">
+                <span class="users__error">
+                  {{ listErrorMessage }}
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    size="small"
+                    (click)="loadList()"
+                  >
+                    Retry
+                  </button>
+                </span>
+              </p-message>
+            } @else if (loading()) {
+              <div class="users__skeletons">
+                @for (row of skeletonRows; track row) {
+                  <div class="users__skeleton-row">
+                    <p-skeleton shape="circle" size="2.25rem" />
+                    <div class="users__skeleton-lines">
+                      <p-skeleton height="0.75rem" width="10rem" />
+                      <p-skeleton height="0.625rem" width="14rem" />
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else if (rows().length === 0) {
+              <div class="users__empty">
+                <p>{{ emptyMessage }}</p>
+                <button pButton type="button" severity="secondary" (click)="clearFilters()">
+                  Clear filters
+                </button>
+              </div>
+            } @else {
+              <app-user-table
+                [rows]="rows()"
+                [sort]="sort()"
+                [canManage]="canManage()"
+                [busyId]="mutatingId()"
+                (sortToggled)="toggleSort()"
+                (editRequested)="openEdit($event)"
+                (menuRequested)="openMenu($event.event, $event.row)"
+              />
+              <p-paginator
+                class="users__paginator"
+                [first]="first()"
+                [rows]="pageSize"
+                [totalRecords]="totalCount()"
+                [showCurrentPageReport]="true"
+                currentPageReportTemplate="Showing {first}–{last} of {totalRecords} users"
+                (onPageChange)="onPageChange($event)"
+              />
+            }
+          </div>
+        </section>
+
+        <app-permission-matrix
+          [matrix]="matrix()"
+          [loading]="matrixLoading()"
+          [failed]="matrixFailed()"
+          (retry)="loadMatrix()"
+        />
+      </div>
+    }
+  </div>
+
+  @if (canManage() && !forbidden()) {
+    <app-user-drawer
+      [open]="drawerOpen()"
+      [mode]="drawerMode()"
+      [row]="editingRow()"
+      [branches]="branches()"
+      [roles]="roles()"
+      (saved)="onDrawerSaved()"
+      (closed)="onDrawerClosed()"
+      (unauthorized)="onUnauthorized()"
+    />
+  }
+</div>

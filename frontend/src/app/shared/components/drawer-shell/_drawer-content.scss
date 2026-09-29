@@ -1,0 +1,50 @@
+@use '../../../../styles/breakpoints' as bp;
+
+// Styles for the content a consumer projects into `app-drawer-shell`. Include inside the
+// consumer's block (`.branch-drawer { @include dc.parts; }`): projected nodes belong to the
+// consumer's view, so the shell's encapsulated styles cannot reach them.
+@mixin parts {
+  &__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-text);
+    overflow-wrap: anywhere;
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+
+  &__close {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    @include bp.up(md) {
+      inline-size: 2.25rem;
+      block-size: 2.25rem;
+    }
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+  }
+
+  &__action {
+    min-height: var(--fo-size-touch-target);
+    white-space: nowrap;
+
+    @include bp.up(md) {
+      min-height: var(--fo-size-control);
+    }
+  }
+}

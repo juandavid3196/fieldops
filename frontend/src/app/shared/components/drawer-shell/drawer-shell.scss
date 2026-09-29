@@ -1,0 +1,67 @@
+:host {
+  display: contents;
+}
+
+// The overlay drawer's host must not become an (empty) grid item of the page.
+p-drawer.drawer-shell {
+  display: contents;
+}
+
+.drawer-shell {
+  // Docked (>= 1440px): a labelled non-modal region beside the content; no mask, no trap.
+  &--docked {
+    grid-column: 3;
+    align-self: start;
+    position: sticky;
+    inset-block-start: var(--fo-size-topbar);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    inline-size: var(--drawer-shell-size, var(--fo-size-drawer));
+    block-size: calc(100dvh - var(--fo-size-topbar));
+    min-height: 0;
+    background: var(--fo-color-surface);
+    border-inline-start: 1px solid var(--fo-color-border);
+    box-shadow: var(--fo-shadow-drawer);
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+    padding: 1.25rem;
+    overflow: auto;
+  }
+
+  &__header {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.625rem;
+    min-width: 0;
+    padding: 1.125rem 1.25rem;
+    border-block-end: 1px solid var(--fo-color-border);
+
+    &--overlay {
+      inline-size: 100%;
+      box-sizing: border-box;
+      margin: 0;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    flex: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    box-sizing: border-box;
+    padding: 0.875rem 1.25rem;
+    background: var(--fo-color-surface);
+    border-block-start: 1px solid var(--fo-color-border);
+
+    &--overlay {
+      inline-size: 100%;
+      padding-block-end: max(0.875rem, env(safe-area-inset-bottom));
+    }
+  }
+}

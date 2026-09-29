@@ -1,0 +1,25 @@
+<ul class="metrics" aria-label="User metrics">
+  @for (metric of metrics; track metric.key) {
+    <li class="metrics__card metrics__card--{{ metric.tone }}">
+      <span class="metrics__icon" aria-hidden="true">
+        <i class="pi" [class]="metric.icon"></i>
+      </span>
+      <span class="metrics__body">
+        <span class="metrics__label">{{ metric.label }}</span>
+        @if (loading()) {
+          <p-skeleton class="metrics__skeleton" width="3rem" height="1.75rem" />
+        } @else if (failed() || summary() === null) {
+          <span
+            class="metrics__value metrics__value--empty"
+            tabindex="0"
+            [attr.aria-label]="metric.label + ': ' + errorTooltip"
+            [pTooltip]="errorTooltip"
+            >—</span
+          >
+        } @else {
+          <span class="metrics__value">{{ summary()?.[metric.key] }}</span>
+        }
+      </span>
+    </li>
+  }
+</ul>

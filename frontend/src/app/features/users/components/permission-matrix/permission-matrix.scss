@@ -1,0 +1,142 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.matrix {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem;
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-text);
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 1rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  // Horizontal scroll with a sticky Module column (true tabular data).
+  &__scroll {
+    overflow-x: auto;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__table {
+    inline-size: 100%;
+    min-inline-size: 44rem;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    th,
+    td {
+      padding: 0.5rem 0.75rem;
+      text-align: center;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--fo-color-row-divider);
+    }
+
+    thead th {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+      background: var(--fo-color-surface-muted);
+    }
+
+    tbody tr:last-child > * {
+      border-bottom: 0;
+    }
+  }
+
+  &__table &__module-head,
+  &__table &__module {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    text-align: start;
+    background: var(--fo-color-surface);
+    border-inline-end: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__table &__module-head {
+    background: var(--fo-color-surface-muted);
+  }
+
+  &__table &__module {
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__level {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--fo-radius-pill);
+
+    &--primary {
+      color: var(--fo-color-primary-strong);
+      background: var(--fo-color-primary-soft);
+    }
+
+    &--info {
+      color: var(--fo-color-info-text);
+      background: var(--fo-color-info-background);
+    }
+
+    &--warning {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+
+    &--neutral {
+      color: var(--fo-color-neutral-text);
+      background: var(--fo-color-neutral-background);
+    }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    list-style: none;
+
+    li {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+}

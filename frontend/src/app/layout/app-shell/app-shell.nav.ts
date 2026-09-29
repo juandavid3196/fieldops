@@ -6,6 +6,8 @@ export interface NavItem {
   readonly icon: string;
   readonly link: string;
   readonly exact: boolean;
+  /** Non-exact items are current under this path prefix instead of their own link. */
+  readonly activePrefix?: string;
 }
 
 /** A sidebar block: an optional heading label (never a link) and its items. */
@@ -62,7 +64,15 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     heading: null,
     divider: true,
     adminOnly: true,
-    items: [{ label: 'Administration', icon: 'pi-cog', link: '/admin/company', exact: true }],
+    items: [
+      {
+        label: 'Administration',
+        icon: 'pi-cog',
+        link: '/admin/company',
+        exact: false,
+        activePrefix: '/admin',
+      },
+    ],
   },
 ];
 

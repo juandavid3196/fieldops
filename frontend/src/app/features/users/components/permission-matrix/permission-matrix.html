@@ -1,0 +1,65 @@
+<section class="matrix" aria-labelledby="matrix-heading">
+  <h2 class="matrix__heading" id="matrix-heading">Permission matrix</h2>
+  <p class="matrix__subtitle">
+    Predefined roles. Access is also limited to each user's assigned branches.
+  </p>
+
+  @if (failed()) {
+    <p-message severity="error" [closable]="false">
+      <span class="matrix__error">
+        {{ errorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (loading() || matrix() === null) {
+    <div class="matrix__skeletons" aria-busy="true">
+      <p-skeleton height="2.25rem" />
+      <p-skeleton height="2.25rem" />
+      <p-skeleton height="2.25rem" />
+      <p-skeleton height="2.25rem" />
+    </div>
+  } @else {
+    @let data = matrix()!;
+    <div class="matrix__scroll">
+      <table class="matrix__table">
+        <thead>
+          <tr>
+            <th scope="col" class="matrix__module-head">Module</th>
+            @for (role of data.roles; track role.code) {
+              <th scope="col">{{ role.name }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (module of data.modules; track module.key) {
+            <tr>
+              <th scope="row" class="matrix__module">{{ module.name }}</th>
+              @for (role of data.roles; track role.code) {
+                <td>
+                  @let cell = module.levels[role.code];
+                  @if (cell) {
+                    <span class="matrix__level matrix__level--{{ tone(cell.level) }}">{{
+                      cell.label
+                    }}</span>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <ul class="matrix__legend" aria-label="Legend">
+    <li>
+      <span class="matrix__level matrix__level--primary">Full / Edit</span> create and change
+      records
+    </li>
+    <li><span class="matrix__level matrix__level--info">View</span> read only</li>
+    <li><span class="matrix__level matrix__level--warning">Limited</span> scoped subset</li>
+    <li><span class="matrix__level matrix__level--neutral">None</span> no access</li>
+  </ul>
+</section>

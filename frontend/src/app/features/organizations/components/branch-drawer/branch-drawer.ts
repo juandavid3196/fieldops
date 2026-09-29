@@ -1,4 +1,3 @@
-import { NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -11,13 +10,12 @@ import {
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { Drawer } from 'primeng/drawer';
-import { FocusTrap } from 'primeng/focustrap';
 import { InputText } from 'primeng/inputtext';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Select } from 'primeng/select';
@@ -26,8 +24,8 @@ import { Tag } from 'primeng/tag';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 
-import { DOCK_QUERY, MD_QUERY, watchMedia } from '../../../../core/config/breakpoints';
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
+import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
 import { BusinessHoursEditor } from '../business-hours-editor/business-hours-editor';
 import { ErrorSummary, FieldErrorLink } from '../error-summary/error-summary';
 import { FormField } from '../form-field/form-field';
@@ -87,8 +85,6 @@ export const ONLY_ACTIVE_BRANCH_TOOLTIP = 'At least one branch must stay active.
   imports: [
     ReactiveFormsModule,
     ButtonDirective,
-    Drawer,
-    FocusTrap,
     InputText,
     Select,
     SpinnerIcon,
@@ -96,7 +92,7 @@ export const ONLY_ACTIVE_BRANCH_TOOLTIP = 'At least one branch must stay active.
     Tag,
     ToggleSwitch,
     TooltipModule,
-    NgTemplateOutlet,
+    DrawerShell,
     BusinessHoursEditor,
     ErrorSummary,
     FormField,
@@ -129,39 +125,11 @@ export class BranchDrawer {
   readonly titleId = DRAWER_TITLE_ID;
   readonly onlyActiveTooltip = ONLY_ACTIVE_BRANCH_TOOLTIP;
   readonly loadErrorMessage = BRANCH_LOAD_ERROR_MESSAGE;
-  /**
-   * QA-02: the actual role/aria-modal/aria-labelledby must land on the drawer's
-   * rendered root element (via `pt.root`), not on the `<p-drawer>` host — `Drawer`
-   * has no `ariaLabel`/`role` input of its own (confirmed via PrimeNG typings).
-   */
-  readonly drawerPt = {
-    root: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': DRAWER_TITLE_ID },
-  };
   readonly form: FormGroup<BranchDrawerFormControls> = buildBranchDrawerForm('');
 
+  private readonly shell = viewChild(DrawerShell);
   /** FR-16: docked from 1440px, an overlay below the top bar from 768px, full screen below. */
-  readonly isDocked = signal(false);
-  readonly isBelowMd = signal(false);
-  readonly mode = computed<'docked' | 'overlay' | 'fullscreen'>(() =>
-    this.isDocked() ? 'docked' : this.isBelowMd() ? 'fullscreen' : 'overlay',
-  );
-  /** Token variables (`--p-drawer-*`) plus, from md, the 420px panel below the top bar. */
-  readonly overlayStyle = computed(() => ({
-    '--p-drawer-shadow': 'var(--fo-shadow-drawer)',
-    '--p-drawer-header-padding': '0',
-    '--p-drawer-footer-padding': '0',
-    ...(this.isBelowMd()
-      ? {}
-      : {
-          'inline-size': 'var(--fo-size-drawer)',
-          'inset-block-start': 'var(--fo-size-topbar)',
-          'block-size': 'calc(100dvh - var(--fo-size-topbar))',
-        }),
-  }));
-  readonly maskStyle = {
-    'inset-block-start': 'var(--fo-size-topbar)',
-    background: 'var(--fo-color-mask)',
-  };
+  readonly mode = computed(() => this.shell()?.mode() ?? 'overlay');
 
   readonly detail = signal<BranchDetail | null>(null);
   readonly loading = signal(false);
@@ -174,8 +142,6 @@ export class BranchDrawer {
 
   private submitAttempted = false;
   private lastLoadedUpdatedAt: string | null = null;
-  /** QA-02: the element focused before the drawer opened; restored to it on close. */
-  private previouslyFocusedElement: HTMLElement | null = null;
 
   readonly isCreate = computed(() => this.branchId() === null);
   readonly title = computed(() => (this.isCreate() ? 'New branch' : (this.detail()?.name ?? '')));
@@ -208,45 +174,11 @@ export class BranchDrawer {
   );
 
   constructor() {
-    let wasOpen = false;
     effect(() => {
-      const isOpen = this.open();
-      if (isOpen) {
-        if (!wasOpen) {
-          this.previouslyFocusedElement =
-            typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
-          // The docked region has no open transition to wait for.
-          afterNextRender(() => this.onDockedShow(), { injector: this.injector });
-        }
+      if (this.open()) {
         this.initialize(this.branchId());
-      } else if (wasOpen && this.mode() === 'docked') {
-        this.onDrawerHide();
       }
-      wasOpen = isOpen;
     });
-
-    const dock = watchMedia(DOCK_QUERY, (matches) => this.isDocked.set(matches), false);
-    const md = watchMedia(MD_QUERY, (matches) => this.isBelowMd.set(!matches));
-    this.isDocked.set(dock.matches);
-    this.isBelowMd.set(!md.matches);
-    this.destroyRef.onDestroy(() => {
-      dock.stop();
-      md.stop();
-    });
-  }
-
-  private onDockedShow(): void {
-    if (this.mode() === 'docked') {
-      this.onDrawerShow();
-    }
-  }
-
-  /** Esc closes the docked region through the dirty guard (the overlay drawer handles Esc itself). */
-  onDockedKeydown(event: KeyboardEvent): void {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      this.requestClose();
-    }
   }
 
   private initialize(branchId: string | null): void {
@@ -319,17 +251,6 @@ export class BranchDrawer {
     if (id !== null) {
       this.initialize(id);
     }
-  }
-
-  /** QA-02: moves focus into the labelled dialog once PrimeNG's open transition settles. */
-  onDrawerShow(): void {
-    this.hostElement.querySelector<HTMLElement>(`#${DRAWER_TITLE_ID}`)?.focus();
-  }
-
-  /** QA-02: returns focus to the row or button that opened the drawer. */
-  onDrawerHide(): void {
-    this.previouslyFocusedElement?.focus();
-    this.previouslyFocusedElement = null;
   }
 
   /**

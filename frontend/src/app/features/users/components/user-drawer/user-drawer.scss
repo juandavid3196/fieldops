@@ -1,0 +1,169 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../../../shared/components/drawer-shell/drawer-content' as dc;
+
+:host {
+  display: contents;
+}
+
+// Chrome (docked/overlay/full screen) lives in `app-drawer-shell`; this styles the projected content.
+.user-drawer {
+  @include dc.parts;
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+
+    input[pInputText],
+    p-select {
+      min-height: var(--fo-size-touch-target);
+
+      @include bp.up(md) {
+        min-height: var(--fo-size-control);
+      }
+    }
+  }
+
+  &__names {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem 0.75rem;
+
+    @include bp.up(md) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  &__identity {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0.75rem;
+    background: var(--fo-color-surface-muted);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+
+    dt {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0 0 0.5rem;
+      overflow-wrap: anywhere;
+      color: var(--fo-color-text);
+
+      &:last-child {
+        margin-block-end: 0;
+      }
+    }
+  }
+
+  &__role-wrap {
+    display: block;
+  }
+
+  &__branches {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__legend {
+    padding: 0;
+    margin-block-end: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__check {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    min-height: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      min-height: 1.75rem;
+    }
+
+    label {
+      flex: 1;
+      cursor: pointer;
+      color: var(--fo-color-text);
+    }
+  }
+
+  &__helper {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__summary {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    color: var(--fo-color-warning-text);
+    background: var(--fo-color-warning-background);
+    border: 1px solid var(--fo-color-warning-border);
+    border-radius: var(--fo-radius-panel);
+
+    h3 {
+      margin: 0 0 0.25rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--fo-color-text);
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.8125rem;
+      color: var(--fo-color-text-secondary);
+    }
+  }
+
+  &__switch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: var(--fo-size-touch-target);
+
+    p-toggleswitch {
+      flex: none;
+    }
+
+    label {
+      flex: 1;
+      font-weight: 500;
+      color: var(--fo-color-text);
+    }
+  }
+
+  &__notes-title {
+    margin: 0 0 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  &__notes ul {
+    margin: 0;
+    padding-inline-start: 1.125rem;
+    font-size: 0.8125rem;
+  }
+}

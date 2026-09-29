@@ -1,6 +1,7 @@
 using FieldOps.Application.Authentication;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Organizations;
+using FieldOps.Application.Features.Users;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Invoices;
@@ -10,6 +11,7 @@ using FieldOps.Domain.Requests;
 using FieldOps.Domain.Users;
 using FieldOps.Domain.WorkOrders;
 using FieldOps.Infrastructure.Authentication;
+using FieldOps.Infrastructure.Invitations;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -64,6 +66,8 @@ public static class DependencyInjection
         services.AddScoped<IOrganizationSettingsStore, OrganizationSettingsStore>();
         services.AddScoped<IOrganizationLogoStore, OrganizationLogoStore>();
         services.AddScoped<IBranchStore, BranchStore>();
+        services.AddScoped<IUserAccessStore, UserAccessStore>();
+        services.AddSingleton<IInvitationDelivery, NoOpInvitationDelivery>();
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
         // In memory and per process: counters reset on restart.
