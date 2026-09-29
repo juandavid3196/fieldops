@@ -47,6 +47,20 @@ public sealed class Organization
 
     public bool RequireCustomerSignature { get; private set; }
 
+    public string? Website { get; private set; }
+
+    public string? AddressLine1 { get; private set; }
+
+    public string? City { get; private set; }
+
+    public string? StateRegion { get; private set; }
+
+    public string? PostalCode { get; private set; }
+
+    public string? CountryCode { get; private set; }
+
+    public bool PricesIncludeTax { get; private set; }
+
     public bool IsActive { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -159,8 +173,31 @@ public sealed class Organization
         string workOrderPrefix,
         string invoicePrefix,
         long nextInvoiceNumber,
+        long nextQuoteNumber,
+        long nextWorkOrderNumber,
+        string? website,
+        string addressLine1,
+        string city,
+        string? stateRegion,
+        string postalCode,
+        string countryCode,
+        bool pricesIncludeTax,
         DateTimeOffset updatedAt)
     {
+        if (nextQuoteNumber < 1)
+        {
+            throw new ArgumentException(
+                "Next quote number must be at least 1.",
+                nameof(nextQuoteNumber));
+        }
+
+        if (nextWorkOrderNumber < 1)
+        {
+            throw new ArgumentException(
+                "Next work order number must be at least 1.",
+                nameof(nextWorkOrderNumber));
+        }
+
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException(
@@ -222,6 +259,15 @@ public sealed class Organization
         WorkOrderPrefix = workOrderPrefix.Trim();
         InvoicePrefix = invoicePrefix.Trim();
         NextInvoiceNumber = nextInvoiceNumber;
+        NextQuoteNumber = nextQuoteNumber;
+        NextWorkOrderNumber = nextWorkOrderNumber;
+        Website = website?.Trim();
+        AddressLine1 = addressLine1?.Trim();
+        City = city?.Trim();
+        StateRegion = stateRegion?.Trim();
+        PostalCode = postalCode?.Trim();
+        CountryCode = countryCode?.Trim();
+        PricesIncludeTax = pricesIncludeTax;
         UpdatedAt = updatedAt;
     }
 }

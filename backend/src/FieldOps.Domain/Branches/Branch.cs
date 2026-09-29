@@ -47,6 +47,12 @@ public sealed class Branch
 
     public bool IsActive { get; private set; }
 
+    public bool IsMain { get; private set; }
+
+    public string[] ServicePostalCodes { get; private set; } = [];
+
+    public bool UsesCompanyBilling { get; private set; } = true;
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -70,7 +76,10 @@ public sealed class Branch
         string? postalCode,
         string? countryCode,
         string? timezone,
-        string businessHours)
+        string businessHours,
+        bool isMain = false,
+        string[]? servicePostalCodes = null,
+        bool usesCompanyBilling = true)
     {
         if (organizationId == Guid.Empty)
         {
@@ -116,6 +125,9 @@ public sealed class Branch
             CountryCode = countryCode?.Trim(),
             Timezone = timezone?.Trim(),
             BusinessHours = businessHours,
+            IsMain = isMain,
+            ServicePostalCodes = servicePostalCodes ?? [],
+            UsesCompanyBilling = usesCompanyBilling,
         };
     }
 
@@ -140,6 +152,8 @@ public sealed class Branch
         string? countryCode,
         string? timezone,
         string businessHours,
+        string[] servicePostalCodes,
+        bool usesCompanyBilling,
         DateTimeOffset updatedAt)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -175,6 +189,8 @@ public sealed class Branch
         CountryCode = countryCode?.Trim();
         Timezone = timezone?.Trim();
         BusinessHours = businessHours;
+        ServicePostalCodes = servicePostalCodes ?? [];
+        UsesCompanyBilling = usesCompanyBilling;
         UpdatedAt = updatedAt;
     }
 
@@ -207,6 +223,41 @@ public sealed class Branch
         }
 
         IsActive = true;
+        UpdatedAt = updatedAt;
+        return true;
+    }
+
+    /// <summary>
+    /// Marks the branch as the organization's main branch (BR-11). Only an
+    /// active branch can be main; the caller clears the previous main first.
+    /// Returns <c>false</c> without changing anything when already main.
+    /// </summary>
+    public bool SetMain(DateTimeOffset updatedAt)
+    {
+        if (!IsActive)
+        {
+            throw new InvalidOperationException("Only an active branch can be the main branch.");
+        }
+
+        if (IsMain)
+        {
+            return false;
+        }
+
+        IsMain = true;
+        UpdatedAt = updatedAt;
+        return true;
+    }
+
+    /// <summary>Clears the main flag. Returns <c>false</c> when it was not main.</summary>
+    public bool ClearMain(DateTimeOffset updatedAt)
+    {
+        if (!IsMain)
+        {
+            return false;
+        }
+
+        IsMain = false;
         UpdatedAt = updatedAt;
         return true;
     }

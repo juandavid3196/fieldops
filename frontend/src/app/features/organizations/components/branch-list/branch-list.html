@@ -1,27 +1,34 @@
-<section class="branch-list" aria-labelledby="branch-list-heading">
+<section class="branch-list" id="branches" aria-labelledby="branch-list-heading">
   <div class="branch-list__header">
-    <h2 id="branch-list-heading">{{ branches().length }} branches</h2>
+    <h2 id="branch-list-heading">Branches</h2>
+    <span class="branch-list__count">{{ branches().length }} branches</span>
+    <span class="branch-list__spacer"></span>
     @if (canManage()) {
       <button pButton type="button" class="branch-list__add" (click)="addBranch.emit()">
+        <i class="pi pi-plus" aria-hidden="true"></i>
         Add branch
       </button>
     }
   </div>
 
   <div class="branch-list__controls">
-    <input
-      pInputText
-      type="search"
-      class="branch-list__search"
-      placeholder="Search branches…"
-      aria-label="Search branches"
-      fluid
-      [ngModel]="search()"
-      (ngModelChange)="search.set($event)"
-    />
+    <p-iconfield class="branch-list__search-field">
+      <p-inputicon class="pi pi-search" />
+      <input
+        pInputText
+        type="search"
+        class="branch-list__search"
+        placeholder="Search branches…"
+        aria-label="Search branches"
+        fluid
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+      />
+    </p-iconfield>
     <p-select
       class="branch-list__status-filter"
       ariaLabel="Filter by status"
+      appendTo="body"
       [options]="statusOptions"
       optionLabel="label"
       optionValue="code"
@@ -30,16 +37,20 @@
     />
   </div>
 
-  @if (loading()) {
+  @if (loadError()) {
+    <div class="branch-list__load-error" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <span class="branch-list__load-error-text">{{ loadErrorMessage }}</span>
+      <button pButton type="button" severity="secondary" [outlined]="true" (click)="retry.emit()">
+        <i class="pi pi-refresh" aria-hidden="true"></i>
+        Retry
+      </button>
+    </div>
+  } @else if (loading()) {
     <div class="branch-list__skeletons" aria-busy="true">
       <p-skeleton height="2.75rem" />
       <p-skeleton height="2.75rem" />
       <p-skeleton height="2.75rem" />
-    </div>
-  } @else if (loadError()) {
-    <div class="branch-list__load-error">
-      <p>{{ loadErrorMessage }}</p>
-      <button pButton type="button" severity="secondary" (click)="retry.emit()">Retry</button>
     </div>
   } @else if (branches().length === 0) {
     <p class="branch-list__empty">No branches to show.</p>
@@ -51,91 +62,15 @@
       </button>
     </div>
   } @else {
-    <table class="branch-list__table">
-      <thead>
-        <tr>
-          <th scope="col" class="branch-list__sort-header" [attr.aria-sort]="sortDirection()">
-            <button type="button" class="branch-list__sort-button" (click)="toggleSort()">
-              Branch
-            </button>
-          </th>
-          <th scope="col">Address</th>
-          <th scope="col">Time zone</th>
-          <th scope="col">Status</th>
-          <th scope="col">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (branch of filtered(); track branch.id) {
-          <tr
-            class="branch-list__row"
-            tabindex="0"
-            [attr.aria-label]="branch.name"
-            (click)="onRowActivate(branch)"
-            (keydown)="onRowKeydown($event, branch)"
-          >
-            <td [attr.data-label]="'Branch'">
-              <span class="branch-list__name">{{ branch.name }}</span>
-              <span class="branch-list__code">{{ branch.code }}</span>
-            </td>
-            <td [attr.data-label]="'Address'">{{ branch.addressLine1 }}, {{ branch.city }}</td>
-            <td [attr.data-label]="'Time zone'">{{ branch.timezone }}</td>
-            <td [attr.data-label]="'Status'">
-              <p-tag
-                [value]="branch.isActive ? 'Active' : 'Inactive'"
-                [severity]="branch.isActive ? 'success' : 'secondary'"
-              />
-            </td>
-            <td [attr.data-label]="'Actions'" class="branch-list__actions">
-              <div
-                class="branch-list__actions-group"
-                role="group"
-                [attr.aria-label]="'More actions for ' + branch.name"
-              >
-                <button
-                  pButton
-                  type="button"
-                  severity="secondary"
-                  [outlined]="true"
-                  (click)="$event.stopPropagation(); onRowActivate(branch)"
-                >
-                  {{ canManage() ? 'Edit' : 'View' }}
-                </button>
-                @if (canManage()) {
-                  @if (branch.isActive) {
-                    <span
-                      class="branch-list__deactivate-wrap"
-                      [pTooltip]="isOnlyActive(branch) ? onlyActiveTooltip : undefined"
-                    >
-                      <button
-                        pButton
-                        type="button"
-                        severity="danger"
-                        [outlined]="true"
-                        [disabled]="mutatingId() !== null || isOnlyActive(branch)"
-                        (click)="$event.stopPropagation(); deactivate(branch)"
-                      >
-                        Deactivate
-                      </button>
-                    </span>
-                  } @else {
-                    <button
-                      pButton
-                      type="button"
-                      severity="secondary"
-                      [outlined]="true"
-                      [disabled]="mutatingId() !== null"
-                      (click)="$event.stopPropagation(); reactivate(branch)"
-                    >
-                      Reactivate
-                    </button>
-                  }
-                }
-              </div>
-            </td>
-          </tr>
-        }
-      </tbody>
-    </table>
+    <app-branch-table
+      [rows]="filtered()"
+      [sortDirection]="sortDirection()"
+      [selectedId]="selectedId()"
+      (sortToggled)="toggleSort()"
+      (rowActivated)="onRowActivate($event)"
+      (menuRequested)="openMenu($event.event, $event.branch)"
+    />
   }
+
+  <p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
 </section>

@@ -19,6 +19,8 @@ public sealed class FieldOpsDbContext(
 {
     public DbSet<Organization> Organizations => Set<Organization>();
 
+    public DbSet<OrganizationLogo> OrganizationLogos => Set<OrganizationLogo>();
+
     public DbSet<Branch> Branches => Set<Branch>();
 
     public DbSet<User> Users => Set<User>();

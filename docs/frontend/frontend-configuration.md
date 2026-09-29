@@ -8,10 +8,10 @@ Foundational runtime configuration for the FieldOps Angular application
 Environment files are compiled into public JavaScript. Never store secrets,
 tokens or connection strings in them.
 
-| File | Used by | `apiBaseUrl` |
-| --- | --- | --- |
-| `src/environments/environment.ts` | `ng serve`, `ng test`, development builds | `http://localhost:5034` |
-| `src/environments/environment.production.ts` | `ng build --configuration production` | `/api` |
+| File                                         | Used by                                   | `apiBaseUrl`            |
+| -------------------------------------------- | ----------------------------------------- | ----------------------- |
+| `src/environments/environment.ts`            | `ng serve`, `ng test`, development builds | `http://localhost:5034` |
+| `src/environments/environment.production.ts` | `ng build --configuration production`     | `/api`                  |
 
 The production file replaces `environment.ts` through `fileReplacements` in
 `angular.json`.
@@ -102,6 +102,22 @@ a category and a fixed, user-friendly message chosen by HTTP status:
 - `app.routes.ts` redirects `''` and every unmatched path (`**`) to
   `/auth/sign-in`. `/auth/**` and `/overview` are lazy loaded.
 - Guards are UX only: the backend authorizes every request.
+
+## Authenticated shell
+
+- `layout/app-shell` wraps every authenticated route (`authGuard` on the pathless parent).
+  Layout mode comes from `matchMedia` (mirrors of `_breakpoints.scss` in
+  `core/config/breakpoints.ts`): drawer below 768px, 72px rail from 768px, 256px sidebar from
+  1100px. Collapse is per page visit only (never persisted). The navigation lives in
+  `layout/shell-sidebar` and is data in `layout/app-shell/app-shell.nav.ts` (`NAV_GROUPS`;
+  Administration only for `owner`/`viewer`, UX only).
+- Top bar: search (Enter opens `/coming-soon/search`), organization menu (session organization
+  only, no request), Help, notifications bell (no badge) and the user menu.
+- `/coming-soon/:module` (`features/coming-soon`) is the shared placeholder for every future
+  module; slugs and names are in `core/config/coming-soon-modules.ts`. An unknown slug redirects
+  to `/overview`; the page makes no request.
+- Dependencies added for the shell/design: `primeicons` (icons) and self-hosted Inter under
+  `public/fonts/inter/` (OFL license file included).
 
 ## Technical debt
 

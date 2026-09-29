@@ -62,6 +62,7 @@ public static class DependencyInjection
         services.AddScoped<IAuthenticationStore, AuthenticationStore>();
         services.AddScoped<IOrganizationRegistrationStore, OrganizationRegistrationStore>();
         services.AddScoped<IOrganizationSettingsStore, OrganizationSettingsStore>();
+        services.AddScoped<IOrganizationLogoStore, OrganizationLogoStore>();
         services.AddScoped<IBranchStore, BranchStore>();
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 

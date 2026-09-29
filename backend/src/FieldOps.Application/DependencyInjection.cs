@@ -24,6 +24,10 @@ public static class DependencyInjection
         services.AddScoped<UpdateBranchHandler>();
         services.AddScoped<DeactivateBranchHandler>();
         services.AddScoped<ReactivateBranchHandler>();
+        services.AddScoped<SetMainBranchHandler>();
+        services.AddScoped<GetOrganizationLogoHandler>();
+        services.AddScoped<UploadOrganizationLogoHandler>();
+        services.AddScoped<RemoveOrganizationLogoHandler>();
 
         return services;
     }

@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FieldOps.Application.Auditing;
 using FieldOps.Application.Authentication;
 using FieldOps.Application.Validation;
@@ -22,6 +23,12 @@ public sealed class UpdateOrganizationSettingsHandler(
     public const string NextInvoiceNumberFloorMessage =
         "Enter a number greater than the last invoice number.";
 
+    public const string NextQuoteNumberFloorMessage =
+        "Enter a number greater than the last quote number.";
+
+    public const string NextWorkOrderNumberFloorMessage =
+        "Enter a number greater than the last work order number.";
+
     public async Task<UpdateOrganizationSettingsResult> HandleAsync(
         UpdateOrganizationSettingsCommand command,
         CancellationToken cancellationToken)
@@ -38,15 +45,36 @@ public sealed class UpdateOrganizationSettingsHandler(
         var defaultTaxRate = command.DefaultTaxRate!.Value;
         UpdatedAtValidation.TryParse(command.UpdatedAt, out var requestedUpdatedAt);
 
+        var nextQuoteNumber = command.NextQuoteNumber!.Value;
+        var nextWorkOrderNumber = command.NextWorkOrderNumber!.Value;
+        var pricesIncludeTax = command.PricesIncludeTax!.Value.ValueKind == JsonValueKind.True;
+
+        var floorErrors = new Dictionary<string, string[]>(StringComparer.Ordinal);
+
         var maxInvoiceNumber = await store.GetMaxInvoiceNumberAsync(command.OrganizationId, cancellationToken);
 
         if (nextInvoiceNumber <= maxInvoiceNumber)
         {
-            return new UpdateOrganizationSettingsResult.Invalid(
-                new Dictionary<string, string[]>(StringComparer.Ordinal)
-                {
-                    ["nextInvoiceNumber"] = [NextInvoiceNumberFloorMessage],
-                });
+            floorErrors["nextInvoiceNumber"] = [NextInvoiceNumberFloorMessage];
+        }
+
+        var maxQuoteNumber = await store.GetMaxQuoteNumberAsync(command.OrganizationId, cancellationToken);
+
+        if (nextQuoteNumber <= maxQuoteNumber)
+        {
+            floorErrors["nextQuoteNumber"] = [NextQuoteNumberFloorMessage];
+        }
+
+        var maxWorkOrderNumber = await store.GetMaxWorkOrderNumberAsync(command.OrganizationId, cancellationToken);
+
+        if (nextWorkOrderNumber <= maxWorkOrderNumber)
+        {
+            floorErrors["nextWorkOrderNumber"] = [NextWorkOrderNumberFloorMessage];
+        }
+
+        if (floorErrors.Count > 0)
+        {
+            return new UpdateOrganizationSettingsResult.Invalid(floorErrors);
         }
 
         var organization = await store.GetAsync(command.OrganizationId, cancellationToken);
@@ -66,10 +94,24 @@ public sealed class UpdateOrganizationSettingsHandler(
             return new UpdateOrganizationSettingsResult.Stale();
         }
 
+        var currency = (command.Currency ?? string.Empty).Trim().ToUpperInvariant();
+
+        // BR-06: an unconfirmed currency change is rejected while invoices exist.
+        if (!string.Equals(organization.Currency, currency, StringComparison.Ordinal)
+            && !command.ConfirmCurrencyChange
+            && await store.HasInvoicesAsync(command.OrganizationId, cancellationToken))
+        {
+            return new UpdateOrganizationSettingsResult.CurrencyChangeNotConfirmed();
+        }
+
         var beforeFields = ToFieldMap(organization);
 
         var email = EmailNormalizer.Normalize(command.Email);
         var now = timeProvider.GetUtcNow();
+        var countryCode = (command.CountryCode ?? string.Empty).Trim().ToUpperInvariant();
+        var stateRegion = UsStates.IsUnitedStates(countryCode)
+            ? (command.StateRegion ?? string.Empty).Trim().ToUpperInvariant()
+            : NullIfEmpty(command.StateRegion);
 
         organization.UpdateSettings(
             (command.Name ?? string.Empty).Trim(),
@@ -78,12 +120,21 @@ public sealed class UpdateOrganizationSettingsHandler(
             email,
             (command.Phone ?? string.Empty).Trim(),
             (command.Timezone ?? string.Empty).Trim(),
-            (command.Currency ?? string.Empty).Trim().ToUpperInvariant(),
+            currency,
             defaultTaxRate,
             (command.QuotePrefix ?? string.Empty).Trim().ToUpperInvariant(),
             (command.WorkOrderPrefix ?? string.Empty).Trim().ToUpperInvariant(),
             (command.InvoicePrefix ?? string.Empty).Trim().ToUpperInvariant(),
             nextInvoiceNumber,
+            nextQuoteNumber,
+            nextWorkOrderNumber,
+            NullIfEmpty(command.Website),
+            (command.AddressLine1 ?? string.Empty).Trim(),
+            (command.City ?? string.Empty).Trim(),
+            stateRegion,
+            (command.PostalCode ?? string.Empty).Trim(),
+            countryCode,
+            pricesIncludeTax,
             now);
 
         var afterFields = ToFieldMap(organization);
@@ -107,7 +158,8 @@ public sealed class UpdateOrganizationSettingsHandler(
             return new UpdateOrganizationSettingsResult.Stale();
         }
 
-        return new UpdateOrganizationSettingsResult.Succeeded(GetOrganizationSettingsHandler.Map(organization));
+        return new UpdateOrganizationSettingsResult.Succeeded(
+            await GetOrganizationSettingsHandler.MapAsync(store, organization, cancellationToken));
     }
 
     private static Dictionary<string, object?> ToFieldMap(Domain.Organizations.Organization organization) =>
@@ -125,6 +177,15 @@ public sealed class UpdateOrganizationSettingsHandler(
             ["workOrderPrefix"] = organization.WorkOrderPrefix,
             ["invoicePrefix"] = organization.InvoicePrefix,
             ["nextInvoiceNumber"] = organization.NextInvoiceNumber,
+            ["nextQuoteNumber"] = organization.NextQuoteNumber,
+            ["nextWorkOrderNumber"] = organization.NextWorkOrderNumber,
+            ["website"] = organization.Website,
+            ["addressLine1"] = organization.AddressLine1,
+            ["city"] = organization.City,
+            ["stateRegion"] = organization.StateRegion,
+            ["postalCode"] = organization.PostalCode,
+            ["countryCode"] = organization.CountryCode,
+            ["pricesIncludeTax"] = organization.PricesIncludeTax,
         };
 
     private static IReadOnlyDictionary<string, string[]> GroupErrors(

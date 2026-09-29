@@ -17,18 +17,24 @@ Theme source: `frontend/src/app/core/config/primeng.config.ts`.
 frontend/src/
 ├── styles.scss          # entry: header comment + @use only, no rules
 └── styles/
+    ├── _fonts.scss      # emits CSS: self-hosted Inter @font-face (400/500/600/700)
     ├── _tokens.scss     # emits CSS: :root --fo-* tokens
     ├── _base.scss       # emits CSS: html/body, focus-visible fallback, reduced motion
     └── _breakpoints.scss # no CSS: breakpoint map and up() mixin
 ```
 
-| File                       | Output     | Responsibility                                            |
-| -------------------------- | ---------- | --------------------------------------------------------- |
-| `styles.scss`              | Global CSS | Load order: `styles/tokens`, `styles/base`                |
-| `styles/_tokens.scss`      | Emits CSS  | Only place `--fo-*` is declared                           |
-| `styles/_base.scss`        | Emits CSS  | Document base and global a11y rules                       |
-| `styles/_breakpoints.scss` | No CSS     | `md`/`lg` map and `up($name)` mixin; components `@use` it |
-| Component `name.scss`      | Scoped CSS | Styles for that component only                            |
+| File                       | Output     | Responsibility                                                           |
+| -------------------------- | ---------- | ------------------------------------------------------------------------ |
+| `styles.scss`              | Global CSS | Load order: `styles/fonts`, `styles/tokens`, `styles/base`               |
+| `styles/_fonts.scss`       | Emits CSS  | Inter `@font-face` (`font-display: swap`) from `public/fonts/inter/`     |
+| `styles/_tokens.scss`      | Emits CSS  | Only place `--fo-*` is declared                                          |
+| `styles/_base.scss`        | Emits CSS  | Document base (Inter family, 14px body) and global a11y rules            |
+| `styles/_breakpoints.scss` | No CSS     | `md`/`lg`/`admin`/`dock` map and `up($name)` mixin; components `@use` it |
+| Component `name.scss`      | Scoped CSS | Styles for that component only                                           |
+
+- PrimeIcons 7 (`primeicons` dependency) is loaded through `angular.json` `styles`
+  (`node_modules/primeicons/primeicons.css`); use `<i class="pi pi-*" aria-hidden="true">`.
+- Inter (SIL OFL 1.1, license in `public/fonts/inter/OFL.txt`) is self-hosted; no CDN.
 
 - `_tokens` and `_base` emit CSS. Components must **never** `@use` `_tokens` or `_base`: it
   duplicates their CSS into every component bundle. Components consume tokens with `var()`.
@@ -63,11 +69,13 @@ Admission rule for a new `--fo-*` token (all must hold):
 
 Pattern: `--fo-<category>-<role>[-<variant>]`, category ∈ `color | space | size | radius | shadow`.
 
-| Token                           | Status   |
-| ------------------------------- | -------- |
-| `--fo-color-app-background`     | Existing |
-| `--fo-color-sidebar-background` | Example  |
-| `--fo-size-touch-target`        | Example  |
+| Token family                                                               | Meaning                                                 |
+| -------------------------------------------------------------------------- | ------------------------------------------------------- |
+| `--fo-color-app-background`, `-surface*`, `-text*`, `-border*`             | Handoff ground, cards, text and borders (light/dark)    |
+| `--fo-color-primary*`, `-success-*`, `-info-*`, `-warning-*`, `-danger-*`  | Handoff teal and status colors (light/dark)             |
+| `--fo-color-navy*`, `--fo-color-on-navy`                                   | Navy sidebar (dark in both modes)                       |
+| `--fo-size-touch-target`, `-control`, `-topbar`, `-sidebar*`, `-drawer`    | 44px target, 40px control, 64px top bar, 256/72/224/420 |
+| `--fo-radius-control/card/panel/pill`, `--fo-shadow-*`, `--fo-font-family` | Radii (6/10/8/999), elevation and Inter stack           |
 
 ## 5. Global vs component-local
 
@@ -103,10 +111,14 @@ Pattern: `--fo-<category>-<role>[-<variant>]`, category ∈ `color | space | siz
 Responsive:
 
 - Mobile-first: base styles for small screens, `min-width` queries upward.
-- Breakpoints live in `src/styles/_breakpoints.scss`: compile-time map `md: 48rem`,
-  `lg: 64rem` and an `up($name)` mixin that raises `@error` for unknown names (emits
-  no CSS). Use `@include bp.up(md) { ... }` after `@use '<relative>/styles/breakpoints' as bp;`.
-- Shell-only widths (1100px / 1440px from the handoff) stay local to the shell component.
+- Breakpoints live in `src/styles/_breakpoints.scss`: compile-time map `md: 48rem` (768px),
+  `lg: 64rem`, `admin: 68.75rem` (1100px) and `dock: 90rem` (1440px), plus an `up($name)` mixin
+  that raises `@error` for unknown names (emits no CSS). Use `@include bp.up(md) { ... }` after
+  `@use '<relative>/styles/breakpoints' as bp;`.
+- Script mirrors of `md`, `admin` and `dock` are in `app/core/config/breakpoints.ts`; keep both in sync.
+- Shell layout modes: below `md` a drawer, `md` to below `admin` the 72px rail, from `admin` the
+  256px sidebar (Administration column 224px). The branch drawer docks (420px) from `dock`,
+  overlays below the top bar from `md` and is full screen below.
 - Media queries use `rem`.
 - Touch targets ≥ 2.75rem (44px) on mobile.
 
@@ -122,7 +134,9 @@ Dark mode:
 Use the first option that works:
 
 1. Preset tokens in `primeng.config.ts` (global look).
-2. Component `dt` input (design tokens for one instance).
+2. Component `dt` input (design tokens for one instance). Not on elements that also carry
+   `pFocusTrap` (both expose `dt`): set the component's `--p-<component>-*` variables through
+   its `[style]` input instead (used by the navigation and branch drawers).
 3. Host `class`/`styleClass`, styled in the owning component's SCSS.
 
 - Never `::ng-deep`; never global `.p-*` overrides.
@@ -194,13 +208,9 @@ Grep checks (from repo root):
 
 Need a separate approved decision before use:
 
-- Inter font.
-- Navy color.
-- Type scale.
-- Card radius 10.
 - Spacing scale (`--fo-space-*`).
-- Status colors.
 - Lavender accent.
-- PrimeIcons.
 
-Breakpoints are not a pending decision: `_breakpoints.scss` exists (section 7).
+Approved and implemented (design-17 company setup completion): Inter, navy, status colors,
+type scale, card radius 10, PrimeIcons, the `--fo-*` handoff tokens and the 1100px/1440px
+breakpoints.

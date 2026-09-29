@@ -103,7 +103,25 @@ Retain only:
 
 Never retain or forward complete narrative reports.
 
-## 5. Final audit packet
+## 5. User visual QA and final audit packet
+
+After frontend implementation, identify AC groups that require runtime visual fidelity, responsive layout, browser navigation, focus or keyboard evidence. No agent may invoke Playwright, a browser MCP, runtime Axe, screenshot capture or pixel comparison.
+
+Reuse a supplied `USER VISUAL QA REPORT` only when it matches the current frontend fingerprint or commit and names the approved design/handoff. Otherwise ask the user once for:
+
+```text
+USER VISUAL QA REPORT
+Frontend fingerprint/commit: ...
+Design/handoff: ...
+Desktop: PASS|FAIL|N/A
+Mobile: PASS|FAIL|N/A
+Navigation/interactions: PASS|FAIL|N/A
+Focus/keyboard: PASS|FAIL|N/A
+Findings: ...
+Result: PASS|FAIL
+```
+
+If the report is required but unavailable, stop with exact result `SPEC IMPLEMENTATION BLOCKED` and reason `USER VISUAL QA REQUIRED`; preserve all changes and allow `--resume`. A frontend change after the report makes it stale. A reported failure proceeds to final audit as failing evidence; never route directly to a developer in the same run.
 
 After required implementation stages complete, invoke `final-audit` once with `SPEC-IMPL FINAL AUDIT PACKET` containing:
 
@@ -114,7 +132,7 @@ After required implementation stages complete, invoke `final-audit` once with `S
 - Current backend/frontend fingerprints and validation rows.
 - Persistence changed paths/fingerprint/reviewer result.
 - Migration generated/reviewed/not-applied evidence.
-- Browser-dependent ACs only.
+- Runtime visual AC groups and the matching `USER VISUAL QA REPORT`, or N/A.
 - Recorded targeted MCP evidence.
 
 The audit reuses exact-fingerprint evidence and runs only missing/stale checks.

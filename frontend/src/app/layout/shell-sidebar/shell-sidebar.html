@@ -1,0 +1,83 @@
+<aside
+  class="sidebar"
+  [class.sidebar--rail]="rail()"
+  [class.sidebar--drawer]="drawer()"
+  [attr.aria-label]="drawer() ? null : 'Sidebar'"
+>
+  @if (drawer()) {
+    <div class="sidebar__brand sidebar__brand--drawer">
+      <p class="sidebar__wordmark" aria-hidden="true">
+        <span>Field</span><span class="sidebar__accent">Ops</span>
+      </p>
+      <span class="sidebar__hidden" id="shell-drawer-title">Navigation</span>
+      <button type="button" class="sidebar__close" (click)="closeRequested.emit()">
+        <i class="pi pi-times" aria-hidden="true"></i>
+        <span class="sidebar__hidden">Close navigation</span>
+      </button>
+    </div>
+  } @else {
+    <p class="sidebar__brand">
+      @if (rail()) {
+        <span aria-hidden="true">F<span class="sidebar__accent">O</span></span>
+        <span class="sidebar__hidden">FieldOps</span>
+      } @else {
+        <span>Field</span><span class="sidebar__accent">Ops</span>
+      }
+    </p>
+  }
+
+  <nav class="sidebar__nav" aria-label="Main navigation">
+    <ul class="sidebar__list">
+      @for (group of groups(); track group.id) {
+        <li [class.sidebar__group--divider]="group.divider">
+          @if (group.heading && !rail()) {
+            <p class="sidebar__group-label">{{ group.heading }}</p>
+          }
+          <ul class="sidebar__list">
+            @for (item of group.items; track item.link) {
+              <li>
+                <a
+                  class="sidebar__link"
+                  [routerLink]="item.link"
+                  routerLinkActive="sidebar__link--active"
+                  ariaCurrentWhenActive="page"
+                  [routerLinkActiveOptions]="{ exact: item.exact }"
+                  [attr.aria-label]="rail() ? item.label : null"
+                  [pTooltip]="rail() ? item.label : undefined"
+                  tooltipPosition="right"
+                  (click)="navigated.emit()"
+                >
+                  <i class="pi" [class]="item.icon" aria-hidden="true"></i>
+                  <span class="sidebar__link-label" [class.sidebar__hidden]="rail()">{{
+                    item.label
+                  }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  @if (!drawer()) {
+    <button
+      type="button"
+      class="sidebar__collapse"
+      [attr.aria-label]="rail() ? 'Expand navigation' : null"
+      [pTooltip]="rail() ? 'Expand' : undefined"
+      tooltipPosition="right"
+      (click)="collapseToggled.emit()"
+    >
+      <i
+        class="pi"
+        [class.pi-angle-double-left]="!rail()"
+        [class.pi-angle-double-right]="rail()"
+        aria-hidden="true"
+      ></i>
+      @if (!rail()) {
+        <span>Collapse</span>
+      }
+    </button>
+  }
+</aside>

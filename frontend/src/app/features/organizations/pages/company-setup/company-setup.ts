@@ -10,8 +10,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { FormControl, FormGroup } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialog } from 'primeng/confirmdialog';
@@ -21,66 +21,85 @@ import { Toast } from 'primeng/toast';
 import { Observable, map } from 'rxjs';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
+import { SessionService } from '../../../../core/services/session.service';
+import { AdministrationNav } from '../../components/administration-nav/administration-nav';
 import { BranchDrawer } from '../../components/branch-drawer/branch-drawer';
 import { BranchList } from '../../components/branch-list/branch-list';
-import { CompanyProfileSection } from '../../components/company-profile-section/company-profile-section';
-import { DocumentNumberingSection } from '../../components/document-numbering-section/document-numbering-section';
+import { CompanyProfileCard } from '../../components/company-profile-card/company-profile-card';
+import { DocumentNumberingCard } from '../../components/document-numbering-card/document-numbering-card';
 import { ErrorSummary, FieldErrorLink } from '../../components/error-summary/error-summary';
-import { TaxesCurrencySection } from '../../components/taxes-currency-section/taxes-currency-section';
+import {
+  SequenceValues,
+  SequencesDialog,
+} from '../../components/sequences-dialog/sequences-dialog';
+import { TaxesCurrencyCard } from '../../components/taxes-currency-card/taxes-currency-card';
+import { countryOptions, currencyOptions, timezoneOptions } from '../../data/display-names';
 import { SUPPORTED_COUNTRY_CODES } from '../../data/supported-countries';
 import { SUPPORTED_CURRENCY_CODES } from '../../data/supported-currencies';
-import { countryOptions, currencyOptions, timezoneOptions } from '../../data/display-names';
 import {
   BranchListItem,
+  CompanySetupFormControls,
   OrganizationFieldErrors,
   OrganizationFieldKey,
+  OrganizationLogoMetadata,
+  OrganizationSettingsResponse,
 } from '../../models/company-settings.model';
-import { OrganizationFormControls } from '../../models/organization-registration.model';
-import { FIELD_LABELS, fieldControlId } from '../register-company/register-company.validators';
-import { OrganizationSettingsService } from '../../services/organization-settings.service';
 import { BranchesService } from '../../services/branches.service';
-import { SessionService } from '../../../../core/services/session.service';
+import { OrganizationSettingsService } from '../../services/organization-settings.service';
 import { handleUnauthorized } from '../../utils/handle-unauthorized';
+import { fieldControlId } from '../register-company/register-company.validators';
 import {
   ORGANIZATION_FIELD_KEYS,
+  ORGANIZATION_FIELD_LABELS,
   OrganizationFormValue,
   buildOrganizationSettingsRequest,
   mapOrganizationServerFieldErrors,
   validateOrganizationField,
 } from './company-setup.validators';
 
-import type { SimpleFieldKey as RegistrationFieldKey } from '../../models/organization-registration.model';
-
 const ERROR_SUMMARY_ID = 'company-setup-error-summary';
+/** Server errors for these keys live in the sequences dialog, not on a card field. */
+const DIALOG_ONLY_KEYS: readonly OrganizationFieldKey[] = [
+  'organization.nextQuoteNumber',
+  'organization.nextWorkOrderNumber',
+];
 
 export const LOAD_ERROR_MESSAGE = "We couldn't load company settings.";
-export const BRANCH_LOAD_ERROR_MESSAGE = "We couldn't load branches.";
+export const BRANCH_LOAD_ERROR_MESSAGE =
+  "We couldn't load branches. Check your connection and try again.";
 export const FORBIDDEN_MESSAGE = "You don't have access to company settings.";
-export const READ_ONLY_MESSAGE = 'You have view-only access to company settings.';
+export const READ_ONLY_MESSAGE =
+  'You have view-only access to company settings. Contact an Owner to request changes.';
+export const DESCRIPTION_MESSAGE =
+  'Manage your organization details, branches, billing defaults, and document numbering.';
 export const STALE_SETTINGS_MESSAGE =
   'This record was changed by someone else. Reload to see the latest version.';
 export const SAVED_MESSAGE = 'Company settings saved';
+/** Key of the currency confirmation, distinct from the un-keyed discard dialog. */
+export const CURRENCY_DIALOG_KEY = 'currency';
 
 /**
- * Company setup page (`/admin/company`, FR-01, FR-12 to FR-19): organization
- * settings plus the branch list and drawer. Toast/confirm providers are
- * page-level (OD-25) so `BranchList`/`BranchDrawer` inherit them via DI.
+ * Company setup page (`/admin/company`): Administration column, profile (logo, address),
+ * branches, taxes/currency and document numbering, sequences dialog, currency confirmation
+ * and the branch drawer. Toast/confirm providers are page-level so children inherit them.
  */
 @Component({
   selector: 'app-company-setup',
   imports: [
-    ReactiveFormsModule,
+    RouterLink,
     ButtonDirective,
     ConfirmDialog,
     SpinnerIcon,
     Skeleton,
     Toast,
-    CompanyProfileSection,
-    TaxesCurrencySection,
-    DocumentNumberingSection,
+    AdministrationNav,
+    CompanyProfileCard,
+    TaxesCurrencyCard,
+    DocumentNumberingCard,
     ErrorSummary,
     BranchList,
     BranchDrawer,
+    SequencesDialog,
   ],
   providers: [MessageService, ConfirmationService],
   templateUrl: './company-setup.html',
@@ -98,18 +117,21 @@ export class CompanySetup {
   private readonly hostElement: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
   private readonly drawer = viewChild(BranchDrawer);
+  private readonly numbering = viewChild(DocumentNumberingCard);
 
   private submitAttempted = false;
 
   readonly errorSummaryId = ERROR_SUMMARY_ID;
   readonly forbiddenMessage = FORBIDDEN_MESSAGE;
   readonly readOnlyMessage = READ_ONLY_MESSAGE;
+  readonly descriptionMessage = DESCRIPTION_MESSAGE;
   readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
+  readonly currencyDialogKey = CURRENCY_DIALOG_KEY;
   readonly timezoneOptionsList = timezoneOptions();
   readonly countryOptionsList = countryOptions(SUPPORTED_COUNTRY_CODES);
   readonly currencyOptionsList = currencyOptions(SUPPORTED_CURRENCY_CODES);
 
-  readonly form: FormGroup<OrganizationFormControls> = buildOrganizationForm();
+  readonly form: FormGroup<CompanySetupFormControls> = buildOrganizationForm();
   readonly formDirty = toSignal(this.form.valueChanges.pipe(map(() => this.form.dirty)), {
     initialValue: false,
   });
@@ -117,6 +139,8 @@ export class CompanySetup {
   readonly settingsLoading = signal(true);
   readonly settingsError = signal<ApiError | null>(null);
   readonly canManage = signal(false);
+  readonly hasInvoices = signal(false);
+  readonly logo = signal<OrganizationLogoMetadata | null>(null);
   readonly loadedUpdatedAt = signal<string | null>(null);
   readonly fieldErrors = signal<OrganizationFieldErrors>({});
   readonly pageMessage = signal<string | null>(null);
@@ -131,23 +155,40 @@ export class CompanySetup {
   readonly drawerOpen = signal(false);
   readonly selectedBranchId = signal<string | null>(null);
 
+  readonly sequencesOpen = signal(false);
+  readonly sequenceValues = signal<SequenceValues>({
+    nextQuoteNumber: 1,
+    nextWorkOrderNumber: 1,
+    nextInvoiceNumber: 1,
+  });
+
   readonly forbidden = computed(() => this.settingsError()?.kind === 'forbidden');
   readonly showForm = computed(
     () => !this.settingsLoading() && !this.forbidden() && this.settingsError() === null,
   );
   readonly canSave = computed(() => this.formDirty() && !this.submitting());
 
+  readonly sequenceServerErrors = computed(() => {
+    const errors = this.fieldErrors();
+    return {
+      nextQuoteNumber: errors['organization.nextQuoteNumber'],
+      nextWorkOrderNumber: errors['organization.nextWorkOrderNumber'],
+      nextInvoiceNumber: errors['organization.nextInvoiceNumber'],
+    };
+  });
+
   readonly errorLinks = computed<readonly FieldErrorLink[]>(() =>
     (Object.entries(this.fieldErrors()) as [OrganizationFieldKey, string][]).map(
       ([field, message]) => ({
         fieldId: fieldControlId(field),
-        label: FIELD_LABELS[field],
+        label: ORGANIZATION_FIELD_LABELS[field],
         message,
+        action: DIALOG_ONLY_KEYS.includes(field) ? 'sequences' : undefined,
       }),
     ),
   );
 
-  /** The values last confirmed by the server (initial load or a successful save); FR-13 Discard target. */
+  /** The values last confirmed by the server (initial load or a successful save); Discard target. */
   private readonly loadedFormValue = signal<OrganizationFormValue | null>(null);
 
   constructor() {
@@ -155,7 +196,7 @@ export class CompanySetup {
     this.loadBranches();
   }
 
-  /** FR-17: consulted by `companySettingsUnsavedChangesGuard` on route leave. */
+  /** Consulted by `companySettingsUnsavedChangesGuard` on route leave. */
   canLeave(): boolean | Observable<boolean> {
     if (this.sessionExpired()) {
       return true;
@@ -199,13 +240,11 @@ export class CompanySetup {
     });
   }
 
-  onFieldBlur(field: RegistrationFieldKey): void {
+  onFieldBlur(field: OrganizationFieldKey): void {
     if (!this.submitAttempted) {
       return;
     }
-    const key = field as OrganizationFieldKey;
-    const message = validateOrganizationField(key, this.form.getRawValue());
-    this.setFieldError(key, message);
+    this.setFieldError(field, validateOrganizationField(field, this.form.getRawValue()));
   }
 
   save(): void {
@@ -224,10 +263,37 @@ export class CompanySetup {
       return;
     }
 
+    if (this.currencyChanged() && this.hasInvoices()) {
+      this.confirmCurrencyChange();
+      return;
+    }
+    this.send(false);
+  }
+
+  private currencyChanged(): boolean {
+    const loaded = this.loadedFormValue()?.currency.trim().toUpperCase();
+    return this.form.getRawValue().currency.trim().toUpperCase() !== loaded;
+  }
+
+  /** BR-06: the confirmation is a keyed dialog, distinct from the discard prompt. Cancel sends nothing. */
+  private confirmCurrencyChange(): void {
+    const code = this.form.getRawValue().currency.trim().toUpperCase();
+    this.confirmationService.confirm({
+      key: CURRENCY_DIALOG_KEY,
+      header: 'Change currency',
+      message: `Change currency to ${code}? Existing invoices keep their original currency.`,
+      acceptButtonProps: { label: 'Change currency' },
+      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      accept: () => this.send(true),
+    });
+  }
+
+  private send(confirmed: boolean): void {
     this.submitting.set(true);
     const request = buildOrganizationSettingsRequest(
       this.form.getRawValue(),
       this.loadedUpdatedAt() ?? '',
+      confirmed,
     );
 
     this.settingsService
@@ -237,13 +303,14 @@ export class CompanySetup {
         next: (response) => {
           this.submitting.set(false);
           this.loadedUpdatedAt.set(response.updatedAt);
+          this.hasInvoices.set(response.hasInvoices);
           const value = toFormValue(response);
           this.loadedFormValue.set(value);
           this.form.reset(value);
           this.messageService.add({ severity: 'success', summary: SAVED_MESSAGE });
           this.sessionService.loadCurrent().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
         },
-        error: (error: unknown) => this.handleSaveFailed(error),
+        error: (error: unknown) => this.handleSaveFailed(error, confirmed),
       });
   }
 
@@ -261,12 +328,63 @@ export class CompanySetup {
     this.loadBranches();
   }
 
+  openSequences(): void {
+    const value = this.form.getRawValue();
+    this.sequenceValues.set({
+      nextQuoteNumber: value.nextQuoteNumber,
+      nextWorkOrderNumber: value.nextWorkOrderNumber,
+      nextInvoiceNumber: value.nextInvoiceNumber,
+    });
+    this.sequencesOpen.set(true);
+  }
+
+  /** Apply: the valid values go into the page form (dirty); they persist with Save changes. */
+  onSequencesApplied(values: SequenceValues): void {
+    this.form.markAsDirty();
+    this.form.patchValue(values);
+    this.fieldErrors.update((errors) => {
+      const next = { ...errors };
+      delete next['organization.nextQuoteNumber'];
+      delete next['organization.nextWorkOrderNumber'];
+      delete next['organization.nextInvoiceNumber'];
+      return next;
+    });
+  }
+
+  onSequencesClosed(): void {
+    afterNextRender(() => this.numbering()?.focusSequencesLink(), { injector: this.injector });
+  }
+
+  onErrorLink(link: FieldErrorLink): void {
+    if (link.action === 'sequences') {
+      this.openSequences();
+    }
+  }
+
   openAddBranch(): void {
-    this.selectedBranchId.set(null);
-    this.drawerOpen.set(true);
+    this.switchBranch(null);
   }
 
   openBranch(id: string): void {
+    this.switchBranch(id);
+  }
+
+  /** Selecting another branch while the drawer has unsaved edits asks first (dirty guard). */
+  private switchBranch(id: string | null): void {
+    if (this.drawerOpen() && (this.drawer()?.isDirty() ?? false)) {
+      this.confirmationService.confirm({
+        header: 'Discard unsaved changes?',
+        message: 'You have unsaved changes. Do you want to discard them?',
+        acceptButtonProps: { label: 'Discard', severity: 'danger' },
+        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
+        accept: () => this.showBranch(id),
+      });
+      return;
+    }
+    this.showBranch(id);
+  }
+
+  private showBranch(id: string | null): void {
     this.selectedBranchId.set(id);
     this.drawerOpen.set(true);
   }
@@ -293,6 +411,8 @@ export class CompanySetup {
         next: (response) => {
           this.settingsLoading.set(false);
           this.canManage.set(response.canManage);
+          this.hasInvoices.set(response.hasInvoices);
+          this.logo.set(response.logo);
           this.loadedUpdatedAt.set(response.updatedAt);
           this.fieldErrors.set({});
           this.pageMessage.set(null);
@@ -354,7 +474,7 @@ export class CompanySetup {
     );
   }
 
-  private handleSaveFailed(error: unknown): void {
+  private handleSaveFailed(error: unknown, confirmed: boolean): void {
     this.submitting.set(false);
     const apiError: ApiError | null = isApiError(error) ? error : null;
 
@@ -363,6 +483,11 @@ export class CompanySetup {
       return;
     }
     if (apiError?.kind === 'conflict') {
+      // BR-06: the server requires confirmation; ask once, then resend with the flag.
+      if (apiError.fieldErrors['currency'] !== undefined && !confirmed) {
+        this.confirmCurrencyChange();
+        return;
+      }
       this.staleConflict.set(true);
       this.pageMessage.set(STALE_SETTINGS_MESSAGE);
       this.focusSummary();
@@ -372,10 +497,13 @@ export class CompanySetup {
       const mapped = mapOrganizationServerFieldErrors(apiError.fieldErrors);
       this.fieldErrors.set(mapped);
       this.pageMessage.set(apiError.message);
-      if (Object.keys(mapped).length > 0) {
-        this.focusFirstInvalid();
-      } else {
+      const first = Object.keys(mapped)[0] as OrganizationFieldKey | undefined;
+      if (first === undefined) {
         this.focusSummary();
+      } else if (DIALOG_ONLY_KEYS.includes(first)) {
+        afterNextRender(() => this.numbering()?.focusSequencesLink(), { injector: this.injector });
+      } else {
+        this.focusFirstInvalid();
       }
       return;
     }
@@ -425,6 +553,11 @@ export class CompanySetup {
         const firstInvalid = this.hostElement.querySelector<HTMLElement>('[aria-invalid="true"]');
         if (firstInvalid) {
           firstInvalid.focus();
+        } else if (
+          DIALOG_ONLY_KEYS.some((key) => this.fieldErrors()[key] !== undefined) &&
+          this.numbering() !== undefined
+        ) {
+          this.numbering()?.focusSequencesLink();
         } else {
           this.focusSummaryNow();
         }
@@ -442,7 +575,7 @@ export class CompanySetup {
   }
 }
 
-function buildOrganizationForm(): FormGroup<OrganizationFormControls> {
+function buildOrganizationForm(): FormGroup<CompanySetupFormControls> {
   return new FormGroup({
     name: new FormControl('', { nonNullable: true }),
     legalName: new FormControl('', { nonNullable: true }),
@@ -456,29 +589,25 @@ function buildOrganizationForm(): FormGroup<OrganizationFormControls> {
     workOrderPrefix: new FormControl('', { nonNullable: true }),
     invoicePrefix: new FormControl('', { nonNullable: true }),
     nextInvoiceNumber: new FormControl<number | null>(1),
+    website: new FormControl('', { nonNullable: true }),
+    addressLine1: new FormControl('', { nonNullable: true }),
+    city: new FormControl('', { nonNullable: true }),
+    stateRegion: new FormControl('', { nonNullable: true }),
+    postalCode: new FormControl('', { nonNullable: true }),
+    countryCode: new FormControl('', { nonNullable: true }),
+    pricesIncludeTax: new FormControl(false, { nonNullable: true }),
+    nextQuoteNumber: new FormControl<number | null>(1),
+    nextWorkOrderNumber: new FormControl<number | null>(1),
   });
 }
 
-function toFormValue(response: {
-  name: string;
-  legalName: string;
-  taxId: string;
-  email: string;
-  phone: string;
-  timezone: string;
-  currency: string;
-  defaultTaxRate: number;
-  quotePrefix: string;
-  workOrderPrefix: string;
-  invoicePrefix: string;
-  nextInvoiceNumber: number;
-}): OrganizationFormValue {
+function toFormValue(response: OrganizationSettingsResponse): OrganizationFormValue {
   return {
     name: response.name,
-    legalName: response.legalName,
-    taxId: response.taxId,
-    email: response.email,
-    phone: response.phone,
+    legalName: response.legalName ?? '',
+    taxId: response.taxId ?? '',
+    email: response.email ?? '',
+    phone: response.phone ?? '',
     timezone: response.timezone,
     currency: response.currency,
     defaultTaxRate: response.defaultTaxRate,
@@ -486,5 +615,14 @@ function toFormValue(response: {
     workOrderPrefix: response.workOrderPrefix,
     invoicePrefix: response.invoicePrefix,
     nextInvoiceNumber: response.nextInvoiceNumber,
+    website: response.website ?? '',
+    addressLine1: response.addressLine1 ?? '',
+    city: response.city ?? '',
+    stateRegion: response.stateRegion ?? '',
+    postalCode: response.postalCode ?? '',
+    countryCode: response.countryCode ?? '',
+    pricesIncludeTax: response.pricesIncludeTax,
+    nextQuoteNumber: response.nextQuoteNumber,
+    nextWorkOrderNumber: response.nextWorkOrderNumber,
   };
 }

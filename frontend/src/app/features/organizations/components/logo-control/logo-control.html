@@ -1,0 +1,78 @@
+<div class="logo-control" role="group" aria-labelledby="logo-control-label">
+  <p class="logo-control__label" id="logo-control-label">Company logo</p>
+
+  <div class="logo-control__row">
+    <div class="logo-control__preview" [attr.aria-busy]="previewLoading()">
+      @if (previewLoading()) {
+        <p-skeleton width="8rem" height="2.5rem" />
+      } @else if (previewUrl(); as url) {
+        <img class="logo-control__image" [src]="url" [alt]="altText()" />
+      } @else {
+        <span class="logo-control__placeholder">
+          <i class="pi pi-building" aria-hidden="true"></i>
+          No logo
+        </span>
+      }
+    </div>
+
+    <div class="logo-control__actions">
+      @if (canManage()) {
+        <div class="logo-control__buttons">
+          <input
+            #fileInput
+            type="file"
+            class="logo-control__file"
+            tabindex="-1"
+            aria-hidden="true"
+            [accept]="accept"
+            (change)="onFileSelected($event)"
+          />
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="busy()"
+            [attr.aria-describedby]="error() !== null ? 'organization-logo-error' : 'logo-helper'"
+            (click)="fileInput.click()"
+          >
+            <i class="pi pi-upload" aria-hidden="true"></i>
+            Change logo
+          </button>
+          @if (hasLogo()) {
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [text]="true"
+              [disabled]="busy()"
+              (click)="removeLogo()"
+            >
+              Remove logo
+            </button>
+          }
+        </div>
+        <span class="logo-control__helper" id="logo-helper">{{ helper }}</span>
+      }
+
+      @if (uploading()) {
+        <div class="logo-control__progress" role="status">
+          <p-progressbar
+            [value]="progress() ?? 0"
+            [mode]="progress() === null ? 'indeterminate' : 'determinate'"
+            [showValue]="false"
+            ariaLabel="Uploading logo"
+          />
+          <span class="logo-control__helper">Uploading…</span>
+        </div>
+      }
+
+      @if (error(); as message) {
+        <p class="logo-control__error" id="organization-logo-error" role="alert">
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          {{ message }}
+        </p>
+      }
+    </div>
+  </div>
+</div>

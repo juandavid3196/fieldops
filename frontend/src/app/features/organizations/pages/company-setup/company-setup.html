@@ -1,17 +1,28 @@
+<p-toast />
+<p-confirmdialog />
+<p-confirmdialog [key]="currencyDialogKey" />
+
 <div class="company-setup">
-  <p-toast />
-  <p-confirmdialog />
+  @if (!forbidden()) {
+    <app-administration-nav class="company-setup__admin-nav" />
+  }
 
-  <header class="company-setup__header">
-    <p class="company-setup__breadcrumb">Administration / Company</p>
-    <h1 class="company-setup__title">Company setup</h1>
+  <div class="company-setup__main">
+    <nav class="company-setup__breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/admin/company">Administration</a>
+      <span aria-hidden="true">/</span>
+      <span class="company-setup__current" aria-current="page">Company</span>
+    </nav>
 
-    @if (!forbidden()) {
-      <p class="company-setup__description">
-        Manage your organization details, branches, taxes and document numbering.
-      </p>
+    <header class="company-setup__header">
+      <div>
+        <h1 class="company-setup__title">Company setup</h1>
+        @if (!forbidden()) {
+          <p class="company-setup__description">{{ descriptionMessage }}</p>
+        }
+      </div>
 
-      @if (showForm() && canManage()) {
+      @if (!forbidden() && showForm() && canManage()) {
         <div class="company-setup__actions">
           <button
             pButton
@@ -31,41 +42,38 @@
           </button>
         </div>
       }
-    }
-  </header>
+    </header>
 
-  @if (forbidden()) {
-    <p class="company-setup__forbidden">{{ forbiddenMessage }}</p>
-  } @else {
-    <nav class="company-setup__nav" aria-label="Company settings sections">
-      <a href="#company-profile-heading">Company profile</a>
-      <a href="#branch-list-heading">Branches</a>
-      <a href="#taxes-currency-heading">Taxes &amp; currency</a>
-      <a href="#document-numbering-heading">Document numbering</a>
-    </nav>
-
-    @if (settingsLoading()) {
-      <div class="company-setup__skeletons" aria-busy="true">
-        <p-skeleton height="2.5rem" />
-        <p-skeleton height="2.5rem" />
-        <p-skeleton height="2.5rem" />
-        <p-skeleton height="2.5rem" />
-      </div>
-    } @else if (settingsError()) {
-      <div class="company-setup__load-error">
-        <p>{{ loadErrorMessage }}</p>
-        <button pButton type="button" severity="secondary" (click)="retrySettings()">Retry</button>
-      </div>
+    @if (forbidden()) {
+      <p class="company-setup__forbidden">{{ forbiddenMessage }}</p>
     } @else {
-      @if (!canManage()) {
-        <p class="company-setup__readonly-banner">{{ readOnlyMessage }}</p>
-      }
+      @if (settingsLoading()) {
+        <div class="company-setup__skeletons" aria-busy="true">
+          <p-skeleton height="4.5rem" width="10.5rem" />
+          <p-skeleton height="2.5rem" />
+          <p-skeleton height="2.5rem" />
+          <p-skeleton height="2.5rem" />
+        </div>
+      } @else if (settingsError()) {
+        <div class="company-setup__load-error">
+          <p>{{ loadErrorMessage }}</p>
+          <button pButton type="button" severity="secondary" (click)="retrySettings()">
+            Retry
+          </button>
+        </div>
+      } @else {
+        @if (!canManage()) {
+          <div class="company-setup__readonly-banner" role="status">
+            <i class="pi pi-eye" aria-hidden="true"></i>
+            <span>{{ readOnlyMessage }}</span>
+          </div>
+        }
 
-      <div [formGroup]="form">
         <app-error-summary
           [id]="errorSummaryId"
           [leadingMessage]="pageMessage()"
           [links]="errorLinks()"
+          (linkAction)="onErrorLink($event)"
         />
 
         @if (staleConflict()) {
@@ -73,48 +81,59 @@
             Reload
           </button>
         }
+      }
 
-        <app-company-profile-section
-          [group]="form"
-          [fieldErrors]="fieldErrors()"
-          [submitting]="submitting()"
-          [timezoneOptions]="timezoneOptionsList"
-          (fieldBlur)="onFieldBlur($event)"
+      <div class="company-setup__sections">
+        @if (showForm()) {
+          <app-company-profile-card
+            [group]="form"
+            [fieldErrors]="fieldErrors()"
+            [submitting]="submitting()"
+            [canManage]="canManage()"
+            [logo]="logo()"
+            [timezoneOptions]="timezoneOptionsList"
+            [countryOptions]="countryOptionsList"
+            (fieldBlur)="onFieldBlur($event)"
+            (unauthorized)="onUnauthorized()"
+          />
+        }
+
+        <app-branch-list
+          [branches]="branches()"
+          [loading]="branchesLoading()"
+          [loadError]="branchesError()"
+          [canManage]="canManage()"
+          [selectedId]="drawerOpen() ? selectedBranchId() : null"
+          (rowActivated)="openBranch($event)"
+          (addBranch)="openAddBranch()"
+          (changed)="onBranchesChanged()"
+          (retry)="retryBranches()"
+          (unauthorized)="onUnauthorized()"
         />
+
+        @if (showForm()) {
+          <div class="company-setup__grouped">
+            <app-taxes-currency-card
+              [group]="form"
+              [fieldErrors]="fieldErrors()"
+              [submitting]="submitting()"
+              [currencyOptions]="currencyOptionsList"
+              (fieldBlur)="onFieldBlur($event)"
+            />
+
+            <app-document-numbering-card
+              [group]="form"
+              [fieldErrors]="fieldErrors()"
+              [submitting]="submitting()"
+              [canManage]="canManage()"
+              (fieldBlur)="onFieldBlur($event)"
+              (sequencesRequested)="openSequences()"
+            />
+          </div>
+        }
       </div>
     }
-
-    <app-branch-list
-      [branches]="branches()"
-      [loading]="branchesLoading()"
-      [loadError]="branchesError()"
-      [canManage]="canManage()"
-      (rowActivated)="openBranch($event)"
-      (addBranch)="openAddBranch()"
-      (changed)="onBranchesChanged()"
-      (retry)="retryBranches()"
-      (unauthorized)="onUnauthorized()"
-    />
-
-    @if (showForm()) {
-      <div class="company-setup__grouped" [formGroup]="form">
-        <app-taxes-currency-section
-          [group]="form"
-          [fieldErrors]="fieldErrors()"
-          [submitting]="submitting()"
-          [currencyOptions]="currencyOptionsList"
-          (fieldBlur)="onFieldBlur($event)"
-        />
-
-        <app-document-numbering-section
-          [group]="form"
-          [fieldErrors]="fieldErrors()"
-          [submitting]="submitting()"
-          (fieldBlur)="onFieldBlur($event)"
-        />
-      </div>
-    }
-  }
+  </div>
 
   <app-branch-drawer
     [open]="drawerOpen()"
@@ -129,3 +148,12 @@
     (unauthorized)="onUnauthorized()"
   />
 </div>
+
+<app-sequences-dialog
+  [(visible)]="sequencesOpen"
+  [canManage]="canManage()"
+  [values]="sequenceValues()"
+  [serverErrors]="sequenceServerErrors()"
+  (applied)="onSequencesApplied($event)"
+  (closed)="onSequencesClosed()"
+/>

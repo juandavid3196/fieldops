@@ -1,0 +1,195 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Mobile-first: a stack of row-cards; `md` restores the real table.
+.branch-table {
+  @include bp.up(md) {
+    overflow-x: auto;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__table {
+    inline-size: 100%;
+    border-collapse: collapse;
+
+    @include bp.up(md) {
+      min-inline-size: 45rem;
+    }
+
+    thead {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+
+      @include bp.up(md) {
+        position: static;
+        inline-size: auto;
+        block-size: auto;
+        overflow: visible;
+        clip-path: none;
+        white-space: normal;
+        background: var(--fo-color-surface-muted);
+      }
+    }
+
+    th {
+      padding: 0.625rem 1rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+      text-align: start;
+      border-bottom: 1px solid var(--fo-color-border);
+    }
+
+    tr {
+      position: relative;
+      display: block;
+      margin-block-end: 0.75rem;
+      padding: 0.75rem 3rem 0.75rem 0.75rem;
+      border: 1px solid var(--fo-color-border);
+      border-radius: var(--p-content-border-radius);
+
+      @include bp.up(md) {
+        display: table-row;
+        margin-block-end: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+      }
+    }
+
+    td {
+      display: block;
+      padding-block: 0.25rem;
+      vertical-align: middle;
+      color: var(--fo-color-text);
+
+      @include bp.up(md) {
+        display: table-cell;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--fo-color-row-divider);
+      }
+    }
+
+    // Below md a card shows name, Main tag, address, status and actions only.
+    td.branch-table__wide {
+      display: none;
+
+      @include bp.up(md) {
+        display: table-cell;
+      }
+    }
+
+    td.branch-table__actions {
+      position: absolute;
+      inset-block-start: 0.5rem;
+      inset-inline-end: 0.5rem;
+      padding: 0;
+
+      @include bp.up(md) {
+        position: static;
+        padding: 0.5rem 0.75rem;
+        text-align: end;
+      }
+    }
+  }
+
+  &__row {
+    min-block-size: var(--fo-size-touch-target);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fo-color-surface-muted);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--p-focus-ring-color);
+      outline-offset: -2px;
+    }
+
+    &--selected,
+    &--selected:hover {
+      background: var(--fo-color-primary-soft);
+      box-shadow: inset 3px 0 0 var(--fo-color-primary);
+    }
+  }
+
+  &__name-cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__name {
+    font-weight: 600;
+  }
+
+  &__main-tag {
+    display: inline-flex;
+    align-items: center;
+    block-size: 1.375rem;
+    padding: 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__sort-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    i {
+      font-size: 0.6875rem;
+    }
+  }
+
+  &__menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    @include bp.up(md) {
+      inline-size: 2rem;
+      block-size: 2rem;
+    }
+
+    &:hover {
+      background: var(--fo-color-disabled-background);
+    }
+  }
+}

@@ -1,0 +1,94 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Below 1100px: horizontal, scrollable link row above the page header.
+.admin-nav {
+  box-sizing: border-box;
+  min-width: 0;
+  background: var(--fo-color-surface);
+  border-block-end: 1px solid var(--fo-color-border);
+
+  &__title {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__list {
+    display: flex;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    overflow-x: auto;
+    list-style: none;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    box-sizing: border-box;
+    min-height: var(--fo-size-touch-target);
+    padding: 0 0.75rem;
+    font-weight: 500;
+    color: var(--fo-color-text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    border-radius: var(--fo-radius-control);
+
+    &:hover {
+      color: var(--fo-color-text);
+      background: var(--fo-color-surface-hover);
+    }
+
+    &[aria-current='location'] {
+      font-weight: 600;
+      color: var(--fo-color-primary-strong);
+      background: var(--fo-color-primary-soft);
+    }
+  }
+
+  @include bp.up(admin) {
+    position: sticky;
+    inset-block-start: var(--fo-size-topbar);
+    align-self: start;
+    inline-size: var(--fo-size-admin-column);
+    max-block-size: calc(100dvh - var(--fo-size-topbar));
+    padding: 1.25rem 0.75rem;
+    overflow: auto;
+    border-block-end: 0;
+    border-inline-end: 1px solid var(--fo-color-border);
+
+    &__title {
+      position: static;
+      inline-size: auto;
+      block-size: auto;
+      margin: 0;
+      padding: 0 0.75rem 0.75rem;
+      overflow: visible;
+      clip-path: none;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--fo-color-text);
+    }
+
+    &__list {
+      flex-direction: column;
+      gap: 2px;
+      padding: 0;
+      overflow: visible;
+    }
+
+    &__link {
+      gap: 0.625rem;
+      min-height: 2.375rem;
+    }
+  }
+}

@@ -47,7 +47,7 @@ public static class AuditFieldDiff
         {
             var beforeValue = before.TryGetValue(key, out var value) ? value : null;
 
-            if (Equals(beforeValue, afterValue))
+            if (ValuesEqual(beforeValue, afterValue))
             {
                 continue;
             }
@@ -74,8 +74,19 @@ public static class AuditFieldDiff
     public static (string Before, string After) ForStateChange(bool before, bool after) =>
         (SerializeIsActive(before), SerializeIsActive(after));
 
+    /// <summary>Set-as-main audit sides (BR-15): <c>isMain</c> false before, true after.</summary>
+    public static (string Before, string After) ForSetAsMain() =>
+        (
+            Serialize(new Dictionary<string, object?>(StringComparer.Ordinal) { ["isMain"] = false }),
+            Serialize(new Dictionary<string, object?>(StringComparer.Ordinal) { ["isMain"] = true }));
+
     private static string SerializeIsActive(bool isActive) =>
         Serialize(new Dictionary<string, object?>(StringComparer.Ordinal) { ["isActive"] = isActive });
+
+    private static bool ValuesEqual(object? before, object? after) =>
+        before is string[] beforeItems && after is string[] afterItems
+            ? beforeItems.SequenceEqual(afterItems, StringComparer.Ordinal)
+            : Equals(before, after);
 
     private static bool ShouldMaskKey(string key) => MaskedKeys.Contains(key);
 

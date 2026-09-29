@@ -50,7 +50,7 @@ MCP is lazy:
 - One targeted query is allowed only when an unresolved installed API behavior changes implementation.
 - PrimeNG `validate_usage` may run once on changed templates.
 - Maximum three frontend MCP calls total, no retries, and reuse recorded answers.
-- Playwright is not used in this stage; browser evidence belongs to `final-audit`.
+- No agent uses Playwright or browser automation. Runtime visual evidence is supplied later by the user's `USER VISUAL QA REPORT`.
 
 Repository precedent and installed typings win.
 
@@ -106,7 +106,7 @@ Maximum 900 words; never paste agent output or reproduce the spec:
 - Changed files.
 - Evidence ledger: FR/AC range · behavior group · implementation · tests · status.
 - Validation rows with frontend fingerprint.
-- MCP evidence used, backend dependencies and browser-dependent ACs left for final audit.
+- MCP evidence used, backend dependencies and runtime visual AC groups requiring the user's QA report.
 - Only deviations, risks, blockers or pending decisions.
 
 Results:

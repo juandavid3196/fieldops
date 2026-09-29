@@ -23,6 +23,8 @@ public sealed record UpdateBranchCommand(
     string? PostalCode,
     string? CountryCode,
     JsonElement? BusinessHours,
+    JsonElement? ServicePostalCodes,
+    JsonElement? UsesCompanyBilling,
     string? UpdatedAt,
     Guid ActorUserId,
     IPAddress? ClientIp);

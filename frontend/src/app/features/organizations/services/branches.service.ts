@@ -39,4 +39,9 @@ export class BranchesService {
   reactivate(id: string): Observable<void> {
     return this.http.post<void>(buildApiUrl(this.config, `branches/${id}/reactivate`), null);
   }
+
+  /** BR-11: makes an active branch the organization's only main branch. */
+  setMain(id: string): Observable<void> {
+    return this.http.post<void>(buildApiUrl(this.config, `branches/${id}/set-main`), null);
+  }
 }

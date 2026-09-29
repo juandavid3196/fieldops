@@ -27,6 +27,10 @@ public sealed class OrganizationSettingsController(
 {
     public const int MaxRequestBodyBytes = 32 * 1024;
 
+    public const string CurrencyKey = "currency";
+
+    public const string CurrencyChangeMessage = "Confirm the currency change.";
+
     [HttpGet]
     [Authorize(Policy = CompanySettingsPolicies.View)]
     [ProducesResponseType<OrganizationSettingsResponse>(StatusCodes.Status200OK)]
@@ -90,6 +94,16 @@ public sealed class OrganizationSettingsController(
             request.WorkOrderPrefix,
             request.InvoicePrefix,
             request.NextInvoiceNumber,
+            request.NextQuoteNumber,
+            request.NextWorkOrderNumber,
+            request.Website,
+            request.AddressLine1,
+            request.City,
+            request.StateRegion,
+            request.PostalCode,
+            request.CountryCode,
+            request.PricesIncludeTax,
+            request.ConfirmCurrencyChange == true,
             request.UpdatedAt,
             ticket.UserId,
             GetClientIpAddress());
@@ -110,6 +124,9 @@ public sealed class OrganizationSettingsController(
             case UpdateOrganizationSettingsResult.Stale:
                 return StaleProblem();
 
+            case UpdateOrganizationSettingsResult.CurrencyChangeNotConfirmed:
+                return CurrencyChangeProblem();
+
             default:
                 throw new InvalidOperationException("Unknown update organization settings result.");
         }
@@ -129,6 +146,19 @@ public sealed class OrganizationSettingsController(
             settings.WorkOrderPrefix,
             settings.InvoicePrefix,
             settings.NextInvoiceNumber,
+            settings.NextQuoteNumber,
+            settings.NextWorkOrderNumber,
+            settings.Website,
+            settings.AddressLine1,
+            settings.City,
+            settings.StateRegion,
+            settings.PostalCode,
+            settings.CountryCode,
+            settings.PricesIncludeTax,
+            settings.HasInvoices,
+            settings.Logo is null
+                ? null
+                : new OrganizationLogoResponse(settings.Logo.ContentType, settings.Logo.SizeBytes, settings.Logo.UpdatedAt),
             settings.UpdatedAt,
             canManage);
 
@@ -150,6 +180,15 @@ public sealed class OrganizationSettingsController(
 
         canManage = session.Role.Code == "owner";
         return true;
+    }
+
+    private IActionResult CurrencyChangeProblem()
+    {
+        ModelState.AddModelError(CurrencyKey, CurrencyChangeMessage);
+
+        return ValidationProblem(
+            statusCode: StatusCodes.Status409Conflict,
+            modelStateDictionary: ModelState);
     }
 
     private IActionResult StaleProblem() =>

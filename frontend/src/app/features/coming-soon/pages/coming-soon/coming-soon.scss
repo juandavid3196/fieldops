@@ -1,0 +1,25 @@
+:host {
+  display: block;
+}
+
+.coming-soon {
+  box-sizing: border-box;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: 2rem 1rem;
+  overflow-wrap: anywhere;
+
+  &__title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--fo-color-text);
+  }
+
+  &__text {
+    margin: 0.5rem 0 1.5rem;
+    color: var(--fo-color-text-secondary);
+  }
+}

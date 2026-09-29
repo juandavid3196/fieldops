@@ -108,7 +108,8 @@ describe('app routes', () => {
         harness.routeNativeElement?.querySelectorAll('nav[aria-label="Main navigation"] a') ?? [],
         (link) => link.textContent?.trim(),
       );
-    expect(links()).toEqual(['Overview', 'Company settings']);
+    expect(links()).toContain('Administration');
+    expect(links()).toContain('Requests');
 
     // Same shell, one new GET /sessions/current: the role changed to a non-admin one.
     const navigation = harness.navigateByUrl('/admin/company');
@@ -124,7 +125,34 @@ describe('app routes', () => {
 
     expect(router.url).toBe('/admin/company');
     expect(harness.routeNativeElement?.tagName).toBe('APP-SHELL');
-    expect(links()).toEqual(['Overview']);
+    expect(links()).not.toContain('Administration');
+    expect(links()).toContain('Requests');
+  });
+
+  it.each([
+    ['requests', 'Requests'],
+    ['users-and-permissions', 'Users & permissions'],
+    ['tax-rates', 'Tax rates'],
+  ])(
+    'renders the shared Coming soon page for /coming-soon/%s inside the shell with no API request (FR-03, AC-03)',
+    async (slug, name) => {
+      await navigate(`/coming-soon/${slug}`, [true]);
+
+      const root = harness.routeNativeElement as HTMLElement;
+      expect(root.tagName).toBe('APP-SHELL');
+      expect(root.querySelector('h1')?.textContent?.trim()).toBe(name);
+      expect(root.querySelector('app-coming-soon p')?.textContent?.trim()).toBe(
+        `${name} isn't available yet.`,
+      );
+      expect(root.querySelector('app-coming-soon a')?.getAttribute('href')).toBe('/overview');
+    },
+  );
+
+  it('redirects an unknown Coming soon slug to Overview (FR-03, AC-03)', async () => {
+    await navigate('/coming-soon/unknown-module', [true, true]);
+
+    expect(router.url).toBe('/overview');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Welcome');
   });
 
   it('resolves the compound path /auth/register-company as a sibling of auth, with no guard', async () => {

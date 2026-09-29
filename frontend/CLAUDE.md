@@ -29,18 +29,19 @@ Angular 22 standalone. Configuration: `docs/frontend/frontend-configuration.md`.
 - Implement/test only approved applicable states (loading, empty, error, permission, submission, success); non-applicable states are N/A, never invented.
 - Mobile-first; no business logic in templates.
 
-## MCP/browser
+## MCP and manual visual QA
 
 - Angular/PrimeNG MCP is lazy: one targeted unresolved installed-API question, then reuse the answer. Installed code/typings win.
 - No automatic project/best-practice/docs queries.
-- Playwright belongs to final audit only for browser-dependent ACs; use ignored `.playwright-mcp/` output.
+- No agent invokes Playwright, browser MCPs, runtime Axe, screenshot capture or pixel comparison.
+- The user supplies a `USER VISUAL QA REPORT` tied to the current frontend fingerprint for applicable fidelity, responsive, navigation, focus and keyboard ACs.
 
 ## Tests
 
 - Co-locate `*.spec.ts` by behavior; no file/test per component, field or AC.
 - Use `TestBed` only for Angular runtime/DI/template/router/HTTP behavior; test pure code directly.
 - HTTP tests use `provideHttpClientTesting()`, fake `API_CONFIG` and `HttpTestingController.verify()`.
-- Parameterize equivalent inputs. Do not repeat a rule across component/service/browser without distinct risk.
+- Parameterize equivalent inputs. Do not repeat a rule across component/service/manual visual QA without distinct risk.
 - Reuse unchanged shared auth/session/interceptor evidence.
 
 Focused command from `frontend/`:

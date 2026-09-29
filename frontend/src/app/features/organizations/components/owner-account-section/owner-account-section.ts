@@ -24,9 +24,12 @@ export class OwnerAccountSection {
   readonly submitting = input(false);
   readonly fieldBlur = output<SimpleFieldKey>();
 
-  /** PrimeNG lacks a `readonly` input on `p-password`; applied via pass-through to its inner input. */
+  /**
+   * PrimeNG lacks a `readonly` input on `p-password`; applied via pass-through to its inner input.
+   * `null` removes the attribute: PrimeNG renders `false` as `readonly="false"`, which HTML treats as readonly.
+   */
   readonly passwordReadonlyPt = computed(() => ({
-    pcInputText: { root: { readonly: this.submitting() } },
+    pcInputText: { root: { readonly: this.submitting() ? true : null } },
   }));
 
   error(field: SimpleFieldKey): string | null {

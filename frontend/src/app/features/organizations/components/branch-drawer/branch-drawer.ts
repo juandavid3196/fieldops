@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import {
   Component,
   DestroyRef,
@@ -22,8 +23,10 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 
+import { DOCK_QUERY, MD_QUERY, watchMedia } from '../../../../core/config/breakpoints';
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { BusinessHoursEditor } from '../business-hours-editor/business-hours-editor';
 import { ErrorSummary, FieldErrorLink } from '../error-summary/error-summary';
@@ -38,6 +41,7 @@ import {
   BranchListItem,
   BranchSimpleFieldKey,
   buildBranchRequest,
+  formatServicePostalCodes,
 } from '../../models/company-settings.model';
 import {
   BusinessHoursControls,
@@ -52,6 +56,7 @@ import {
   validateBusinessHoursStart,
 } from '../../pages/register-company/register-company.validators';
 import { BranchesService } from '../../services/branches.service';
+import { MAIN_BRANCH_TOOLTIP } from '../branch-list/branch-list';
 import {
   BRANCH_FIELD_LABELS,
   BRANCH_SIMPLE_FIELD_KEYS,
@@ -62,8 +67,6 @@ import {
 const BUSINESS_HOURS_FIELD_PATTERN = /^branch\.businessHours\.(\w+)\.(start|end)$/;
 const DRAWER_ERROR_SUMMARY_ID = 'branch-drawer-error-summary';
 const DRAWER_TITLE_ID = 'branch-drawer-title';
-/** Mirrors `_breakpoints.scss`'s `md` value; SCSS partials emit no CSS a script can read. */
-const BELOW_MD_QUERY = '(max-width: 47.99rem)';
 
 /** BR-15 copy shown for a branch load error (other than 401/404, handled separately). */
 export const BRANCH_LOAD_ERROR_MESSAGE = "We couldn't load this branch.";
@@ -91,7 +94,9 @@ export const ONLY_ACTIVE_BRANCH_TOOLTIP = 'At least one branch must stay active.
     SpinnerIcon,
     Skeleton,
     Tag,
+    ToggleSwitch,
     TooltipModule,
+    NgTemplateOutlet,
     BusinessHoursEditor,
     ErrorSummary,
     FormField,
@@ -134,13 +139,29 @@ export class BranchDrawer {
   };
   readonly form: FormGroup<BranchDrawerFormControls> = buildBranchDrawerForm('');
 
-  /** AC-30/AC-38 (OD-20): full screen below `md`, an overlay of fixed width from `md` up. */
-  readonly isBelowMd = signal(
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia(BELOW_MD_QUERY).matches
-      : false,
+  /** FR-16: docked from 1440px, an overlay below the top bar from 768px, full screen below. */
+  readonly isDocked = signal(false);
+  readonly isBelowMd = signal(false);
+  readonly mode = computed<'docked' | 'overlay' | 'fullscreen'>(() =>
+    this.isDocked() ? 'docked' : this.isBelowMd() ? 'fullscreen' : 'overlay',
   );
-  readonly drawerStyle = computed(() => (this.isBelowMd() ? null : { 'inline-size': '32rem' }));
+  /** Token variables (`--p-drawer-*`) plus, from md, the 420px panel below the top bar. */
+  readonly overlayStyle = computed(() => ({
+    '--p-drawer-shadow': 'var(--fo-shadow-drawer)',
+    '--p-drawer-header-padding': '0',
+    '--p-drawer-footer-padding': '0',
+    ...(this.isBelowMd()
+      ? {}
+      : {
+          'inline-size': 'var(--fo-size-drawer)',
+          'inset-block-start': 'var(--fo-size-topbar)',
+          'block-size': 'calc(100dvh - var(--fo-size-topbar))',
+        }),
+  }));
+  readonly maskStyle = {
+    'inset-block-start': 'var(--fo-size-topbar)',
+    background: 'var(--fo-color-mask)',
+  };
 
   readonly detail = signal<BranchDetail | null>(null);
   readonly loading = signal(false);
@@ -159,6 +180,8 @@ export class BranchDrawer {
   readonly isCreate = computed(() => this.branchId() === null);
   readonly title = computed(() => (this.isCreate() ? 'New branch' : (this.detail()?.name ?? '')));
   readonly readOnly = computed(() => !this.canManage());
+  readonly isMain = computed(() => this.detail()?.isMain ?? false);
+  readonly mainTooltip = MAIN_BRANCH_TOOLTIP;
 
   readonly onlyActiveBranch = computed(() => {
     const id = this.branchId();
@@ -192,17 +215,37 @@ export class BranchDrawer {
         if (!wasOpen) {
           this.previouslyFocusedElement =
             typeof document !== 'undefined' ? (document.activeElement as HTMLElement | null) : null;
+          // The docked region has no open transition to wait for.
+          afterNextRender(() => this.onDockedShow(), { injector: this.injector });
         }
         this.initialize(this.branchId());
+      } else if (wasOpen && this.mode() === 'docked') {
+        this.onDrawerHide();
       }
       wasOpen = isOpen;
     });
 
-    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
-      const query = window.matchMedia(BELOW_MD_QUERY);
-      const listener = (event: MediaQueryListEvent): void => this.isBelowMd.set(event.matches);
-      query.addEventListener('change', listener);
-      this.destroyRef.onDestroy(() => query.removeEventListener('change', listener));
+    const dock = watchMedia(DOCK_QUERY, (matches) => this.isDocked.set(matches), false);
+    const md = watchMedia(MD_QUERY, (matches) => this.isBelowMd.set(!matches));
+    this.isDocked.set(dock.matches);
+    this.isBelowMd.set(!md.matches);
+    this.destroyRef.onDestroy(() => {
+      dock.stop();
+      md.stop();
+    });
+  }
+
+  private onDockedShow(): void {
+    if (this.mode() === 'docked') {
+      this.onDrawerShow();
+    }
+  }
+
+  /** Esc closes the docked region through the dirty guard (the overlay drawer handles Esc itself). */
+  onDockedKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.requestClose();
     }
   }
 
@@ -410,7 +453,7 @@ export class BranchDrawer {
       return;
     }
 
-    if (this.onlyActiveBranch()) {
+    if (this.onlyActiveBranch() || branch.isMain) {
       return;
     }
 
@@ -457,7 +500,10 @@ export class BranchDrawer {
       return;
     }
     if (apiError?.kind === 'conflict') {
-      this.messageService.add({ severity: 'error', summary: ONLY_ACTIVE_BRANCH_TOOLTIP });
+      this.messageService.add({
+        severity: 'error',
+        summary: this.isMain() ? MAIN_BRANCH_TOOLTIP : ONLY_ACTIVE_BRANCH_TOOLTIP,
+      });
       return;
     }
     this.messageService.add({
@@ -592,6 +638,8 @@ function buildBranchDrawerForm(timezone: string): FormGroup<BranchDrawerFormCont
     stateRegion: new FormControl('', { nonNullable: true }),
     postalCode: new FormControl('', { nonNullable: true }),
     countryCode: new FormControl('', { nonNullable: true }),
+    servicePostalCodes: new FormControl('', { nonNullable: true }),
+    usesCompanyBilling: new FormControl(true, { nonNullable: true }),
     businessHours: new FormGroup(
       Object.fromEntries(
         WEEKDAYS.map((day) => [day, businessHoursDayGroup(false, '09:00', '17:00')]),
@@ -621,6 +669,8 @@ function createFormValue(timezone: string): BranchDrawerFormValue {
     stateRegion: '',
     postalCode: '',
     countryCode: '',
+    servicePostalCodes: '',
+    usesCompanyBilling: true,
     businessHours: Object.fromEntries(
       WEEKDAYS.map((day) => [day, { open: false, start: '09:00', end: '17:00' }]),
     ) as BranchDrawerFormValue['businessHours'],
@@ -631,15 +681,17 @@ function editFormValue(branch: BranchDetail): BranchDrawerFormValue {
   return {
     name: branch.name,
     code: branch.code,
-    phone: branch.phone,
-    email: branch.email,
+    phone: branch.phone ?? '',
+    email: branch.email ?? '',
     timezone: branch.timezone,
     addressLine1: branch.addressLine1,
-    addressLine2: branch.addressLine2,
+    addressLine2: branch.addressLine2 ?? '',
     city: branch.city,
-    stateRegion: branch.stateRegion,
+    stateRegion: branch.stateRegion ?? '',
     postalCode: branch.postalCode,
     countryCode: branch.countryCode,
+    servicePostalCodes: formatServicePostalCodes(branch.servicePostalCodes),
+    usesCompanyBilling: branch.usesCompanyBilling,
     businessHours: businessHoursFormValue(branch.businessHours),
   };
 }

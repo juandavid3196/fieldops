@@ -321,6 +321,8 @@ public class BranchesEndpointTests(CompanySettingsDatabaseFixture database)
             {
                 ["monday"] = new JsonObject { ["start"] = "08:00", ["end"] = "17:00" },
             },
+            ["servicePostalCodes"] = new JsonArray(),
+            ["usesCompanyBilling"] = true,
         };
 
         if (updatedAt is not null)
@@ -334,7 +336,8 @@ public class BranchesEndpointTests(CompanySettingsDatabaseFixture database)
 
 public sealed record BranchListBody(IReadOnlyList<BranchListItemBody> Items);
 
-public sealed record BranchListItemBody(Guid Id, string Name, string Code, bool IsActive);
+public sealed record BranchListItemBody(
+    Guid Id, string Name, string Code, bool IsActive, bool IsMain, int TechnicianCount);
 
 public sealed record BranchDetailBody(
     Guid Id,
@@ -343,4 +346,7 @@ public sealed record BranchDetailBody(
     string? Email,
     string? Phone,
     bool IsActive,
+    bool IsMain,
+    string[] ServicePostalCodes,
+    bool UsesCompanyBilling,
     DateTimeOffset UpdatedAt);

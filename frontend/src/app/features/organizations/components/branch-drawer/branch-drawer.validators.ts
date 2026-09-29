@@ -28,7 +28,20 @@ import {
   BranchFieldErrors,
   BranchFieldKey,
   BranchSimpleFieldKey,
+  parseServicePostalCodes,
 } from '../../models/company-settings.model';
+
+export const ZIP_CODES_INVALID_MESSAGE = 'Enter valid ZIP codes separated by commas.';
+export const ZIP_CODES_LIMIT_MESSAGE = 'Enter up to 200 ZIP codes.';
+
+/** BR-09: each code 1-30 letters, digits, spaces or hyphens; at most 200 after de-duplication. */
+export function validateServicePostalCodes(text: string): string | null {
+  const codes = parseServicePostalCodes(text);
+  if (!codes.every((code) => code.length <= 30 && /^[A-Za-z0-9 -]+$/.test(code))) {
+    return ZIP_CODES_INVALID_MESSAGE;
+  }
+  return codes.length > 200 ? ZIP_CODES_LIMIT_MESSAGE : null;
+}
 import { WEEKDAYS, WEEKDAY_LABELS, Weekday } from '../../models/organization-registration.model';
 
 /** Every simple branch field, in Name / Code / contact / address section order. */
@@ -44,6 +57,7 @@ export const BRANCH_SIMPLE_FIELD_KEYS: readonly BranchSimpleFieldKey[] = [
   'branch.stateRegion',
   'branch.postalCode',
   'branch.countryCode',
+  'branch.servicePostalCodes',
 ];
 
 /** Server request key for each simple field (the API body has no `branch.` prefix). */
@@ -59,6 +73,7 @@ const REQUEST_KEYS: Readonly<Record<BranchSimpleFieldKey, keyof BranchDrawerForm
   'branch.stateRegion': 'stateRegion',
   'branch.postalCode': 'postalCode',
   'branch.countryCode': 'countryCode',
+  'branch.servicePostalCodes': 'servicePostalCodes',
 };
 
 /** Visible labels, shared by field labels and the error summary link text. */
@@ -76,6 +91,7 @@ const ALLOWED_MESSAGES: Readonly<Record<BranchSimpleFieldKey, readonly string[]>
   'branch.stateRegion': [tooLongMessage(100)],
   'branch.postalCode': [REQUIRED_MESSAGE, tooLongMessage(30)],
   'branch.countryCode': [COUNTRY_MESSAGE],
+  'branch.servicePostalCodes': [ZIP_CODES_INVALID_MESSAGE, ZIP_CODES_LIMIT_MESSAGE],
 };
 
 /** First failing BR-03 rule for one simple field, or `null` when valid. */
@@ -106,6 +122,8 @@ export function validateBranchField(
       return validateRequiredText(value.postalCode, 30);
     case 'branch.countryCode':
       return validateCountryCode(value.countryCode);
+    case 'branch.servicePostalCodes':
+      return validateServicePostalCodes(value.servicePostalCodes);
   }
 }
 
@@ -161,6 +179,7 @@ function buildFieldLabels(): Record<BranchFieldKey, string> {
     'branch.stateRegion': 'State/Region',
     'branch.postalCode': 'Postal code',
     'branch.countryCode': 'Country',
+    'branch.servicePostalCodes': 'Service area ZIP codes',
     'branch.businessHours': 'Business hours',
   };
 

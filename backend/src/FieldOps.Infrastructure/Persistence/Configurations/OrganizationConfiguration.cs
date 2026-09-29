@@ -80,6 +80,29 @@ internal sealed class OrganizationConfiguration
             .HasDefaultValue(false)
             .IsRequired();
 
+        builder.Property(organization => organization.Website)
+            .HasMaxLength(255);
+
+        builder.Property(organization => organization.AddressLine1)
+            .HasMaxLength(180);
+
+        builder.Property(organization => organization.City)
+            .HasMaxLength(100);
+
+        builder.Property(organization => organization.StateRegion)
+            .HasMaxLength(100);
+
+        builder.Property(organization => organization.PostalCode)
+            .HasMaxLength(30);
+
+        builder.Property(organization => organization.CountryCode)
+            .HasMaxLength(2)
+            .IsFixedLength();
+
+        builder.Property(organization => organization.PricesIncludeTax)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         // The sentinel keeps an explicit false from being replaced by the
         // database default (true) on insert.
         builder.Property(organization => organization.IsActive)

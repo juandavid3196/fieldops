@@ -22,6 +22,8 @@ const BRANCHES: readonly BranchListItem[] = [
     countryCode: 'US',
     timezone: 'America/Chicago',
     isActive: true,
+    isMain: true,
+    technicianCount: 1,
   },
   {
     id: 'b-2',
@@ -35,6 +37,8 @@ const BRANCHES: readonly BranchListItem[] = [
     countryCode: 'US',
     timezone: 'America/Chicago',
     isActive: false,
+    isMain: false,
+    technicianCount: 0,
   },
   {
     id: 'b-3',
@@ -48,6 +52,8 @@ const BRANCHES: readonly BranchListItem[] = [
     countryCode: 'US',
     timezone: 'America/Chicago',
     isActive: true,
+    isMain: false,
+    technicianCount: 2,
   },
 ];
 
@@ -78,7 +84,7 @@ describe('BranchList (AC-26, AC-43)', () => {
 
   const rowNames = (): string[] =>
     Array.from(
-      host.querySelectorAll('.branch-list__name'),
+      host.querySelectorAll('.branch-table__name'),
       (node) => node.textContent?.trim() ?? '',
     );
 
@@ -96,7 +102,7 @@ describe('BranchList (AC-26, AC-43)', () => {
     component.search.set('');
     component.statusFilter.set('all');
     fixture.detectChanges();
-    const header = host.querySelector('.branch-list__sort-header')!;
+    const header = host.querySelector('.branch-table__sort-header')!;
     expect(header.getAttribute('aria-sort')).toBe('ascending');
 
     component.toggleSort();
@@ -114,5 +120,29 @@ describe('BranchList (AC-26, AC-43)', () => {
     expect(host.querySelector('.branch-list__empty')?.textContent).toContain(
       'No branches match these filters.',
     );
+  });
+
+  it('offers row-menu items by role, activity and main flag, and highlights the selected row (FR-13, FR-15, FR-17, AC-17)', () => {
+    const labels = (branch: BranchListItem): string[] =>
+      component.buildMenu(branch).map((item) => item.label ?? '');
+    const deactivate = component.buildMenu(BRANCHES[0]).find((item) => item.label === 'Deactivate');
+
+    expect(labels(BRANCHES[0])).toEqual(['Edit', 'Deactivate']);
+    expect(deactivate?.disabled).toBe(true);
+    expect(deactivate?.tooltip).toBe("The main branch can't be deactivated.");
+
+    // Active non-main but the only other active branch remains: Set as main is offered.
+    expect(labels(BRANCHES[2])).toEqual(['Edit', 'Set as main branch', 'Deactivate']);
+    expect(labels(BRANCHES[1])).toEqual(['Edit', 'Reactivate']);
+
+    fixture.componentRef.setInput('canManage', false);
+    expect(labels(BRANCHES[2])).toEqual(['View']);
+
+    fixture.componentRef.setInput('selectedId', 'b-3');
+    fixture.detectChanges();
+    const selected = host.querySelectorAll('.branch-table__row--selected');
+    expect(selected).toHaveLength(1);
+    expect(selected[0].textContent).toContain('Round Rock');
+    expect(host.querySelector('.branch-table__main-tag')?.textContent).toContain('Main branch');
   });
 });

@@ -43,17 +43,20 @@ describe('AppShell', () => {
   let host: HTMLElement;
   const originalMatchMedia = window.matchMedia;
 
-  function stubViewport(desktop: boolean): void {
+  type Mode = 'drawer' | 'rail' | 'full';
+
+  /** `md` (48rem) matches from rail up; `admin` (68.75rem) only in full mode. */
+  function stubViewport(mode: Mode): void {
     window.matchMedia = ((query: string) => ({
-      matches: desktop,
+      matches: query.includes('48rem') ? mode !== 'drawer' : mode === 'full',
       media: query,
       addEventListener: () => undefined,
       removeEventListener: () => undefined,
     })) as unknown as typeof window.matchMedia;
   }
 
-  async function setup(session: Session = SESSION, desktop = true): Promise<void> {
-    stubViewport(desktop);
+  async function setup(session: Session = SESSION, mode: Mode = 'full'): Promise<void> {
+    stubViewport(mode);
     TestBed.configureTestingModule({
       providers: [
         { provide: API_CONFIG, useValue: { baseUrl: API_BASE_URL } },
@@ -64,6 +67,7 @@ describe('AppShell', () => {
             children: [
               { path: 'overview', component: PageStub },
               { path: 'admin/company', component: PageStub },
+              { path: 'coming-soon/:module', component: PageStub },
             ],
           },
           { path: 'auth/sign-in', component: SignInStub },
@@ -92,7 +96,20 @@ describe('AppShell', () => {
   const linkLabels = () =>
     Array.from(host.querySelectorAll('nav a'), (link) => link.textContent?.trim());
   const userButton = () => host.querySelector<HTMLButtonElement>('.shell__user-button')!;
+  const orgButton = () => host.querySelector<HTMLButtonElement>('.shell__org-button');
   const menuItem = () => host.querySelector<HTMLButtonElement>('[role="menuitem"]')!;
+  const MODULE_LABELS = [
+    'Overview',
+    'Requests',
+    'Quotes',
+    'Work orders',
+    'Schedule',
+    'Customers',
+    'Team',
+    'Products and services',
+    'Invoices',
+    'Reports',
+  ];
 
   async function openMenuAndSignOut(): Promise<void> {
     userButton().click();
@@ -123,37 +140,99 @@ describe('AppShell', () => {
     ['operations_manager', false],
     ['unknown_role', false],
   ])(
-    'shows Company settings by role %s = %s and marks the current page (FR-02, FR-03, BR-01, AC-01, AC-02, AC-06)',
+    'renders the BR-01 navigation for role %s (Administration = %s) and marks the current page (FR-01, AC-01, AC-02, AC-03)',
     async (code, canSeeAdministration) => {
       await setup({ ...SESSION, role: { code, name: 'Some role' } });
 
       expect(linkLabels()).toEqual(
-        canSeeAdministration ? ['Overview', 'Company settings'] : ['Overview'],
+        canSeeAdministration ? [...MODULE_LABELS, 'Administration'] : MODULE_LABELS,
       );
-      expect(host.textContent?.includes('Administration')).toBe(canSeeAdministration);
+      expect(
+        Array.from(host.querySelectorAll('.sidebar__group-label'), (n) => n.textContent),
+      ).toEqual(['Operations', 'People', 'Finance']);
+      expect(host.querySelector('nav a i')?.classList.contains('pi-th-large')).toBe(true);
       expect(host.querySelectorAll('header')).toHaveLength(1);
       expect(host.querySelectorAll('main')).toHaveLength(1);
       expect(host.querySelector('nav')?.getAttribute('aria-label')).toBe('Main navigation');
-      expect(host.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
       expect(host.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('Overview');
+
+      await router.navigateByUrl('/coming-soon/work-orders');
+      await settle();
+      expect(host.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1);
+      expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe(
+        'Work orders',
+      );
 
       if (canSeeAdministration) {
         await router.navigateByUrl('/admin/company');
         await settle();
-        expect(host.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
-        expect(host.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe(
-          'Company settings',
+        expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe(
+          'Administration',
         );
       }
-      // Desktop: no navigation menu button.
       expect(host.textContent).not.toContain('Open navigation');
+    },
+  );
+
+  it('shows the top bar controls, organization menu and Coming soon destinations without requests (FR-04, AC-01, AC-03)', async () => {
+    await setup();
+
+    expect(host.querySelector('.shell__search-input')?.getAttribute('placeholder')).toBe(
+      'Search requests, customers, work orders…',
+    );
+    expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe(
+      '/coming-soon/help',
+    );
+    const bell = host.querySelector('a[aria-label="Notifications"]')!;
+    expect(bell.getAttribute('href')).toBe('/coming-soon/notifications');
+    expect(bell.textContent?.trim()).toBe('');
+
+    orgButton()!.click();
+    await settle();
+    expect(host.querySelectorAll('[role="menuitem"]')).toHaveLength(1);
+    expect(menuItem().getAttribute('aria-current')).toBe('true');
+    expect(menuItem().textContent).toContain('FieldOps Services');
+    menuItem().click();
+    await settle();
+    expect(host.querySelector('[role="menu"]')).toBeNull();
+    expect(router.url).toBe('/overview');
+
+    const search = host.querySelector<HTMLInputElement>('#shell-search')!;
+    search.form!.dispatchEvent(new Event('submit', { cancelable: true }));
+    await settle();
+    expect(router.url).toBe('/coming-soon/search');
+    await expectAxeClean();
+  });
+
+  it.each([
+    ['full', false],
+    ['rail', true],
+  ] as const)(
+    'starts as %s (rail = %s) and toggles Collapse for the visit only, with names in the rail (FR-01, FR-02, AC-05)',
+    async (mode, startsRail) => {
+      await setup(SESSION, mode);
+      const sidebar = () => host.querySelector('.sidebar')!;
+      const collapse = () => host.querySelector<HTMLButtonElement>('.sidebar__collapse')!;
+      expect(sidebar().classList.contains('sidebar--rail')).toBe(startsRail);
+
+      collapse().click();
+      await settle();
+      expect(sidebar().classList.contains('sidebar--rail')).toBe(!startsRail);
+      if (!startsRail) {
+        expect(host.querySelector('.sidebar__group-label')).toBeNull();
+        expect(host.querySelector('nav a')?.getAttribute('aria-label')).toBe('Overview');
+      }
+
+      collapse().click();
+      await settle();
+      expect(sidebar().classList.contains('sidebar--rail')).toBe(startsRail);
     },
   );
 
   it('shows organization, full name, role and initials, and follows session reloads (FR-04, BR-02, AC-08, AC-09)', async () => {
     await setup();
 
-    expect(host.querySelector('.shell__org')?.textContent?.trim()).toBe('FieldOps Services');
+    expect(host.querySelector('.shell__org-name')?.textContent?.trim()).toBe('FieldOps Services');
     expect(host.querySelector('.shell__name')?.textContent?.trim()).toBe('Alex Morgan');
     expect(host.querySelector('.shell__role')?.textContent?.trim()).toBe('Owner');
     expect(host.querySelector('.shell__initials')?.textContent?.trim()).toBe('AM');
@@ -167,7 +246,7 @@ describe('AppShell', () => {
     });
     await settle();
 
-    expect(host.querySelector('.shell__org')?.textContent?.trim()).toBe('Renamed Co');
+    expect(host.querySelector('.shell__org-name')?.textContent?.trim()).toBe('Renamed Co');
     expect(host.querySelector('.shell__initials')?.textContent?.trim()).toBe('A');
     expect(userButton().getAttribute('aria-label')).toBe('Account menu, alex, Owner');
   });
@@ -260,11 +339,15 @@ describe('AppShell', () => {
     expect(canLeave).toHaveBeenCalledTimes(1);
   });
 
-  it('opens a labelled navigation drawer below lg, closes it on selection and returns focus (FR-06, AC-16, AC-17, AC-18)', async () => {
-    await setup(SESSION, false);
+  it('opens a labelled navigation drawer below md, closes it on selection and returns focus (FR-06, AC-16, AC-17, AC-18)', async () => {
+    await setup(SESSION, 'drawer');
 
-    expect(host.querySelector('.shell__sidebar')).toBeNull();
-    const navButton = host.querySelector<HTMLButtonElement>('.shell__nav-button')!;
+    expect(host.querySelector('.sidebar')).toBeNull();
+    expect(host.querySelector('.shell__search-input')).toBeNull();
+    expect(host.querySelector('.shell__org-button')).toBeNull();
+    expect(host.querySelector('a[aria-label="Help"]')).toBeNull();
+    expect(host.querySelector('a[aria-label="Notifications"]')).not.toBeNull();
+    const navButton = host.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;
     expect(navButton.textContent).toContain('Open navigation');
 
     navButton.click();
@@ -278,7 +361,8 @@ describe('AppShell', () => {
     expect(dialog?.textContent).toContain('Close navigation');
     await expectAxeClean();
 
-    dialog?.querySelectorAll<HTMLAnchorElement>('nav a')[1].click();
+    const links = dialog!.querySelectorAll<HTMLAnchorElement>('nav a');
+    links[links.length - 1].click();
     await settle();
 
     expect(router.url).toBe('/admin/company');

@@ -6,6 +6,16 @@ public enum DeactivateBranchOutcome
     NotFound,
     NoOp,
     LastActiveConflict,
+    MainBranchConflict,
+    Changed,
+}
+
+/// <summary>Outcome of <see cref="IBranchStore.SetMainAsync"/> (FR-15, BR-11).</summary>
+public enum SetMainBranchOutcome
+{
+    NotFound,
+    InactiveConflict,
+    NoOp,
     Changed,
 }
 

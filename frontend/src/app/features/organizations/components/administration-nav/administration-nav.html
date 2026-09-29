@@ -1,0 +1,23 @@
+<nav class="admin-nav" aria-label="Administration">
+  <p class="admin-nav__title">Administration</p>
+  <ul class="admin-nav__list">
+    @for (item of items; track item.label) {
+      <li>
+        @if (item.section; as section) {
+          <a
+            class="admin-nav__link"
+            [href]="'#' + section"
+            [attr.aria-current]="activeSection() === section ? 'location' : null"
+            (click)="select($event, section)"
+          >
+            <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
+          </a>
+        } @else {
+          <a class="admin-nav__link" [routerLink]="item.link">
+            <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
+          </a>
+        }
+      </li>
+    }
+  </ul>
+</nav>
