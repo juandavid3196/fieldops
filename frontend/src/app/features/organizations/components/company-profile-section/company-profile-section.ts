@@ -4,6 +4,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 
 import { FormField } from '../form-field/form-field';
+import { WizardCard } from '../wizard-card/wizard-card';
 import { SelectOption } from '../../data/display-names';
 import {
   FieldErrors,
@@ -16,7 +17,7 @@ import type { SimpleFieldKey } from '../../models/organization-registration.mode
 /** "Company profile" section (FR-01): name, legal name, tax ID, email, phone, time zone. */
 @Component({
   selector: 'app-company-profile-section',
-  imports: [ReactiveFormsModule, InputText, Select, FormField],
+  imports: [ReactiveFormsModule, InputText, Select, FormField, WizardCard],
   templateUrl: './company-profile-section.html',
   styleUrl: './company-profile-section.scss',
 })

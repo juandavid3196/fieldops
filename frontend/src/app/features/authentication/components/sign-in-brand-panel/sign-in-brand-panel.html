@@ -2,7 +2,13 @@
   <img class="brand__photo" ngSrc="/images/signin-background.jpg" fill alt="" />
 
   <div class="brand__content">
-    <p class="brand__wordmark"><span>Field</span><span class="brand__accent">Ops</span></p>
+    <p class="brand__wordmark">
+      <svg class="brand__mark" viewBox="0 0 48 40" aria-hidden="true" focusable="false">
+        <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-300)" />
+        <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-500)" />
+      </svg>
+      <span>Field</span><span class="brand__accent">Ops</span>
+    </p>
     <p class="brand__tagline">People · Work · Customers · For a brighter tomorrow</p>
     <h2 class="brand__heading" id="brand-heading">Run every service job from one place</h2>
     <p class="brand__subhead">
@@ -11,7 +17,10 @@
 
     <ul class="brand__cards">
       @for (card of statusCards; track card.title) {
-        <li class="brand__card">
+        <li class="brand__card brand__card--{{ card.tone }}">
+          <span class="brand__card-icon" aria-hidden="true"
+            ><i class="pi {{ card.icon }}"></i
+          ></span>
           <p class="brand__card-title">{{ card.title }}</p>
           <p class="brand__card-text">{{ card.text }}</p>
         </li>
@@ -20,9 +29,12 @@
 
     <ul class="brand__benefits">
       @for (benefit of benefits; track benefit.title) {
-        <li>
-          <p class="brand__benefit-title">{{ benefit.title }}</p>
-          <p class="brand__benefit-text">{{ benefit.text }}</p>
+        <li class="brand__benefit">
+          <i class="pi {{ benefit.icon }}" aria-hidden="true"></i>
+          <div>
+            <p class="brand__benefit-title">{{ benefit.title }}</p>
+            <p class="brand__benefit-text">{{ benefit.text }}</p>
+          </div>
         </li>
       }
     </ul>

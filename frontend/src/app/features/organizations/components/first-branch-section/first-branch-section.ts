@@ -3,22 +3,19 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 
-import { BusinessHoursEditor } from '../business-hours-editor/business-hours-editor';
 import { FormField } from '../form-field/form-field';
+import { WizardCard } from '../wizard-card/wizard-card';
+import { WizardNote } from '../wizard-note/wizard-note';
 import { SelectOption } from '../../data/display-names';
-import {
-  BranchFormControls,
-  FieldErrors,
-  FieldKey,
-} from '../../models/organization-registration.model';
+import { BranchFormControls, FieldErrors } from '../../models/organization-registration.model';
 
 import type { FormGroup } from '@angular/forms';
 import type { SimpleFieldKey } from '../../models/organization-registration.model';
 
-/** "First branch" section (FR-01): branch fields, address and business hours. */
+/** "First branch" card (wizard step 1): branch fields and address. */
 @Component({
   selector: 'app-first-branch-section',
-  imports: [ReactiveFormsModule, InputText, Select, FormField, BusinessHoursEditor],
+  imports: [ReactiveFormsModule, InputText, Select, FormField, WizardCard, WizardNote],
   templateUrl: './first-branch-section.html',
   styleUrl: './first-branch-section.scss',
 })
@@ -28,7 +25,7 @@ export class FirstBranchSection {
   readonly submitting = input(false);
   readonly timezoneOptions = input.required<SelectOption[]>();
   readonly countryOptions = input.required<SelectOption[]>();
-  readonly fieldBlur = output<FieldKey>();
+  readonly fieldBlur = output<SimpleFieldKey>();
   readonly branchTimezoneChanged = output<void>();
 
   error(field: SimpleFieldKey): string | null {

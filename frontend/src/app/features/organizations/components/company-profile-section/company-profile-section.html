@@ -1,7 +1,10 @@
-<section class="company-profile" aria-labelledby="company-profile-heading" [formGroup]="group()">
-  <h2 id="company-profile-heading">Company profile</h2>
-
-  <div class="company-profile__grid">
+<app-wizard-card
+  headingId="company-profile-heading"
+  title="Company profile"
+  description="This information identifies your company across FieldOps, invoices, and reports."
+  icon="pi-building"
+>
+  <div class="company-profile__grid" [formGroup]="group()">
     <app-form-field
       label="Display name"
       controlId="organization-name"
@@ -45,26 +48,6 @@
           error('organization.legalName') !== null ? 'organization-legalName-error' : null
         "
         (blur)="fieldBlur.emit('organization.legalName')"
-      />
-    </app-form-field>
-
-    <app-form-field
-      label="Tax ID"
-      controlId="organization-taxId"
-      [error]="error('organization.taxId')"
-    >
-      <input
-        pInputText
-        id="organization-taxId"
-        formControlName="taxId"
-        fluid
-        [invalid]="error('organization.taxId') !== null"
-        [readonly]="submitting()"
-        [attr.aria-invalid]="error('organization.taxId') !== null ? 'true' : null"
-        [attr.aria-describedby]="
-          error('organization.taxId') !== null ? 'organization-taxId-error' : null
-        "
-        (blur)="fieldBlur.emit('organization.taxId')"
       />
     </app-form-field>
 
@@ -117,6 +100,26 @@
     </app-form-field>
 
     <app-form-field
+      label="Tax ID"
+      controlId="organization-taxId"
+      [error]="error('organization.taxId')"
+    >
+      <input
+        pInputText
+        id="organization-taxId"
+        formControlName="taxId"
+        fluid
+        [invalid]="error('organization.taxId') !== null"
+        [readonly]="submitting()"
+        [attr.aria-invalid]="error('organization.taxId') !== null ? 'true' : null"
+        [attr.aria-describedby]="
+          error('organization.taxId') !== null ? 'organization-taxId-error' : null
+        "
+        (blur)="fieldBlur.emit('organization.taxId')"
+      />
+    </app-form-field>
+
+    <app-form-field
       label="Company time zone"
       controlId="organization-timezone"
       [required]="true"
@@ -124,6 +127,7 @@
     >
       <p-select
         inputId="organization-timezone"
+        appendTo="body"
         formControlName="timezone"
         [options]="timezoneOptions()"
         optionLabel="label"
@@ -142,4 +146,4 @@
       />
     </app-form-field>
   </div>
-</section>
+</app-wizard-card>

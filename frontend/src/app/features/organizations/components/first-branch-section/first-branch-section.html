@@ -1,7 +1,14 @@
-<section class="first-branch" aria-labelledby="first-branch-heading" [formGroup]="group()">
-  <h2 id="first-branch-heading">First branch</h2>
+<app-wizard-card
+  headingId="first-branch-heading"
+  title="First branch"
+  description="Add your first operating location. You can add more branches later."
+  icon="pi-map-marker"
+>
+  <app-wizard-note cardAside class="first-branch__note">
+    This will be your default operating location. You can add more branches after setup is complete.
+  </app-wizard-note>
 
-  <div class="first-branch__grid">
+  <div class="first-branch__grid" [formGroup]="group()">
     <app-form-field
       label="Branch name"
       controlId="branch-name"
@@ -85,6 +92,7 @@
     >
       <p-select
         inputId="branch-timezone"
+        appendTo="body"
         formControlName="timezone"
         [options]="timezoneOptions()"
         optionLabel="label"
@@ -102,8 +110,8 @@
       />
     </app-form-field>
 
-    <fieldset class="first-branch__address">
-      <legend>Company address *</legend>
+    <fieldset class="first-branch__address" [formGroup]="group()">
+      <legend>Branch address</legend>
       <div class="first-branch__address-grid">
         <app-form-field
           label="Address line 1"
@@ -117,8 +125,6 @@
             formControlName="addressLine1"
             fluid
             required
-            placeholder="Address line 1"
-            aria-label="Address line 1"
             [invalid]="error('branch.addressLine1') !== null"
             [readonly]="submitting()"
             aria-required="true"
@@ -142,8 +148,6 @@
             formControlName="city"
             fluid
             required
-            placeholder="City"
-            aria-label="City"
             [invalid]="error('branch.city') !== null"
             [readonly]="submitting()"
             aria-required="true"
@@ -154,7 +158,7 @@
         </app-form-field>
 
         <app-form-field
-          label="State/Region"
+          label="State / Region"
           controlId="branch-stateRegion"
           [error]="error('branch.stateRegion')"
         >
@@ -163,8 +167,6 @@
             id="branch-stateRegion"
             formControlName="stateRegion"
             fluid
-            placeholder="State/Region"
-            aria-label="State/Region"
             [invalid]="error('branch.stateRegion') !== null"
             [readonly]="submitting()"
             [attr.aria-invalid]="error('branch.stateRegion') !== null ? 'true' : null"
@@ -187,8 +189,6 @@
             formControlName="postalCode"
             fluid
             required
-            placeholder="Postal code"
-            aria-label="Postal code"
             [invalid]="error('branch.postalCode') !== null"
             [readonly]="submitting()"
             aria-required="true"
@@ -201,19 +201,21 @@
         </app-form-field>
 
         <app-form-field
-          label="Default country"
+          class="first-branch__country"
+          label="Country"
           controlId="branch-countryCode"
           [required]="true"
           [error]="error('branch.countryCode')"
         >
           <p-select
             inputId="branch-countryCode"
+            appendTo="body"
             formControlName="countryCode"
             [options]="countryOptions()"
             optionLabel="label"
             optionValue="code"
             [filter]="true"
-            ariaLabel="Default country"
+            ariaLabel="Country"
             fluid
             [invalid]="error('branch.countryCode') !== null"
             [readonly]="submitting()"
@@ -227,14 +229,5 @@
         </app-form-field>
       </div>
     </fieldset>
-
-    <app-business-hours-editor
-      class="first-branch__business-hours"
-      [group]="group().controls.businessHours"
-      [fieldErrors]="fieldErrors()"
-      [rootError]="fieldErrors()['branch.businessHours'] ?? null"
-      [submitting]="submitting()"
-      (fieldBlur)="fieldBlur.emit($event)"
-    />
   </div>
-</section>
+</app-wizard-card>

@@ -1,0 +1,59 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: flex;
+  min-width: 0;
+}
+
+.wizard-card {
+  box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+  background: var(--fo-color-surface);
+
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem;
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 0.75rem 1rem;
+    margin-block-end: 1.25rem;
+  }
+
+  &__badge {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    border-radius: var(--fo-radius-pill);
+    background: var(--fo-color-primary-soft);
+    color: var(--fo-color-primary-strong);
+    font-size: 1.25rem;
+  }
+
+  &__heading {
+    flex: 1 1 14rem;
+    min-width: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__description {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+}

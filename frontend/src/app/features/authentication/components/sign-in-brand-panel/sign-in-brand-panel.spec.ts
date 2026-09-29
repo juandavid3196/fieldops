@@ -44,7 +44,7 @@ describe('SignInBrandPanel', () => {
     ]);
   });
 
-  it('shows the three benefits as text only', () => {
+  it('shows the three benefits', () => {
     expect(texts('.brand__benefit-title')).toEqual([
       'Work runs smoother',
       'Happier customers',
@@ -55,7 +55,6 @@ describe('SignInBrandPanel', () => {
       'Faster response times and clear communication.',
       'Less admin work. More time for what matters.',
     ]);
-    expect(element.querySelector('svg, i')).toBeNull();
   });
 
   it('renders the background photo as a decorative, lazy image', () => {

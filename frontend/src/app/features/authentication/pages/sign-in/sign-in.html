@@ -1,7 +1,19 @@
-<app-sign-in-brand-panel class="sign-in-brand" />
+﻿<app-sign-in-brand-panel class="sign-in-brand" />
 
 <main class="sign-in">
-  <p class="sign-in__wordmark"><span>Field</span><span class="sign-in__accent">Ops</span></p>
+  <header class="sign-in__topbar">
+    <p class="sign-in__wordmark">
+      <svg class="sign-in__mark" viewBox="0 0 48 40" aria-hidden="true" focusable="false">
+        <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-400)" />
+        <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-600)" />
+      </svg>
+      <span>Field</span><span class="sign-in__accent">Ops</span>
+    </p>
+    <div class="sign-in__topbar-actions">
+      <span class="sign-in__topbar-text">Need service?</span>
+      <a class="sign-in__request" href="#" (click)="$event.preventDefault()">Request a service</a>
+    </div>
+  </header>
 
   <div class="sign-in__panel">
     <header class="sign-in__header">
@@ -76,7 +88,13 @@
             [attr.aria-pressed]="!passwordMasked()"
             (click)="togglePassword()"
           >
-            {{ passwordMasked() ? 'Show' : 'Hide' }}
+            <i
+              class="pi"
+              [class.pi-eye]="passwordMasked()"
+              [class.pi-eye-slash]="!passwordMasked()"
+              aria-hidden="true"
+            ></i>
+            <span class="sign-in__sr">{{ passwordMasked() ? 'Show' : 'Hide' }}</span>
           </button>
         </div>
         @if (fieldErrors().password; as error) {
@@ -84,14 +102,17 @@
         }
       </div>
 
-      <div class="sign-in__remember">
-        <p-checkbox
-          inputId="remember-me"
-          formControlName="rememberMe"
-          [binary]="true"
-          [readonly]="submitting()"
-        />
-        <label class="sign-in__remember-label" for="remember-me">Remember me</label>
+      <div class="sign-in__remember-row">
+        <div class="sign-in__remember">
+          <p-checkbox
+            inputId="remember-me"
+            formControlName="rememberMe"
+            [binary]="true"
+            [readonly]="submitting()"
+          />
+          <label class="sign-in__remember-label" for="remember-me">Remember me</label>
+        </div>
+        <a class="sign-in__forgot" href="#" (click)="$event.preventDefault()">Forgot password?</a>
       </div>
 
       <button
@@ -112,12 +133,19 @@
       </button>
     </form>
 
-    <section class="sign-in__other" aria-labelledby="other-ways-heading">
-      <h2 class="sign-in__other-title" id="other-ways-heading">Other ways to get started</h2>
-      <a class="sign-in__link" routerLink="/auth/register-company">
-        <span class="sign-in__link-title">Create a company account</span>
-        <span class="sign-in__link-text">For service business owners</span>
-      </a>
-    </section>
+    <app-sign-in-other-ways />
   </div>
+
+  <footer class="sign-in__footer">
+    <nav class="sign-in__footer-links" aria-label="Legal and help">
+      <a href="#" (click)="$event.preventDefault()">Privacy</a>
+      <a href="#" (click)="$event.preventDefault()">Terms</a>
+      <a href="#" (click)="$event.preventDefault()">Help</a>
+    </nav>
+    <button type="button" class="sign-in__language" aria-label="Language: English">
+      <i class="pi pi-globe" aria-hidden="true"></i>
+      English
+      <i class="pi pi-angle-down" aria-hidden="true"></i>
+    </button>
+  </footer>
 </main>

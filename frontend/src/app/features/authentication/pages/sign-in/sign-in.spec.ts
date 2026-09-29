@@ -143,15 +143,14 @@ describe('SignIn', () => {
     });
 
     it('links "Create a company account" to /auth/register-company (AC-51)', () => {
-      const link = query<HTMLAnchorElement>('.sign-in__link');
+      const link = query<HTMLAnchorElement>('a[href="/auth/register-company"]');
       expect(link?.textContent).toContain('Create a company account');
       expect(link?.textContent).toContain('For service business owners');
-      expect(link?.getAttribute('href')).toBe('/auth/register-company');
     });
 
-    it('omits every control the spec excludes', () => {
+    it('shows the decorative design 26 elements without navigating anywhere', () => {
       const text = host.textContent ?? '';
-      for (const omitted of [
+      for (const shown of [
         'Need service?',
         'Request a service',
         'Forgot password?',
@@ -162,10 +161,12 @@ describe('SignIn', () => {
         'Help',
         'English',
       ]) {
-        expect(text).not.toContain(omitted);
+        expect(text).toContain(shown);
       }
-      expect(host.querySelectorAll('a')).toHaveLength(1);
-      expect(host.querySelector('i.pi, [class*="pi-"]')).toBeNull();
+      const routed = Array.from(host.querySelectorAll('a')).filter(
+        (a) => a.getAttribute('href') !== '#',
+      );
+      expect(routed).toHaveLength(1);
       expect(host.querySelector('[autofocus]')).toBeNull();
     });
 
