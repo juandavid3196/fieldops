@@ -87,6 +87,7 @@ public static class PermissionCatalog
             "completed_only",
             "view_if_granted"),
         Module("invoices_payments", "Invoices & payments", "full", "view", "view", "none", "edit", "view_if_granted"),
+        Module("products_services", "Products & services", "full", "edit", "view", "none", "view", "view"),
         Module("reports", "Reports", "full", "view", "view", "none", "financial_only", "view_if_granted"),
         Module("team", "Team", "full", "edit", "view", "own_profile", "none", "none"),
         Module("company_settings", "Company settings", "full", "none", "none", "none", "none", "none"),

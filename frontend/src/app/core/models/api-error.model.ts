@@ -32,6 +32,14 @@ export interface ApiError {
   readonly retryAfterSeconds?: number;
   /** Machine-readable ProblemDetails extension `code` (e.g. on a `409`); never displayed. */
   readonly code?: string;
+  /** Per-row import errors of a `400` (`rowErrors` extension); absent otherwise. */
+  readonly rowErrors?: readonly ApiRowError[];
+}
+
+export interface ApiRowError {
+  readonly row: number;
+  readonly column: string;
+  readonly message: string;
 }
 
 export function isApiError(value: unknown): value is ApiError {

@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { ApiError, ApiErrorKind, isApiError } from '../models/api-error.model';
+import { ApiError, ApiErrorKind, ApiRowError, isApiError } from '../models/api-error.model';
 import { ProblemDetails } from '../models/problem-details.model';
 
 const MESSAGES: Readonly<Record<ApiErrorKind, string>> = {
@@ -54,8 +54,11 @@ export class ApiErrorService {
     const code =
       error.status === 409 && typeof problem?.['code'] === 'string' ? problem['code'] : undefined;
 
+    const rowErrors = error.status === 400 ? readRowErrors(problem) : undefined;
+
     return {
       ...apiError,
+      ...(rowErrors === undefined ? {} : { rowErrors }),
       ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
       ...(code === undefined ? {} : { code }),
     };
@@ -144,4 +147,20 @@ function readFieldErrors(problem: ProblemDetails | null): ApiError['fieldErrors'
     }
   }
   return result;
+}
+
+function readRowErrors(problem: ProblemDetails | null): readonly ApiRowError[] | undefined {
+  const rows = problem?.['rowErrors'];
+  if (!Array.isArray(rows)) {
+    return undefined;
+  }
+  const valid = rows.filter(
+    (entry): entry is ApiRowError =>
+      typeof entry === 'object' &&
+      entry !== null &&
+      typeof entry.row === 'number' &&
+      typeof entry.column === 'string' &&
+      typeof entry.message === 'string',
+  );
+  return valid.length > 0 ? valid : undefined;
 }

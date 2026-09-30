@@ -8,6 +8,8 @@ namespace FieldOps.Infrastructure.Persistence.Configurations;
 internal sealed class CatalogItemConfiguration
     : IEntityTypeConfiguration<CatalogItem>
 {
+    public const string OrgTypeNameIndexName = "ux_catalog_items_org_type_name";
+
     public void Configure(EntityTypeBuilder<CatalogItem> builder)
     {
         builder.ToTable("catalog_items", table =>
@@ -80,6 +82,16 @@ internal sealed class CatalogItemConfiguration
             .HasSentinel(true)
             .IsRequired();
 
+        builder.Property(item => item.IsTaxable)
+            .HasDefaultValue(true)
+            .HasSentinel(true)
+            .IsRequired();
+
+        // GENERATED ALWAYS AS (lower(name)) STORED: read back, never written.
+        builder.Property(item => item.NormalizedName)
+            .HasMaxLength(160)
+            .HasComputedColumnSql("lower(name)", stored: true);
+
         builder.Property(item => item.CreatedAt)
             .HasDefaultValueSql("now()")
             .IsRequired();
@@ -91,6 +103,10 @@ internal sealed class CatalogItemConfiguration
         // UNIQUE (organization_id, sku)
         builder.HasIndex(item => new { item.OrganizationId, item.Sku })
             .IsUnique();
+
+        builder.HasIndex(item => new { item.OrganizationId, item.Type, item.NormalizedName })
+            .IsUnique()
+            .HasDatabaseName(OrgTypeNameIndexName);
 
         builder.HasOne<Organization>()
             .WithMany()

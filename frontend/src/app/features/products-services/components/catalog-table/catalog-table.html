@@ -1,0 +1,86 @@
+<div class="catalog-table">
+  <table class="catalog-table__table">
+    <thead>
+      <tr>
+        @for (column of columns; track column.label) {
+          <th scope="col" [attr.aria-sort]="ariaSort(column)">
+            @if (column.key; as key) {
+              <button type="button" class="catalog-table__sort" (click)="sortRequested.emit(key)">
+                {{ column.label }}
+                <i
+                  class="pi"
+                  [class.pi-sort-alt]="sortKey() !== key"
+                  [class.pi-arrow-up]="sortKey() === key && !descending()"
+                  [class.pi-arrow-down]="sortKey() === key && descending()"
+                  aria-hidden="true"
+                ></i>
+              </button>
+            } @else {
+              {{ column.label }}
+              @if (column.label === 'Estimated margin') {
+                <i
+                  class="pi pi-info-circle catalog-table__info"
+                  tabindex="0"
+                  role="img"
+                  aria-label="Estimated margin formula"
+                  [pTooltip]="marginTooltip"
+                ></i>
+              }
+            }
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.id) {
+        <tr class="catalog-table__row">
+          <td class="catalog-table__name" data-label="Name">{{ row.name }}</td>
+          <td data-label="Type">
+            <p-tag
+              [rounded]="true"
+              [severity]="row.type === 'service' ? 'info' : 'secondary'"
+              [value]="row.type === 'service' ? 'Service' : 'Product'"
+            />
+          </td>
+          <td class="catalog-table__wide" data-label="Description">
+            @if (row.description) {
+              <span class="catalog-table__description" [pTooltip]="row.description">{{
+                row.description
+              }}</span>
+            } @else {
+              <span class="catalog-table__muted">—</span>
+            }
+          </td>
+          <td class="catalog-table__wide catalog-table__number" data-label="Unit cost">
+            {{ money().format(row.unitCost) }}
+          </td>
+          <td class="catalog-table__number" data-label="Unit price">
+            {{ money().format(row.unitPrice) }}
+          </td>
+          <td class="catalog-table__number" data-label="Margin">{{ marginText(row) }}</td>
+          <td data-label="Taxable">{{ row.isTaxable ? 'Yes' : 'No' }}</td>
+          <td data-label="Status">
+            <p-tag
+              [rounded]="true"
+              icon="pi pi-circle-fill"
+              [severity]="row.isActive ? 'success' : 'warn'"
+              [value]="row.isActive ? 'Active' : 'Inactive'"
+            />
+          </td>
+          <td class="catalog-table__actions">
+            <button
+              type="button"
+              class="catalog-table__menu-button"
+              aria-haspopup="menu"
+              [attr.aria-label]="'More actions for ' + row.name"
+              [disabled]="busyId() === row.id"
+              (click)="menuRequested.emit({ event: $event, row })"
+            >
+              <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

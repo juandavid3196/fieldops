@@ -1,0 +1,242 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Below 1100px: the Administration row stacks above the content. From 1100px: a 224px column,
+// the content, and (from 1440px, when open) the docked 400px drawer as the third column.
+.catalog {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  min-width: 0;
+
+  @include bp.up(admin) {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  &__admin-nav {
+    @include bp.up(admin) {
+      grid-column: 1;
+    }
+  }
+
+  &__main {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 1.25rem 1rem 2.5rem;
+    overflow-wrap: anywhere;
+
+    @include bp.up(md) {
+      min-width: 20rem;
+      padding: 1.25rem 1.5rem 2.5rem;
+    }
+
+    @include bp.up(admin) {
+      grid-column: 2;
+    }
+  }
+
+  &__breadcrumb {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+
+    a {
+      color: var(--fo-color-text-secondary);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__current {
+    font-weight: 500;
+    color: var(--fo-color-text);
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    color: var(--fo-color-text);
+  }
+
+  &__description {
+    margin: 0.25rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__actions,
+  &__footer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  &__action {
+    gap: 0.5rem;
+    min-height: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      min-height: var(--fo-size-control);
+    }
+  }
+
+  &__forbidden {
+    padding: 1rem;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--p-content-border-radius);
+  }
+
+  &__readonly-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+    padding: 0.625rem 0.875rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border: 1px solid var(--fo-color-info-border);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__sections {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 1.25rem 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    @include bp.up(md) {
+      padding: 1rem 1.5rem 1.25rem;
+    }
+  }
+
+  &__results {
+    min-width: 0;
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    color: var(--fo-color-text);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--p-content-border-radius);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  // Report on the left, compact paginator controls grouped on the right; wraps on narrow screens.
+  &__pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-block-start: 0.5rem;
+  }
+
+  &__pager-report {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__paginator {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0;
+  }
+
+  // Notes and buttons stack on mobile and share one row from 1100px.
+  &__footer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    @include bp.up(admin) {
+      flex-direction: row;
+      align-items: stretch;
+    }
+  }
+
+  &__note {
+    display: flex;
+    flex: 1 1 0;
+    gap: 0.625rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.8125rem;
+    border: 1px solid transparent;
+    border-radius: var(--fo-radius-panel);
+
+    i {
+      margin-block-start: 0.125rem;
+    }
+
+    &--info {
+      color: var(--fo-color-info-text);
+      background: var(--fo-color-info-background);
+      border-color: var(--fo-color-info-border);
+    }
+
+    &--warning {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+      border-color: var(--fo-color-warning-border);
+    }
+  }
+
+  &__footer-actions {
+    flex: none;
+    align-items: center;
+  }
+}

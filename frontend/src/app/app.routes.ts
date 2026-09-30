@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
+import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
 import { usersAdminRoute } from './features/users/users.routes';
 
 export const routes: Routes = [
@@ -31,6 +32,7 @@ export const routes: Routes = [
       comingSoonRoute,
       companyAdminRoute,
       usersAdminRoute,
+      productsServicesAdminRoute,
     ],
   },
   { path: '**', redirectTo: 'auth/sign-in' },

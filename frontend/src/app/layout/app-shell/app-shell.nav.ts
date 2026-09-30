@@ -54,7 +54,12 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     id: 'finance',
     heading: 'Finance',
     items: [
-      moduleItem('Products and services', 'pi-box', 'products-and-services'),
+      {
+        label: 'Products and services',
+        icon: 'pi-box',
+        link: '/admin/products-services',
+        exact: true,
+      },
       moduleItem('Invoices', 'pi-receipt', 'invoices'),
       moduleItem('Reports', 'pi-chart-bar', 'reports'),
     ],

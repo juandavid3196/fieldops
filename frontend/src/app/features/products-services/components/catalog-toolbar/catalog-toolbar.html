@@ -1,0 +1,79 @@
+<div class="toolbar__tabs" role="tablist" aria-label="Item type">
+  @for (tab of tabs; track tab.label; let index = $index) {
+    <button
+      type="button"
+      role="tab"
+      class="toolbar__tab"
+      aria-controls="catalog-results"
+      [attr.aria-selected]="type() === tab.type"
+      [attr.tabindex]="type() === tab.type ? 0 : -1"
+      [attr.title]="count(tab) === '—' ? errorTooltip : null"
+      (click)="typeChange.emit(tab.type)"
+      (keydown)="onTabKeydown($event, index)"
+    >
+      {{ tab.label }} ({{ count(tab) }})
+    </button>
+  }
+</div>
+
+<div class="toolbar__filters" role="search" aria-label="Filter items">
+  <p-iconfield class="toolbar__search-field">
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      class="toolbar__control"
+      placeholder="Search items..."
+      aria-label="Search items"
+      maxlength="100"
+      fluid
+      [ngModel]="searchText()"
+      (ngModelChange)="searchTextChange.emit($event)"
+    />
+  </p-iconfield>
+
+  <div class="toolbar__field">
+    <label class="toolbar__label" for="catalog-filter-type">Type</label>
+    <p-select
+      inputId="catalog-filter-type"
+      class="toolbar__control"
+      appendTo="body"
+      fluid
+      [options]="typeOptions"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="type()"
+      (ngModelChange)="typeChange.emit($event)"
+    />
+  </div>
+
+  <div class="toolbar__field">
+    <label class="toolbar__label" for="catalog-filter-tax">Tax status</label>
+    <p-select
+      inputId="catalog-filter-tax"
+      class="toolbar__control"
+      appendTo="body"
+      fluid
+      [options]="taxOptions"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="taxStatus()"
+      (ngModelChange)="taxStatusChange.emit($event)"
+    />
+  </div>
+
+  <div class="toolbar__field">
+    <label class="toolbar__label" for="catalog-filter-status">Status</label>
+    <p-select
+      inputId="catalog-filter-status"
+      class="toolbar__control"
+      appendTo="body"
+      fluid
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="status()"
+      (ngModelChange)="statusChange.emit($event)"
+    />
+  </div>
+</div>

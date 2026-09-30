@@ -30,7 +30,12 @@ public class UserAccessRulesTests
         Assert.Equal(
             ["operations_manager", "dispatcher", "technician"],
             PermissionCatalog.Roles.Where(r => r.HasTeamProfile).Select(r => r.Code));
-        Assert.Equal(9, PermissionCatalog.Modules.Count);
+        Assert.Equal(10, PermissionCatalog.Modules.Count);
+        Assert.Equal("products_services", PermissionCatalog.Modules[5].Key);
+        Assert.Equal("Products & services", PermissionCatalog.Modules[5].Name);
+        Assert.Equal(
+            ["full", "edit", "view", "none", "view", "view"],
+            PermissionCatalog.Roles.Select(role => PermissionCatalog.Modules[5].Levels[role.Code].Level));
         Assert.All(PermissionCatalog.Modules, module => Assert.Equal(6, module.Levels.Count));
         Assert.Equal("none", PermissionCatalog.Modules.Single(m => m.Key == "company_settings").Levels["viewer"].Level);
     }

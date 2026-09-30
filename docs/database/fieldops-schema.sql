@@ -105,8 +105,17 @@ CREATE TABLE catalog_items (
   type catalog_item_type NOT NULL, sku varchar(60), name varchar(160) NOT NULL, description text, unit varchar(40) NOT NULL DEFAULT 'unit',
   unit_cost numeric(14,2) NOT NULL DEFAULT 0 CHECK(unit_cost>=0), unit_price numeric(14,2) NOT NULL CHECK(unit_price>=0),
   tax_rate numeric(7,4) NOT NULL DEFAULT 0 CHECK(tax_rate BETWEEN 0 AND 100), is_active boolean NOT NULL DEFAULT true,
+  is_taxable boolean NOT NULL DEFAULT true, normalized_name varchar(160) GENERATED ALWAYS AS (lower(name)) STORED,
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY(organization_id,category_id) REFERENCES service_categories(organization_id,id), UNIQUE(organization_id,sku), UNIQUE(organization_id,id)
+);
+CREATE UNIQUE INDEX ux_catalog_items_org_type_name ON catalog_items(organization_id, type, normalized_name);
+CREATE TABLE catalog_item_images (
+  catalog_item_id uuid PRIMARY KEY, organization_id uuid NOT NULL REFERENCES organizations(id),
+  content_type varchar(40) NOT NULL CHECK (content_type IN ('image/png','image/jpeg')),
+  content bytea NOT NULL, size_bytes integer NOT NULL CHECK (size_bytes BETWEEN 1 AND 5242880),
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY (organization_id, catalog_item_id) REFERENCES catalog_items(organization_id, id) ON DELETE CASCADE
 );
 CREATE TABLE skills (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), name varchar(120) NOT NULL, description text, is_active boolean NOT NULL DEFAULT true, UNIQUE(organization_id,name), UNIQUE(organization_id,id));
 CREATE TABLE technician_profiles (
