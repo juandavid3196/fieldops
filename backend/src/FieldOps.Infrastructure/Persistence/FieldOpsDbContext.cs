@@ -55,6 +55,8 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<CatalogItem> CatalogItems => Set<CatalogItem>();
 
+    public DbSet<CatalogItemImage> CatalogItemImages => Set<CatalogItemImage>();
+
     public DbSet<Skill> Skills => Set<Skill>();
 
     public DbSet<TechnicianProfile> TechnicianProfiles => Set<TechnicianProfile>();

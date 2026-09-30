@@ -13,7 +13,7 @@ interface AdministrationItem {
   readonly page?: AdministrationPage;
 }
 
-export type AdministrationPage = 'company' | 'users';
+export type AdministrationPage = 'company' | 'users' | 'products';
 
 const COMPANY_PATH = '/admin/company';
 
@@ -33,6 +33,13 @@ export const ADMINISTRATION_ITEMS: readonly AdministrationItem[] = [
     section: null,
     link: '/admin/users',
     page: 'users',
+  },
+  {
+    label: 'Products & services',
+    icon: 'pi-box',
+    section: null,
+    link: '/admin/products-services',
+    page: 'products',
   },
   { label: 'Taxes & currency', icon: 'pi-dollar', section: 'taxes-currency', link: null },
   { label: 'Document numbering', icon: 'pi-hashtag', section: 'document-numbering', link: null },

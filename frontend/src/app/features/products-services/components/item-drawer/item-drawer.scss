@@ -1,0 +1,234 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../../../shared/components/drawer-shell/drawer-content' as dc;
+
+:host {
+  display: contents;
+}
+
+// Chrome (docked/overlay/full screen) lives in `app-drawer-shell`; this styles the projected content.
+.item-drawer {
+  @include dc.parts;
+
+  &__form,
+  &__skeletons,
+  &__retry {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    input[pInputText] {
+      min-height: var(--fo-size-touch-target);
+
+      @include bp.up(md) {
+        min-height: var(--fo-size-control);
+      }
+    }
+  }
+
+  &__type {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__legend,
+  &__section-title,
+  &__margin-title {
+    padding: 0;
+    margin: 0 0 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__segments {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &__segment {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text);
+    cursor: pointer;
+    border: 1px solid var(--fo-color-border);
+
+    @include bp.up(md) {
+      min-block-size: var(--fo-size-control);
+    }
+
+    &:first-child {
+      border-start-start-radius: var(--fo-radius-control);
+      border-end-start-radius: var(--fo-radius-control);
+    }
+
+    &:last-child {
+      margin-inline-start: -1px;
+      border-start-end-radius: var(--fo-radius-control);
+      border-end-end-radius: var(--fo-radius-control);
+    }
+
+    &--selected {
+      z-index: 1;
+      font-weight: 600;
+      color: var(--fo-color-primary-strong);
+      background: var(--fo-color-primary-soft);
+      border-color: var(--fo-color-primary);
+    }
+
+    &:focus-within {
+      z-index: 2;
+      box-shadow: var(--fo-focus-ring);
+    }
+    input {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      opacity: 0;
+    }
+  }
+
+  &__money {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+    min-block-size: var(--fo-size-touch-target);
+    border-radius: var(--fo-radius-control);
+
+    &:focus-within {
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    &:has(input:hover:not(:disabled, :focus)) .item-drawer__symbol {
+      border-color: var(--fo-color-border-strong);
+    }
+
+    &:has(input:focus) .item-drawer__symbol {
+      border-color: var(--fo-color-primary);
+    }
+
+    &:has(input[aria-invalid='true']) .item-drawer__symbol {
+      border-color: var(--fo-color-danger-solid);
+    }
+
+    input {
+      flex: 1 1 auto;
+      inline-size: auto;
+      min-inline-size: 0;
+      margin-inline-start: -1px;
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+
+      &:focus {
+        z-index: 1;
+        box-shadow: none;
+      }
+    }
+  }
+
+  &__symbol {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    padding: 0 0.75rem;
+    color: var(--fo-color-text-secondary);
+    background: var(--fo-color-surface-muted);
+    border: 1px solid var(--fo-color-border);
+    border-start-start-radius: var(--fo-radius-control);
+    border-end-start-radius: var(--fo-radius-control);
+  }
+
+  &__margin {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.25rem 0.75rem;
+    padding: 0.75rem;
+    background: var(--fo-color-surface-muted);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+
+    p,
+    h3 {
+      margin: 0;
+    }
+  }
+
+  &__margin-value {
+    font-size: 1.625rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__margin-profit,
+  &__margin-formula {
+    font-size: 0.75rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__margin-formula {
+    grid-column: 2;
+  }
+
+  &__switch {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: var(--fo-size-touch-target);
+  }
+
+  &__dropzone,
+  &__preview {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-sizing: border-box;
+    inline-size: 100%;
+    padding: 0.75rem;
+    font: inherit;
+    color: var(--fo-color-text-secondary);
+    text-align: start;
+    background: transparent;
+    border-radius: var(--fo-radius-panel);
+
+    small {
+      display: block;
+    }
+  }
+
+  &__dropzone {
+    min-block-size: var(--fo-size-touch-target);
+    cursor: pointer;
+    border: 1px dashed var(--fo-color-border-strong);
+
+    &--active {
+      border-color: var(--fo-color-primary);
+    }
+  }
+
+  &__preview {
+    flex-wrap: wrap;
+    border: 1px solid var(--fo-color-border);
+
+    img {
+      inline-size: 4rem;
+      block-size: 4rem;
+      object-fit: cover;
+      border-radius: var(--fo-radius-control);
+    }
+  }
+
+  &__usage p {
+    margin: 0;
+  }
+
+  &__error {
+    display: flex;
+    gap: 0.375rem;
+    margin: 0.375rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+}

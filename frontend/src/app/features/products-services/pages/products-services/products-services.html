@@ -1,0 +1,223 @@
+<p-toast />
+<p-confirmdialog />
+<p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+
+<div class="catalog">
+  @if (!forbidden() && showAdminNav()) {
+    <app-administration-nav class="catalog__admin-nav" current="products" />
+  }
+
+  <div class="catalog__main">
+    <nav class="catalog__breadcrumb" aria-label="Breadcrumb">
+      @if (showAdminNav()) {
+        <a routerLink="/admin/company">Administration</a>
+      } @else {
+        <span>Administration</span>
+      }
+      <span aria-hidden="true">/</span>
+      <span class="catalog__current" aria-current="page">Products &amp; services</span>
+    </nav>
+
+    <header class="catalog__header">
+      <div>
+        <h1 class="catalog__title">Products &amp; services</h1>
+        @if (!forbidden()) {
+          <p class="catalog__description">{{ descriptionMessage }}</p>
+        }
+      </div>
+
+      @if (!forbidden()) {
+        <div class="catalog__actions">
+          @if (canImport()) {
+            <button
+              pButton
+              type="button"
+              class="catalog__action"
+              severity="secondary"
+              [outlined]="true"
+              (click)="openImport()"
+            >
+              <i class="pi pi-upload" aria-hidden="true"></i>
+              Import CSV
+            </button>
+          }
+          @if (canManage()) {
+            <button pButton type="button" class="catalog__action" (click)="openCreate()">
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              Add item
+            </button>
+          }
+        </div>
+      }
+    </header>
+
+    @if (forbidden()) {
+      <p class="catalog__forbidden">{{ forbiddenMessage }}</p>
+    } @else {
+      @if (isReadOnly()) {
+        <div class="catalog__readonly-banner" role="status">
+          <i class="pi pi-eye" aria-hidden="true"></i>
+          <span>{{ readOnlyMessage }}</span>
+        </div>
+      }
+
+      <div class="catalog__sections">
+        <app-catalog-metrics
+          [summary]="summary()"
+          [loading]="summaryLoading()"
+          [failed]="summaryFailed()"
+        />
+
+        <section class="catalog__card" aria-label="Catalog items">
+          <app-catalog-toolbar
+            [summary]="summary()"
+            [summaryFailed]="summaryFailed()"
+            [type]="type()"
+            [searchText]="searchText()"
+            [taxStatus]="taxStatus()"
+            [status]="status()"
+            (typeChange)="onType($event)"
+            (searchTextChange)="onSearchText($event)"
+            (taxStatusChange)="onTaxStatus($event)"
+            (statusChange)="onStatus($event)"
+          />
+
+          <div
+            class="catalog__results"
+            id="catalog-results"
+            role="tabpanel"
+            [attr.aria-busy]="loading()"
+          >
+            @if (listError()) {
+              <p-message severity="error" [closable]="false">
+                <span class="catalog__error">
+                  {{ listErrorMessage }}
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    size="small"
+                    (click)="loadList()"
+                  >
+                    Retry
+                  </button>
+                </span>
+              </p-message>
+            } @else if (loading()) {
+              <div class="catalog__skeletons">
+                @for (row of skeletonRows; track row) {
+                  <p-skeleton height="2.5rem" />
+                }
+              </div>
+            } @else if (rows().length === 0) {
+              <div class="catalog__empty">
+                @if (hasFilters()) {
+                  <p>{{ emptyFilteredMessage }}</p>
+                  <button pButton type="button" severity="secondary" (click)="clearFilters()">
+                    Clear filters
+                  </button>
+                } @else {
+                  <p>{{ emptyInitialMessage }}</p>
+                  @if (canManage()) {
+                    <button pButton type="button" (click)="openCreate()">
+                      <i class="pi pi-plus" aria-hidden="true"></i>
+                      Add item
+                    </button>
+                  }
+                }
+              </div>
+            } @else {
+              <app-catalog-table
+                [rows]="rows()"
+                [sort]="sort()"
+                [money]="money()"
+                [busyId]="mutatingId()"
+                (sortRequested)="onSort($event)"
+                (menuRequested)="openMenu($event.event, $event.row)"
+              />
+              <div class="catalog__pager">
+                <p class="catalog__pager-report">{{ report() }}</p>
+                <p-paginator
+                  class="catalog__paginator"
+                  [first]="first()"
+                  [rows]="pageSize"
+                  [totalRecords]="totalCount()"
+                  (onPageChange)="onPageChange($event)"
+                />
+              </div>
+            }
+          </div>
+        </section>
+
+        <div class="catalog__footer">
+          <div class="catalog__note catalog__note--info" role="note">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            <span>{{ infoNote }}</span>
+          </div>
+          <div class="catalog__note catalog__note--warning" role="note">
+            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+            <span>{{ warningNote }}</span>
+          </div>
+          <div class="catalog__footer-actions">
+            @if (canImport()) {
+              <button
+                pButton
+                type="button"
+                class="catalog__action"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="downloadingTemplate()"
+                (click)="downloadTemplate()"
+              >
+                @if (downloadingTemplate()) {
+                  <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                } @else {
+                  <i class="pi pi-download" aria-hidden="true"></i>
+                }
+                Download CSV
+              </button>
+            }
+            <button
+              pButton
+              type="button"
+              class="catalog__action"
+              severity="secondary"
+              [outlined]="true"
+              [disabled]="exporting()"
+              (click)="exportList()"
+            >
+              @if (exporting()) {
+                <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+              } @else {
+                <i class="pi pi-external-link" aria-hidden="true"></i>
+              }
+              Export list
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (!forbidden()) {
+    <app-item-drawer
+      [open]="drawerOpen()"
+      [mode]="drawerMode()"
+      [itemId]="drawerItemId()"
+      [money]="money()"
+      (saved)="onDrawerSaved()"
+      (changed)="onDrawerSaved()"
+      (closed)="onDrawerClosed()"
+      (unauthorized)="onUnauthorized()"
+      (unavailable)="onItemUnavailable()"
+    />
+  }
+
+  @if (canImport() && !forbidden()) {
+    <app-import-dialog
+      [(visible)]="importOpen"
+      (imported)="onImported($event)"
+      (unauthorized)="onUnauthorized()"
+    />
+  }
+</div>

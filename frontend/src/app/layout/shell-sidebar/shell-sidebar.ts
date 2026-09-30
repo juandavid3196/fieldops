@@ -35,11 +35,19 @@ export class ShellSidebar {
   readonly closeRequested = output<void>();
   readonly collapseToggled = output<void>();
 
-  /** Exact items match only their own path; others match their `activePrefix` (default: link) and children. */
+  /**
+   * Exact items match only their own path; others match their `activePrefix` (default: link) and
+   * children, unless another item owns the exact path (Products and services under `/admin`).
+   */
   isActive(item: NavItem): boolean {
     const path = this.url().split(/[?#]/)[0];
     if (item.exact) {
       return path === item.link;
+    }
+    if (
+      this.groups().some((group) => group.items.some((other) => other.exact && other.link === path))
+    ) {
+      return false;
     }
     const prefix = item.activePrefix ?? item.link;
     return path === prefix || path.startsWith(`${prefix}/`);

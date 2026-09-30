@@ -67,6 +67,7 @@ describe('AppShell', () => {
             children: [
               { path: 'overview', component: PageStub },
               { path: 'admin/company', component: PageStub },
+              { path: 'admin/products-services', component: PageStub },
               { path: 'coming-soon/:module', component: PageStub },
             ],
           },
@@ -161,6 +162,13 @@ describe('AppShell', () => {
       expect(host.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1);
       expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe(
         'Work orders',
+      );
+
+      await router.navigateByUrl('/admin/products-services');
+      await settle();
+      expect(host.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1);
+      expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe(
+        'Products and services',
       );
 
       if (canSeeAdministration) {

@@ -1,0 +1,206 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Mobile-first: a stack of item cards; `md` restores the nine-column table (scrolls in its card).
+.catalog-table {
+  @include bp.up(md) {
+    overflow-x: auto;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__table {
+    inline-size: 100%;
+    border-collapse: collapse;
+
+    @include bp.up(md) {
+      min-inline-size: 60rem;
+    }
+
+    thead {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+
+      @include bp.up(md) {
+        position: static;
+        inline-size: auto;
+        block-size: auto;
+        overflow: visible;
+        clip-path: none;
+        white-space: normal;
+        background: var(--fo-color-surface-muted);
+      }
+    }
+
+    th {
+      padding: 0.625rem 0.75rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+      text-align: start;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--fo-color-border);
+    }
+
+    tr {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem 0.75rem;
+      margin-block-end: 0.75rem;
+      padding: 0.75rem;
+      border: 1px solid var(--fo-color-border);
+      border-radius: var(--p-content-border-radius);
+
+      @include bp.up(md) {
+        display: table-row;
+        margin-block-end: 0;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+      }
+    }
+
+    thead tr {
+      @include bp.up(md) {
+        display: table-row;
+      }
+    }
+
+    td {
+      min-width: 0;
+      color: var(--fo-color-text);
+
+      @include bp.up(md) {
+        padding: 0.625rem 0.75rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--fo-color-row-divider);
+      }
+    }
+
+    td:first-child {
+      flex: 1 1 100%;
+    }
+
+    // Cards show name, type, unit price, margin, taxable, status and the menu only.
+    td.catalog-table__wide {
+      display: none;
+
+      @include bp.up(md) {
+        display: table-cell;
+      }
+    }
+
+    td.catalog-table__actions {
+      display: flex;
+      flex: 1 1 auto;
+      justify-content: flex-end;
+
+      @include bp.up(md) {
+        display: table-cell;
+        text-align: center;
+      }
+    }
+
+    // Below md the labelled value reads "Unit price: $1.00".
+    td[data-label]:not(:first-child, .catalog-table__actions)::before {
+      content: attr(data-label) ': ';
+      font-size: 0.75rem;
+      color: var(--fo-color-text-secondary);
+
+      @include bp.up(md) {
+        content: none;
+      }
+    }
+  }
+
+  &__name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__number {
+    text-align: end;
+    white-space: nowrap;
+
+    @include bp.up(md) {
+      text-align: center;
+    }
+  }
+
+  &__description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    min-inline-size: 10rem;
+    cursor: default;
+  }
+
+  &__muted {
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__info {
+    margin-inline-start: 0.25rem;
+    font-size: 0.8125rem;
+    cursor: help;
+  }
+
+  &__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: none;
+    cursor: pointer;
+
+    i {
+      font-size: 0.6875rem;
+    }
+
+    @include bp.up(md) {
+      min-block-size: 2rem;
+    }
+  }
+
+  &__menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    @include bp.up(md) {
+      inline-size: 2rem;
+      block-size: 2rem;
+    }
+
+    &:hover:not(:disabled) {
+      background: var(--fo-color-disabled-background);
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.5;
+    }
+  }
+}

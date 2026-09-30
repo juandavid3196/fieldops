@@ -1,0 +1,139 @@
+<p-dialog
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!importing()"
+  [closeOnEscape]="!importing()"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  (onHide)="closed.emit()"
+  [style]="{ width: '38rem', maxWidth: '94vw' }"
+>
+  <ng-template #header>
+    <div class="import-head">
+      <span class="import-head__tile" aria-hidden="true"><i class="pi pi-file-import"></i></span>
+      <div>
+        <h2 class="import-head__title">Import products &amp; services</h2>
+        <p class="import-head__subtitle">Add up to 500 catalog items from a CSV file.</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="import">
+    <section class="import__template" aria-label="Template">
+      <i class="pi pi-file import__template-icon" aria-hidden="true"></i>
+      <div class="import__template-copy">
+        <strong>Start with the FieldOps template</strong>
+        <span>Use the required columns and examples to avoid formatting errors.</span>
+      </div>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        class="import__template-button"
+        [disabled]="downloading()"
+        (click)="downloadTemplate()"
+      >
+        @if (downloading()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        } @else {
+          <i class="pi pi-download" aria-hidden="true"></i>
+        }
+        Download CSV template
+      </button>
+    </section>
+
+    <div
+      class="import__drop"
+      [class.import__drop--over]="dragOver()"
+      [class.import__drop--invalid]="fileError() !== null"
+      (dragover)="onDragOver($event)"
+      (dragleave)="dragOver.set(false)"
+      (drop)="onDrop($event)"
+    >
+      <input
+        id="import-file"
+        #fileInput
+        class="import__input"
+        type="file"
+        accept=".csv,text/csv"
+        tabindex="-1"
+        aria-label="CSV file"
+        [disabled]="importing()"
+        [attr.aria-describedby]="fileError() !== null ? 'import-file-error' : null"
+        [attr.aria-invalid]="fileError() !== null ? 'true' : null"
+        (change)="onFileSelected($event)"
+      />
+      <i class="pi pi-file import__drop-icon" aria-hidden="true"></i>
+      @if (file(); as chosen) {
+        <p class="import__drop-title">{{ chosen.name }}</p>
+        <p class="import__hint">{{ sizeText(chosen.size) }}</p>
+        <button
+          type="button"
+          class="import__link"
+          aria-label="Remove file"
+          [disabled]="importing()"
+          (click)="removeFile()"
+        >
+          <i class="pi pi-times" aria-hidden="true"></i>Remove
+        </button>
+      } @else {
+        <p class="import__drop-title">Drop your CSV file here</p>
+        <p class="import__drop-or">
+          or
+          <button type="button" class="import__link" [disabled]="importing()" (click)="browse()">
+            browse files
+          </button>
+        </p>
+        <p class="import__hint">CSV only · Maximum 1 MB · Up to 500 rows</p>
+      }
+    </div>
+
+    @if (fileError(); as message) {
+      <p class="import__error" id="import-file-error" role="alert">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ message }}
+      </p>
+    }
+    @if (rowErrors().length > 0) {
+      <ul class="import__rows" role="alert" aria-label="Row errors">
+        @for (error of rowErrors(); track $index) {
+          <li>Row {{ error.row }} · {{ error.column }}: {{ error.message }}</li>
+        }
+      </ul>
+    }
+
+    <section aria-labelledby="import-checklist">
+      <h3 class="import__checklist-title" id="import-checklist">Before you upload</h3>
+      <ul class="import__checklist">
+        <li>
+          <i class="pi pi-check-circle" aria-hidden="true"></i>Required columns must be present
+        </li>
+        <li><i class="pi pi-check-circle" aria-hidden="true"></i>Names must be unique by type</li>
+        <li>
+          <i class="pi pi-check-circle" aria-hidden="true"></i>Prices use decimal numbers without
+          currency symbols
+        </li>
+      </ul>
+    </section>
+  </div>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="importing()"
+      (click)="close()"
+    >
+      Cancel
+    </button>
+    <button pButton type="button" [disabled]="file() === null || importing()" (click)="submit()">
+      @if (importing()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Import
+    </button>
+  </ng-template>
+</p-dialog>

@@ -355,15 +355,16 @@ describe('CompanySetup', () => {
       'Branches',
       'Business hours',
       'Users & permissions',
+      'Products & services',
       'Taxes & currency',
       'Document numbering',
       'Notifications',
     ]);
     expect(links()[0].getAttribute('aria-current')).toBe('location');
 
-    links()[4].click();
+    links()[5].click();
     await stable();
-    expect(links()[4].getAttribute('aria-current')).toBe('location');
+    expect(links()[5].getAttribute('aria-current')).toBe('location');
     expect(links()[0].getAttribute('aria-current')).toBeNull();
     expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
     expect(router.url).toBe('/admin/company');

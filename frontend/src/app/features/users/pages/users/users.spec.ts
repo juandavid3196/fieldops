@@ -118,6 +118,22 @@ const MATRIX: PermissionMatrix = {
         ]),
       ),
     },
+    {
+      key: 'products_services',
+      name: 'Products & services',
+      levels: Object.fromEntries(
+        Object.keys(ROLE_NAMES).map((code) => [
+          code,
+          code === 'owner'
+            ? { level: 'full', label: 'Full' }
+            : code === 'operations_manager'
+              ? { level: 'edit', label: 'Edit' }
+              : code === 'technician'
+                ? { level: 'none', label: 'None' }
+                : { level: 'view', label: 'View' },
+        ]),
+      ),
+    },
   ],
 };
 const BRANCHES = {
@@ -233,11 +249,11 @@ describe('Users page', () => {
     ).toEqual(['Module', ...Object.values(ROLE_NAMES)]);
     expect(
       Array.from(matrix.querySelectorAll('th[scope="row"]'), (n) => n.textContent?.trim()),
-    ).toEqual(['Overview', 'Company settings']);
+    ).toEqual(['Overview', 'Company settings', 'Products & services']);
     expect(matrix.querySelectorAll('tbody .matrix__level--warning')[0].textContent?.trim()).toBe(
       'View if granted',
     );
-    expect(matrix.querySelectorAll('tbody .matrix__level--neutral')).toHaveLength(5);
+    expect(matrix.querySelectorAll('tbody .matrix__level--neutral')).toHaveLength(6);
     expect(matrix.querySelector('.matrix__legend')?.textContent).toContain('scoped subset');
   });
 

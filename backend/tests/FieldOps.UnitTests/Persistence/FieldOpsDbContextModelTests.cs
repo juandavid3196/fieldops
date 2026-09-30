@@ -53,6 +53,7 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(CustomerNote), "customer_notes")]
     [InlineData(typeof(ServiceCategory), "service_categories")]
     [InlineData(typeof(CatalogItem), "catalog_items")]
+    [InlineData(typeof(CatalogItemImage), "catalog_item_images")]
     [InlineData(typeof(Skill), "skills")]
     [InlineData(typeof(TechnicianProfile), "technician_profiles")]
     [InlineData(typeof(TechnicianSkill), "technician_skills")]

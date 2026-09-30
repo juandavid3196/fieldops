@@ -210,11 +210,25 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<bool>("IsTaxable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_taxable");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(160)
                         .HasColumnType("character varying(160)")
                         .HasColumnName("name");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("normalized_name")
+                        .HasComputedColumnSql("lower(name)", true);
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
@@ -275,6 +289,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_catalog_items_organization_id_sku");
 
+                    b.HasIndex("OrganizationId", "Type", "NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("ux_catalog_items_org_type_name");
+
                     b.ToTable("catalog_items", null, t =>
                         {
                             t.HasCheckConstraint("ck_catalog_items_tax_rate", "tax_rate BETWEEN 0 AND 100");
@@ -282,6 +300,57 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_catalog_items_unit_cost", "unit_cost >= 0");
 
                             t.HasCheckConstraint("ck_catalog_items_unit_price", "unit_price >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Catalog.CatalogItemImage", b =>
+                {
+                    b.Property<Guid>("CatalogItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("catalog_item_id");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("content");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("SizeBytes")
+                        .HasColumnType("integer")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("CatalogItemId")
+                        .HasName("pk_catalog_item_images");
+
+                    b.HasIndex("OrganizationId", "CatalogItemId")
+                        .HasDatabaseName("ix_catalog_item_images_organization_id_catalog_item_id");
+
+                    b.ToTable("catalog_item_images", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_catalog_item_images_content_type", "content_type IN ('image/png','image/jpeg')");
+
+                            t.HasCheckConstraint("ck_catalog_item_images_size_bytes", "size_bytes BETWEEN 1 AND 5242880");
                         });
                 });
 
@@ -3707,6 +3776,24 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasPrincipalKey("OrganizationId", "Id")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_catalog_items_service_categories_organization_id_category_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Catalog.CatalogItemImage", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_catalog_item_images_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Catalog.CatalogItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CatalogItemId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_catalog_item_images_catalog_items_organization_id_catalog_i");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Catalog.ServiceCategory", b =>

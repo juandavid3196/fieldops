@@ -1,0 +1,343 @@
+<app-drawer-shell
+  size="25rem"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="item-drawer__title" [id]="titleId" tabindex="-1">{{ title() }}</h2>
+    <span class="item-drawer__spacer"></span>
+    <button
+      type="button"
+      class="item-drawer__close"
+      aria-label="Close item drawer"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (detailLoading()) {
+      <div class="item-drawer__skeletons" aria-busy="true">
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="6rem" />
+      </div>
+    } @else if (detailFailed()) {
+      <p-message severity="error" [closable]="false">
+        <span class="item-drawer__retry">
+          We couldn't load this item. Check your connection and try again.
+          <button pButton type="button" severity="secondary" size="small" (click)="loadDetail()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else {
+      <form
+        class="item-drawer__form"
+        ngNoForm
+        novalidate
+        (submit)="$event.preventDefault(); submit()"
+      >
+        <app-error-summary
+          [id]="summaryId"
+          [leadingMessage]="pageMessage()"
+          [links]="errorLinks()"
+        />
+
+        <fieldset class="item-drawer__type" [disabled]="submitting() || readOnly()">
+          <legend class="item-drawer__legend">Type <span aria-hidden="true">*</span></legend>
+          <div class="item-drawer__segments" role="radiogroup" aria-label="Type">
+            @for (option of typeOptions; track option.value) {
+              <label
+                class="item-drawer__segment"
+                [class.item-drawer__segment--selected]="type() === option.value"
+              >
+                <input
+                  type="radio"
+                  name="item-type"
+                  [id]="'item-type-' + option.value"
+                  [value]="option.value"
+                  [checked]="type() === option.value"
+                  [attr.aria-invalid]="error('type') !== null ? 'true' : null"
+                  [attr.aria-describedby]="
+                    error('type') !== null ? 'item-type-service-error' : null
+                  "
+                  (change)="onTypeChange(option.value)"
+                />
+                {{ option.label }}
+              </label>
+            }
+          </div>
+          @if (error('type'); as message) {
+            <p class="item-drawer__error" id="item-type-service-error">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ message }}
+            </p>
+          }
+        </fieldset>
+
+        <app-form-field
+          label="Name"
+          [controlId]="controlIds.name"
+          [required]="true"
+          [error]="error('name')"
+        >
+          <input
+            pInputText
+            fluid
+            autocomplete="off"
+            [id]="controlIds.name"
+            [ngModel]="name()"
+            (ngModelChange)="onText('name', $event)"
+            [disabled]="submitting() || readOnly()"
+            [invalid]="error('name') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('name') !== null ? 'true' : null"
+            [attr.aria-describedby]="error('name') !== null ? controlIds.name + '-error' : null"
+            (blur)="onFieldBlur('name')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Description"
+          [controlId]="controlIds.description"
+          [error]="error('description')"
+        >
+          <textarea
+            pTextarea
+            rows="3"
+            fluid
+            [id]="controlIds.description"
+            [ngModel]="description()"
+            (ngModelChange)="onText('description', $event)"
+            [disabled]="submitting() || readOnly()"
+            [invalid]="error('description') !== null"
+            [attr.aria-invalid]="error('description') !== null ? 'true' : null"
+            [attr.aria-describedby]="
+              error('description') !== null ? controlIds.description + '-error' : null
+            "
+            (blur)="onFieldBlur('description')"
+          ></textarea>
+        </app-form-field>
+
+        <app-form-field
+          label="Unit cost"
+          [controlId]="controlIds.unitCost"
+          [required]="true"
+          [error]="error('unitCost')"
+          helper="Internal only. Used for profitability analysis."
+        >
+          <div class="item-drawer__money">
+            <span class="item-drawer__symbol" aria-hidden="true">{{ money().symbol }}</span>
+            <input
+              pInputText
+              fluid
+              inputmode="decimal"
+              autocomplete="off"
+              [id]="controlIds.unitCost"
+              [ngModel]="unitCost()"
+              (ngModelChange)="onText('unitCost', $event)"
+              [disabled]="submitting() || readOnly()"
+              [invalid]="error('unitCost') !== null"
+              aria-required="true"
+              [attr.aria-label]="'Unit cost' + currencyLabel()"
+              [attr.aria-invalid]="error('unitCost') !== null ? 'true' : null"
+              [attr.aria-describedby]="
+                error('unitCost') !== null
+                  ? controlIds.unitCost + '-error'
+                  : controlIds.unitCost + '-helper'
+              "
+              (blur)="onFieldBlur('unitCost')"
+            />
+          </div>
+        </app-form-field>
+
+        <app-form-field
+          label="Unit price"
+          [controlId]="controlIds.unitPrice"
+          [required]="true"
+          [error]="error('unitPrice')"
+        >
+          <div class="item-drawer__money">
+            <span class="item-drawer__symbol" aria-hidden="true">{{ money().symbol }}</span>
+            <input
+              pInputText
+              fluid
+              inputmode="decimal"
+              autocomplete="off"
+              [id]="controlIds.unitPrice"
+              [ngModel]="unitPrice()"
+              (ngModelChange)="onText('unitPrice', $event)"
+              [disabled]="submitting() || readOnly()"
+              [invalid]="error('unitPrice') !== null"
+              aria-required="true"
+              [attr.aria-label]="'Unit price' + currencyLabel()"
+              [attr.aria-invalid]="error('unitPrice') !== null ? 'true' : null"
+              [attr.aria-describedby]="
+                error('unitPrice') !== null ? controlIds.unitPrice + '-error' : null
+              "
+              (blur)="onFieldBlur('unitPrice')"
+            />
+          </div>
+        </app-form-field>
+
+        <section class="item-drawer__margin" aria-labelledby="item-margin-title">
+          <i class="pi pi-lock" aria-hidden="true"></i>
+          <div aria-live="polite">
+            <h3 class="item-drawer__margin-title" id="item-margin-title">
+              Estimated margin (calculated)
+            </h3>
+            <p class="item-drawer__margin-value">{{ marginText() }}</p>
+            <p class="item-drawer__margin-profit">
+              Estimated gross profit per unit <strong>{{ profitText() }}</strong>
+            </p>
+          </div>
+          <p class="item-drawer__margin-formula">(Unit price – unit cost) ÷ unit price</p>
+        </section>
+
+        <div class="item-drawer__switch">
+          <label for="item-taxable">Taxable</label>
+          <p-toggleswitch
+            inputId="item-taxable"
+            ariaLabel="Taxable"
+            [ngModel]="isTaxable()"
+            (ngModelChange)="isTaxable.set($event)"
+            [disabled]="submitting() || readOnly()"
+          />
+        </div>
+        <div class="item-drawer__switch">
+          <label for="item-active">Active</label>
+          <p-toggleswitch
+            inputId="item-active"
+            ariaLabel="Active"
+            [ngModel]="isActive()"
+            (ngModelChange)="isActive.set($event)"
+            [disabled]="submitting() || readOnly()"
+          />
+        </div>
+
+        @if (!readOnly() || hasImage()) {
+          <section class="item-drawer__image" aria-labelledby="item-image-title">
+            <h3 class="item-drawer__section-title" id="item-image-title">
+              Item image <span class="item-drawer__optional">(optional)</span>
+            </h3>
+            @if (hasImage()) {
+              <div class="item-drawer__preview">
+                @if (previewUrl(); as url) {
+                  <img [src]="url" alt="Item image preview" />
+                } @else {
+                  <i class="pi pi-image" aria-hidden="true"></i>
+                }
+                @if (!readOnly()) {
+                  <div class="item-drawer__preview-actions">
+                    <button
+                      pButton
+                      type="button"
+                      severity="secondary"
+                      size="small"
+                      [outlined]="true"
+                      [disabled]="submitting()"
+                      (click)="fileInput.click()"
+                    >
+                      Replace
+                    </button>
+                    <button
+                      pButton
+                      type="button"
+                      severity="secondary"
+                      size="small"
+                      [text]="true"
+                      [disabled]="submitting()"
+                      (click)="removeImage()"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <button
+                type="button"
+                class="item-drawer__dropzone"
+                [class.item-drawer__dropzone--active]="dragging()"
+                [disabled]="submitting()"
+                (click)="fileInput.click()"
+                (dragover)="onDragOver($event)"
+                (dragleave)="dragging.set(false)"
+                (drop)="onDrop($event)"
+              >
+                <i class="pi pi-image" aria-hidden="true"></i>
+                <span>
+                  Drag and drop an image here or click to upload
+                  <small>PNG, JPG up to 5MB</small>
+                </span>
+              </button>
+            }
+            <input
+              #fileInput
+              type="file"
+              class="item-drawer__file"
+              hidden
+              tabindex="-1"
+              aria-hidden="true"
+              [accept]="imageAccept"
+              (change)="onFilesSelected($event)"
+            />
+            @if (imageError(); as message) {
+              <p class="item-drawer__error" id="item-image-error" role="alert">
+                <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ message }}
+              </p>
+            }
+          </section>
+        }
+
+        @if (usage(); as usageLine) {
+          @if (!isCreate()) {
+            <section class="item-drawer__usage" aria-labelledby="item-usage-title">
+              <h3 class="item-drawer__section-title" id="item-usage-title">Usage</h3>
+              <p>{{ usageLine }}</p>
+            </section>
+          }
+        }
+      </form>
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <span class="item-drawer__spacer"></span>
+    @if (readOnly()) {
+      <button pButton type="button" class="item-drawer__action" (click)="requestClose()">
+        Close
+      </button>
+    } @else {
+      <button
+        pButton
+        type="button"
+        class="item-drawer__action"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="submitting()"
+        (click)="requestClose()"
+      >
+        Cancel
+      </button>
+      <button
+        pButton
+        type="button"
+        class="item-drawer__action"
+        [disabled]="submitting() || detailLoading() || detailFailed()"
+        (click)="submit()"
+      >
+        @if (submitting()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        Save item
+      </button>
+    }
+  </ng-container>
+</app-drawer-shell>

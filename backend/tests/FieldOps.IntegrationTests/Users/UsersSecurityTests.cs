@@ -178,9 +178,9 @@ public class UsersSecurityTests(CompanySettingsDatabaseFixture database)
             [.. roles.Select(role => role!["hasTeamProfile"]!.GetValue<bool>())]);
 
         var modules = matrix["modules"]!.AsArray();
-        Assert.Equal(9, modules.Count);
+        Assert.Equal(10, modules.Count);
         Assert.Equal(
-            ["Overview", "Customers", "Requests & quotes", "Work orders & schedule", "Invoices & payments", "Reports", "Team", "Company settings", "Audit log"],
+            ["Overview", "Customers", "Requests & quotes", "Work orders & schedule", "Invoices & payments", "Products & services", "Reports", "Team", "Company settings", "Audit log"],
             [.. modules.Select(module => module!["name"]!.GetValue<string>())]);
 
         string Level(string moduleName, string roleCode) =>
@@ -190,6 +190,9 @@ public class UsersSecurityTests(CompanySettingsDatabaseFixture database)
         Assert.Equal("assigned_only", Level("Customers", "technician"));
         Assert.Equal("completed_only", Level("Work orders & schedule", "accounting"));
         Assert.Equal("edit", Level("Invoices & payments", "accounting"));
+        Assert.Equal("edit", Level("Products & services", "operations_manager"));
+        Assert.Equal("none", Level("Products & services", "technician"));
+        Assert.Equal("view", Level("Products & services", "viewer"));
         Assert.Equal("financial_only", Level("Reports", "accounting"));
         Assert.Equal("own_profile", Level("Team", "technician"));
         Assert.Equal("none", Level("Company settings", "operations_manager"));
