@@ -1,5 +1,6 @@
 using FieldOps.Application.Authentication;
 using FieldOps.Application.Features.Branches;
+using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.Users;
 using FluentValidation;
@@ -39,6 +40,9 @@ public static class DependencyInjection
         services.AddScoped<UpdateInvitationAccessHandler>();
         services.AddScoped<SuspendMemberHandler>();
         services.AddScoped<ReactivateMemberHandler>();
+        services.AddScoped<ValidateInvitationHandler>();
+        services.AddScoped<AcceptInvitationHandler>();
+        services.AddScoped<AcceptExistingInvitationHandler>();
 
         return services;
     }

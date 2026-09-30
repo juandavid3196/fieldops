@@ -10,10 +10,21 @@ The API refuses to start when any required setting is missing or invalid.
 | --- | --- | --- |
 | `ConnectionStrings:FieldOpsDatabase` | `ConnectionStrings__FieldOpsDatabase` | PostgreSQL connection string. Never committed. |
 | `Cors:AllowedOrigins` | `Cors__AllowedOrigins__0`, `Cors__AllowedOrigins__1`, ... | Absolute `http`/`https` origins without path, trailing slash or wildcard. |
+| `Email:Smtp:Host`, `Port` (1-65535), `SenderAddress` (valid email), `SenderName` | `Email__Smtp__Host`, ... | Invitation email delivery (SMTP adapter, the only `IInvitationDelivery`). Validated on start. |
+| `Email:Smtp:EnableSsl` | `Email__Smtp__EnableSsl` | `false` when absent. |
+| `Email:Smtp:UserName`, `Password` | `Email__Smtp__UserName`, `Email__Smtp__Password` | Optional; set together; user-secrets or environment only, never committed. |
 
 `appsettings.Development.json` allows `http://localhost:4200` (Angular dev
-server). `appsettings.json` ships with an empty origin list, so every other
-environment must provide its origins explicitly.
+server) and points SMTP at `localhost:1025` without SSL (Mailpit, see below).
+`appsettings.json` ships with an empty origin list and no SMTP settings, so
+every other environment must provide them explicitly.
+
+### Local email capture (Mailpit)
+
+`docker-compose.yml` runs `mailpit` (pinned image): SMTP on `127.0.0.1:1025`,
+web UI on `http://127.0.0.1:8025`. Start it with
+`docker compose up -d mailpit`; invitations sent by the API appear in the UI.
+Integration tests never use it (they replace the delivery port).
 
 ## Local secrets
 
@@ -42,6 +53,24 @@ variables.
 | `POST /sessions` | All | Sign in (anonymous). `application/json` only, body ≤ 4 KB, rate limited. `200` session body + `Set-Cookie: fieldops_session`, `Cache-Control: no-store`. |
 | `GET /sessions/current` | All | Current session (`[Authorize]`). `200` session body or `401`; both `Cache-Control: no-store`. |
 | `DELETE /sessions/current` | All | Sign out (anonymous). Always `204` with a `Set-Cookie` deleting `fieldops_session`. |
+| `POST /invitations/validate` | All | Invitation details for a usable token (anonymous). Body `{ token }`, ≤ 4 KB. `200` `{ organizationName, inviterName, email, firstName, lastName, role: { code, name }, isAllBranches, branches: [{ name }], expiresAt }`. |
+| `POST /invitations/accept` | All | Accept as a new user (anonymous). Body `{ token, firstName, lastName, password }`. `200` session body + `Set-Cookie` for the invited organization. |
+| `POST /invitations/accept-existing` | All | Accept as the signed-in user (`[Authorize]`, email must match). Body `{ token }`. `200` session body + `Set-Cookie` replacing the session. |
+
+Invitation endpoints: every response is `Cache-Control: no-store`
+(`InvitationNoStoreMiddleware`). `400` is `ValidationProblemDetails` with keys
+`token`, `firstName`, `lastName` or `password` (malformed JSON or empty body:
+no keys); `410` is one identical ProblemDetails for every unusable token
+(unknown, replaced, expired, revoked, consumed, inactive organization);
+`409` carries only the extension `code` (`account_exists`, `identity_mismatch`,
+`membership_exists`, `access_unavailable`). Check order: rate limit, session
+(`accept-existing`), content type/body/field shape, usable token, eligibility
+under a `SELECT ... FOR UPDATE` lock on the invitation row. Accept is one
+transaction (user, membership, branches, `accepted_at`, technician profile
+link, `user.invitation_accepted` audit row); the cookie is issued only after
+commit. The accept link is `{first CORS origin}/auth/invitation#token={token}`.
+There is no `[Consumes]` attribute on these actions: it rejects during routing,
+before the rate limiter and the session check, so `415` comes from body binding.
 
 Session body: `{ user: { id, firstName, lastName, email }, organization: { id, name }, role: { code, name } }`.
 
@@ -124,13 +153,15 @@ session store.
 
 ## Rate limiting
 
-In memory, per process, only on `POST /sessions`. Every request counts,
-whatever its outcome.
+In memory, per process, on `POST /sessions`, `POST /organization-registrations`
+and the three `/invitations/*` endpoints. Every request counts, whatever its
+outcome.
 
 | Limit | Key | Rule |
 | --- | --- | --- |
 | Per client | `RemoteIpAddress` | 10 requests per 5-minute fixed window |
 | Global | One partition | 300 requests per 1-minute fixed window |
+| Invitations, per client | `RemoteIpAddress`, one partition shared by the three invitation endpoints | 20 requests per 5-minute fixed window; global 300 per minute across the three |
 | Per email | SHA-256 of the normalized email | After 5 failed (`401`) attempts in a sliding 15 minutes, `429` before password verification until the oldest failure leaves the window. Unknown emails count. Success clears it; `400`, `413`, `415` and `429` do not count. |
 
 - Rejections are `429` ProblemDetails with `Retry-After` in whole seconds and
@@ -141,7 +172,7 @@ whatever its outcome.
 ## Pipeline and CORS
 
 Middleware order: `RequestLoggingMiddleware`, `UseExceptionHandler`,
-`UseStatusCodePages`, (Development: OpenAPI, Swagger UI),
+`UseStatusCodePages`, `InvitationNoStoreMiddleware`, (Development: OpenAPI, Swagger UI),
 `UseHttpsRedirection`, `UseCors`, `UseRateLimiter`, `UseAuthentication`,
 `InvalidSessionCookieMiddleware`, `UseAuthorization`, endpoints.
 

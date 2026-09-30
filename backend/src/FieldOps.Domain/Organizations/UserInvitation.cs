@@ -165,6 +165,20 @@ public sealed class UserInvitation
         RevokedAt = now;
     }
 
+    /// <summary>Open and not expired (the organization check lives with the caller).</summary>
+    public bool IsUsable(DateTimeOffset now) => IsOpen && !IsExpired(now);
+
+    /// <summary>Marks the invitation consumed; it can never be used again.</summary>
+    public void Accept(DateTimeOffset now)
+    {
+        if (!IsUsable(now))
+        {
+            throw new InvalidOperationException("The invitation can no longer be accepted.");
+        }
+
+        AcceptedAt = now;
+    }
+
     /// <summary>Returns whether anything changed.</summary>
     public bool UpdateAccess(short roleId, bool isAllBranches)
     {

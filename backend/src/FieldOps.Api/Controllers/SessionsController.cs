@@ -127,29 +127,9 @@ public sealed class SessionsController(
         return NoContent();
     }
 
-    private Task SignInAsync(SignInResult.Succeeded succeeded, bool rememberMe)
-    {
-        var principal = SessionClaims.CreatePrincipal(new SessionTicket(
-            succeeded.Session.User.Id,
-            succeeded.Session.Organization.Id,
-            succeeded.MembershipId,
-            succeeded.SignedInAt,
-            rememberMe));
-
-        // Remember me off: browser-session cookie (no Expires), 8-hour ticket,
-        // never renewed. On: persistent 14-day sliding cookie.
-        var properties = new AuthenticationProperties
-        {
-            IssuedUtc = succeeded.SignedInAt,
-            IsPersistent = rememberMe,
-            AllowRefresh = rememberMe,
-            ExpiresUtc = succeeded.SignedInAt + (rememberMe
-                ? SessionCookie.RememberMeIdleLifetime
-                : SessionCookie.BrowserSessionLifetime),
-        };
-
-        return HttpContext.SignInAsync(SessionCookie.Scheme, principal, properties);
-    }
+    private Task SignInAsync(SignInResult.Succeeded succeeded, bool rememberMe) =>
+        SessionCookieIssuer.SignInAsync(
+            HttpContext, succeeded.Session, succeeded.MembershipId, succeeded.SignedInAt, rememberMe);
 
     private IPAddress? GetClientIpAddress()
     {

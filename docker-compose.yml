@@ -19,5 +19,14 @@ services:
       timeout: 5s
       retries: 10
 
+  # Local email capture only: nothing sent here leaves the machine.
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    container_name: fieldops-mailpit
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:1025:1025"
+      - "127.0.0.1:8025:8025"
+
 volumes:
   fieldops_postgres_data:

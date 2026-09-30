@@ -11,6 +11,19 @@ public static class ApiRateLimitingExtensions
 
     public const string OrganizationRegistrationPolicy = "organization-registration";
 
+    /// <summary>Shared by validate, accept and accept-existing (invitation BR-12).</summary>
+    public const string InvitationPolicy = "invitation";
+
+    public const int InvitationPerClientPermitLimit = 20;
+
+    public const int InvitationGlobalPermitLimit = 300;
+
+    public static readonly TimeSpan InvitationPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan InvitationGlobalWindow = TimeSpan.FromMinutes(1);
+
+    private const string InvitationGlobalPartition = "invitation-global";
+
     public const int SignInPerClientPermitLimit = 10;
 
     public const int SignInGlobalPermitLimit = 300;
@@ -53,6 +66,17 @@ public static class ApiRateLimitingExtensions
                         QueueLimit = 0,
                     }));
 
+            // One partition per client shared by the three invitation endpoints.
+            options.AddPolicy(InvitationPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, InvitationPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = InvitationPerClientPermitLimit,
+                        Window = InvitationPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
             options.AddPolicy(OrganizationRegistrationPolicy, httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     GetClientPartitionKey(httpContext, OrganizationRegistrationPolicy),
@@ -73,6 +97,14 @@ public static class ApiRateLimitingExtensions
                         {
                             PermitLimit = SignInGlobalPermitLimit,
                             Window = SignInGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    InvitationPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        InvitationGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = InvitationGlobalPermitLimit,
+                            Window = InvitationGlobalWindow,
                             QueueLimit = 0,
                         }),
                     OrganizationRegistrationPolicy => RateLimitPartition.GetFixedWindowLimiter(

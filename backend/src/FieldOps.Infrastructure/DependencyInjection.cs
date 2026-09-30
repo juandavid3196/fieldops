@@ -1,5 +1,7 @@
+using System.Globalization;
 using FieldOps.Application.Authentication;
 using FieldOps.Application.Features.Branches;
+using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.Users;
 using FieldOps.Domain.Catalog;
@@ -17,6 +19,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace FieldOps.Infrastructure;
 
@@ -67,11 +70,43 @@ public static class DependencyInjection
         services.AddScoped<IOrganizationLogoStore, OrganizationLogoStore>();
         services.AddScoped<IBranchStore, BranchStore>();
         services.AddScoped<IUserAccessStore, UserAccessStore>();
-        services.AddSingleton<IInvitationDelivery, NoOpInvitationDelivery>();
+        services.AddScoped<IInvitationAcceptanceStore, InvitationAcceptanceStore>();
+        services.AddSmtpInvitationDelivery(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
         // In memory and per process: counters reset on restart.
         services.AddSingleton<ISignInThrottle, InMemorySignInThrottle>();
+
+        return services;
+    }
+
+    // The SMTP adapter is the only delivery adapter (BR-15). Values are read
+    // one by one so an unparsable number fails validation on start (0) rather
+    // than throwing from the binder; secrets are never logged or echoed.
+    private static IServiceCollection AddSmtpInvitationDelivery(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services
+            .AddOptions<SmtpSettings>()
+            .Configure(settings =>
+            {
+                var section = configuration.GetSection(SmtpSettings.SectionName);
+
+                settings.Host = section["Host"] ?? string.Empty;
+                settings.Port = int.TryParse(section["Port"], NumberStyles.None, CultureInfo.InvariantCulture, out var port)
+                    ? port
+                    : 0;
+                settings.EnableSsl = bool.TryParse(section["EnableSsl"], out var enableSsl) && enableSsl;
+                settings.SenderAddress = section["SenderAddress"] ?? string.Empty;
+                settings.SenderName = section["SenderName"] ?? "FieldOps";
+                settings.UserName = section["UserName"];
+                settings.Password = section["Password"];
+            })
+            .ValidateOnStart();
+
+        services.AddSingleton<IValidateOptions<SmtpSettings>, SmtpSettingsValidator>();
+        services.AddSingleton<IInvitationDelivery, SmtpInvitationDelivery>();
 
         return services;
     }

@@ -108,6 +108,20 @@ public sealed class User
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>Marks the email verified (the user proved control of the invitation link).</summary>
+    public void MarkEmailVerified(DateTimeOffset verifiedAt)
+    {
+        if (verifiedAt == default)
+        {
+            throw new ArgumentException(
+                "Verification time is required.",
+                nameof(verifiedAt));
+        }
+
+        EmailVerifiedAt = verifiedAt;
+        UpdatedAt = verifiedAt;
+    }
+
     /// <summary>
     /// Records a successful sign-in. Only active users can sign in.
     /// </summary>

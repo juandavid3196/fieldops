@@ -92,4 +92,23 @@ public sealed class TechnicianProfile
             firstName.Trim(),
             lastName.Trim());
     }
+
+    /// <summary>Links an unlinked profile to a membership of its own organization.</summary>
+    public void LinkMembership(Guid organizationUserId, DateTimeOffset now)
+    {
+        if (organizationUserId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Organization user id is required.",
+                nameof(organizationUserId));
+        }
+
+        if (OrganizationUserId is not null)
+        {
+            throw new InvalidOperationException("The technician profile is already linked.");
+        }
+
+        OrganizationUserId = organizationUserId;
+        UpdatedAt = now;
+    }
 }

@@ -42,6 +42,11 @@ export class SessionService {
       .pipe(tap((session) => this.currentSession.set(session)));
   }
 
+  /** Stores a session body issued by another endpoint (invitation acceptance). */
+  setSession(session: Session): void {
+    this.currentSession.set(session);
+  }
+
   /**
    * Signs out with `DELETE /sessions/current`. `204` and `401` (already signed
    * out) clear the session; any other failure keeps it and is rethrown.

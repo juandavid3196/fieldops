@@ -40,6 +40,14 @@ describe('ApiErrorService', () => {
     expect(JSON.stringify(result)).not.toContain('Password');
   });
 
+  it('keeps the string extension code of a 409 only', () => {
+    expect(service.toApiError(httpError(409, { status: 409, code: 'account_exists' })).code).toBe(
+      'account_exists',
+    );
+    expect(service.toApiError(httpError(409, { status: 409, code: 7 })).code).toBeUndefined();
+    expect(service.toApiError(httpError(500, { status: 500, code: 'x' })).code).toBeUndefined();
+  });
+
   it('maps a ValidationProblemDetails to validation field errors', () => {
     const result = service.toApiError(
       httpError(400, {

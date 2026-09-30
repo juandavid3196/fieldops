@@ -1,0 +1,368 @@
+<app-invitation-brand-panel class="invitation-brand" />
+
+<main class="invitation">
+  <header class="invitation__topbar">
+    <p class="invitation__wordmark">
+      <svg class="invitation__mark" viewBox="0 0 48 40" aria-hidden="true" focusable="false">
+        <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-400)" />
+        <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-600)" />
+      </svg>
+      <span>Field</span><span class="invitation__accent">Ops</span>
+    </p>
+  </header>
+
+  <section class="invitation__card">
+    <a class="invitation__back" routerLink="/auth/sign-in" (click)="leave()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Back to sign in
+    </a>
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="invitation__loading" role="status" aria-live="polite">
+          <span class="invitation__sr">Loading invitation…</span>
+          <p-skeleton shape="circle" size="4.5rem" />
+          <p-skeleton width="70%" height="2rem" />
+          <p-skeleton width="90%" height="1rem" />
+          <p-skeleton width="100%" height="6rem" />
+          <p-skeleton width="100%" height="3rem" />
+          <p-skeleton width="100%" height="3rem" />
+        </div>
+      }
+
+      @case ('unavailable') {
+        <div class="invitation__hero">
+          <span class="invitation__icon invitation__icon--warning" aria-hidden="true">
+            <svg viewBox="0 0 32 32" focusable="false">
+              <path
+                d="M4 8h20v12H4z M4 8l10 7 10-7"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linejoin="round"
+              />
+              <circle
+                cx="23"
+                cy="23"
+                r="6"
+                fill="var(--fo-color-warning-background)"
+                stroke="currentColor"
+                stroke-width="2"
+              />
+              <path
+                d="M23 20v3l2 1.5"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+          <h1 class="invitation__title" tabindex="-1">{{ unavailableTitle }}</h1>
+          <p class="invitation__subtitle">{{ unavailableBody }}</p>
+        </div>
+
+        <p class="invitation__note">
+          <i class="pi pi-info-circle" aria-hidden="true"></i>
+          {{ unavailableNote }}
+        </p>
+
+        <a
+          pButton
+          size="large"
+          class="invitation__submit"
+          routerLink="/auth/sign-in"
+          (click)="leave()"
+          >Back to sign in</a
+        >
+
+        <p class="invitation__help">Need help? Contact your organization.</p>
+      }
+
+      @case ('load-error') {
+        <div class="invitation__hero">
+          <span class="invitation__icon invitation__icon--warning" aria-hidden="true">
+            <i class="pi pi-exclamation-triangle"></i>
+          </span>
+          <h1 class="invitation__title" tabindex="-1">Invitation not loaded</h1>
+        </div>
+        <p-message class="invitation__message" severity="error">{{ loadErrorMessage() }}</p-message>
+        <button
+          pButton
+          type="button"
+          size="large"
+          class="invitation__submit"
+          [disabled]="retryLocked()"
+          (click)="retry()"
+        >
+          Retry
+        </button>
+      }
+
+      @case ('ready') {
+        @if (detail(); as invitation) {
+          <div class="invitation__hero">
+            <span class="invitation__icon" aria-hidden="true">
+              <svg viewBox="0 0 32 32" focusable="false">
+                <path
+                  d="M4 8h22v15H4z M4 8l11 8 11-8"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </span>
+            <h1 class="invitation__title" tabindex="-1">Join {{ invitation.organizationName }}</h1>
+            <p class="invitation__subtitle">
+              {{ invitation.inviterName }} invited you to join their FieldOps workspace.
+            </p>
+          </div>
+
+          <dl class="invitation__details">
+            <div class="invitation__detail">
+              <dt>Email</dt>
+              <dd>{{ invitation.email }}</dd>
+            </div>
+            <div class="invitation__detail">
+              <dt>Role</dt>
+              <dd>{{ invitation.role.name }}</dd>
+            </div>
+            <div class="invitation__detail">
+              <dt>Branch access</dt>
+              <dd>{{ branchAccess() }}</dd>
+            </div>
+          </dl>
+
+          <form class="invitation__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
+            @if (mode() === 'new-account') {
+              <div class="invitation__names">
+                <div class="invitation__field">
+                  <label class="invitation__label" for="first-name">First name</label>
+                  <input
+                    pInputText
+                    class="invitation__input"
+                    id="first-name"
+                    formControlName="firstName"
+                    autocomplete="given-name"
+                    required
+                    pSize="large"
+                    fluid
+                    [invalid]="fieldErrors().firstName !== undefined"
+                    [readonly]="submitting()"
+                    [attr.aria-invalid]="fieldErrors().firstName !== undefined ? 'true' : null"
+                    [attr.aria-describedby]="
+                      fieldErrors().firstName !== undefined ? 'first-name-error' : null
+                    "
+                    (blur)="validateOnBlur('firstName')"
+                  />
+                  @if (fieldErrors().firstName; as error) {
+                    <p class="invitation__error" id="first-name-error" role="alert">{{ error }}</p>
+                  }
+                </div>
+                <div class="invitation__field">
+                  <label class="invitation__label" for="last-name">Last name</label>
+                  <input
+                    pInputText
+                    class="invitation__input"
+                    id="last-name"
+                    formControlName="lastName"
+                    autocomplete="family-name"
+                    required
+                    pSize="large"
+                    fluid
+                    [invalid]="fieldErrors().lastName !== undefined"
+                    [readonly]="submitting()"
+                    [attr.aria-invalid]="fieldErrors().lastName !== undefined ? 'true' : null"
+                    [attr.aria-describedby]="
+                      fieldErrors().lastName !== undefined ? 'last-name-error' : null
+                    "
+                    (blur)="validateOnBlur('lastName')"
+                  />
+                  @if (fieldErrors().lastName; as error) {
+                    <p class="invitation__error" id="last-name-error" role="alert">{{ error }}</p>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="invitation__field">
+                <label class="invitation__label" for="email">Email</label>
+                <input
+                  pInputText
+                  class="invitation__input"
+                  id="email"
+                  type="email"
+                  autocomplete="username"
+                  readonly
+                  pSize="large"
+                  fluid
+                  [value]="invitation.email"
+                />
+              </div>
+            }
+
+            <div class="invitation__field">
+              <label class="invitation__label" for="password">Password</label>
+              <input
+                pInputPassword
+                class="invitation__input"
+                id="password"
+                formControlName="password"
+                required
+                pSize="large"
+                fluid
+                [attr.autocomplete]="mode() === 'new-account' ? 'new-password' : 'current-password'"
+                [(mask)]="passwordMasked"
+                [invalid]="fieldErrors().password !== undefined"
+                [readonly]="submitting()"
+                [attr.aria-invalid]="fieldErrors().password !== undefined ? 'true' : null"
+                [attr.aria-describedby]="
+                  fieldErrors().password !== undefined ? 'password-error' : null
+                "
+                (blur)="validateOnBlur('password')"
+              />
+              @if (fieldErrors().password; as error) {
+                <p class="invitation__error" id="password-error" role="alert">{{ error }}</p>
+              }
+            </div>
+
+            @if (mode() === 'new-account') {
+              <div class="invitation__field">
+                <label class="invitation__label" for="confirm-password">Confirm password</label>
+                <input
+                  pInputPassword
+                  class="invitation__input"
+                  id="confirm-password"
+                  formControlName="confirmPassword"
+                  autocomplete="new-password"
+                  required
+                  pSize="large"
+                  fluid
+                  [(mask)]="passwordMasked"
+                  [invalid]="fieldErrors().confirmPassword !== undefined"
+                  [readonly]="submitting()"
+                  [attr.aria-invalid]="fieldErrors().confirmPassword !== undefined ? 'true' : null"
+                  [attr.aria-describedby]="
+                    fieldErrors().confirmPassword !== undefined ? 'confirm-password-error' : null
+                  "
+                  (blur)="validateOnBlur('confirmPassword')"
+                />
+                @if (fieldErrors().confirmPassword; as error) {
+                  <p class="invitation__error" id="confirm-password-error" role="alert">
+                    {{ error }}
+                  </p>
+                }
+              </div>
+            }
+
+            <div class="invitation__show">
+              <p-checkbox
+                inputId="show-password"
+                formControlName="showPassword"
+                [binary]="true"
+                (onChange)="togglePassword($event)"
+              />
+              <label class="invitation__show-label" for="show-password">Show password</label>
+            </div>
+
+            @if (mode() === 'new-account') {
+              <div class="invitation__requirements" id="password-requirements">
+                <p class="invitation__requirements-title">Your password must:</p>
+                <ul>
+                  <li [class.invitation__met]="requirements().lengthMet">
+                    <i
+                      class="pi"
+                      [class.pi-check-circle]="requirements().lengthMet"
+                      [class.pi-circle]="!requirements().lengthMet"
+                      aria-hidden="true"
+                    ></i>
+                    12–128 characters
+                    <span class="invitation__sr">{{
+                      requirements().lengthMet ? '(met)' : '(not met)'
+                    }}</span>
+                  </li>
+                  <li [class.invitation__met]="requirements().differsFromEmailMet">
+                    <i
+                      class="pi"
+                      [class.pi-check-circle]="requirements().differsFromEmailMet"
+                      [class.pi-circle]="!requirements().differsFromEmailMet"
+                      aria-hidden="true"
+                    ></i>
+                    Must not match your email
+                    <span class="invitation__sr">{{
+                      requirements().differsFromEmailMet ? '(met)' : '(not met)'
+                    }}</span>
+                  </li>
+                </ul>
+              </div>
+            }
+
+            @if (pageMessage(); as message) {
+              <p-message class="invitation__message" severity="error">{{ message.text }}</p-message>
+              @if (message.offerSignIn) {
+                <button
+                  pButton
+                  type="button"
+                  variant="text"
+                  class="invitation__link"
+                  (click)="switchMode('existing-account')"
+                >
+                  Sign in to accept
+                </button>
+              }
+            }
+
+            <button
+              pButton
+              type="submit"
+              size="large"
+              fluid
+              class="invitation__submit"
+              [disabled]="submitDisabled()"
+            >
+              @if (submitting()) {
+                <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                {{ mode() === 'new-account' ? 'Accepting…' : 'Signing in…' }}
+              } @else {
+                {{ mode() === 'new-account' ? 'Accept invitation' : 'Sign in and accept' }}
+              }
+            </button>
+          </form>
+
+          <p class="invitation__switch">
+            @if (mode() === 'new-account') {
+              Already have a FieldOps account?
+              <button
+                pButton
+                type="button"
+                variant="text"
+                class="invitation__link"
+                [disabled]="submitting()"
+                (click)="switchMode('existing-account')"
+              >
+                Sign in to accept
+              </button>
+            } @else {
+              New to FieldOps?
+              <button
+                pButton
+                type="button"
+                variant="text"
+                class="invitation__link"
+                [disabled]="submitting()"
+                (click)="switchMode('new-account')"
+              >
+                Create your account
+              </button>
+            }
+          </p>
+
+          <p class="invitation__lock">
+            <i class="pi pi-lock" aria-hidden="true"></i>
+            {{ expiryText() }}
+          </p>
+        }
+      }
+    }
+  </section>
+</main>

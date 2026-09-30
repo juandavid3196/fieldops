@@ -48,7 +48,8 @@ public sealed class OrganizationUser
         Guid userId,
         short roleId,
         bool isAllBranches = false,
-        DateTimeOffset? joinedAt = null)
+        DateTimeOffset? joinedAt = null,
+        Guid? invitedByUserId = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -79,6 +80,7 @@ public sealed class OrganizationUser
         {
             IsAllBranches = isAllBranches,
             JoinedAt = joinedAt,
+            InvitedByUserId = invitedByUserId,
         };
     }
 

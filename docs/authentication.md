@@ -58,6 +58,25 @@ Navegador (Angular)                         API (.NET)
    ◄── 204 ──  Limpia la sesión y vuelve a /auth/sign-in
 ```
 
+## Aceptar una invitación
+
+Detalle: [`specs/invitation-acceptance/spec.md`](../specs/invitation-acceptance/spec.md).
+
+- El enlace del correo es `{origen frontend}/auth/invitation#token={token}`
+  (el token va en el fragmento, nunca en query ni ruta). Solo se guarda su
+  SHA-256; reenviar reemplaza el token.
+- `POST /invitations/validate` (anónimo) devuelve los datos públicos de la
+  invitación o un `410` idéntico para cualquier token inutilizable.
+- `POST /invitations/accept` crea el usuario nuevo y `POST
+  /invitations/accept-existing` une a un usuario con sesión (mismo email). Ambos
+  hacen todo en **una transacción** bloqueando la invitación (`FOR UPDATE`), y
+  devuelven la sesión de la organización invitada con una cookie nueva
+  (`rememberMe = false`), emitida solo tras el commit.
+- Orden de comprobaciones: límite de intentos, sesión, formato del cuerpo,
+  token utilizable (`410`), elegibilidad (`409`). Un token inutilizable nunca
+  revela si existe cuenta, membresía o identidad.
+- Límite: 20 peticiones por IP cada 5 min entre los tres endpoints.
+
 ## Reglas importantes
 
 | Regla | Detalle |

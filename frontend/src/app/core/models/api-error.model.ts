@@ -30,6 +30,8 @@ export interface ApiError {
    * not a non-negative integer of seconds.
    */
   readonly retryAfterSeconds?: number;
+  /** Machine-readable ProblemDetails extension `code` (e.g. on a `409`); never displayed. */
+  readonly code?: string;
 }
 
 export function isApiError(value: unknown): value is ApiError {
