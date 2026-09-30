@@ -30,6 +30,7 @@ app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 app.UseMiddleware<InvitationNoStoreMiddleware>();
+app.UseMiddleware<PasswordResetNoStoreMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {

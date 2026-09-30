@@ -47,6 +47,7 @@ public sealed class SessionCookieEvents(
             ticket.UserId,
             ticket.OrganizationId,
             ticket.MembershipId,
+            ticket.SignedInAt,
             context.HttpContext.RequestAborted);
 
         if (session is null)

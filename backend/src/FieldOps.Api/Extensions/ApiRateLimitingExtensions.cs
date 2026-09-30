@@ -14,6 +14,27 @@ public static class ApiRateLimitingExtensions
     /// <summary>Shared by validate, accept and accept-existing (invitation BR-12).</summary>
     public const string InvitationPolicy = "invitation";
 
+    /// <summary>POST /password-resets: 5 per client per 15 minutes (password recovery BR-12).</summary>
+    public const string PasswordResetRequestPolicy = "password-reset-request";
+
+    /// <summary>Validate and confirm share one per-client partition: 20 per 5 minutes.</summary>
+    public const string PasswordResetTokenPolicy = "password-reset-token";
+
+    public const int PasswordResetRequestPerClientPermitLimit = 5;
+
+    public const int PasswordResetTokenPerClientPermitLimit = 20;
+
+    /// <summary>One window across the three password reset endpoints.</summary>
+    public const int PasswordResetGlobalPermitLimit = 300;
+
+    public static readonly TimeSpan PasswordResetRequestPerClientWindow = TimeSpan.FromMinutes(15);
+
+    public static readonly TimeSpan PasswordResetTokenPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan PasswordResetGlobalWindow = TimeSpan.FromMinutes(1);
+
+    private const string PasswordResetGlobalPartition = "password-reset-global";
+
     public const int InvitationPerClientPermitLimit = 20;
 
     public const int InvitationGlobalPermitLimit = 300;
@@ -77,6 +98,26 @@ public static class ApiRateLimitingExtensions
                         QueueLimit = 0,
                     }));
 
+            options.AddPolicy(PasswordResetRequestPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, PasswordResetRequestPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = PasswordResetRequestPerClientPermitLimit,
+                        Window = PasswordResetRequestPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
+            options.AddPolicy(PasswordResetTokenPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, PasswordResetTokenPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = PasswordResetTokenPerClientPermitLimit,
+                        Window = PasswordResetTokenPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
             options.AddPolicy(OrganizationRegistrationPolicy, httpContext =>
                 RateLimitPartition.GetFixedWindowLimiter(
                     GetClientPartitionKey(httpContext, OrganizationRegistrationPolicy),
@@ -105,6 +146,15 @@ public static class ApiRateLimitingExtensions
                         {
                             PermitLimit = InvitationGlobalPermitLimit,
                             Window = InvitationGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    // The three password reset endpoints share one global partition.
+                    PasswordResetRequestPolicy or PasswordResetTokenPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        PasswordResetGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = PasswordResetGlobalPermitLimit,
+                            Window = PasswordResetGlobalWindow,
                             QueueLimit = 0,
                         }),
                     OrganizationRegistrationPolicy => RateLimitPartition.GetFixedWindowLimiter(

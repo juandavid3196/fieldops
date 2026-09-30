@@ -11,7 +11,7 @@
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
 import { SpinnerIcon } from 'primeng/icons/spinner';
@@ -54,6 +54,7 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
     InputPassword,
     InputText,
     Message,
+    RouterLink,
     SpinnerIcon,
     SignInBrandPanel,
     SignInOtherWays,

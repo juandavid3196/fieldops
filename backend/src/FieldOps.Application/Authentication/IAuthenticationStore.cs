@@ -19,12 +19,15 @@ public interface IAuthenticationStore
     /// <summary>
     /// Returns the session when the user is active, the membership is active
     /// and belongs to that user and organization, and the organization is
-    /// active; otherwise null. The role is read from the membership.
+    /// active, and the user did not change the password after
+    /// <paramref name="signedInAt"/> (password recovery BR-15); otherwise null.
+    /// The role is read from the membership.
     /// </summary>
     Task<SessionView?> FindActiveSessionAsync(
         Guid userId,
         Guid organizationId,
         Guid membershipId,
+        DateTimeOffset signedInAt,
         CancellationToken cancellationToken);
 
     /// <summary>

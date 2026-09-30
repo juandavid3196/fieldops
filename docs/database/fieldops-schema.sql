@@ -48,7 +48,7 @@ CREATE TABLE branches (
 CREATE TABLE users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email varchar(254) NOT NULL, password_hash text NOT NULL,
   first_name varchar(100) NOT NULL, last_name varchar(100) NOT NULL, phone varchar(40), status user_status NOT NULL DEFAULT 'pending',
-  email_verified_at timestamptz, last_login_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  email_verified_at timestamptz, last_login_at timestamptz, password_changed_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (email)
 );
 CREATE TABLE roles (id smallserial PRIMARY KEY, code varchar(50) UNIQUE NOT NULL, name varchar(100) NOT NULL, description text, is_canonical boolean NOT NULL DEFAULT true);
@@ -70,6 +70,11 @@ CREATE TABLE user_invitations (
   CONSTRAINT ck_user_invitations_expires_after_created CHECK (expires_at > created_at)
 );
 CREATE TABLE invitation_branches (invitation_id uuid NOT NULL REFERENCES user_invitations(id) ON DELETE CASCADE, branch_id uuid NOT NULL REFERENCES branches(id), PRIMARY KEY(invitation_id,branch_id));
+CREATE TABLE password_reset_tokens (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE, token_hash text NOT NULL UNIQUE,
+  expires_at timestamptz NOT NULL, used_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ck_password_reset_tokens_expires_after_created CHECK (expires_at > created_at)
+);
 
 CREATE TABLE customers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), type customer_type NOT NULL,
@@ -207,6 +212,7 @@ CREATE TABLE audit_logs (id bigserial PRIMARY KEY, organization_id uuid NOT NULL
 CREATE INDEX ix_branches_org_active ON branches(organization_id,is_active);
 CREATE UNIQUE INDEX ux_branches_org_main ON branches(organization_id) WHERE is_main;
 CREATE UNIQUE INDEX ux_user_invitations_open_email ON user_invitations(organization_id,email) WHERE accepted_at IS NULL AND revoked_at IS NULL;
+CREATE UNIQUE INDEX ux_password_reset_tokens_open_user ON password_reset_tokens(user_id) WHERE used_at IS NULL;
 CREATE INDEX ix_customers_org_name ON customers(organization_id,display_name);
 CREATE INDEX ix_contacts_org_email ON customer_contacts(organization_id,email);
 CREATE INDEX ix_properties_customer ON properties(organization_id,customer_id);

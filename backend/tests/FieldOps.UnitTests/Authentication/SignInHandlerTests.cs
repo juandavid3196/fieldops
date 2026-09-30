@@ -293,6 +293,7 @@ public class SignInHandlerTests
             Guid userId,
             Guid organizationId,
             Guid membershipId,
+            DateTimeOffset signedInAt,
             CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 

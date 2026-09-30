@@ -38,6 +38,8 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<UserInvitation> UserInvitations => Set<UserInvitation>();
 
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+
     public DbSet<InvitationBranch> InvitationBranches =>
         Set<InvitationBranch>();
 

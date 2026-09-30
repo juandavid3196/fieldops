@@ -1,5 +1,6 @@
 using FieldOps.Api.Configuration;
 using FieldOps.Api.Middleware;
+using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.Users;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -38,6 +39,7 @@ public static class ApiServiceCollectionExtensions
         services.AddSingleton<IValidateOptions<CorsSettings>, CorsSettingsValidator>();
 
         services.AddSingleton<IInvitationLinkBuilder, CorsOriginInvitationLinkBuilder>();
+        services.AddSingleton<IPasswordResetLinkBuilder, CorsOriginPasswordResetLinkBuilder>();
 
         services.AddCors();
         services

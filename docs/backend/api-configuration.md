@@ -10,20 +10,23 @@ The API refuses to start when any required setting is missing or invalid.
 | --- | --- | --- |
 | `ConnectionStrings:FieldOpsDatabase` | `ConnectionStrings__FieldOpsDatabase` | PostgreSQL connection string. Never committed. |
 | `Cors:AllowedOrigins` | `Cors__AllowedOrigins__0`, `Cors__AllowedOrigins__1`, ... | Absolute `http`/`https` origins without path, trailing slash or wildcard. |
-| `Email:Smtp:Host`, `Port` (1-65535), `SenderAddress` (valid email), `SenderName` | `Email__Smtp__Host`, ... | Invitation email delivery (SMTP adapter, the only `IInvitationDelivery`). Validated on start. |
-| `Email:Smtp:EnableSsl` | `Email__Smtp__EnableSsl` | `false` when absent. |
+| `Email:Provider` | `Email__Provider` | `Smtp` or `Resend`. Any provider other than `Resend` fails start in Production. Validated on start; errors name the key, never the value. |
+| `Email:SenderAddress` (valid email), `Email:SenderName` | `Email__SenderAddress`, `Email__SenderName` | Sender for every email (invitations and password recovery). |
+| `Email:Smtp:Host`, `Port` (1-65535) | `Email__Smtp__Host`, ... | Required only when the provider is `Smtp`. |
+| `Email:Resend:ApiKey` | `Email__Resend__ApiKey` | Required when the provider is `Resend`. Environment variables or user-secrets only, never committed. |
+| `Email:Smtp:EnableSsl` | `Email__Smtp__EnableSsl` | `false` when absent (`Smtp` provider only). |
 | `Email:Smtp:UserName`, `Password` | `Email__Smtp__UserName`, `Email__Smtp__Password` | Optional; set together; user-secrets or environment only, never committed. |
 
 `appsettings.Development.json` allows `http://localhost:4200` (Angular dev
-server) and points SMTP at `localhost:1025` without SSL (Mailpit, see below).
-`appsettings.json` ships with an empty origin list and no SMTP settings, so
+server) and selects the `Smtp` provider at `localhost:1025` without SSL (Mailpit, see below).
+`appsettings.json` ships with an empty origin list and only `Email:SenderName`, so
 every other environment must provide them explicitly.
 
 ### Local email capture (Mailpit)
 
 `docker-compose.yml` runs `mailpit` (pinned image): SMTP on `127.0.0.1:1025`,
 web UI on `http://127.0.0.1:8025`. Start it with
-`docker compose up -d mailpit`; invitations sent by the API appear in the UI.
+`docker compose up -d mailpit`; invitations and password reset emails sent by the API appear in the UI.
 Integration tests never use it (they replace the delivery port).
 
 ## Local secrets
@@ -56,6 +59,9 @@ variables.
 | `POST /invitations/validate` | All | Invitation details for a usable token (anonymous). Body `{ token }`, ≤ 4 KB. `200` `{ organizationName, inviterName, email, firstName, lastName, role: { code, name }, isAllBranches, branches: [{ name }], expiresAt }`. |
 | `POST /invitations/accept` | All | Accept as a new user (anonymous). Body `{ token, firstName, lastName, password }`. `200` session body + `Set-Cookie` for the invited organization. |
 | `POST /invitations/accept-existing` | All | Accept as the signed-in user (`[Authorize]`, email must match). Body `{ token }`. `200` session body + `Set-Cookie` replacing the session. |
+| `POST /password-resets` | All | Request a reset link (anonymous). Body `{ email }`, ≤ 4 KB. Always `202` with an empty body and `no-store` once the email is well formed; `400` `email` otherwise. |
+| `POST /password-resets/validate` | All | Body `{ token }`. `200 { email }` for a usable token, identical `410` for any unusable one. |
+| `POST /password-resets/confirm` | All | Body `{ token, password }`. `204`; `400` `token`/`password`; identical `410`; `500` rolled back. |
 
 Invitation endpoints: every response is `Cache-Control: no-store`
 (`InvitationNoStoreMiddleware`). `400` is `ValidationProblemDetails` with keys
@@ -71,6 +77,22 @@ link, `user.invitation_accepted` audit row); the cookie is issued only after
 commit. The accept link is `{first CORS origin}/auth/invitation#token={token}`.
 There is no `[Consumes]` attribute on these actions: it rejects during routing,
 before the rate limiter and the session check, so `415` comes from body binding.
+
+Password reset endpoints: every response is `Cache-Control: no-store`
+(`PasswordResetNoStoreMiddleware`); no `[Consumes]` attribute (same reason as
+invitations). The reset link is `{first CORS origin}/auth/reset-password#token={token}`.
+The token is the invitation token generator (32 bytes, URL-safe base64, SHA-256
+stored), lasts 30 minutes and is single use. Request: per-email limit, eligible
+(`active`) user lookup, then one transaction that locks the `users` row
+(`FOR UPDATE`), deletes the user's unused tokens and inserts the new one; the
+email is queued only after the commit and sent by `PasswordResetEmailDispatcher`
+(bounded in-memory `Channel`, drop on full, failures logged by category only).
+Confirm: PBKDF2 hash first, then one transaction that locks the token row,
+re-checks token, user status and password versus email, writes `used_at`,
+`users.password_hash`, `password_changed_at` and `updated_at`. Session
+revalidation rejects any session whose `signed_in_at` precedes the user's
+`password_changed_at` (`401`, cookie cleared); `password_changed_at` is stored
+truncated to milliseconds to match the cookie claim.
 
 Session body: `{ user: { id, firstName, lastName, email }, organization: { id, name }, role: { code, name } }`.
 
@@ -153,8 +175,8 @@ session store.
 
 ## Rate limiting
 
-In memory, per process, on `POST /sessions`, `POST /organization-registrations`
-and the three `/invitations/*` endpoints. Every request counts, whatever its
+In memory, per process, on `POST /sessions`, `POST /organization-registrations`,
+the three `/invitations/*` endpoints and the three `/password-resets*` endpoints. Every request counts, whatever its
 outcome.
 
 | Limit | Key | Rule |
@@ -162,6 +184,8 @@ outcome.
 | Per client | `RemoteIpAddress` | 10 requests per 5-minute fixed window |
 | Global | One partition | 300 requests per 1-minute fixed window |
 | Invitations, per client | `RemoteIpAddress`, one partition shared by the three invitation endpoints | 20 requests per 5-minute fixed window; global 300 per minute across the three |
+| Password reset, per client | `RemoteIpAddress` | `POST /password-resets`: 5 per 15-minute fixed window (`password-reset-request`). `validate` + `confirm` share one partition: 20 per 5 minutes (`password-reset-token`). Global 300 per minute, one partition shared by the three endpoints. |
+| Password reset, per email | SHA-256 of the normalized email | 3 requests per 60 minutes (`IPasswordResetEmailThrottle`, bounded in memory), counted for every well-formed email. Not a `429`: the request returns the neutral `202` with no token or email. |
 | Per email | SHA-256 of the normalized email | After 5 failed (`401`) attempts in a sliding 15 minutes, `429` before password verification until the oldest failure leaves the window. Unknown emails count. Success clears it; `400`, `413`, `415` and `429` do not count. |
 
 - Rejections are `429` ProblemDetails with `Retry-After` in whole seconds and
@@ -172,7 +196,7 @@ outcome.
 ## Pipeline and CORS
 
 Middleware order: `RequestLoggingMiddleware`, `UseExceptionHandler`,
-`UseStatusCodePages`, `InvitationNoStoreMiddleware`, (Development: OpenAPI, Swagger UI),
+`UseStatusCodePages`, `InvitationNoStoreMiddleware`, `PasswordResetNoStoreMiddleware`, (Development: OpenAPI, Swagger UI),
 `UseHttpsRedirection`, `UseCors`, `UseRateLimiter`, `UseAuthentication`,
 `InvalidSessionCookieMiddleware`, `UseAuthorization`, endpoints.
 

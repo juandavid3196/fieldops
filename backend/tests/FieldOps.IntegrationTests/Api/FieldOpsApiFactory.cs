@@ -55,12 +55,16 @@ public sealed class FieldOpsApiFactory(
         builder.UseEnvironment(environment);
 
         // Valid SMTP settings so start-up validation passes; no test sends
-        // mail because the delivery port is replaced or never reached.
+        // mail because the email port is replaced or never reached.
+        // Production only accepts Resend (BR-17); the key is a placeholder and no test sends.
+        var production = string.Equals(environment, "Production", StringComparison.OrdinalIgnoreCase);
+        builder.UseSetting("Email:Provider", production ? "Resend" : "Smtp");
+        builder.UseSetting("Email:Resend:ApiKey", production ? "not-a-real-key" : null);
+        builder.UseSetting("Email:SenderAddress", "no-reply@fieldops.test");
+        builder.UseSetting("Email:SenderName", "FieldOps");
         builder.UseSetting("Email:Smtp:Host", "localhost");
         builder.UseSetting("Email:Smtp:Port", "1025");
         builder.UseSetting("Email:Smtp:EnableSsl", "false");
-        builder.UseSetting("Email:Smtp:SenderAddress", "no-reply@fieldops.test");
-        builder.UseSetting("Email:Smtp:SenderName", "FieldOps");
 
         foreach (var (key, value) in settings)
         {

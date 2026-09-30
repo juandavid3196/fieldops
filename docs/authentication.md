@@ -77,6 +77,35 @@ Detalle: [`specs/invitation-acceptance/spec.md`](../specs/invitation-acceptance/
   revela si existe cuenta, membresía o identidad.
 - Límite: 20 peticiones por IP cada 5 min entre los tres endpoints.
 
+## Recuperar la contraseña
+
+Detalle: [`specs/password-recovery/spec.md`](../specs/password-recovery/spec.md).
+
+- `POST /password-resets` (anónimo, `{ email }`) responde siempre un `202`
+  vacío y neutro (`no-store`): no revela si la cuenta existe, está activa,
+  superó el límite por email ni si el envío falló. Solo un usuario `active`
+  dentro de los límites recibe un token nuevo (32 bytes aleatorios, solo se
+  guarda su SHA-256, 30 min, un solo uso). Crear uno bloquea la fila del
+  usuario (`FOR UPDATE`) y borra sus tokens sin usar; el correo se envía
+  **después** del commit por una cola en memoria y un servicio en segundo
+  plano (un fallo o cola llena solo se registra por categoría).
+- El enlace es `{origen frontend}/auth/reset-password#token={token}` (en el
+  fragmento, nunca en query ni ruta).
+- `POST /password-resets/validate` (`{ token }`) devuelve `200 { email }` o un
+  `410` idéntico para cualquier token inutilizable (desconocido, vencido,
+  usado, reemplazado o usuario ya no `active`).
+- `POST /password-resets/confirm` (`{ token, password }`) responde `204`. En
+  **una transacción** bloquea el token, lo vuelve a comprobar, guarda el hash
+  PBKDF2 nuevo, `password_changed_at` y `used_at`. Quien pierde una carrera
+  recibe `410`. No cambia estados ni membresías y no inicia sesión.
+- **Revocación global**: toda sesión con `signed_in_at` anterior a
+  `password_changed_at` da `401` y se borra la cookie, en todas las
+  organizaciones. No hay tabla de sesiones.
+- Límites (en memoria): 5 peticiones por IP cada 15 min en `POST
+  /password-resets`; 20 por IP cada 5 min entre validate y confirm; 300 por
+  minuto globales entre los tres; 3 por email cada 60 min (silencioso: sigue
+  el `202` neutro sin token ni correo).
+
 ## Reglas importantes
 
 | Regla | Detalle |
@@ -85,7 +114,7 @@ Detalle: [`specs/invitation-acceptance/spec.md`](../specs/invitation-acceptance/
 | Duración | Sin "Remember me": dura mientras el navegador esté abierto, máximo 8 h. Con "Remember me": 14 días sin uso, máximo 30 días en total. |
 | Anti fuerza bruta | 10 intentos por IP cada 5 min; 300 globales por minuto; 5 fallos por email en 15 min. Al superar: `429` + `Retry-After`. Los contadores viven en memoria (se pierden al reiniciar). |
 | Organización | Nunca se acepta del cliente (ni body ni headers). Se toma de la cookie validada. |
-| Revalidación | Si desactivan al usuario, la membresía o la organización, la siguiente petición da `401` y borra la cookie. El rol se lee de la base de datos en cada petición. |
+| Revalidación | Si desactivan al usuario, la membresía o la organización, o si el usuario cambió su contraseña después de iniciar esa sesión (`users.password_changed_at` > `signed_in_at`), la siguiente petición da `401` y borra la cookie. El rol se lee de la base de datos en cada petición. |
 | Logs | Nunca se registran emails, contraseñas, hashes ni cookies. |
 | CSRF | Cookie `SameSite=Strict` + solo JSON + CORS con credenciales solo para orígenes configurados. |
 
@@ -160,7 +189,8 @@ Nunca se muestran textos técnicos del backend.
 ## Limitaciones conocidas
 
 - Cerrar sesión solo borra la cookie de ese navegador; no hay revocación
-  por sesión ni al cambiar contraseña.
+  por sesión. Cambiar la contraseña (recuperación) sí invalida todas las
+  sesiones anteriores del usuario en todas las organizaciones.
 - Los contadores de intentos y las claves de cifrado (Data Protection) no
   persisten: al reiniciar se pierden los contadores; perder las claves cierra
   todas las sesiones. Resolverlo es trabajo de despliegue.
