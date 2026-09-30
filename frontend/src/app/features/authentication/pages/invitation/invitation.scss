@@ -296,4 +296,70 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
+
+  // Password-recovery pages: blue links and a security note ruled on both sides (design-1).
+  &--recovery {
+    --invitation-link-color: light-dark(#0b4fbf, #8ab4ff);
+    --p-button-text-primary-color: var(--invitation-link-color);
+
+    .invitation__back,
+    .invitation__link {
+      color: var(--invitation-link-color);
+    }
+
+    .invitation__link {
+      text-decoration: underline;
+    }
+
+    .invitation__lock {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-block: 1.35rem 0;
+      padding-block: 1.124rem;
+      border-top: 1px solid var(--p-content-border-color);
+      font-size: 0.85rem;
+      color: var(--p-text-muted-color);
+
+      .pi {
+        font-size: 1rem;
+        color: var(--fo-color-text-secondary);
+      }
+    }
+
+    .invitation__icon .pi {
+      font-size: 2.25rem;
+    }
+
+    // Protection note: ruled, unboxed and attached under the primary action (design-3).
+    .invitation__note {
+      align-items: center;
+      justify-content: center;
+      gap: 0.9rem;
+      margin: 1.35rem 0 0;
+      padding: 1.124rem 0 0;
+      border: 0;
+      border-top: 1px solid var(--p-content-border-color);
+      border-radius: 0;
+      background: none;
+      font-size: 0.85rem;
+      color: var(--p-text-muted-color);
+
+      @include bp.up(md) {
+        padding-inline: 3rem;
+      }
+    }
+
+    .invitation__note-icon {
+      flex: none;
+      inline-size: 2.25rem;
+      block-size: 2.25rem;
+      color: var(--fo-color-text-secondary);
+    }
+
+    .invitation__lock + .invitation__switch {
+      margin-block-start: 0;
+    }
+  }
 }

@@ -42,6 +42,8 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(user => user.LastLoginAt);
 
+        builder.Property(user => user.PasswordChangedAt);
+
         builder.Property(user => user.CreatedAt)
             .HasDefaultValueSql("now()")
             .IsRequired();

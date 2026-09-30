@@ -15,4 +15,17 @@ export default [
     title: 'Accept invitation · FieldOps',
     loadComponent: () => import('./pages/invitation/invitation').then((m) => m.Invitation),
   },
+  {
+    // Public on purpose: an existing session is ignored (password-recovery FR-09, FR-10).
+    path: 'forgot-password',
+    title: 'Reset your password · FieldOps',
+    loadComponent: () =>
+      import('./pages/forgot-password/forgot-password').then((m) => m.ForgotPassword),
+  },
+  {
+    path: 'reset-password',
+    title: 'Create a new password · FieldOps',
+    loadComponent: () =>
+      import('./pages/reset-password/reset-password').then((m) => m.ResetPassword),
+  },
 ] satisfies Routes;

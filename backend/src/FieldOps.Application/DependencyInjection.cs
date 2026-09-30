@@ -2,6 +2,7 @@ using FieldOps.Application.Authentication;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
+using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.Users;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,6 +44,9 @@ public static class DependencyInjection
         services.AddScoped<ValidateInvitationHandler>();
         services.AddScoped<AcceptInvitationHandler>();
         services.AddScoped<AcceptExistingInvitationHandler>();
+        services.AddScoped<RequestPasswordResetHandler>();
+        services.AddScoped<ValidatePasswordResetHandler>();
+        services.AddScoped<ConfirmPasswordResetHandler>();
 
         return services;
     }

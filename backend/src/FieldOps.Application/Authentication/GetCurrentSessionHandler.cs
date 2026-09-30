@@ -11,6 +11,7 @@ public sealed class GetCurrentSessionHandler(IAuthenticationStore store)
         Guid userId,
         Guid organizationId,
         Guid membershipId,
+        DateTimeOffset signedInAt,
         CancellationToken cancellationToken)
     {
         if (userId == Guid.Empty || organizationId == Guid.Empty || membershipId == Guid.Empty)
@@ -22,6 +23,7 @@ public sealed class GetCurrentSessionHandler(IAuthenticationStore store)
             userId,
             organizationId,
             membershipId,
+            signedInAt,
             cancellationToken);
     }
 }

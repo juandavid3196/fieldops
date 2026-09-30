@@ -41,6 +41,9 @@ public sealed class User
 
     public DateTimeOffset? LastLoginAt { get; private set; }
 
+    /// <summary>Sessions signed in before this instant are invalid (password recovery BR-15).</summary>
+    public DateTimeOffset? PasswordChangedAt { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -142,5 +145,23 @@ public sealed class User
 
         LastLoginAt = signedInAt;
         UpdatedAt = signedInAt;
+    }
+
+    /// <summary>
+    /// Replaces the password hash after a recovery and records the change
+    /// instant that revokes every earlier session.
+    /// </summary>
+    public void ChangePassword(string passwordHash, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(passwordHash))
+        {
+            throw new ArgumentException(
+                "User password hash is required.",
+                nameof(passwordHash));
+        }
+
+        PasswordHash = passwordHash;
+        PasswordChangedAt = now;
+        UpdatedAt = now;
     }
 }

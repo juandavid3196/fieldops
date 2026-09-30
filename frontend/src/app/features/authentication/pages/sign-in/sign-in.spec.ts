@@ -169,7 +169,11 @@ describe('SignIn', () => {
       const routed = Array.from(host.querySelectorAll('a')).filter(
         (a) => a.getAttribute('href') !== '#',
       );
-      expect(routed).toHaveLength(1);
+      // Only the company-registration and forgot-password links are routed (AC-18).
+      expect(routed).toHaveLength(2);
+      expect(query<HTMLAnchorElement>('.sign-in__forgot')?.getAttribute('href')).toBe(
+        '/auth/forgot-password',
+      );
       expect(host.querySelector('[autofocus]')).toBeNull();
     });
 

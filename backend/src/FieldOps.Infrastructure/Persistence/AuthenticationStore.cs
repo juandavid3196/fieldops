@@ -37,10 +37,15 @@ internal sealed class AuthenticationStore(FieldOpsDbContext dbContext) : IAuthen
                 membership.CreatedAt))
             .ToListAsync(cancellationToken);
 
+    // A password reset revokes earlier sessions (BR-15). signedInAt comes from a
+    // cookie claim truncated to milliseconds and PasswordChangedAt is stored
+    // truncated to milliseconds too (PasswordResetStore), so a later sign-in
+    // never compares lower.
     public Task<SessionView?> FindActiveSessionAsync(
         Guid userId,
         Guid organizationId,
         Guid membershipId,
+        DateTimeOffset signedInAt,
         CancellationToken cancellationToken) =>
         (
             from membership in dbContext.OrganizationUsers.AsNoTracking()
@@ -55,6 +60,7 @@ internal sealed class AuthenticationStore(FieldOpsDbContext dbContext) : IAuthen
                 && membership.OrganizationId == organizationId
                 && membership.Status == UserStatus.Active
                 && user.Status == UserStatus.Active
+                && (user.PasswordChangedAt == null || user.PasswordChangedAt <= signedInAt)
                 && organization.IsActive
             select new SessionView(
                 new SessionUser(user.Id, user.FirstName, user.LastName, user.Email),

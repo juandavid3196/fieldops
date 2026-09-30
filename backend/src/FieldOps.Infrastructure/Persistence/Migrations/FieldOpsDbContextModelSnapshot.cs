@@ -2690,6 +2690,55 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.Users.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.Property<DateTimeOffset?>("UsedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("used_at");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_password_reset_tokens");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_password_reset_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_password_reset_tokens_open_user")
+                        .HasFilter("used_at IS NULL");
+
+                    b.ToTable("password_reset_tokens", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_password_reset_tokens_expires_after_created", "expires_at > created_at");
+                        });
+                });
+
             modelBuilder.Entity("FieldOps.Domain.Users.Permission", b =>
                 {
                     b.Property<short>("Id")
@@ -2861,6 +2910,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
                         .HasColumnName("last_name");
+
+                    b.Property<DateTimeOffset?>("PasswordChangedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("password_changed_at");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -4349,6 +4402,16 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_technician_weekly_availability_technician_profiles_technici");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Users.PasswordResetToken", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_password_reset_tokens_users_user_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Users.RolePermission", b =>
