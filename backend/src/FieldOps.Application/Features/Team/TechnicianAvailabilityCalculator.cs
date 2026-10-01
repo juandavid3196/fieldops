@@ -57,6 +57,36 @@ public static class WorkloadStates
 
 public sealed record PeriodWorkload(int Jobs, double ScheduledMinutes, int? Percent, string State, bool AtCapacity);
 
+/// <summary>One row of the upcoming availability card (BR-18); <c>Label</c> is today, tomorrow or date.</summary>
+public sealed record UpcomingDay(
+    DateOnly Date,
+    string Label,
+    string State,
+    DateTimeOffset? NextAvailableAt,
+    IReadOnlyList<TimeRange> Windows,
+    bool Limited);
+
+public static class UpcomingStates
+{
+    public const string AvailableNow = "available_now";
+
+    public const string NextAvailable = "next_available";
+
+    public const string Windows = "windows";
+
+    public const string Unavailable = "unavailable";
+}
+
+/// <summary>Available and scheduled minutes of a period with the utilization (BR-19); null when nothing is available.</summary>
+public sealed record PeriodLoad(double AvailableMinutes, double ScheduledMinutes, int Jobs)
+{
+    public double RemainingMinutes => Math.Max(AvailableMinutes - ScheduledMinutes, 0);
+
+    public int? UtilizationPercent => AvailableMinutes > 0
+        ? (int)Math.Round(ScheduledMinutes / AvailableMinutes * 100, MidpointRounding.AwayFromZero)
+        : null;
+}
+
 public sealed record TeamDerivation(
     string TodayStatus,
     PeriodWorkload Workload,
@@ -261,12 +291,7 @@ public static class TechnicianAvailabilityCalculator
         var (_, dayEnd) = BranchTime.Day(now, zone);
         var earliest = CeilToMinute(now);
 
-        // A visit without an end keeps the technician busy for the rest of the day.
-        var busy = schedule.Visits
-            .Where(visit => visit.Status is not (VisitStatus.Unscheduled or VisitStatus.Cancelled
-                or VisitStatus.Completed or VisitStatus.Approved) && visit.ScheduledStart is not null)
-            .Select(visit => (Start: visit.ScheduledStart!.Value, End: visit.ScheduledEnd ?? dayEnd))
-            .ToList();
+        var busy = BusyIntervals(schedule.Visits, dayEnd);
 
         foreach (var span in Availability(schedule, zone, earliest, dayEnd).OrderBy(span => span.Start))
         {
@@ -294,6 +319,163 @@ public static class TechnicianAvailabilityCalculator
             .OrderBy(visit => visit.ScheduledStart)
             .Select(visit => visit.Label)
             .FirstOrDefault();
+
+    /// <summary>
+    /// BR-18: Today (available now, next free minute or unavailable), Tomorrow (effective windows) and up to three
+    /// dates within the next 30 days whose baseline weekly availability an active unavailable exception reduces.
+    /// </summary>
+    public static IReadOnlyList<UpcomingDay> UpcomingAvailability(TechnicianSchedule schedule, DateTimeOffset now)
+    {
+        var zone = BranchTime.FindZone(schedule.ZoneId);
+        var today = BranchTime.LocalDate(now, zone);
+        var result = new List<UpcomingDay> { TodayRow(schedule, zone, today, now) };
+
+        var tomorrow = today.AddDays(1);
+        var tomorrowWindows = Windows(schedule, zone, tomorrow);
+
+        result.Add(new UpcomingDay(
+            tomorrow,
+            "tomorrow",
+            tomorrowWindows.Count > 0 ? UpcomingStates.Windows : UpcomingStates.Unavailable,
+            null,
+            tomorrowWindows,
+            false));
+
+        var baseline = schedule with { Exceptions = [] };
+        var cuts = schedule.Exceptions.Where(item => !item.IsAvailable).ToList();
+        var listed = 0;
+
+        for (var date = today.AddDays(2); date <= today.AddDays(30) && listed < 3; date = date.AddDays(1))
+        {
+            var (dayStart, dayEnd) = DayRange(date, zone);
+            var baseSpans = Availability(baseline, zone, dayStart, dayEnd);
+
+            if (!cuts.Any(cut => baseSpans.Any(span => cut.StartsAt < span.End && cut.EndsAt > span.Start)))
+            {
+                continue;
+            }
+
+            var windows = Windows(schedule, zone, date);
+            listed++;
+
+            result.Add(new UpcomingDay(
+                date,
+                "date",
+                windows.Count > 0 ? UpcomingStates.Windows : UpcomingStates.Unavailable,
+                null,
+                windows,
+                windows.Count > 0));
+        }
+
+        return result;
+    }
+
+    /// <summary>BR-19: available and scheduled minutes of the local days today to today + 6.</summary>
+    public static PeriodLoad SevenDayLoad(TechnicianSchedule schedule, DateTimeOffset now)
+    {
+        var zone = BranchTime.FindZone(schedule.ZoneId);
+        var today = BranchTime.LocalDate(now, zone);
+
+        return LoadBetween(
+            schedule,
+            BranchTime.ToInstant(today, TimeOnly.MinValue, zone),
+            BranchTime.ToInstant(today.AddDays(7), TimeOnly.MinValue, zone));
+    }
+
+    /// <summary>BR-19: the same rules for the local day of <paramref name="now"/>; jobs are visits overlapping it.</summary>
+    public static PeriodLoad TodayLoad(TechnicianSchedule schedule, DateTimeOffset now)
+    {
+        var (from, to) = BranchTime.Day(now, BranchTime.FindZone(schedule.ZoneId));
+
+        return LoadBetween(schedule, from, to);
+    }
+
+    /// <summary>BR-19: minutes of visits with an active assignment (not unscheduled or cancelled) clipped to the period.</summary>
+    public static double ScheduledMinutes(IReadOnlyList<AssignedVisit> visits, DateTimeOffset from, DateTimeOffset to) =>
+        visits
+            .Where(visit => Overlaps(visit, from, to) && visit.ScheduledEnd is not null)
+            .Sum(visit =>
+            {
+                var start = visit.ScheduledStart!.Value < from ? from : visit.ScheduledStart.Value;
+                var end = visit.ScheduledEnd!.Value > to ? to : visit.ScheduledEnd.Value;
+
+                return end > start ? (end - start).TotalMinutes : 0d;
+            });
+
+    private static PeriodLoad LoadBetween(TechnicianSchedule schedule, DateTimeOffset from, DateTimeOffset to) =>
+        new(
+            AvailableMinutes(schedule, from, to),
+            ScheduledMinutes(schedule.Visits, from, to),
+            schedule.Visits.Count(visit => Overlaps(visit, from, to)));
+
+    private static bool Overlaps(AssignedVisit visit, DateTimeOffset from, DateTimeOffset to)
+    {
+        if (visit.Status is VisitStatus.Unscheduled or VisitStatus.Cancelled || visit.ScheduledStart is not { } start)
+        {
+            return false;
+        }
+
+        return visit.ScheduledEnd is { } end ? start < to && end > from : start >= from && start < to;
+    }
+
+    private static UpcomingDay TodayRow(TechnicianSchedule schedule, TimeZoneInfo zone, DateOnly today, DateTimeOffset now)
+    {
+        var (dayStart, dayEnd) = DayRange(today, zone);
+        var busy = BusyIntervals(schedule.Visits, dayEnd);
+
+        if (Availability(schedule, zone, dayStart, dayEnd).Any(span => span.Start <= now && now < span.End)
+            && !busy.Any(item => item.Start <= now && now < item.End))
+        {
+            return new UpcomingDay(today, "today", UpcomingStates.AvailableNow, null, [], false);
+        }
+
+        foreach (var span in Availability(schedule, zone, CeilToMinute(now), dayEnd).OrderBy(span => span.Start))
+        {
+            foreach (var free in Subtract(span.Start, span.End, busy).OrderBy(piece => piece.Start))
+            {
+                if (free.End > free.Start)
+                {
+                    return new UpcomingDay(today, "today", UpcomingStates.NextAvailable, free.Start, [], false);
+                }
+            }
+        }
+
+        return new UpcomingDay(today, "today", UpcomingStates.Unavailable, null, [], false);
+    }
+
+    private static List<TimeRange> Windows(TechnicianSchedule schedule, TimeZoneInfo zone, DateOnly date)
+    {
+        var (from, to) = DayRange(date, zone);
+        var merged = new List<(DateTimeOffset Start, DateTimeOffset End)>();
+
+        foreach (var span in Availability(schedule, zone, from, to).OrderBy(span => span.Start))
+        {
+            if (merged.Count > 0 && span.Start <= merged[^1].End)
+            {
+                merged[^1] = (merged[^1].Start, span.End > merged[^1].End ? span.End : merged[^1].End);
+            }
+            else
+            {
+                merged.Add((span.Start, span.End));
+            }
+        }
+
+        return [.. merged.Select(item => new TimeRange(LocalTime(item.Start, zone), LocalTime(item.End, zone)))];
+    }
+
+    private static TimeOnly LocalTime(DateTimeOffset instant, TimeZoneInfo zone) =>
+        TimeOnly.FromDateTime(TimeZoneInfo.ConvertTime(instant, zone).DateTime);
+
+    private static (DateTimeOffset Start, DateTimeOffset End) DayRange(DateOnly date, TimeZoneInfo zone) =>
+        (BranchTime.ToInstant(date, TimeOnly.MinValue, zone), BranchTime.ToInstant(date.AddDays(1), TimeOnly.MinValue, zone));
+
+    /// <summary>Visits that keep the technician busy; a visit without an end lasts until <paramref name="dayEnd"/>.</summary>
+    private static List<(DateTimeOffset Start, DateTimeOffset End)> BusyIntervals(
+        IReadOnlyList<AssignedVisit> visits, DateTimeOffset dayEnd) =>
+        [.. visits
+            .Where(visit => visit.Status is not (VisitStatus.Unscheduled or VisitStatus.Cancelled
+                or VisitStatus.Completed or VisitStatus.Approved) && visit.ScheduledStart is not null)
+            .Select(visit => (Start: visit.ScheduledStart!.Value, End: visit.ScheduledEnd ?? dayEnd))];
 
     private static DateTimeOffset CeilToMinute(DateTimeOffset instant)
     {

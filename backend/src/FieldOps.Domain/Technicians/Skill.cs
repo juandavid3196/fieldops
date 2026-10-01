@@ -24,7 +24,7 @@ public sealed class Skill
 
     public bool IsActive { get; private set; }
 
-    public static Skill Create(Guid organizationId, string name)
+    public static Skill Create(Guid organizationId, string name, string? description = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -40,6 +40,43 @@ public sealed class Skill
                 nameof(name));
         }
 
-        return new Skill(Guid.NewGuid(), organizationId, name.Trim());
+        return new Skill(Guid.NewGuid(), organizationId, name.Trim())
+        {
+            Description = description,
+        };
+    }
+
+    /// <summary>Replaces name and description; false when nothing changes.</summary>
+    public bool Update(string name, string? description)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ArgumentException("Skill name is required.", nameof(name));
+        }
+
+        var trimmed = name.Trim();
+
+        if (Name == trimmed && Description == description)
+        {
+            return false;
+        }
+
+        Name = trimmed;
+        Description = description;
+
+        return true;
+    }
+
+    /// <summary>Activates or deactivates; false when the skill already has that state.</summary>
+    public bool SetActive(bool active)
+    {
+        if (IsActive == active)
+        {
+            return false;
+        }
+
+        IsActive = active;
+
+        return true;
     }
 }

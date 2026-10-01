@@ -1,0 +1,96 @@
+<section class="skills" aria-labelledby="skills-heading">
+  <h2 class="skills__title" id="skills-heading">Operational skills</h2>
+  <p class="skills__muted">
+    Skills help dispatchers compare technicians with requirements entered on a work order.
+  </p>
+
+  @if (!readOnly()) {
+    <p-select
+      class="skills__picker"
+      inputId="skill-picker"
+      ariaLabel="Search and add a skill"
+      placeholder="Search and add a skill…"
+      appendTo="body"
+      optionLabel="name"
+      optionValue="id"
+      [filter]="true"
+      [options]="choices()"
+      [ngModel]="null"
+      (ngModelChange)="add($event)"
+      [disabled]="disabled()"
+      [fluid]="true"
+    />
+  }
+
+  @if (sorted().length === 0) {
+    <p class="skills__empty">{{ emptyMessage }}</p>
+  } @else {
+    <ul class="skills__list">
+      @for (row of sorted(); track row.skillId) {
+        <li class="skills__row">
+          <span class="skills__name">{{ row.name }}</span>
+          @if (readOnly()) {
+            <span>{{ levelName(row.proficiency) }}</span>
+          } @else {
+            <p-select
+              size="small"
+              [fluid]="true"
+              appendTo="body"
+              optionLabel="label"
+              optionValue="value"
+              [options]="levels"
+              [ngModel]="row.proficiency"
+              (ngModelChange)="level(row.skillId, $event)"
+              [disabled]="disabled()"
+              [ariaLabel]="row.name + ' level'"
+            />
+          }
+          <span class="skills__actions">
+            @if (row.isPrimary) {
+              <p-tag severity="info" value="Primary" />
+            } @else if (!readOnly()) {
+              <button
+                pButton
+                type="button"
+                size="small"
+                severity="secondary"
+                [text]="true"
+                [disabled]="disabled()"
+                [attr.aria-label]="'Set ' + row.name + ' as primary'"
+                (click)="primary(row.skillId)"
+              >
+                Set as primary
+              </button>
+            }
+            @if (!readOnly()) {
+              <button
+                pButton
+                type="button"
+                size="small"
+                severity="secondary"
+                [text]="true"
+                [disabled]="disabled()"
+                [attr.aria-label]="'Remove ' + row.name"
+                (click)="remove(row.skillId)"
+              >
+                <i class="pi pi-times" aria-hidden="true"></i>
+              </button>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (error(); as message) {
+    <p class="skills__error" role="alert">{{ message }}</p>
+  }
+
+  @if (!readOnly()) {
+    <div class="skills__footer">
+      <button type="button" class="skills__link" (click)="manageRequested.emit()">
+        Manage skill list
+      </button>
+    </div>
+  }
+</section>

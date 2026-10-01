@@ -7,6 +7,8 @@ namespace FieldOps.Infrastructure.Persistence.Configurations;
 
 internal sealed class SkillConfiguration : IEntityTypeConfiguration<Skill>
 {
+    public const string NormalizedNameIndexName = "ux_skills_org_normalized_name";
+
     public void Configure(EntityTypeBuilder<Skill> builder)
     {
         builder.ToTable("skills");
@@ -40,9 +42,8 @@ internal sealed class SkillConfiguration : IEntityTypeConfiguration<Skill>
             .HasSentinel(true)
             .IsRequired();
 
-        // UNIQUE (organization_id, name)
-        builder.HasIndex(skill => new { skill.OrganizationId, skill.Name })
-            .IsUnique();
+        // UNIQUE INDEX ux_skills_org_normalized_name ON skills (organization_id, lower(name)) is created by the
+        // migration with SQL: EF Core cannot express an expression index in the model.
 
         builder.HasOne<Organization>()
             .WithMany()

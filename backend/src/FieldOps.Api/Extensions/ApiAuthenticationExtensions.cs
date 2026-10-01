@@ -72,6 +72,9 @@ public static class ApiAuthenticationExtensions
                     "owner", "operations_manager", "dispatcher")))
             .AddPolicy(TeamPolicies.Manage, policy =>
                 policy.Requirements.Add(new MembershipRoleRequirement("owner", "operations_manager")))
+            .AddPolicy(TeamPolicies.SkillsView, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement(
+                    "owner", "operations_manager", "dispatcher", "technician")))
             .AddPolicy(TeamPolicies.Self, policy =>
                 policy.Requirements.Add(new MembershipRoleRequirement("technician")));
 

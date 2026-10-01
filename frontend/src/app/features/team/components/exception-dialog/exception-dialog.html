@@ -1,0 +1,143 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [closable]="!submitting()"
+  [draggable]="false"
+  [style]="{ width: '30rem' }"
+  [breakpoints]="{ '575px': '90vw' }"
+  [header]="editing() ? 'Edit exception' : 'Add exception'"
+>
+  <form class="exception" novalidate (ngSubmit)="submit()">
+    <div class="exception__field">
+      <label for="exception-date">Date</label>
+      <input
+        pInputText
+        id="exception-date"
+        type="date"
+        fluid
+        [attr.min]="today()"
+        [ngModel]="form().date"
+        (ngModelChange)="patch({ date: $event })"
+        [ngModelOptions]="{ standalone: true }"
+        [disabled]="submitting()"
+        [attr.aria-invalid]="errors().date ? 'true' : null"
+      />
+      @if (errors().date; as message) {
+        <p class="exception__error" role="alert">{{ message }}</p>
+      }
+    </div>
+
+    <div class="exception__field">
+      <label for="exception-kind">Availability type</label>
+      <p-select
+        inputId="exception-kind"
+        placeholder="Choose a type"
+        appendTo="body"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+        [options]="kindOptions"
+        [ngModel]="form().kind"
+        (ngModelChange)="patch({ kind: $event })"
+        [ngModelOptions]="{ standalone: true }"
+        [disabled]="submitting()"
+      />
+      @if (errors().kind; as message) {
+        <p class="exception__error" role="alert">{{ message }}</p>
+      }
+    </div>
+
+    @if (timed()) {
+      <div class="exception__times">
+        <div class="exception__field">
+          <label for="exception-start">Start time</label>
+          <p-select
+            inputId="exception-start"
+            placeholder="Start"
+            appendTo="body"
+            optionLabel="label"
+            optionValue="value"
+            [fluid]="true"
+            [options]="timeOptions"
+            [ngModel]="form().start"
+            (ngModelChange)="patch({ start: $event })"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="submitting()"
+          />
+          @if (errors().start; as message) {
+            <p class="exception__error" role="alert">{{ message }}</p>
+          }
+        </div>
+        <div class="exception__field">
+          <label for="exception-end">End time</label>
+          <p-select
+            inputId="exception-end"
+            placeholder="End"
+            appendTo="body"
+            optionLabel="label"
+            optionValue="value"
+            [fluid]="true"
+            [options]="timeOptions"
+            [ngModel]="form().end"
+            (ngModelChange)="patch({ end: $event })"
+            [ngModelOptions]="{ standalone: true }"
+            [disabled]="submitting()"
+          />
+          @if (errors().end; as message) {
+            <p class="exception__error" role="alert">{{ message }}</p>
+          }
+        </div>
+      </div>
+    } @else if (errors().start; as message) {
+      <p class="exception__error" role="alert">{{ message }}</p>
+    }
+
+    <div class="exception__field">
+      <label for="exception-reason">Reason</label>
+      <input
+        pInputText
+        id="exception-reason"
+        type="text"
+        fluid
+        autocomplete="off"
+        [ngModel]="form().reason"
+        (ngModelChange)="patch({ reason: $event })"
+        [ngModelOptions]="{ standalone: true }"
+        [disabled]="submitting()"
+        [attr.aria-invalid]="errors().reason ? 'true' : null"
+      />
+      @if (errors().reason; as message) {
+        <p class="exception__error" role="alert">{{ message }}</p>
+      }
+    </div>
+
+    @if (conflict(); as message) {
+      <p-message severity="error" [closable]="false">{{ message }}</p-message>
+    }
+    @if (failed()) {
+      <p-message severity="error" [closable]="false">
+        We couldn't save the exception. Try again.
+      </p-message>
+    }
+  </form>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="close()"
+    >
+      Cancel
+    </button>
+    <button pButton type="button" [disabled]="submitting()" (click)="submit()">
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      {{ editing() ? 'Save exception' : 'Add exception' }}
+    </button>
+  </ng-template>
+</p-dialog>

@@ -139,6 +139,9 @@ public sealed class TechnicianProfile
         UpdatedAt = now;
     }
 
+    /// <summary>Advances the profile version after weekly availability or skills changed.</summary>
+    public void Touch(DateTimeOffset now) => UpdatedAt = now;
+
     /// <summary>Changes the status; false when it already has that status.</summary>
     public bool ChangeStatus(TechnicianStatus status, DateTimeOffset now)
     {

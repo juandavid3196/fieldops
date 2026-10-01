@@ -1,0 +1,92 @@
+<p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+
+<section class="exceptions" aria-labelledby="exceptions-heading">
+  <div class="exceptions__header">
+    <div>
+      <h2 class="exceptions__title" id="exceptions-heading">Availability exceptions</h2>
+      <p class="exceptions__muted">Exceptions override the weekly schedule for a specific date.</p>
+    </div>
+    @if (!readOnly()) {
+      <button pButton type="button" severity="secondary" [outlined]="true" (click)="openAdd()">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        Add exception
+      </button>
+    }
+  </div>
+
+  @if (rows().length === 0) {
+    <p class="exceptions__empty">{{ emptyMessage }}</p>
+  } @else {
+    <div class="exceptions__scroll">
+      <table class="exceptions__table">
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Availability</th>
+            <th scope="col">Time</th>
+            <th scope="col">Reason</th>
+            <th scope="col">Status</th>
+            @if (!readOnly()) {
+              <th scope="col">Actions</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.item.id) {
+            <tr>
+              <td>{{ row.date }}</td>
+              <td>
+                <p-tag
+                  [rounded]="true"
+                  icon="pi pi-circle-fill"
+                  [severity]="
+                    row.item.kind === 'extended'
+                      ? 'info'
+                      : row.item.kind === 'partial'
+                        ? 'warn'
+                        : 'danger'
+                  "
+                  [value]="row.kind"
+                />
+              </td>
+              <td>{{ row.time }}</td>
+              <td class="exceptions__reason">{{ row.item.reason }}</td>
+              <td>
+                <span class="exceptions__status" [class.exceptions__status--active]="row.active">
+                  <i class="pi pi-circle-fill" aria-hidden="true"></i>
+                  {{ row.active ? 'Active' : 'Cancelled' }}
+                </span>
+              </td>
+              @if (!readOnly()) {
+                <td>
+                  <button
+                    type="button"
+                    class="exceptions__menu-button"
+                    aria-haspopup="menu"
+                    [attr.aria-label]="'Actions for exception on ' + row.date"
+                    [disabled]="busyId() !== null"
+                    (click)="openMenu($event, row.item)"
+                  >
+                    <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+@if (!readOnly()) {
+  <app-exception-dialog
+    [(visible)]="dialogOpen"
+    [technicianId]="technicianId()"
+    [exception]="editTarget()"
+    [today]="today()"
+    (saved)="changed.emit()"
+    (unauthorized)="unauthorized.emit()"
+    (unavailable)="unavailable.emit()"
+  />
+}

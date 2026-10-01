@@ -1,0 +1,138 @@
+<section class="weekly" aria-labelledby="weekly-heading">
+  <div class="weekly__header">
+    <div>
+      <h2 class="weekly__title" id="weekly-heading">Standard weekly availability</h2>
+      <p class="weekly__muted">
+        Used by the dispatch calendar for availability and conflict detection.
+      </p>
+    </div>
+    <div class="weekly__tools">
+      @if (timezoneLabel(); as label) {
+        <p class="weekly__zone">Time zone: {{ label }}</p>
+      }
+      @if (!readOnly()) {
+        <div class="weekly__buttons">
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="disabled()"
+            (click)="copyRequested.emit()"
+          >
+            Copy Monday to weekdays
+          </button>
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="disabled()"
+            (click)="resetRequested.emit()"
+          >
+            Reset
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="weekly__scroll">
+    <table class="weekly__table">
+      <thead>
+        <tr>
+          <th scope="col">Day</th>
+          <th scope="col">Available</th>
+          <th scope="col">Start</th>
+          <th scope="col">End</th>
+          <th scope="col">Break</th>
+          <th scope="col">Capacity</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (view of views(); track view.day.dayOfWeek) {
+          <tr>
+            <th scope="row">{{ view.name }}</th>
+            <td>
+              <span class="weekly__toggle">
+                @if (readOnly()) {
+                  {{ view.day.on ? 'On' : 'Off' }}
+                } @else {
+                  <p-toggleswitch
+                    [ngModel]="view.day.on"
+                    (ngModelChange)="toggle(view.day.dayOfWeek, $event)"
+                    [disabled]="disabled()"
+                    [ariaLabel]="view.name + ' available'"
+                  />
+                  <span aria-hidden="true">{{ view.day.on ? 'On' : 'Off' }}</span>
+                }
+              </span>
+            </td>
+            @if (!view.day.on) {
+              <td><span class="weekly__off">—</span></td>
+              <td><span class="weekly__off">—</span></td>
+              <td><span class="weekly__off">—</span></td>
+            } @else if (readOnly()) {
+              <td>{{ formatTime(view.day.start) }}</td>
+              <td>{{ formatTime(view.day.end) }}</td>
+              <td>{{ view.breakText }}</td>
+            } @else {
+              <td>
+                <p-select
+                  size="small"
+                  appendTo="body"
+                  optionLabel="label"
+                  optionValue="value"
+                  [options]="timeOptions"
+                  [ngModel]="view.day.start"
+                  (ngModelChange)="setStart(view.day.dayOfWeek, $event)"
+                  [disabled]="disabled()"
+                  [ariaLabel]="view.name + ' start time'"
+                />
+                @if (view.startError; as message) {
+                  <p class="weekly__error" role="alert">{{ message }}</p>
+                }
+              </td>
+              <td>
+                <p-select
+                  size="small"
+                  appendTo="body"
+                  optionLabel="label"
+                  optionValue="value"
+                  [options]="timeOptions"
+                  [ngModel]="view.day.end"
+                  (ngModelChange)="setEnd(view.day.dayOfWeek, $event)"
+                  [disabled]="disabled()"
+                  [ariaLabel]="view.name + ' end time'"
+                />
+                @if (view.endError; as message) {
+                  <p class="weekly__error" role="alert">{{ message }}</p>
+                }
+              </td>
+              <td>
+                <p-select
+                  size="small"
+                  appendTo="body"
+                  optionLabel="label"
+                  optionValue="value"
+                  [options]="view.breakOptions"
+                  [ngModel]="view.breakValue"
+                  (ngModelChange)="setBreak(view.day.dayOfWeek, $event)"
+                  [disabled]="disabled()"
+                  [ariaLabel]="view.name + ' break'"
+                />
+                @if (view.breakError; as message) {
+                  <p class="weekly__error" role="alert">{{ message }}</p>
+                }
+              </td>
+            }
+            <td>
+              <span class="weekly__capacity">{{ view.capacity }}</span>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="weekly__total">{{ total() }} available hours per week</p>
+</section>

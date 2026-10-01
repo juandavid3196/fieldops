@@ -101,4 +101,99 @@ public interface ITeamStore
         IPAddress? clientIp,
         DateTimeOffset now,
         CancellationToken cancellationToken);
+
+    // Skills and availability page (profile, exceptions, catalog).
+
+    /// <summary>
+    /// The page data of an in-scope profile, or null when it is not visible. When <paramref name="ownMembershipId"/>
+    /// is set (technician callers) only the profile linked to that membership is visible and the scope is ignored.
+    /// </summary>
+    Task<SkillsAvailabilityData?> GetSkillsAvailabilityAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid? ownMembershipId,
+        Guid technicianId,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    /// <summary>The time zone id of an in-scope profile (BR-03), or null when it is not visible.</summary>
+    Task<string?> GetZoneIdAsync(
+        Guid organizationId, BranchScope scope, Guid technicianId, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Atomic replace of weekly rows, breaks and active-skill assignments under a profile row lock (BR-11).
+    /// An unchanged save writes nothing.
+    /// </summary>
+    Task<SkillsSaveResult> SaveSkillsAvailabilityAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        DateTimeOffset version,
+        SkillsAvailabilityValues values,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<ExceptionResult> CreateExceptionAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        ExceptionWrite write,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<ExceptionResult> UpdateExceptionAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        Guid exceptionId,
+        DateTimeOffset version,
+        ExceptionWrite write,
+        string zoneId,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<ExceptionResult> SetExceptionActiveAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        Guid exceptionId,
+        DateTimeOffset version,
+        bool activate,
+        string zoneId,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<SkillView>> ListSkillsAsync(Guid organizationId, CancellationToken cancellationToken);
+
+    Task<SkillResult> CreateSkillAsync(
+        Guid organizationId,
+        SkillValues values,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        CancellationToken cancellationToken);
+
+    Task<SkillResult> UpdateSkillAsync(
+        Guid organizationId,
+        Guid skillId,
+        SkillValues values,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        CancellationToken cancellationToken);
+
+    /// <summary>Same-status calls are a no-op without audit; a missing or foreign skill is <c>NotFound</c>.</summary>
+    Task<SkillResult> SetSkillActiveAsync(
+        Guid organizationId,
+        Guid skillId,
+        bool active,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        CancellationToken cancellationToken);
 }

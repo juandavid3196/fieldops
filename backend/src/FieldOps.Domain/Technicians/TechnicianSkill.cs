@@ -58,4 +58,19 @@ public sealed class TechnicianSkill
             IsPrimary = isPrimary,
         };
     }
+
+    public void SetProficiency(short proficiency)
+    {
+        if (proficiency is < 1 or > 5)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(proficiency),
+                proficiency,
+                "Proficiency must be between 1 and 5.");
+        }
+
+        Proficiency = proficiency;
+    }
+
+    public void SetPrimary(bool isPrimary) => IsPrimary = isPrimary;
 }

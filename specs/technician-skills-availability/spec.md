@@ -4,7 +4,7 @@
 | -------- | ----------------------------------- |
 | Feature  | `technician-skills-availability`    |
 | Type     | Full-stack                          |
-| Status   | APPROVED                            |
+| Status   | AUDITED                             |
 | Created  | 2026-10-01                          |
 | Updated  | 2026-10-01                          |
 | Approved | 2026-10-01                          |
@@ -351,3 +351,5 @@ logic; concurrency (AC-09, AC-12, AC-16) is required by the approved scope.
 | 2026-10-01 | — → DRAFT     | Created with user decisions OD-01–OD-11 |
 | 2026-10-01 | DRAFT → DRAFT | Revised after validation: copy excludes capacity_percent (BR-08), unchanged save keeps version (BR-11), all-day exception rejects times, AS-04 promoted to BR-25, Team BR-24 supersession recorded |
 | 2026-10-01 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-01 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-01 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |
