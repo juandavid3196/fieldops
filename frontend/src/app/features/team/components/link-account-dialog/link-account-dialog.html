@@ -1,0 +1,86 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [closable]="!submitting()"
+  [draggable]="false"
+  [style]="{ width: '30rem' }"
+  [breakpoints]="{ '575px': '90vw' }"
+  [header]="'Link user account to ' + technicianName()"
+>
+  <div class="link-dialog">
+    <input
+      pInputText
+      type="search"
+      fluid
+      maxlength="100"
+      aria-label="Search user accounts"
+      placeholder="Search by name or email"
+      [ngModel]="search()"
+      (ngModelChange)="onSearch($event)"
+      [disabled]="submitting()"
+    />
+
+    <div class="link-dialog__results" [attr.aria-busy]="searching()">
+      @if (searching()) {
+        <p class="link-dialog__status" role="status">
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+          Searching…
+        </p>
+      } @else if (loadFailed()) {
+        <p-message severity="error" [closable]="false">We couldn't load user accounts.</p-message>
+      } @else if (accounts().length === 0) {
+        <p class="link-dialog__status">{{ noAccountsMessage }}</p>
+      } @else {
+        <ul class="link-dialog__list" role="radiogroup" aria-label="Eligible user accounts">
+          @for (account of accounts(); track account.organizationUserId) {
+            <li>
+              <label
+                class="link-dialog__option"
+                [class.link-dialog__option--selected]="selectedId() === account.organizationUserId"
+              >
+                <input
+                  type="radio"
+                  name="linkable-account"
+                  [checked]="selectedId() === account.organizationUserId"
+                  [disabled]="submitting()"
+                  (change)="select(account)"
+                />
+                <span class="link-dialog__name">{{ account.fullName }}</span>
+                <span class="link-dialog__meta">{{ account.email }} · {{ account.roleName }}</span>
+              </label>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    @if (conflict()) {
+      <p-message severity="error" [closable]="false">{{ conflictMessage }}</p-message>
+    }
+  </div>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="close()"
+    >
+      Cancel
+    </button>
+    <button
+      pButton
+      type="button"
+      [disabled]="selectedId() === null || submitting()"
+      (click)="confirm()"
+    >
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Link account
+    </button>
+  </ng-template>
+</p-dialog>

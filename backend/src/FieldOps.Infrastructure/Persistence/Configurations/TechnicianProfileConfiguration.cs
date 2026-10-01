@@ -9,6 +9,13 @@ namespace FieldOps.Infrastructure.Persistence.Configurations;
 internal sealed class TechnicianProfileConfiguration
     : IEntityTypeConfiguration<TechnicianProfile>
 {
+    public const string OrgUserIndexName = "ux_technician_profiles_org_user";
+
+    /// <summary>Created by raw SQL in the migration: EF cannot model the <c>lower(email)</c> expression.</summary>
+    public const string OrgEmailIndexName = "ux_technician_profiles_org_email";
+
+    public const string EmployeeCodeIndexName = "ix_technician_profiles_organization_id_employee_code";
+
     public void Configure(EntityTypeBuilder<TechnicianProfile> builder)
     {
         builder.ToTable("technician_profiles", table => table.HasCheckConstraint(
@@ -83,6 +90,16 @@ internal sealed class TechnicianProfileConfiguration
         // UNIQUE (organization_id, employee_code)
         builder.HasIndex(technician => new { technician.OrganizationId, technician.EmployeeCode })
             .IsUnique();
+
+        // CREATE UNIQUE INDEX ux_technician_profiles_org_user
+        //   ON technician_profiles (organization_user_id) WHERE organization_user_id IS NOT NULL
+        builder.HasIndex(technician => technician.OrganizationUserId)
+            .IsUnique()
+            .HasFilter("organization_user_id IS NOT NULL")
+            .HasDatabaseName(OrgUserIndexName);
+
+        // ux_technician_profiles_org_email ON (organization_id, lower(email)) WHERE email IS NOT NULL is an
+        // expression index EF cannot model; the migration creates it with raw SQL (BR-22).
 
         // CREATE INDEX ix_technicians_branch_status
         //   ON technician_profiles (organization_id, branch_id, status)

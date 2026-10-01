@@ -1,0 +1,423 @@
+<p-toast />
+<app-confirm-dialog />
+<app-discard-changes-dialog />
+<p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+
+<div class="team">
+  <div class="team__main">
+    <header class="team__header">
+      <div class="team__heading">
+        <a class="team__back" routerLink="/overview">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>
+          Team
+        </a>
+        <h1 class="team__title">Team</h1>
+        @if (!forbidden()) {
+          <p class="team__description">{{ descriptionMessage }}</p>
+        }
+      </div>
+
+      @if (!forbidden() && !isTechnician()) {
+        <div class="team__header-actions">
+          <div class="team__actions">
+            <a
+              pButton
+              class="team__action"
+              severity="secondary"
+              [outlined]="true"
+              [routerLink]="skillsPath"
+            >
+              <i class="pi pi-cog" aria-hidden="true"></i>
+              Manage skills
+            </a>
+            @if (canMutate()) {
+              <button pButton type="button" class="team__action" (click)="openCreate()">
+                <i class="pi pi-plus" aria-hidden="true"></i>
+                Add technician profile
+              </button>
+            }
+          </div>
+          <p class="team__note">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            {{ settingsNote }}
+          </p>
+        </div>
+      }
+    </header>
+
+    @if (forbidden()) {
+      <p class="team__forbidden">{{ forbiddenMessage }}</p>
+    } @else if (isTechnician()) {
+      <section class="team__card" aria-label="Your technician profile">
+        @if (ownLoading()) {
+          <div class="team__skeletons" aria-busy="true">
+            <p-skeleton height="6rem" />
+            <p-skeleton height="6rem" />
+            <p-skeleton height="6rem" />
+          </div>
+        } @else if (ownNotLinked()) {
+          <p class="team__empty-text">{{ notLinkedMessage }}</p>
+        } @else if (ownFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="team__error">
+              {{ loadErrorMessage }}
+              <button pButton type="button" severity="secondary" size="small" (click)="loadOwn()">
+                Retry
+              </button>
+            </span>
+          </p-message>
+        } @else if (own(); as profile) {
+          <h2 class="team__section-title">{{ profile.firstName }} {{ profile.lastName }}</h2>
+          <app-technician-profile [detail]="profile" />
+          <a pButton class="team__action" [routerLink]="schedulePath">View schedule</a>
+        }
+      </section>
+    } @else {
+      <div class="team__sections">
+        <section aria-label="Team metrics">
+          @if (metricsFailed()) {
+            <p-message severity="error" [closable]="false">
+              <span class="team__error">
+                {{ loadErrorMessage }}
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  (click)="loadMetrics()"
+                >
+                  Retry
+                </button>
+              </span>
+            </p-message>
+          } @else {
+            <ul class="team__metrics" aria-label="Team metrics">
+              @for (metric of metricCards; track metric.key) {
+                <li class="team__metric team__metric--{{ metric.tone }}">
+                  <span class="team__metric-icon" aria-hidden="true">
+                    <i class="pi" [class]="metric.icon"></i>
+                  </span>
+                  <span class="team__metric-body">
+                    <span class="team__metric-label">{{ metric.label }}</span>
+                    @if (metricsLoading() || metrics() === null) {
+                      <p-skeleton width="3rem" height="1.75rem" />
+                    } @else {
+                      <span class="team__metric-value">{{ metricValue(metric.key) }}</span>
+                    }
+                  </span>
+                  @if (
+                    metric.key === 'unlinkedAccounts' && (metrics()?.unlinkedAccounts ?? 0) > 0
+                  ) {
+                    <span class="team__dot" role="img" aria-label="Needs attention"></span>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="team__card" aria-label="Team members">
+          <div class="team__tabs">
+            <span class="team__tab team__tab--current" aria-current="page">
+              Team members ({{ teamMembersCount() ?? '—' }})
+            </span>
+            <a class="team__tab" [routerLink]="availabilityPath">Availability</a>
+            <a class="team__tab" [routerLink]="skillsPath">Skills</a>
+            <div class="team__period" role="group" aria-label="Period">
+              <button
+                type="button"
+                class="team__period-button"
+                [attr.aria-pressed]="period() === 'today'"
+                (click)="onPeriod('today')"
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                class="team__period-button"
+                [attr.aria-pressed]="period() === 'week'"
+                (click)="onPeriod('week')"
+              >
+                This week
+              </button>
+            </div>
+          </div>
+
+          <div class="team__filters" role="search" aria-label="Filter technicians">
+            <p-iconfield class="team__search">
+              <p-inputicon class="pi pi-search" />
+              <input
+                pInputText
+                type="search"
+                class="team__control"
+                placeholder="Search technicians..."
+                aria-label="Search technicians"
+                maxlength="100"
+                fluid
+                [ngModel]="searchText()"
+                (ngModelChange)="onSearchText($event)"
+              />
+            </p-iconfield>
+            <p-select
+              class="team__select"
+              appendTo="body"
+              fluid
+              ariaLabel="Branch"
+              [loading]="optionsLoading()"
+              [options]="branchChoices()"
+              optionLabel="label"
+              optionValue="code"
+              [ngModel]="branchId() ?? 'all'"
+              (ngModelChange)="onBranch($event)"
+            >
+              <ng-template #selectedItem let-option>
+                {{ option.code === 'all' ? 'Branch' : option.label }}
+              </ng-template>
+            </p-select>
+            <p-select
+              class="team__select"
+              appendTo="body"
+              fluid
+              ariaLabel="Skill"
+              [loading]="optionsLoading()"
+              [options]="skillChoices()"
+              optionLabel="label"
+              optionValue="code"
+              [ngModel]="skillId() ?? 'all'"
+              (ngModelChange)="onSkill($event)"
+            >
+              <ng-template #selectedItem let-option>
+                {{ option.code === 'all' ? 'Skill' : option.label }}
+              </ng-template>
+            </p-select>
+            <p-select
+              class="team__select"
+              appendTo="body"
+              fluid
+              ariaLabel="Current status"
+              [options]="statusOptions"
+              optionLabel="label"
+              optionValue="code"
+              [ngModel]="status()"
+              (ngModelChange)="onStatus($event)"
+            >
+              <ng-template #selectedItem let-option>
+                {{ option.code === 'all_active' ? 'Current status' : option.label }}
+              </ng-template>
+            </p-select>
+            <p-select
+              class="team__select"
+              appendTo="body"
+              fluid
+              ariaLabel="Account link"
+              [options]="linkOptions"
+              optionLabel="label"
+              optionValue="code"
+              [ngModel]="accountLink()"
+              (ngModelChange)="onAccountLink($event)"
+            >
+              <ng-template #selectedItem let-option>
+                {{ option.code === 'all' ? 'Account link' : option.label }}
+              </ng-template>
+            </p-select>
+          </div>
+
+          <div class="team__results" [attr.aria-busy]="loading()">
+            @if (listError()) {
+              <p-message severity="error" [closable]="false">
+                <span class="team__error">
+                  {{ loadErrorMessage }}
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    size="small"
+                    (click)="loadList()"
+                  >
+                    Retry
+                  </button>
+                </span>
+              </p-message>
+            } @else if (loading()) {
+              <div class="team__skeletons">
+                @for (row of skeletonRows; track row) {
+                  <p-skeleton height="2.5rem" />
+                }
+              </div>
+            } @else if (rows().length === 0) {
+              <div class="team__empty">
+                @if (hasFilters()) {
+                  <p class="team__empty-text">{{ emptyFilteredMessage }}</p>
+                  <button pButton type="button" severity="secondary" (click)="clearFilters()">
+                    Clear filters
+                  </button>
+                } @else {
+                  <p class="team__empty-text">{{ emptyInitialMessage }}</p>
+                  @if (canMutate()) {
+                    <button pButton type="button" (click)="openCreate()">
+                      <i class="pi pi-plus" aria-hidden="true"></i>
+                      Add technician profile
+                    </button>
+                  }
+                }
+              </div>
+            } @else {
+              <app-team-table
+                [rows]="rows()"
+                [sort]="sort()"
+                [period]="period()"
+                [busyId]="mutatingId()"
+                (sortRequested)="toggleNameSort()"
+                (nameClicked)="openDetail($event.id)"
+                (menuRequested)="openMenu($event.event, $event.row)"
+              />
+              <div class="team__pager">
+                <p class="team__pager-report">{{ report() }}</p>
+                <p-paginator
+                  class="team__paginator"
+                  [first]="first()"
+                  [rows]="pageSize"
+                  [totalRecords]="totalCount()"
+                  (onPageChange)="onPageChange($event)"
+                />
+              </div>
+            }
+          </div>
+        </section>
+
+        @if (!metricsFailed() && metrics(); as current) {
+          @if (current.capacityAlert || current.unlinkedAlert) {
+            <div class="team__alerts">
+              @if (current.capacityAlert; as alert) {
+                <p class="team__alert team__alert--danger" role="status">
+                  <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                  <span class="team__alert-text">
+                    {{ capacityText() }}
+                    @if (alert.moreCount > 0) {
+                      <span class="team__alert-more">+{{ alert.moreCount }} more</span>
+                    }
+                  </span>
+                  <a class="team__alert-action" [routerLink]="schedulePath">View schedule</a>
+                </p>
+              }
+              @if (current.unlinkedAlert; as alert) {
+                <p class="team__alert team__alert--warning" role="status">
+                  <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                  <span class="team__alert-text">
+                    {{ alert.name }} has no linked user account.
+                    @if (alert.moreCount > 0) {
+                      <span class="team__alert-more">+{{ alert.moreCount }} more</span>
+                    }
+                  </span>
+                  @if (canMutate()) {
+                    <button
+                      type="button"
+                      class="team__alert-action"
+                      (click)="openLink(alert.technicianId, alert.name)"
+                    >
+                      Link account
+                    </button>
+                  }
+                </p>
+              }
+            </div>
+          }
+        }
+
+        <section class="team__card" aria-labelledby="coverage-heading">
+          <div class="team__coverage-head">
+            <div>
+              <h2 class="team__section-title" id="coverage-heading">Skill coverage</h2>
+              <p class="team__muted">Number of active technicians with each skill</p>
+            </div>
+            <a
+              pButton
+              class="team__action"
+              severity="secondary"
+              [outlined]="true"
+              [routerLink]="skillsPath"
+            >
+              Manage skills
+            </a>
+          </div>
+          @if (coverageFailed()) {
+            <p-message severity="error" [closable]="false">
+              <span class="team__error">
+                {{ loadErrorMessage }}
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  (click)="loadCoverage()"
+                >
+                  Retry
+                </button>
+              </span>
+            </p-message>
+          } @else if (coverageLoading()) {
+            <div class="team__coverage" aria-busy="true">
+              @for (card of skeletonCards; track card) {
+                <p-skeleton height="4rem" />
+              }
+            </div>
+          } @else if (coverage().length === 0) {
+            <div class="team__empty">
+              <p class="team__empty-text">No skills defined yet.</p>
+              <a pButton severity="secondary" [routerLink]="skillsPath">Manage skills</a>
+            </div>
+          } @else {
+            <ul class="team__coverage">
+              @for (skill of coverage(); track skill.skillId) {
+                <li class="team__coverage-item">
+                  <span class="team__coverage-name">{{ skill.name }}</span>
+                  <span class="team__coverage-count">{{ skill.technicianCount }}</span>
+                  <p-tag
+                    [rounded]="true"
+                    [severity]="healthSeverities[skill.health]"
+                    [value]="healthLabels[skill.health]"
+                  />
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+    }
+  </div>
+
+  @if (!forbidden() && !isTechnician()) {
+    <app-technician-drawer
+      [open]="panel() === 'detail'"
+      [technicianId]="detailId()"
+      [canMutate]="canMutate()"
+      [canViewSettings]="isOwner()"
+      [busy]="mutatingId() !== null"
+      (closed)="onDetailClosed()"
+      (editRequested)="openEdit($event, $event)"
+      (linkRequested)="openLinkFromDrawer($event)"
+      (unlinkRequested)="openUnlinkFromDrawer($event)"
+      (unauthorized)="onUnauthorized()"
+    />
+    @if (canMutate()) {
+      <app-technician-form-drawer
+        [open]="panel() === 'form'"
+        [mode]="formMode()"
+        [technicianId]="formId()"
+        [branches]="branches()"
+        [branchesLoading]="optionsLoading()"
+        (saved)="onFormSaved()"
+        (closed)="onFormClosed()"
+        (unauthorized)="onUnauthorized()"
+        (unavailable)="onTechnicianUnavailable()"
+      />
+      <app-link-account-dialog
+        [(visible)]="linkOpen"
+        [technicianId]="linkTarget()?.id ?? null"
+        [technicianName]="linkTarget()?.name ?? ''"
+        (linked)="onLinked()"
+        (unauthorized)="onUnauthorized()"
+      />
+    }
+  }
+</div>

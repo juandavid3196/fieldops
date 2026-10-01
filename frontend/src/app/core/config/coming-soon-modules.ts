@@ -5,6 +5,8 @@ export const COMING_SOON_MODULES: Readonly<Record<string, string>> = {
   'work-orders': 'Work orders',
   schedule: 'Schedule',
   team: 'Team',
+  'team-skills': 'Team skills',
+  'team-availability': 'Team availability',
   invoices: 'Invoices',
   reports: 'Reports',
   'business-hours': 'Business hours',

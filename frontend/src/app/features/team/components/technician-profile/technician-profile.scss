@@ -1,0 +1,113 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.profile {
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-block-end: 1.25rem;
+    border-block-end: 1px solid var(--fo-color-border);
+
+    &:last-child {
+      padding-block-end: 0;
+      border-block-end: 0;
+    }
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fo-color-text);
+  }
+
+  &__lead {
+    margin: 0;
+    font-weight: 600;
+    color: var(--fo-color-success-text);
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: minmax(6rem, 0.8fr) minmax(0, 1.4fr);
+    gap: 0.5rem 0.75rem;
+    margin: 0;
+
+    dt {
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+      color: var(--fo-color-text);
+    }
+  }
+
+  &__note,
+  &__muted {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__skills {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+      gap: 0.75rem;
+      align-items: center;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  &__button {
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: var(--fo-size-touch-target);
+    text-decoration: none;
+  }
+
+  &__workload {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__bar {
+    display: inline-block;
+    inline-size: 6rem;
+    block-size: 0.5rem;
+    overflow: hidden;
+    background: var(--fo-color-border);
+    border-radius: 999px;
+  }
+
+  &__bar-fill {
+    display: block;
+    block-size: 100%;
+    background: var(--fo-color-info-text);
+    border-radius: 999px;
+
+    &--over {
+      background: var(--fo-color-danger-solid);
+    }
+  }
+}

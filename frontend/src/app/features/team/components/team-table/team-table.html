@@ -1,0 +1,88 @@
+<div class="team-table">
+  <table class="team-table__table">
+    <thead>
+      <tr>
+        <th scope="col" [attr.aria-sort]="ariaSort()">
+          <button type="button" class="team-table__sort" (click)="sortRequested.emit()">
+            Technician
+            <i
+              class="pi"
+              [class.pi-arrow-up]="ariaSort() === 'ascending'"
+              [class.pi-arrow-down]="ariaSort() === 'descending'"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </th>
+        <th scope="col">Home branch</th>
+        <th scope="col">Skills</th>
+        <th scope="col">Account link</th>
+        <th scope="col">Today's status</th>
+        <th scope="col">{{ jobsHeader() }}</th>
+        <th scope="col">Workload</th>
+        <th scope="col">Next available</th>
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (view of views(); track view.row.id) {
+        <tr>
+          <td class="team-table__name">
+            <button type="button" class="team-table__link" (click)="nameClicked.emit(view.row)">
+              {{ view.row.fullName }}
+            </button>
+          </td>
+          <td>{{ view.row.branchName }}</td>
+          <td>
+            <span class="team-table__truncate" [attr.title]="view.skills">{{ view.skills }}</span>
+          </td>
+          <td>
+            <p-tag
+              [rounded]="true"
+              icon="pi pi-circle-fill"
+              [severity]="view.row.isLinked ? 'success' : 'danger'"
+              [value]="view.row.isLinked ? 'Linked' : 'Not linked'"
+            />
+          </td>
+          <td>
+            <p-tag
+              [rounded]="true"
+              icon="pi pi-circle-fill"
+              [severity]="statusSeverity(view.row.todayStatus)"
+              [value]="statusLabels[view.row.todayStatus]"
+            />
+          </td>
+          <td class="team-table__number">
+            {{ inactive(view.row) ? '—' : view.row.jobs }}
+          </td>
+          <td>
+            <span class="team-table__workload">
+              <span>{{ view.workload.text }}</span>
+              @if (view.workload.fill !== null) {
+                <span class="team-table__bar" aria-hidden="true">
+                  <span
+                    class="team-table__bar-fill"
+                    [class.team-table__bar-fill--over]="view.workload.over"
+                    [style.inline-size.%]="view.workload.fill"
+                  ></span>
+                </span>
+              }
+            </span>
+          </td>
+          <td class="team-table__number">{{ view.next }}</td>
+          <td class="team-table__actions">
+            <button
+              type="button"
+              class="team-table__menu-button"
+              aria-haspopup="menu"
+              [attr.aria-label]="'Actions for ' + view.row.fullName"
+              [disabled]="busyId() === view.row.id"
+              (click)="menuRequested.emit({ event: $event, row: view.row })"
+            >
+              <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

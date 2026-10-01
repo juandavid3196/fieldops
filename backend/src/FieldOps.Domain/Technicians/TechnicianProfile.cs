@@ -55,7 +55,11 @@ public sealed class TechnicianProfile
         Guid organizationId,
         Guid branchId,
         string firstName,
-        string lastName)
+        string lastName,
+        string? email = null,
+        string? phone = null,
+        string? employeeCode = null,
+        string? notes = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -90,7 +94,77 @@ public sealed class TechnicianProfile
             organizationId,
             branchId,
             firstName.Trim(),
-            lastName.Trim());
+            lastName.Trim())
+        {
+            Email = email,
+            Phone = phone,
+            EmployeeCode = employeeCode,
+            Notes = notes,
+        };
+    }
+
+    /// <summary>Replaces the editable profile fields; status, link, skills and availability are untouched.</summary>
+    public void UpdateDetails(
+        Guid branchId,
+        string firstName,
+        string lastName,
+        string? email,
+        string? phone,
+        string? employeeCode,
+        string? notes,
+        DateTimeOffset now)
+    {
+        if (branchId == Guid.Empty)
+        {
+            throw new ArgumentException("Branch id is required.", nameof(branchId));
+        }
+
+        if (string.IsNullOrWhiteSpace(firstName))
+        {
+            throw new ArgumentException("Technician first name is required.", nameof(firstName));
+        }
+
+        if (string.IsNullOrWhiteSpace(lastName))
+        {
+            throw new ArgumentException("Technician last name is required.", nameof(lastName));
+        }
+
+        BranchId = branchId;
+        FirstName = firstName.Trim();
+        LastName = lastName.Trim();
+        Email = email;
+        Phone = phone;
+        EmployeeCode = employeeCode;
+        Notes = notes;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Changes the status; false when it already has that status.</summary>
+    public bool ChangeStatus(TechnicianStatus status, DateTimeOffset now)
+    {
+        if (Status == status)
+        {
+            return false;
+        }
+
+        Status = status;
+        UpdatedAt = now;
+
+        return true;
+    }
+
+    /// <summary>Clears the membership link; false when the profile was not linked.</summary>
+    public bool UnlinkMembership(DateTimeOffset now)
+    {
+        if (OrganizationUserId is null)
+        {
+            return false;
+        }
+
+        OrganizationUserId = null;
+        UpdatedAt = now;
+
+        return true;
     }
 
     /// <summary>Links an unlinked profile to a membership of its own organization.</summary>

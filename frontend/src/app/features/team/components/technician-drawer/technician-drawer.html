@@ -1,0 +1,80 @@
+<app-drawer-shell size="25rem" [open]="open()" [titleId]="titleId" (closeRequested)="closed.emit()">
+  <ng-container ngProjectAs="[drawerHeader]">
+    <div class="technician-drawer__heading">
+      <h2 class="technician-drawer__title" [id]="titleId" tabindex="-1">{{ fullName() }}</h2>
+      <p class="technician-drawer__subtitle">
+        Technician profile
+        @if (detail(); as current) {
+          <p-tag
+            [rounded]="true"
+            [severity]="profileSeverity(current.profileStatus)"
+            [value]="profileStatusLabel()"
+          />
+        }
+      </p>
+    </div>
+    <span class="technician-drawer__spacer"></span>
+    <button
+      type="button"
+      class="technician-drawer__close"
+      aria-label="Close technician drawer"
+      (click)="closed.emit()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (loading()) {
+      <div class="technician-drawer__skeletons" aria-busy="true">
+        <p-skeleton height="6rem" />
+        <p-skeleton height="7rem" />
+        <p-skeleton height="5rem" />
+        <p-skeleton height="5rem" />
+        <p-skeleton height="7rem" />
+      </div>
+    } @else if (unavailable()) {
+      <p-message severity="error" [closable]="false">{{ unavailableMessage }}</p-message>
+    } @else if (failed()) {
+      <p-message severity="error" [closable]="false">
+        <span class="technician-drawer__retry">
+          {{ errorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else if (detail(); as current) {
+      <app-technician-profile
+        [detail]="current"
+        [canMutate]="canMutate()"
+        [canViewSettings]="canViewSettings()"
+        [busy]="busy()"
+        (linkRequested)="linkRequested.emit(current.id)"
+        (unlinkRequested)="unlinkRequested.emit(current.id)"
+      />
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <a
+      pButton
+      class="technician-drawer__action"
+      severity="secondary"
+      [outlined]="true"
+      [routerLink]="schedulePath"
+    >
+      View schedule
+    </a>
+    @if (canMutate() && detail(); as current) {
+      <button
+        pButton
+        type="button"
+        class="technician-drawer__action"
+        (click)="editRequested.emit(current.id)"
+      >
+        Edit profile
+      </button>
+    }
+  </ng-container>
+</app-drawer-shell>

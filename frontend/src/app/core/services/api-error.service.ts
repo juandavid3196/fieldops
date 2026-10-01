@@ -55,9 +55,18 @@ export class ApiErrorService {
       error.status === 409 && typeof problem?.['code'] === 'string' ? problem['code'] : undefined;
 
     const rowErrors = error.status === 400 ? readRowErrors(problem) : undefined;
+    const visits = problem?.['upcomingVisitCount'];
+    const upcomingVisitCount =
+      error.status === 409 &&
+      typeof visits === 'number' &&
+      Number.isSafeInteger(visits) &&
+      visits >= 0
+        ? visits
+        : undefined;
 
     return {
       ...apiError,
+      ...(upcomingVisitCount === undefined ? {} : { upcomingVisitCount }),
       ...(rowErrors === undefined ? {} : { rowErrors }),
       ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
       ...(code === undefined ? {} : { code }),

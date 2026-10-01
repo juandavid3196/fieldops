@@ -32,6 +32,8 @@ export interface ApiError {
   readonly retryAfterSeconds?: number;
   /** Machine-readable ProblemDetails extension `code` (e.g. on a `409`); never displayed. */
   readonly code?: string;
+  /** Upcoming assigned visits blocking a technician deactivation (`409` extension); never a message. */
+  readonly upcomingVisitCount?: number;
   /** Per-row import errors of a `400` (`rowErrors` extension); absent otherwise. */
   readonly rowErrors?: readonly ApiRowError[];
 }
