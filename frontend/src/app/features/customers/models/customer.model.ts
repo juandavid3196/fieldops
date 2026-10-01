@@ -186,3 +186,151 @@ export interface BranchOptionsResponse {
   readonly countryCode: string;
   readonly branches: readonly { readonly id: string; readonly name: string }[];
 }
+
+export type DetailTab = 'overview' | 'requests' | 'quotes' | 'jobs' | 'invoices' | 'activity';
+export const DETAIL_TABS: readonly DetailTab[] = [
+  'overview',
+  'requests',
+  'quotes',
+  'jobs',
+  'invoices',
+  'activity',
+];
+export const NOTES_PAGE_SIZE = 10;
+export const ACTIVITY_PAGE_SIZE = 20;
+
+export type InvoiceStatus = 'sent' | 'partially_paid' | 'paid' | 'overdue';
+
+/** `GET /customers/{id}/detail` (FR-02). */
+export interface CustomerOverview {
+  readonly id: string;
+  readonly type: CustomerType;
+  readonly displayName: string;
+  readonly contact: CustomerContact;
+  readonly lifecycle: Lifecycle;
+  readonly displayStatus: DisplayStatus;
+  readonly isActive: boolean;
+  readonly outstandingBalance: number;
+  readonly currency: string;
+  readonly timezone: string;
+  readonly summary: {
+    readonly totalJobs: number;
+    readonly lifetimeValue: number;
+    readonly customerSince: string;
+    readonly lastServiceAt?: string | null;
+  };
+  readonly lastInvoice: {
+    readonly number: string;
+    readonly status: InvoiceStatus;
+    readonly issueDate?: string | null;
+  } | null;
+  readonly tags: readonly CustomerTag[];
+  readonly pinnedNote?: string | null;
+}
+
+/** A property of `GET /customers/{id}/properties[/{propertyId}]`. */
+export interface PropertyItem {
+  readonly id: string;
+  readonly name: string;
+  readonly isPrimary: boolean;
+  readonly isActive: boolean;
+  readonly addressLine1: string;
+  readonly addressLine2?: string | null;
+  readonly city: string;
+  readonly stateRegion?: string | null;
+  readonly postalCode?: string | null;
+  readonly branch: { readonly id: string; readonly name: string } | null;
+  readonly serviceInstructions?: string | null;
+  readonly lastService: { readonly completedAt: string; readonly summary: string | null } | null;
+  readonly nextAppointment: { readonly startsAt: string } | null;
+}
+
+export interface PropertiesResponse {
+  readonly items: readonly PropertyItem[];
+  readonly timezone: string;
+}
+
+/** Body of `POST` and `PUT /customers/{id}/properties[/{propertyId}]`. */
+export interface PropertyRequest {
+  readonly name: string;
+  readonly addressLine1: string;
+  readonly addressLine2: string | null;
+  readonly city: string;
+  readonly stateRegion: string | null;
+  readonly postalCode: string | null;
+  readonly branchId: string;
+  readonly serviceInstructions: string | null;
+}
+
+export type RecentWorkType = 'request' | 'quote' | 'job';
+
+export interface RecentWorkItem {
+  readonly type: RecentWorkType;
+  readonly id: string;
+  readonly number: string;
+  readonly title: string;
+  readonly status: string;
+  readonly date: string;
+  readonly technicianName?: string | null;
+  readonly amount?: number | null;
+}
+
+export interface RecentWorkResponse {
+  readonly items: readonly RecentWorkItem[];
+  readonly currency: string;
+  readonly timezone: string;
+}
+
+export interface AppointmentItem {
+  readonly visitId: string;
+  readonly startsAt: string;
+  readonly endsAt?: string | null;
+  readonly jobNumber: string;
+  readonly jobTitle: string;
+  readonly propertyName: string;
+  readonly technicianName?: string | null;
+}
+
+export interface AppointmentsResponse {
+  readonly items: readonly AppointmentItem[];
+  readonly timezone: string;
+}
+
+export interface NoteItem {
+  readonly id: string;
+  readonly note: string;
+  readonly authorName: string;
+  readonly createdAt: string;
+}
+
+export interface NotesResponse {
+  readonly items: readonly NoteItem[];
+  readonly totalCount: number;
+  readonly page: number;
+  readonly pageSize: number;
+  readonly timezone: string;
+}
+
+export interface ActivityItem {
+  readonly id: string;
+  readonly action: string;
+  readonly subjectName?: string | null;
+  readonly actorName?: string | null;
+  readonly occurredAt: string;
+}
+
+export interface ActivityResponse {
+  readonly items: readonly ActivityItem[];
+  readonly totalCount: number;
+  readonly page: number;
+  readonly pageSize: number;
+  readonly timezone: string;
+}
+
+/** Load state of one detail-page region (header, properties, recent work, ...). */
+export interface RegionState<T> {
+  readonly status: 'idle' | 'loading' | 'ready' | 'error';
+  readonly data: T | null;
+}
+
+export const IDLE_REGION: RegionState<never> = { status: 'idle', data: null };

@@ -4,9 +4,12 @@ import { Observable, map } from 'rxjs';
 
 import { API_CONFIG, buildApiUrl } from '../../../core/config/api.config';
 import {
+  ActivityResponse,
+  AppointmentsResponse,
   BranchOptionsResponse,
   CsvFile,
   CustomerDetail,
+  CustomerOverview,
   CustomerListQuery,
   CustomerListResponse,
   CustomerMetrics,
@@ -16,6 +19,12 @@ import {
   DuplicateCheckResponse,
   ImportPreview,
   ImportResult,
+  NoteItem,
+  NotesResponse,
+  PropertiesResponse,
+  PropertyItem,
+  PropertyRequest,
+  RecentWorkResponse,
 } from '../models/customer.model';
 
 /** `/customers` and `/customer-tags` endpoints. Organization and branch scope are server-side only. */
@@ -80,6 +89,69 @@ export class CustomersService {
 
   reactivate(id: string): Observable<void> {
     return this.http.post<void>(this.url(`customers/${id}/reactivate`), null);
+  }
+
+  overview(id: string): Observable<CustomerOverview> {
+    return this.http.get<CustomerOverview>(this.url(`customers/${id}/detail`));
+  }
+
+  properties(id: string): Observable<PropertiesResponse> {
+    return this.http.get<PropertiesResponse>(this.url(`customers/${id}/properties`));
+  }
+
+  property(id: string, propertyId: string): Observable<PropertyItem> {
+    return this.http.get<PropertyItem>(this.url(`customers/${id}/properties/${propertyId}`));
+  }
+
+  createProperty(id: string, body: PropertyRequest): Observable<PropertyItem> {
+    return this.http.post<PropertyItem>(this.url(`customers/${id}/properties`), body);
+  }
+
+  updateProperty(id: string, propertyId: string, body: PropertyRequest): Observable<PropertyItem> {
+    return this.http.put<PropertyItem>(this.url(`customers/${id}/properties/${propertyId}`), body);
+  }
+
+  setPrimaryProperty(id: string, propertyId: string): Observable<void> {
+    return this.propertyAction(id, propertyId, 'set-primary');
+  }
+
+  archiveProperty(id: string, propertyId: string): Observable<void> {
+    return this.propertyAction(id, propertyId, 'archive');
+  }
+
+  reactivateProperty(id: string, propertyId: string): Observable<void> {
+    return this.propertyAction(id, propertyId, 'reactivate');
+  }
+
+  private propertyAction(id: string, propertyId: string, action: string): Observable<void> {
+    return this.http.post<void>(
+      this.url(`customers/${id}/properties/${propertyId}/${action}`),
+      null,
+    );
+  }
+
+  recentWork(id: string): Observable<RecentWorkResponse> {
+    return this.http.get<RecentWorkResponse>(this.url(`customers/${id}/recent-work`));
+  }
+
+  upcomingAppointments(id: string): Observable<AppointmentsResponse> {
+    return this.http.get<AppointmentsResponse>(this.url(`customers/${id}/upcoming-appointments`));
+  }
+
+  notes(id: string, page: number): Observable<NotesResponse> {
+    return this.http.get<NotesResponse>(this.url(`customers/${id}/notes`), {
+      params: new HttpParams().set('page', page),
+    });
+  }
+
+  addNote(id: string, note: string): Observable<NoteItem> {
+    return this.http.post<NoteItem>(this.url(`customers/${id}/notes`), { note });
+  }
+
+  activity(id: string, page: number): Observable<ActivityResponse> {
+    return this.http.get<ActivityResponse>(this.url(`customers/${id}/activity`), {
+      params: new HttpParams().set('page', page),
+    });
   }
 
   duplicateCheck(body: DuplicateCheckRequest): Observable<DuplicateCheckResponse> {

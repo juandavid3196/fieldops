@@ -159,6 +159,8 @@ export class CustomerDrawer {
   readonly countryCode = input<string | null>(null);
   readonly tags = input<readonly CustomerTag[]>([]);
   readonly tagsLoading = input(false);
+  /** Field to focus once the detail has loaded (the Internal notes pencil, BR-08). */
+  readonly focusField = input<CustomerFieldKey | null>(null);
 
   readonly saved = output<void>();
   readonly closed = output<void>();
@@ -348,6 +350,7 @@ export class CustomerDrawer {
         this.detail.set(detail);
         this.form.set(this.fromDetail(detail));
         this.snapshot.set(this.currentKey());
+        this.focusRequestedField();
       },
       error: (error: unknown) => {
         this.detailLoading.set(false);
@@ -361,6 +364,17 @@ export class CustomerDrawer {
         }
       },
     });
+  }
+
+  private focusRequestedField(): void {
+    const field = this.focusField();
+    if (field === null) {
+      return;
+    }
+    afterNextRender(
+      () => this.hostElement.querySelector<HTMLElement>(`#${CONTROL_IDS[field]}`)?.focus(),
+      { injector: this.injector },
+    );
   }
 
   private fromDetail(detail: CustomerDetail): CustomerFormValue {

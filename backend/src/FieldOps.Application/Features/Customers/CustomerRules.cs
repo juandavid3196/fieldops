@@ -206,28 +206,16 @@ public static partial class CustomerRules
             found[CityKey] = CustomerMessages.CityTooLong;
         }
 
-        var state = Blank(input.StateRegion);
+        var state = NormalizeState(input.StateRegion, unitedStates, out var stateError);
 
-        if (state is not null)
+        if (stateError is not null)
         {
-            if (unitedStates)
-            {
-                state = state.ToUpperInvariant();
-
-                if (!UsStates.Contains(state))
-                {
-                    found[StateRegionKey] = CustomerMessages.StateInvalid;
-                }
-            }
-            else if (state.Length > 100)
-            {
-                found[StateRegionKey] = CustomerMessages.StateTooLong;
-            }
+            found[StateRegionKey] = stateError;
         }
 
         var postal = Blank(input.PostalCode);
 
-        if (postal is not null && (unitedStates ? !ZipPattern().IsMatch(postal) : postal.Length > 30))
+        if (!IsValidPostal(postal, unitedStates))
         {
             found[PostalCodeKey] = CustomerMessages.PostalInvalid;
         }
@@ -272,7 +260,38 @@ public static partial class CustomerRules
             note);
     }
 
-    private static string? Blank(string? value)
+    /// <summary>The trimmed state (upper-cased for the United States) and the BR-10 error, if any.</summary>
+    internal static string? NormalizeState(string? raw, bool unitedStates, out string? error)
+    {
+        error = null;
+        var state = Blank(raw);
+
+        if (state is null)
+        {
+            return null;
+        }
+
+        if (unitedStates)
+        {
+            state = state.ToUpperInvariant();
+
+            if (!UsStates.Contains(state))
+            {
+                error = CustomerMessages.StateInvalid;
+            }
+        }
+        else if (state.Length > 100)
+        {
+            error = CustomerMessages.StateTooLong;
+        }
+
+        return state;
+    }
+
+    internal static bool IsValidPostal(string? postal, bool unitedStates) =>
+        postal is null || (unitedStates ? ZipPattern().IsMatch(postal) : postal.Length <= 30);
+
+    internal static string? Blank(string? value)
     {
         var trimmed = value?.Trim();
 

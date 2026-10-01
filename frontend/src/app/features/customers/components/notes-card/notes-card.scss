@@ -1,0 +1,99 @@
+@use '../../pages/customer-detail/card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.notes {
+  @include card.base;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__head {
+    @include card.head;
+
+    margin-block-end: 0;
+  }
+
+  &__title {
+    @include card.title;
+  }
+
+  &__hint {
+    flex: 1;
+    @include card.muted;
+  }
+
+  &__pencil {
+    @include card.icon-button;
+  }
+
+  &__pinned {
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__add {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: stretch;
+
+    button {
+      align-self: flex-end;
+    }
+  }
+
+  &__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__retry {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__skeletons,
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__entry {
+    padding-block-end: 0.5rem;
+    border-block-end: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__text {
+    margin: 0;
+    white-space: pre-wrap;
+  }
+
+  &__meta,
+  &__empty {
+    margin: 0.125rem 0 0;
+    @include card.muted;
+  }
+}

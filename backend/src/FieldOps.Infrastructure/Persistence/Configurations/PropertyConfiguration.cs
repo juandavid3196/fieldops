@@ -8,6 +8,8 @@ namespace FieldOps.Infrastructure.Persistence.Configurations;
 
 internal sealed class PropertyConfiguration : IEntityTypeConfiguration<Property>
 {
+    public const string PrimaryIndexName = "ux_properties_customer_primary";
+
     public void Configure(EntityTypeBuilder<Property> builder)
     {
         builder.ToTable("properties");
@@ -77,6 +79,10 @@ internal sealed class PropertyConfiguration : IEntityTypeConfiguration<Property>
             .HasSentinel(true)
             .IsRequired();
 
+        builder.Property(property => property.IsPrimary)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.Property(property => property.CreatedAt)
             .HasDefaultValueSql("now()")
             .IsRequired();
@@ -88,6 +94,16 @@ internal sealed class PropertyConfiguration : IEntityTypeConfiguration<Property>
         // CREATE INDEX ix_properties_customer ON properties (organization_id, customer_id)
         builder.HasIndex(property => new { property.OrganizationId, property.CustomerId })
             .HasDatabaseName("ix_properties_customer");
+
+        // CREATE UNIQUE INDEX ux_properties_customer_primary ON properties (customer_id) WHERE is_primary
+        builder.HasIndex(property => property.CustomerId)
+            .IsUnique()
+            .HasFilter("is_primary")
+            .HasDatabaseName(PrimaryIndexName);
+
+        builder.ToTable(table => table.HasCheckConstraint(
+            "ck_properties_primary_active",
+            "NOT is_primary OR is_active"));
 
         builder.HasOne<Organization>()
             .WithMany()
@@ -104,6 +120,13 @@ internal sealed class PropertyConfiguration : IEntityTypeConfiguration<Property>
         builder.HasOne<Branch>()
             .WithMany()
             .HasForeignKey(property => property.BranchId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // FOREIGN KEY (organization_id, branch_id) REFERENCES branches (organization_id, id)
+        builder.HasOne<Branch>()
+            .WithMany()
+            .HasForeignKey(property => new { property.OrganizationId, property.BranchId })
+            .HasPrincipalKey(branch => new { branch.OrganizationId, branch.Id })
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

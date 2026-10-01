@@ -4,7 +4,7 @@
 | -------- | --------------------------- |
 | Feature  | `customer-property-detail`  |
 | Type     | Full-stack                  |
-| Status   | APPROVED                    |
+| Status   | AUDITED                     |
 | Created  | 2026-10-01                  |
 | Updated  | 2026-10-01                  |
 | Approved | 2026-10-01                  |
@@ -419,3 +419,5 @@ A `customerId` or `propertyId` that is not a valid UUID returns `404`, the same 
 | 2026-10-01 | — → DRAFT     | Created from Design 21 with the user's decisions OD-01 to OD-16 |
 | 2026-10-01 | DRAFT → DRAFT | Revised after validation: side-card empty states (BR-23: "No phone", "No tags"), explicit generic `customer.updated` activity label, malformed ids return `404`, AC-11 restated as observable migrated-database behavior |
 | 2026-10-01 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-01 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-01 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

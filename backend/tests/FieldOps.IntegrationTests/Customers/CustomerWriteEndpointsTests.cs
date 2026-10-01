@@ -41,8 +41,8 @@ public class CustomerWriteEndpointsTests(CompanySettingsDatabaseFixture database
         Assert.Equal("Ada|Lovelace|true|true|true", await database.ScalarAsync<string>(
             "SELECT first_name || '|' || last_name || '|' || prefers_email::text || '|' || prefers_sms::text || '|' || is_primary::text FROM customer_contacts WHERE customer_id = @id",
             ("id", id)));
-        Assert.Equal("Primary property|CA|true|Ontario|Ring twice", await database.ScalarAsync<string>(
-            "SELECT name || '|' || country_code || '|' || (branch_id = @b)::text || '|' || state_region || '|' || service_notes FROM properties WHERE customer_id = @id",
+        Assert.Equal("Primary property|CA|true|Ontario|Ring twice|true", await database.ScalarAsync<string>(
+            "SELECT name || '|' || country_code || '|' || (branch_id = @b)::text || '|' || state_region || '|' || service_notes || '|' || is_primary::text FROM properties WHERE customer_id = @id",
             ("id", id), ("b", branch.Id)));
         Assert.Equal(2L, await database.CountRowsAsync("customer_tag_assignments", org));
 
@@ -67,7 +67,8 @@ public class CustomerWriteEndpointsTests(CompanySettingsDatabaseFixture database
         Assert.Equal(otherBranch.Id, updatedDetail["branchId"]!.GetValue<Guid>());
         Assert.Single(updatedDetail["tags"]!.AsArray());
         Assert.Equal(1L, await database.CountRowsAsync("customer_tag_assignments", org));
-        Assert.Equal(otherBranch.Id, await database.ScalarAsync<Guid>("SELECT branch_id FROM properties WHERE customer_id = @id", ("id", id)));
+        // BR-08: the drawer never changes a property's branch, only the customer's.
+        Assert.Equal(branch.Id, await database.ScalarAsync<Guid>("SELECT branch_id FROM properties WHERE customer_id = @id", ("id", id)));
 
         var (_, _, metadata) = await database.GetLatestAuditAsync(org, "customer.updated");
         Assert.Contains("changedFields", metadata, StringComparison.Ordinal);

@@ -1,0 +1,286 @@
+<app-drawer-shell
+  size="25rem"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="property-drawer__title" [id]="titleId" tabindex="-1">{{ title() }}</h2>
+    <span class="property-drawer__spacer"></span>
+    <button
+      type="button"
+      class="property-drawer__close"
+      aria-label="Close property drawer"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (loading()) {
+      <div class="property-drawer__skeletons" aria-busy="true">
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="5rem" />
+      </div>
+    } @else if (loadFailed()) {
+      <p-message severity="error" [closable]="false">
+        <span class="property-drawer__retry">
+          We couldn't load this property.
+          <button pButton type="button" severity="secondary" size="small" (click)="load()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else {
+      <form
+        class="property-drawer__form"
+        ngNoForm
+        novalidate
+        (submit)="$event.preventDefault(); submit()"
+      >
+        <app-error-summary [id]="summaryId" [links]="errorLinks()" />
+
+        <app-form-field
+          label="Property name"
+          [controlId]="controlIds.name"
+          [required]="true"
+          [error]="error('name')"
+        >
+          <input
+            pInputText
+            fluid
+            [id]="controlIds.name"
+            [ngModel]="form().name"
+            (ngModelChange)="patch({ name: $event }, 'name')"
+            [disabled]="submitting() || readOnly()"
+            [invalid]="error('name') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('name') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('name')"
+            (blur)="onFieldBlur('name')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Address line 1"
+          [controlId]="controlIds.addressLine1"
+          [required]="true"
+          [error]="error('addressLine1')"
+        >
+          <input
+            pInputText
+            fluid
+            autocomplete="address-line1"
+            [id]="controlIds.addressLine1"
+            [ngModel]="form().addressLine1"
+            (ngModelChange)="patch({ addressLine1: $event }, 'addressLine1')"
+            [disabled]="submitting() || readOnly()"
+            [invalid]="error('addressLine1') !== null"
+            aria-required="true"
+            [attr.aria-invalid]="error('addressLine1') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('addressLine1')"
+            (blur)="onFieldBlur('addressLine1')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Address line 2"
+          [controlId]="controlIds.addressLine2"
+          [error]="error('addressLine2')"
+        >
+          <input
+            pInputText
+            fluid
+            autocomplete="address-line2"
+            [id]="controlIds.addressLine2"
+            [ngModel]="form().addressLine2"
+            (ngModelChange)="patch({ addressLine2: $event }, 'addressLine2')"
+            [disabled]="submitting() || readOnly()"
+            [invalid]="error('addressLine2') !== null"
+            [attr.aria-invalid]="error('addressLine2') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('addressLine2')"
+            (blur)="onFieldBlur('addressLine2')"
+          />
+        </app-form-field>
+
+        <div class="property-drawer__row">
+          <app-form-field
+            label="City"
+            [controlId]="controlIds.city"
+            [required]="true"
+            [error]="error('city')"
+          >
+            <input
+              pInputText
+              fluid
+              autocomplete="address-level2"
+              [id]="controlIds.city"
+              [ngModel]="form().city"
+              (ngModelChange)="patch({ city: $event }, 'city')"
+              [disabled]="submitting() || readOnly()"
+              [invalid]="error('city') !== null"
+              aria-required="true"
+              [attr.aria-invalid]="error('city') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('city')"
+              (blur)="onFieldBlur('city')"
+            />
+          </app-form-field>
+          <app-form-field
+            label="State"
+            [controlId]="controlIds.stateRegion"
+            [error]="error('stateRegion')"
+          >
+            @if (usesStateList()) {
+              <p-select
+                [inputId]="controlIds.stateRegion"
+                [options]="stateOptions"
+                optionLabel="label"
+                optionValue="code"
+                [filter]="true"
+                [showClear]="true"
+                ariaLabel="State"
+                placeholder="State"
+                appendTo="body"
+                fluid
+                [ngModel]="form().stateRegion || null"
+                (ngModelChange)="patch({ stateRegion: $event ?? '' }, 'stateRegion')"
+                [disabled]="submitting() || readOnly()"
+                [invalid]="error('stateRegion') !== null"
+                [attr.aria-describedby]="describedBy('stateRegion')"
+              >
+                <ng-template #selectedItem let-option>{{ option.code }}</ng-template>
+              </p-select>
+            } @else {
+              <input
+                pInputText
+                fluid
+                autocomplete="address-level1"
+                [id]="controlIds.stateRegion"
+                [ngModel]="form().stateRegion"
+                (ngModelChange)="patch({ stateRegion: $event }, 'stateRegion')"
+                [disabled]="submitting() || readOnly()"
+                [invalid]="error('stateRegion') !== null"
+                [attr.aria-invalid]="error('stateRegion') !== null ? 'true' : null"
+                [attr.aria-describedby]="describedBy('stateRegion')"
+                (blur)="onFieldBlur('stateRegion')"
+              />
+            }
+          </app-form-field>
+          <app-form-field
+            label="ZIP code"
+            [controlId]="controlIds.postalCode"
+            [error]="error('postalCode')"
+          >
+            <input
+              pInputText
+              fluid
+              autocomplete="postal-code"
+              [id]="controlIds.postalCode"
+              [ngModel]="form().postalCode"
+              (ngModelChange)="patch({ postalCode: $event }, 'postalCode')"
+              [disabled]="submitting() || readOnly()"
+              [invalid]="error('postalCode') !== null"
+              [attr.aria-invalid]="error('postalCode') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('postalCode')"
+              (blur)="onFieldBlur('postalCode')"
+            />
+          </app-form-field>
+        </div>
+
+        <app-form-field
+          label="Branch"
+          [controlId]="controlIds.branchId"
+          [required]="true"
+          [error]="error('branchId')"
+        >
+          <p-select
+            [inputId]="controlIds.branchId"
+            [options]="branchOptions()"
+            optionLabel="name"
+            optionValue="id"
+            ariaLabel="Branch"
+            placeholder="Select branch"
+            appendTo="body"
+            fluid
+            [ngModel]="form().branchId"
+            (ngModelChange)="patch({ branchId: $event }, 'branchId')"
+            [disabled]="submitting() || readOnly()"
+            [invalid]="error('branchId') !== null"
+            [attr.aria-describedby]="describedBy('branchId')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Service instructions"
+          [controlId]="controlIds.serviceInstructions"
+          [error]="error('serviceInstructions')"
+        >
+          <textarea
+            pTextarea
+            rows="3"
+            fluid
+            placeholder="Add service instructions (optional)"
+            [id]="controlIds.serviceInstructions"
+            [ngModel]="form().serviceInstructions"
+            (ngModelChange)="patch({ serviceInstructions: $event }, 'serviceInstructions')"
+            [disabled]="submitting() || readOnly()"
+            [invalid]="error('serviceInstructions') !== null"
+            [attr.aria-invalid]="error('serviceInstructions') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('serviceInstructions')"
+            (blur)="onFieldBlur('serviceInstructions')"
+          ></textarea>
+        </app-form-field>
+
+        @if (loaded()) {
+          <dl class="property-drawer__history" aria-label="Property history">
+            <div>
+              <dt>Last service</dt>
+              <dd>{{ lastService() }}</dd>
+            </div>
+            <div>
+              <dt>Next appointment</dt>
+              <dd>{{ nextAppointment() }}</dd>
+            </div>
+          </dl>
+        }
+      </form>
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <span class="property-drawer__spacer"></span>
+    @if (readOnly()) {
+      <button pButton type="button" class="property-drawer__action" (click)="requestClose()">
+        Close
+      </button>
+    } @else {
+      <button
+        pButton
+        type="button"
+        class="property-drawer__action"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="submitting()"
+        (click)="requestClose()"
+      >
+        Cancel
+      </button>
+      <button
+        pButton
+        type="button"
+        class="property-drawer__action"
+        [disabled]="saveBlocked()"
+        (click)="submit()"
+      >
+        @if (submitting()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        {{ isCreate() ? 'Add property' : 'Save changes' }}
+      </button>
+    }
+  </ng-container>
+</app-drawer-shell>

@@ -1,0 +1,160 @@
+<section class="properties" aria-labelledby="properties-title">
+  <header class="properties__head">
+    <h2 class="properties__title" id="properties-title">Properties ({{ active().length }})</h2>
+    @if (canMutate()) {
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        (click)="addRequested.emit()"
+      >
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        Add property
+      </button>
+    }
+  </header>
+
+  @if (state().status === 'error') {
+    <p-message severity="error" [closable]="false">
+      <span class="properties__retry">
+        We couldn't load properties.
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (state().status !== 'ready') {
+    <div class="properties__skeletons" aria-busy="true">
+      <p-skeleton height="5rem" />
+      <p-skeleton height="3rem" />
+    </div>
+  } @else {
+    @if (active().length === 0) {
+      <div class="properties__empty">
+        <p class="properties__empty-title">No properties yet</p>
+        <p>Add a property to schedule work at it.</p>
+        @if (canMutate()) {
+          <button pButton type="button" (click)="addRequested.emit()">Add property</button>
+        }
+      </div>
+    } @else {
+      <ul class="properties__list">
+        @for (view of active(); track view.property.id) {
+          <li>
+            <ng-container
+              *ngTemplateOutlet="row; context: { $implicit: view, archived: false }"
+            ></ng-container>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (archived().length > 0) {
+      <button
+        type="button"
+        class="properties__toggle"
+        aria-controls="archived-properties"
+        [attr.aria-expanded]="archivedOpen()"
+        (click)="toggleArchived()"
+      >
+        <i
+          class="pi"
+          [class.pi-chevron-down]="archivedOpen()"
+          [class.pi-chevron-right]="!archivedOpen()"
+          aria-hidden="true"
+        ></i>
+        Archived properties ({{ archived().length }})
+      </button>
+      @if (archivedOpen()) {
+        <ul class="properties__list" id="archived-properties">
+          @for (view of archived(); track view.property.id) {
+            <li>
+              <ng-container
+                *ngTemplateOutlet="row; context: { $implicit: view, archived: true }"
+              ></ng-container>
+            </li>
+          }
+        </ul>
+      }
+    }
+  }
+</section>
+
+<ng-template #row let-view let-archived="archived">
+  <article class="properties__row" [attr.aria-label]="view.property.name">
+    <div class="properties__identity">
+      <span class="properties__icon" aria-hidden="true"><i class="pi pi-home"></i></span>
+      <div class="properties__main">
+        <p class="properties__name">
+          {{ view.property.name }}
+          @if (view.property.isPrimary) {
+            <p-tag severity="info" value="Primary" />
+          }
+          @if (archived) {
+            <p-tag severity="secondary" value="Archived" />
+          }
+        </p>
+        <p class="properties__address">{{ view.address }}</p>
+      </div>
+    </div>
+    <dl class="properties__facts">
+      <div>
+        <dt>Branch</dt>
+        <dd>{{ view.branch }}</dd>
+      </div>
+      <div>
+        <dt>Service instructions</dt>
+        <dd>{{ view.instructions }}</dd>
+      </div>
+    </dl>
+    <div class="properties__actions">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        (click)="viewRequested.emit(view.property)"
+      >
+        View property
+      </button>
+      @if (canMutate()) {
+        @if (!archived) {
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            (click)="editRequested.emit(view.property)"
+          >
+            Edit
+          </button>
+        }
+        @if (!view.property.isPrimary) {
+          <button
+            type="button"
+            class="properties__menu"
+            aria-haspopup="menu"
+            [attr.aria-label]="'Actions for ' + view.property.name"
+            [disabled]="busyId() !== null"
+            (click)="menuRequested.emit({ event: $event, property: view.property })"
+          >
+            <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+          </button>
+        }
+      }
+    </div>
+    <dl class="properties__history" aria-label="Property history">
+      <div>
+        <dt>Last service</dt>
+        <dd>{{ view.lastService }}</dd>
+      </div>
+      <div>
+        <dt>Next appointment</dt>
+        <dd>{{ view.nextAppointment }}</dd>
+      </div>
+    </dl>
+  </article>
+</ng-template>

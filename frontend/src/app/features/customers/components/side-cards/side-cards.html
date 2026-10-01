@@ -1,0 +1,100 @@
+<section class="card" aria-labelledby="contact-title">
+  <header class="card__head">
+    <h2 class="card__title" id="contact-title">Contact details</h2>
+    @if (canMutate()) {
+      <button
+        type="button"
+        class="card__pencil"
+        aria-label="Edit contact details"
+        (click)="editContact.emit()"
+      >
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+      </button>
+    }
+  </header>
+  <ul class="card__list">
+    <li>
+      <i class="pi pi-envelope" aria-hidden="true"></i>
+      <a class="card__link" [href]="'mailto:' + view().email">{{ view().email }}</a>
+    </li>
+    <li>
+      <i class="pi pi-phone" aria-hidden="true"></i>
+      @if (view().phone; as phone) {
+        <a class="card__link" [href]="view().phoneHref">{{ phone }}</a>
+      } @else {
+        <span>No phone</span>
+      }
+    </li>
+    <li>
+      <i class="pi pi-comment" aria-hidden="true"></i>
+      <span>
+        {{ view().preferred }}
+        <span class="card__caption">Preferred contact</span>
+      </span>
+    </li>
+  </ul>
+</section>
+
+<section class="card" aria-labelledby="summary-title">
+  <h2 class="card__title" id="summary-title">Customer summary</h2>
+  <dl class="card__stats">
+    <div>
+      <dt>Total jobs</dt>
+      <dd>{{ view().totalJobs }}</dd>
+    </div>
+    <div>
+      <dt>Lifetime value</dt>
+      <dd>{{ view().lifetime }}</dd>
+      <dd class="card__caption">{{ view().since }}</dd>
+    </div>
+    <div>
+      <dt>Last service</dt>
+      <dd>{{ view().lastService }}</dd>
+    </div>
+  </dl>
+</section>
+
+<section class="card" aria-labelledby="billing-title">
+  <h2 class="card__title" id="billing-title">Billing</h2>
+  <dl class="card__stats">
+    <div>
+      <dt>Outstanding balance</dt>
+      <dd>{{ view().balance }}</dd>
+    </div>
+    <div>
+      <dt>Last invoice</dt>
+      <dd>
+        @if (view().invoice; as invoice) {
+          <a class="card__link" [routerLink]="invoicesLink">{{ invoice.number }}</a>
+          <p-tag [rounded]="true" [severity]="invoice.severity" [value]="invoice.status" />
+        } @else {
+          None
+        }
+      </dd>
+    </div>
+  </dl>
+  <a class="card__button" [routerLink]="invoicesLink">
+    <i class="pi pi-file" aria-hidden="true"></i>
+    View invoices
+  </a>
+</section>
+
+<section class="card" aria-labelledby="tags-title">
+  <header class="card__head">
+    <h2 class="card__title" id="tags-title">Tags</h2>
+    @if (canMutate()) {
+      <button type="button" class="card__pencil" aria-label="Edit tags" (click)="editTags.emit()">
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+      </button>
+    }
+  </header>
+  @if (view().tags.length === 0) {
+    <p class="card__caption">No tags</p>
+  } @else {
+    <ul class="card__tags">
+      @for (tag of view().tags; track tag.id) {
+        <li><p-tag [rounded]="true" severity="secondary" [value]="tag.name" /></li>
+      }
+    </ul>
+  }
+</section>

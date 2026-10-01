@@ -56,6 +56,17 @@ public static class DependencyInjection
         services.AddScoped<CreateCustomerTagHandler>();
         services.AddScoped<PreviewCustomerImportHandler>();
         services.AddScoped<ImportCustomersHandler>();
+        services.AddScoped<GetCustomerOverviewHandler>();
+        services.AddScoped<ListCustomerPropertiesHandler>();
+        services.AddScoped<GetCustomerPropertyHandler>();
+        services.AddScoped<CreateCustomerPropertyHandler>();
+        services.AddScoped<UpdateCustomerPropertyHandler>();
+        services.AddScoped<ChangeCustomerPropertyStateHandler>();
+        services.AddScoped<GetCustomerRecentWorkHandler>();
+        services.AddScoped<GetCustomerUpcomingAppointmentsHandler>();
+        services.AddScoped<ListCustomerNotesHandler>();
+        services.AddScoped<AddCustomerNoteHandler>();
+        services.AddScoped<ListCustomerActivityHandler>();
         services.AddScoped<ListUsersHandler>();
         services.AddScoped<GetUsersSummaryHandler>();
         services.AddSingleton<GetPermissionMatrixHandler>();

@@ -294,7 +294,7 @@ internal sealed class CustomerStore(FieldOpsDbContext dbContext) : ICustomerStor
         }
 
         var contact = await FirstContactAsync(organizationId, customerId, track: true, cancellationToken);
-        var property = await FirstPropertyAsync(organizationId, customerId, track: true, cancellationToken);
+        var property = await PrimaryPropertyAsync(organizationId, customerId, track: true, cancellationToken);
         var assignments = await dbContext.CustomerTagAssignments
             .Where(assignment => assignment.OrganizationId == organizationId && assignment.CustomerId == customerId)
             .ToListAsync(cancellationToken);
@@ -376,7 +376,9 @@ internal sealed class CustomerStore(FieldOpsDbContext dbContext) : ICustomerStor
 
             if (property is null)
             {
-                dbContext.Properties.Add(Property.Create(
+                // No active primary property (BR-08): the drawer's address becomes a new primary one in the
+                // customer's branch.
+                var created = Property.Create(
                     organizationId,
                     customerId,
                     PrimaryPropertyName,
@@ -386,12 +388,16 @@ internal sealed class CustomerStore(FieldOpsDbContext dbContext) : ICustomerStor
                     branchId,
                     values.StateRegion,
                     values.PostalCode,
-                    values.ServiceInstructions));
+                    values.ServiceInstructions,
+                    isPrimary: true);
+
+                dbContext.Properties.Add(created);
+                dbContext.AuditLogs.Add(PropertyAudit.Created(created, actorUserId, clientIp));
             }
             else
             {
-                property.Update(
-                    branchId,
+                // Only the address and instructions: the property keeps its own name and branch (BR-08).
+                property.UpdateAddress(
                     values.AddressLine1,
                     values.City,
                     values.StateRegion,
@@ -713,7 +719,8 @@ internal sealed class CustomerStore(FieldOpsDbContext dbContext) : ICustomerStor
             branchId,
             values.StateRegion,
             values.PostalCode,
-            values.ServiceInstructions));
+            values.ServiceInstructions,
+            isPrimary: true));
 
         foreach (var tagId in tagIds)
         {
@@ -752,24 +759,23 @@ internal sealed class CustomerStore(FieldOpsDbContext dbContext) : ICustomerStor
         return (track ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
     }
 
-    // The first property is the oldest active one (BR-11).
-    private Task<Property?> FirstPropertyAsync(
+    // The drawer edits the primary property (BR-08); a primary property is always active (BR-09).
+    private Task<Property?> PrimaryPropertyAsync(
         Guid organizationId, Guid customerId, bool track, CancellationToken cancellationToken)
     {
         var query = dbContext.Properties
             .Where(property => property.OrganizationId == organizationId
                 && property.CustomerId == customerId
-                && property.IsActive)
-            .OrderBy(property => property.CreatedAt)
-            .ThenBy(property => property.Id);
+                && property.IsPrimary
+                && property.IsActive);
 
-        return (track ? query : query.AsNoTracking()).FirstOrDefaultAsync(cancellationToken);
+        return (track ? query : query.AsNoTracking()).SingleOrDefaultAsync(cancellationToken);
     }
 
     private async Task<CustomerDetail> BuildDetailAsync(Customer customer, CancellationToken cancellationToken)
     {
         var contact = await FirstContactAsync(customer.OrganizationId, customer.Id, track: false, cancellationToken);
-        var property = await FirstPropertyAsync(customer.OrganizationId, customer.Id, track: false, cancellationToken);
+        var property = await PrimaryPropertyAsync(customer.OrganizationId, customer.Id, track: false, cancellationToken);
 
         var tags = await (
             from assignment in dbContext.CustomerTagAssignments.AsNoTracking()

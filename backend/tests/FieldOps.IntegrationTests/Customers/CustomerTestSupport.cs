@@ -126,8 +126,8 @@ public static class CustomerSeed
             VALUES (@id, @org, '{type}', @branch, @name, @email, @phone, @active, @created, @updated);
             INSERT INTO customer_contacts (id, organization_id, customer_id, first_name, last_name, email, phone, is_primary, is_active)
             VALUES (gen_random_uuid(), @org, @id, 'Pat', 'Contact', @email, @phone, true, true);
-            INSERT INTO properties (id, organization_id, customer_id, branch_id, name, address_line1, city, country_code)
-            VALUES (gen_random_uuid(), @org, @id, @branch, 'Primary property', '1 Seed St', 'Austin', 'US');
+            INSERT INTO properties (id, organization_id, customer_id, branch_id, name, address_line1, city, country_code, is_primary)
+            VALUES (gen_random_uuid(), @org, @id, @branch, 'Primary property', '1 Seed St', 'Austin', 'US', true);
             """,
             ("id", id),
             ("org", organizationId),
