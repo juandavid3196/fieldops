@@ -1,0 +1,238 @@
+<p-toast />
+<p-confirmdialog [style]="{ width: '28rem' }" [breakpoints]="{ '575px': '90vw' }" />
+<p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+
+<div class="customers">
+  <div class="customers__main">
+    <header class="customers__header">
+      <div>
+        <h1 class="customers__title">Customers</h1>
+        @if (!forbidden()) {
+          <p class="customers__description">{{ descriptionMessage }}</p>
+        }
+      </div>
+
+      @if (!forbidden()) {
+        <div class="customers__actions">
+          @if (canImport()) {
+            <button
+              pButton
+              type="button"
+              class="customers__action"
+              severity="secondary"
+              [outlined]="true"
+              (click)="openImport()"
+            >
+              <i class="pi pi-download" aria-hidden="true"></i>
+              Import customers
+            </button>
+          }
+          @if (canMutate()) {
+            <button pButton type="button" class="customers__action" (click)="openCreate()">
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              New customer
+            </button>
+          }
+        </div>
+      }
+    </header>
+
+    @if (forbidden()) {
+      <p class="customers__forbidden">{{ forbiddenMessage }}</p>
+    } @else {
+      <div class="customers__sections">
+        <app-customer-metrics
+          [metrics]="metrics()"
+          [loading]="metricsLoading()"
+          [failed]="metricsFailed()"
+        />
+        @if (metricsFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="customers__error">
+              {{ listErrorMessage }}
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                size="small"
+                (click)="loadMetrics()"
+              >
+                Retry
+              </button>
+            </span>
+          </p-message>
+        }
+
+        <section class="customers__card" aria-label="Customers">
+          <app-customer-toolbar
+            [tab]="tab()"
+            [counts]="tabCounts()"
+            [searchText]="searchText()"
+            [type]="type()"
+            [branchId]="branchId()"
+            [branches]="branches()"
+            [tags]="tags()"
+            [tagIds]="tagIds()"
+            [balanceStatus]="balanceStatus()"
+            [sort]="sort()"
+            (tabChange)="onTab($event)"
+            (searchTextChange)="onSearchText($event)"
+            (typeChange)="onType($event)"
+            (branchChange)="onBranch($event)"
+            (tagIdsChange)="onTags($event)"
+            (balanceChange)="onBalance($event)"
+            (sortChange)="onSort($event)"
+          />
+
+          <div
+            class="customers__results"
+            id="customers-results"
+            role="tabpanel"
+            [attr.aria-busy]="loading()"
+          >
+            @if (listError()) {
+              <p-message severity="error" [closable]="false">
+                <span class="customers__error">
+                  {{ listErrorMessage }}
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    size="small"
+                    (click)="loadList()"
+                  >
+                    Retry
+                  </button>
+                </span>
+              </p-message>
+            } @else if (loading()) {
+              <div class="customers__skeletons">
+                @for (row of skeletonRows; track row) {
+                  <p-skeleton height="2.5rem" />
+                }
+              </div>
+            } @else if (rows().length === 0) {
+              <div class="customers__empty">
+                @switch (emptyKind()) {
+                  @case ('filtered') {
+                    <p>{{ emptyFilteredMessage }}</p>
+                    <button pButton type="button" severity="secondary" (click)="clearFilters()">
+                      Clear filters
+                    </button>
+                  }
+                  @case ('archived') {
+                    <p>{{ emptyArchivedMessage }}</p>
+                  }
+                  @case ('tab') {
+                    <p>{{ emptyFilteredMessage }}</p>
+                  }
+                  @default {
+                    <p class="customers__empty-title">{{ emptyInitialTitle }}</p>
+                    <p>{{ emptyInitialMessage }}</p>
+                    <div class="customers__actions">
+                      @if (canImport()) {
+                        <button
+                          pButton
+                          type="button"
+                          severity="secondary"
+                          [outlined]="true"
+                          (click)="openImport()"
+                        >
+                          <i class="pi pi-download" aria-hidden="true"></i>
+                          Import customers
+                        </button>
+                      }
+                      @if (canMutate()) {
+                        <button pButton type="button" (click)="openCreate()">
+                          <i class="pi pi-plus" aria-hidden="true"></i>
+                          New customer
+                        </button>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            } @else {
+              <app-customer-table
+                [rows]="rows()"
+                [sort]="sort()"
+                [currency]="currency()"
+                [timezone]="timezone()"
+                [busyId]="mutatingId()"
+                (sortRequested)="toggleNameSort()"
+                (nameClicked)="onNameClicked($event)"
+                (menuRequested)="openMenu($event.event, $event.row)"
+              />
+              <div class="customers__pager">
+                <p class="customers__pager-report">{{ report() }}</p>
+                <nav class="customers__pagination" aria-label="Pagination">
+                  <button
+                    type="button"
+                    class="customers__page customers__page--step"
+                    aria-label="Previous page"
+                    [disabled]="page() === 1"
+                    (click)="goToPage(page() - 1)"
+                  >
+                    <i class="pi pi-chevron-left" aria-hidden="true"></i>
+                  </button>
+                  @for (item of pages(); track $index) {
+                    @if (item === null) {
+                      <span class="customers__ellipsis" aria-hidden="true">…</span>
+                    } @else {
+                      <button
+                        type="button"
+                        class="customers__page customers__page--number"
+                        [class.customers__page--current]="item === page()"
+                        [attr.aria-label]="'Page ' + item"
+                        [attr.aria-current]="item === page() ? 'page' : null"
+                        (click)="goToPage(item)"
+                      >
+                        {{ item }}
+                      </button>
+                    }
+                  }
+                  <span class="customers__page-count">Page {{ page() }} of {{ totalPages() }}</span>
+                  <button
+                    type="button"
+                    class="customers__page customers__page--step"
+                    aria-label="Next page"
+                    [disabled]="page() === totalPages()"
+                    (click)="goToPage(page() + 1)"
+                  >
+                    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                  </button>
+                </nav>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+    }
+  </div>
+
+  @if (!forbidden()) {
+    <app-customer-drawer
+      [open]="drawerOpen()"
+      [mode]="drawerMode()"
+      [customerId]="drawerCustomerId()"
+      [branches]="branches()"
+      [countryCode]="countryCode()"
+      [tags]="tags()"
+      [tagsLoading]="tagsLoading()"
+      (saved)="onDrawerSaved()"
+      (closed)="onDrawerClosed()"
+      (unauthorized)="onUnauthorized()"
+      (unavailable)="onCustomerUnavailable()"
+      (openCustomer)="onOpenExisting($event)"
+      (tagCreated)="onTagCreated($event)"
+    />
+  }
+
+  @if (canImport() && !forbidden()) {
+    <app-import-dialog
+      [(visible)]="importOpen"
+      (imported)="onImported($event)"
+      (unauthorized)="onUnauthorized()"
+    />
+  }
+</div>

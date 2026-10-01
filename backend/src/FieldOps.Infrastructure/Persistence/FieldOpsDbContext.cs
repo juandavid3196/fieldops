@@ -51,6 +51,10 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<CustomerNote> CustomerNotes => Set<CustomerNote>();
 
+    public DbSet<CustomerTag> CustomerTags => Set<CustomerTag>();
+
+    public DbSet<CustomerTagAssignment> CustomerTagAssignments => Set<CustomerTagAssignment>();
+
     public DbSet<ServiceCategory> ServiceCategories => Set<ServiceCategory>();
 
     public DbSet<CatalogItem> CatalogItems => Set<CatalogItem>();

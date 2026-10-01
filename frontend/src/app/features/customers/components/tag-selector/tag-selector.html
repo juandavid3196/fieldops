@@ -1,0 +1,91 @@
+<div class="tags" #host (focusout)="onFocusOut($event, host)">
+  <input
+    pInputText
+    fluid
+    role="combobox"
+    autocomplete="off"
+    aria-autocomplete="list"
+    aria-haspopup="listbox"
+    placeholder="Select tags"
+    maxlength="40"
+    [id]="inputId()"
+    [disabled]="disabled()"
+    [invalid]="invalid()"
+    [ngModel]="query()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="listId()"
+    [attr.aria-activedescendant]="open() && activeIndex() >= 0 ? optionId(activeIndex()) : null"
+    [attr.aria-invalid]="invalid() ? 'true' : null"
+    [attr.aria-describedby]="describedBy()"
+    (ngModelChange)="onQuery($event)"
+    (focus)="show()"
+    (click)="show()"
+    (keydown)="onKeydown($event)"
+  />
+
+  @if (open()) {
+    <ul
+      class="tags__list"
+      role="listbox"
+      aria-multiselectable="true"
+      aria-label="Tags"
+      [id]="listId()"
+    >
+      @if (loading()) {
+        <li class="tags__status" role="presentation">Loading tags…</li>
+      } @else {
+        @for (option of options(); track option.key; let index = $index) {
+          <li
+            role="option"
+            class="tags__option"
+            [id]="optionId(index)"
+            [class.tags__option--active]="index === activeIndex()"
+            [class.tags__option--create]="option.createName !== null"
+            [attr.aria-selected]="option.createName === null ? option.selected : null"
+            [attr.aria-disabled]="option.disabled ? 'true' : null"
+            (mousedown)="$event.preventDefault()"
+            tabindex="-1"
+            (click)="choose(option)"
+            (keydown.enter)="choose(option)"
+          >
+            @if (option.createName === null) {
+              <i
+                class="pi"
+                [class.pi-check-square]="option.selected"
+                [class.pi-stop]="!option.selected"
+                aria-hidden="true"
+              ></i>
+            } @else {
+              <i class="pi pi-plus" aria-hidden="true"></i>
+            }
+            {{ option.label }}
+          </li>
+        } @empty {
+          <li class="tags__status" role="presentation">No tags found.</li>
+        }
+        @if (atLimit()) {
+          <li class="tags__status" role="presentation">Choose up to {{ maxTags }} tags.</li>
+        }
+      }
+    </ul>
+  }
+
+  @if (selected().length > 0) {
+    <ul class="tags__chips" aria-label="Selected tags">
+      @for (tag of selected(); track tag.id) {
+        <li class="tags__chip">
+          {{ tag.name }}
+          @if (!disabled()) {
+            <button
+              type="button"
+              [attr.aria-label]="'Remove tag ' + tag.name"
+              (click)="removed.emit(tag)"
+            >
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          }
+        </li>
+      }
+    </ul>
+  }
+</div>

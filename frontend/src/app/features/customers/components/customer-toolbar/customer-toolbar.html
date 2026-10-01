@@ -1,0 +1,112 @@
+<div class="toolbar__tabs" role="tablist" aria-label="Customer lifecycle">
+  @for (item of tabs; track item.code; let index = $index) {
+    <button
+      type="button"
+      role="tab"
+      class="toolbar__tab"
+      aria-controls="customers-results"
+      [attr.aria-selected]="tab() === item.code"
+      [attr.tabindex]="tab() === item.code ? 0 : -1"
+      (click)="tabChange.emit(item.code)"
+      (keydown)="onTabKeydown($event, index)"
+    >
+      {{ item.label }} ({{ count(item) }})
+    </button>
+  }
+</div>
+
+<div class="toolbar__filters" role="search" aria-label="Filter customers">
+  <p-iconfield class="toolbar__search-field">
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      class="toolbar__control"
+      placeholder="Search customers..."
+      aria-label="Search customers"
+      maxlength="100"
+      fluid
+      [ngModel]="searchText()"
+      (ngModelChange)="searchTextChange.emit($event)"
+    />
+  </p-iconfield>
+
+  <p-select
+    class="toolbar__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Customer type"
+    [options]="typeOptions"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="type() ?? 'all'"
+    (ngModelChange)="typeChange.emit($event === 'all' ? null : $event)"
+  >
+    <ng-template #selectedItem let-option>
+      {{ option.code === 'all' ? 'Customer type' : option.label }}
+    </ng-template>
+  </p-select>
+
+  <p-select
+    class="toolbar__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Branch"
+    [options]="branchOptions()"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="branchId() ?? 'all'"
+    (ngModelChange)="branchChange.emit($event === 'all' ? null : $event)"
+  >
+    <ng-template #selectedItem let-option>
+      {{ option.code === 'all' ? 'Branch' : option.label }}
+    </ng-template>
+  </p-select>
+
+  <p-multiselect
+    class="toolbar__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Tags"
+    placeholder="Tags"
+    display="comma"
+    selectedItemsLabel="{0} tags"
+    [maxSelectedLabels]="1"
+    [showToggleAll]="false"
+    [options]="tagOptions()"
+    optionLabel="name"
+    optionValue="id"
+    [ngModel]="tagIds()"
+    (ngModelChange)="tagIdsChange.emit($event ?? [])"
+  />
+
+  <p-select
+    class="toolbar__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Balance status"
+    [options]="balanceOptions"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="balanceStatus()"
+    (ngModelChange)="balanceChange.emit($event)"
+  >
+    <ng-template #selectedItem let-option>
+      {{ option.code === 'any' ? 'Balance status' : option.label }}
+    </ng-template>
+  </p-select>
+
+  <p-select
+    class="toolbar__select toolbar__select--sort"
+    appendTo="body"
+    fluid
+    ariaLabel="Sort customers"
+    [options]="sortOptions"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="sort()"
+    (ngModelChange)="sortChange.emit($event)"
+  >
+    <ng-template #selectedItem let-option>Sort: {{ option.label }}</ng-template>
+  </p-select>
+</div>

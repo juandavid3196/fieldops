@@ -4,7 +4,7 @@
 | -------- | ---------------------- |
 | Feature  | `customer-management`  |
 | Type     | Full-stack             |
-| Status   | APPROVED               |
+| Status   | AUDITED                |
 | Created  | 2026-09-30             |
 | Updated  | 2026-09-30             |
 | Approved | 2026-09-30             |
@@ -434,3 +434,5 @@ unauthenticated. Validation errors use the existing `400` problem shape with
 | 2026-09-30 | APPROVED → DRAFT | Revised during implementation (user decision OD-20): customer type changeable on edit with confirmation (BR-21); BR-11, FR-07, AC-15, PUT contract and frontend testing row updated |
 | 2026-09-30 | DRAFT → DRAFT | Validation fix: Customer type validation applies to Create and Edit (`PUT` missing/invalid `type` → `400 errors.type`) |
 | 2026-09-30 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-09-30 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-09-30 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

@@ -1,0 +1,85 @@
+<div class="customer-table">
+  <table class="customer-table__table">
+    <thead>
+      <tr>
+        <th scope="col" [attr.aria-sort]="ariaSort()">
+          <button type="button" class="customer-table__sort" (click)="sortRequested.emit()">
+            Name
+            <i
+              class="pi"
+              [class.pi-sort-alt]="ariaSort() === 'none'"
+              [class.pi-arrow-up]="ariaSort() === 'ascending'"
+              [class.pi-arrow-down]="ariaSort() === 'descending'"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </th>
+        @for (column of columns; track column) {
+          <th scope="col">{{ column }}</th>
+        }
+        <th scope="col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (view of views(); track view.row.id) {
+        <tr>
+          <td class="customer-table__name">
+            <button type="button" class="customer-table__link" (click)="nameClicked.emit(view.row)">
+              {{ view.row.displayName }}
+            </button>
+          </td>
+          <td>{{ view.row.type === 'commercial' ? 'Commercial' : 'Residential' }}</td>
+          <td class="customer-table__contact">
+            @for (line of view.contact; track line) {
+              <span class="customer-table__line">{{ line }}</span>
+            }
+          </td>
+          <td class="customer-table__plain">{{ view.properties }}</td>
+          <td>
+            @if (view.lastDate; as date) {
+              <span class="customer-table__line">{{ date }}</span>
+              @if (view.lastSummary; as summary) {
+                <span
+                  class="customer-table__line customer-table__muted customer-table__truncate"
+                  [attr.title]="summary"
+                  >{{ summary }}</span
+                >
+              }
+            } @else {
+              <span class="customer-table__muted">{{ noService }}</span>
+            }
+          </td>
+          <td>
+            @if (view.nextDate; as date) {
+              <span class="customer-table__line">{{ date }}</span>
+              <span class="customer-table__line customer-table__muted">{{ view.nextTime }}</span>
+            } @else {
+              <span class="customer-table__muted">{{ noNextService }}</span>
+            }
+          </td>
+          <td class="customer-table__number">{{ view.balance }}</td>
+          <td>
+            <p-tag
+              [rounded]="true"
+              icon="pi pi-circle-fill"
+              [severity]="view.severity"
+              [value]="view.statusLabel"
+            />
+          </td>
+          <td class="customer-table__actions">
+            <button
+              type="button"
+              class="customer-table__menu-button"
+              aria-haspopup="menu"
+              [attr.aria-label]="'Actions for ' + view.row.displayName"
+              [disabled]="busyId() === view.row.id"
+              (click)="menuRequested.emit({ event: $event, row: view.row })"
+            >
+              <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
