@@ -5,7 +5,7 @@ import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { customerDetailRoute, customersRoute } from './features/customers/customers.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
-import { teamRoute } from './features/team/team.routes';
+import { skillsAvailabilityRoute, teamRoute } from './features/team/team.routes';
 import { usersAdminRoute } from './features/users/users.routes';
 
 export const routes: Routes = [
@@ -38,6 +38,7 @@ export const routes: Routes = [
       customersRoute,
       customerDetailRoute,
       teamRoute,
+      skillsAvailabilityRoute,
     ],
   },
   { path: '**', redirectTo: 'auth/sign-in' },

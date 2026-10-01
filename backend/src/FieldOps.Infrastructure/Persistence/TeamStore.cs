@@ -12,7 +12,7 @@ using Npgsql;
 
 namespace FieldOps.Infrastructure.Persistence;
 
-internal sealed class TeamStore(FieldOpsDbContext dbContext) : ITeamStore
+internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStore
 {
     private static readonly string[] LinkableRoles = ["technician", "dispatcher", "operations_manager"];
 

@@ -79,6 +79,10 @@ public static class DependencyInjection
         services.AddScoped<ListLinkableAccountsHandler>();
         services.AddScoped<ChangeTechnicianAccountLinkHandler>();
         services.AddScoped<GetSkillCoverageHandler>();
+        services.AddScoped<GetSkillsAvailabilityHandler>();
+        services.AddScoped<SaveSkillsAvailabilityHandler>();
+        services.AddScoped<TechnicianExceptionsHandler>();
+        services.AddScoped<SkillCatalogHandler>();
         services.AddScoped<ListUsersHandler>();
         services.AddScoped<GetUsersSummaryHandler>();
         services.AddSingleton<GetPermissionMatrixHandler>();

@@ -1,0 +1,181 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="onVisibleChange($event)"
+  [modal]="true"
+  [closable]="!busy()"
+  [draggable]="false"
+  [style]="{ width: '38rem' }"
+  [breakpoints]="{ '575px': '90vw' }"
+  header="Manage skill list"
+>
+  <div class="catalog">
+    <div class="catalog__bar">
+      <p class="catalog__hint">Skills available to assign to technicians in your organization.</p>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="busy() || loading() || loadFailed() || draft() !== null"
+        (click)="startAdd()"
+      >
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        Add skill
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="catalog__skeletons" aria-busy="true">
+        @for (row of skeletons; track row) {
+          <p-skeleton height="2.5rem" />
+        }
+      </div>
+    } @else if (loadFailed()) {
+      <p-message severity="error" [closable]="false">
+        <span class="catalog__retry">
+          We couldn't load the skill list.
+          <button pButton type="button" size="small" severity="secondary" (click)="load()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else {
+      @if (skills().length === 0 && draft()?.id !== '') {
+        <p class="catalog__empty">{{ emptyMessage }}</p>
+      }
+      <ul class="catalog__list">
+        @if (draft(); as edit) {
+          @if (edit.id === '') {
+            <li class="catalog__row catalog__row--edit">
+              <ng-container *ngTemplateOutlet="editor; context: { $implicit: edit }" />
+            </li>
+          }
+        }
+        @for (skill of skills(); track skill.id) {
+          <li class="catalog__row" [class.catalog__row--edit]="draft()?.id === skill.id">
+            @if (draft(); as edit) {
+              @if (edit.id === skill.id) {
+                <ng-container *ngTemplateOutlet="editor; context: { $implicit: edit }" />
+              } @else {
+                <ng-container *ngTemplateOutlet="summary; context: { $implicit: skill }" />
+              }
+            } @else {
+              <ng-container *ngTemplateOutlet="summary; context: { $implicit: skill }" />
+            }
+          </li>
+        }
+      </ul>
+    }
+
+    @if (failed()) {
+      <p-message severity="error" [closable]="false">
+        We couldn't save the skill. Try again.
+      </p-message>
+    }
+  </div>
+
+  <ng-template #summary let-skill>
+    <div class="catalog__info">
+      <span class="catalog__name">{{ skill.name }}</span>
+      @if (skill.description) {
+        <span class="catalog__description">{{ skill.description }}</span>
+      }
+    </div>
+    <p-tag
+      [rounded]="true"
+      [severity]="skill.isActive ? 'success' : 'secondary'"
+      [value]="skill.isActive ? 'Active' : 'Inactive'"
+    />
+    <span class="catalog__actions">
+      <button
+        pButton
+        type="button"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [disabled]="busy() || draft() !== null"
+        [attr.aria-label]="'Edit ' + skill.name"
+        (click)="startEdit(skill)"
+      >
+        Edit
+      </button>
+      <button
+        pButton
+        type="button"
+        size="small"
+        severity="secondary"
+        [text]="true"
+        [disabled]="busy() || draft() !== null"
+        [attr.aria-label]="(skill.isActive ? 'Deactivate ' : 'Activate ') + skill.name"
+        (click)="setActive(skill, !skill.isActive)"
+      >
+        {{ skill.isActive ? 'Deactivate' : 'Activate' }}
+      </button>
+    </span>
+  </ng-template>
+
+  <ng-template #editor let-edit>
+    <div class="catalog__form">
+      <div class="catalog__field">
+        <label for="skill-name">Name</label>
+        <input
+          pInputText
+          id="skill-name"
+          type="text"
+          fluid
+          autocomplete="off"
+          [ngModel]="edit.name"
+          (ngModelChange)="patch({ name: $event })"
+          [disabled]="busy()"
+          [attr.aria-invalid]="nameError() ? 'true' : null"
+        />
+        @if (nameError(); as message) {
+          <p class="catalog__error" role="alert">{{ message }}</p>
+        }
+      </div>
+      <div class="catalog__field">
+        <label for="skill-description">Description (optional)</label>
+        <input
+          pInputText
+          id="skill-description"
+          type="text"
+          fluid
+          autocomplete="off"
+          [ngModel]="edit.description"
+          (ngModelChange)="patch({ description: $event })"
+          [disabled]="busy()"
+          [attr.aria-invalid]="descriptionError() ? 'true' : null"
+        />
+        @if (descriptionError(); as message) {
+          <p class="catalog__error" role="alert">{{ message }}</p>
+        }
+      </div>
+      <div class="catalog__form-actions">
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy()"
+          (click)="cancelEdit()"
+        >
+          Cancel
+        </button>
+        <button pButton type="button" [loading]="busy()" (click)="save()">Save</button>
+      </div>
+    </div>
+  </ng-template>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="busy()"
+      (click)="close()"
+    >
+      Close
+    </button>
+  </ng-template>
+</p-dialog>

@@ -1,0 +1,90 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.skills {
+  padding: 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__muted {
+    margin: 0.25rem 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__empty {
+    margin: 0.75rem 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: center;
+
+    @media (min-width: 30rem) {
+      grid-template-columns: minmax(0, 1fr) 10rem 11rem;
+    }
+  }
+
+  &__name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__actions {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  &__error {
+    margin: 0 0 0.5rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__link {
+    padding: 0;
+    font: inherit;
+    color: var(--fo-color-primary-strong);
+    text-decoration: underline;
+    background: none;
+    border: 0;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+}

@@ -39,8 +39,8 @@ export class TechnicianProfile {
   readonly linkRequested = output<void>();
   readonly unlinkRequested = output<void>();
 
-  readonly skillsPath = SKILLS_PATH;
-  readonly availabilityPath = AVAILABILITY_PATH;
+  /** BR-20: "Edit skills" and "Edit availability" open the technician's skills & availability page. */
+  readonly editPath = computed(() => `/team/${this.detail().id}/skills-availability`);
   readonly statusLabels = STATUS_LABELS;
   readonly statusSeverity = statusSeverity;
 

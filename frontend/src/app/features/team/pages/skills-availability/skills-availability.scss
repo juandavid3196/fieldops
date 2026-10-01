@@ -1,0 +1,359 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.sa {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem 2.5rem;
+  overflow-wrap: anywhere;
+
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem 2.5rem;
+  }
+
+  &__notice {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 1rem;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__notice-text {
+    margin: 0;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__error {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    font-size: 0.875rem;
+    list-style: none;
+    color: var(--fo-color-heading);
+
+    li:not(:last-child)::after {
+      margin-inline-start: 0.5rem;
+      color: var(--fo-color-text-muted);
+      content: '/';
+    }
+
+    li[aria-current] {
+      font-weight: 600;
+    }
+
+    a {
+      color: var(--fo-color-text-secondary);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__identity {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  &__avatar {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+
+    a {
+      color: inherit;
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin: 0.25rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 1.5rem;
+    overflow-x: auto;
+    border-block-end: 1px solid var(--fo-color-border);
+
+    > * {
+      padding: 0.5rem 0.25rem;
+      color: var(--fo-color-text-secondary);
+      text-decoration: none;
+      white-space: nowrap;
+      border-block-end: 2px solid transparent;
+    }
+
+    [aria-current] {
+      font-weight: 600;
+      color: var(--fo-color-primary-strong);
+      border-block-end-color: var(--fo-color-primary);
+    }
+  }
+
+  // The right column stacks under the left one below desktop.
+  &__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+
+    @include bp.up(lg) {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    }
+  }
+
+  &__column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  &__card {
+    padding: 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__card-title {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.75rem;
+    align-items: baseline;
+    margin: 0 0 0.75rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__muted {
+    font-size: 0.875rem;
+    font-weight: 400;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__capacity {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 1.5rem;
+    align-items: center;
+  }
+
+  &__stats {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0;
+
+    > div {
+      padding: 0.25rem 1.25rem;
+      border-inline-start: 1px solid var(--fo-color-row-divider);
+
+      &:first-child {
+        padding-inline-start: 0;
+        border-inline-start: 0;
+      }
+    }
+
+    dt {
+      font-size: 0.875rem;
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
+    }
+
+    > div:nth-child(3) dd {
+      color: var(--fo-color-primary-strong);
+    }
+  }
+
+  &__stats &__over {
+    color: var(--fo-color-danger-text);
+  }
+
+  &__bar {
+    display: flex;
+    flex: 1 1 14rem;
+    min-block-size: 1.75rem;
+    overflow: hidden;
+    font-size: 1rem;
+    font-weight: 700;
+    background: var(--fo-color-neutral-background);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__bar-fill {
+    flex: none;
+    min-inline-size: 3rem;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.75rem;
+    color: var(--fo-color-on-primary);
+    background: var(--fo-color-primary);
+
+    &--over {
+      background: var(--fo-color-danger-solid);
+    }
+  }
+
+  &__bar-rest {
+    min-inline-size: 3rem;
+    white-space: nowrap;
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0.75rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__upcoming {
+    margin: 0;
+
+    > div {
+      display: grid;
+      grid-template-columns: 6rem minmax(0, 1fr);
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-block-end: 1px solid var(--fo-color-row-divider);
+    }
+
+    dd {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0;
+    }
+  }
+
+  &__steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0 0 0.75rem;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+  }
+
+  &__step {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__note {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__related {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    align-items: center;
+  }
+
+  &__related-label {
+    font-weight: 600;
+  }
+
+  &__link {
+    margin-inline-start: auto;
+    color: var(--fo-color-primary-strong);
+  }
+}

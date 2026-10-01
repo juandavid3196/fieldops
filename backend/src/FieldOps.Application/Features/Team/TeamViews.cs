@@ -94,13 +94,16 @@ public sealed record TeamResult<T>(
     T? Value = default,
     IReadOnlyDictionary<string, string[]>? Errors = null,
     string? Message = null,
-    int? UpcomingVisitCount = null)
+    int? UpcomingVisitCount = null,
+    string? Code = null)
 {
     public static TeamResult<T> Ok(T value) => new(TeamResultKind.Succeeded, value);
 
     public static TeamResult<T> NoOp() => new(TeamResultKind.NoContent);
 
     public static TeamResult<T> NotFound() => new(TeamResultKind.NotFound);
+
+    public static TeamResult<T> NotFound(string message) => new(TeamResultKind.NotFound, Message: message);
 
     public static TeamResult<T> Invalid(string key, string message) =>
         new(
@@ -112,6 +115,10 @@ public sealed record TeamResult<T>(
 
     public static TeamResult<T> Conflict(string message, int? upcomingVisitCount = null) =>
         new(TeamResultKind.Conflict, Message: message, UpcomingVisitCount: upcomingVisitCount);
+
+    /// <summary>A conflict with a machine-readable <c>code</c> extension (never displayed).</summary>
+    public static TeamResult<T> Conflict(string message, string code) =>
+        new(TeamResultKind.Conflict, Message: message, Code: code);
 }
 
 public readonly record struct TeamNoValue;

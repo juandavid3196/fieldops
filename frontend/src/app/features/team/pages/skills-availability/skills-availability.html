@@ -1,0 +1,239 @@
+<p-toast />
+<app-confirm-dialog />
+<app-discard-changes-dialog />
+
+<div class="sa">
+  @if (forbidden()) {
+    <p class="sa__notice">{{ forbiddenMessage }}</p>
+  } @else if (notFound()) {
+    <section class="sa__notice" aria-live="polite">
+      <p class="sa__notice-text">{{ notAvailableMessage }}</p>
+      <a pButton routerLink="/team">Back to Team</a>
+    </section>
+  } @else if (loadFailed()) {
+    <p-message severity="error" [closable]="false">
+      <span class="sa__error">
+        {{ loadErrorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="load()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (loading()) {
+    <div class="sa__skeletons" aria-busy="true" aria-label="Loading skills and availability">
+      <p-skeleton height="5rem" />
+      @for (block of skeletons; track block) {
+        <p-skeleton height="12rem" />
+      }
+    </div>
+  } @else if (data(); as page) {
+    <nav class="sa__crumbs" aria-label="Breadcrumb">
+      <ol>
+        <li><a routerLink="/team">Team</a></li>
+        <li>
+          <a [routerLink]="profilePath">{{ name() }}</a>
+        </li>
+        <li aria-current="page">Skills &amp; availability</li>
+      </ol>
+    </nav>
+
+    <header class="sa__header">
+      <div class="sa__identity">
+        <span class="sa__avatar" aria-hidden="true">{{ initials() }}</span>
+        <div>
+          <h1 class="sa__title">
+            <a [routerLink]="profilePath">{{ name() }}</a>
+            <p-tag
+              [rounded]="true"
+              [severity]="statusSeverity(page.technician.profileStatus)"
+              [value]="statusLabels[page.technician.profileStatus]"
+            />
+          </h1>
+          <p class="sa__meta">
+            <span>Technician</span>
+            <span>Home branch: {{ page.technician.branch.name }}</span>
+          </p>
+        </div>
+      </div>
+      <div class="sa__actions">
+        <a pButton severity="secondary" [outlined]="true" [routerLink]="profilePath">
+          View profile
+        </a>
+        @if (canEdit()) {
+          <button
+            pButton
+            type="button"
+            [loading]="saving()"
+            [disabled]="!canSave()"
+            (click)="save()"
+          >
+            Save changes
+          </button>
+        }
+      </div>
+    </header>
+
+    <nav class="sa__tabs" aria-label="Technician sections">
+      <a [routerLink]="profilePath">Overview</a>
+      <a [routerLink]="schedulePath">Schedule</a>
+      <span aria-current="page">Skills &amp; availability</span>
+      <a [routerLink]="historyPath">Job history</a>
+    </nav>
+
+    @if (conflict()) {
+      <p-message severity="error" [closable]="false">
+        <span class="sa__error">
+          {{ conflictMessage }}
+          <button pButton type="button" size="small" severity="secondary" (click)="reload()">
+            Reload
+          </button>
+        </span>
+      </p-message>
+    }
+    @if (saveFailed()) {
+      <p-message severity="error" [closable]="false">{{ saveFailedMessage }}</p-message>
+    }
+
+    <div class="sa__grid">
+      <div class="sa__column">
+        <app-weekly-availability
+          [days]="days()"
+          [timezoneLabel]="page.timezoneLabel"
+          [readOnly]="readOnly()"
+          [disabled]="saving()"
+          [errors]="dayErrors()"
+          (daysChange)="days.set($event)"
+          (copyRequested)="copyMonday()"
+          (resetRequested)="reset()"
+        />
+
+        <app-availability-exceptions
+          [technicianId]="page.technician.id"
+          [exceptions]="page.exceptions"
+          [timezone]="page.timezone"
+          [readOnly]="readOnly()"
+          (changed)="refreshDerived()"
+          (unauthorized)="onUnauthorized()"
+          (unavailable)="onUnavailable()"
+        />
+
+        <section class="sa__card" aria-labelledby="capacity-heading">
+          <h2 class="sa__card-title" id="capacity-heading">
+            Next 7 days capacity
+            <span class="sa__muted">Existing jobs are edited in the Dispatch Calendar.</span>
+          </h2>
+          <div class="sa__capacity">
+            <dl class="sa__stats">
+              <div>
+                <dt>Available</dt>
+                <dd>{{ capacity().available }}</dd>
+              </div>
+              <div>
+                <dt>Scheduled</dt>
+                <dd>{{ capacity().scheduled }}</dd>
+              </div>
+              <div>
+                <dt>Remaining</dt>
+                <dd>{{ capacity().remaining }}</dd>
+              </div>
+              <div>
+                <dt>Utilization</dt>
+                <dd [class.sa__over]="capacity().utilization.over">
+                  {{ capacity().utilization.text }}
+                </dd>
+              </div>
+            </dl>
+            @if (capacity().utilization.fill !== null) {
+              <div class="sa__bar" aria-hidden="true">
+                @if (capacity().utilization.fill === 0) {
+                  <span class="sa__bar-rest">{{ capacity().utilization.text }}</span>
+                } @else {
+                  <span
+                    class="sa__bar-fill"
+                    [class.sa__bar-fill--over]="capacity().utilization.over"
+                    [style.inline-size.%]="capacity().utilization.fill"
+                  >
+                    {{ capacity().utilization.text }}
+                  </span>
+                  @if (capacity().utilization.remainder) {
+                    <span class="sa__bar-rest">{{ capacity().utilization.remainder }}%</span>
+                  }
+                }
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+
+      <div class="sa__column">
+        <app-operational-skills
+          [rows]="skillRows()"
+          [catalog]="catalog()"
+          [readOnly]="readOnly()"
+          [disabled]="saving()"
+          [error]="skillsError()"
+          (rowsChange)="skillRows.set($event)"
+          (manageRequested)="catalogOpen.set(true)"
+        />
+
+        <section class="sa__card" aria-labelledby="upcoming-heading">
+          <h2 class="sa__card-title" id="upcoming-heading">Upcoming availability</h2>
+          <dl class="sa__upcoming">
+            @for (row of upcoming(); track row.key) {
+              <div>
+                <dt>{{ row.label }}</dt>
+                <dd>
+                  @if (row.unavailable) {
+                    <p-tag severity="danger" [rounded]="true" value="Unavailable" />
+                  } @else {
+                    {{ row.text }}
+                    @if (row.limited) {
+                      <p-tag severity="warn" [rounded]="true" value="Limited" />
+                    }
+                  }
+                </dd>
+              </div>
+            }
+          </dl>
+        </section>
+
+        <section class="sa__card" aria-labelledby="matching-heading">
+          <h2 class="sa__card-title" id="matching-heading">How assignment matching works</h2>
+          <ol class="sa__steps">
+            @for (step of matchingSteps; track step; let index = $index) {
+              <li>
+                <span class="sa__step" aria-hidden="true">{{ index + 1 }}</span>
+                {{ step }}
+              </li>
+            }
+          </ol>
+          <p class="sa__note">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            FieldOps never assigns a technician automatically.
+          </p>
+        </section>
+
+        <section class="sa__card" aria-labelledby="related-heading">
+          <h2 class="sa__card-title" id="related-heading">Related schedule</h2>
+          <div class="sa__related">
+            <span class="sa__related-label">Today</span>
+            <span>{{ page.today.jobs }} {{ page.today.jobs === 1 ? 'job' : 'jobs' }}</span>
+            <span>{{ booked() }}</span>
+            <a class="sa__link" [routerLink]="schedulePath">
+              Open dispatch calendar
+              <i class="pi pi-external-link" aria-hidden="true"></i>
+            </a>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    @if (canEdit()) {
+      <app-skill-catalog-dialog
+        [(visible)]="catalogOpen"
+        (catalogChange)="onCatalogChange($event)"
+        (unauthorized)="onUnauthorized()"
+      />
+    }
+  }
+</div>

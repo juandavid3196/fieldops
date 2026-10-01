@@ -135,7 +135,7 @@ CREATE TABLE catalog_item_images (
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY (organization_id, catalog_item_id) REFERENCES catalog_items(organization_id, id) ON DELETE CASCADE
 );
-CREATE TABLE skills (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), name varchar(120) NOT NULL, description text, is_active boolean NOT NULL DEFAULT true, UNIQUE(organization_id,name), UNIQUE(organization_id,id));
+CREATE TABLE skills (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), name varchar(120) NOT NULL, description text, is_active boolean NOT NULL DEFAULT true, UNIQUE(organization_id,id));
 CREATE TABLE technician_profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), branch_id uuid NOT NULL REFERENCES branches(id),
   organization_user_id uuid, employee_code varchar(50), first_name varchar(100) NOT NULL, last_name varchar(100) NOT NULL,
@@ -146,7 +146,7 @@ CREATE TABLE technician_profiles (
 CREATE TABLE technician_skills (technician_id uuid NOT NULL REFERENCES technician_profiles(id) ON DELETE CASCADE, skill_id uuid NOT NULL REFERENCES skills(id), proficiency smallint CHECK(proficiency BETWEEN 1 AND 5), years_experience numeric(4,1), is_primary boolean NOT NULL DEFAULT false, PRIMARY KEY(technician_id,skill_id));
 CREATE TABLE technician_weekly_availability (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), technician_id uuid NOT NULL REFERENCES technician_profiles(id) ON DELETE CASCADE, day_of_week smallint NOT NULL CHECK(day_of_week BETWEEN 0 AND 6), start_time time NOT NULL, end_time time NOT NULL, capacity_percent smallint NOT NULL DEFAULT 100 CHECK(capacity_percent BETWEEN 1 AND 100), CHECK(start_time<end_time));
 CREATE TABLE technician_breaks (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), availability_id uuid NOT NULL REFERENCES technician_weekly_availability(id) ON DELETE CASCADE, start_time time NOT NULL, end_time time NOT NULL, CHECK(start_time<end_time));
-CREATE TABLE technician_exceptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), technician_id uuid NOT NULL REFERENCES technician_profiles(id) ON DELETE CASCADE, starts_at timestamptz NOT NULL, ends_at timestamptz NOT NULL, is_available boolean NOT NULL DEFAULT false, reason varchar(200), CHECK(starts_at<ends_at));
+CREATE TABLE technician_exceptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), technician_id uuid NOT NULL REFERENCES technician_profiles(id) ON DELETE CASCADE, starts_at timestamptz NOT NULL, ends_at timestamptz NOT NULL, is_available boolean NOT NULL DEFAULT false, reason varchar(200), status varchar(20) NOT NULL DEFAULT 'active' CHECK(status IN ('active','cancelled')), created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(), CHECK(starts_at<ends_at));
 
 CREATE TABLE service_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), branch_id uuid REFERENCES branches(id),
@@ -253,6 +253,7 @@ CREATE INDEX ix_technicians_branch_status ON technician_profiles(organization_id
 CREATE UNIQUE INDEX ux_technician_profiles_org_user ON technician_profiles(organization_user_id) WHERE organization_user_id IS NOT NULL;
 CREATE UNIQUE INDEX ux_technician_profiles_org_email ON technician_profiles(organization_id,lower(email)) WHERE email IS NOT NULL;
 CREATE UNIQUE INDEX ux_technician_skills_primary ON technician_skills(technician_id) WHERE is_primary;
+CREATE UNIQUE INDEX ux_skills_org_normalized_name ON skills(organization_id,lower(name));
 CREATE INDEX ix_requests_pipeline ON service_requests(organization_id,status,created_at DESC);
 CREATE INDEX ix_requests_customer ON service_requests(organization_id,customer_id);
 CREATE INDEX ix_assessments_schedule ON assessments(organization_id,scheduled_start,status);
