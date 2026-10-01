@@ -61,6 +61,7 @@ import {
   mapBranchServerFieldErrors,
   validateBranchField,
 } from './branch-drawer.validators';
+import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
 const BUSINESS_HOURS_FIELD_PATTERN = /^branch\.businessHours\.(\w+)\.(start|end)$/;
 const DRAWER_ERROR_SUMMARY_ID = 'branch-drawer-error-summary';
@@ -440,13 +441,12 @@ export class BranchDrawer {
 
   requestClose(): void {
     if (this.form.dirty && !this.readOnly()) {
-      this.confirmationService.confirm({
-        header: 'Discard unsaved changes?',
-        message: 'You have unsaved changes. Do you want to discard them?',
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => this.closed.emit(),
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'this branch',
+          accept: () => this.closed.emit(),
+        }),
+      );
       return;
     }
     this.closed.emit();

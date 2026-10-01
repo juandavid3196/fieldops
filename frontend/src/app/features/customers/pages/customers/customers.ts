@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
-import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Menu } from 'primeng/menu';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
@@ -49,6 +48,11 @@ import {
 } from '../../models/customer.model';
 import { CustomersService } from '../../services/customers.service';
 import { pageItems } from '../../utils/customer-format';
+import {
+  DiscardChangesDialog,
+  discardChangesConfirmation,
+} from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
 export const FORBIDDEN_MESSAGE = "You don't have access to customers.";
 export const DESCRIPTION_MESSAGE =
@@ -78,8 +82,9 @@ type ListResult =
 @Component({
   selector: 'app-customers',
   imports: [
-    ButtonDirective,
     ConfirmDialog,
+    DiscardChangesDialog,
+    ButtonDirective,
     Menu,
     Message,
     Skeleton,
@@ -490,21 +495,19 @@ export class Customers {
 
   private confirmDiscard(): Observable<boolean> {
     return new Observable<boolean>((subscriber) => {
-      this.confirmationService.confirm({
-        header: 'Discard unsaved changes?',
-        message: 'Your changes will be lost.',
-        defaultFocus: 'reject',
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => {
-          subscriber.next(true);
-          subscriber.complete();
-        },
-        reject: () => {
-          subscriber.next(false);
-          subscriber.complete();
-        },
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'this customer',
+          accept: () => {
+            subscriber.next(true);
+            subscriber.complete();
+          },
+          reject: () => {
+            subscriber.next(false);
+            subscriber.complete();
+          },
+        }),
+      );
     });
   }
 

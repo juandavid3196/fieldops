@@ -401,7 +401,11 @@ describe('RegisterCompany wizard', () => {
       expect(await router.navigateByUrl('/auth/sign-in')).toBe(false);
       expect(router.url).toBe('/register-company');
       expect(component.form.controls.organization.controls.name.value).toBe('Acme');
-      expect(confirm.mock.calls[0][0].header).toBe('Discard setup?');
+      expect(confirm.mock.calls[0][0]).toMatchObject({
+        key: 'discard-changes',
+        message:
+          'You have unsaved changes in your registration. If you leave now, those changes will be lost.',
+      });
 
       confirm.mockImplementationOnce((options) => {
         options.accept?.();

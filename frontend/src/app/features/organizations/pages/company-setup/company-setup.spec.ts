@@ -222,7 +222,7 @@ describe('CompanySetup', () => {
 
     button('Discard changes')?.click();
     await stable();
-    dialogButton('Discard')?.click();
+    dialogButton('Discard changes')?.click();
     await stable();
     expect(nameInput.value).toBe('Acme Field Services');
     expect(button('Save changes')?.disabled).toBe(true);
@@ -690,7 +690,7 @@ describe('CompanySetup', () => {
     let secondValue: boolean | undefined;
     (secondResult as Observable<boolean>).subscribe((value) => (secondValue = value));
     await stable();
-    dialogButton('Discard')?.click();
+    dialogButton('Discard changes')?.click();
     await stable();
     expect(secondValue).toBe(true);
 

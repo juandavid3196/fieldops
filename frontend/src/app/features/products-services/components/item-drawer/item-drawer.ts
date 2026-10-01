@@ -61,6 +61,7 @@ import {
   validateItem,
   validateItemField,
 } from './item-drawer.validators';
+import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
 export type ItemDrawerMode = 'create' | 'edit' | 'view';
 
@@ -583,14 +584,12 @@ export class ItemDrawer {
       return;
     }
     if (this.dirty()) {
-      this.confirmationService.confirm({
-        header: 'Discard changes?',
-        message: 'You have unsaved changes. Do you want to discard them?',
-        defaultFocus: 'reject',
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => this.closed.emit(),
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'this item',
+          accept: () => this.closed.emit(),
+        }),
+      );
       return;
     }
     this.closed.emit();

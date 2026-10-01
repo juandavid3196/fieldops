@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
-import { ConfirmDialog } from 'primeng/confirmdialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Menu } from 'primeng/menu';
 import { Message } from 'primeng/message';
@@ -53,6 +52,11 @@ import {
 } from '../../models/catalog.model';
 import { CatalogItemsService } from '../../services/catalog-items.service';
 import { moneyFormat, saveCsv } from '../../utils/catalog-format';
+import {
+  DiscardChangesDialog,
+  discardChangesConfirmation,
+} from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
 export const FORBIDDEN_MESSAGE = "You don't have access to products and services.";
 export const READ_ONLY_MESSAGE =
@@ -84,9 +88,10 @@ type ListResult =
 @Component({
   selector: 'app-products-services',
   imports: [
+    ConfirmDialog,
+    DiscardChangesDialog,
     RouterLink,
     ButtonDirective,
-    ConfirmDialog,
     Menu,
     Message,
     Paginator,
@@ -387,21 +392,19 @@ export class ProductsServices {
 
   private confirmDiscard(): Observable<boolean> {
     return new Observable<boolean>((subscriber) => {
-      this.confirmationService.confirm({
-        header: 'Discard changes?',
-        message: 'You have unsaved changes. Do you want to discard them?',
-        defaultFocus: 'reject',
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => {
-          subscriber.next(true);
-          subscriber.complete();
-        },
-        reject: () => {
-          subscriber.next(false);
-          subscriber.complete();
-        },
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'this item',
+          accept: () => {
+            subscriber.next(true);
+            subscriber.complete();
+          },
+          reject: () => {
+            subscriber.next(false);
+            subscriber.complete();
+          },
+        }),
+      );
     });
   }
 
