@@ -26,8 +26,11 @@ CREATE TABLE organizations (
   require_customer_signature boolean NOT NULL DEFAULT false, is_active boolean NOT NULL DEFAULT true,
   website varchar(255), address_line1 varchar(180), city varchar(100), state_region varchar(100),
   postal_code varchar(30), country_code char(2), prices_include_tax boolean NOT NULL DEFAULT false,
+  public_slug varchar(60) NOT NULL CHECK (public_slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(public_slug) BETWEEN 1 AND 60),
+  request_prefix varchar(20) NOT NULL DEFAULT 'REQ', next_request_number bigint NOT NULL DEFAULT 1,
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
 );
+CREATE UNIQUE INDEX ux_organizations_public_slug ON organizations(public_slug);
 CREATE TABLE organization_logos (
   organization_id uuid PRIMARY KEY REFERENCES organizations(id) ON DELETE CASCADE,
   content_type varchar(40) NOT NULL CHECK (content_type IN ('image/png','image/jpeg','image/svg+xml')),
@@ -150,16 +153,19 @@ CREATE TABLE technician_exceptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(
 
 CREATE TABLE service_requests (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), branch_id uuid REFERENCES branches(id),
-  request_number bigint NOT NULL, customer_id uuid, contact_id uuid, property_id uuid, category_id uuid,
+  request_number bigint NOT NULL, customer_id uuid, contact_id uuid, property_id uuid, category_id uuid, catalog_item_id uuid,
   guest_name varchar(180), guest_email varchar(254), guest_phone varchar(40), service_address jsonb,
   description text NOT NULL, preferred_start timestamptz, preferred_end timestamptz, status request_status NOT NULL DEFAULT 'new',
   source varchar(30) NOT NULL DEFAULT 'public_form', assigned_dispatcher_user_id uuid REFERENCES users(id),
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(), cancelled_at timestamptz,
+  urgency varchar(20) NOT NULL DEFAULT 'standard' CHECK(urgency IN ('standard','urgent','emergency')),
+  has_active_damage boolean NOT NULL DEFAULT false, availability_preferences jsonb, consent_at timestamptz,
   FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), FOREIGN KEY(organization_id,contact_id) REFERENCES customer_contacts(organization_id,id),
   FOREIGN KEY(organization_id,property_id) REFERENCES properties(organization_id,id), FOREIGN KEY(organization_id,category_id) REFERENCES service_categories(organization_id,id),
+  FOREIGN KEY(organization_id,catalog_item_id) REFERENCES catalog_items(organization_id,id),
   UNIQUE(organization_id,request_number), UNIQUE(organization_id,id), CHECK(preferred_end IS NULL OR preferred_start IS NULL OR preferred_start<preferred_end)
 );
-CREATE TABLE request_attachments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), request_id uuid NOT NULL, file_name varchar(255) NOT NULL, storage_key text NOT NULL, mime_type varchar(120) NOT NULL, size_bytes bigint NOT NULL CHECK(size_bytes>0), uploaded_by_user_id uuid REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,request_id) REFERENCES service_requests(organization_id,id));
+CREATE TABLE request_attachments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), request_id uuid NOT NULL, file_name varchar(255) NOT NULL, storage_key text, content bytea, mime_type varchar(120) NOT NULL CHECK(mime_type IN ('image/jpeg','image/png','application/pdf')), size_bytes bigint NOT NULL CHECK(size_bytes>0 AND size_bytes<=10485760), uploaded_by_user_id uuid REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,request_id) REFERENCES service_requests(organization_id,id), CHECK(content IS NOT NULL OR storage_key IS NOT NULL));
 CREATE TABLE request_messages (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), request_id uuid NOT NULL, author_user_id uuid REFERENCES users(id), author_contact_id uuid REFERENCES customer_contacts(id), visibility message_visibility NOT NULL, body text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,request_id) REFERENCES service_requests(organization_id,id));
 CREATE TABLE request_status_history (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), request_id uuid NOT NULL, from_status request_status, to_status request_status NOT NULL, changed_by_user_id uuid REFERENCES users(id), reason text, changed_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,request_id) REFERENCES service_requests(organization_id,id));
 
