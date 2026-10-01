@@ -407,6 +407,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("jsonb")
                         .HasColumnName("billing_address");
 
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -468,6 +472,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.HasAlternateKey("OrganizationId", "Id")
                         .HasName("ak_customers_organization_id_id");
+
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("ix_customers_branch_id");
+
+                    b.HasIndex("OrganizationId", "BranchId")
+                        .HasDatabaseName("ix_customers_org_branch");
 
                     b.HasIndex("OrganizationId", "DisplayName")
                         .HasDatabaseName("ix_customers_org_name");
@@ -534,6 +544,18 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("portal_user_id");
 
+                    b.Property<bool>("PrefersEmail")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("prefers_email");
+
+                    b.Property<bool>("PrefersSms")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("prefers_sms");
+
                     b.Property<string>("Title")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -551,6 +573,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasAlternateKey("OrganizationId", "Id")
                         .HasName("ak_customer_contacts_organization_id_id");
 
+                    b.HasIndex("CustomerId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_customer_contacts_primary")
+                        .HasFilter("is_primary");
+
                     b.HasIndex("PortalUserId")
                         .HasDatabaseName("ix_customer_contacts_portal_user_id");
 
@@ -560,7 +587,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId", "Email")
                         .HasDatabaseName("ix_contacts_org_email");
 
-                    b.ToTable("customer_contacts", (string)null);
+                    b.HasIndex("OrganizationId", "Phone")
+                        .HasDatabaseName("ix_contacts_org_phone");
+
+                    b.ToTable("customer_contacts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_customer_contacts_preferred_channel", "prefers_email OR prefers_sms");
+                        });
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Customers.CustomerNote", b =>
@@ -604,6 +637,81 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_customer_notes_organization_id_customer_id");
 
                     b.ToTable("customer_notes", (string)null);
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Customers.CustomerTag", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("NormalizedName")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("normalized_name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_customer_tags");
+
+                    b.HasAlternateKey("OrganizationId", "Id")
+                        .HasName("ak_customer_tags_organization_id_id");
+
+                    b.HasIndex("OrganizationId", "NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("ux_customer_tags_org_normalized_name");
+
+                    b.ToTable("customer_tags", (string)null);
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Customers.CustomerTagAssignment", b =>
+                {
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("customer_id");
+
+                    b.Property<Guid>("TagId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("tag_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.HasKey("CustomerId", "TagId")
+                        .HasName("pk_customer_tag_assignments");
+
+                    b.HasIndex("OrganizationId", "CustomerId")
+                        .HasDatabaseName("ix_customer_tag_assignments_organization_id_customer_id");
+
+                    b.HasIndex("OrganizationId", "TagId")
+                        .HasDatabaseName("ix_customer_tag_assignments_org_tag");
+
+                    b.ToTable("customer_tag_assignments", (string)null);
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Customers.Property", b =>
@@ -3808,12 +3916,27 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("FieldOps.Domain.Customers.Customer", b =>
                 {
+                    b.HasOne("FieldOps.Domain.Branches.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customers_branches_branch_id");
+
                     b.HasOne("FieldOps.Domain.Organizations.Organization", null)
                         .WithMany()
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_customers_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Branches.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "BranchId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customers_branches_organization_id_branch_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Customers.CustomerContact", b =>
@@ -3863,6 +3986,42 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_customer_notes_customers_organization_id_customer_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Customers.CustomerTag", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_tags_organizations_organization_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Customers.CustomerTagAssignment", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_tag_assignments_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Customers.Customer", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CustomerId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_tag_assignments_customers_organization_id_customer");
+
+                    b.HasOne("FieldOps.Domain.Customers.CustomerTag", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "TagId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_tag_assignments_customer_tags_organization_id_tag_");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Customers.Property", b =>

@@ -1,0 +1,24 @@
+<ul class="metrics" aria-label="Customer metrics">
+  @for (metric of items; track metric.key) {
+    <li class="metrics__card metrics__card--{{ metric.tone }}">
+      <span class="metrics__icon" aria-hidden="true">
+        <i class="pi" [class]="metric.icon"></i>
+      </span>
+      <span class="metrics__body">
+        <span class="metrics__label">{{ metric.label }}</span>
+        @if (loading()) {
+          <p-skeleton class="metrics__skeleton" width="4rem" height="1.75rem" />
+        } @else if (failed() || metrics() === null) {
+          <span
+            class="metrics__value metrics__value--empty"
+            [attr.aria-label]="metric.label + ': ' + errorText"
+            role="img"
+            >—</span
+          >
+        } @else {
+          <span class="metrics__value">{{ value(metric) }}</span>
+        }
+      </span>
+    </li>
+  }
+</ul>

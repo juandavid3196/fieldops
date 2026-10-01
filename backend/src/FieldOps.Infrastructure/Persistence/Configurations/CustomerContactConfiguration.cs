@@ -11,7 +11,9 @@ internal sealed class CustomerContactConfiguration
 {
     public void Configure(EntityTypeBuilder<CustomerContact> builder)
     {
-        builder.ToTable("customer_contacts");
+        builder.ToTable("customer_contacts", table => table.HasCheckConstraint(
+            "ck_customer_contacts_preferred_channel",
+            "prefers_email OR prefers_sms"));
 
         builder.HasKey(contact => contact.Id);
 
@@ -51,6 +53,17 @@ internal sealed class CustomerContactConfiguration
             .HasDefaultValue(false)
             .IsRequired();
 
+        // The sentinel keeps an explicit false from being replaced by the
+        // database default (true) on insert.
+        builder.Property(contact => contact.PrefersEmail)
+            .HasDefaultValue(true)
+            .HasSentinel(true)
+            .IsRequired();
+
+        builder.Property(contact => contact.PrefersSms)
+            .HasDefaultValue(false)
+            .IsRequired();
+
         builder.Property(contact => contact.PortalUserId);
 
         // The sentinel keeps an explicit false from being replaced by the
@@ -71,6 +84,16 @@ internal sealed class CustomerContactConfiguration
         // CREATE INDEX ix_contacts_org_email ON customer_contacts (organization_id, email)
         builder.HasIndex(contact => new { contact.OrganizationId, contact.Email })
             .HasDatabaseName("ix_contacts_org_email");
+
+        // CREATE INDEX ix_contacts_org_phone ON customer_contacts (organization_id, phone)
+        builder.HasIndex(contact => new { contact.OrganizationId, contact.Phone })
+            .HasDatabaseName("ix_contacts_org_phone");
+
+        // CREATE UNIQUE INDEX ux_customer_contacts_primary ON customer_contacts (customer_id) WHERE is_primary
+        builder.HasIndex(contact => contact.CustomerId)
+            .IsUnique()
+            .HasFilter("is_primary")
+            .HasDatabaseName("ux_customer_contacts_primary");
 
         builder.HasOne<Organization>()
             .WithMany()

@@ -59,6 +59,13 @@ public static class ApiAuthenticationExtensions
             .AddPolicy(CatalogPolicies.Manage, policy =>
                 policy.Requirements.Add(new MembershipRoleRequirement("owner", "operations_manager")))
             .AddPolicy(CatalogPolicies.Import, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement("owner")))
+            .AddPolicy(CustomerPolicies.View, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement(
+                    "owner", "operations_manager", "dispatcher", "accounting", "viewer")))
+            .AddPolicy(CustomerPolicies.Manage, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement("owner", "dispatcher")))
+            .AddPolicy(CustomerPolicies.Import, policy =>
                 policy.Requirements.Add(new MembershipRoleRequirement("owner")));
 
         return services;

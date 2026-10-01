@@ -1,0 +1,167 @@
+<p-dialog
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!importing()"
+  [closeOnEscape]="!importing()"
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [style]="{ width: '40rem', maxWidth: '94vw' }"
+>
+  <ng-template #header>
+    <div class="import-head">
+      <span class="import-head__tile" aria-hidden="true"><i class="pi pi-file-import"></i></span>
+      <div>
+        <h2 class="import-head__title">Import customers</h2>
+        <p class="import-head__subtitle">Add up to 500 customers from a CSV file.</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="import">
+    <section class="import__template" aria-label="Template">
+      <i class="pi pi-file import__template-icon" aria-hidden="true"></i>
+      <div class="import__template-copy">
+        <strong>Start with the FieldOps template</strong>
+        <span>Use the required columns to avoid formatting errors.</span>
+      </div>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        class="import__template-button"
+        [disabled]="downloading()"
+        (click)="downloadTemplate()"
+      >
+        @if (downloading()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        } @else {
+          <i class="pi pi-download" aria-hidden="true"></i>
+        }
+        Download CSV template
+      </button>
+    </section>
+
+    <div
+      class="import__drop"
+      [class.import__drop--over]="dragOver()"
+      [class.import__drop--invalid]="fileError() !== null"
+      (dragover)="onDragOver($event)"
+      (dragleave)="dragOver.set(false)"
+      (drop)="onDrop($event)"
+    >
+      <input
+        id="import-file"
+        #fileInput
+        class="import__input"
+        type="file"
+        accept=".csv,text/csv"
+        tabindex="-1"
+        aria-label="CSV file"
+        [disabled]="busy()"
+        [attr.aria-describedby]="fileError() !== null ? 'import-file-error' : null"
+        [attr.aria-invalid]="fileError() !== null ? 'true' : null"
+        (change)="onFileSelected($event)"
+      />
+      <i class="pi pi-file import__drop-icon" aria-hidden="true"></i>
+      @if (file(); as chosen) {
+        <p class="import__drop-title">{{ chosen.name }}</p>
+        <p class="import__hint">{{ sizeText(chosen.size) }}</p>
+        <button
+          type="button"
+          class="import__link"
+          aria-label="Remove file"
+          [disabled]="busy()"
+          (click)="removeFile()"
+        >
+          <i class="pi pi-times" aria-hidden="true"></i>Remove
+        </button>
+      } @else {
+        <p class="import__drop-title">Drop your CSV file here</p>
+        <p class="import__drop-or">
+          or
+          <button type="button" class="import__link" [disabled]="busy()" (click)="browse()">
+            browse files
+          </button>
+        </p>
+        <p class="import__hint">CSV only · Maximum 1 MB · Up to 500 rows</p>
+      }
+    </div>
+
+    @if (fileError(); as message) {
+      <p class="import__error" id="import-file-error" role="alert">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>{{ message }}
+      </p>
+    }
+
+    <div aria-live="polite">
+      @if (checking()) {
+        <p class="import__status">Checking file…</p>
+      } @else if (importing()) {
+        <p class="import__status">Importing…</p>
+      }
+    </div>
+
+    @if (rowErrors().length > 0) {
+      <section class="import__results" aria-label="Row errors">
+        <table class="import__table">
+          <thead>
+            <tr>
+              <th scope="col">Row</th>
+              <th scope="col">Column</th>
+              <th scope="col">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (error of rowErrors(); track $index) {
+              <tr>
+                <td>{{ error.row }}</td>
+                <td>{{ error.column }}</td>
+                <td>{{ error.message }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        @if (errorsCapped()) {
+          <p class="import__hint">Showing first 100 errors</p>
+        }
+      </section>
+    } @else if (preview() !== null) {
+      <section class="import__ready" aria-label="Import summary" role="status">
+        <p class="import__ready-title">
+          <i class="pi pi-check-circle" aria-hidden="true"></i>{{ readyText() }}
+        </p>
+        @if (warnings().length > 0) {
+          <ul class="import__warnings" aria-label="Possible duplicates">
+            @for (warning of warnings(); track $index) {
+              <li>
+                Row {{ warning.row }}: same {{ warning.matchedField }} as
+                {{ warning.existingDisplayName }}. Review before importing.
+              </li>
+            }
+          </ul>
+        }
+      </section>
+    }
+  </div>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="importing()"
+      (click)="close()"
+    >
+      Cancel
+    </button>
+    <button pButton type="button" [disabled]="!canImport()" (click)="submit()">
+      @if (importing()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Import customers
+    </button>
+  </ng-template>
+</p-dialog>

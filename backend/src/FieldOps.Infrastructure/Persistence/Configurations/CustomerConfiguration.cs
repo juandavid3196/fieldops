@@ -1,3 +1,4 @@
+using FieldOps.Domain.Branches;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Organizations;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,9 @@ internal sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
             .HasDefaultValueSql("gen_random_uuid()");
 
         builder.Property(customer => customer.OrganizationId)
+            .IsRequired();
+
+        builder.Property(customer => customer.BranchId)
             .IsRequired();
 
         // PostgreSQL enum customer_type, mapped in FieldOpsDbContext.
@@ -71,9 +75,26 @@ internal sealed class CustomerConfiguration : IEntityTypeConfiguration<Customer>
         builder.HasIndex(customer => new { customer.OrganizationId, customer.DisplayName })
             .HasDatabaseName("ix_customers_org_name");
 
+        // CREATE INDEX ix_customers_org_branch ON customers (organization_id, branch_id)
+        builder.HasIndex(customer => new { customer.OrganizationId, customer.BranchId })
+            .HasDatabaseName("ix_customers_org_branch");
+
         builder.HasOne<Organization>()
             .WithMany()
             .HasForeignKey(customer => customer.OrganizationId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // branch_id uuid NOT NULL REFERENCES branches (id)
+        builder.HasOne<Branch>()
+            .WithMany()
+            .HasForeignKey(customer => customer.BranchId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // FOREIGN KEY (organization_id, branch_id) REFERENCES branches (organization_id, id)
+        builder.HasOne<Branch>()
+            .WithMany()
+            .HasForeignKey(customer => new { customer.OrganizationId, customer.BranchId })
+            .HasPrincipalKey(branch => new { branch.OrganizationId, branch.Id })
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

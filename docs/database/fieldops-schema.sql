@@ -78,15 +78,19 @@ CREATE TABLE password_reset_tokens (
 
 CREATE TABLE customers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), type customer_type NOT NULL,
+  -- branch_id: on existing databases, backfill each row with its organization's main branch (branches.is_main) before enforcing NOT NULL.
+  branch_id uuid NOT NULL REFERENCES branches(id),
   display_name varchar(180) NOT NULL, legal_name varchar(200), tax_id varchar(60), primary_email varchar(254), primary_phone varchar(40),
   billing_address jsonb, notes text, is_active boolean NOT NULL DEFAULT true, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE(organization_id,id)
+  FOREIGN KEY(organization_id,branch_id) REFERENCES branches(organization_id,id), UNIQUE(organization_id,id)
 );
 CREATE TABLE customer_contacts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL,
   first_name varchar(100) NOT NULL, last_name varchar(100), email varchar(254), phone varchar(40), title varchar(100),
   is_primary boolean NOT NULL DEFAULT false, portal_user_id uuid REFERENCES users(id), is_active boolean NOT NULL DEFAULT true,
+  prefers_email boolean NOT NULL DEFAULT true, prefers_sms boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT ck_customer_contacts_preferred_channel CHECK (prefers_email OR prefers_sms),
   FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,id)
 );
 CREATE TABLE properties (
@@ -98,6 +102,17 @@ CREATE TABLE properties (
   FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,id)
 );
 CREATE TABLE customer_notes (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL, author_user_id uuid NOT NULL REFERENCES users(id), note text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id));
+CREATE TABLE customer_tags (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id),
+  name varchar(40) NOT NULL, normalized_name varchar(40) NOT NULL, created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(organization_id,normalized_name), UNIQUE(organization_id,id)
+);
+CREATE TABLE customer_tag_assignments (
+  organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL, tag_id uuid NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(), PRIMARY KEY(customer_id,tag_id),
+  FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id),
+  FOREIGN KEY(organization_id,tag_id) REFERENCES customer_tags(organization_id,id)
+);
 
 CREATE TABLE service_categories (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), name varchar(120) NOT NULL, description text, is_active boolean NOT NULL DEFAULT true, UNIQUE(organization_id,name), UNIQUE(organization_id,id));
 CREATE TABLE catalog_items (
@@ -223,7 +238,11 @@ CREATE UNIQUE INDEX ux_branches_org_main ON branches(organization_id) WHERE is_m
 CREATE UNIQUE INDEX ux_user_invitations_open_email ON user_invitations(organization_id,email) WHERE accepted_at IS NULL AND revoked_at IS NULL;
 CREATE UNIQUE INDEX ux_password_reset_tokens_open_user ON password_reset_tokens(user_id) WHERE used_at IS NULL;
 CREATE INDEX ix_customers_org_name ON customers(organization_id,display_name);
+CREATE INDEX ix_customers_org_branch ON customers(organization_id,branch_id);
 CREATE INDEX ix_contacts_org_email ON customer_contacts(organization_id,email);
+CREATE INDEX ix_contacts_org_phone ON customer_contacts(organization_id,phone);
+CREATE UNIQUE INDEX ux_customer_contacts_primary ON customer_contacts(customer_id) WHERE is_primary;
+CREATE INDEX ix_customer_tag_assignments_org_tag ON customer_tag_assignments(organization_id,tag_id);
 CREATE INDEX ix_properties_customer ON properties(organization_id,customer_id);
 CREATE INDEX ix_technicians_branch_status ON technician_profiles(organization_id,branch_id,status);
 CREATE INDEX ix_requests_pipeline ON service_requests(organization_id,status,created_at DESC);

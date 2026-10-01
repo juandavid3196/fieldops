@@ -1,6 +1,7 @@
 using FieldOps.Application.Authentication;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Catalog;
+using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
@@ -43,6 +44,18 @@ public static class DependencyInjection
         services.AddScoped<RemoveCatalogImageHandler>();
         services.AddScoped<ExportCatalogItemsHandler>();
         services.AddScoped<ImportCatalogItemsHandler>();
+        services.AddScoped<ListCustomersHandler>();
+        services.AddScoped<GetCustomerMetricsHandler>();
+        services.AddScoped<GetCustomerHandler>();
+        services.AddScoped<CreateCustomerHandler>();
+        services.AddScoped<UpdateCustomerHandler>();
+        services.AddScoped<SetCustomerActiveHandler>();
+        services.AddScoped<CheckCustomerDuplicatesHandler>();
+        services.AddScoped<ListCustomerTagsHandler>();
+        services.AddScoped<GetCustomerBranchOptionsHandler>();
+        services.AddScoped<CreateCustomerTagHandler>();
+        services.AddScoped<PreviewCustomerImportHandler>();
+        services.AddScoped<ImportCustomersHandler>();
         services.AddScoped<ListUsersHandler>();
         services.AddScoped<GetUsersSummaryHandler>();
         services.AddSingleton<GetPermissionMatrixHandler>();
