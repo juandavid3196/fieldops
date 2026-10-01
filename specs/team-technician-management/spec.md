@@ -4,7 +4,7 @@
 | -------- | ------------------------------- |
 | Feature  | `team-technician-management`    |
 | Type     | Full-stack                      |
-| Status   | APPROVED                        |
+| Status   | AUDITED                         |
 | Created  | 2026-10-01                      |
 | Updated  | 2026-10-01                      |
 | Approved | 2026-10-01                      |
@@ -364,3 +364,5 @@ calculator is the feature's main non-trivial logic.
 | ---------- | ------------- | ------ |
 | 2026-10-01 | — → DRAFT     | Created with user decisions OD-01–OD-17 |
 | 2026-10-01 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-01 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-01 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

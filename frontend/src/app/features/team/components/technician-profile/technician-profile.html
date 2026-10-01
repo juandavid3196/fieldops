@@ -1,0 +1,163 @@
+<section class="profile__section" aria-labelledby="profile-info-heading">
+  <h3 class="profile__heading" id="profile-info-heading">Profile information</h3>
+  <dl class="profile__list">
+    <dt>Email</dt>
+    <dd>{{ detail().email || '—' }}</dd>
+    <dt>Mobile phone</dt>
+    <dd>{{ detail().phone || '—' }}</dd>
+    <dt>Profile ID</dt>
+    <dd>{{ detail().employeeCode || '—' }}</dd>
+    <dt>Home branch</dt>
+    <dd>{{ detail().branch.name || '—' }}</dd>
+  </dl>
+</section>
+
+<section class="profile__section" aria-labelledby="profile-account-heading">
+  <h3 class="profile__heading" id="profile-account-heading">User account link</h3>
+  @if (detail().account; as account) {
+    <p class="profile__lead">Linked to user account (read-only)</p>
+    <dl class="profile__list">
+      <dt>User email</dt>
+      <dd>{{ account.email }}</dd>
+      <dt>Role</dt>
+      <dd>{{ account.roleName }}</dd>
+    </dl>
+    <p class="profile__note">
+      Account permissions are managed in Settings. Linking a user does not change their permissions.
+    </p>
+    <div class="profile__buttons">
+      @if (canViewSettings()) {
+        <a
+          pButton
+          class="profile__button"
+          severity="secondary"
+          [outlined]="true"
+          routerLink="/admin/users"
+        >
+          View access in Settings
+          <i class="pi pi-external-link" aria-hidden="true"></i>
+        </a>
+      }
+      @if (canMutate()) {
+        <button
+          pButton
+          type="button"
+          class="profile__button"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy()"
+          (click)="unlinkRequested.emit()"
+        >
+          Unlink account
+        </button>
+      }
+    </div>
+  } @else {
+    <p class="profile__lead">No linked user account</p>
+    @if (canMutate()) {
+      <div class="profile__buttons">
+        <button
+          pButton
+          type="button"
+          class="profile__button"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="busy()"
+          (click)="linkRequested.emit()"
+        >
+          Link account
+        </button>
+      </div>
+    }
+  }
+</section>
+
+<section class="profile__section" aria-labelledby="profile-skills-heading">
+  <h3 class="profile__heading" id="profile-skills-heading">Operational skills</h3>
+  @if (skills().length === 0) {
+    <p class="profile__muted">No skills yet</p>
+  } @else {
+    <ul class="profile__skills">
+      @for (skill of skills(); track skill.name) {
+        <li>
+          <span>{{ skill.name }}</span>
+          <span class="profile__muted">{{ skill.level }}</span>
+          @if (skill.primary) {
+            <p-tag severity="info" value="Primary" />
+          }
+        </li>
+      }
+    </ul>
+  }
+  @if (canMutate()) {
+    <a
+      pButton
+      class="profile__button"
+      severity="secondary"
+      [outlined]="true"
+      [routerLink]="skillsPath"
+    >
+      Edit skills
+    </a>
+  }
+</section>
+
+<section class="profile__section" aria-labelledby="profile-availability-heading">
+  <h3 class="profile__heading" id="profile-availability-heading">Standard availability</h3>
+  @if (availability().length === 0) {
+    <p class="profile__muted">No availability set</p>
+  } @else {
+    <dl class="profile__list">
+      @for (line of availability(); track line.label) {
+        <dt>{{ line.label }}</dt>
+        <dd>{{ line.value }}</dd>
+      }
+    </dl>
+  }
+  @if (canMutate()) {
+    <a
+      pButton
+      class="profile__button"
+      severity="secondary"
+      [outlined]="true"
+      [routerLink]="availabilityPath"
+    >
+      Edit availability
+    </a>
+  }
+</section>
+
+<section class="profile__section" aria-labelledby="profile-today-heading">
+  <h3 class="profile__heading" id="profile-today-heading">Today</h3>
+  <dl class="profile__list">
+    <dt>Status</dt>
+    <dd>
+      <p-tag
+        [rounded]="true"
+        [severity]="statusSeverity(detail().today.todayStatus)"
+        [value]="statusLabels[detail().today.todayStatus]"
+      />
+    </dd>
+    <dt>Current job</dt>
+    <dd>{{ detail().today.currentJob?.label || 'None' }}</dd>
+    <dt>Jobs today</dt>
+    <dd>{{ detail().today.jobs }}</dd>
+    <dt>Workload</dt>
+    <dd>
+      <span class="profile__workload">
+        <span>{{ workload().text }}</span>
+        @if (workload().fill !== null) {
+          <span class="profile__bar" aria-hidden="true">
+            <span
+              class="profile__bar-fill"
+              [class.profile__bar-fill--over]="workload().over"
+              [style.inline-size.%]="workload().fill"
+            ></span>
+          </span>
+        }
+      </span>
+    </dd>
+    <dt>Next available</dt>
+    <dd>{{ nextAvailable() }}</dd>
+  </dl>
+</section>

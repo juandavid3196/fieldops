@@ -1,0 +1,38 @@
+@use '../../../../shared/components/drawer-shell/drawer-content' as dc;
+
+:host {
+  display: contents;
+}
+
+.technician-drawer {
+  @include dc.parts;
+
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  &__subtitle {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__skeletons,
+  &__retry {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__action {
+    flex: 1 1 0;
+    justify-content: center;
+    text-decoration: none;
+  }
+}

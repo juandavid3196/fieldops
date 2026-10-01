@@ -1,0 +1,157 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// The table scrolls horizontally inside its card; the page itself never does.
+.team-table {
+  overflow-x: auto;
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-panel);
+
+  &__table {
+    inline-size: 100%;
+    min-inline-size: 64rem;
+    border-collapse: collapse;
+
+    th {
+      padding: 0.625rem 0.75rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+      text-align: start;
+      white-space: nowrap;
+      background: var(--fo-color-surface-muted);
+      border-bottom: 1px solid var(--fo-color-border);
+    }
+
+    td {
+      padding: 0.625rem 0.75rem;
+      color: var(--fo-color-text);
+      vertical-align: middle;
+      border-bottom: 1px solid var(--fo-color-row-divider);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0;
+    }
+  }
+
+  &__name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__link {
+    padding: 0;
+    font: inherit;
+    color: var(--fo-color-primary-strong);
+    text-align: start;
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__truncate {
+    display: block;
+    max-inline-size: 12rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__number {
+    white-space: nowrap;
+  }
+
+  &__workload {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
+  }
+
+  &__bar {
+    display: inline-block;
+    inline-size: 4rem;
+    block-size: 0.375rem;
+    overflow: hidden;
+    background: var(--fo-color-border);
+    border-radius: 999px;
+  }
+
+  &__bar-fill {
+    display: block;
+    block-size: 100%;
+    background: var(--fo-color-info-text);
+    border-radius: 999px;
+
+    &--over {
+      background: var(--fo-color-danger-solid);
+    }
+  }
+
+  &__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-block-size: 2rem;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    i {
+      font-size: 0.6875rem;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__actions {
+    text-align: center;
+  }
+
+  &__menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      background: var(--fo-color-disabled-background);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.5;
+    }
+  }
+}

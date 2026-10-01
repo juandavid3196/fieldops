@@ -6,6 +6,7 @@ using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
+using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.Users;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
@@ -75,6 +76,7 @@ public static class DependencyInjection
         services.AddScoped<ICatalogStore, CatalogStore>();
         services.AddScoped<IBranchScopeResolver, BranchScopeResolver>();
         services.AddScoped<ICustomerStore, CustomerStore>();
+        services.AddScoped<ITeamStore, TeamStore>();
         services.AddScoped<ICustomerDetailStore, CustomerDetailStore>();
         services.AddScoped<IUserAccessStore, UserAccessStore>();
         services.AddScoped<IInvitationAcceptanceStore, InvitationAcceptanceStore>();

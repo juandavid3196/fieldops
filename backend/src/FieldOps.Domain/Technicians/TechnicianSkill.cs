@@ -20,11 +20,14 @@ public sealed class TechnicianSkill
 
     public decimal? YearsExperience { get; private set; }
 
+    public bool IsPrimary { get; private set; }
+
     public static TechnicianSkill Create(
         Guid technicianId,
         Guid skillId,
         short? proficiency = null,
-        decimal? yearsExperience = null)
+        decimal? yearsExperience = null,
+        bool isPrimary = false)
     {
         if (technicianId == Guid.Empty)
         {
@@ -52,6 +55,7 @@ public sealed class TechnicianSkill
         {
             Proficiency = proficiency,
             YearsExperience = yearsExperience,
+            IsPrimary = isPrimary,
         };
     }
 }

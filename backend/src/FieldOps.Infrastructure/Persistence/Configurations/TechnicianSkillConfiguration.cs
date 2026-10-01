@@ -25,6 +25,18 @@ internal sealed class TechnicianSkillConfiguration
         builder.Property(technicianSkill => technicianSkill.YearsExperience)
             .HasPrecision(4, 1);
 
+        builder.Property(technicianSkill => technicianSkill.IsPrimary)
+            .HasDefaultValue(false)
+            .HasSentinel(false)
+            .IsRequired();
+
+        // CREATE UNIQUE INDEX ux_technician_skills_primary
+        //   ON technician_skills (technician_id) WHERE is_primary
+        builder.HasIndex(technicianSkill => technicianSkill.TechnicianId)
+            .IsUnique()
+            .HasFilter("is_primary")
+            .HasDatabaseName("ux_technician_skills_primary");
+
         builder.HasOne<TechnicianProfile>()
             .WithMany()
             .HasForeignKey(technicianSkill => technicianSkill.TechnicianId)

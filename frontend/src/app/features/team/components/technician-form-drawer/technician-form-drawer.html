@@ -1,0 +1,220 @@
+<app-drawer-shell
+  size="25rem"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="technician-form__title" [id]="titleId" tabindex="-1">{{ title() }}</h2>
+    <span class="technician-form__spacer"></span>
+    <button
+      type="button"
+      class="technician-form__close"
+      aria-label="Close technician form"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (detailLoading() || branchesLoading()) {
+      <div class="technician-form__skeletons" aria-busy="true">
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="5rem" />
+      </div>
+    } @else if (detailFailed()) {
+      <p-message severity="error" [closable]="false">
+        <span class="technician-form__retry">
+          We couldn't load this technician profile.
+          <button pButton type="button" severity="secondary" size="small" (click)="loadDetail()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else {
+      <form
+        class="technician-form__form"
+        ngNoForm
+        novalidate
+        (submit)="$event.preventDefault(); submit()"
+      >
+        <app-error-summary [id]="summaryId" [links]="errorLinks()" />
+
+        <div class="technician-form__row">
+          <app-form-field
+            label="First name"
+            [controlId]="controlIds.firstName"
+            [required]="true"
+            [error]="error('firstName')"
+          >
+            <input
+              pInputText
+              fluid
+              autocomplete="given-name"
+              [id]="controlIds.firstName"
+              [ngModel]="form().firstName"
+              (ngModelChange)="patch({ firstName: $event }, 'firstName')"
+              [disabled]="submitting()"
+              [invalid]="error('firstName') !== null"
+              aria-required="true"
+              [attr.aria-invalid]="error('firstName') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('firstName')"
+              (blur)="onFieldBlur('firstName')"
+            />
+          </app-form-field>
+          <app-form-field
+            label="Last name"
+            [controlId]="controlIds.lastName"
+            [required]="true"
+            [error]="error('lastName')"
+          >
+            <input
+              pInputText
+              fluid
+              autocomplete="family-name"
+              [id]="controlIds.lastName"
+              [ngModel]="form().lastName"
+              (ngModelChange)="patch({ lastName: $event }, 'lastName')"
+              [disabled]="submitting()"
+              [invalid]="error('lastName') !== null"
+              aria-required="true"
+              [attr.aria-invalid]="error('lastName') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('lastName')"
+              (blur)="onFieldBlur('lastName')"
+            />
+          </app-form-field>
+        </div>
+
+        <app-form-field label="Email" [controlId]="controlIds.email" [error]="error('email')">
+          <input
+            pInputText
+            fluid
+            type="email"
+            autocomplete="email"
+            [id]="controlIds.email"
+            [ngModel]="form().email"
+            (ngModelChange)="patch({ email: $event }, 'email')"
+            [disabled]="submitting()"
+            [invalid]="error('email') !== null"
+            [attr.aria-invalid]="error('email') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('email')"
+            (blur)="onFieldBlur('email')"
+          />
+        </app-form-field>
+
+        <div class="technician-form__row">
+          <app-form-field
+            label="Mobile phone"
+            [controlId]="controlIds.phone"
+            [error]="error('phone')"
+          >
+            <input
+              pInputText
+              fluid
+              type="tel"
+              autocomplete="tel"
+              [id]="controlIds.phone"
+              [ngModel]="form().phone"
+              (ngModelChange)="patch({ phone: $event }, 'phone')"
+              [disabled]="submitting()"
+              [invalid]="error('phone') !== null"
+              [attr.aria-invalid]="error('phone') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('phone')"
+              (blur)="onFieldBlur('phone')"
+            />
+          </app-form-field>
+          <app-form-field
+            label="Profile ID"
+            [controlId]="controlIds.employeeCode"
+            [error]="error('employeeCode')"
+          >
+            <input
+              pInputText
+              fluid
+              autocomplete="off"
+              [id]="controlIds.employeeCode"
+              [ngModel]="form().employeeCode"
+              (ngModelChange)="patch({ employeeCode: $event }, 'employeeCode')"
+              [disabled]="submitting()"
+              [invalid]="error('employeeCode') !== null"
+              [attr.aria-invalid]="error('employeeCode') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('employeeCode')"
+              (blur)="onFieldBlur('employeeCode')"
+            />
+          </app-form-field>
+        </div>
+
+        <app-form-field
+          label="Home branch"
+          [controlId]="controlIds.branchId"
+          [required]="true"
+          [error]="error('branchId')"
+        >
+          <p-select
+            [inputId]="controlIds.branchId"
+            [options]="branchOptions()"
+            optionLabel="name"
+            optionValue="id"
+            ariaLabel="Home branch"
+            placeholder="Select branch"
+            appendTo="body"
+            fluid
+            [ngModel]="form().branchId"
+            (ngModelChange)="patch({ branchId: $event }, 'branchId')"
+            [disabled]="submitting()"
+            [invalid]="error('branchId') !== null"
+            [attr.aria-describedby]="describedBy('branchId')"
+          />
+        </app-form-field>
+
+        <app-form-field label="Notes" [controlId]="controlIds.notes" [error]="error('notes')">
+          <textarea
+            pTextarea
+            rows="3"
+            fluid
+            [id]="controlIds.notes"
+            [ngModel]="form().notes"
+            (ngModelChange)="patch({ notes: $event }, 'notes')"
+            [disabled]="submitting()"
+            [invalid]="error('notes') !== null"
+            [attr.aria-invalid]="error('notes') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('notes')"
+            (blur)="onFieldBlur('notes')"
+          ></textarea>
+        </app-form-field>
+      </form>
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <span class="technician-form__spacer"></span>
+    <button
+      pButton
+      type="button"
+      class="technician-form__action"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      Cancel
+    </button>
+    <button
+      pButton
+      type="button"
+      class="technician-form__action"
+      [disabled]="saveBlocked()"
+      (click)="submit()"
+    >
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      {{ isCreate() ? 'Add technician profile' : 'Save changes' }}
+    </button>
+  </ng-container>
+</app-drawer-shell>

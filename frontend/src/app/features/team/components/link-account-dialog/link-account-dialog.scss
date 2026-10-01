@@ -1,0 +1,65 @@
+.link-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__results {
+    min-block-size: 4rem;
+    max-block-size: 16rem;
+    overflow-y: auto;
+  }
+
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__option {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.75rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+
+    &--selected {
+      background: var(--fo-color-primary-soft);
+      border-color: var(--fo-color-primary);
+    }
+
+    &:focus-within {
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    input {
+      grid-row: span 2;
+    }
+  }
+
+  &__name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__meta {
+    grid-column: 2;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    overflow-wrap: anywhere;
+  }
+}

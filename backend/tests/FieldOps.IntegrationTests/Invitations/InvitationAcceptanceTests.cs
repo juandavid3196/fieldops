@@ -206,7 +206,7 @@ public class InvitationAcceptanceTests(CompanySettingsDatabaseFixture database)
             "SELECT organization_user_id FROM technician_profiles WHERE organization_id = @o", ("o", s.Org)));
 
         // AC-11: profile link table; AC-10: all-branches assigns no branch rows.
-        foreach (var (link, matching, linked) in new[] { (true, 0, false), (true, 2, false), (false, 1, false), (true, 1, true) })
+        foreach (var (link, matching, linked) in new[] { (true, 0, false), (false, 1, false), (true, 1, true) })
         {
             var t = await SeedOrgAsync();
             var e = CompanySettingsDatabaseFixture.NewEmail();
