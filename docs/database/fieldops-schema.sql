@@ -143,7 +143,7 @@ CREATE TABLE technician_profiles (
   color_hex char(7), notes text, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY(organization_id,organization_user_id) REFERENCES organization_users(organization_id,id), UNIQUE(organization_id,employee_code), UNIQUE(organization_id,id)
 );
-CREATE TABLE technician_skills (technician_id uuid NOT NULL REFERENCES technician_profiles(id) ON DELETE CASCADE, skill_id uuid NOT NULL REFERENCES skills(id), proficiency smallint CHECK(proficiency BETWEEN 1 AND 5), years_experience numeric(4,1), PRIMARY KEY(technician_id,skill_id));
+CREATE TABLE technician_skills (technician_id uuid NOT NULL REFERENCES technician_profiles(id) ON DELETE CASCADE, skill_id uuid NOT NULL REFERENCES skills(id), proficiency smallint CHECK(proficiency BETWEEN 1 AND 5), years_experience numeric(4,1), is_primary boolean NOT NULL DEFAULT false, PRIMARY KEY(technician_id,skill_id));
 CREATE TABLE technician_weekly_availability (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), technician_id uuid NOT NULL REFERENCES technician_profiles(id) ON DELETE CASCADE, day_of_week smallint NOT NULL CHECK(day_of_week BETWEEN 0 AND 6), start_time time NOT NULL, end_time time NOT NULL, capacity_percent smallint NOT NULL DEFAULT 100 CHECK(capacity_percent BETWEEN 1 AND 100), CHECK(start_time<end_time));
 CREATE TABLE technician_breaks (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), availability_id uuid NOT NULL REFERENCES technician_weekly_availability(id) ON DELETE CASCADE, start_time time NOT NULL, end_time time NOT NULL, CHECK(start_time<end_time));
 CREATE TABLE technician_exceptions (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), technician_id uuid NOT NULL REFERENCES technician_profiles(id) ON DELETE CASCADE, starts_at timestamptz NOT NULL, ends_at timestamptz NOT NULL, is_available boolean NOT NULL DEFAULT false, reason varchar(200), CHECK(starts_at<ends_at));
@@ -250,6 +250,9 @@ CREATE INDEX ix_properties_customer ON properties(organization_id,customer_id);
 CREATE UNIQUE INDEX ux_properties_customer_primary ON properties(customer_id) WHERE is_primary;
 CREATE INDEX ix_customer_notes_customer ON customer_notes(organization_id,customer_id,created_at DESC);
 CREATE INDEX ix_technicians_branch_status ON technician_profiles(organization_id,branch_id,status);
+CREATE UNIQUE INDEX ux_technician_profiles_org_user ON technician_profiles(organization_user_id) WHERE organization_user_id IS NOT NULL;
+CREATE UNIQUE INDEX ux_technician_profiles_org_email ON technician_profiles(organization_id,lower(email)) WHERE email IS NOT NULL;
+CREATE UNIQUE INDEX ux_technician_skills_primary ON technician_skills(technician_id) WHERE is_primary;
 CREATE INDEX ix_requests_pipeline ON service_requests(organization_id,status,created_at DESC);
 CREATE INDEX ix_requests_customer ON service_requests(organization_id,customer_id);
 CREATE INDEX ix_assessments_schedule ON assessments(organization_id,scheduled_start,status);
