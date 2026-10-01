@@ -98,8 +98,11 @@ CREATE TABLE properties (
   branch_id uuid REFERENCES branches(id), name varchar(140) NOT NULL, address_line1 varchar(180) NOT NULL, address_line2 varchar(180),
   city varchar(100) NOT NULL, state_region varchar(100), postal_code varchar(30), country_code char(2) NOT NULL,
   latitude numeric(9,6), longitude numeric(9,6), access_instructions text, service_notes text, is_active boolean NOT NULL DEFAULT true,
+  is_primary boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
-  FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,id)
+  CONSTRAINT ck_properties_primary_active CHECK (NOT is_primary OR is_active),
+  FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id),
+  FOREIGN KEY(organization_id,branch_id) REFERENCES branches(organization_id,id), UNIQUE(organization_id,id)
 );
 CREATE TABLE customer_notes (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL, author_user_id uuid NOT NULL REFERENCES users(id), note text NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id));
 CREATE TABLE customer_tags (
@@ -244,6 +247,8 @@ CREATE INDEX ix_contacts_org_phone ON customer_contacts(organization_id,phone);
 CREATE UNIQUE INDEX ux_customer_contacts_primary ON customer_contacts(customer_id) WHERE is_primary;
 CREATE INDEX ix_customer_tag_assignments_org_tag ON customer_tag_assignments(organization_id,tag_id);
 CREATE INDEX ix_properties_customer ON properties(organization_id,customer_id);
+CREATE UNIQUE INDEX ux_properties_customer_primary ON properties(customer_id) WHERE is_primary;
+CREATE INDEX ix_customer_notes_customer ON customer_notes(organization_id,customer_id,created_at DESC);
 CREATE INDEX ix_technicians_branch_status ON technician_profiles(organization_id,branch_id,status);
 CREATE INDEX ix_requests_pipeline ON service_requests(organization_id,status,created_at DESC);
 CREATE INDEX ix_requests_customer ON service_requests(organization_id,customer_id);

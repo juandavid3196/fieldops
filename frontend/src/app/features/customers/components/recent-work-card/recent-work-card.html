@@ -1,0 +1,72 @@
+<section class="work" aria-labelledby="work-title">
+  <header class="work__head">
+    <h2 class="work__title" id="work-title">Recent work</h2>
+    <a class="work__link" [routerLink]="viewAllLink">View all</a>
+  </header>
+
+  @if (state().status === 'error') {
+    <p-message severity="error" [closable]="false">
+      <span class="work__retry">
+        We couldn't load recent work.
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (state().status !== 'ready') {
+    <div class="work__skeletons" aria-busy="true">
+      <p-skeleton height="2.5rem" />
+      <p-skeleton height="2.5rem" />
+      <p-skeleton height="2.5rem" />
+    </div>
+  } @else if (rows().length === 0) {
+    <div class="work__empty">
+      <p class="work__empty-title">No work yet</p>
+      <p>Requests, quotes and jobs for this customer will appear here.</p>
+    </div>
+  } @else {
+    <div class="work__scroll">
+      <table class="work__table">
+        <thead>
+          <tr>
+            <th scope="col">Type</th>
+            <th scope="col">ID</th>
+            <th scope="col">Title</th>
+            <th scope="col">Status</th>
+            <th scope="col">Date</th>
+            <th scope="col">Technician</th>
+            <th scope="col">Amount</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.key) {
+            <tr>
+              <td><p-tag [rounded]="true" [severity]="row.severity" [value]="row.type" /></td>
+              <td>
+                <a class="work__link" [routerLink]="row.link">{{ row.number }}</a>
+              </td>
+              <td>{{ row.title }}</td>
+              <td>{{ row.status }}</td>
+              <td>{{ row.date }}</td>
+              <td>{{ row.technician }}</td>
+              <td>{{ row.amount }}</td>
+              <td>
+                <a
+                  pButton
+                  size="small"
+                  severity="secondary"
+                  [outlined]="true"
+                  [routerLink]="row.link"
+                  [attr.aria-label]="'View ' + row.number"
+                >
+                  View
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

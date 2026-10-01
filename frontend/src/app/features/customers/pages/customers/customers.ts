@@ -204,6 +204,8 @@ export class Customers {
   readonly menuModel = signal<MenuItem[]>([]);
   readonly importOpen = signal(false);
   readonly sessionExpired = signal(false);
+  /** The drawer already asked to discard before "View existing customer" navigates. */
+  private leaveConfirmed = false;
 
   constructor() {
     this.listRequests
@@ -446,19 +448,15 @@ export class Customers {
     show();
   }
 
-  private openCustomer(id: string): void {
-    this.showDrawer(this.canMutate() ? 'edit' : 'view', id);
-  }
-
-  /** "View existing customer": the drawer already confirmed any discard. */
+  /** "View existing customer": the drawer already confirmed any discard (BR-19); the leave guard re-checks. */
   onOpenExisting(id: string): void {
-    this.drawerMode.set(this.canMutate() ? 'edit' : 'view');
-    this.drawerCustomerId.set(id);
-    this.drawerOpen.set(true);
+    this.leaveConfirmed = true;
+    void this.router.navigate(['/customers', id]).finally(() => (this.leaveConfirmed = false));
   }
 
+  /** BR-19: the Name link opens the detail page; row Edit / View keep opening the drawer. */
   onNameClicked(row: CustomerRow): void {
-    this.openCustomer(row.id);
+    void this.router.navigate(['/customers', row.id]);
   }
 
   onDrawerClosed(): void {
@@ -487,7 +485,7 @@ export class Customers {
 
   /** Consulted by `customersUnsavedChangesGuard` on route leave. */
   canLeave(): boolean | Observable<boolean> {
-    if (this.sessionExpired()) {
+    if (this.sessionExpired() || this.leaveConfirmed) {
       return true;
     }
     return this.drawerOpen() && (this.drawer()?.isDirty() ?? false) ? this.confirmDiscard() : true;
@@ -551,7 +549,7 @@ export class Customers {
       message:
         'Archived customers are hidden from active lists. Their contacts, properties and history are kept.',
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Archive', severity: 'danger' },
+      acceptButtonProps: { label: 'Archive' },
       rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
       accept: () =>
         this.mutate(

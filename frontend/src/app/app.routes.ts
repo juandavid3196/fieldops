@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
-import { customersRoute } from './features/customers/customers.routes';
+import { customerDetailRoute, customersRoute } from './features/customers/customers.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
 import { usersAdminRoute } from './features/users/users.routes';
@@ -35,6 +35,7 @@ export const routes: Routes = [
       usersAdminRoute,
       productsServicesAdminRoute,
       customersRoute,
+      customerDetailRoute,
     ],
   },
   { path: '**', redirectTo: 'auth/sign-in' },

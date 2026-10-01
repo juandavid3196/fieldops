@@ -35,6 +35,11 @@ internal sealed class CustomerNoteConfiguration
             .HasDefaultValueSql("now()")
             .IsRequired();
 
+        // CREATE INDEX ix_customer_notes_customer ON customer_notes (organization_id, customer_id, created_at DESC)
+        builder.HasIndex(note => new { note.OrganizationId, note.CustomerId, note.CreatedAt })
+            .IsDescending(false, false, true)
+            .HasDatabaseName("ix_customer_notes_customer");
+
         builder.HasOne<Organization>()
             .WithMany()
             .HasForeignKey(note => note.OrganizationId)

@@ -46,7 +46,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     id: 'people',
     heading: 'People',
     items: [
-      { label: 'Customers', icon: 'pi-users', link: '/customers', exact: true },
+      { label: 'Customers', icon: 'pi-users', link: '/customers', exact: false },
       moduleItem('Team', 'pi-id-card', 'team'),
     ],
   },

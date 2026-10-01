@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<ICatalogStore, CatalogStore>();
         services.AddScoped<IBranchScopeResolver, BranchScopeResolver>();
         services.AddScoped<ICustomerStore, CustomerStore>();
+        services.AddScoped<ICustomerDetailStore, CustomerDetailStore>();
         services.AddScoped<IUserAccessStore, UserAccessStore>();
         services.AddScoped<IInvitationAcceptanceStore, InvitationAcceptanceStore>();
         services.AddScoped<IPasswordResetStore, PasswordResetStore>();

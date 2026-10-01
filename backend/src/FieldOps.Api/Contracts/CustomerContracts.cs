@@ -82,3 +82,24 @@ public sealed record CreateCustomerTagRequest(string? Name);
 public sealed record CustomerCreatedResponse(Guid Id);
 
 public sealed record CustomerImportResponse(int ImportedCount);
+
+/// <summary>
+/// Body of POST/PUT /customers/{id}/properties[/{propertyId}] (BR-05, BR-06). The branch id arrives as
+/// text and is verified against the session organization and scope.
+/// </summary>
+public sealed record CustomerPropertyWriteRequest(
+    string? Name,
+    string? AddressLine1,
+    string? AddressLine2,
+    string? City,
+    string? StateRegion,
+    string? PostalCode,
+    string? BranchId,
+    string? ServiceInstructions)
+{
+    public CustomerPropertyInput ToInput() =>
+        new(Name, AddressLine1, AddressLine2, City, StateRegion, PostalCode, BranchId, ServiceInstructions);
+}
+
+/// <summary>Body of POST /customers/{id}/notes (BR-16).</summary>
+public sealed record CustomerNoteRequest(string? Note);

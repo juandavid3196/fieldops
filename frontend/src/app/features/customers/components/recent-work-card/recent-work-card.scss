@@ -1,0 +1,76 @@
+@use '../../pages/customer-detail/card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.work {
+  @include card.base;
+
+  &__head {
+    @include card.head;
+  }
+
+  &__title {
+    @include card.title;
+  }
+
+  &__link {
+    @include card.link;
+  }
+
+  &__retry {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__empty {
+    padding: 1.5rem 1rem;
+    text-align: center;
+    @include card.muted;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__empty-title {
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  // The table scrolls inside its card; the page never scrolls horizontally.
+  &__scroll {
+    overflow-x: auto;
+  }
+
+  &__table {
+    inline-size: 100%;
+    min-inline-size: 44rem;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 0.625rem 0.5rem;
+      text-align: start;
+      vertical-align: middle;
+      border-block-end: 1px solid var(--fo-color-row-divider);
+    }
+
+    th {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+      white-space: nowrap;
+    }
+  }
+}

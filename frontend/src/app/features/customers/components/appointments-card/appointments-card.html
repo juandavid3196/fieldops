@@ -1,0 +1,41 @@
+<section class="appointments" aria-labelledby="appointments-title">
+  <header class="appointments__head">
+    <h2 class="appointments__title" id="appointments-title">Upcoming appointments</h2>
+    <a class="appointments__link" [routerLink]="scheduleLink">View all</a>
+  </header>
+
+  @if (state().status === 'error') {
+    <p-message severity="error" [closable]="false">
+      <span class="appointments__retry">
+        We couldn't load appointments.
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (state().status !== 'ready') {
+    <div class="appointments__skeletons" aria-busy="true">
+      <p-skeleton height="3rem" />
+      <p-skeleton height="3rem" />
+    </div>
+  } @else if (rows().length === 0) {
+    <div class="appointments__empty">
+      <i class="pi pi-calendar" aria-hidden="true"></i>
+      <p class="appointments__empty-title">No upcoming appointments</p>
+      <p>Schedule a job for this customer.</p>
+      @if (canMutate()) {
+        <a pButton [routerLink]="scheduleLink">Schedule a job</a>
+      }
+    </div>
+  } @else {
+    <ul class="appointments__list">
+      @for (row of rows(); track row.key) {
+        <li class="appointments__item">
+          <strong>{{ row.range }}</strong>
+          <span>{{ row.job }}</span>
+          <span class="appointments__meta">{{ row.property }} · {{ row.technician }}</span>
+        </li>
+      }
+    </ul>
+  }
+</section>

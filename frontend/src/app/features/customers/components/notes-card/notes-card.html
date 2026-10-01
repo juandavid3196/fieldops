@@ -1,0 +1,99 @@
+<section class="notes" aria-labelledby="notes-title">
+  <header class="notes__head">
+    <h2 class="notes__title" id="notes-title">Internal notes</h2>
+    <span class="notes__hint">
+      <i class="pi pi-lock" aria-hidden="true"></i>
+      Not visible to customer
+    </span>
+    @if (canMutate()) {
+      <button
+        type="button"
+        class="notes__pencil"
+        aria-label="Edit internal notes"
+        (click)="editRequested.emit()"
+      >
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+      </button>
+    }
+  </header>
+
+  <p class="notes__pinned">{{ pinnedNote()?.trim() || 'No pinned note' }}</p>
+
+  @if (canMutate()) {
+    <div class="notes__add">
+      <label class="notes__label" [for]="inputId">Add a note</label>
+      <textarea
+        pTextarea
+        rows="2"
+        fluid
+        placeholder="Add a note…"
+        [id]="inputId"
+        [ngModel]="text()"
+        (ngModelChange)="text.set($event)"
+        [disabled]="adding()"
+        [invalid]="noteError() !== null"
+        [attr.aria-invalid]="noteError() !== null ? 'true' : null"
+        [attr.aria-describedby]="noteError() !== null ? errorId : null"
+      ></textarea>
+      @if (noteError(); as message) {
+        <p class="notes__error" [id]="errorId">{{ message }}</p>
+      }
+      <button
+        pButton
+        type="button"
+        size="small"
+        [disabled]="adding()"
+        [attr.aria-busy]="adding()"
+        (click)="addRequested.emit()"
+      >
+        @if (adding()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        Add note
+      </button>
+    </div>
+  }
+
+  @if (state().status === 'error') {
+    <p-message severity="error" [closable]="false">
+      <span class="notes__retry">
+        We couldn't load notes.
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (state().status !== 'ready') {
+    <div class="notes__skeletons" aria-busy="true">
+      <p-skeleton height="2.5rem" />
+      <p-skeleton height="2.5rem" />
+    </div>
+  } @else if (entries().length === 0) {
+    <p class="notes__empty">No notes yet</p>
+  } @else {
+    <ul class="notes__list">
+      @for (entry of entries(); track entry.id) {
+        <li class="notes__entry">
+          <p class="notes__text">{{ entry.note }}</p>
+          <p class="notes__meta">{{ entry.author }} · {{ entry.date }}</p>
+        </li>
+      }
+    </ul>
+    @if (hasMore()) {
+      <button
+        pButton
+        type="button"
+        size="small"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="loadingMore()"
+        (click)="showMore.emit()"
+      >
+        @if (loadingMore()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        Show more
+      </button>
+    }
+  }
+</section>

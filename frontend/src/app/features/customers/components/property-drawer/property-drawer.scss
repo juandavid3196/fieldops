@@ -1,0 +1,57 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../../../shared/components/drawer-shell/drawer-content' as dc;
+
+:host {
+  display: contents;
+}
+
+// Chrome (docked/overlay/full screen) lives in `app-drawer-shell`; this styles the projected content.
+.property-drawer {
+  @include dc.parts;
+
+  &__form,
+  &__skeletons,
+  &__retry {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    input[pInputText] {
+      min-height: var(--fo-size-touch-target);
+
+      @include bp.up(md) {
+        min-height: var(--fo-size-control);
+      }
+    }
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+
+    @include bp.up(md) {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
+
+  &__history {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0.75rem;
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-panel);
+
+    dt {
+      font-size: 0.75rem;
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+      overflow-wrap: anywhere;
+      color: var(--fo-color-text);
+    }
+  }
+}

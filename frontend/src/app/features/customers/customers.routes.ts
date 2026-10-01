@@ -1,5 +1,6 @@
 import { Route } from '@angular/router';
 
+import { customerDetailUnsavedChangesGuard } from './guards/customer-detail-unsaved-changes.guard';
 import { customersUnsavedChangesGuard } from './guards/customers-unsaved-changes.guard';
 
 /**
@@ -12,4 +13,14 @@ export const customersRoute: Route = {
   title: 'Customers · FieldOps',
   canDeactivate: [customersUnsavedChangesGuard],
   loadComponent: () => import('./pages/customers/customers').then((m) => m.Customers),
+};
+
+/** Customer detail (`/customers/:customerId`); same shell and role handling as the list (BR-01). */
+export const customerDetailRoute: Route = {
+  path: 'customers/:customerId',
+  pathMatch: 'full',
+  title: 'Customer · FieldOps',
+  canDeactivate: [customerDetailUnsavedChangesGuard],
+  loadComponent: () =>
+    import('./pages/customer-detail/customer-detail').then((m) => m.CustomerDetail),
 };

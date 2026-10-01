@@ -1,0 +1,312 @@
+<p-toast />
+<app-confirm-dialog />
+<app-discard-changes-dialog />
+<p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+
+<div class="detail">
+  <div class="detail__main">
+    @if (forbidden()) {
+      <p class="detail__forbidden">{{ forbiddenMessage }}</p>
+    } @else if (notFound()) {
+      <section class="detail__state" aria-labelledby="detail-not-found">
+        <h1 class="detail__state-title" id="detail-not-found">{{ notFoundTitle }}</h1>
+        <p>{{ notFoundMessage }}</p>
+        <a pButton routerLink="/customers">Back to customers</a>
+      </section>
+    } @else {
+      <nav class="detail__breadcrumb" aria-label="Breadcrumb">
+        <a routerLink="/customers">Customers</a>
+        @if (header(); as h) {
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">{{ h.name }}</span>
+        }
+      </nav>
+
+      @if (overview().status === 'error') {
+        <p-message severity="error" [closable]="false">
+          <span class="detail__retry">
+            {{ detailErrorMessage }}
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              size="small"
+              (click)="loadOverview()"
+            >
+              Retry
+            </button>
+          </span>
+        </p-message>
+      } @else if (header(); as h) {
+        <header class="detail__header">
+          <span class="detail__avatar" aria-hidden="true">{{ h.initials }}</span>
+          <div class="detail__identity">
+            <h1 class="detail__name">{{ h.name }}</h1>
+            <div class="detail__tags">
+              <p-tag severity="info" [value]="h.typeLabel" />
+              <p-tag
+                [rounded]="true"
+                icon="pi pi-circle-fill"
+                [severity]="h.severity"
+                [value]="h.statusLabel"
+              />
+            </div>
+          </div>
+          <ul class="detail__contact">
+            <li>
+              <i class="pi pi-envelope" aria-hidden="true"></i>
+              <a [href]="'mailto:' + h.email">{{ h.email }}</a>
+            </li>
+            @if (h.phone; as phone) {
+              <li>
+                <i class="pi pi-phone" aria-hidden="true"></i>
+                <a [href]="h.phoneHref">{{ phone }}</a>
+              </li>
+            }
+            <li>
+              <i class="pi pi-comment" aria-hidden="true"></i>
+              <span>
+                {{ h.preferred }}
+                <span class="detail__caption">Preferred contact</span>
+              </span>
+            </li>
+          </ul>
+          <div class="detail__balance">
+            <span class="detail__caption">Outstanding balance</span>
+            <strong>{{ h.balance }}</strong>
+          </div>
+          @if (canMutate()) {
+            <div class="detail__actions">
+              <button
+                pButton
+                type="button"
+                class="detail__action"
+                severity="secondary"
+                [outlined]="true"
+                (click)="openEditCustomer()"
+              >
+                <i class="pi pi-pencil" aria-hidden="true"></i>
+                Edit customer
+              </button>
+              <button
+                pButton
+                type="button"
+                class="detail__action"
+                aria-haspopup="menu"
+                (click)="openCreateMenu($event)"
+              >
+                <i class="pi pi-plus" aria-hidden="true"></i>
+                Create
+                <i class="pi pi-chevron-down" aria-hidden="true"></i>
+              </button>
+              <button
+                pButton
+                type="button"
+                class="detail__action"
+                severity="secondary"
+                [outlined]="true"
+                aria-haspopup="menu"
+                aria-label="More actions"
+                [disabled]="mutating()"
+                (click)="openMoreMenu($event)"
+              >
+                <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+              </button>
+            </div>
+          }
+        </header>
+      } @else {
+        <div class="detail__skeletons" aria-busy="true">
+          <p-skeleton height="5rem" />
+        </div>
+      }
+
+      @if (overview().status !== 'error') {
+        <div class="detail__tabs" role="tablist" aria-label="Customer sections">
+          @for (item of tabs; track item.code; let index = $index) {
+            <button
+              type="button"
+              role="tab"
+              class="detail__tab"
+              [id]="'detail-tab-' + item.code"
+              aria-controls="detail-panel"
+              [attr.aria-selected]="tab() === item.code"
+              [attr.tabindex]="tab() === item.code ? 0 : -1"
+              (click)="selectTab(item.code)"
+              (keydown)="onTabKeydown($event, index)"
+            >
+              {{ item.label }}
+            </button>
+          }
+        </div>
+
+        <div
+          class="detail__panel"
+          id="detail-panel"
+          role="tabpanel"
+          [attr.aria-labelledby]="'detail-tab-' + tab()"
+        >
+          @if (tab() === 'overview') {
+            <div class="detail__overview">
+              <div class="detail__column">
+                <app-properties-card
+                  [state]="properties()"
+                  [canMutate]="canMutate()"
+                  [busyId]="propertyBusyId()"
+                  (addRequested)="openAddProperty()"
+                  (viewRequested)="viewProperty($event)"
+                  (editRequested)="editProperty($event)"
+                  (menuRequested)="openPropertyMenu($event.event, $event.property)"
+                  (retry)="loadProperties()"
+                />
+                <app-recent-work-card [state]="recentWork()" (retry)="loadRecentWork()" />
+                <app-appointments-card
+                  [state]="appointments()"
+                  [canMutate]="canMutate()"
+                  (retry)="loadAppointments()"
+                />
+              </div>
+              <div class="detail__column">
+                @if (overview().data; as customer) {
+                  <app-side-cards
+                    [overview]="customer"
+                    [canMutate]="canMutate()"
+                    (editContact)="openEditCustomer()"
+                    (editTags)="openEditCustomer()"
+                  />
+                  <app-notes-card
+                    [pinnedNote]="customer.pinnedNote ?? null"
+                    [state]="notes()"
+                    [timezone]="notesTimezone()"
+                    [hasMore]="hasMoreNotes()"
+                    [loadingMore]="notesLoadingMore()"
+                    [canMutate]="canMutate()"
+                    [adding]="addingNote()"
+                    [noteError]="noteError()"
+                    [text]="noteText()"
+                    (textChange)="onNoteText($event)"
+                    (editRequested)="openEditCustomer('internalNote')"
+                    (addRequested)="addNote()"
+                    (showMore)="showMoreNotes()"
+                    (retry)="loadNotes()"
+                  />
+                } @else {
+                  <p-skeleton height="12rem" />
+                }
+              </div>
+            </div>
+          } @else if (tab() === 'activity') {
+            <section class="detail__card" aria-labelledby="activity-title">
+              <h2 class="detail__card-title" id="activity-title">Activity</h2>
+              @if (activity().status === 'error') {
+                <p-message severity="error" [closable]="false">
+                  <span class="detail__retry">
+                    We couldn't load activity.
+                    <button
+                      pButton
+                      type="button"
+                      severity="secondary"
+                      size="small"
+                      (click)="loadActivity(activityPage())"
+                    >
+                      Retry
+                    </button>
+                  </span>
+                </p-message>
+              } @else if (activity().status !== 'ready') {
+                <div class="detail__skeletons" aria-busy="true">
+                  <p-skeleton height="2.5rem" />
+                  <p-skeleton height="2.5rem" />
+                  <p-skeleton height="2.5rem" />
+                </div>
+              } @else if (activityEntries().length === 0) {
+                <p class="detail__empty">No activity yet</p>
+              } @else {
+                <ul class="detail__activity">
+                  @for (entry of activityEntries(); track entry.id) {
+                    <li>
+                      <span class="detail__activity-label">{{ entry.label }}</span>
+                      <span class="detail__caption">{{ entry.actor }} · {{ entry.date }}</span>
+                    </li>
+                  }
+                </ul>
+                <nav class="detail__pager" aria-label="Activity pagination">
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    aria-label="Previous page"
+                    [disabled]="activityPage() === 1"
+                    (click)="loadActivity(activityPage() - 1)"
+                  >
+                    <i class="pi pi-chevron-left" aria-hidden="true"></i>
+                  </button>
+                  <span class="detail__caption">
+                    Page {{ activityPage() }} of {{ activityPages() }}
+                  </span>
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    aria-label="Next page"
+                    [disabled]="activityPage() >= activityPages()"
+                    (click)="loadActivity(activityPage() + 1)"
+                  >
+                    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                  </button>
+                </nav>
+              }
+            </section>
+          } @else if (activeTab().soon; as soon) {
+            <section class="detail__card detail__soon">
+              <h2 class="detail__card-title">{{ activeTab().label }} are coming soon</h2>
+              <p>You'll see this customer's {{ soon.noun }} here.</p>
+              <a pButton severity="secondary" [outlined]="true" [routerLink]="soon.link">
+                Go to {{ activeTab().label }}
+              </a>
+            </section>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  @if (!forbidden() && !notFound() && customerId(); as id) {
+    @if (canMutate()) {
+      <app-customer-drawer
+        [open]="customerDrawerOpen()"
+        [mode]="'edit'"
+        [customerId]="id"
+        [branches]="branches()"
+        [countryCode]="countryCode()"
+        [tags]="tags()"
+        [tagsLoading]="tagsLoading()"
+        [focusField]="customerDrawerFocus()"
+        (saved)="onCustomerSaved()"
+        (closed)="onCustomerDrawerClosed()"
+        (unauthorized)="onUnauthorized()"
+        (unavailable)="onCustomerUnavailable()"
+        (openCustomer)="onOpenExisting($event)"
+        (tagCreated)="onTagCreated($event)"
+      />
+    }
+    <app-property-drawer
+      [open]="propertyDrawerOpen()"
+      [mode]="propertyDrawerMode()"
+      [customerId]="id"
+      [propertyId]="propertyDrawerId()"
+      [branches]="branches()"
+      [countryCode]="countryCode()"
+      [timezone]="properties().data?.timezone ?? 'UTC'"
+      (saved)="onPropertySaved()"
+      (closed)="onPropertyDrawerClosed()"
+      (unauthorized)="onUnauthorized()"
+      (unavailable)="onPropertyUnavailable()"
+      (stale)="onPropertySaved()"
+    />
+  }
+</div>

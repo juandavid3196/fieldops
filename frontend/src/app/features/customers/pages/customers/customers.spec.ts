@@ -7,7 +7,7 @@ import {
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { Confirmation, ConfirmationService } from 'primeng/api';
 
 import { API_CONFIG } from '../../../../core/config/api.config';
@@ -138,7 +138,10 @@ describe('Customers page', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: API_CONFIG, useValue: { baseUrl: API } },
-        provideRouter([{ path: 'auth/sign-in', component: Stub }]),
+        provideRouter([
+          { path: 'auth/sign-in', component: Stub },
+          { path: 'customers/:customerId', component: Stub },
+        ]),
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
       ],
@@ -375,7 +378,7 @@ describe('Customers page', () => {
       );
 
       if (!expected.create) {
-        host.querySelector<HTMLButtonElement>('.customer-table__link')!.click();
+        page.buildMenu(SOFIA)[0].command!({});
         await settle();
         call('GET', 'customers/c-1').flush(DETAIL);
         await settle();
@@ -575,7 +578,15 @@ describe('Customers page', () => {
       message:
         'You have unsaved changes in this customer. If you leave now, those changes will be lost.',
     });
+    // BR-19: after the discard confirmation the page navigates to the detail page.
     dialogs[0].accept!();
+    await settle();
+    await fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/customers/c-1');
+    // Row Edit keeps opening the drawer.
+    page.onDrawerClosed();
+    await settle();
+    page.buildMenu(SOFIA)[0].command!({});
     await settle();
     expect(page.drawerMode()).toBe('edit');
     call('GET', 'customers/c-1').flush(DETAIL);
@@ -658,7 +669,12 @@ describe('Customers page', () => {
       true,
     );
 
-    page.onNameClicked(SOFIA);
+    // BR-19: the Name link navigates to the detail page; row Edit opens the drawer.
+    host.querySelector<HTMLButtonElement>('.customer-table__link')!.click();
+    await settle();
+    await fixture.whenStable();
+    expect(TestBed.inject(Router).url).toBe('/customers/c-1');
+    page.buildMenu(SOFIA)[0].command!({});
     await settle();
     const dialogs = confirmations();
     call('GET', 'customers/c-1').flush(DETAIL);

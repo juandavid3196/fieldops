@@ -294,6 +294,30 @@ public static class CustomerMessages
     public const string AlreadyArchived = "This customer is already archived.";
 
     public const string AlreadyActive = "This customer is already active.";
+
+    public const string PropertyNameRequired = "Enter a property name.";
+
+    public const string PropertyNameTooLong = "Use 140 characters or fewer.";
+
+    public const string PropertyBranchRequired = "Choose a branch.";
+
+    public const string NoteRequired = "Enter a note.";
+
+    public const string PageInvalid = "Page must be 1 or more.";
+
+    public const string PropertyAlreadyPrimary = "This property is already the primary property.";
+
+    public const string PropertyArchivedNotPrimary = "Reactivate this property before making it primary.";
+
+    public const string PrimaryChangedConcurrently = "The primary property was changed by someone else. Refresh and try again.";
+
+    public const string PrimaryCannotBeArchived = "Set another property as primary before archiving this one.";
+
+    public const string PropertyAlreadyArchived = "This property is already archived.";
+
+    public const string PropertyAlreadyActive = "This property is already active.";
+
+    public const string PropertyArchivedNotEditable = "Reactivate this property to edit it.";
 }
 
 public static class CustomerAuditActions
@@ -313,6 +337,22 @@ public static class CustomerAuditActions
     public const string Imported = "customer.imported";
 
     public const string TagCreated = "customer_tag.created";
+
+    public const string PropertyEntityType = "property";
+
+    public const string PropertyCreated = "property.created";
+
+    public const string PropertyUpdated = "property.updated";
+
+    public const string PropertyPrimaryChanged = "property.primary_changed";
+
+    public const string PropertyArchived = "property.archived";
+
+    public const string PropertyReactivated = "property.reactivated";
+
+    public const string NoteEntityType = "customer_note";
+
+    public const string NoteCreated = "customer_note.created";
 }
 
 /// <summary>Lifecycle and display-status derivation (BR-03, BR-04).</summary>

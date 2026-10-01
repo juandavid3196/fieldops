@@ -633,8 +633,9 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("AuthorUserId")
                         .HasDatabaseName("ix_customer_notes_author_user_id");
 
-                    b.HasIndex("OrganizationId", "CustomerId")
-                        .HasDatabaseName("ix_customer_notes_organization_id_customer_id");
+                    b.HasIndex("OrganizationId", "CustomerId", "CreatedAt")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("ix_customer_notes_customer");
 
                     b.ToTable("customer_notes", (string)null);
                 });
@@ -770,6 +771,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(true)
                         .HasColumnName("is_active");
 
+                    b.Property<bool>("IsPrimary")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_primary");
+
                     b.Property<decimal?>("Latitude")
                         .HasPrecision(9, 6)
                         .HasColumnType("numeric(9,6)")
@@ -819,10 +826,21 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("BranchId")
                         .HasDatabaseName("ix_properties_branch_id");
 
+                    b.HasIndex("CustomerId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_properties_customer_primary")
+                        .HasFilter("is_primary");
+
+                    b.HasIndex("OrganizationId", "BranchId")
+                        .HasDatabaseName("ix_properties_organization_id_branch_id");
+
                     b.HasIndex("OrganizationId", "CustomerId")
                         .HasDatabaseName("ix_properties_customer");
 
-                    b.ToTable("properties", (string)null);
+                    b.ToTable("properties", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_properties_primary_active", "NOT is_primary OR is_active");
+                        });
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Invoices.Invoice", b =>
@@ -4038,6 +4056,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_properties_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Branches.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "BranchId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_properties_branches_organization_id_branch_id");
 
                     b.HasOne("FieldOps.Domain.Customers.Customer", null)
                         .WithMany()

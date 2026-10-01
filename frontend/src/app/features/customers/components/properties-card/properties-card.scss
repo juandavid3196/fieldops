@@ -1,0 +1,167 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../pages/customer-detail/card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.properties {
+  @include card.base;
+
+  &__head {
+    @include card.head;
+  }
+
+  &__title {
+    @include card.title;
+  }
+
+  &__retry {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__skeletons,
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    color: var(--fo-color-text-secondary);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__empty-title {
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__toggle {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    margin-block: 0.5rem 0.25rem;
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-text);
+    cursor: pointer;
+    background: none;
+    border: 0;
+  }
+
+  // Phones stack identity, facts, actions and history; from md the facts sit beside the identity.
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+
+    @include bp.up(md) {
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr) auto;
+      align-items: center;
+    }
+  }
+
+  &__identity {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-width: 0;
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__name {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__address {
+    margin: 0.125rem 0 0;
+    @include card.muted;
+  }
+
+  &__facts,
+  &__history {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+
+    dt {
+      @include card.muted;
+    }
+
+    dd {
+      margin: 0;
+      color: var(--fo-color-text);
+    }
+  }
+
+  &__history {
+    grid-column: 1 / -1;
+    padding: 0.5rem 0.75rem;
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__menu {
+    @include card.icon-button;
+
+    // Take the height of the size="small" buttons beside it (stretch) and stay square,
+    // instead of the 44px touch target.
+    align-self: stretch;
+    inline-size: auto;
+    block-size: auto;
+    aspect-ratio: 1;
+    color: var(--fo-color-text-secondary);
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+}

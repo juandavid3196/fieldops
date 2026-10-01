@@ -53,6 +53,10 @@ public class CustomerImportTests(CompanySettingsDatabaseFixture database)
         Assert.Equal(2L, await database.CountRowsAsync("customer_tags", org));
         Assert.Equal(3L, await database.CountRowsAsync("customer_tag_assignments", org));
         Assert.Equal(3L, await database.CountRowsAsync("properties", org) - 1);
+
+        // FR-08: every imported customer's first property is its primary one.
+        Assert.Equal(4L, await database.ScalarAsync<long>(
+            "SELECT COUNT(*) FROM properties WHERE organization_id = @o AND is_primary", ("o", org)));
         Assert.Equal("5125550001|true|false|TX|Gate code 1", await database.ScalarAsync<string>(
             """
             SELECT k.phone || '|' || k.prefers_email::text || '|' || k.prefers_sms::text || '|' || p.state_region || '|' || p.service_notes
