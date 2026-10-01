@@ -616,8 +616,9 @@ describe('Users page', () => {
     const leave: boolean[] = [];
     (page.canLeave() as Observable<boolean>).subscribe((value) => leave.push(value));
     expect(confirmations[0]).toMatchObject({
-      header: 'Discard unsaved changes?',
-      defaultFocus: 'reject',
+      key: 'discard-changes',
+      message:
+        'You have unsaved changes in this user. If you leave now, those changes will be lost.',
     });
     confirmations[0].reject!();
     expect(leave).toEqual([false]);

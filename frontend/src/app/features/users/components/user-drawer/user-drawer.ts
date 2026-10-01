@@ -60,6 +60,7 @@ import {
   validateFields,
   validateInviteField,
 } from './user-drawer.validators';
+import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
 export type UserDrawerMode = 'invite' | 'edit';
 
@@ -488,14 +489,12 @@ export class UserDrawer {
       return;
     }
     if (this.dirty()) {
-      this.confirmationService.confirm({
-        header: 'Discard unsaved changes?',
-        message: 'You have unsaved changes. Do you want to discard them?',
-        defaultFocus: 'reject',
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => this.closed.emit(),
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'this user',
+          accept: () => this.closed.emit(),
+        }),
+      );
       return;
     }
     this.closed.emit();

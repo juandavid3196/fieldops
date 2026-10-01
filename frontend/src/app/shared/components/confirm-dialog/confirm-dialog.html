@@ -1,0 +1,45 @@
+<p-confirmdialog
+  [key]="key()"
+  [style]="{ width: '30rem' }"
+  [breakpoints]="{ '575px': '90vw' }"
+  [pt]="pt"
+>
+  <ng-template #headless let-confirmation let-onAccept="onAccept" let-onReject="onReject">
+    <div class="confirm-dialog">
+      <div class="confirm-dialog__header">
+        <span
+          class="confirm-dialog__icon"
+          [class.confirm-dialog__icon--danger]="danger(confirmation)"
+          aria-hidden="true"
+        >
+          <i class="pi pi-exclamation-triangle"></i>
+        </span>
+        <h2 class="confirm-dialog__title" [id]="titleId">{{ confirmation?.header }}</h2>
+        <button type="button" class="confirm-dialog__close" aria-label="Close" (click)="onReject()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </div>
+      <p class="confirm-dialog__message" [id]="messageId">{{ confirmation?.message }}</p>
+      @if (note(); as note) {
+        <p class="confirm-dialog__note">
+          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+          {{ note }}
+        </p>
+      }
+      <div class="confirm-dialog__footer">
+        @for (action of actions(confirmation, onAccept, onReject); track action.label) {
+          <button
+            pButton
+            type="button"
+            [severity]="action.severity"
+            [outlined]="action.outlined"
+            [pAutoFocus]="action.focused"
+            (click)="action.run()"
+          >
+            {{ action.label }}
+          </button>
+        }
+      </div>
+    </div>
+  </ng-template>
+</p-confirmdialog>

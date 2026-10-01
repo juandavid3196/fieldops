@@ -570,9 +570,11 @@ describe('Customers page', () => {
 
     // Out-of-scope matches never get a View action; the dirty form asks before leaving.
     button('View existing customer')!.click();
-    expect(dialogs[0].header).toBe('Discard unsaved changes?');
-    expect(dialogs[0].acceptButtonProps?.label).toBe('Discard');
-    expect(dialogs[0].rejectButtonProps?.label).toBe('Keep editing');
+    expect(dialogs[0]).toMatchObject({
+      key: 'discard-changes',
+      message:
+        'You have unsaved changes in this customer. If you leave now, those changes will be lost.',
+    });
     dialogs[0].accept!();
     await settle();
     expect(page.drawerMode()).toBe('edit');

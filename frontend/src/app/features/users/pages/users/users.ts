@@ -3,7 +3,6 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
-import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Menu } from 'primeng/menu';
 import { Message } from 'primeng/message';
 import { Paginator, PaginatorState } from 'primeng/paginator';
@@ -54,6 +53,11 @@ import {
   USER_UNAVAILABLE_MESSAGE,
 } from '../../utils/user-access';
 import { displayStatus, fullName } from '../../utils/user-format';
+import {
+  DiscardChangesDialog,
+  discardChangesConfirmation,
+} from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
 export const FORBIDDEN_MESSAGE = "You don't have access to users and permissions.";
 export const READ_ONLY_MESSAGE =
@@ -79,9 +83,10 @@ type ListResult =
 @Component({
   selector: 'app-users',
   imports: [
+    ConfirmDialog,
+    DiscardChangesDialog,
     RouterLink,
     ButtonDirective,
-    ConfirmDialog,
     Menu,
     Message,
     Paginator,
@@ -416,21 +421,19 @@ export class Users {
 
   private confirmDiscard(): Observable<boolean> {
     return new Observable<boolean>((subscriber) => {
-      this.confirmationService.confirm({
-        header: 'Discard unsaved changes?',
-        message: 'You have unsaved changes. Do you want to discard them?',
-        defaultFocus: 'reject',
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => {
-          subscriber.next(true);
-          subscriber.complete();
-        },
-        reject: () => {
-          subscriber.next(false);
-          subscriber.complete();
-        },
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'this user',
+          accept: () => {
+            subscriber.next(true);
+            subscriber.complete();
+          },
+          reject: () => {
+            subscriber.next(false);
+            subscriber.complete();
+          },
+        }),
+      );
     });
   }
 

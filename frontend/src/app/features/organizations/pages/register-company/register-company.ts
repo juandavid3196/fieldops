@@ -15,7 +15,6 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
-import { ConfirmDialog } from 'primeng/confirmdialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Observable, map } from 'rxjs';
 
@@ -68,6 +67,10 @@ import {
   validateBusinessHoursStart,
   validateField,
 } from './register-company.validators';
+import {
+  DiscardChangesDialog,
+  discardChangesConfirmation,
+} from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
 /** Retry lock after a `429` without a usable `Retry-After`. */
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
@@ -103,10 +106,10 @@ type FocusTarget = 'title' | 'invalid' | 'summary';
 @Component({
   selector: 'app-register-company',
   imports: [
+    DiscardChangesDialog,
     ReactiveFormsModule,
     RouterLink,
     ButtonDirective,
-    ConfirmDialog,
     SpinnerIcon,
     ErrorSummary,
     WizardSidePanel,
@@ -208,20 +211,19 @@ export class RegisterCompany {
       return true;
     }
     return new Observable<boolean>((subscriber) => {
-      this.confirmationService.confirm({
-        header: 'Discard setup?',
-        message: "Your organization hasn't been created. The details you entered will be lost.",
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => {
-          subscriber.next(true);
-          subscriber.complete();
-        },
-        reject: () => {
-          subscriber.next(false);
-          subscriber.complete();
-        },
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'your registration',
+          accept: () => {
+            subscriber.next(true);
+            subscriber.complete();
+          },
+          reject: () => {
+            subscriber.next(false);
+            subscriber.complete();
+          },
+        }),
+      );
     });
   }
 

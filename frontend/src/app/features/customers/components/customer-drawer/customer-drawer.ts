@@ -61,6 +61,7 @@ import {
   validateCustomer,
   validateCustomerField,
 } from './customer-drawer.validators';
+import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
 export type CustomerDrawerMode = 'create' | 'edit' | 'view';
 
@@ -678,14 +679,12 @@ export class CustomerDrawer {
   }
 
   private confirmDiscard(accept: () => void): void {
-    this.confirmationService.confirm({
-      header: 'Discard unsaved changes?',
-      message: 'Your changes will be lost.',
-      defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Discard', severity: 'danger' },
-      rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-      accept,
-    });
+    this.confirmationService.confirm(
+      discardChangesConfirmation({
+        subject: 'this customer',
+        accept,
+      }),
+    );
   }
 
   private focusFirstInvalid(): void {

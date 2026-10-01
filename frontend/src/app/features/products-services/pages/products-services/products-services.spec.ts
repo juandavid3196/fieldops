@@ -445,9 +445,9 @@ describe('Products & services page', () => {
     const asked = confirmations();
     button('Cancel')!.click();
     expect(asked[0]).toMatchObject({
-      header: 'Discard changes?',
-      acceptButtonProps: { label: 'Discard' },
-      rejectButtonProps: { label: 'Keep editing' },
+      key: 'discard-changes',
+      message:
+        'You have unsaved changes in this item. If you leave now, those changes will be lost.',
     });
     expect(page.drawerOpen()).toBe(true);
     httpTesting.expectNone((r) => r.method === 'POST');

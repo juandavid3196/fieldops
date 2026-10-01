@@ -14,7 +14,6 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { ConfirmationService, MessageService } from 'primeng/api';
-import { ConfirmDialog } from 'primeng/confirmdialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
@@ -56,6 +55,11 @@ import {
   mapOrganizationServerFieldErrors,
   validateOrganizationField,
 } from './company-setup.validators';
+import {
+  DiscardChangesDialog,
+  discardChangesConfirmation,
+} from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
+import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
 const ERROR_SUMMARY_ID = 'company-setup-error-summary';
 /** Server errors for these keys live in the sequences dialog, not on a card field. */
@@ -86,9 +90,10 @@ export const CURRENCY_DIALOG_KEY = 'currency';
 @Component({
   selector: 'app-company-setup',
   imports: [
+    ConfirmDialog,
+    DiscardChangesDialog,
     RouterLink,
     ButtonDirective,
-    ConfirmDialog,
     SpinnerIcon,
     Skeleton,
     Toast,
@@ -209,20 +214,19 @@ export class CompanySetup {
 
   private confirmDiscard(): Observable<boolean> {
     return new Observable<boolean>((subscriber) => {
-      this.confirmationService.confirm({
-        header: 'Discard unsaved changes?',
-        message: 'You have unsaved changes. Do you want to discard them?',
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => {
-          subscriber.next(true);
-          subscriber.complete();
-        },
-        reject: () => {
-          subscriber.next(false);
-          subscriber.complete();
-        },
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'this company profile',
+          accept: () => {
+            subscriber.next(true);
+            subscriber.complete();
+          },
+          reject: () => {
+            subscriber.next(false);
+            subscriber.complete();
+          },
+        }),
+      );
     });
   }
 
@@ -230,13 +234,12 @@ export class CompanySetup {
     if (!this.form.dirty) {
       return;
     }
-    this.confirmationService.confirm({
-      header: 'Discard unsaved changes?',
-      message: 'You have unsaved changes. Do you want to discard them?',
-      acceptButtonProps: { label: 'Discard', severity: 'danger' },
-      rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-      accept: () => this.resetFormToLoaded(),
-    });
+    this.confirmationService.confirm(
+      discardChangesConfirmation({
+        subject: 'this company profile',
+        accept: () => this.resetFormToLoaded(),
+      }),
+    );
   }
 
   onFieldBlur(field: OrganizationFieldKey): void {
@@ -365,13 +368,12 @@ export class CompanySetup {
   /** Selecting another branch while the drawer has unsaved edits asks first (dirty guard). */
   private switchBranch(id: string | null): void {
     if (this.drawerOpen() && (this.drawer()?.isDirty() ?? false)) {
-      this.confirmationService.confirm({
-        header: 'Discard unsaved changes?',
-        message: 'You have unsaved changes. Do you want to discard them?',
-        acceptButtonProps: { label: 'Discard', severity: 'danger' },
-        rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
-        accept: () => this.showBranch(id),
-      });
+      this.confirmationService.confirm(
+        discardChangesConfirmation({
+          subject: 'this branch',
+          accept: () => this.showBranch(id),
+        }),
+      );
       return;
     }
     this.showBranch(id);
