@@ -36,7 +36,10 @@ public sealed record CatalogItemDetail(
     bool HasImage,
     DateTimeOffset UpdatedAt,
     CatalogImageInfo? Image,
-    CatalogUsage Usage);
+    CatalogUsage Usage,
+    Guid? CategoryId = null,
+    string? CategoryName = null,
+    bool? CategoryIsActive = null);
 
 public sealed record CatalogListPage(IReadOnlyList<CatalogItemRow> Items, int Page, int PageSize, int TotalCount);
 
@@ -48,7 +51,18 @@ public sealed record CatalogSummary(
     int AllItems,
     int Services,
     int Products,
-    string Currency);
+    string Currency,
+    string PublicRequestReadiness);
+
+/// <summary>A catalog category with its item counts.</summary>
+public sealed record CatalogCategoryView(Guid Id, string Name, bool IsActive, int ItemCount, int ActiveServiceCount);
+
+public enum CategoryWriteOutcome
+{
+    NotFound,
+    NoChange,
+    Changed,
+}
 
 public sealed record CatalogOrganizationFormat(string Currency, string Timezone);
 
@@ -60,7 +74,8 @@ public sealed record CatalogItemValues(
     decimal UnitCost,
     decimal UnitPrice,
     bool IsTaxable,
-    bool IsActive);
+    bool IsActive,
+    Guid? CategoryId = null);
 
 public enum CatalogSortField
 {
@@ -160,6 +175,14 @@ public static class CatalogMessages
     public const string UnitPriceInvalid = "Enter a unit price of 0 or more.";
 
     public const string BooleanInvalid = "Enter true or false.";
+
+    public const string CategoryInvalid = "Choose an active category.";
+
+    public const string CategoryNameRequired = "Enter a category name.";
+
+    public const string CategoryNameTooLong = "Category name must be 120 characters or fewer.";
+
+    public const string CategoryDuplicateName = "A category with this name already exists.";
 }
 
 public static class CatalogAuditActions
@@ -180,6 +203,23 @@ public static class CatalogAuditActions
 
     public const string Imported = "catalog_item.imported";
 }
+
+public static class CatalogCategoryAuditActions
+{
+    public const string EntityType = "catalog_category";
+
+    public const string Created = "catalog_category.created";
+
+    public const string Renamed = "catalog_category.renamed";
+
+    public const string Deactivated = "catalog_category.deactivated";
+
+    public const string Reactivated = "catalog_category.reactivated";
+}
+
+/// <summary>Raised when a category save loses the UNIQUE (organization_id, name) race.</summary>
+public sealed class DuplicateCatalogCategoryNameException(Exception innerException)
+    : Exception("Another category already uses this name.", innerException);
 
 /// <summary>Raised when a save loses the <c>ux_catalog_items_org_type_name</c> race (BR-08).</summary>
 public sealed class DuplicateCatalogItemNameException(Exception innerException)

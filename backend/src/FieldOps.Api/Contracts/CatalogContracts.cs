@@ -15,7 +15,8 @@ public sealed record CatalogItemRequest(
     JsonElement? UnitCost,
     JsonElement? UnitPrice,
     JsonElement? IsTaxable,
-    JsonElement? IsActive)
+    JsonElement? IsActive,
+    JsonElement? CategoryId = null)
 {
     /// <summary>Converts to the application input, or returns the per-key errors of wrongly typed values.</summary>
     public CatalogItemInput? ToInput(out Dictionary<string, string[]> errors)
@@ -29,10 +30,11 @@ public sealed record CatalogItemRequest(
         var unitPrice = Money(UnitPrice, CatalogItemRules.UnitPriceKey, CatalogMessages.UnitPriceInvalid, errors);
         var taxable = Flag(IsTaxable, "isTaxable", errors);
         var active = Flag(IsActive, "isActive", errors);
+        var categoryId = Text(CategoryId, CatalogItemRules.CategoryKey, CatalogMessages.CategoryInvalid, errors);
 
         return errors.Count > 0
             ? null
-            : new CatalogItemInput(type, name, description, unitCost, unitPrice, taxable, active);
+            : new CatalogItemInput(type, name, description, unitCost, unitPrice, taxable, active, categoryId);
     }
 
     private static string? Text(JsonElement? value, string key, string message, Dictionary<string, string[]> errors)
@@ -108,3 +110,11 @@ public sealed record CatalogListResponse(
 public sealed record CatalogImageResponse(string ContentType, int SizeBytes, DateTimeOffset UpdatedAt);
 
 public sealed record CatalogImportResponse(int ImportedCount);
+
+/// <summary>Body of POST/PUT /catalog-categories; a wrongly typed name is reported as missing.</summary>
+public sealed record CatalogCategoryRequest(JsonElement? Name)
+{
+    public string? NameText => Name is { ValueKind: JsonValueKind.String } name ? name.GetString() : null;
+}
+
+public sealed record CatalogCategoryListResponse(IReadOnlyList<CatalogCategoryView> Items);

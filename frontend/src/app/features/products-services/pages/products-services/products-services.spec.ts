@@ -15,7 +15,7 @@ import { errorInterceptor } from '../../../../core/interceptors/error.intercepto
 import { SessionService } from '../../../../core/services/session.service';
 import { ImportDialog } from '../../components/import-dialog/import-dialog';
 import { ItemDrawer } from '../../components/item-drawer/item-drawer';
-import { CatalogDetail, CatalogRow } from '../../models/catalog.model';
+import { CatalogCategory, CatalogDetail, CatalogRow } from '../../models/catalog.model';
 import { ProductsServices } from './products-services';
 
 const API = 'http://api.test';
@@ -53,11 +53,32 @@ const VALVE = row({
 const ROWS = [SINK, VALVE];
 const detail = (over: Partial<CatalogDetail> = {}): CatalogDetail => ({
   ...SINK,
+  categoryId: null,
+  categoryName: null,
+  categoryIsActive: null,
   image: null,
   usage: { quotes: 1, jobs: 14, invoices: 0 },
   ...over,
 });
+const category = (over: Partial<CatalogCategory>): CatalogCategory => ({
+  id: 'k-1',
+  name: 'Plumbing',
+  isActive: true,
+  itemCount: 3,
+  activeServiceCount: 2,
+  ...over,
+});
+const PLUMBING = category({});
+const ELECTRICAL = category({ id: 'k-2', name: 'Electrical', isActive: false, itemCount: 1 });
+const CATEGORIES = [ELECTRICAL, PLUMBING];
+const INACTIVE_ITEM = detail({
+  categoryId: 'k-2',
+  categoryName: 'Electrical',
+  categoryIsActive: false,
+});
+const PROBLEM = { status: 400, statusText: 'Bad Request' };
 const SUMMARY = {
+  publicRequestReadiness: 'ready',
   activeItems: 41,
   activeServices: 24,
   activeProducts: 17,
@@ -84,7 +105,7 @@ describe('Products & services page', () => {
     call('GET', 'catalog-items/summary').flush(SUMMARY);
   };
 
-  async function setup(roleCode: string, initial: 'ok' | 'none' = 'ok') {
+  async function setup(roleCode: string, initial: 'ok' | 'none' = 'ok', summary = SUMMARY) {
     TestBed.configureTestingModule({
       providers: [
         { provide: API_CONFIG, useValue: { baseUrl: API } },
@@ -106,7 +127,10 @@ describe('Products & services page', () => {
     host = fixture.nativeElement as HTMLElement;
     if (initial === 'ok') {
       flushList();
-      call('GET', 'catalog-items/summary').flush(SUMMARY);
+      call('GET', 'catalog-items/summary').flush(summary);
+      if (roleCode === 'owner' || roleCode === 'operations_manager') {
+        call('GET', 'catalog-categories').flush({ items: CATEGORIES });
+      }
     }
     await settle();
   }
@@ -132,6 +156,18 @@ describe('Products & services page', () => {
       configurable: true,
     });
     input.dispatchEvent(new Event('change'));
+    await settle();
+  };
+  const typeInto = async (selector: string, value: string): Promise<void> => {
+    const input = document.body.querySelector<HTMLInputElement>(selector)!;
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    await settle();
+  };
+  const key = async (selector: string, name: string): Promise<void> => {
+    document.body
+      .querySelector(selector)!
+      .dispatchEvent(new KeyboardEvent('keydown', { key: name, bubbles: true }));
     await settle();
   };
   const file = (name: string, type: string, size = 10): File =>
@@ -298,6 +334,8 @@ describe('Products & services page', () => {
 
       expect(button('Add item') !== undefined).toBe(expected.add);
       expect(button('Import CSV') !== undefined).toBe(expected.import);
+      expect(button('Manage categories') !== undefined).toBe(expected.add);
+      expect(text()).toContain('Public service requests are ready.');
       expect(button('Download CSV') !== undefined).toBe(expected.csv);
       expect(button('Export list')).toBeDefined();
       expect(host.querySelector('nav[aria-label="Administration"]') !== null).toBe(expected.admin);
@@ -322,11 +360,238 @@ describe('Products & services page', () => {
         expect(button('Save item')).toBeUndefined();
         expect(host.querySelector<HTMLInputElement>('#item-name')?.disabled).toBe(true);
         expect(button('Replace')).toBeUndefined();
+        expect(text(host.querySelector('app-item-drawer')!)).toContain('No category');
+        expect(host.querySelector('app-item-drawer p-select')).toBeNull();
         expect(host.querySelector('img[alt="Item image preview"]')).not.toBeNull();
         expect(text()).toContain('Used on 1 quote, 14 jobs, and 0 invoices.');
       }
     },
   );
+
+  it('manages categories in the dialog: states, create, inline rename, deactivate confirmation, reactivate and indicator refresh (FR-09, AC-12 to AC-14)', async () => {
+    await setup('owner');
+    const messages = vi.spyOn(inject(MessageService), 'add');
+    const asked = confirmations();
+    const dialog = document.body;
+    const summaryRefresh = async (readiness: string): Promise<void> => {
+      call('GET', 'catalog-items/summary').flush({ ...SUMMARY, publicRequestReadiness: readiness });
+      await settle();
+    };
+    const rowButton = (label: string): HTMLButtonElement =>
+      dialog.querySelector<HTMLButtonElement>(`[aria-label="${label}"]`)!;
+
+    button('Manage categories')!.click();
+    await settle();
+    expect(text(dialog)).toContain('Manage categories');
+    call('GET', 'catalog-categories').flush(null, { status: 500, statusText: 'Server Error' });
+    await settle();
+    expect(text(dialog)).toContain(
+      "We couldn't load categories. Check your connection and try again.",
+    );
+    expect(dialog.querySelector('.categories__list')).toBeNull();
+    button('Retry', dialog)!.click();
+    call('GET', 'catalog-categories').flush({ items: [] });
+    await settle();
+    expect(text(dialog)).toContain('No categories yet. Add one to group your services.');
+
+    // Create: validation, 409 keeps the text under the input, success clears and refreshes.
+    button('Add category', dialog)!.click();
+    await settle();
+    expect(text(dialog)).toContain('Enter a category name.');
+    await typeInto('#category-name', ' Plumbing ');
+    button('Add category', dialog)!.click();
+    await settle();
+    let request = call('POST', 'catalog-categories');
+    expect(request.request.body).toEqual({ name: 'Plumbing' });
+    expect(dialog.querySelector<HTMLInputElement>('#category-name')!.disabled).toBe(true);
+    expect(button('Add category', dialog)!.disabled).toBe(true);
+    request.flush(
+      { status: 409, errors: { name: ['server text'] } },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await settle();
+    expect(text(dialog)).toContain('A category with this name already exists.');
+    expect(dialog.querySelector<HTMLInputElement>('#category-name')!.value).toBe(' Plumbing ');
+    button('Add category', dialog)!.click();
+    await settle();
+    call('POST', 'catalog-categories').flush(category({ itemCount: 0, activeServiceCount: 0 }), {
+      status: 201,
+      statusText: 'Created',
+    });
+    await settle();
+    expect(messages).toHaveBeenCalledWith({ severity: 'success', summary: 'Category added' });
+    expect(dialog.querySelector<HTMLInputElement>('#category-name')!.value).toBe('');
+    expect(text(dialog)).toContain('0 items · 0 active services');
+    await summaryRefresh('no_active_services');
+    expect(text()).toContain('Assign an active service to an active category');
+
+    // Inline rename: focus moves in and back, Escape cancels, 409 stays, save returns to view mode.
+    rowButton('Rename Plumbing').click();
+    await settle();
+    expect(document.activeElement?.id).toBe('category-rename-input');
+    await key('#category-rename-input', 'Escape');
+    expect(dialog.querySelector('#category-rename-input')).toBeNull();
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Rename Plumbing');
+    rowButton('Rename Plumbing').click();
+    await settle();
+    await typeInto('#category-rename-input', 'Drains');
+    button('Save', dialog)!.click();
+    await settle();
+    request = call('PUT', 'catalog-categories/k-1');
+    expect(request.request.body).toEqual({ name: 'Drains' });
+    request.flush(
+      { status: 409, errors: { name: ['x'] } },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await settle();
+    expect(text(dialog)).toContain('A category with this name already exists.');
+    expect(dialog.querySelector<HTMLInputElement>('#category-rename-input')!.value).toBe('Drains');
+    button('Save', dialog)!.click();
+    await settle();
+    call('PUT', 'catalog-categories/k-1').flush(
+      category({ name: 'Drains', itemCount: 1, activeServiceCount: 1 }),
+    );
+    await settle();
+    expect(messages).toHaveBeenCalledWith({ severity: 'success', summary: 'Category renamed' });
+    expect(dialog.querySelector('#category-rename-input')).toBeNull();
+    expect(text(dialog)).toContain('1 item · 1 active service');
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Rename Drains');
+    await summaryRefresh('ready');
+
+    // Deactivate asks first; a failure keeps the state; reactivate needs no confirmation.
+    rowButton('Deactivate Drains').click();
+    expect(asked[0]).toMatchObject({
+      message:
+        'Deactivate Drains? Its services will no longer appear in the public request form. Catalog items will not be deleted.',
+      acceptButtonProps: { label: 'Deactivate' },
+      rejectButtonProps: { label: 'Cancel' },
+    });
+    httpTesting.expectNone((r) => r.method === 'POST');
+    asked[0].accept!();
+    await settle();
+    expect(rowButton('Deactivate Drains').disabled).toBe(true);
+    call('POST', 'catalog-categories/k-1/deactivate').flush(null, {
+      status: 500,
+      statusText: 'Server Error',
+    });
+    await settle();
+    expect(messages).toHaveBeenCalledWith({
+      severity: 'error',
+      summary: "We couldn't update Drains. Try again.",
+    });
+    expect(text(dialog.querySelector('.categories__list')!)).not.toContain('Inactive');
+    asked[0].accept!();
+    call('POST', 'catalog-categories/k-1/deactivate').flush(null, NO_CONTENT);
+    await settle();
+    expect(messages).toHaveBeenCalledWith({ severity: 'success', summary: 'Drains deactivated' });
+    expect(text(dialog.querySelector('.categories__list')!)).toContain('Inactive');
+    await summaryRefresh('no_active_categories');
+    expect(text()).toContain('Create and activate a category to accept public requests.');
+    rowButton('Reactivate Drains').click();
+    call('POST', 'catalog-categories/k-1/activate').flush(null, NO_CONTENT);
+    await settle();
+    expect(messages).toHaveBeenCalledWith({ severity: 'success', summary: 'Drains reactivated' });
+    await summaryRefresh('ready');
+    expect(asked.length).toBe(1);
+
+    // Closing keeps the page state.
+    button('Close', dialog)!.click();
+    await settle();
+    expect(page.categoriesOpen()).toBe(false);
+    expect(text()).toContain('Public service requests are ready.');
+  }, 20_000);
+
+  it('offers the Category selector with an inactive current category, keeps it when categories fail and maps a 400 (FR-10, AC-15)', async () => {
+    await setup('owner');
+    const labels = (): string[] =>
+      drawer()
+        .categoryOptions()
+        .map((option) => option.label);
+
+    button('Add item')!.click();
+    await settle();
+    const form = drawer();
+    expect(labels()).toEqual(['No category', 'Plumbing']);
+    expect(form.categoryId()).toBeNull();
+    expect(host.querySelector('label[for="item-category"]')?.textContent).toContain('Category');
+    form.onTypeChange('service');
+    form.onText('name', 'Drain clearing');
+    form.onText('unitCost', '10');
+    form.onText('unitPrice', '20');
+    form.onCategoryChange('k-1');
+    await settle();
+    button('Save item')!.click();
+    await settle();
+    let request = call('POST', 'catalog-items');
+    expect(request.request.body).toMatchObject({ categoryId: 'k-1' });
+    request.flush({ status: 400, errors: { categoryId: ['server text'] } }, PROBLEM);
+    await settle();
+    expect(host.querySelector('#item-category-error')?.textContent?.trim()).toBe('server text');
+    form.onCategoryChange(null);
+    await settle();
+    expect(host.querySelector('#item-category-error')).toBeNull();
+    button('Save item')!.click();
+    await settle();
+    request = call('POST', 'catalog-items');
+    expect(request.request.body).toMatchObject({ categoryId: null });
+    request.flush(detail(), { status: 201, statusText: 'Created' });
+    await settle();
+    refresh();
+
+    // Edit: the inactive current category is listed, selected and kept when categories fail to load.
+    page.buildMenu(SINK)[0].command!({});
+    await settle();
+    call('GET', 'catalog-items/c-1').flush(INACTIVE_ITEM);
+    await settle();
+    expect(labels()).toEqual(['No category', 'Plumbing', 'Electrical (Inactive)']);
+    expect(form.categoryId()).toBe('k-2');
+    expect(form.dirty()).toBe(false);
+    page.loadCategories();
+    call('GET', 'catalog-categories').flush(null, { status: 500, statusText: 'Server Error' });
+    await settle();
+    const drawerHost = host.querySelector('app-item-drawer')!;
+    expect(text(drawerHost)).toContain("Couldn't load categories.");
+    form.onText('unitPrice', '250');
+    button('Retry', drawerHost)!.click();
+    call('GET', 'catalog-categories').flush({ items: CATEGORIES });
+    await settle();
+    button('Save item')!.click();
+    await settle();
+    request = call('PUT', 'catalog-items/c-1');
+    expect(request.request.body).toMatchObject({ categoryId: 'k-2' });
+    request.flush(INACTIVE_ITEM);
+    await settle();
+    refresh();
+  }, 20_000);
+
+  it('shows the readiness note per status and hides it when the summary fails (FR-10, AC-16)', async () => {
+    await setup('viewer');
+    expect(host.querySelector('.catalog__note--success')?.textContent).toContain(
+      'Public service requests are ready.',
+    );
+    expect(button('Manage categories')).toBeUndefined();
+
+    for (const [status, copy] of [
+      ['no_active_categories', 'Create and activate a category to accept public requests.'],
+      [
+        'no_active_services',
+        'Assign an active service to an active category to accept public requests.',
+      ],
+    ]) {
+      page.loadSummary();
+      call('GET', 'catalog-items/summary').flush({ ...SUMMARY, publicRequestReadiness: status });
+      await settle();
+      expect(
+        host.querySelector('.catalog__note--standalone.catalog__note--warning')?.textContent,
+      ).toContain(copy);
+      expect(host.querySelector('.catalog__note--success')).toBeNull();
+    }
+
+    page.loadSummary();
+    call('GET', 'catalog-items/summary').flush(null, { status: 500, statusText: 'Server Error' });
+    await settle();
+    expect(host.querySelector('.catalog__note--standalone')).toBeNull();
+  });
 
   it('confirms deactivation, activates without confirmation and handles a missing item (FR-09, AC-09)', async () => {
     await setup('owner');
@@ -424,6 +689,7 @@ describe('Products & services page', () => {
       type: 'service',
       name: 'Kitchen sink',
       description: null,
+      categoryId: null,
       unitCost: 90,
       unitPrice: 240.5,
       isTaxable: true,

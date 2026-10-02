@@ -4,7 +4,7 @@
 | -------- | --------------------- |
 | Feature  | `catalog-categories`  |
 | Type     | Full-stack            |
-| Status   | APPROVED              |
+| Status   | AUDITED               |
 | Created  | 2026-10-02            |
 | Updated  | 2026-10-02            |
 | Approved | 2026-10-02            |
@@ -274,3 +274,5 @@ Validation errors use the existing ProblemDetails `errors` shape. `Category` =
 | 2026-10-02 | — → DRAFT     | Created |
 | 2026-10-02 | DRAFT → DRAFT | Revised after validation: visual reference is the implemented page and `confirm-dialog`; `catalog_item.created` records a non-null `categoryId`; indicator placed below metrics and above tabs; typo fixed |
 | 2026-10-02 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-02 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-02 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

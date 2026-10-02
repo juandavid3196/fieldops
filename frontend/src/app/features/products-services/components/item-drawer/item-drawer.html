@@ -125,6 +125,50 @@
           ></textarea>
         </app-form-field>
 
+        @if (readOnly()) {
+          <div class="item-drawer__readonly">
+            <span class="item-drawer__legend">Category</span>
+            <p class="item-drawer__readonly-value">{{ categoryText() }}</p>
+          </div>
+        } @else {
+          <div class="item-drawer__category">
+            <app-form-field
+              label="Category"
+              [controlId]="controlIds.category"
+              [error]="error('category')"
+            >
+              <p-select
+                appendTo="body"
+                fluid
+                [inputId]="controlIds.category"
+                [options]="categoryOptions()"
+                optionLabel="label"
+                optionValue="id"
+                [ngModel]="categoryId()"
+                (ngModelChange)="onCategoryChange($event)"
+                [disabled]="submitting() || categoriesLoading() || categoriesFailed()"
+                [invalid]="error('category') !== null"
+              />
+            </app-form-field>
+            @if (categoriesFailed()) {
+              <p-message severity="error" size="small" [closable]="false">
+                <span class="item-drawer__retry-inline">
+                  {{ categoryFailedMessage }}
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    size="small"
+                    (click)="retryCategories.emit()"
+                  >
+                    Retry
+                  </button>
+                </span>
+              </p-message>
+            }
+          </div>
+        }
+
         <app-form-field
           label="Unit cost"
           [controlId]="controlIds.unitCost"

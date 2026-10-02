@@ -18,6 +18,7 @@ export const FIELD_LABELS: Readonly<Record<ItemFieldKey, string>> = {
   type: 'Type',
   name: 'Name',
   description: 'Description',
+  category: 'Category',
   unitCost: 'Unit cost',
   unitPrice: 'Unit price',
 };
@@ -44,6 +45,8 @@ export function validateItemField(field: ItemFieldKey, value: ItemFormValue): st
     }
     case 'description':
       return value.description.trim().length > 1000 ? DESCRIPTION_MESSAGE : null;
+    case 'category':
+      return null;
     case 'unitCost':
       return parseMoneyCents(value.unitCost) === null ? COST_MESSAGE : null;
     case 'unitPrice':
@@ -69,7 +72,9 @@ export function mapServerFieldErrors(
   const mapped: ItemFieldErrors = {};
   for (const [key, messages] of Object.entries(fieldErrors)) {
     const field = ITEM_FIELD_KEYS.find(
-      (candidate) => candidate.toLowerCase() === key.toLowerCase(),
+      (candidate) =>
+        candidate.toLowerCase() === key.toLowerCase() ||
+        (candidate === 'category' && key.toLowerCase() === 'categoryid'),
     );
     if (field !== undefined && messages[0] !== undefined) {
       mapped[field] = messages[0];

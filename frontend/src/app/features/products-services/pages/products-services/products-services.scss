@@ -228,6 +228,16 @@
       border-color: var(--fo-color-info-border);
     }
 
+    &--standalone {
+      flex: none;
+    }
+
+    &--success {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+      border-color: var(--fo-color-success-solid);
+    }
+
     &--warning {
       color: var(--fo-color-warning-text);
       background: var(--fo-color-warning-background);
