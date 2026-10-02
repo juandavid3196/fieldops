@@ -1,0 +1,46 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../service-request-form' as form;
+
+@include form.fields;
+@include form.tiles;
+
+.sr-service-row {
+  display: grid;
+  gap: 0.625rem;
+
+  @include bp.up(md) {
+    grid-template-columns: minmax(0, 1fr) 15rem;
+  }
+}
+
+.sr-urgency {
+  display: grid;
+  gap: 0.75rem;
+
+  @include bp.up(md) {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.1fr);
+    align-items: stretch;
+  }
+
+  .sr-option {
+    min-block-size: 4.5rem;
+  }
+}
+
+.sr-hint--emergency {
+  display: flex;
+  gap: 0.625rem;
+  margin: 0;
+  color: var(--fo-color-text-secondary);
+
+  .pi {
+    color: var(--fo-color-warning-text);
+    font-size: 1.125rem;
+  }
+
+  @include bp.up(md) {
+    align-self: center;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 1px solid var(--fo-color-row-divider);
+  }
+}

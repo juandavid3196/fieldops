@@ -1,0 +1,9 @@
+@use '../../service-request-form' as form;
+
+@include form.fields;
+@include form.tiles;
+
+.sr-lead {
+  margin: -0.75rem 0 1.25rem;
+  color: var(--fo-color-text);
+}

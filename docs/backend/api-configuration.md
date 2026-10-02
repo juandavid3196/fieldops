@@ -62,6 +62,8 @@ variables.
 | `POST /password-resets` | All | Request a reset link (anonymous). Body `{ email }`, ≤ 4 KB. Always `202` with an empty body and `no-store` once the email is well formed; `400` `email` otherwise. |
 | `POST /password-resets/validate` | All | Body `{ token }`. `200 { email }` for a usable token, identical `410` for any unusable one. |
 | `POST /password-resets/confirm` | All | Body `{ token, password }`. `204`; `400` `token`/`password`; identical `410`; `500` rolled back. |
+| `GET /public/organizations/{slug}/service-request-form` | All | Public request form configuration (anonymous, `no-store`). `200 { organizationName, phone, website, requestPrefix, timezone, categories: [{ id, name, services: [{ id, name }] }] }`. One identical `404` for an unknown slug or an organization that does not accept public requests; `429` + `Retry-After`. |
+| `POST /public/organizations/{slug}/service-requests` | All | Public service request (anonymous, `no-store`). `multipart/form-data`: part `request` (JSON) + 0–5 `attachments` files; body ≤ 27 262 976 bytes (`413`). `201 { requestNumber }`; `400` field errors (generic for the honeypot or a malformed body); identical `404`; `415`; `429`; `500` rolled back. Attachment type is detected from content; files are stored inline. The slug is redacted in request logs. |
 
 Invitation endpoints: every response is `Cache-Control: no-store`
 (`InvitationNoStoreMiddleware`). `400` is `ValidationProblemDetails` with keys
@@ -185,6 +187,8 @@ outcome.
 | Global | One partition | 300 requests per 1-minute fixed window |
 | Invitations, per client | `RemoteIpAddress`, one partition shared by the three invitation endpoints | 20 requests per 5-minute fixed window; global 300 per minute across the three |
 | Password reset, per client | `RemoteIpAddress` | `POST /password-resets`: 5 per 15-minute fixed window (`password-reset-request`). `validate` + `confirm` share one partition: 20 per 5 minutes (`password-reset-token`). Global 300 per minute, one partition shared by the three endpoints. |
+| Public request form, per client | `RemoteIpAddress` | `GET .../service-request-form`: 60 per 5-minute fixed window (`public-request-form`); global 600 per minute. |
+| Public request submission, per client | `RemoteIpAddress` | `POST .../service-requests`: 5 per 15-minute fixed window (`public-request-submit`); global 100 per hour. |
 | Password reset, per email | SHA-256 of the normalized email | 3 requests per 60 minutes (`IPasswordResetEmailThrottle`, bounded in memory), counted for every well-formed email. Not a `429`: the request returns the neutral `202` with no token or email. |
 | Per email | SHA-256 of the normalized email | After 5 failed (`401`) attempts in a sliding 15 minutes, `429` before password verification until the oldest failure leaves the window. Unknown emails count. Success clears it; `400`, `413`, `415` and `429` do not count. |
 

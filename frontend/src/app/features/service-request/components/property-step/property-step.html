@@ -1,0 +1,186 @@
+<p class="sr-guest">
+  <i class="pi pi-user sr-guest__icon" aria-hidden="true"></i>
+  <span>
+    <strong>Continuing as guest</strong>
+    Tell us where the work is needed.
+  </span>
+</p>
+<h2 class="sr-title" tabindex="-1" data-sr-heading>Property details</h2>
+
+<form novalidate (submit)="$event.preventDefault(); store.next()">
+  <fieldset class="sr-field">
+    <legend class="sr-subtitle">Where do you need service?</legend>
+    <div class="sr-tiles sr-tiles--2">
+      @for (type of types; track type.value) {
+        <label class="sr-tile">
+          <input
+            type="radio"
+            name="sr-property-type"
+            [value]="type.value"
+            [checked]="property().propertyType === type.value"
+            (change)="store.patchProperty({ propertyType: type.value })"
+          />
+          <i class="pi sr-tile__icon" [class]="type.icon" aria-hidden="true"></i>
+          {{ type.label }}
+          <span class="sr-tile__check" aria-hidden="true"><i class="pi pi-check"></i></span>
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <div class="sr-field">
+    <label class="sr-label" for="sr-property-addressLine1"
+      >Address line 1 <span class="sr-required" aria-hidden="true">*</span></label
+    >
+    <input
+      pInputText
+      #line1
+      id="sr-property-addressLine1"
+      autocomplete="address-line1"
+      required
+      aria-required="true"
+      fluid
+      [value]="property().addressLine1"
+      [invalid]="store.error('property.addressLine1') !== null"
+      [attr.aria-invalid]="store.error('property.addressLine1') !== null ? 'true' : null"
+      [attr.aria-describedby]="store.errorId('property.addressLine1')"
+      (input)="store.patchProperty({ addressLine1: line1.value })"
+      (blur)="store.revalidate('property.addressLine1')"
+    />
+    @if (store.error('property.addressLine1'); as message) {
+      <p class="sr-error" id="sr-property-addressLine1-error">{{ message }}</p>
+    }
+  </div>
+
+  <div class="sr-field">
+    <label class="sr-label" for="sr-property-addressLine2">
+      Address line 2 <span class="sr-optional">(optional)</span>
+    </label>
+    <input
+      pInputText
+      #line2
+      id="sr-property-addressLine2"
+      autocomplete="address-line2"
+      placeholder="Apt, suite, unit, building, etc."
+      fluid
+      [value]="property().addressLine2"
+      [invalid]="store.error('property.addressLine2') !== null"
+      [attr.aria-invalid]="store.error('property.addressLine2') !== null ? 'true' : null"
+      [attr.aria-describedby]="store.errorId('property.addressLine2')"
+      (input)="store.patchProperty({ addressLine2: line2.value })"
+      (blur)="store.revalidate('property.addressLine2')"
+    />
+    @if (store.error('property.addressLine2'); as message) {
+      <p class="sr-error" id="sr-property-addressLine2-error">{{ message }}</p>
+    }
+  </div>
+
+  <div class="sr-grid sr-grid--3">
+    <div class="sr-field">
+      <label class="sr-label" for="sr-property-city"
+        >City <span class="sr-required" aria-hidden="true">*</span></label
+      >
+      <input
+        pInputText
+        #city
+        id="sr-property-city"
+        autocomplete="address-level2"
+        required
+        aria-required="true"
+        fluid
+        [value]="property().city"
+        [invalid]="store.error('property.city') !== null"
+        [attr.aria-invalid]="store.error('property.city') !== null ? 'true' : null"
+        [attr.aria-describedby]="store.errorId('property.city')"
+        (input)="store.patchProperty({ city: city.value })"
+        (blur)="store.revalidate('property.city')"
+      />
+      @if (store.error('property.city'); as message) {
+        <p class="sr-error" id="sr-property-city-error">{{ message }}</p>
+      }
+    </div>
+
+    <div class="sr-field">
+      <label class="sr-label" for="sr-property-state"
+        >State <span class="sr-required" aria-hidden="true">*</span></label
+      >
+      <p-select
+        inputId="sr-property-state"
+        ariaLabel="State"
+        placeholder="Select"
+        appendTo="body"
+        fluid
+        [options]="states"
+        [ngModel]="property().state || null"
+        [ngModelOptions]="standalone"
+        [invalid]="store.error('property.state') !== null"
+        [attr.aria-describedby]="store.errorId('property.state')"
+        (onChange)="chooseState($event.value)"
+      />
+      @if (store.error('property.state'); as message) {
+        <p class="sr-error" id="sr-property-state-error">{{ message }}</p>
+      }
+    </div>
+
+    <div class="sr-field">
+      <label class="sr-label" for="sr-property-postalCode"
+        >ZIP code <span class="sr-required" aria-hidden="true">*</span></label
+      >
+      <input
+        pInputText
+        #zip
+        id="sr-property-postalCode"
+        inputmode="numeric"
+        autocomplete="postal-code"
+        required
+        aria-required="true"
+        fluid
+        [value]="property().postalCode"
+        [invalid]="store.error('property.postalCode') !== null"
+        [attr.aria-invalid]="store.error('property.postalCode') !== null ? 'true' : null"
+        [attr.aria-describedby]="store.errorId('property.postalCode')"
+        (input)="store.patchProperty({ postalCode: zip.value })"
+        (blur)="store.revalidate('property.postalCode')"
+      />
+      @if (store.error('property.postalCode'); as message) {
+        <p class="sr-error" id="sr-property-postalCode-error">{{ message }}</p>
+      }
+    </div>
+  </div>
+
+  <div class="sr-field">
+    <label class="sr-label" for="sr-property-accessInstructions">
+      Access instructions <span class="sr-optional">(optional)</span>
+    </label>
+    <textarea
+      pTextarea
+      #access
+      id="sr-property-accessInstructions"
+      rows="3"
+      maxlength="1000"
+      placeholder="e.g., Gate code, where to park, unit number, pets on site, or other helpful details."
+      fluid
+      [value]="property().accessInstructions"
+      [invalid]="store.error('property.accessInstructions') !== null"
+      [attr.aria-invalid]="store.error('property.accessInstructions') !== null ? 'true' : null"
+      [attr.aria-describedby]="store.errorId('property.accessInstructions')"
+      (input)="store.patchProperty({ accessInstructions: access.value })"
+      (blur)="store.revalidate('property.accessInstructions')"
+    ></textarea>
+    <span class="sr-count" aria-live="polite">{{ property().accessInstructions.length }}/1000</span>
+    @if (store.error('property.accessInstructions'); as message) {
+      <p class="sr-error" id="sr-property-accessInstructions-error">{{ message }}</p>
+    }
+  </div>
+
+  <div class="sr-actions">
+    <button pButton type="button" variant="outlined" (click)="store.back()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Back
+    </button>
+    <button pButton type="submit">
+      Continue to service details
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
+</form>

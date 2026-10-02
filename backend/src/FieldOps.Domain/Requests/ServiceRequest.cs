@@ -38,6 +38,8 @@ public sealed class ServiceRequest
 
     public Guid? CategoryId { get; private set; }
 
+    public Guid? CatalogItemId { get; private set; }
+
     public string? GuestName { get; private set; }
 
     public string? GuestEmail { get; private set; }
@@ -58,6 +60,14 @@ public sealed class ServiceRequest
 
     public Guid? AssignedDispatcherUserId { get; private set; }
 
+    public string Urgency { get; private set; } = "standard";
+
+    public bool HasActiveDamage { get; private set; }
+
+    public string? AvailabilityPreferences { get; private set; }
+
+    public DateTimeOffset? ConsentAt { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -69,8 +79,28 @@ public sealed class ServiceRequest
         long requestNumber,
         string description,
         DateTimeOffset? preferredStart = null,
-        DateTimeOffset? preferredEnd = null)
+        DateTimeOffset? preferredEnd = null,
+        Guid? customerId = null,
+        Guid? contactId = null,
+        Guid? propertyId = null,
+        Guid? categoryId = null,
+        Guid? catalogItemId = null,
+        string? guestName = null,
+        string? guestEmail = null,
+        string? guestPhone = null,
+        string? serviceAddress = null,
+        string urgency = "standard",
+        bool hasActiveDamage = false,
+        string? availabilityPreferences = null,
+        DateTimeOffset? consentAt = null)
     {
+        if (urgency is not ("standard" or "urgent" or "emergency"))
+        {
+            throw new ArgumentException(
+                "Urgency must be standard, urgent or emergency.",
+                nameof(urgency));
+        }
+
         if (organizationId == Guid.Empty)
         {
             throw new ArgumentException(
@@ -110,6 +140,19 @@ public sealed class ServiceRequest
         {
             PreferredStart = preferredStart,
             PreferredEnd = preferredEnd,
+            CustomerId = customerId,
+            ContactId = contactId,
+            PropertyId = propertyId,
+            CategoryId = categoryId,
+            CatalogItemId = catalogItemId,
+            GuestName = guestName?.Trim(),
+            GuestEmail = guestEmail?.Trim(),
+            GuestPhone = guestPhone?.Trim(),
+            ServiceAddress = serviceAddress,
+            Urgency = urgency,
+            HasActiveDamage = hasActiveDamage,
+            AvailabilityPreferences = availabilityPreferences,
+            ConsentAt = consentAt,
         };
     }
 }

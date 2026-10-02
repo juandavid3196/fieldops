@@ -19,7 +19,7 @@ public class OrganizationTests
             "q",
             "wo",
             "inv",
-            1);
+            1, "acme");
 
         Assert.Equal("Acme Field Services", organization.Name);
         Assert.Equal("Acme Field Services LLC", organization.LegalName);
@@ -49,7 +49,7 @@ public class OrganizationTests
             "Q",
             "WO",
             "INV",
-            1);
+            1, "acme");
 
         Assert.Null(organization.LegalName);
         Assert.Null(organization.TaxId);
@@ -64,7 +64,7 @@ public class OrganizationTests
     public void Create_WithBlankName_Throws(string? name)
     {
         Assert.Throws<ArgumentException>(() => Organization.Create(
-            name!, "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1));
+            name!, "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1, "acme"));
     }
 
     [Theory]
@@ -73,7 +73,7 @@ public class OrganizationTests
     public void Create_WithBlankTimezone_Throws(string timezone)
     {
         Assert.Throws<ArgumentException>(() => Organization.Create(
-            "Acme", "Legal", null, null, null, timezone, "USD", 0m, "Q", "WO", "INV", 1));
+            "Acme", "Legal", null, null, null, timezone, "USD", 0m, "Q", "WO", "INV", 1, "acme"));
     }
 
     [Theory]
@@ -82,7 +82,7 @@ public class OrganizationTests
     public void Create_WithBlankCurrency_Throws(string currency)
     {
         Assert.Throws<ArgumentException>(() => Organization.Create(
-            "Acme", "Legal", null, null, null, "UTC", currency, 0m, "Q", "WO", "INV", 1));
+            "Acme", "Legal", null, null, null, "UTC", currency, 0m, "Q", "WO", "INV", 1, "acme"));
     }
 
     [Theory]
@@ -91,11 +91,11 @@ public class OrganizationTests
     public void Create_WithBlankPrefixes_Throws(string prefix)
     {
         Assert.Throws<ArgumentException>(() => Organization.Create(
-            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, prefix, "WO", "INV", 1));
+            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, prefix, "WO", "INV", 1, "acme"));
         Assert.Throws<ArgumentException>(() => Organization.Create(
-            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", prefix, "INV", 1));
+            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", prefix, "INV", 1, "acme"));
         Assert.Throws<ArgumentException>(() => Organization.Create(
-            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", prefix, 1));
+            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", prefix, 1, "acme"));
     }
 
     [Theory]
@@ -104,14 +104,14 @@ public class OrganizationTests
     public void Create_WithNextInvoiceNumberBelowOne_Throws(long nextInvoiceNumber)
     {
         Assert.Throws<ArgumentException>(() => Organization.Create(
-            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", nextInvoiceNumber));
+            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", nextInvoiceNumber, "acme"));
     }
 
     [Fact]
     public void UpdateSettings_WithValidValues_TrimsAndSetsFieldsAndTimestamp()
     {
         var organization = Organization.Create(
-            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1);
+            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1, "acme");
         var updatedAt = DateTimeOffset.UtcNow.AddMinutes(5);
 
         organization.UpdateSettings(
@@ -157,7 +157,7 @@ public class OrganizationTests
     public void UpdateSettings_WithBlankName_Throws(string name)
     {
         var organization = Organization.Create(
-            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1);
+            "Acme", "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1, "acme");
 
         Assert.Throws<ArgumentException>(() => organization.UpdateSettings(
             name, "Legal", null, null, null, "UTC", "USD", 0m, "Q", "WO", "INV", 1, 1, 1, null, "1 Main St", "Austin", null, "78701", "US", false, DateTimeOffset.UtcNow));

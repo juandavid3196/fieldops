@@ -1,0 +1,158 @@
+<p class="sr-guest">
+  <i class="pi pi-user sr-guest__icon" aria-hidden="true"></i>
+  <span>
+    <strong>Continuing as guest</strong>
+    Tell us what you need.
+  </span>
+</p>
+<h2 class="sr-title" tabindex="-1" data-sr-heading>Service details</h2>
+
+<form novalidate (submit)="$event.preventDefault(); store.next()">
+  <fieldset class="sr-field" [attr.aria-describedby]="store.errorId('service.categoryId')">
+    <legend class="sr-subtitle">
+      What type of service do you need? <span class="sr-required" aria-hidden="true">*</span>
+    </legend>
+    <div class="sr-tiles">
+      @for (category of store.config()?.categories; track category.id) {
+        <label class="sr-tile">
+          <input
+            type="radio"
+            name="sr-service-category"
+            [id]="$first ? 'sr-service-categoryId' : 'sr-service-category-' + category.id"
+            [value]="category.id"
+            [checked]="service().categoryId === category.id"
+            (change)="chooseCategory(category.id)"
+          />
+          <i class="pi sr-tile__icon" [class]="categoryIcon(category.name)" aria-hidden="true"></i>
+          {{ category.name }}
+          <span class="sr-tile__check" aria-hidden="true"><i class="pi pi-check"></i></span>
+        </label>
+      }
+    </div>
+    @if (store.error('service.categoryId'); as message) {
+      <p class="sr-error" id="sr-service-categoryId-error">{{ message }}</p>
+    }
+  </fieldset>
+
+  <div class="sr-field">
+    <label class="sr-label" for="sr-service-serviceId"
+      >Service <span class="sr-required" aria-hidden="true">*</span></label
+    >
+    <div class="sr-service-row">
+      <p-select
+        inputId="sr-service-serviceId"
+        ariaLabel="Service"
+        placeholder="Select a service"
+        appendTo="body"
+        fluid
+        optionLabel="name"
+        optionValue="id"
+        [options]="store.categoryServices()"
+        [ngModel]="service().serviceId || null"
+        [ngModelOptions]="standalone"
+        [disabled]="service().notSure"
+        [invalid]="store.error('service.serviceId') !== null"
+        [attr.aria-describedby]="store.errorId('service.serviceId')"
+        (onChange)="chooseService($event.value)"
+      />
+      <label class="sr-option">
+        <input
+          type="checkbox"
+          #notSure
+          [checked]="service().notSure"
+          (change)="toggleNotSure(notSure.checked)"
+        />
+        {{ notSureLabel }}
+      </label>
+    </div>
+    @if (store.error('service.serviceId'); as message) {
+      <p class="sr-error" id="sr-service-serviceId-error">{{ message }}</p>
+    }
+  </div>
+
+  <div class="sr-field">
+    <label class="sr-label" for="sr-service-description"
+      >Describe the problem <span class="sr-required" aria-hidden="true">*</span></label
+    >
+    <textarea
+      pTextarea
+      #description
+      id="sr-service-description"
+      rows="3"
+      maxlength="1000"
+      required
+      aria-required="true"
+      fluid
+      [value]="service().description"
+      [invalid]="store.error('service.description') !== null"
+      [attr.aria-invalid]="store.error('service.description') !== null ? 'true' : null"
+      [attr.aria-describedby]="store.errorId('service.description')"
+      (input)="store.patchService({ description: description.value })"
+      (blur)="store.revalidate('service.description')"
+    ></textarea>
+    <span class="sr-meta">
+      <span class="sr-hint"
+        >When did it start? Is anything turned off? Include any access or safety concerns.</span
+      >
+      <span class="sr-count" aria-live="polite">{{ service().description.length }}/1000</span>
+    </span>
+    @if (store.error('service.description'); as message) {
+      <p class="sr-error" id="sr-service-description-error">{{ message }}</p>
+    }
+  </div>
+
+  <fieldset class="sr-field">
+    <legend class="sr-label">
+      How urgent is this? <span class="sr-required" aria-hidden="true">*</span>
+    </legend>
+    <div class="sr-urgency">
+      @for (urgency of urgencies; track urgency.value) {
+        <label class="sr-option">
+          <input
+            type="radio"
+            name="sr-service-urgency"
+            [value]="urgency.value"
+            [checked]="service().urgency === urgency.value"
+            (change)="store.patchService({ urgency: urgency.value })"
+          />
+          <span>
+            {{ urgency.label }}
+            <small>{{ urgency.hint }}</small>
+          </span>
+        </label>
+      }
+      <p class="sr-hint sr-hint--emergency">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        For immediate danger, shut off utilities if safe and contact emergency services.
+      </p>
+    </div>
+  </fieldset>
+
+  <div class="sr-field">
+    <span class="sr-label"
+      >Add photos or documents <span class="sr-optional">(optional)</span></span
+    >
+    <app-attachment-dropzone />
+  </div>
+
+  <label class="sr-check">
+    <input
+      type="checkbox"
+      #damage
+      [checked]="service().hasActiveDamage"
+      (change)="store.patchService({ hasActiveDamage: damage.checked })"
+    />
+    The issue is currently causing active damage
+  </label>
+
+  <div class="sr-actions">
+    <button pButton type="button" variant="outlined" (click)="store.back()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Back
+    </button>
+    <button pButton type="submit">
+      Continue to availability
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
+</form>

@@ -1,0 +1,85 @@
+<header class="topbar">
+  <div class="topbar__inner">
+    <p class="topbar__brand">
+      @if (store.config(); as config) {
+        <span class="topbar__org">{{ config.organizationName }}</span>
+      }
+    </p>
+    <!-- Visual only (BR-22): plain text, not focusable, no navigation. -->
+    <p class="topbar__labels">
+      <span>Services</span>
+      <span>How it works</span>
+      <span>Help</span>
+    </p>
+    <div class="topbar__actions">
+      @if (store.config()?.phone; as phone) {
+        <span class="topbar__contact">
+          <i class="pi pi-phone" aria-hidden="true"></i>
+          <span class="topbar__phone">{{ phone }}</span>
+        </span>
+      }
+      <span class="topbar__account">Already have an account?</span>
+      <a pButton variant="outlined" routerLink="/auth/sign-in">Sign in</a>
+    </div>
+  </div>
+</header>
+
+<main class="page">
+  @switch (state()) {
+    @case ('loading') {
+      <section class="page__loading" aria-busy="true" aria-label="Loading request form">
+        <p-skeleton width="40%" height="2.5rem" />
+        <p-skeleton width="100%" height="2rem" />
+        <p-skeleton width="100%" height="24rem" />
+      </section>
+    }
+    @case ('unavailable') {
+      <section class="page__state" role="alert">
+        <h1 class="page__title">{{ unavailableMessage }}</h1>
+      </section>
+    }
+    @case ('error') {
+      <section class="page__state">
+        <p-message severity="error" role="alert">{{ loadErrorMessage }}</p-message>
+        <button pButton type="button" (click)="retry()">Retry</button>
+      </section>
+    }
+    @case ('ready') {
+      <h1 class="page__title">Request a service</h1>
+      <p class="page__subtitle">
+        Tell us what you need. Our team will review your request and contact you with the next
+        steps.
+      </p>
+
+      <app-request-stepper [complete]="store.result() !== null" />
+
+      @if (store.result() !== null) {
+        <app-confirmation />
+      } @else {
+        <div class="page__layout">
+          <section class="page__card">
+            @switch (store.step()) {
+              @case ('contact') {
+                <app-contact-step />
+              }
+              @case ('property') {
+                <app-property-step />
+              }
+              @case ('service') {
+                <app-service-details-step />
+              }
+              @case ('availability') {
+                <app-availability-step />
+              }
+              @case ('review') {
+                <app-review-step />
+              }
+            }
+          </section>
+
+          <app-request-summary-panel />
+        </div>
+      }
+    }
+  }
+</main>

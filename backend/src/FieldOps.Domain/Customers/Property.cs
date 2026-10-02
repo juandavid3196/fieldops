@@ -77,7 +77,8 @@ public sealed class Property
         string? postalCode = null,
         string? serviceNotes = null,
         bool isPrimary = false,
-        string? addressLine2 = null)
+        string? addressLine2 = null,
+        string? accessInstructions = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -136,6 +137,7 @@ public sealed class Property
             StateRegion = NullIfBlank(stateRegion),
             PostalCode = NullIfBlank(postalCode),
             ServiceNotes = NullIfBlank(serviceNotes),
+            AccessInstructions = NullIfBlank(accessInstructions),
         };
     }
 

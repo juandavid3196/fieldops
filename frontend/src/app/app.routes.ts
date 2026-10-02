@@ -15,6 +15,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/authentication/authentication.routes'),
   },
   {
+    // Public on purpose: anonymous request form, outside the authenticated shell.
+    path: 'request/:slug',
+    loadChildren: () => import('./features/service-request/service-request.routes'),
+  },
+  {
     // Routes declare their own full paths (public registration lives at `auth/register-company`).
     path: '',
     loadChildren: () => import('./features/organizations/organizations.routes'),

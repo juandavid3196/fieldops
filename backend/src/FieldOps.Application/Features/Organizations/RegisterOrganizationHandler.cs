@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.PublicRequests;
 using FieldOps.Domain.Branches;
 using FieldOps.Domain.Notifications;
 using FieldOps.Domain.Organizations;
@@ -18,6 +19,8 @@ public sealed class RegisterOrganizationHandler(
     IPasswordHasher passwordHasher,
     TimeProvider timeProvider)
 {
+    public const int MaxSlugAttempts = 10;
+
     public const string OwnerRoleCode = "owner";
 
     public const string RegisteredAuditAction = "organization.registered";
@@ -68,6 +71,34 @@ public sealed class RegisterOrganizationHandler(
             static (_, _) => { },
             out var businessHoursJson);
 
+        // BR-21: lowest free slug computed in memory, then retried with fresh
+        // entities when a concurrent registration wins the unique index.
+        for (var attempt = 1; ; attempt++)
+        {
+            var taken = await store.FindSlugsStartingWithAsync(
+                PublicSlugGenerator.LookupPrefix(command.Organization.Name), cancellationToken);
+            var slug = PublicSlugGenerator.Generate(command.Organization.Name, taken);
+
+            try
+            {
+                return await SaveAsync(
+                    command, ownerEmail, ownerRoleId.Value, passwordHash, businessHoursJson, slug, cancellationToken);
+            }
+            catch (DuplicatePublicSlugException) when (attempt < MaxSlugAttempts)
+            {
+            }
+        }
+    }
+
+    private async Task<RegisterOrganizationResult> SaveAsync(
+        RegisterOrganizationCommand command,
+        string ownerEmail,
+        short ownerRoleId,
+        string passwordHash,
+        string businessHoursJson,
+        string publicSlug,
+        CancellationToken cancellationToken)
+    {
         var organization = Organization.Create(
             (command.Organization.Name ?? string.Empty).Trim(),
             (command.Organization.LegalName ?? string.Empty).Trim(),
@@ -80,7 +111,8 @@ public sealed class RegisterOrganizationHandler(
             (command.Organization.QuotePrefix ?? string.Empty).Trim().ToUpperInvariant(),
             (command.Organization.WorkOrderPrefix ?? string.Empty).Trim().ToUpperInvariant(),
             (command.Organization.InvoicePrefix ?? string.Empty).Trim().ToUpperInvariant(),
-            command.Organization.NextInvoiceNumber ?? 1L);
+            command.Organization.NextInvoiceNumber ?? 1L,
+            publicSlug);
 
         var branchEmail = NullIfEmpty(command.Branch.Email) is { } rawBranchEmail
             ? EmailNormalizer.Normalize(rawBranchEmail)
@@ -113,7 +145,7 @@ public sealed class RegisterOrganizationHandler(
         var membership = OrganizationUser.Create(
             organization.Id,
             user.Id,
-            ownerRoleId.Value,
+            ownerRoleId,
             isAllBranches: true,
             joinedAt: timeProvider.GetUtcNow());
 

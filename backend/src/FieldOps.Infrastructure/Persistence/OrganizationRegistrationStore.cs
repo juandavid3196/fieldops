@@ -17,6 +17,19 @@ internal sealed class OrganizationRegistrationStore(FieldOpsDbContext dbContext)
     public Task<bool> EmailExistsAsync(string normalizedEmail, CancellationToken cancellationToken) =>
         dbContext.Users.AnyAsync(user => user.Email == normalizedEmail, cancellationToken);
 
+    // Slugs contain only a-z, 0-9 and '-', so the prefix has no LIKE wildcards.
+    public async Task<IReadOnlySet<string>> FindSlugsStartingWithAsync(
+        string prefix, CancellationToken cancellationToken)
+    {
+        var slugs = await dbContext.Organizations
+            .AsNoTracking()
+            .Where(organization => organization.PublicSlug.StartsWith(prefix))
+            .Select(organization => organization.PublicSlug)
+            .ToListAsync(cancellationToken);
+
+        return slugs.ToHashSet(StringComparer.Ordinal);
+    }
+
     public async Task<short?> FindOwnerRoleIdAsync(CancellationToken cancellationToken)
     {
         var role = await dbContext.Roles
@@ -56,6 +69,17 @@ internal sealed class OrganizationRegistrationStore(FieldOpsDbContext dbContext)
         })
         {
             throw new DuplicateEmailException(user.Email, ex);
+        }
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: "ux_organizations_public_slug",
+        })
+        {
+            // Drop the failed inserts so the handler's retry starts from a clean tracker.
+            dbContext.ChangeTracker.Clear();
+
+            throw new DuplicatePublicSlugException(organization.PublicSlug, ex);
         }
     }
 }

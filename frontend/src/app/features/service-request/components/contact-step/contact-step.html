@@ -1,0 +1,189 @@
+<p class="sr-guest">
+  <i class="pi pi-user sr-guest__icon" aria-hidden="true"></i>
+  <span>
+    <strong>Continuing as guest</strong>
+    You can submit a request without creating an account.
+  </span>
+</p>
+<h2 class="sr-title" tabindex="-1" data-sr-heading>Contact details</h2>
+<p class="sr-subtitle">How should we contact you about this request?</p>
+
+<form novalidate (submit)="$event.preventDefault(); store.next()">
+  <div class="sr-grid">
+    <div class="sr-field">
+      <label class="sr-label" for="sr-contact-firstName"
+        >First name <span class="sr-required" aria-hidden="true">*</span></label
+      >
+      <input
+        pInputText
+        #firstName
+        id="sr-contact-firstName"
+        autocomplete="given-name"
+        fluid
+        required
+        aria-required="true"
+        [value]="contact().firstName"
+        [invalid]="store.error('contact.firstName') !== null"
+        [attr.aria-invalid]="store.error('contact.firstName') !== null ? 'true' : null"
+        [attr.aria-describedby]="store.errorId('contact.firstName')"
+        (input)="store.patchContact({ firstName: firstName.value })"
+        (blur)="store.revalidate('contact.firstName')"
+      />
+      @if (store.error('contact.firstName'); as message) {
+        <p class="sr-error" id="sr-contact-firstName-error">{{ message }}</p>
+      }
+    </div>
+
+    <div class="sr-field">
+      <label class="sr-label" for="sr-contact-lastName"
+        >Last name <span class="sr-required" aria-hidden="true">*</span></label
+      >
+      <input
+        pInputText
+        #lastName
+        id="sr-contact-lastName"
+        autocomplete="family-name"
+        fluid
+        required
+        aria-required="true"
+        [value]="contact().lastName"
+        [invalid]="store.error('contact.lastName') !== null"
+        [attr.aria-invalid]="store.error('contact.lastName') !== null ? 'true' : null"
+        [attr.aria-describedby]="store.errorId('contact.lastName')"
+        (input)="store.patchContact({ lastName: lastName.value })"
+        (blur)="store.revalidate('contact.lastName')"
+      />
+      @if (store.error('contact.lastName'); as message) {
+        <p class="sr-error" id="sr-contact-lastName-error">{{ message }}</p>
+      }
+    </div>
+
+    <div class="sr-field">
+      <label class="sr-label" for="sr-contact-email"
+        >Email address <span class="sr-required" aria-hidden="true">*</span></label
+      >
+      <input
+        pInputText
+        #email
+        id="sr-contact-email"
+        type="email"
+        autocomplete="email"
+        autocapitalize="none"
+        spellcheck="false"
+        fluid
+        required
+        aria-required="true"
+        [value]="contact().email"
+        [invalid]="store.error('contact.email') !== null"
+        [attr.aria-invalid]="store.error('contact.email') !== null ? 'true' : null"
+        [attr.aria-describedby]="store.errorId('contact.email')"
+        (input)="store.patchContact({ email: email.value })"
+        (blur)="store.revalidate('contact.email')"
+      />
+      @if (store.error('contact.email'); as message) {
+        <p class="sr-error" id="sr-contact-email-error">{{ message }}</p>
+      }
+    </div>
+
+    <div class="sr-field">
+      <label class="sr-label" for="sr-contact-phone"
+        >Mobile phone <span class="sr-required" aria-hidden="true">*</span></label
+      >
+      <input
+        pInputText
+        #phone
+        id="sr-contact-phone"
+        type="tel"
+        autocomplete="tel"
+        fluid
+        required
+        aria-required="true"
+        [value]="contact().phone"
+        [invalid]="store.error('contact.phone') !== null"
+        [attr.aria-invalid]="store.error('contact.phone') !== null ? 'true' : null"
+        [attr.aria-describedby]="store.errorId('contact.phone')"
+        (input)="store.patchContact({ phone: phone.value })"
+        (blur)="store.revalidate('contact.phone')"
+      />
+      @if (store.error('contact.phone'); as message) {
+        <p class="sr-error" id="sr-contact-phone-error">{{ message }}</p>
+      }
+    </div>
+  </div>
+
+  <fieldset class="sr-methods" [attr.aria-describedby]="store.errorId('contact.prefersEmail')">
+    <legend class="sr-subheading">How would you like updates?</legend>
+    <p class="sr-hint">
+      Select at least one method. We'll use these details to keep you informed about your request.
+    </p>
+    <div class="sr-method-grid">
+      <label class="sr-method">
+        <input
+          type="checkbox"
+          #prefersEmail
+          id="sr-contact-prefersEmail"
+          [checked]="contact().prefersEmail"
+          (change)="
+            store.patchContact({ prefersEmail: prefersEmail.checked });
+            store.revalidate('contact.prefersEmail')
+          "
+        />
+        <i class="pi pi-envelope sr-method__icon" aria-hidden="true"></i>
+        <span class="sr-method__text">
+          <strong>Email</strong>
+          <small>Get updates by email</small>
+        </span>
+      </label>
+      <label class="sr-method">
+        <input
+          type="checkbox"
+          #prefersSms
+          id="sr-contact-prefersSms"
+          [checked]="contact().prefersSms"
+          (change)="
+            store.patchContact({ prefersSms: prefersSms.checked });
+            store.revalidate('contact.prefersEmail')
+          "
+        />
+        <i class="pi pi-comment sr-method__icon" aria-hidden="true"></i>
+        <span class="sr-method__text">
+          <strong>Text message</strong>
+          <small>Get updates by text message</small>
+        </span>
+      </label>
+    </div>
+    @if (store.error('contact.prefersEmail'); as message) {
+      <p class="sr-error" id="sr-contact-prefersEmail-error">{{ message }}</p>
+    }
+  </fieldset>
+
+  <p class="sr-privacy">
+    <i class="pi pi-lock" aria-hidden="true"></i>
+    We'll only use these details to manage your service request.
+  </p>
+
+  <div class="sr-actions">
+    @if (store.homeUrl(); as url) {
+      <a pButton variant="outlined" class="sr-back" data-sr-back [href]="url">
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        Back to home
+      </a>
+    } @else {
+      <button
+        pButton
+        type="button"
+        variant="outlined"
+        class="sr-back"
+        data-sr-back
+        (click)="store.reset()"
+      >
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        Back to home
+      </button>
+    }
+    <button pButton type="submit" class="sr-continue" data-sr-continue>
+      Continue to property
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
+</form>
