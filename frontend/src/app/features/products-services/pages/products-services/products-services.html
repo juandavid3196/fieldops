@@ -43,6 +43,17 @@
             </button>
           }
           @if (canManage()) {
+            <button
+              pButton
+              type="button"
+              class="catalog__action"
+              severity="secondary"
+              [outlined]="true"
+              (click)="openCategories()"
+            >
+              <i class="pi pi-tags" aria-hidden="true"></i>
+              Manage categories
+            </button>
             <button pButton type="button" class="catalog__action" (click)="openCreate()">
               <i class="pi pi-plus" aria-hidden="true"></i>
               Add item
@@ -68,6 +79,23 @@
           [loading]="summaryLoading()"
           [failed]="summaryFailed()"
         />
+
+        @if (readiness(); as readiness) {
+          <div
+            class="catalog__note catalog__note--standalone"
+            [class.catalog__note--success]="readiness.ready"
+            [class.catalog__note--warning]="!readiness.ready"
+            role="note"
+          >
+            <i
+              class="pi"
+              [class.pi-check-circle]="readiness.ready"
+              [class.pi-exclamation-triangle]="!readiness.ready"
+              aria-hidden="true"
+            ></i>
+            <span>{{ readiness.message }}</span>
+          </div>
+        }
 
         <section class="catalog__card" aria-label="Catalog items">
           <app-catalog-toolbar
@@ -206,11 +234,27 @@
       [mode]="drawerMode()"
       [itemId]="drawerItemId()"
       [money]="money()"
+      [categories]="categories()"
+      [categoriesLoading]="categoriesLoading()"
+      [categoriesFailed]="categoriesFailed()"
+      (retryCategories)="loadCategories()"
       (saved)="onDrawerSaved()"
       (changed)="onDrawerSaved()"
       (closed)="onDrawerClosed()"
       (unauthorized)="onUnauthorized()"
       (unavailable)="onItemUnavailable()"
+    />
+  }
+
+  @if (canManage() && !forbidden()) {
+    <app-category-dialog
+      [(visible)]="categoriesOpen"
+      [categories]="categories()"
+      [loading]="categoriesLoading()"
+      [failed]="categoriesFailed()"
+      (retry)="loadCategories()"
+      (categoriesChange)="onCategoriesChange($event)"
+      (unauthorized)="onUnauthorized()"
     />
   }
 

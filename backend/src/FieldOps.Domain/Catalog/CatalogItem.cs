@@ -113,12 +113,14 @@ public sealed partial class CatalogItem
         decimal unitCost,
         decimal unitPrice,
         bool isTaxable,
-        bool isActive)
+        bool isActive,
+        Guid? categoryId = null)
     {
         var item = Create(organizationId, type, CollapseName(name), unitPrice);
         ValidateMoney(unitCost, nameof(unitCost));
         ValidateMoney(unitPrice, nameof(unitPrice));
 
+        item.CategoryId = categoryId;
         item.Description = NormalizeDescription(description);
         item.UnitCost = unitCost;
         item.IsTaxable = isTaxable;
@@ -164,6 +166,20 @@ public sealed partial class CatalogItem
         UnitPrice = unitPrice;
         IsTaxable = isTaxable;
         IsActive = isActive;
+        UpdatedAt = now;
+
+        return true;
+    }
+
+    /// <summary>Assigns or clears the category; returns false when it already has that value.</summary>
+    public bool SetCategory(Guid? categoryId, DateTimeOffset now)
+    {
+        if (CategoryId == categoryId)
+        {
+            return false;
+        }
+
+        CategoryId = categoryId;
         UpdatedAt = now;
 
         return true;

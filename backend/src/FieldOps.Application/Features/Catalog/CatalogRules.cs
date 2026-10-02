@@ -11,7 +11,8 @@ public sealed record CatalogItemInput(
     string? UnitCost,
     string? UnitPrice,
     bool? IsTaxable,
-    bool? IsActive);
+    bool? IsActive,
+    string? CategoryId = null);
 
 /// <summary>Item field validation shared by the JSON body and the CSV import (BR-07, BR-13).</summary>
 public static class CatalogItemRules
@@ -25,6 +26,8 @@ public static class CatalogItemRules
     public const string UnitCostKey = "unitCost";
 
     public const string UnitPriceKey = "unitPrice";
+
+    public const string CategoryKey = "categoryId";
 
     public static string TypeText(CatalogItemType type) => type == CatalogItemType.Service ? "service" : "product";
 
@@ -83,6 +86,20 @@ public static class CatalogItemRules
             found[UnitPriceKey] = CatalogMessages.UnitPriceInvalid;
         }
 
+        Guid? categoryId = null;
+
+        if (!string.IsNullOrWhiteSpace(input.CategoryId))
+        {
+            if (Guid.TryParse(input.CategoryId.Trim(), out var parsed) && parsed != Guid.Empty)
+            {
+                categoryId = parsed;
+            }
+            else
+            {
+                found[CategoryKey] = CatalogMessages.CategoryInvalid;
+            }
+        }
+
         errors = found;
 
         return found.Count > 0
@@ -94,7 +111,8 @@ public static class CatalogItemRules
                 unitCost,
                 unitPrice,
                 input.IsTaxable ?? true,
-                input.IsActive ?? true);
+                input.IsActive ?? true,
+                categoryId);
     }
 
     /// <summary>Invariant decimal, no sign, separators or symbols; 0 to 999,999,999,999.99 with at most two decimals.</summary>

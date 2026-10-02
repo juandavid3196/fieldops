@@ -58,6 +58,22 @@ internal sealed class CatalogStore(FieldOpsDbContext dbContext) : ICatalogStore
             .Select(organization => organization.Currency)
             .SingleAsync(cancellationToken);
 
+        var anyActiveCategory = await dbContext.ServiceCategories.AsNoTracking()
+            .AnyAsync(category => category.OrganizationId == organizationId && category.IsActive, cancellationToken);
+
+        var readyCategory = anyActiveCategory
+            && await dbContext.ServiceCategories.AsNoTracking().AnyAsync(
+                category => category.OrganizationId == organizationId
+                    && category.IsActive
+                    && dbContext.CatalogItems.Any(item =>
+                        item.OrganizationId == organizationId
+                        && item.CategoryId == category.Id
+                        && item.IsActive
+                        && item.Type == CatalogItemType.Service),
+                cancellationToken);
+
+        var readiness = readyCategory ? "ready" : anyActiveCategory ? "no_active_services" : "no_active_categories";
+
         int Count(Func<CatalogItemType, bool, bool> predicate) =>
             groups.Where(group => predicate(group.Type, group.IsActive)).Sum(group => group.Count);
 
@@ -69,11 +85,25 @@ internal sealed class CatalogStore(FieldOpsDbContext dbContext) : ICatalogStore
             AllItems: Count((_, _) => true),
             Services: Count((type, _) => type == CatalogItemType.Service),
             Products: Count((type, _) => type == CatalogItemType.Product),
-            Currency: currency);
+            Currency: currency,
+            PublicRequestReadiness: readiness);
     }
 
     public Task<CatalogItemDetail?> GetDetailAsync(Guid organizationId, Guid itemId, CancellationToken cancellationToken) =>
         BuildDetailAsync(organizationId, itemId, cancellationToken);
+
+    public Task<bool> IsCategoryAssignableAsync(
+        Guid organizationId, Guid categoryId, Guid? currentItemId, CancellationToken cancellationToken) =>
+        dbContext.ServiceCategories.AsNoTracking().AnyAsync(
+            category => category.OrganizationId == organizationId
+                && category.Id == categoryId
+                && (category.IsActive
+                    || (currentItemId != null
+                        && dbContext.CatalogItems.Any(item =>
+                            item.OrganizationId == organizationId
+                            && item.Id == currentItemId
+                            && item.CategoryId == categoryId))),
+            cancellationToken);
 
     public Task<bool> ItemExistsAsync(Guid organizationId, Guid itemId, CancellationToken cancellationToken) =>
         dbContext.CatalogItems.AsNoTracking()
@@ -121,18 +151,25 @@ internal sealed class CatalogStore(FieldOpsDbContext dbContext) : ICatalogStore
             values.UnitCost,
             values.UnitPrice,
             values.IsTaxable,
-            values.IsActive);
+            values.IsActive,
+            values.CategoryId);
 
-        var (_, after) = AuditFieldDiff.ForCreate(
-            new Dictionary<string, object?>(StringComparer.Ordinal)
-            {
-                ["type"] = CatalogItemRules.TypeText(item.Type),
-                ["name"] = item.Name,
-                ["unitCost"] = item.UnitCost,
-                ["unitPrice"] = item.UnitPrice,
-                ["isTaxable"] = item.IsTaxable,
-                ["isActive"] = item.IsActive,
-            });
+        var createFields = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["type"] = CatalogItemRules.TypeText(item.Type),
+            ["name"] = item.Name,
+            ["unitCost"] = item.UnitCost,
+            ["unitPrice"] = item.UnitPrice,
+            ["isTaxable"] = item.IsTaxable,
+            ["isActive"] = item.IsActive,
+        };
+
+        if (item.CategoryId is { } createdCategoryId)
+        {
+            createFields["categoryId"] = createdCategoryId;
+        }
+
+        var (_, after) = AuditFieldDiff.ForCreate(createFields);
 
         dbContext.CatalogItems.Add(item);
         dbContext.AuditLogs.Add(AuditLog.Create(
@@ -177,6 +214,7 @@ internal sealed class CatalogStore(FieldOpsDbContext dbContext) : ICatalogStore
             values.IsTaxable,
             values.IsActive,
             now);
+        changed |= item.SetCategory(values.CategoryId, now);
 
         if (changed)
         {
@@ -522,6 +560,18 @@ internal sealed class CatalogStore(FieldOpsDbContext dbContext) : ICatalogStore
             .Select(candidate => new CatalogImageInfo(candidate.ContentType, candidate.SizeBytes, candidate.UpdatedAt))
             .SingleOrDefaultAsync(cancellationToken);
 
+        var itemCategoryId = await dbContext.CatalogItems.AsNoTracking()
+            .Where(item => item.OrganizationId == organizationId && item.Id == itemId)
+            .Select(item => item.CategoryId)
+            .SingleAsync(cancellationToken);
+
+        var category = itemCategoryId is { } categoryId
+            ? await dbContext.ServiceCategories.AsNoTracking()
+                .Where(candidate => candidate.OrganizationId == organizationId && candidate.Id == categoryId)
+                .Select(candidate => new { candidate.Id, candidate.Name, candidate.IsActive })
+                .SingleOrDefaultAsync(cancellationToken)
+            : null;
+
         return new CatalogItemDetail(
             row.Id,
             row.Type,
@@ -535,7 +585,10 @@ internal sealed class CatalogStore(FieldOpsDbContext dbContext) : ICatalogStore
             row.HasImage,
             row.UpdatedAt,
             image,
-            await CountUsageAsync(organizationId, itemId, cancellationToken));
+            await CountUsageAsync(organizationId, itemId, cancellationToken),
+            category?.Id,
+            category?.Name,
+            category?.IsActive);
     }
 
     // BR-10: distinct records of the session organization; a record reached through two paths counts once.
@@ -585,6 +638,7 @@ internal sealed class CatalogStore(FieldOpsDbContext dbContext) : ICatalogStore
             ["unitPrice"] = item.UnitPrice,
             ["isTaxable"] = item.IsTaxable,
             ["isActive"] = item.IsActive,
+            ["categoryId"] = item.CategoryId,
         };
 
     private static string Summarize(string contentType, int sizeBytes) =>

@@ -75,6 +75,7 @@ public static class DependencyInjection
         services.AddScoped<IOrganizationLogoStore, OrganizationLogoStore>();
         services.AddScoped<IBranchStore, BranchStore>();
         services.AddScoped<ICatalogStore, CatalogStore>();
+        services.AddScoped<ICatalogCategoryStore, CatalogCategoryStore>();
         services.AddScoped<IBranchScopeResolver, BranchScopeResolver>();
         services.AddScoped<ICustomerStore, CustomerStore>();
         services.AddScoped<ITeamStore, TeamStore>();

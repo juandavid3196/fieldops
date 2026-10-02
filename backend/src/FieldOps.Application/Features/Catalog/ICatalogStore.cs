@@ -24,6 +24,13 @@ public interface ICatalogStore
 
     Task<bool> ItemExistsAsync(Guid organizationId, Guid itemId, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// True when the category is an active one of the organization, or is already the category of
+    /// <paramref name="currentItemId"/> (kept even when inactive).
+    /// </summary>
+    Task<bool> IsCategoryAssignableAsync(
+        Guid organizationId, Guid categoryId, Guid? currentItemId, CancellationToken cancellationToken);
+
     Task<bool> NameExistsAsync(
         Guid organizationId,
         CatalogItemType type,

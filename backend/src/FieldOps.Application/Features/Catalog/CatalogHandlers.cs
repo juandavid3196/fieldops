@@ -114,6 +114,12 @@ public sealed class CreateCatalogItemHandler(ICatalogStore store)
             return CatalogResult<CatalogItemDetail>.Invalid(ToErrors(fieldErrors));
         }
 
+        if (values.CategoryId is { } categoryId
+            && !await store.IsCategoryAssignableAsync(organizationId, categoryId, null, cancellationToken))
+        {
+            return CatalogResult<CatalogItemDetail>.Invalid(CatalogItemRules.CategoryKey, CatalogMessages.CategoryInvalid);
+        }
+
         if (await store.NameExistsAsync(
                 organizationId, values.Type, CatalogItem.NormalizeName(values.Name), null, cancellationToken))
         {
@@ -157,6 +163,12 @@ public sealed class UpdateCatalogItemHandler(ICatalogStore store, TimeProvider t
         if (values is null)
         {
             return CatalogResult<CatalogItemDetail>.Invalid(CreateCatalogItemHandler.ToErrors(fieldErrors));
+        }
+
+        if (values.CategoryId is { } categoryId
+            && !await store.IsCategoryAssignableAsync(organizationId, categoryId, itemId, cancellationToken))
+        {
+            return CatalogResult<CatalogItemDetail>.Invalid(CatalogItemRules.CategoryKey, CatalogMessages.CategoryInvalid);
         }
 
         if (await store.NameExistsAsync(

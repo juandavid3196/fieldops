@@ -46,6 +46,7 @@ public static class DependencyInjection
         services.AddScoped<RemoveCatalogImageHandler>();
         services.AddScoped<ExportCatalogItemsHandler>();
         services.AddScoped<ImportCatalogItemsHandler>();
+        services.AddScoped<CatalogCategoryHandler>();
         services.AddScoped<ListCustomersHandler>();
         services.AddScoped<GetCustomerMetricsHandler>();
         services.AddScoped<GetCustomerHandler>();

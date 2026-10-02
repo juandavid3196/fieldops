@@ -21,6 +21,19 @@ export interface CatalogRow {
   readonly updatedAt: string;
 }
 
+/** Item of `GET /catalog-categories` (BR-06). */
+export interface CatalogCategory {
+  readonly id: string;
+  readonly name: string;
+  readonly isActive: boolean;
+  readonly itemCount: number;
+  readonly activeServiceCount: number;
+}
+
+export interface CatalogCategoryListResponse {
+  readonly items: readonly CatalogCategory[];
+}
+
 export interface CatalogImage {
   readonly contentType: string;
   readonly sizeBytes: number;
@@ -35,6 +48,9 @@ export interface CatalogUsage {
 
 /** Body of `GET /catalog-items/{id}` and every item write response. */
 export interface CatalogDetail extends CatalogRow {
+  readonly categoryId: string | null;
+  readonly categoryName: string | null;
+  readonly categoryIsActive: boolean | null;
   readonly image: CatalogImage | null;
   readonly usage: CatalogUsage;
 }
@@ -58,8 +74,11 @@ export interface CatalogListQuery extends CatalogFilters {
   readonly page: number;
 }
 
-/** `GET /catalog-items/summary` (BR-05). */
+export type PublicRequestReadiness = 'ready' | 'no_active_categories' | 'no_active_services';
+
+/** `GET /catalog-items/summary` (BR-05, BR-08). */
 export interface CatalogSummary {
+  readonly publicRequestReadiness: PublicRequestReadiness;
   readonly activeItems: number;
   readonly activeServices: number;
   readonly activeProducts: number;
@@ -79,6 +98,7 @@ export interface CatalogItemRequest {
   readonly unitPrice: number;
   readonly isTaxable: boolean;
   readonly isActive: boolean;
+  readonly categoryId: string | null;
 }
 
 export interface ImportResult {
@@ -91,6 +111,13 @@ export interface CsvFile {
   readonly fileName: string;
 }
 
-export const ITEM_FIELD_KEYS = ['type', 'name', 'description', 'unitCost', 'unitPrice'] as const;
+export const ITEM_FIELD_KEYS = [
+  'type',
+  'name',
+  'description',
+  'category',
+  'unitCost',
+  'unitPrice',
+] as const;
 export type ItemFieldKey = (typeof ITEM_FIELD_KEYS)[number];
 export type ItemFieldErrors = Partial<Record<ItemFieldKey, string>>;

@@ -10,6 +10,7 @@
   @include dc.parts;
 
   &__form,
+  &__category,
   &__skeletons,
   &__retry {
     display: flex;
@@ -220,8 +221,16 @@
     }
   }
 
-  &__usage p {
+  &__usage p,
+  &__readonly-value {
     margin: 0;
+  }
+
+  &__retry-inline {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
   }
 
   &__error {

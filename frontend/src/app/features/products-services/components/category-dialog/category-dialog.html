@@ -1,0 +1,190 @@
+<p-dialog
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [closable]="true"
+  [style]="{ width: '40rem' }"
+  [breakpoints]="{ '575px': '100vw' }"
+  header="Manage categories"
+>
+  <div class="categories">
+    <form
+      class="categories__create"
+      ngNoForm
+      novalidate
+      (submit)="$event.preventDefault(); create()"
+    >
+      <div class="categories__field">
+        <label for="category-name">Category name</label>
+        <input
+          pInputText
+          id="category-name"
+          type="text"
+          fluid
+          autocomplete="off"
+          [ngModel]="newName()"
+          (ngModelChange)="onNewName($event)"
+          [disabled]="creating()"
+          [attr.aria-invalid]="createError() ? 'true' : null"
+          [attr.aria-describedby]="createError() ? 'category-name-error' : null"
+        />
+      </div>
+      <button pButton type="submit" [disabled]="creating()">
+        @if (creating()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        } @else {
+          <i class="pi pi-plus" aria-hidden="true"></i>
+        }
+        Add category
+      </button>
+      @if (createError(); as message) {
+        <p class="categories__error" id="category-name-error" role="alert">{{ message }}</p>
+      }
+    </form>
+
+    @if (loading()) {
+      <div class="categories__skeletons" aria-busy="true">
+        @for (row of skeletons; track row) {
+          <p-skeleton height="2.5rem" />
+        }
+      </div>
+    } @else if (failed()) {
+      <p-message severity="error" [closable]="false">
+        <span class="categories__retry">
+          {{ loadErrorMessage }}
+          <button pButton type="button" size="small" severity="secondary" (click)="retry.emit()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else if (categories().length === 0) {
+      <p class="categories__empty">{{ emptyMessage }}</p>
+    } @else {
+      <ul class="categories__list">
+        @for (category of categories(); track category.id) {
+          <li class="categories__row">
+            @if (renamingId() === category.id) {
+              <form
+                class="categories__rename"
+                ngNoForm
+                novalidate
+                (submit)="$event.preventDefault(); saveRename()"
+              >
+                <div class="categories__field">
+                  <label class="categories__sr" for="category-rename-input">
+                    New name for {{ category.name }}
+                  </label>
+                  <input
+                    pInputText
+                    id="category-rename-input"
+                    type="text"
+                    fluid
+                    autocomplete="off"
+                    [ngModel]="renameValue()"
+                    (ngModelChange)="onRenameValue($event)"
+                    (keydown.escape)="cancelRename($event)"
+                    [disabled]="renaming()"
+                    [attr.aria-invalid]="renameError() ? 'true' : null"
+                    [attr.aria-describedby]="renameError() ? 'category-rename-error' : null"
+                  />
+                </div>
+                <button pButton type="submit" size="small" [disabled]="renaming()">
+                  @if (renaming()) {
+                    <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                  }
+                  Save
+                </button>
+                <button
+                  pButton
+                  type="button"
+                  size="small"
+                  severity="secondary"
+                  [outlined]="true"
+                  [disabled]="renaming()"
+                  (click)="cancelRename()"
+                >
+                  Cancel
+                </button>
+                @if (renameError(); as message) {
+                  <p class="categories__error" id="category-rename-error" role="alert">
+                    {{ message }}
+                  </p>
+                }
+              </form>
+            } @else {
+              <div class="categories__info">
+                <span class="categories__name">{{ category.name }}</span>
+                <span class="categories__counts">{{ counts(category) }}</span>
+              </div>
+              <p-tag
+                [rounded]="true"
+                [severity]="category.isActive ? 'success' : 'warn'"
+                [value]="category.isActive ? 'Active' : 'Inactive'"
+              />
+              <span class="categories__actions">
+                <button
+                  pButton
+                  type="button"
+                  size="small"
+                  severity="secondary"
+                  [text]="true"
+                  [id]="'category-rename-' + category.id"
+                  [disabled]="toggleId() !== null || renamingId() !== null"
+                  [attr.aria-label]="'Rename ' + category.name"
+                  (click)="startRename(category)"
+                >
+                  Rename
+                </button>
+                @if (category.isActive) {
+                  <button
+                    pButton
+                    type="button"
+                    size="small"
+                    severity="secondary"
+                    [text]="true"
+                    [disabled]="toggleId() !== null"
+                    [attr.aria-label]="'Deactivate ' + category.name"
+                    (click)="confirmDeactivate(category)"
+                  >
+                    @if (toggleId() === category.id) {
+                      <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                    }
+                    Deactivate
+                  </button>
+                } @else {
+                  <button
+                    pButton
+                    type="button"
+                    size="small"
+                    severity="secondary"
+                    [text]="true"
+                    [disabled]="toggleId() !== null"
+                    [attr.aria-label]="'Reactivate ' + category.name"
+                    (click)="reactivate(category)"
+                  >
+                    @if (toggleId() === category.id) {
+                      <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                    }
+                    Reactivate
+                  </button>
+                }
+              </span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      (click)="visible.set(false)"
+    >
+      Close
+    </button>
+  </ng-template>
+</p-dialog>

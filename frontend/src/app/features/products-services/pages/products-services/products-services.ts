@@ -25,6 +25,7 @@ import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
 import { AdministrationNav } from '../../../organizations/components/administration-nav/administration-nav';
 import { handleUnauthorized } from '../../../organizations/utils/handle-unauthorized';
+import { CategoryDialog } from '../../components/category-dialog/category-dialog';
 import { CatalogMetrics } from '../../components/catalog-metrics/catalog-metrics';
 import { CatalogTable } from '../../components/catalog-table/catalog-table';
 import { CatalogToolbar } from '../../components/catalog-toolbar/catalog-toolbar';
@@ -38,6 +39,7 @@ import {
   ItemDrawerMode,
 } from '../../components/item-drawer/item-drawer';
 import {
+  CatalogCategory,
   CatalogFilters,
   CatalogListQuery,
   CatalogListResponse,
@@ -47,9 +49,11 @@ import {
   CatalogSummary,
   CatalogType,
   PAGE_SIZE,
+  PublicRequestReadiness,
   StatusFilter,
   TaxStatusFilter,
 } from '../../models/catalog.model';
+import { CatalogCategoriesService } from '../../services/catalog-categories.service';
 import { CatalogItemsService } from '../../services/catalog-items.service';
 import { moneyFormat, saveCsv } from '../../utils/catalog-format';
 import {
@@ -70,6 +74,11 @@ export const WARNING_NOTE =
 export const EMPTY_INITIAL_MESSAGE = 'No products or services yet.';
 export const EMPTY_FILTERED_MESSAGE = 'No items match these filters.';
 export const EXPORT_FAILED_MESSAGE = "We couldn't export items. Try again.";
+export const READINESS_MESSAGES: Readonly<Record<PublicRequestReadiness, string>> = {
+  ready: 'Public service requests are ready.',
+  no_active_categories: 'Create and activate a category to accept public requests.',
+  no_active_services: 'Assign an active service to an active category to accept public requests.',
+};
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5];
 const MANAGE_ROLES: readonly string[] = ['owner', 'operations_manager'];
@@ -88,6 +97,7 @@ type ListResult =
 @Component({
   selector: 'app-products-services',
   imports: [
+    CategoryDialog,
     ConfirmDialog,
     DiscardChangesDialog,
     RouterLink,
@@ -111,6 +121,7 @@ type ListResult =
 })
 export class ProductsServices {
   private readonly catalog = inject(CatalogItemsService);
+  private readonly categoriesService = inject(CatalogCategoriesService);
   private readonly sessionService = inject(SessionService);
   private readonly router = inject(Router);
   private readonly messageService = inject(MessageService);
@@ -185,6 +196,20 @@ export class ProductsServices {
   readonly summaryFailed = signal(false);
   readonly money = computed(() => moneyFormat(this.summary()?.currency ?? null));
 
+  /** Readiness note (BR-13): hidden while the summary loads or fails. */
+  readonly readiness = computed(() => {
+    const status = this.summary()?.publicRequestReadiness;
+    return this.summaryLoading() || this.summaryFailed() || status === undefined
+      ? null
+      : { ready: status === 'ready', message: READINESS_MESSAGES[status] };
+  });
+
+  // Categories (managers only): shared by the Manage categories dialog and the drawer selector.
+  readonly categories = signal<readonly CatalogCategory[]>([]);
+  readonly categoriesLoading = signal(false);
+  readonly categoriesFailed = signal(false);
+  readonly categoriesOpen = signal(false);
+
   readonly drawerOpen = signal(false);
   readonly drawerMode = signal<ItemDrawerMode>('create');
   readonly drawerItemId = signal<string | null>(null);
@@ -229,6 +254,9 @@ export class ProductsServices {
     if (!this.forbidden()) {
       this.loadList();
       this.loadSummary();
+      if (this.canManage()) {
+        this.loadCategories();
+      }
     } else {
       this.loading.set(false);
     }
@@ -289,6 +317,37 @@ export class ProductsServices {
           }
         },
       });
+  }
+
+  loadCategories(): void {
+    this.categoriesLoading.set(true);
+    this.categoriesFailed.set(false);
+    this.categoriesService
+      .list()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (categories) => {
+          this.categoriesLoading.set(false);
+          this.categories.set(categories);
+        },
+        error: (error: unknown) => {
+          this.categoriesLoading.set(false);
+          this.categoriesFailed.set(true);
+          if (isApiError(error) && error.kind === 'unauthorized') {
+            this.onUnauthorized();
+          }
+        },
+      });
+  }
+
+  openCategories(): void {
+    this.categoriesOpen.set(true);
+    this.loadCategories();
+  }
+
+  onCategoriesChange(categories: readonly CatalogCategory[]): void {
+    this.categories.set(categories);
+    this.loadSummary();
   }
 
   private refresh(): void {

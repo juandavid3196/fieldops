@@ -19,6 +19,7 @@ import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
 import { ToggleSwitch } from 'primeng/toggleswitch';
@@ -32,6 +33,7 @@ import {
 } from '../../../organizations/components/error-summary/error-summary';
 import { FormField } from '../../../organizations/components/form-field/form-field';
 import {
+  CatalogCategory,
   CatalogDetail,
   CatalogImage,
   CatalogItemRequest,
@@ -66,6 +68,13 @@ import { discardChangesConfirmation } from '../../../../shared/components/discar
 export type ItemDrawerMode = 'create' | 'edit' | 'view';
 
 export const ITEM_UNAVAILABLE_MESSAGE = 'This item is no longer available.';
+export const NO_CATEGORY_LABEL = 'No category';
+export const CATEGORIES_FAILED_MESSAGE = "Couldn't load categories.";
+
+interface CategoryOption {
+  readonly id: string | null;
+  readonly label: string;
+}
 const UNEXPECTED_MESSAGE = 'An unexpected error occurred. Please try again.';
 const TITLE_ID = 'item-drawer-title';
 const SUMMARY_ID = 'item-drawer-error-summary';
@@ -73,6 +82,7 @@ const CONTROL_IDS: Readonly<Record<ItemFieldKey, string>> = {
   type: 'item-type-service',
   name: 'item-name',
   description: 'item-description',
+  category: 'item-category',
   unitCost: 'item-unit-cost',
   unitPrice: 'item-unit-price',
 };
@@ -89,6 +99,7 @@ const CONTROL_IDS: Readonly<Record<ItemFieldKey, string>> = {
     ButtonDirective,
     InputText,
     Message,
+    Select,
     Skeleton,
     SpinnerIcon,
     Textarea,
@@ -113,6 +124,10 @@ export class ItemDrawer {
   /** Id of the item opened in edit/view mode. */
   readonly itemId = input<string | null>(null);
   readonly money = input.required<MoneyFormat>();
+  /** Categories owned by the page (loaded for managers); the selector is hidden in view mode. */
+  readonly categories = input<readonly CatalogCategory[]>([]);
+  readonly categoriesLoading = input(false);
+  readonly categoriesFailed = input(false);
 
   /** The item was saved and the drawer closes. */
   readonly saved = output<void>();
@@ -122,6 +137,7 @@ export class ItemDrawer {
   readonly unauthorized = output<void>();
   /** The item no longer exists (`404`). */
   readonly unavailable = output<void>();
+  readonly retryCategories = output<void>();
 
   readonly titleId = TITLE_ID;
   readonly summaryId = SUMMARY_ID;
@@ -147,6 +163,7 @@ export class ItemDrawer {
   readonly type = signal<CatalogType | null>(null);
   readonly name = signal('');
   readonly description = signal('');
+  readonly categoryId = signal<string | null>(null);
   readonly unitCost = signal('');
   readonly unitPrice = signal('');
   readonly isTaxable = signal(true);
@@ -194,6 +211,37 @@ export class ItemDrawer {
     const detail = this.detail();
     return detail === null ? null : usageText(detail.usage);
   });
+  readonly categoryFailedMessage = CATEGORIES_FAILED_MESSAGE;
+  /** "No category", active categories by name, and the item's current category when not active. */
+  readonly categoryOptions = computed<CategoryOption[]>(() => {
+    const options: CategoryOption[] = [{ id: null, label: NO_CATEGORY_LABEL }];
+    const active = this.categories().filter((category) => category.isActive);
+    for (const category of active) {
+      options.push({ id: category.id, label: category.name });
+    }
+    const detail = this.detail();
+    if (
+      detail?.categoryId != null &&
+      !active.some((category) => category.id === detail.categoryId)
+    ) {
+      const inactive = detail.categoryIsActive === false;
+      options.push({
+        id: detail.categoryId,
+        label: inactive ? `${detail.categoryName ?? ''} (Inactive)` : (detail.categoryName ?? ''),
+      });
+    }
+    return options;
+  });
+  /** Read-only roles: the category as text. */
+  readonly categoryText = computed(() => {
+    const detail = this.detail();
+    if (detail?.categoryId == null) {
+      return NO_CATEGORY_LABEL;
+    }
+    return detail.categoryIsActive === false
+      ? `${detail.categoryName ?? ''} (Inactive)`
+      : (detail.categoryName ?? '');
+  });
   readonly currencyLabel = computed(() => {
     const code = this.money().currency;
     return code === null ? '' : ` in ${code}`;
@@ -212,6 +260,7 @@ export class ItemDrawer {
       this.type(),
       this.name(),
       this.description(),
+      this.categoryId(),
       this.unitCost(),
       this.unitPrice(),
       this.isTaxable(),
@@ -316,6 +365,7 @@ export class ItemDrawer {
     this.type.set(detail?.type ?? null);
     this.name.set(detail?.name ?? '');
     this.description.set(detail?.description ?? '');
+    this.categoryId.set(detail?.categoryId ?? null);
     this.unitCost.set(detail === null ? '' : detail.unitCost.toFixed(2));
     this.unitPrice.set(detail === null ? '' : detail.unitPrice.toFixed(2));
     this.isTaxable.set(detail?.isTaxable ?? true);
@@ -327,6 +377,11 @@ export class ItemDrawer {
   onTypeChange(value: CatalogType): void {
     this.type.set(value);
     this.revalidate('type');
+  }
+
+  onCategoryChange(value: string | null): void {
+    this.categoryId.set(value);
+    this.setFieldError('category', null);
   }
 
   onText(field: 'name' | 'description' | 'unitCost' | 'unitPrice', value: string): void {
@@ -459,6 +514,7 @@ export class ItemDrawer {
       type: this.type() as CatalogType,
       name: normalizeName(this.name()),
       description: this.description().trim() === '' ? null : this.description().trim(),
+      categoryId: this.categoryId(),
       unitCost: (this.costCents() as number) / 100,
       unitPrice: (this.priceCents() as number) / 100,
       isTaxable: this.isTaxable(),
@@ -526,6 +582,7 @@ export class ItemDrawer {
     this.unitPrice.set(saved.unitPrice.toFixed(2));
     this.name.set(saved.name);
     this.description.set(saved.description ?? '');
+    this.categoryId.set(saved.categoryId);
     this.snapshot.set(this.currentKey());
   }
 
