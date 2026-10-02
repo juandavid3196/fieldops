@@ -4,7 +4,7 @@
 | -------- | ------------------------ |
 | Feature  | `public-service-request` |
 | Type     | Full-stack               |
-| Status   | APPROVED                 |
+| Status   | AUDITED                  |
 | Created  | 2026-10-01               |
 | Updated  | 2026-10-01               |
 | Approved | 2026-10-01               |
@@ -382,3 +382,5 @@ migration backfill for existing organizations is reviewed by
 | 2026-10-01 | — → DRAFT | Created |
 | 2026-10-01 | DRAFT → DRAFT | Resolved OD-10 (slug generation BR-21, FR-16, AC-24); header Sign in and visual-only links (BR-22, FR-17, AC-25) |
 | 2026-10-01 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-01 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-01 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |
