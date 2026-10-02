@@ -1,0 +1,42 @@
+<ul class="metrics" aria-label="Request metrics">
+  @for (metric of items(); track metric.key) {
+    <li class="metrics__card">
+      <span class="metrics__icon" aria-hidden="true">
+        <i class="pi" [class]="metric.icon"></i>
+      </span>
+      <span class="metrics__body">
+        <span class="metrics__label">{{ metric.label }}</span>
+        @if (loading()) {
+          <p-skeleton class="metrics__skeleton" width="5rem" height="1.75rem" />
+        } @else if (failed() || metrics() === null) {
+          <span
+            class="metrics__value metrics__value--empty"
+            role="img"
+            [attr.aria-label]="metric.label + ': ' + errorText"
+            >—</span
+          >
+        } @else {
+          <span class="metrics__line">
+            <span class="metrics__value">{{ metric.value }}</span>
+            <span
+              class="metrics__delta metrics__delta--{{ metric.tone }}"
+              [attr.aria-label]="
+                metric.direction === 'none'
+                  ? 'No comparison available'
+                  : 'Change ' + metric.delta + ' ' + metric.comparison
+              "
+            >
+              @if (metric.direction === 'up') {
+                <i class="pi pi-arrow-up" aria-hidden="true"></i>
+              } @else if (metric.direction === 'down') {
+                <i class="pi pi-arrow-down" aria-hidden="true"></i>
+              }
+              {{ metric.delta }}
+            </span>
+          </span>
+          <span class="metrics__comparison">{{ metric.comparison }}</span>
+        }
+      </span>
+    </li>
+  }
+</ul>

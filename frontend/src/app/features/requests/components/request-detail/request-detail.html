@@ -1,0 +1,266 @@
+<p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+
+<app-drawer-shell
+  size="29rem"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="closeRequested.emit()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <button
+      type="button"
+      class="detail__back"
+      aria-label="Back to requests"
+      (click)="closeRequested.emit()"
+    >
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    </button>
+    <div class="detail__head">
+      <h2 class="detail__title" [id]="titleId" tabindex="-1">{{ title() }}</h2>
+      @if (detail(); as detail) {
+        <p class="detail__chips">
+          <span class="detail__number">{{ detail.number }}</span>
+          <span class="detail__chip detail__chip--status">{{ statusLabels[detail.status] }}</span>
+          <span class="detail__chip detail__chip--{{ detail.urgency }}">
+            {{ urgencyLabels[detail.urgency] }}
+          </span>
+        </p>
+      }
+    </div>
+    @if (menuModel().length > 0) {
+      <button
+        type="button"
+        class="detail__icon-button"
+        aria-label="More actions"
+        aria-haspopup="menu"
+        [disabled]="busy()"
+        (click)="openMenu($event)"
+      >
+        <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+      </button>
+    }
+    <button
+      type="button"
+      class="detail__icon-button detail__close"
+      aria-label="Close request details"
+      (click)="closeRequested.emit()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @switch (state()) {
+      @case ('loading') {
+        <div class="detail__skeletons" aria-busy="true">
+          <p-skeleton height="1.5rem" />
+          <p-skeleton height="5rem" />
+          <p-skeleton height="7rem" />
+          <p-skeleton height="5rem" />
+        </div>
+      }
+      @case ('not-found') {
+        <div class="detail__message" role="alert">
+          <p>{{ notAvailable }}</p>
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            size="small"
+            (click)="closeRequested.emit()"
+          >
+            Close
+          </button>
+        </div>
+      }
+      @case ('error') {
+        <p-message severity="error" [closable]="false">
+          <span class="detail__retry">
+            {{ loadError }}
+            <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+              Retry
+            </button>
+          </span>
+        </p-message>
+      }
+      @default {
+        @if (detail(); as detail) {
+          <div class="detail__sections">
+            <section class="detail__section" aria-labelledby="request-customer-heading">
+              <h3 class="detail__heading" id="request-customer-heading">Customer</h3>
+              <p class="detail__customer">
+                <i class="pi pi-user" aria-hidden="true"></i>
+                {{ detail.customer?.name ?? detail.contact.name ?? 'Guest' }}
+              </p>
+              @if (detail.contact.phone) {
+                <p class="detail__line">
+                  <i class="pi pi-phone" aria-hidden="true"></i>
+                  <a [href]="'tel:' + detail.contact.phone">{{ detail.contact.phone }}</a>
+                </p>
+              }
+              @if (detail.contact.email) {
+                <p class="detail__line">
+                  <i class="pi pi-envelope" aria-hidden="true"></i>
+                  <a [href]="'mailto:' + detail.contact.email">{{ detail.contact.email }}</a>
+                </p>
+              }
+              @if (address(); as address) {
+                <p class="detail__line">
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>
+                  {{ address }}
+                </p>
+              }
+            </section>
+
+            <section class="detail__section" aria-labelledby="request-info-heading">
+              <h3 class="detail__heading" id="request-info-heading">Request details</h3>
+              <p class="detail__line">
+                <i class="pi pi-wrench" aria-hidden="true"></i>
+                {{ detail.category?.name ?? 'No category' }}
+                @if (detail.service) {
+                  · {{ detail.service.name }}
+                }
+              </p>
+              <p class="detail__line">
+                <i class="pi pi-building" aria-hidden="true"></i>
+                {{ detail.branch?.name ?? 'Unassigned branch' }}
+              </p>
+              <p class="detail__line">
+                <i class="pi pi-id-card" aria-hidden="true"></i>
+                Assignee: {{ detail.assignee?.name ?? 'Unassigned' }}
+              </p>
+              <p class="detail__line">
+                <i class="pi pi-globe" aria-hidden="true"></i>
+                Source: {{ sourceLabels[detail.source] }}
+              </p>
+              @if (visit(); as visit) {
+                <p class="detail__line">
+                  <i class="pi pi-calendar" aria-hidden="true"></i>
+                  Preferred visit: {{ visit }}
+                </p>
+                @if (detail.availability?.schedulingNotes; as notes) {
+                  <p class="detail__line detail__line--note">{{ notes }}</p>
+                }
+              }
+              @if (detail.hasActiveDamage) {
+                <p class="detail__line detail__line--alert">
+                  <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                  Active damage reported
+                </p>
+              }
+              <p class="detail__description">{{ detail.description }}</p>
+            </section>
+
+            @if (assessmentLine(); as assessment) {
+              <section class="detail__section" aria-labelledby="request-assessment-heading">
+                <h3 class="detail__heading" id="request-assessment-heading">Assessment</h3>
+                <p class="detail__line">
+                  <i class="pi pi-calendar-clock" aria-hidden="true"></i>
+                  {{ assessment.date }}, {{ assessment.time }}
+                </p>
+                <p class="detail__line">
+                  <i class="pi pi-user" aria-hidden="true"></i>
+                  {{ assessment.technician ?? 'No technician' }}
+                </p>
+              </section>
+            }
+
+            <app-request-attachments
+              [requestId]="detail.id"
+              [attachments]="detail.attachments"
+              [canUpload]="editable()"
+              [uploading]="busy()"
+              [serverErrors]="uploadErrors()"
+              (filesSelected)="filesSelected.emit($event)"
+            />
+
+            <section class="detail__section" aria-labelledby="request-notes-heading">
+              <h3 class="detail__heading" id="request-notes-heading">Internal notes</h3>
+              @if (editable()) {
+                <form
+                  class="detail__note-form"
+                  ngNoForm
+                  novalidate
+                  (submit)="$event.preventDefault(); submitNote()"
+                >
+                  <textarea
+                    pTextarea
+                    class="detail__note-input"
+                    rows="2"
+                    maxlength="2000"
+                    name="note"
+                    aria-label="Internal note"
+                    [attr.aria-invalid]="noteError() || localNoteError() ? 'true' : null"
+                    [placeholder]="notePlaceholder"
+                    [disabled]="busy()"
+                    [(ngModel)]="noteText"
+                  ></textarea>
+                  @if (noteError() ?? localNoteError(); as message) {
+                    <p class="detail__error" role="alert">{{ message }}</p>
+                  }
+                  <button
+                    pButton
+                    type="submit"
+                    size="small"
+                    severity="secondary"
+                    [disabled]="busy() || noteText().trim().length === 0"
+                  >
+                    Add note
+                  </button>
+                </form>
+              }
+              @if (detail.notes.length === 0) {
+                <p class="detail__muted">No notes</p>
+              } @else {
+                <ul class="detail__notes">
+                  @for (note of detail.notes; track note.id) {
+                    <li class="detail__note">
+                      <p class="detail__note-body">{{ note.body }}</p>
+                      <p class="detail__muted">
+                        {{ note.authorName ?? 'Unknown' }} · {{ stamp(note.createdAt) }}
+                      </p>
+                    </li>
+                  }
+                </ul>
+              }
+            </section>
+
+            <section class="detail__section" aria-labelledby="request-activity-heading">
+              <h3 class="detail__heading" id="request-activity-heading">Activity</h3>
+              <ol class="detail__timeline">
+                @for (entry of detail.activity; track $index) {
+                  <li class="detail__event">
+                    <span class="detail__event-label">{{ entry.label }}</span>
+                    @if (entry.detail) {
+                      <span class="detail__event-detail">{{ entry.detail }}</span>
+                    }
+                    <span class="detail__muted">
+                      {{ entry.actorName ?? 'System' }} · {{ stamp(entry.occurredAt) }}
+                    </span>
+                  </li>
+                }
+              </ol>
+            </section>
+          </div>
+        }
+      }
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    @for (item of footer(); track item.id) {
+      <button
+        pButton
+        type="button"
+        class="detail__action"
+        [class.detail__action--primary]="item.primary"
+        [severity]="item.primary ? undefined : 'secondary'"
+        [outlined]="!item.primary"
+        [disabled]="busy()"
+        (click)="action.emit(item.id)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </ng-container>
+</app-drawer-shell>

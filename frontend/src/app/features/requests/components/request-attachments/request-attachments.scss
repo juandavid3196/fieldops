@@ -1,0 +1,114 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.files {
+  &__title {
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  &__open {
+    display: block;
+    padding: 0;
+    overflow: hidden;
+    background: var(--fo-color-surface-muted);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__thumb,
+  &__placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 100%;
+    block-size: 5rem;
+    object-fit: cover;
+    font-size: 1.5rem;
+    color: var(--fo-color-text-muted);
+  }
+
+  &__name {
+    overflow: hidden;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__size {
+    font-size: 0.75rem;
+    color: var(--fo-color-text-muted);
+  }
+
+  &__add {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    block-size: 5rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    border: 1px dashed var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-panel);
+    cursor: pointer;
+
+    &:focus-within {
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    &--busy {
+      opacity: 0.6;
+      cursor: progress;
+    }
+  }
+
+  &__input {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &__empty {
+    margin: 0;
+    color: var(--fo-color-text-muted);
+  }
+
+  &__errors {
+    margin: 0.5rem 0 0;
+    padding-inline-start: 1.25rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+}

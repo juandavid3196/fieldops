@@ -58,7 +58,8 @@ public sealed class Assessment
         Guid requestId,
         DateTimeOffset scheduledStart,
         DateTimeOffset scheduledEnd,
-        Guid createdByUserId)
+        Guid createdByUserId,
+        Guid? technicianId = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -94,6 +95,50 @@ public sealed class Assessment
             requestId,
             scheduledStart,
             scheduledEnd,
-            createdByUserId);
+            createdByUserId)
+        {
+            TechnicianId = technicianId,
+        };
+    }
+
+    /// <summary>Changes the slot and technician of a scheduled assessment; the status is unchanged.</summary>
+    public void Reschedule(DateTimeOffset scheduledStart, DateTimeOffset scheduledEnd, Guid? technicianId)
+    {
+        EnsureScheduled();
+
+        if (scheduledStart >= scheduledEnd)
+        {
+            throw new ArgumentException(
+                "Scheduled start must be before scheduled end.",
+                nameof(scheduledStart));
+        }
+
+        ScheduledStart = scheduledStart;
+        ScheduledEnd = scheduledEnd;
+        TechnicianId = technicianId;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Cancel()
+    {
+        EnsureScheduled();
+        Status = AssessmentStatus.Cancelled;
+        UpdatedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void Complete()
+    {
+        EnsureScheduled();
+        Status = AssessmentStatus.Completed;
+        CompletedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = CompletedAt.Value;
+    }
+
+    private void EnsureScheduled()
+    {
+        if (Status != AssessmentStatus.Scheduled)
+        {
+            throw new InvalidOperationException("Only a scheduled assessment can change.");
+        }
     }
 }

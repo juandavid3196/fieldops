@@ -6,6 +6,7 @@ using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
+using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.Users;
 using FluentValidation;
@@ -103,6 +104,14 @@ public static class DependencyInjection
         services.AddScoped<ConfirmPasswordResetHandler>();
         services.AddScoped<GetPublicServiceRequestFormHandler>();
         services.AddScoped<SubmitPublicServiceRequestHandler>();
+        services.AddScoped<ListServiceRequestPipelineHandler>();
+        services.AddScoped<GetServiceRequestMetricsHandler>();
+        services.AddScoped<GetServiceRequestOptionsHandler>();
+        services.AddScoped<GetRequestCustomerOptionsHandler>();
+        services.AddScoped<GetServiceRequestHandler>();
+        services.AddScoped<GetRequestAttachmentHandler>();
+        services.AddScoped<ServiceRequestActionHandler>();
+        services.AddScoped<CreateInternalRequestHandler>();
 
         return services;
     }

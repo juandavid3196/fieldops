@@ -36,7 +36,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     id: 'operations',
     heading: 'Operations',
     items: [
-      moduleItem('Requests', 'pi-inbox', 'requests'),
+      { label: 'Requests', icon: 'pi-inbox', link: '/requests', exact: false },
       moduleItem('Quotes', 'pi-file-edit', 'quotes'),
       moduleItem('Work orders', 'pi-wrench', 'work-orders'),
       moduleItem('Schedule', 'pi-calendar', 'schedule'),

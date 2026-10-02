@@ -5,6 +5,7 @@ import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { customerDetailRoute, customersRoute } from './features/customers/customers.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
+import { requestsRoute } from './features/requests/requests.routes';
 import { skillsAvailabilityRoute, teamRoute } from './features/team/team.routes';
 import { usersAdminRoute } from './features/users/users.routes';
 
@@ -42,6 +43,7 @@ export const routes: Routes = [
       productsServicesAdminRoute,
       customersRoute,
       customerDetailRoute,
+      requestsRoute,
       teamRoute,
       skillsAvailabilityRoute,
     ],

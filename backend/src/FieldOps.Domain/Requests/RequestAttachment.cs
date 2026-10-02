@@ -116,7 +116,8 @@ public sealed class RequestAttachment
         Guid requestId,
         string fileName,
         string mimeType,
-        byte[] content)
+        byte[] content,
+        Guid? uploadedByUserId = null)
     {
         ArgumentNullException.ThrowIfNull(content);
 
@@ -151,6 +152,7 @@ public sealed class RequestAttachment
             content.Length);
         attachment.StorageKey = null;
         attachment.Content = content;
+        attachment.UploadedByUserId = uploadedByUserId;
 
         return attachment;
     }

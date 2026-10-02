@@ -92,8 +92,17 @@ public sealed class ServiceRequest
         string urgency = "standard",
         bool hasActiveDamage = false,
         string? availabilityPreferences = null,
-        DateTimeOffset? consentAt = null)
+        DateTimeOffset? consentAt = null,
+        string source = "public_form",
+        Guid? branchId = null)
     {
+        if (source is not ("public_form" or "internal"))
+        {
+            throw new ArgumentException(
+                "Source must be public_form or internal.",
+                nameof(source));
+        }
+
         if (urgency is not ("standard" or "urgent" or "emergency"))
         {
             throw new ArgumentException(
@@ -153,6 +162,52 @@ public sealed class ServiceRequest
             HasActiveDamage = hasActiveDamage,
             AvailabilityPreferences = availabilityPreferences,
             ConsentAt = consentAt,
+            Source = source,
+            BranchId = branchId,
         };
     }
+
+    /// <summary>Moves the request to another status; cancelling also stamps <see cref="CancelledAt"/>.</summary>
+    public void ChangeStatus(RequestStatus status)
+    {
+        if (status == RequestStatus.Cancelled)
+        {
+            CancelledAt = DateTimeOffset.UtcNow;
+        }
+
+        Status = status;
+        Touch();
+    }
+
+    public void AssignTo(Guid? userId)
+    {
+        AssignedDispatcherUserId = userId;
+        Touch();
+    }
+
+    public void ChangeUrgency(string urgency)
+    {
+        if (urgency is not ("standard" or "urgent" or "emergency"))
+        {
+            throw new ArgumentException(
+                "Urgency must be standard, urgent or emergency.",
+                nameof(urgency));
+        }
+
+        Urgency = urgency;
+        Touch();
+    }
+
+    public void SetBranch(Guid branchId)
+    {
+        if (branchId == Guid.Empty)
+        {
+            throw new ArgumentException("Branch id is required.", nameof(branchId));
+        }
+
+        BranchId = branchId;
+        Touch();
+    }
+
+    public void Touch() => UpdatedAt = DateTimeOffset.UtcNow;
 }

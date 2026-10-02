@@ -1,0 +1,133 @@
+<p-toast />
+<app-confirm-dialog />
+<app-discard-changes-dialog />
+
+<div class="requests">
+  <div class="requests__main">
+    <header class="requests__header">
+      <h1 class="requests__title">Requests</h1>
+      @if (!forbidden()) {
+        <p class="requests__description">{{ descriptionMessage }}</p>
+      }
+    </header>
+
+    @if (forbidden()) {
+      <p class="requests__forbidden">{{ forbiddenMessage }}</p>
+    } @else {
+      <div class="requests__sections">
+        <app-request-metrics
+          [metrics]="metrics()"
+          [loading]="metricsLoading()"
+          [failed]="metricsFailed()"
+        />
+        @if (metricsFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="requests__error">
+              {{ loadErrorMessage }}
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                size="small"
+                (click)="loadMetrics()"
+              >
+                Retry
+              </button>
+            </span>
+          </p-message>
+        }
+
+        <app-request-filters
+          [filters]="filters()"
+          [searchText]="searchText()"
+          [options]="options()"
+          [disabled]="!boardLoaded()"
+          [canCreate]="canManage()"
+          (filterChange)="onFilterChange($event)"
+          (searchTextChange)="onSearchText($event)"
+          (newRequest)="openNewRequest()"
+        />
+
+        @if (boardError()) {
+          <p-message severity="error" [closable]="false">
+            <span class="requests__error">
+              {{ loadErrorMessage }}
+              <button pButton type="button" severity="secondary" size="small" (click)="loadBoard()">
+                Retry
+              </button>
+            </span>
+          </p-message>
+        } @else if (isEmpty()) {
+          <div class="requests__empty">
+            @if (hasFilters()) {
+              <p>{{ emptyFilteredMessage }}</p>
+              <button pButton type="button" severity="secondary" (click)="clearFilters()">
+                Clear filters
+              </button>
+            } @else {
+              <p class="requests__empty-title">{{ emptyInitialTitle }}</p>
+              <p>{{ emptyInitialMessage }}</p>
+              @if (canManage()) {
+                <button pButton type="button" (click)="openNewRequest()">
+                  <i class="pi pi-plus" aria-hidden="true"></i>
+                  New request
+                </button>
+              }
+            }
+          </div>
+        } @else {
+          <app-request-board
+            [columns]="columns()"
+            [loading]="!boardLoaded()"
+            [refreshing]="boardRefreshing()"
+            [selectedId]="selectedId()"
+            [timezone]="timezone()"
+            (cardOpened)="openRequest($event)"
+            (loadMore)="loadMore($event)"
+          />
+        }
+      </div>
+    }
+  </div>
+
+  @if (!forbidden()) {
+    <app-request-detail
+      [open]="panelOpen()"
+      [state]="panelState()"
+      [detail]="panelDetail()"
+      [timezone]="timezone()"
+      [canManage]="canManage()"
+      [busy]="mutating()"
+      [(noteText)]="noteText"
+      [noteError]="noteError()"
+      [uploadErrors]="uploadErrors()"
+      (closeRequested)="closePanel()"
+      (retry)="retryDetail()"
+      (action)="onAction($event)"
+      (noteSubmitted)="onNote($event)"
+      (filesSelected)="onFiles($event)"
+    />
+
+    @if (canManage()) {
+      <app-new-request-drawer
+        [open]="newOpen()"
+        [options]="options()"
+        [optionsLoading]="optionsLoading()"
+        (created)="onCreated($event)"
+        (closed)="closeNewRequest()"
+        (unauthorized)="onUnauthorized()"
+      />
+    }
+
+    <app-request-action-dialog
+      [kind]="dialogKind()"
+      [detail]="panelDetail()"
+      [options]="options()"
+      [timezone]="timezone()"
+      [submitting]="mutating()"
+      [fieldErrors]="dialogErrors()"
+      (dismissed)="dismissDialog()"
+      (submitted)="onDialogSubmit($event)"
+    />
+  }
+</div>

@@ -1,0 +1,54 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Filters wrap; on phones each control takes the full row.
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+
+  &__select {
+    flex: 1 1 100%;
+    min-width: 0;
+    min-height: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      flex: 0 1 11rem;
+      min-height: var(--fo-size-control);
+    }
+  }
+
+  &__search {
+    flex: 1 1 100%;
+    min-inline-size: min(12.5rem, 100%);
+
+    @include bp.up(md) {
+      flex: 1 1 12rem;
+    }
+  }
+
+  &__control {
+    min-height: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      min-height: var(--fo-size-control);
+    }
+  }
+
+  &__new {
+    flex: 1 1 100%;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      flex: none;
+      min-height: var(--fo-size-control);
+    }
+  }
+}

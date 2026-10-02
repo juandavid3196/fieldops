@@ -1,0 +1,91 @@
+<div class="board" [attr.aria-busy]="loading() || refreshing()">
+  @if (refreshing()) {
+    <div class="board__progress" role="status" aria-label="Updating requests"></div>
+  }
+  @for (status of statuses; track status) {
+    @let column = columns()[status];
+    <section class="board__column" [attr.aria-labelledby]="'board-heading-' + status">
+      <header class="board__column-head">
+        <h2 class="board__column-title" [id]="'board-heading-' + status">
+          {{ columnLabels[status] }}
+        </h2>
+        <span class="board__count" [attr.aria-label]="column.total + ' requests'">
+          {{ column.total }}
+        </span>
+      </header>
+
+      <div class="board__cards">
+        @if (loading()) {
+          @for (card of skeletonCards; track card) {
+            <p-skeleton height="6.5rem" />
+          }
+        } @else if (column.items.length === 0) {
+          <p class="board__empty">No requests</p>
+        } @else {
+          @for (card of column.items; track card.id) {
+            <button
+              type="button"
+              class="card"
+              [class.card--selected]="card.id === selectedId()"
+              [attr.data-request-id]="card.id"
+              [attr.aria-label]="name(card, status)"
+              [attr.aria-describedby]="'card-details-' + card.id"
+              [attr.aria-current]="card.id === selectedId() ? 'true' : null"
+              (click)="cardOpened.emit(card.id)"
+            >
+              <span class="card__details" [id]="'card-details-' + card.id">
+                <span class="card__title">{{ card.title }}</span>
+                <span class="card__customer">{{ card.customerName ?? '' }}</span>
+                @if (card.categoryName) {
+                  <span class="card__meta">
+                    <i class="pi pi-tag" aria-hidden="true"></i>
+                    {{ card.categoryName }}
+                  </span>
+                }
+                <span class="card__foot">
+                  <span class="card__meta">
+                    <i class="pi pi-calendar" aria-hidden="true"></i>
+                    {{ date(card) }}
+                  </span>
+                  @if (card.avatar; as avatar) {
+                    <span
+                      class="card__avatar"
+                      role="img"
+                      [attr.aria-label]="avatarName(avatar)"
+                      [attr.title]="avatarName(avatar)"
+                      >{{ avatar.initials }}</span
+                    >
+                  }
+                </span>
+                <span class="card__badges">
+                  @if (showsUrgency(card)) {
+                    <span class="card__chip card__chip--urgent">{{ urgencyLabel(card) }}</span>
+                  }
+                  @if (card.awaitingResponse) {
+                    <span class="card__chip card__chip--awaiting">Awaiting response</span>
+                  }
+                  <span class="card__chip card__chip--age">{{ age(card) }}</span>
+                </span>
+              </span>
+            </button>
+          }
+          @if (column.items.length < column.total) {
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              class="board__more"
+              [disabled]="column.loadingMore"
+              [attr.aria-label]="'Load more ' + columnLabels[status]"
+              (click)="loadMore.emit(status)"
+            >
+              {{ column.moreFailed ? "Couldn't load more. Retry" : 'Load more' }}
+            </button>
+          }
+        }
+      </div>
+    </section>
+  }
+</div>

@@ -4,7 +4,7 @@
 | -------- | ------------------- |
 | Feature  | `requests-pipeline` |
 | Type     | Full-stack          |
-| Status   | APPROVED            |
+| Status   | AUDITED             |
 | Created  | 2026-10-02          |
 | Updated  | 2026-10-02          |
 | Approved | 2026-10-02          |
@@ -473,3 +473,5 @@ Frontend uses 5 groups. Navigation link changes (AC-25) and responsive layout
 | 2026-10-02 | DRAFT → DRAFT | Assumption review: internal request branch from property (BR-18, OD-19 open); explicit Complete assessment with future-start 409 (BR-15, OD-20); distinct footer labels (BR-03, OD-21); AS-02/AS-03 confirmed; AS-01/AS-04/AS-05 removed |
 | 2026-10-02 | DRAFT → DRAFT | Resolved OD-19: internal request without property branch stays branchless (BR-18, AC-21) |
 | 2026-10-02 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-02 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-02 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

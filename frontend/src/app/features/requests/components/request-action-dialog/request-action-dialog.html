@@ -1,0 +1,233 @@
+<p-dialog
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!submitting()"
+  [closeOnEscape]="!submitting()"
+  [visible]="visible()"
+  (visibleChange)="$event ? null : dismissed.emit()"
+  [style]="{ width: '28rem', maxWidth: '94vw' }"
+>
+  <form class="action" ngNoForm novalidate (submit)="$event.preventDefault(); submit()">
+    @switch (kind()) {
+      @case ('assign') {
+        <app-form-field
+          label="Assignee"
+          controlId="request-dialog-assigneeUserId"
+          [error]="error('assigneeUserId')"
+        >
+          <p-select
+            inputId="request-dialog-assigneeUserId"
+            appendTo="body"
+            fluid
+            optionLabel="label"
+            optionValue="code"
+            [options]="assigneeOptions()"
+            [ngModel]="assignee()"
+            [invalid]="error('assigneeUserId') !== null"
+            [attr.aria-describedby]="describedBy('assigneeUserId')"
+            (ngModelChange)="assignee.set($event)"
+          />
+        </app-form-field>
+      }
+      @case ('change-priority') {
+        <app-form-field
+          label="Priority"
+          controlId="request-dialog-urgency"
+          [error]="error('urgency')"
+        >
+          <p-select
+            inputId="request-dialog-urgency"
+            appendTo="body"
+            fluid
+            optionLabel="label"
+            optionValue="code"
+            [options]="priorityOptions"
+            [ngModel]="urgency()"
+            (ngModelChange)="urgency.set($event)"
+          />
+        </app-form-field>
+      }
+      @case ('set-branch') {
+        <app-form-field
+          label="Branch"
+          controlId="request-dialog-branchId"
+          [required]="true"
+          [error]="error('branchId')"
+        >
+          <p-select
+            inputId="request-dialog-branchId"
+            appendTo="body"
+            fluid
+            placeholder="Choose a branch"
+            optionLabel="label"
+            optionValue="code"
+            [options]="branchOptions()"
+            [ngModel]="branchId()"
+            [invalid]="error('branchId') !== null"
+            [attr.aria-describedby]="describedBy('branchId')"
+            (ngModelChange)="branchId.set($event)"
+          />
+        </app-form-field>
+      }
+      @case ('cancel-request') {
+        <p class="action__message">
+          The request leaves the board and any scheduled assessment is cancelled.
+        </p>
+        <app-form-field
+          label="Reason"
+          controlId="request-dialog-reason"
+          [required]="true"
+          [error]="error('reason')"
+        >
+          <textarea
+            pTextarea
+            id="request-dialog-reason"
+            rows="3"
+            maxlength="500"
+            fluid
+            name="reason"
+            [attr.aria-invalid]="error('reason') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('reason')"
+            [ngModel]="body()"
+            (ngModelChange)="body.set($event)"
+          ></textarea>
+        </app-form-field>
+      }
+      @case ('schedule-assessment') {
+        <ng-container *ngTemplateOutlet="assessmentFields" />
+      }
+      @case ('reschedule') {
+        <ng-container *ngTemplateOutlet="assessmentFields" />
+      }
+      @default {
+        @if (isMessage()) {
+          <app-form-field
+            [label]="messageLabel()"
+            controlId="request-dialog-body"
+            [required]="true"
+            [error]="error('body')"
+          >
+            <textarea
+              pTextarea
+              id="request-dialog-body"
+              rows="5"
+              maxlength="2000"
+              fluid
+              name="body"
+              [attr.aria-invalid]="error('body') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('body')"
+              [ngModel]="body()"
+              (ngModelChange)="body.set($event)"
+            ></textarea>
+          </app-form-field>
+        }
+      }
+    }
+  </form>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="dismissed.emit()"
+    >
+      {{ kind() === 'cancel-request' ? 'Keep' : 'Cancel' }}
+    </button>
+    <button
+      pButton
+      type="button"
+      [severity]="kind() === 'cancel-request' ? 'danger' : undefined"
+      [disabled]="submitting()"
+      (click)="submit()"
+    >
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      {{ submitLabel() }}
+    </button>
+  </ng-template>
+</p-dialog>
+
+<ng-template #assessmentFields>
+  @if (needsBranch()) {
+    <app-form-field
+      label="Branch"
+      controlId="request-dialog-branchId"
+      [required]="true"
+      [error]="error('branchId')"
+    >
+      <p-select
+        inputId="request-dialog-branchId"
+        appendTo="body"
+        fluid
+        placeholder="Choose a branch"
+        optionLabel="label"
+        optionValue="code"
+        [options]="branchOptions()"
+        [ngModel]="branchId()"
+        [invalid]="error('branchId') !== null"
+        [attr.aria-describedby]="describedBy('branchId')"
+        (ngModelChange)="branchId.set($event); technicianId.set('none')"
+      />
+    </app-form-field>
+  }
+  <app-form-field
+    label="Start"
+    controlId="request-dialog-start"
+    [required]="true"
+    [error]="error('start')"
+  >
+    <input
+      pInputText
+      id="request-dialog-start"
+      type="datetime-local"
+      name="start"
+      fluid
+      [attr.aria-invalid]="error('start') !== null ? 'true' : null"
+      [attr.aria-describedby]="describedBy('start')"
+      [ngModel]="start()"
+      (ngModelChange)="start.set($event)"
+    />
+  </app-form-field>
+  <app-form-field
+    label="End time"
+    controlId="request-dialog-end"
+    [required]="true"
+    [error]="error('end')"
+  >
+    <input
+      pInputText
+      id="request-dialog-end"
+      type="time"
+      name="end"
+      fluid
+      [attr.aria-invalid]="error('end') !== null ? 'true' : null"
+      [attr.aria-describedby]="describedBy('end')"
+      [ngModel]="endTime()"
+      (ngModelChange)="endTime.set($event)"
+    />
+  </app-form-field>
+  <app-form-field
+    label="Technician"
+    controlId="request-dialog-technicianId"
+    [error]="error('technicianId')"
+  >
+    <p-select
+      inputId="request-dialog-technicianId"
+      appendTo="body"
+      fluid
+      optionLabel="label"
+      optionValue="code"
+      [options]="technicianOptions()"
+      [ngModel]="technicianId()"
+      [invalid]="error('technicianId') !== null"
+      [attr.aria-describedby]="describedBy('technicianId')"
+      (ngModelChange)="technicianId.set($event)"
+    />
+  </app-form-field>
+</ng-template>
