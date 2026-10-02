@@ -1,0 +1,99 @@
+<div class="filters" role="search" aria-label="Filter requests">
+  <p-select
+    class="filters__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Assignee"
+    [disabled]="disabled()"
+    [options]="assigneeOptions()"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="filters().assignee ?? 'all'"
+    (ngModelChange)="filterChange.emit({ assignee: none($event) })"
+  >
+    <ng-template #selectedItem let-option>Assignee: {{ option.label }}</ng-template>
+  </p-select>
+
+  <p-select
+    class="filters__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Service"
+    [disabled]="disabled()"
+    [options]="serviceOptions()"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="filters().categoryId ?? 'all'"
+    (ngModelChange)="filterChange.emit({ categoryId: none($event) })"
+  >
+    <ng-template #selectedItem let-option>Service: {{ option.label }}</ng-template>
+  </p-select>
+
+  <p-select
+    class="filters__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Priority"
+    [disabled]="disabled()"
+    [options]="priorityOptions"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="filters().urgency ?? 'all'"
+    (ngModelChange)="filterChange.emit({ urgency: none($event) })"
+  >
+    <ng-template #selectedItem let-option>Priority: {{ option.label }}</ng-template>
+  </p-select>
+
+  <p-select
+    class="filters__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Source"
+    [disabled]="disabled()"
+    [options]="sourceOptions"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="filters().source ?? 'all'"
+    (ngModelChange)="filterChange.emit({ source: none($event) })"
+  >
+    <ng-template #selectedItem let-option>Source: {{ option.label }}</ng-template>
+  </p-select>
+
+  <p-select
+    class="filters__select"
+    appendTo="body"
+    fluid
+    ariaLabel="Date"
+    [disabled]="disabled()"
+    [options]="dateOptions"
+    optionLabel="label"
+    optionValue="code"
+    [ngModel]="filters().created ?? 'all'"
+    (ngModelChange)="filterChange.emit({ created: none($event) })"
+  >
+    <ng-template #selectedItem let-option>Date: {{ option.label }}</ng-template>
+  </p-select>
+
+  <p-iconfield class="filters__search">
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      class="filters__control"
+      placeholder="Search requests..."
+      aria-label="Search requests"
+      maxlength="100"
+      fluid
+      [disabled]="disabled()"
+      [ngModel]="searchText()"
+      (ngModelChange)="searchTextChange.emit($event)"
+    />
+  </p-iconfield>
+
+  @if (canCreate()) {
+    <button pButton type="button" class="filters__new" (click)="newRequest.emit()">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      New request
+    </button>
+  }
+</div>

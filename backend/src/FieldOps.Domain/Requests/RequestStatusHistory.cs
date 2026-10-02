@@ -41,7 +41,9 @@ public sealed class RequestStatusHistory
         Guid organizationId,
         Guid requestId,
         RequestStatus? fromStatus,
-        RequestStatus toStatus)
+        RequestStatus toStatus,
+        Guid? changedByUserId = null,
+        string? reason = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -62,6 +64,10 @@ public sealed class RequestStatusHistory
             organizationId,
             requestId,
             fromStatus,
-            toStatus);
+            toStatus)
+        {
+            ChangedByUserId = changedByUserId,
+            Reason = string.IsNullOrWhiteSpace(reason) ? null : reason.Trim(),
+        };
     }
 }

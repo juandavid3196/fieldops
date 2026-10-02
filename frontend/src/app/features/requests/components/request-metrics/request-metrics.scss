@@ -1,0 +1,104 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Phone: one column; from md: two; from 1280px: one row of four.
+.metrics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @media (min-width: 80rem) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  &__card {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 0.875rem 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    font-size: 1.125rem;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  &__value {
+    font-size: 1.625rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--fo-color-heading);
+
+    &--empty {
+      color: var(--fo-color-text-muted);
+    }
+  }
+
+  &__delta {
+    font-size: 0.8125rem;
+    font-weight: 600;
+
+    &--positive {
+      color: var(--fo-color-success-text);
+    }
+
+    &--negative {
+      color: var(--fo-color-danger-text);
+    }
+
+    &--neutral {
+      color: var(--fo-color-text-muted);
+    }
+  }
+
+  &__comparison {
+    font-size: 0.75rem;
+    color: var(--fo-color-text-muted);
+  }
+
+  &__skeleton {
+    display: block;
+    margin-block-start: 0.25rem;
+  }
+}

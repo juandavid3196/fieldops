@@ -97,7 +97,7 @@ const TABS: readonly TabInfo[] = [
   {
     code: 'requests',
     label: 'Requests',
-    soon: { noun: 'requests', link: '/coming-soon/requests' },
+    soon: { noun: 'requests', link: '/requests' },
   },
   { code: 'quotes', label: 'Quotes', soon: { noun: 'quotes', link: '/coming-soon/quotes' } },
   { code: 'jobs', label: 'Jobs', soon: { noun: 'jobs', link: '/coming-soon/work-orders' } },
@@ -109,11 +109,11 @@ const TABS: readonly TabInfo[] = [
   { code: 'activity', label: 'Activity' },
 ];
 
-const CREATE_LINKS: readonly { readonly label: string; readonly slug: string }[] = [
-  { label: 'Request', slug: 'requests' },
-  { label: 'Quote', slug: 'quotes' },
-  { label: 'Job', slug: 'work-orders' },
-  { label: 'Invoice', slug: 'invoices' },
+const CREATE_LINKS: readonly { readonly label: string; readonly path: string }[] = [
+  { label: 'Request', path: '/requests' },
+  { label: 'Quote', path: '/coming-soon/quotes' },
+  { label: 'Job', path: '/coming-soon/work-orders' },
+  { label: 'Invoice', path: '/coming-soon/invoices' },
 ];
 
 type PropertyAction = 'set-primary' | 'archive' | 'reactivate';
@@ -492,7 +492,7 @@ export class CustomerDetail {
       { label: 'Property', icon: 'pi pi-home', command: () => this.openAddProperty() },
       ...CREATE_LINKS.map((item) => ({
         label: item.label,
-        command: () => void this.router.navigate(['/coming-soon', item.slug]),
+        command: () => void this.router.navigateByUrl(item.path),
       })),
     ]);
     this.menu().toggle(event);

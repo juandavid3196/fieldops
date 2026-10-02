@@ -41,7 +41,9 @@ public sealed class RequestMessage
         Guid organizationId,
         Guid requestId,
         MessageVisibility visibility,
-        string body)
+        string body,
+        Guid? authorUserId = null,
+        Guid? authorContactId = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -69,6 +71,10 @@ public sealed class RequestMessage
             organizationId,
             requestId,
             visibility,
-            body.Trim());
+            body.Trim())
+        {
+            AuthorUserId = authorUserId,
+            AuthorContactId = authorContactId,
+        };
     }
 }

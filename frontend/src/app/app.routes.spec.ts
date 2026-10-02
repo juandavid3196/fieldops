@@ -130,7 +130,7 @@ describe('app routes', () => {
   });
 
   it.each([
-    ['requests', 'Requests'],
+    ['quotes', 'Quotes'],
     ['business-hours', 'Business hours'],
     ['tax-rates', 'Tax rates'],
   ])(

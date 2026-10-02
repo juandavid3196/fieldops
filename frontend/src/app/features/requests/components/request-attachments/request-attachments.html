@@ -1,0 +1,63 @@
+<section class="files" aria-labelledby="request-files-heading">
+  <h3 class="files__title" id="request-files-heading">Attachments ({{ attachments().length }})</h3>
+
+  <ul class="files__grid">
+    @for (file of attachments(); track file.id) {
+      <li class="files__item">
+        <button
+          type="button"
+          class="files__open"
+          [attr.aria-label]="
+            (file.mimeType.startsWith('image/') ? 'Preview ' : 'Download ') + file.fileName
+          "
+          (click)="open(file)"
+        >
+          @if (thumbnails()[file.id]; as url) {
+            <img class="files__thumb" [src]="url" alt="" />
+          } @else {
+            <span class="files__placeholder" aria-hidden="true">
+              <i
+                class="pi"
+                [class.pi-image]="file.mimeType.startsWith('image/')"
+                [class.pi-file-pdf]="!file.mimeType.startsWith('image/')"
+              ></i>
+            </span>
+          }
+        </button>
+        <span class="files__name" [attr.title]="file.fileName">{{ file.fileName }}</span>
+        <span class="files__size">{{ size(file.sizeBytes) }}</span>
+      </li>
+    }
+    @if (canAdd) {
+      <li class="files__item">
+        <label class="files__add" [class.files__add--busy]="uploading()">
+          <i class="pi pi-upload" aria-hidden="true"></i>
+          Add file
+          <input
+            class="files__input"
+            type="file"
+            multiple
+            [accept]="accept"
+            [disabled]="uploading()"
+            (change)="onFiles($event)"
+          />
+        </label>
+      </li>
+    }
+  </ul>
+
+  @if (attachments().length === 0 && !canUpload()) {
+    <p class="files__empty">No files</p>
+  }
+
+  @if (clientErrors().length > 0 || serverErrors().length > 0) {
+    <ul class="files__errors" role="alert">
+      @for (message of clientErrors(); track $index) {
+        <li>{{ message }}</li>
+      }
+      @for (message of serverErrors(); track $index) {
+        <li>{{ message }}</li>
+      }
+    </ul>
+  }
+</section>

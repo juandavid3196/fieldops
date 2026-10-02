@@ -1,0 +1,274 @@
+<app-drawer-shell
+  size="26.25rem"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="new-request__title" [id]="titleId" tabindex="-1">New request</h2>
+    <span class="new-request__spacer"></span>
+    <button
+      type="button"
+      class="new-request__close"
+      aria-label="Close new request drawer"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    <form class="new-request__form" ngNoForm novalidate (submit)="$event.preventDefault(); save()">
+      <fieldset class="new-request__group" [disabled]="submitting()">
+        <app-form-field
+          label="Customer"
+          controlId="new-request-customerId"
+          [required]="true"
+          [error]="error('customerId')"
+        >
+          <p-autocomplete
+            inputId="new-request-customerId"
+            fluid
+            appendTo="body"
+            optionLabel="displayName"
+            placeholder="Search customers"
+            emptyMessage="No customers found."
+            [showEmptyMessage]="true"
+            [dropdown]="true"
+            [completeOnFocus]="true"
+            [suggestions]="suggestions()"
+            [ngModel]="customerInput()"
+            [invalid]="error('customerId') !== null"
+            [attr.aria-describedby]="describedBy('customerId')"
+            (completeMethod)="onSearch($event.query)"
+            (ngModelChange)="onCustomerInput($event)"
+          />
+          @if (searching()) {
+            <span class="new-request__progress" role="status">Searching customers...</span>
+          }
+        </app-form-field>
+
+        <app-form-field
+          label="Contact"
+          controlId="new-request-contactId"
+          [required]="true"
+          [error]="error('contactId')"
+        >
+          <p-select
+            inputId="new-request-contactId"
+            appendTo="body"
+            fluid
+            placeholder="Choose a contact"
+            optionLabel="label"
+            optionValue="code"
+            [options]="contactChoices()"
+            [disabled]="customer() === null"
+            [ngModel]="contactId()"
+            [invalid]="error('contactId') !== null"
+            [attr.aria-describedby]="describedBy('contactId')"
+            (ngModelChange)="contactId.set($event); clear('contactId')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Property"
+          controlId="new-request-propertyId"
+          [required]="true"
+          [error]="error('propertyId')"
+        >
+          <p-select
+            inputId="new-request-propertyId"
+            appendTo="body"
+            fluid
+            placeholder="Choose a property"
+            optionLabel="label"
+            optionValue="code"
+            [options]="propertyChoices()"
+            [disabled]="customer() === null"
+            [ngModel]="propertyId()"
+            [invalid]="error('propertyId') !== null"
+            [attr.aria-describedby]="describedBy('propertyId')"
+            (ngModelChange)="propertyId.set($event); clear('propertyId')"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Category"
+          controlId="new-request-categoryId"
+          [required]="true"
+          [error]="error('categoryId')"
+        >
+          <p-select
+            inputId="new-request-categoryId"
+            appendTo="body"
+            fluid
+            placeholder="Choose a category"
+            optionLabel="label"
+            optionValue="code"
+            [options]="categoryChoices()"
+            [loading]="optionsLoading()"
+            [ngModel]="categoryId()"
+            [invalid]="error('categoryId') !== null"
+            [attr.aria-describedby]="describedBy('categoryId')"
+            (ngModelChange)="onCategory($event)"
+          />
+        </app-form-field>
+
+        <app-form-field
+          label="Service"
+          controlId="new-request-serviceId"
+          [required]="!notSure()"
+          [error]="error('serviceId')"
+        >
+          <p-select
+            inputId="new-request-serviceId"
+            appendTo="body"
+            fluid
+            placeholder="Choose a service"
+            optionLabel="label"
+            optionValue="code"
+            [options]="serviceChoices()"
+            [disabled]="categoryId() === '' || notSure()"
+            [ngModel]="serviceId()"
+            [invalid]="error('serviceId') !== null"
+            [attr.aria-describedby]="describedBy('serviceId')"
+            (ngModelChange)="serviceId.set($event); clear('serviceId')"
+          />
+        </app-form-field>
+        <label class="new-request__check" for="new-request-not-sure">
+          <p-checkbox
+            inputId="new-request-not-sure"
+            [binary]="true"
+            [ngModel]="notSure()"
+            (ngModelChange)="onNotSure($event)"
+          />
+          I'm not sure
+        </label>
+
+        <app-form-field
+          label="Description"
+          controlId="new-request-description"
+          [required]="true"
+          [error]="error('description')"
+        >
+          <textarea
+            pTextarea
+            id="new-request-description"
+            rows="4"
+            maxlength="1000"
+            fluid
+            name="description"
+            [attr.aria-invalid]="error('description') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('description')"
+            [ngModel]="description()"
+            (ngModelChange)="description.set($event); clear('description')"
+          ></textarea>
+        </app-form-field>
+
+        <app-form-field label="Priority" controlId="new-request-urgency" [error]="error('urgency')">
+          <p-select
+            inputId="new-request-urgency"
+            appendTo="body"
+            fluid
+            optionLabel="label"
+            optionValue="code"
+            [options]="urgencyChoices"
+            [ngModel]="urgency()"
+            (ngModelChange)="urgency.set($event)"
+          />
+        </app-form-field>
+        <label class="new-request__check" for="new-request-damage">
+          <p-checkbox
+            inputId="new-request-damage"
+            [binary]="true"
+            [ngModel]="hasActiveDamage()"
+            (ngModelChange)="hasActiveDamage.set($event)"
+          />
+          Active damage
+        </label>
+
+        <app-form-field label="Availability" controlId="new-request-dateMode">
+          <p-select
+            inputId="new-request-dateMode"
+            appendTo="body"
+            fluid
+            optionLabel="label"
+            optionValue="code"
+            [options]="dateModes"
+            [ngModel]="dateMode()"
+            (ngModelChange)="dateMode.set($event); clear('preferredDate')"
+          />
+        </app-form-field>
+        @if (dateMode() === 'date') {
+          <app-form-field
+            label="Preferred date"
+            controlId="new-request-preferredDate"
+            [required]="true"
+            [error]="error('preferredDate')"
+          >
+            <input
+              pInputText
+              id="new-request-preferredDate"
+              type="date"
+              name="preferredDate"
+              fluid
+              [attr.aria-invalid]="error('preferredDate') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('preferredDate')"
+              [ngModel]="preferredDate()"
+              (ngModelChange)="preferredDate.set($event); clear('preferredDate')"
+            />
+          </app-form-field>
+          <app-form-field label="Time window" controlId="new-request-timeWindow">
+            <p-select
+              inputId="new-request-timeWindow"
+              appendTo="body"
+              fluid
+              optionLabel="label"
+              optionValue="code"
+              [options]="windowChoices"
+              [ngModel]="timeWindow()"
+              (ngModelChange)="timeWindow.set($event)"
+            />
+          </app-form-field>
+        }
+        <app-form-field
+          label="Scheduling notes"
+          controlId="new-request-schedulingNotes"
+          [error]="error('schedulingNotes')"
+        >
+          <textarea
+            pTextarea
+            id="new-request-schedulingNotes"
+            rows="2"
+            maxlength="1000"
+            fluid
+            name="schedulingNotes"
+            [attr.aria-describedby]="describedBy('schedulingNotes')"
+            [ngModel]="schedulingNotes()"
+            (ngModelChange)="schedulingNotes.set($event)"
+          ></textarea>
+        </app-form-field>
+      </fieldset>
+    </form>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      Cancel
+    </button>
+    <button pButton type="button" [disabled]="submitting()" (click)="save()">
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Create request
+    </button>
+  </ng-container>
+</app-drawer-shell>

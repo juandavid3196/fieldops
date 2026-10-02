@@ -1,6 +1,5 @@
 /** BR-02: slug to module name for every "Coming soon" destination. */
 export const COMING_SOON_MODULES: Readonly<Record<string, string>> = {
-  requests: 'Requests',
   quotes: 'Quotes',
   'work-orders': 'Work orders',
   schedule: 'Schedule',

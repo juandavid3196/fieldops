@@ -15,7 +15,7 @@ const TYPE_LABELS: Readonly<Record<RecentWorkType, string>> = {
   job: 'Job',
 };
 const TYPE_LINKS: Readonly<Record<RecentWorkType, string>> = {
-  request: '/coming-soon/requests',
+  request: '/requests',
   quote: '/coming-soon/quotes',
   job: '/coming-soon/work-orders',
 };
@@ -45,6 +45,8 @@ export class RecentWorkCard {
       type: TYPE_LABELS[item.type],
       severity: TYPE_SEVERITY[item.type],
       link: TYPE_LINKS[item.type],
+      // BR-17: request links open the Requests panel on that request.
+      queryParams: item.type === 'request' ? { request: item.id } : null,
       number: item.number,
       title: item.title,
       status: sentenceCase(item.status),

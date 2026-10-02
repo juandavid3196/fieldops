@@ -44,7 +44,9 @@
             <tr>
               <td><p-tag [rounded]="true" [severity]="row.severity" [value]="row.type" /></td>
               <td>
-                <a class="work__link" [routerLink]="row.link">{{ row.number }}</a>
+                <a class="work__link" [routerLink]="row.link" [queryParams]="row.queryParams">{{
+                  row.number
+                }}</a>
               </td>
               <td>{{ row.title }}</td>
               <td>{{ row.status }}</td>
@@ -58,6 +60,7 @@
                   severity="secondary"
                   [outlined]="true"
                   [routerLink]="row.link"
+                  [queryParams]="row.queryParams"
                   [attr.aria-label]="'View ' + row.number"
                 >
                   View
