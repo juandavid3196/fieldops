@@ -76,6 +76,25 @@ internal sealed class OrganizationConfiguration
             .HasDefaultValue(1L)
             .IsRequired();
 
+        // public_slug varchar(60) NOT NULL (no default): written once at
+        // registration; the migration adds it nullable, backfills, then sets NOT NULL.
+        builder.Property(organization => organization.PublicSlug)
+            .HasMaxLength(60)
+            .IsRequired();
+
+        builder.Property(organization => organization.RequestPrefix)
+            .HasMaxLength(20)
+            .HasDefaultValue("REQ")
+            .IsRequired();
+
+        builder.Property(organization => organization.NextRequestNumber)
+            .HasDefaultValue(1L)
+            .IsRequired();
+
+        builder.HasIndex(organization => organization.PublicSlug)
+            .HasDatabaseName("ux_organizations_public_slug")
+            .IsUnique();
+
         builder.Property(organization => organization.RequireCustomerSignature)
             .HasDefaultValue(false)
             .IsRequired();
@@ -123,8 +142,15 @@ internal sealed class OrganizationConfiguration
             .IsConcurrencyToken()
             .IsRequired();
 
-        builder.ToTable(table => table.HasCheckConstraint(
-            "ck_organizations_default_tax_rate",
-            "default_tax_rate BETWEEN 0 AND 100"));
+        builder.ToTable(table =>
+        {
+            table.HasCheckConstraint(
+                "ck_organizations_default_tax_rate",
+                "default_tax_rate BETWEEN 0 AND 100");
+
+            table.HasCheckConstraint(
+                "ck_organizations_public_slug",
+                "public_slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(public_slug) BETWEEN 1 AND 60");
+        });
     }
 }

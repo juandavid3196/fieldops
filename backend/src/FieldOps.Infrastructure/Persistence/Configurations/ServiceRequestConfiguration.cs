@@ -14,9 +14,16 @@ internal sealed class ServiceRequestConfiguration
 {
     public void Configure(EntityTypeBuilder<ServiceRequest> builder)
     {
-        builder.ToTable("service_requests", table => table.HasCheckConstraint(
-            "ck_service_requests_preferred_range",
-            "preferred_end IS NULL OR preferred_start IS NULL OR preferred_start < preferred_end"));
+        builder.ToTable("service_requests", table =>
+        {
+            table.HasCheckConstraint(
+                "ck_service_requests_preferred_range",
+                "preferred_end IS NULL OR preferred_start IS NULL OR preferred_start < preferred_end");
+
+            table.HasCheckConstraint(
+                "ck_service_requests_urgency",
+                "urgency IN ('standard', 'urgent', 'emergency')");
+        });
 
         builder.HasKey(request => request.Id);
 
@@ -45,6 +52,22 @@ internal sealed class ServiceRequestConfiguration
         builder.Property(request => request.PropertyId);
 
         builder.Property(request => request.CategoryId);
+
+        builder.Property(request => request.CatalogItemId);
+
+        builder.Property(request => request.Urgency)
+            .HasMaxLength(20)
+            .HasDefaultValue("standard")
+            .IsRequired();
+
+        builder.Property(request => request.HasActiveDamage)
+            .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.Property(request => request.AvailabilityPreferences)
+            .HasColumnType("jsonb");
+
+        builder.Property(request => request.ConsentAt);
 
         builder.Property(request => request.GuestName)
             .HasMaxLength(180);
@@ -142,6 +165,13 @@ internal sealed class ServiceRequestConfiguration
             .WithMany()
             .HasForeignKey(request => new { request.OrganizationId, request.CategoryId })
             .HasPrincipalKey(category => new { category.OrganizationId, category.Id })
+            .OnDelete(DeleteBehavior.NoAction);
+
+        // FOREIGN KEY (organization_id, catalog_item_id) REFERENCES catalog_items (organization_id, id)
+        builder.HasOne<CatalogItem>()
+            .WithMany()
+            .HasForeignKey(request => new { request.OrganizationId, request.CatalogItemId })
+            .HasPrincipalKey(item => new { item.OrganizationId, item.Id })
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne<User>()

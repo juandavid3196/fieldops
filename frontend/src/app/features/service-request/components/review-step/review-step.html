@@ -1,0 +1,115 @@
+<h2 class="sr-title" tabindex="-1" data-sr-heading>Review your request</h2>
+<p class="sr-lead">Make sure everything looks right before sending.</p>
+
+<form novalidate (submit)="$event.preventDefault(); store.submit()">
+  <ul class="sr-review">
+    @for (section of store.summary(); track section.step) {
+      <li class="sr-review__section">
+        <span class="sr-review__icon" aria-hidden="true">
+          <i class="pi" [class]="icons[section.step]"></i>
+        </span>
+        <div class="sr-review__body">
+          <h3 class="sr-review__title">{{ section.title }}</h3>
+          @switch (section.step) {
+            @case ('service') {
+              <p class="sr-review__line">
+                {{ section.lines[0] }}
+                <span class="sr-review__urgency">
+                  @if (service().urgency !== 'standard') {
+                    <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                  }
+                  {{ section.lines[1] }}
+                </span>
+              </p>
+              <p class="sr-review__line sr-review__description">
+                {{ service().description.trim() }}
+              </p>
+              @if (store.attachmentSummary(); as attachments) {
+                <p class="sr-review__line">{{ attachments }}</p>
+              }
+              <p class="sr-review__line">
+                Active damage: {{ service().hasActiveDamage ? 'Yes' : 'No' }}
+              </p>
+            }
+            @case ('contact') {
+              @for (line of section.lines; track $index) {
+                <p class="sr-review__line">{{ line }}</p>
+              }
+              <p class="sr-review__line">{{ store.data().contact.phone.trim() }}</p>
+            }
+            @default {
+              @for (line of section.lines; track $index) {
+                <p class="sr-review__line">{{ line }}</p>
+              }
+            }
+          }
+        </div>
+        <button
+          pButton
+          type="button"
+          variant="text"
+          class="sr-review__edit"
+          [attr.aria-label]="'Edit ' + section.title"
+          (click)="store.edit(section.step)"
+        >
+          Edit
+        </button>
+      </li>
+    }
+  </ul>
+
+  <p class="sr-notice">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    Submitting this request does not confirm a price or appointment.
+  </p>
+
+  <div class="sr-field">
+    <label class="sr-check">
+      <input
+        type="checkbox"
+        #consent
+        id="sr-consent"
+        required
+        aria-required="true"
+        [checked]="store.consent()"
+        [attr.aria-describedby]="store.errorId('consent')"
+        (change)="store.setConsent(consent.checked); store.revalidate('consent')"
+      />
+      I confirm these details are accurate and agree to be contacted about this request.
+    </label>
+    @if (store.error('consent'); as message) {
+      <p class="sr-error" id="sr-consent-error">{{ message }}</p>
+    }
+  </div>
+
+  <div class="sr-trap" aria-hidden="true">
+    <input
+      #website
+      type="text"
+      name="website"
+      tabindex="-1"
+      autocomplete="off"
+      [value]="store.website()"
+      (input)="store.website.set(website.value)"
+    />
+  </div>
+
+  @if (store.submitError(); as message) {
+    <p-message severity="error" role="alert">{{ message }}</p-message>
+  }
+
+  <div class="sr-actions">
+    <button pButton type="button" variant="outlined" (click)="store.back()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Back
+    </button>
+    <button pButton type="submit" [disabled]="store.submitting()">
+      @if (store.submitting()) {
+        Submitting…
+      } @else {
+        Submit request
+        <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      }
+    </button>
+  </div>
+</form>

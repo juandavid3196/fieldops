@@ -45,6 +45,17 @@ public sealed class Organization
 
     public long NextInvoiceNumber { get; private set; } = 1;
 
+    /// <summary>
+    /// Immutable public identifier used in the anonymous request form URL
+    /// (public service request BR-21). Set once at creation, never by
+    /// <see cref="UpdateSettings"/>.
+    /// </summary>
+    public string PublicSlug { get; private set; } = string.Empty;
+
+    public string RequestPrefix { get; private set; } = "REQ";
+
+    public long NextRequestNumber { get; private set; } = 1;
+
     public bool RequireCustomerSignature { get; private set; }
 
     public string? Website { get; private set; }
@@ -86,8 +97,16 @@ public sealed class Organization
         string quotePrefix,
         string workOrderPrefix,
         string invoicePrefix,
-        long nextInvoiceNumber)
+        long nextInvoiceNumber,
+        string publicSlug)
     {
+        if (string.IsNullOrWhiteSpace(publicSlug))
+        {
+            throw new ArgumentException(
+                "Organization public slug is required.",
+                nameof(publicSlug));
+        }
+
         if (string.IsNullOrWhiteSpace(name))
         {
             throw new ArgumentException(
@@ -150,6 +169,7 @@ public sealed class Organization
             WorkOrderPrefix = workOrderPrefix.Trim(),
             InvoicePrefix = invoicePrefix.Trim(),
             NextInvoiceNumber = nextInvoiceNumber,
+            PublicSlug = publicSlug.Trim(),
         };
     }
 

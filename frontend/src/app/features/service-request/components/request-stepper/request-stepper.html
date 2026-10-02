@@ -1,0 +1,34 @@
+<ol class="stepper" aria-label="Progress">
+  @for (step of steps; track step.id; let index = $index) {
+    <li
+      class="stepper__item"
+      [class.stepper__item--done]="isDone(step.id)"
+      [class.stepper__item--current]="isCurrent(step.id)"
+      [attr.aria-current]="isCurrent(step.id) ? 'step' : null"
+    >
+      @if (isNavigable(step.id)) {
+        <button
+          type="button"
+          class="stepper__link"
+          [attr.aria-label]="'Go to ' + step.label + ', completed'"
+          (click)="open(step.id)"
+        >
+          <span class="stepper__marker" aria-hidden="true"><i class="pi pi-check"></i></span>
+          <span class="stepper__label" aria-hidden="true">{{ step.label }}</span>
+        </button>
+      } @else {
+        <span class="stepper__marker" aria-hidden="true">
+          @if (isDone(step.id) && !isCurrent(step.id)) {
+            <i class="pi pi-check"></i>
+          } @else {
+            {{ index + 1 }}
+          }
+        </span>
+        <span class="stepper__label">{{ step.label }}</span>
+        @if (isDone(step.id)) {
+          <span class="stepper__sr">, completed</span>
+        }
+      }
+    </li>
+  }
+</ol>

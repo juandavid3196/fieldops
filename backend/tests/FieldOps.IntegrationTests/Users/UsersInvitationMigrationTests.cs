@@ -96,7 +96,7 @@ public class UsersInvitationMigrationTests : IAsyncLifetime
         await ExecuteAsync(connectionString, "UPDATE user_invitations SET revoked_at = now() WHERE id = @i", ("i", existing));
         await InsertInvitationAsync(connectionString, org, user, "old@example.com", "hash-3", revoked: false);
         var otherOrg = Guid.NewGuid();
-        await ExecuteAsync(connectionString, "INSERT INTO organizations (id, name) VALUES (@o, 'Other')", ("o", otherOrg));
+        await ExecuteAsync(connectionString, "INSERT INTO organizations (id, name, public_slug) VALUES (@o, 'Other', 'other-org')", ("o", otherOrg));
         await InsertInvitationAsync(connectionString, otherOrg, user, "old@example.com", "hash-4", revoked: false);
 
         // expires_at must be after created_at.

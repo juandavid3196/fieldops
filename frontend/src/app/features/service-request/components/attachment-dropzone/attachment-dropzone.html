@@ -1,0 +1,75 @@
+<div class="dropzone-row">
+  <div
+    class="dropzone"
+    [class.dropzone--active]="dragging()"
+    (dragover)="over($event)"
+    (dragleave)="dragging.set(false)"
+    (drop)="dropped($event)"
+  >
+    <i class="pi pi-cloud-upload dropzone__icon" aria-hidden="true"></i>
+    <div class="dropzone__copy">
+      <p class="dropzone__text">
+        Drag and drop files here, or
+        <button
+          type="button"
+          class="dropzone__browse"
+          id="sr-attachments"
+          [attr.aria-describedby]="
+            store.error('attachments') !== null ? 'sr-attachments-error' : 'sr-attachments-hint'
+          "
+          (click)="browse()"
+        >
+          click to browse
+        </button>
+      </p>
+      <p class="dropzone__hint" id="sr-attachments-hint">JPG, PNG, PDF up to 10 MB each</p>
+    </div>
+    <input
+      #picker
+      class="dropzone__input"
+      type="file"
+      multiple
+      tabindex="-1"
+      aria-hidden="true"
+      accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+      (change)="picked()"
+    />
+  </div>
+
+  @if (store.files().length > 0) {
+    <ul class="dropzone__files">
+      @for (file of store.files(); track $index) {
+        <li class="dropzone__file">
+          <div class="dropzone__thumb">
+            @if (preview(file); as url) {
+              <img [src]="url" alt="" />
+            } @else {
+              <i class="pi pi-file-pdf" aria-hidden="true"></i>
+            }
+            <button
+              type="button"
+              class="dropzone__remove"
+              [attr.aria-label]="'Remove ' + file.name"
+              (click)="store.removeFile($index)"
+            >
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          </div>
+          <span class="dropzone__name">{{ file.name }}</span>
+          <span class="dropzone__size">{{ size(file.size) }}</span>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+@if (store.error('attachments'); as message) {
+  <p class="dropzone__error" id="sr-attachments-error">{{ message }}</p>
+}
+@if (store.fileMessages().length > 0) {
+  <ul class="dropzone__rejections" role="alert">
+    @for (message of store.fileMessages(); track $index) {
+      <li>{{ message }}</li>
+    }
+  </ul>
+}

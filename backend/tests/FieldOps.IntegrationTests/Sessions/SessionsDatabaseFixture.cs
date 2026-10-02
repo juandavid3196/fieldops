@@ -53,7 +53,7 @@ public sealed class SessionsDatabaseFixture : IAsyncLifetime
         var id = Guid.NewGuid();
 
         await ExecuteAsync(
-            "INSERT INTO organizations (id, name, is_active) VALUES (@id, @name, @isActive)",
+            "INSERT INTO organizations (id, name, is_active, public_slug) VALUES (@id, @name, @isActive, 'org-' || replace(CAST(@id AS text), '-', ''))",
             ("id", id),
             ("name", name ?? $"Organization {id:N}"[..30]),
             ("isActive", isActive));

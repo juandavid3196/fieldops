@@ -1,0 +1,130 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--fo-color-app-background);
+}
+
+.topbar {
+  border-bottom: 1px solid var(--fo-color-border);
+  background: var(--fo-color-surface);
+
+  &__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem 1.5rem;
+    max-width: 75rem;
+    margin: 0 auto;
+    padding: 0.75rem 1rem;
+  }
+
+  &__brand,
+  &__labels {
+    margin: 0;
+  }
+
+  &__org {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__labels {
+    display: none;
+    gap: 1.5rem;
+    font-weight: 500;
+    color: var(--fo-color-text);
+
+    @include bp.up(md) {
+      display: flex;
+      flex: 1;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__contact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__phone {
+    font-weight: 500;
+  }
+
+  &__account {
+    display: none;
+    color: var(--fo-color-text-secondary);
+
+    @include bp.up(md) {
+      display: inline;
+    }
+  }
+}
+
+.page {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+
+  &__title {
+    margin: 0 0 0.5rem;
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--fo-color-heading);
+  }
+
+  &__subtitle {
+    margin: 0 0 1.5rem;
+    text-align: center;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__loading,
+  &__state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem 0;
+  }
+
+  &__loading {
+    align-items: stretch;
+  }
+
+  &__layout {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+
+    // The summary panel stacks below the step card under the large breakpoint.
+    @include bp.up(lg) {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  &__card {
+    min-width: 0;
+    padding: 1.25rem;
+    border: 1px solid var(--p-content-border-color);
+    border-radius: var(--fo-radius-card);
+    background: var(--p-content-background);
+
+    @include bp.up(md) {
+      padding: 1.75rem;
+    }
+  }
+}

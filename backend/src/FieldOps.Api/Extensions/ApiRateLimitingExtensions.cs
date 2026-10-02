@@ -11,6 +11,32 @@ public static class ApiRateLimitingExtensions
 
     public const string OrganizationRegistrationPolicy = "organization-registration";
 
+    /// <summary>GET /public/organizations/{slug}/service-request-form (public request BR-16).</summary>
+    public const string PublicRequestFormPolicy = "public-request-form";
+
+    /// <summary>POST /public/organizations/{slug}/service-requests (public request BR-16).</summary>
+    public const string PublicRequestSubmitPolicy = "public-request-submit";
+
+    public const int PublicRequestFormPerClientPermitLimit = 60;
+
+    public const int PublicRequestFormGlobalPermitLimit = 600;
+
+    public const int PublicRequestSubmitPerClientPermitLimit = 5;
+
+    public const int PublicRequestSubmitGlobalPermitLimit = 100;
+
+    public static readonly TimeSpan PublicRequestFormPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan PublicRequestFormGlobalWindow = TimeSpan.FromMinutes(1);
+
+    public static readonly TimeSpan PublicRequestSubmitPerClientWindow = TimeSpan.FromMinutes(15);
+
+    public static readonly TimeSpan PublicRequestSubmitGlobalWindow = TimeSpan.FromHours(1);
+
+    private const string PublicRequestFormGlobalPartition = "public-request-form-global";
+
+    private const string PublicRequestSubmitGlobalPartition = "public-request-submit-global";
+
     /// <summary>Shared by validate, accept and accept-existing (invitation BR-12).</summary>
     public const string InvitationPolicy = "invitation";
 
@@ -128,6 +154,26 @@ public static class ApiRateLimitingExtensions
                         QueueLimit = 0,
                     }));
 
+            options.AddPolicy(PublicRequestFormPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, PublicRequestFormPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = PublicRequestFormPerClientPermitLimit,
+                        Window = PublicRequestFormPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
+            options.AddPolicy(PublicRequestSubmitPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, PublicRequestSubmitPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = PublicRequestSubmitPerClientPermitLimit,
+                        Window = PublicRequestSubmitPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
             // Applies only to endpoints using one of the named policies above.
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                 GetEndpointPolicyName(httpContext) switch
@@ -163,6 +209,22 @@ public static class ApiRateLimitingExtensions
                         {
                             PermitLimit = OrganizationRegistrationGlobalPermitLimit,
                             Window = OrganizationRegistrationGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    PublicRequestFormPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        PublicRequestFormGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = PublicRequestFormGlobalPermitLimit,
+                            Window = PublicRequestFormGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    PublicRequestSubmitPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        PublicRequestSubmitGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = PublicRequestSubmitGlobalPermitLimit,
+                            Window = PublicRequestSubmitGlobalWindow,
                             QueueLimit = 0,
                         }),
                     _ => RateLimitPartition.GetNoLimiter(string.Empty),

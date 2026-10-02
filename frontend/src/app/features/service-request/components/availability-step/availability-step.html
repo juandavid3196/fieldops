@@ -1,0 +1,119 @@
+<h2 class="sr-title" tabindex="-1" data-sr-heading>Availability</h2>
+<p class="sr-lead">
+  Tell us what works for you. This is a preference, not a confirmed appointment.
+</p>
+
+<form novalidate (submit)="$event.preventDefault(); store.next()">
+  <fieldset class="sr-field">
+    <legend class="sr-subtitle">Preferred date</legend>
+    <div class="sr-tiles sr-tiles--3">
+      @for (mode of modes; track mode.value) {
+        <label class="sr-tile">
+          <input
+            type="radio"
+            name="sr-availability-mode"
+            [value]="mode.value"
+            [checked]="availability().dateMode === mode.value"
+            (change)="chooseMode(mode.value)"
+          />
+          <i class="pi sr-tile__icon" [class]="mode.icon" aria-hidden="true"></i>
+          {{ mode.label }}
+          <span class="sr-tile__check" aria-hidden="true"><i class="pi pi-check"></i></span>
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  @if (availability().dateMode === 'date') {
+    <div class="sr-field">
+      <label class="sr-label" for="sr-availability-preferredDate"
+        >Date <span class="sr-required" aria-hidden="true">*</span></label
+      >
+      <input
+        pInputText
+        #date
+        id="sr-availability-preferredDate"
+        type="date"
+        required
+        aria-required="true"
+        [min]="minDate()"
+        [max]="maxDate()"
+        [value]="availability().preferredDate"
+        [invalid]="store.error('availability.preferredDate') !== null"
+        [attr.aria-invalid]="store.error('availability.preferredDate') !== null ? 'true' : null"
+        [attr.aria-describedby]="store.errorId('availability.preferredDate')"
+        (input)="store.patchAvailability({ preferredDate: date.value })"
+        (blur)="store.revalidate('availability.preferredDate')"
+      />
+      @if (store.error('availability.preferredDate'); as message) {
+        <p class="sr-error" id="sr-availability-preferredDate-error">{{ message }}</p>
+      }
+    </div>
+  }
+
+  <fieldset class="sr-field">
+    <legend class="sr-subtitle">Preferred time</legend>
+    <div class="sr-tiles sr-tiles--4">
+      @for (window of windows; track window.value) {
+        <label class="sr-tile">
+          <input
+            type="radio"
+            name="sr-availability-window"
+            [value]="window.value"
+            [checked]="availability().timeWindow === window.value"
+            (change)="store.patchAvailability({ timeWindow: window.value })"
+          />
+          <i class="pi sr-tile__icon" [class]="window.icon" aria-hidden="true"></i>
+          {{ window.label }}
+          @if (window.range) {
+            <small>{{ window.range }}</small>
+          }
+          <span class="sr-tile__check" aria-hidden="true"><i class="pi pi-check"></i></span>
+        </label>
+      }
+    </div>
+  </fieldset>
+
+  <div class="sr-field">
+    <label class="sr-label" for="sr-availability-schedulingNotes">
+      Scheduling notes <span class="sr-optional">(optional)</span>
+    </label>
+    <textarea
+      pTextarea
+      #notes
+      id="sr-availability-schedulingNotes"
+      rows="3"
+      maxlength="1000"
+      placeholder="Share any access details, timing preferences, or other notes for the technician…"
+      fluid
+      [value]="availability().schedulingNotes"
+      [invalid]="store.error('availability.schedulingNotes') !== null"
+      [attr.aria-invalid]="store.error('availability.schedulingNotes') !== null ? 'true' : null"
+      [attr.aria-describedby]="store.errorId('availability.schedulingNotes')"
+      (input)="store.patchAvailability({ schedulingNotes: notes.value })"
+      (blur)="store.revalidate('availability.schedulingNotes')"
+    ></textarea>
+    <span class="sr-count" aria-live="polite"
+      >{{ availability().schedulingNotes.length }}/1000</span
+    >
+    @if (store.error('availability.schedulingNotes'); as message) {
+      <p class="sr-error" id="sr-availability-schedulingNotes-error">{{ message }}</p>
+    }
+  </div>
+
+  <p class="sr-band">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    We'll confirm the appointment time after reviewing your request.
+  </p>
+
+  <div class="sr-actions">
+    <button pButton type="button" variant="outlined" (click)="store.back()">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Back
+    </button>
+    <button pButton type="submit">
+      Continue to review
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </button>
+  </div>
+</form>

@@ -44,7 +44,7 @@ public sealed class RequestLoggingMiddleware(
                 level,
                 "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {ElapsedMs:0.0} ms (traceId {TraceId})",
                 context.Request.Method,
-                context.Request.Path.Value,
+                LoggedRequestPath.Of(context.Request.Path),
                 statusCode,
                 Stopwatch.GetElapsedTime(startTimestamp).TotalMilliseconds,
                 Activity.Current?.Id ?? context.TraceIdentifier);

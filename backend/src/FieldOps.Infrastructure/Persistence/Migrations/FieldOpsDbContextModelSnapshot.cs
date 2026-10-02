@@ -1485,6 +1485,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(1L)
                         .HasColumnName("next_quote_number");
 
+                    b.Property<long>("NextRequestNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("next_request_number");
+
                     b.Property<long>("NextWorkOrderNumber")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
@@ -1507,6 +1513,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(false)
                         .HasColumnName("prices_include_tax");
 
+                    b.Property<string>("PublicSlug")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("public_slug");
+
                     b.Property<string>("QuotePrefix")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -1514,6 +1526,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("Q")
                         .HasColumnName("quote_prefix");
+
+                    b.Property<string>("RequestPrefix")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("REQ")
+                        .HasColumnName("request_prefix");
 
                     b.Property<bool>("RequireCustomerSignature")
                         .ValueGeneratedOnAdd()
@@ -1562,9 +1582,15 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_organizations");
 
+                    b.HasIndex("PublicSlug")
+                        .IsUnique()
+                        .HasDatabaseName("ux_organizations_public_slug");
+
                     b.ToTable("organizations", null, t =>
                         {
                             t.HasCheckConstraint("ck_organizations_default_tax_rate", "default_tax_rate BETWEEN 0 AND 100");
+
+                            t.HasCheckConstraint("ck_organizations_public_slug", "public_slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(public_slug) BETWEEN 1 AND 60");
                         });
                 });
 
@@ -2294,6 +2320,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("bytea")
+                        .HasColumnName("content");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -2325,7 +2355,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("size_bytes");
 
                     b.Property<string>("StorageKey")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("storage_key");
 
@@ -2344,7 +2373,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.ToTable("request_attachments", null, t =>
                         {
-                            t.HasCheckConstraint("ck_request_attachments_size_bytes", "size_bytes > 0");
+                            t.HasCheckConstraint("ck_request_attachments_content_or_storage", "content IS NOT NULL OR storage_key IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_request_attachments_mime_type", "mime_type IN ('image/jpeg', 'image/png', 'application/pdf')");
+
+                            t.HasCheckConstraint("ck_request_attachments_size_bytes", "size_bytes > 0 AND size_bytes <= 10485760");
                         });
                 });
 
@@ -2464,6 +2497,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("assigned_dispatcher_user_id");
 
+                    b.Property<string>("AvailabilityPreferences")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("availability_preferences");
+
                     b.Property<Guid?>("BranchId")
                         .HasColumnType("uuid")
                         .HasColumnName("branch_id");
@@ -2472,9 +2509,17 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("cancelled_at");
 
+                    b.Property<Guid?>("CatalogItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("catalog_item_id");
+
                     b.Property<Guid?>("CategoryId")
                         .HasColumnType("uuid")
                         .HasColumnName("category_id");
+
+                    b.Property<DateTimeOffset?>("ConsentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("consent_at");
 
                     b.Property<Guid?>("ContactId")
                         .HasColumnType("uuid")
@@ -2509,6 +2554,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)")
                         .HasColumnName("guest_phone");
+
+                    b.Property<bool>("HasActiveDamage")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("has_active_damage");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
@@ -2552,6 +2603,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<string>("Urgency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("standard")
+                        .HasColumnName("urgency");
+
                     b.HasKey("Id")
                         .HasName("pk_service_requests");
 
@@ -2563,6 +2622,9 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("BranchId")
                         .HasDatabaseName("ix_service_requests_branch_id");
+
+                    b.HasIndex("OrganizationId", "CatalogItemId")
+                        .HasDatabaseName("ix_service_requests_organization_id_catalog_item_id");
 
                     b.HasIndex("OrganizationId", "CategoryId")
                         .HasDatabaseName("ix_service_requests_organization_id_category_id");
@@ -2587,6 +2649,8 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.ToTable("service_requests", null, t =>
                         {
                             t.HasCheckConstraint("ck_service_requests_preferred_range", "preferred_end IS NULL OR preferred_start IS NULL OR preferred_start < preferred_end");
+
+                            t.HasCheckConstraint("ck_service_requests_urgency", "urgency IN ('standard', 'urgent', 'emergency')");
                         });
                 });
 
@@ -4599,6 +4663,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_service_requests_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Catalog.CatalogItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CatalogItemId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_service_requests_catalog_items_organization_id_catalog_item");
 
                     b.HasOne("FieldOps.Domain.Catalog.ServiceCategory", null)
                         .WithMany()

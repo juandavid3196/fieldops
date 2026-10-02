@@ -21,7 +21,7 @@ public sealed class GlobalExceptionHandler(
             exception,
             "Unhandled exception while processing {RequestMethod} {RequestPath}",
             httpContext.Request.Method,
-            httpContext.Request.Path);
+            LoggedRequestPath.Of(httpContext.Request.Path));
 
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
 

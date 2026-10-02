@@ -13,7 +13,7 @@ public class UpdateOrganizationSettingsHandlerTests
     {
         var organization = Organization.Create(
             "Acme", "Acme LLC", null, "ops@acme.com", "+1 555 123 4567",
-            "America/Chicago", "USD", 7.25m, "Q", "WO", "INV", 1);
+            "America/Chicago", "USD", 7.25m, "Q", "WO", "INV", 1, "acme");
         var updatedAt = organization.UpdatedAt;
 
         var store = new FakeOrganizationSettingsStore(organization, maxInvoice: 500, maxQuote: 20, maxWorkOrder: 30);
