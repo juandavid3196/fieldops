@@ -111,6 +111,8 @@ public static class DependencyInjection
         services.AddScoped<GetServiceRequestHandler>();
         services.AddScoped<GetRequestAttachmentHandler>();
         services.AddScoped<ServiceRequestActionHandler>();
+        services.AddScoped<GetAssessmentPlannerHandler>();
+        services.AddScoped<GetAssessmentCalendarHandler>();
         services.AddScoped<CreateInternalRequestHandler>();
 
         return services;

@@ -1,5 +1,10 @@
 <p-toast />
-<app-confirm-dialog />
+<app-confirm-dialog
+  checkboxLabel="Notify customer by email"
+  [checkboxDisabled]="!cancelNotifyAvailable()"
+  [checkboxHelper]="cancelNotifyAvailable() ? undefined : noEmailMessage"
+  [(checkboxChecked)]="cancelNotify"
+/>
 <app-discard-changes-dialog />
 
 <div class="requests">
@@ -123,7 +128,6 @@
       [kind]="dialogKind()"
       [detail]="panelDetail()"
       [options]="options()"
-      [timezone]="timezone()"
       [submitting]="mutating()"
       [fieldErrors]="dialogErrors()"
       (dismissed)="dismissDialog()"

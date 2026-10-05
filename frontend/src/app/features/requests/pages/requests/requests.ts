@@ -47,20 +47,28 @@ import { RequestMetricsCards } from '../../components/request-metrics/request-me
 import {
   BOARD_STATUSES,
   BoardStatus,
+  CONFLICT_MESSAGE,
   ColumnState,
   EMPTY_COLUMN,
   MANAGER_ROLES,
   NO_FILTERS,
+  NO_EMAIL_MESSAGE,
   PipelineResponse,
   READ_ROLES,
+  REQUEST_ID_PATTERN,
   RequestActionId,
   RequestDetail,
   RequestFilters,
   RequestMetrics,
   RequestOptions,
+  SAVE_FAILED_MESSAGE,
+  TOAST_STATE_KEY,
+  ToastHandoff,
+  UNAVAILABLE_MESSAGE,
   hasActiveFilters,
 } from '../../models/requests.model';
 import { RequestsService } from '../../services/requests.service';
+import { fieldKey } from '../../utils/requests-format';
 
 export const FORBIDDEN_MESSAGE = "You don't have access to requests.";
 export const DESCRIPTION_MESSAGE =
@@ -70,22 +78,16 @@ export const EMPTY_INITIAL_TITLE = 'No requests yet';
 export const EMPTY_INITIAL_MESSAGE =
   'New requests from your public form and your team will appear here.';
 export const EMPTY_FILTERED_MESSAGE = 'No requests match your filters.';
-/** Fixed copy of the `409` toast (the backend title is never displayed). */
-export const CONFLICT_MESSAGE = 'This request changed. Refresh to see the latest.';
 export const NOT_STARTED_MESSAGE = "This assessment hasn't started yet.";
-export const SAVE_FAILED_MESSAGE = "We couldn't save this change. Please try again.";
-export const UNAVAILABLE_MESSAGE = "This request isn't available.";
 const SEARCH_DEBOUNCE_MS = 300;
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-type MutationKey = RequestActionId | 'note' | 'upload';
+type MutationKey =
+  Exclude<RequestActionId, 'schedule-assessment' | 'reschedule'> | 'note' | 'upload';
 
 const SUCCESS_MESSAGES: Readonly<Record<MutationKey, string>> = {
-  'schedule-assessment': 'Assessment scheduled.',
   'request-information': 'Information request sent.',
   'mark-ready': 'Request marked ready for quote.',
   'complete-assessment': 'Assessment completed.',
-  reschedule: 'Assessment rescheduled.',
   'create-quote': '',
   assign: 'Assignment updated.',
   'change-priority': 'Priority updated.',
@@ -115,12 +117,6 @@ function emptyColumns(): Record<BoardStatus, ColumnState> {
     assessment_scheduled: EMPTY_COLUMN,
     ready_for_quote: EMPTY_COLUMN,
   };
-}
-
-/** `errors.availability.preferredDate` / `errors.attachments[0]` to a camelCase field key. */
-function fieldKey(path: string): string {
-  const last = (path.split('.').pop() ?? path).replace(/\[\d+\]$/, '');
-  return last.charAt(0).toLowerCase() + last.slice(1);
 }
 
 /**
@@ -159,6 +155,7 @@ export class Requests {
   private readonly injector = inject(Injector);
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
+  readonly noEmailMessage = NO_EMAIL_MESSAGE;
   readonly forbiddenMessage = FORBIDDEN_MESSAGE;
   readonly descriptionMessage = DESCRIPTION_MESSAGE;
   readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
@@ -224,6 +221,9 @@ export class Requests {
   readonly mutating = signal(false);
   readonly dialogKind = signal<DialogKind | null>(null);
   readonly dialogErrors = signal<Readonly<Record<string, string>>>({});
+  /** Cancel-assessment confirm: the notify checkbox is off by default in the panel (BR-15). */
+  readonly cancelNotify = signal(false);
+  readonly cancelNotifyAvailable = signal(false);
   readonly noteText = signal('');
   readonly noteError = signal<string | null>(null);
   readonly uploadErrors = signal<readonly string[]>([]);
@@ -238,6 +238,13 @@ export class Requests {
   private previousSelected: string | null = null;
 
   constructor() {
+    // A toast handed over by the Assessment page; shown once the page's toast outlet exists.
+    const handoff = this.router.currentNavigation()?.extras.state?.[TOAST_STATE_KEY] as
+      ToastHandoff | undefined;
+    if (handoff !== undefined) {
+      afterNextRender(() => this.messageService.add(handoff), { injector: this.injector });
+    }
+
     this.boardRequests
       .pipe(
         switchMap((filters) => {
@@ -259,7 +266,7 @@ export class Requests {
           if (id === null) {
             return of<DetailResult>({ kind: 'state', state: 'loading' });
           }
-          if (!UUID.test(id)) {
+          if (!REQUEST_ID_PATTERN.test(id)) {
             return of<DetailResult>({ kind: 'state', state: 'not-found' });
           }
           if (!silent) {
@@ -533,6 +540,10 @@ export class Requests {
       case 'create-quote':
         void this.router.navigateByUrl(comingSoonPath('quotes'));
         return;
+      case 'schedule-assessment':
+      case 'reschedule':
+        void this.router.navigate(['/requests', detail.id, 'assessment']);
+        return;
       case 'start-review':
         this.run(id, this.requests.startReview(detail.id));
         return;
@@ -557,6 +568,9 @@ export class Requests {
   }
 
   private confirmCancelAssessment(detail: RequestDetail): void {
+    const hasEmail = (detail.contact.email ?? '').trim().length > 0;
+    this.cancelNotifyAvailable.set(hasEmail);
+    this.cancelNotify.set(false);
     this.confirmOpen = true;
     this.confirmationService.confirm({
       header: 'Cancel assessment?',
@@ -566,7 +580,10 @@ export class Requests {
       rejectButtonProps: { label: 'Keep', severity: 'secondary', outlined: true },
       accept: () => {
         this.confirmOpen = false;
-        this.run('cancel-assessment', this.requests.cancelAssessment(detail.id));
+        this.run(
+          'cancel-assessment',
+          this.requests.cancelAssessment(detail.id, hasEmail && this.cancelNotify()),
+        );
       },
       reject: () => (this.confirmOpen = false),
     });
@@ -601,12 +618,6 @@ export class Requests {
         break;
       case 'log-response':
         this.run(payload.kind, this.requests.logResponse(id, payload.body));
-        break;
-      case 'schedule-assessment':
-        this.run(payload.kind, this.requests.scheduleAssessment(id, payload.body));
-        break;
-      case 'reschedule':
-        this.run(payload.kind, this.requests.rescheduleAssessment(id, payload.body));
         break;
       case 'cancel-request':
         this.run(payload.kind, this.requests.cancel(id, payload.reason));

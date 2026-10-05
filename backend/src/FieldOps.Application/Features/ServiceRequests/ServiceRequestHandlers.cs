@@ -3,6 +3,8 @@ using System.Net;
 using System.Text.Json;
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.PublicRequests;
+using FieldOps.Application.Features.Team;
+using FieldOps.Domain.Requests;
 
 namespace FieldOps.Application.Features.ServiceRequests;
 
@@ -33,6 +35,16 @@ public sealed record InternalRequestText(
     string? SchedulingNotes);
 
 public sealed record UploadedFile(string? FileName, byte[] Content);
+
+/// <summary>Raw schedule/reschedule body values (schedule-assessment BR-08 to BR-14, BR-20) before validation.</summary>
+public sealed record AssessmentFormText(
+    string? Start,
+    string? End,
+    Guid? TechnicianId,
+    Guid? BranchId,
+    string? Purpose,
+    string? InternalInstructions,
+    bool? NotifyCustomer);
 
 public sealed class ListServiceRequestPipelineHandler(
     IServiceRequestStore store, IBranchScopeResolver scopes, TimeProvider timeProvider)
@@ -232,6 +244,7 @@ public sealed class ServiceRequestActionHandler(
     IServiceRequestStore store,
     IBranchScopeResolver scopes,
     IRequestInformationNotifier notifier,
+    IAssessmentNotifier assessmentNotifier,
     TimeProvider timeProvider)
 {
     public const string DefaultAttachmentError = "Attach at least one file.";
@@ -273,47 +286,50 @@ public sealed class ServiceRequestActionHandler(
         WithBody(body, text => RunAsync(call, id, new RequestMutation.LogResponse(text), cancellationToken));
 
     public async Task<ServiceRequestResult<RequestDetail>> ScheduleAssessmentAsync(
-        MembershipCall call,
-        Guid id,
-        string? start,
-        string? end,
-        Guid? technicianId,
-        Guid? branchId,
-        CancellationToken cancellationToken)
+        MembershipCall call, Guid id, AssessmentFormText form, CancellationToken cancellationToken)
     {
-        var slot = await ResolveSlotAsync(call.OrganizationId, start, end, cancellationToken);
+        var input = await ValidateFormAsync(call.OrganizationId, form, cancellationToken);
 
-        return slot.Errors is not null
-            ? ServiceRequestResult<RequestDetail>.Invalid(slot.Errors)
+        return input.Errors is not null
+            ? ServiceRequestResult<RequestDetail>.Invalid(input.Errors)
             : await RunAsync(
                 call,
                 id,
-                new RequestMutation.ScheduleAssessment(slot.Start, slot.End, technicianId, branchId),
+                new RequestMutation.ScheduleAssessment(
+                    input.Start,
+                    input.End,
+                    form.TechnicianId!.Value,
+                    form.BranchId,
+                    input.Purpose,
+                    input.Instructions,
+                    form.NotifyCustomer!.Value),
                 cancellationToken);
     }
 
     public async Task<ServiceRequestResult<RequestDetail>> RescheduleAssessmentAsync(
-        MembershipCall call,
-        Guid id,
-        string? start,
-        string? end,
-        Guid? technicianId,
-        CancellationToken cancellationToken)
+        MembershipCall call, Guid id, AssessmentFormText form, CancellationToken cancellationToken)
     {
-        var slot = await ResolveSlotAsync(call.OrganizationId, start, end, cancellationToken);
+        var input = await ValidateFormAsync(call.OrganizationId, form, cancellationToken);
 
-        return slot.Errors is not null
-            ? ServiceRequestResult<RequestDetail>.Invalid(slot.Errors)
+        return input.Errors is not null
+            ? ServiceRequestResult<RequestDetail>.Invalid(input.Errors)
             : await RunAsync(
                 call,
                 id,
-                new RequestMutation.RescheduleAssessment(slot.Start, slot.End, technicianId),
+                new RequestMutation.RescheduleAssessment(
+                    input.Start,
+                    input.End,
+                    form.TechnicianId!.Value,
+                    input.Purpose,
+                    input.Instructions,
+                    form.NotifyCustomer!.Value),
                 cancellationToken);
     }
 
+    /// <summary>A missing <paramref name="notifyCustomer"/> means false (schedule-assessment BR-15).</summary>
     public Task<ServiceRequestResult<RequestDetail>> CancelAssessmentAsync(
-        MembershipCall call, Guid id, CancellationToken cancellationToken) =>
-        RunAsync(call, id, new RequestMutation.CancelAssessment(), cancellationToken);
+        MembershipCall call, Guid id, bool? notifyCustomer, CancellationToken cancellationToken) =>
+        RunAsync(call, id, new RequestMutation.CancelAssessment(notifyCustomer ?? false), cancellationToken);
 
     public Task<ServiceRequestResult<RequestDetail>> CompleteAssessmentAsync(
         MembershipCall call, Guid id, CancellationToken cancellationToken) =>
@@ -408,15 +424,47 @@ public sealed class ServiceRequestActionHandler(
             : run(text);
     }
 
-    private async Task<(DateTimeOffset Start, DateTimeOffset End, Dictionary<string, string[]>? Errors)> ResolveSlotAsync(
-        Guid organizationId, string? start, string? end, CancellationToken cancellationToken)
+    /// <summary>
+    /// Shape validation of the schedule/reschedule body (BR-08 to BR-12, BR-14, BR-20), all errors at once, before
+    /// the store takes any lock.
+    /// </summary>
+    private async Task<(DateTimeOffset Start, DateTimeOffset End, string Purpose, string? Instructions, Dictionary<string, string[]>? Errors)>
+        ValidateFormAsync(Guid organizationId, AssessmentFormText form, CancellationToken cancellationToken)
     {
         var organization = await store.GetOrganizationContextAsync(organizationId, cancellationToken);
         var zone = OrganizationTime.FindZone(organization?.Timezone);
 
-        return AssessmentSlotRules.TryResolve(start, end, zone, timeProvider.GetUtcNow(), out var from, out var to, out var errors)
-            ? (from, to, null)
-            : (default, default, errors);
+        AssessmentSlotRules.TryResolve(form.Start, form.End, zone, timeProvider.GetUtcNow(), out var from, out var to, out var errors);
+
+        if (form.TechnicianId is null || form.TechnicianId == Guid.Empty)
+        {
+            errors["technicianId"] = [ServiceRequestMessages.TechnicianRequired];
+        }
+
+        var purpose = form.Purpose?.Trim() ?? string.Empty;
+
+        if (purpose.Length == 0)
+        {
+            errors["purpose"] = [ServiceRequestMessages.PurposeRequired];
+        }
+        else if (purpose.Length > Assessment.PurposeMaxLength)
+        {
+            errors["purpose"] = [ServiceRequestMessages.PurposeTooLong];
+        }
+
+        var instructions = string.IsNullOrWhiteSpace(form.InternalInstructions) ? null : form.InternalInstructions.Trim();
+
+        if (instructions is { Length: > ServiceRequestMessages.InstructionsMaxLength })
+        {
+            errors["internalInstructions"] = [ServiceRequestMessages.InstructionsTooLong];
+        }
+
+        if (form.NotifyCustomer is null)
+        {
+            errors["notifyCustomer"] = [ServiceRequestMessages.NotifyRequired];
+        }
+
+        return errors.Count > 0 ? (default, default, purpose, instructions, errors) : (from, to, purpose, instructions, null);
     }
 
     private async Task<ServiceRequestResult<RequestDetail>> RunAsync(
@@ -436,13 +484,18 @@ public sealed class ServiceRequestActionHandler(
                     await notifier.SendAsync(email, cancellationToken);
                 }
 
+                if (succeeded.AssessmentEmail is { } assessmentEmail)
+                {
+                    await assessmentNotifier.SendAsync(assessmentEmail, cancellationToken);
+                }
+
                 return ServiceRequestResult<RequestDetail>.Ok(succeeded.Detail);
 
             case RequestMutationOutcome.Invalid invalid:
                 return ServiceRequestResult<RequestDetail>.Invalid(invalid.Errors);
 
             case RequestMutationOutcome.Conflict conflict:
-                return ServiceRequestResult<RequestDetail>.Conflict(conflict.Message);
+                return ServiceRequestResult<RequestDetail>.Conflict(conflict.Message, conflict.Code);
 
             default:
                 return ServiceRequestResult<RequestDetail>.NotFound();

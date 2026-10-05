@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Confirmation, ConfirmationService } from 'primeng/api';
 
@@ -15,6 +15,22 @@ import { ConfirmDialog } from './confirm-dialog';
 })
 class Host {
   readonly confirmation = inject(ConfirmationService);
+}
+
+@Component({
+  imports: [ConfirmDialog],
+  providers: [ConfirmationService],
+  template: `<app-confirm-dialog
+    checkboxLabel="Notify customer by email"
+    checkboxHelper="This customer has no email address."
+    [checkboxDisabled]="disabled()"
+    [(checkboxChecked)]="notify"
+  />`,
+})
+class CheckboxHost {
+  readonly confirmation = inject(ConfirmationService);
+  readonly notify = signal(false);
+  readonly disabled = signal(false);
 }
 
 describe('ConfirmDialog', () => {
@@ -99,5 +115,41 @@ describe('ConfirmDialog', () => {
     dialogButton('Discard changes')!.click();
 
     expect(results).toEqual(['keep', 'keep', 'discard']);
+  });
+
+  it('shows an optional checkbox with its helper, off by default, and reports changes and disabled state', async () => {
+    const fixture = TestBed.createComponent(CheckboxHost);
+    await fixture.whenStable();
+    const host = fixture.componentInstance;
+    const results: string[] = [];
+    host.confirmation.confirm({
+      header: 'Cancel assessment?',
+      message: 'The request returns to Needs review.',
+      accept: () => results.push(`accept:${host.notify()}`),
+    });
+    await fixture.whenStable();
+
+    const checkbox = (): HTMLInputElement =>
+      dialog()!.querySelector<HTMLInputElement>('input[type="checkbox"]')!;
+    expect(dialog()?.querySelector('.confirm-dialog__option label')?.textContent?.trim()).toBe(
+      'Notify customer by email',
+    );
+    expect(dialog()?.querySelector('.confirm-dialog__helper')?.textContent).toContain(
+      'no email address',
+    );
+    expect(checkbox().checked).toBe(false);
+    expect(checkbox().disabled).toBe(false);
+
+    checkbox().click();
+    await fixture.whenStable();
+    expect(host.notify()).toBe(true);
+    expect(checkbox().checked).toBe(true);
+
+    host.disabled.set(true);
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(checkbox().disabled).toBe(true));
+
+    dialogButton('Confirm')!.click();
+    expect(results).toEqual(['accept:true']);
   });
 });

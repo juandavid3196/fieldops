@@ -444,7 +444,15 @@ internal sealed partial class ServiceRequestStore
                 && candidate.RequestId == request.Id
                 && candidate.Status == AssessmentStatus.Scheduled)
             .OrderByDescending(candidate => candidate.CreatedAt)
-            .Select(candidate => new { candidate.Id, candidate.ScheduledStart, candidate.ScheduledEnd, candidate.TechnicianId })
+            .Select(candidate => new
+            {
+                candidate.Id,
+                candidate.ScheduledStart,
+                candidate.ScheduledEnd,
+                candidate.TechnicianId,
+                candidate.Purpose,
+                candidate.InternalNotes,
+            })
             .FirstOrDefaultAsync(cancellationToken);
 
         DetailTechnician? technician = null;
@@ -601,7 +609,7 @@ internal sealed partial class ServiceRequestStore
                     activity.Add(new DetailActivity(
                         $"assessment_{verb}",
                         $"Assessment {verb}",
-                        start is { } instant ? FormatLocal(instant, zone) : null,
+                        AssessmentDetail(start is { } instant ? FormatLocal(instant, zone) : null, ReadString(audit.Metadata, "notified")),
                         actor,
                         audit.OccurredAt));
                     break;
@@ -665,7 +673,9 @@ internal sealed partial class ServiceRequestStore
                     assessmentRow.Id,
                     OrganizationTime.ToZone(assessmentRow.ScheduledStart, zone),
                     OrganizationTime.ToZone(assessmentRow.ScheduledEnd, zone),
-                    technician),
+                    technician,
+                    assessmentRow.Purpose,
+                    assessmentRow.InternalNotes),
             attachments,
             notes,
             activity.OrderBy(entry => entry.OccurredAt).ToList());
@@ -695,6 +705,10 @@ internal sealed partial class ServiceRequestStore
         "emergency" => "Emergency",
         _ => "Standard",
     };
+
+    // BR-16: the date and, when the intent was recorded, " · Customer notified by email"; never message content.
+    private static string? AssessmentDetail(string? date, string? notified) =>
+        notified == "email" ? (date is null ? "Customer notified by email" : date + " · Customer notified by email") : date;
 
     private static string FormatLocal(DateTimeOffset instant, TimeZoneInfo zone) =>
         OrganizationTime.ToZone(instant, zone).ToString("MMM d, yyyy h:mm tt", CultureInfo.InvariantCulture);

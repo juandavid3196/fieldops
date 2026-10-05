@@ -119,8 +119,8 @@ export class RequestsService {
     return this.http.put<RequestDetail>(this.item(id, '/assessment'), body);
   }
 
-  cancelAssessment(id: string): Observable<RequestDetail> {
-    return this.http.post<RequestDetail>(this.item(id, '/assessment/cancel'), null);
+  cancelAssessment(id: string, notifyCustomer: boolean): Observable<RequestDetail> {
+    return this.http.post<RequestDetail>(this.item(id, '/assessment/cancel'), { notifyCustomer });
   }
 
   completeAssessment(id: string): Observable<RequestDetail> {

@@ -2210,6 +2210,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
 
+                    b.Property<string>("Purpose")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("purpose");
+
                     b.Property<string>("RecommendedScope")
                         .HasColumnType("text")
                         .HasColumnName("recommended_scope");

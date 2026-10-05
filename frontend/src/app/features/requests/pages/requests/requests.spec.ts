@@ -15,14 +15,13 @@ import { API_CONFIG } from '../../../../core/config/api.config';
 import { errorInterceptor } from '../../../../core/interceptors/error.interceptor';
 import { SessionService } from '../../../../core/services/session.service';
 import { RequestActionDialog } from '../../components/request-action-dialog/request-action-dialog';
-import { RequestCard, RequestDetail } from '../../models/requests.model';
 import {
   CONFLICT_MESSAGE,
-  EMPTY_FILTERED_MESSAGE,
-  FORBIDDEN_MESSAGE,
-  Requests,
+  RequestCard,
+  RequestDetail,
   UNAVAILABLE_MESSAGE,
-} from './requests';
+} from '../../models/requests.model';
+import { EMPTY_FILTERED_MESSAGE, FORBIDDEN_MESSAGE, Requests } from './requests';
 
 const API = 'http://api.test';
 const ID_A = '11111111-1111-4111-8111-111111111111';
@@ -145,6 +144,7 @@ describe('Requests page', () => {
         { provide: API_CONFIG, useValue: { baseUrl: API } },
         provideRouter([
           { path: 'requests', component: Requests },
+          { path: 'requests/:requestId/assessment', component: Stub },
           { path: 'auth/sign-in', component: Stub },
           { path: 'coming-soon/:module', component: Stub },
         ]),
@@ -342,6 +342,74 @@ describe('Requests page', () => {
     expect(page.dialogKind()).toBe('log-response');
     expect(dialog().body()).toBe('Called back');
     expect(text()).toContain("We couldn't save this change. Please try again.");
+  });
+
+  it.each<[RequestDetail['status'], string]>([
+    ['needs_review', 'Schedule assessment'],
+    ['assessment_scheduled', 'Reschedule'],
+  ])(
+    '%s: the panel footer navigates to the assessment page and no dialog opens (AC-01)',
+    async (status, label) => {
+      await setup('dispatcher', { url: `/requests?request=${ID_A}` });
+      call('GET', `/${ID_A}`).flush(detail({ status }));
+      await settle();
+
+      button(label)!.click();
+
+      await vi.waitFor(() =>
+        expect(TestBed.inject(Router).url).toBe(`/requests/${ID_A}/assessment`),
+      );
+      expect(page.dialogKind()).toBeNull();
+    },
+  );
+
+  it('cancels an assessment from the panel with the notify checkbox off by default and shows a toast handed over by the assessment page (AC-18, AC-20)', async () => {
+    await setup('dispatcher', { url: `/requests?request=${ID_A}` });
+    call('GET', `/${ID_A}`).flush(
+      detail({
+        status: 'assessment_scheduled',
+        assessment: {
+          id: 'a-1',
+          start: '2026-09-22T15:00:00Z',
+          end: '2026-09-22T16:00:00Z',
+          technician: { id: 't-1', name: 'Carlos Rivera' },
+          purpose: 'Inspect the valve',
+          internalInstructions: 'Check under the sink',
+        },
+      }),
+    );
+    await settle();
+    // BR-17: the panel shows the purpose and the internal instructions.
+    expect(text()).toContain('Purpose: Inspect the valve');
+    expect(text()).toContain('Check under the sink');
+
+    page.onAction('cancel-assessment');
+    const confirm = (): HTMLElement | null =>
+      document.querySelector('[role="alertdialog"][aria-modal]');
+    await vi.waitFor(() => expect(confirm()?.textContent).toContain('Cancel assessment?'));
+    expect(confirm()?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.checked).toBe(
+      false,
+    );
+    button('Cancel assessment')!.click();
+    const cancel = call('POST', `/${ID_A}/assessment/cancel`);
+    expect(cancel.request.body).toEqual({ notifyCustomer: false });
+    cancel.flush(detail({ status: 'needs_review' }));
+    await settle();
+    flushRefresh();
+    await settle();
+    expect(text()).toContain('Assessment cancelled.');
+
+    // A toast handed over in the navigation state shows once the board renders.
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/auth/sign-in');
+    await router.navigate(['/requests'], {
+      state: { toast: { severity: 'success', summary: 'Assessment scheduled.' } },
+    });
+    call('GET', '/pipeline').flush(PIPELINE);
+    call('GET', '/metrics').flush(METRICS);
+    call('GET', '/options').flush(OPTIONS);
+    await settle();
+    await vi.waitFor(() => expect(text()).toContain('Assessment scheduled.'));
   });
 
   it.each(['technician', 'custom_role'])(

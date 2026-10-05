@@ -1,7 +1,9 @@
-import { Component, booleanAttribute, input } from '@angular/core';
+import { Component, booleanAttribute, input, model } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Confirmation } from 'primeng/api';
 import { AutoFocus } from 'primeng/autofocus';
 import { ButtonDirective, ButtonSeverity } from 'primeng/button';
+import { Checkbox } from 'primeng/checkbox';
 import { ConfirmDialog as PrimeConfirmDialog } from 'primeng/confirmdialog';
 
 interface ActionButton {
@@ -27,7 +29,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-confirm-dialog',
-  imports: [AutoFocus, ButtonDirective, PrimeConfirmDialog],
+  imports: [FormsModule, AutoFocus, ButtonDirective, Checkbox, PrimeConfirmDialog],
   templateUrl: './confirm-dialog.html',
   styleUrl: './confirm-dialog.scss',
 })
@@ -39,9 +41,18 @@ export class ConfirmDialog {
   /** Shows the accept button before the reject button (reject stays the primary action). */
   readonly acceptFirst = input(false, { transform: booleanAttribute });
 
+  /** Optional checkbox under the message (e.g. notify the customer); off by default. */
+  readonly checkboxLabel = input<string | undefined>(undefined);
+  readonly checkboxChecked = model(false);
+  readonly checkboxDisabled = input(false, { transform: booleanAttribute });
+  /** Helper under the checkbox; also part of its accessible description. */
+  readonly checkboxHelper = input<string | undefined>(undefined);
+
   private readonly id = `app-confirm-dialog-${nextId++}`;
   protected readonly titleId = `${this.id}-title`;
   protected readonly messageId = `${this.id}-message`;
+  protected readonly checkboxId = `${this.id}-checkbox`;
+  protected readonly helperId = `${this.id}-helper`;
   protected readonly pt = {
     root: { 'aria-labelledby': this.titleId, 'aria-describedby': this.messageId },
   };

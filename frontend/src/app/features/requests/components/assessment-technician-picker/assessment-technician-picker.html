@@ -1,0 +1,62 @@
+@if (waitingForBranch()) {
+  <p class="picker__message">{{ chooseBranchMessage }}</p>
+} @else if (failed()) {
+  <p-message severity="error" [closable]="false">
+    <span class="picker__error" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+        Retry
+      </button>
+    </span>
+  </p-message>
+} @else if (technicians() === null) {
+  <div class="picker__cards" aria-busy="true">
+    <p-skeleton height="7rem" />
+    <p-skeleton height="7rem" />
+    <p-skeleton height="7rem" />
+  </div>
+} @else if (cards().length === 0) {
+  <p class="picker__message">
+    {{ emptyMessage }}
+    <a routerLink="/team">Go to Team</a>
+  </p>
+} @else {
+  <div
+    class="picker__cards"
+    role="radiogroup"
+    aria-labelledby="assessment-picker-label"
+    [attr.aria-busy]="loading() ? 'true' : null"
+  >
+    @for (card of cards(); track card.technician.id; let index = $index) {
+      <div
+        class="picker__card"
+        role="radio"
+        [class.picker__card--selected]="card.technician.id === selectedId()"
+        [attr.aria-checked]="card.technician.id === selectedId()"
+        [attr.aria-label]="card.name"
+        [attr.tabindex]="card.technician.id === tabStopId() ? 0 : -1"
+        (click)="select(card.technician.id)"
+        (keydown)="onKeydown($event, index)"
+      >
+        <span class="picker__radio" aria-hidden="true"></span>
+        <span class="picker__body" aria-hidden="true">
+          <span class="picker__name">{{ card.technician.name }}</span>
+          @if (card.technician.primarySkill) {
+            <span class="picker__skill">{{ card.technician.primarySkill }}</span>
+          }
+          <span class="picker__chip picker__chip--{{ card.technician.slot.state }}">
+            <i class="pi {{ card.icon }}"></i>
+            {{ card.chip }}
+          </span>
+          <span class="picker__workload">Workload: {{ card.workload }}</span>
+        </span>
+      </div>
+    }
+  </div>
+  @if (loading()) {
+    <p class="picker__loading" role="status">
+      <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+      Updating availability…
+    </p>
+  }
+}

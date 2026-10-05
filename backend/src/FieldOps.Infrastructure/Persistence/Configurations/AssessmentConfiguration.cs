@@ -54,6 +54,9 @@ internal sealed class AssessmentConfiguration : IEntityTypeConfiguration<Assessm
         builder.Property(assessment => assessment.InternalNotes)
             .HasColumnType("text");
 
+        builder.Property(assessment => assessment.Purpose)
+            .HasMaxLength(Assessment.PurposeMaxLength);
+
         builder.Property(assessment => assessment.CompletedAt);
 
         builder.Property(assessment => assessment.CreatedByUserId)

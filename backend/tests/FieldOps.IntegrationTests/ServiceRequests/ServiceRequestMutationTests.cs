@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json.Nodes;
 using FieldOps.IntegrationTests.CompanySettings;
+using FieldOps.IntegrationTests.Team;
 using FieldOps.IntegrationTests.Users;
 
 namespace FieldOps.IntegrationTests.ServiceRequests;
@@ -105,8 +106,12 @@ public class ServiceRequestMutationTests(CompanySettingsDatabaseFixture database
         {
             var review = await database.SeedRequestAsync(world, status: "needs_review", branch: world.BranchA);
             var tomorrow = DateTimeOffset.UtcNow.AddDays(1);
+            var technician = await database.SeedTechAsync(world.Org, world.BranchA, "Tess", "Tech");
             var slot = new JsonObject
             {
+                ["technicianId"] = technician,
+                ["purpose"] = "Inspect the leak",
+                ["notifyCustomer"] = false,
                 ["start"] = ServiceRequestSeed.Local(new DateTimeOffset(tomorrow.Year, tomorrow.Month, tomorrow.Day, 10, 0, 0, TimeSpan.Zero)),
                 ["end"] = ServiceRequestSeed.Local(new DateTimeOffset(tomorrow.Year, tomorrow.Month, tomorrow.Day, 11, 0, 0, TimeSpan.Zero)),
             };

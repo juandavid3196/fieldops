@@ -2,6 +2,8 @@ namespace FieldOps.Domain.Requests;
 
 public sealed class Assessment
 {
+    public const int PurposeMaxLength = 500;
+
     private Assessment()
     {
     }
@@ -45,6 +47,9 @@ public sealed class Assessment
 
     public string? InternalNotes { get; private set; }
 
+    /// <summary>Why the visit is arranged (schedule-assessment BR-12); null for assessments created before the column existed.</summary>
+    public string? Purpose { get; private set; }
+
     public DateTimeOffset? CompletedAt { get; private set; }
 
     public Guid CreatedByUserId { get; private set; }
@@ -59,7 +64,9 @@ public sealed class Assessment
         DateTimeOffset scheduledStart,
         DateTimeOffset scheduledEnd,
         Guid createdByUserId,
-        Guid? technicianId = null)
+        Guid? technicianId = null,
+        string? purpose = null,
+        string? internalNotes = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -98,11 +105,18 @@ public sealed class Assessment
             createdByUserId)
         {
             TechnicianId = technicianId,
+            Purpose = NormalizePurpose(purpose),
+            InternalNotes = NormalizeNotes(internalNotes),
         };
     }
 
-    /// <summary>Changes the slot and technician of a scheduled assessment; the status is unchanged.</summary>
-    public void Reschedule(DateTimeOffset scheduledStart, DateTimeOffset scheduledEnd, Guid? technicianId)
+    /// <summary>Changes the slot, technician, purpose and internal notes of a scheduled assessment; the status is unchanged.</summary>
+    public void Reschedule(
+        DateTimeOffset scheduledStart,
+        DateTimeOffset scheduledEnd,
+        Guid? technicianId,
+        string? purpose = null,
+        string? internalNotes = null)
     {
         EnsureScheduled();
 
@@ -116,6 +130,8 @@ public sealed class Assessment
         ScheduledStart = scheduledStart;
         ScheduledEnd = scheduledEnd;
         TechnicianId = technicianId;
+        Purpose = NormalizePurpose(purpose);
+        InternalNotes = NormalizeNotes(internalNotes);
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -133,6 +149,20 @@ public sealed class Assessment
         CompletedAt = DateTimeOffset.UtcNow;
         UpdatedAt = CompletedAt.Value;
     }
+
+    private static string? NormalizePurpose(string? purpose)
+    {
+        var value = string.IsNullOrWhiteSpace(purpose) ? null : purpose.Trim();
+
+        if (value is { Length: > PurposeMaxLength })
+        {
+            throw new ArgumentException("Purpose is too long.", nameof(purpose));
+        }
+
+        return value;
+    }
+
+    private static string? NormalizeNotes(string? notes) => string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
 
     private void EnsureScheduled()
     {

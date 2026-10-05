@@ -172,7 +172,7 @@ CREATE TABLE request_status_history (id uuid PRIMARY KEY DEFAULT gen_random_uuid
 CREATE TABLE assessments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), request_id uuid NOT NULL,
   technician_id uuid REFERENCES technician_profiles(id), scheduled_start timestamptz NOT NULL, scheduled_end timestamptz NOT NULL,
-  status assessment_status NOT NULL DEFAULT 'scheduled', diagnosis text, recommended_scope text, internal_notes text,
+  status assessment_status NOT NULL DEFAULT 'scheduled', diagnosis text, recommended_scope text, internal_notes text, purpose varchar(500),
   completed_at timestamptz, created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY(organization_id,request_id) REFERENCES service_requests(organization_id,id), CHECK(scheduled_start<scheduled_end), UNIQUE(organization_id,id)
 );

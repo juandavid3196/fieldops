@@ -1,23 +1,19 @@
-import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, effect, input, output, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
-import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 
 import { FormField } from '../../../organizations/components/form-field/form-field';
 import {
-  AssessmentBody,
   RequestActionId,
   RequestDetail,
   RequestOptions,
   URGENCY_LABELS,
   Urgency,
 } from '../../models/requests.model';
-import { toLocalInput } from '../../utils/requests-format';
 
 export type DialogKind = Extract<
   RequestActionId,
@@ -26,8 +22,6 @@ export type DialogKind = Extract<
   | 'set-branch'
   | 'request-information'
   | 'log-response'
-  | 'schedule-assessment'
-  | 'reschedule'
   | 'cancel-request'
 >;
 
@@ -36,7 +30,6 @@ export type DialogSubmit =
   | { readonly kind: 'change-priority'; readonly urgency: Urgency }
   | { readonly kind: 'set-branch'; readonly branchId: string }
   | { readonly kind: 'request-information' | 'log-response'; readonly body: string }
-  | { readonly kind: 'schedule-assessment' | 'reschedule'; readonly body: AssessmentBody }
   | { readonly kind: 'cancel-request'; readonly reason: string };
 
 export const DIALOG_KINDS: readonly RequestActionId[] = [
@@ -45,8 +38,6 @@ export const DIALOG_KINDS: readonly RequestActionId[] = [
   'set-branch',
   'request-information',
   'log-response',
-  'schedule-assessment',
-  'reschedule',
   'cancel-request',
 ];
 
@@ -65,8 +56,6 @@ const TITLES: Readonly<Record<DialogKind, string>> = {
   'set-branch': 'Set branch',
   'request-information': 'Request information',
   'log-response': 'Log customer response',
-  'schedule-assessment': 'Schedule assessment',
-  reschedule: 'Reschedule assessment',
   'cancel-request': 'Cancel request',
 };
 
@@ -76,13 +65,10 @@ const SUBMIT_LABELS: Readonly<Record<DialogKind, string>> = {
   'set-branch': 'Set branch',
   'request-information': 'Send request',
   'log-response': 'Log response',
-  'schedule-assessment': 'Schedule',
-  reschedule: 'Reschedule',
   'cancel-request': 'Cancel request',
 };
 
 const UNASSIGNED = 'unassigned';
-const NO_TECHNICIAN = 'none';
 const REQUIRED = 'This field is required.';
 
 /**
@@ -92,17 +78,7 @@ const REQUIRED = 'This field is required.';
  */
 @Component({
   selector: 'app-request-action-dialog',
-  imports: [
-    NgTemplateOutlet,
-    FormsModule,
-    ButtonDirective,
-    Dialog,
-    InputText,
-    Select,
-    SpinnerIcon,
-    Textarea,
-    FormField,
-  ],
+  imports: [FormsModule, ButtonDirective, Dialog, Select, SpinnerIcon, Textarea, FormField],
   templateUrl: './request-action-dialog.html',
   styleUrl: './request-action-dialog.scss',
 })
@@ -110,7 +86,6 @@ export class RequestActionDialog {
   readonly kind = input.required<DialogKind | null>();
   readonly detail = input<RequestDetail | null>(null);
   readonly options = input<RequestOptions | null>(null);
-  readonly timezone = input('UTC');
   readonly submitting = input(false);
   /** `400` field errors keyed by camelCase field (`assigneeUserId`, `branchId`, `body`, ...). */
   readonly fieldErrors = input<Readonly<Record<string, string>>>({});
@@ -122,9 +97,6 @@ export class RequestActionDialog {
   readonly urgency = signal<Urgency>('standard');
   readonly branchId = signal('');
   readonly body = signal('');
-  readonly start = signal('');
-  readonly endTime = signal('');
-  readonly technicianId = signal(NO_TECHNICIAN);
   private readonly localErrors = signal<Readonly<Record<string, string>>>({});
 
   readonly priorityOptions: Option[] = (Object.keys(URGENCY_LABELS) as Urgency[]).map((code) => ({
@@ -146,9 +118,6 @@ export class RequestActionDialog {
     const kind = this.kind();
     return kind === null ? '' : SUBMIT_LABELS[kind];
   });
-  readonly isAssessment = computed(
-    () => this.kind() === 'schedule-assessment' || this.kind() === 'reschedule',
-  );
   readonly isMessage = computed(
     () => this.kind() === 'request-information' || this.kind() === 'log-response',
   );
@@ -167,19 +136,6 @@ export class RequestActionDialog {
   readonly branchOptions = computed<Option[]>(() =>
     (this.options()?.branches ?? []).map((branch) => ({ code: branch.id, label: branch.name })),
   );
-  /** A request with no branch needs one to schedule (BR-15). */
-  readonly needsBranch = computed(
-    () => this.kind() === 'schedule-assessment' && this.detail()?.branch === null,
-  );
-  readonly technicianOptions = computed<Option[]>(() => {
-    const branchId = this.detail()?.branch?.id ?? (this.branchId() || null);
-    return [
-      { code: NO_TECHNICIAN, label: 'No technician' },
-      ...(this.options()?.technicians ?? [])
-        .filter((technician) => technician.branchId === branchId)
-        .map((technician) => ({ code: technician.id, label: technician.name })),
-    ];
-  });
   readonly messageLabel = computed(() =>
     this.kind() === 'request-information' ? 'Message to the customer' : 'Customer response',
   );
@@ -188,28 +144,18 @@ export class RequestActionDialog {
     effect(() => {
       const kind = this.kind();
       if (kind !== null) {
-        untracked(() => this.reset(kind));
+        untracked(() => this.reset());
       }
     });
   }
 
-  private reset(kind: DialogKind): void {
+  private reset(): void {
     const detail = this.detail();
-    const zone = this.timezone();
     this.localErrors.set({});
     this.body.set('');
     this.assignee.set(detail?.assignee?.userId ?? UNASSIGNED);
     this.urgency.set(detail?.urgency ?? 'standard');
     this.branchId.set(detail?.branch?.id ?? '');
-    this.technicianId.set(NO_TECHNICIAN);
-    this.start.set('');
-    this.endTime.set('');
-    if (kind === 'reschedule' && detail?.assessment) {
-      const start = toLocalInput(detail.assessment.start, zone);
-      this.start.set(start);
-      this.endTime.set(toLocalInput(detail.assessment.end, zone).slice(11));
-      this.technicianId.set(detail.assessment.technician?.id ?? NO_TECHNICIAN);
-    }
   }
 
   error(field: string): string | null {
@@ -262,32 +208,6 @@ export class RequestActionDialog {
           errors['reason'] = 'Use 500 characters or fewer.';
         }
         payload = { kind, reason };
-        break;
-      }
-      case 'schedule-assessment':
-      case 'reschedule': {
-        const start = this.start();
-        const endTime = this.endTime();
-        if (start === '') {
-          errors['start'] = REQUIRED;
-        }
-        if (endTime === '') {
-          errors['end'] = REQUIRED;
-        } else if (start !== '' && endTime <= start.slice(11)) {
-          errors['end'] = 'End time must be after the start time.';
-        }
-        if (this.needsBranch() && this.branchId() === '') {
-          errors['branchId'] = 'Choose a branch.';
-        }
-        payload = {
-          kind,
-          body: {
-            start,
-            end: `${start.slice(0, 10)}T${endTime}`,
-            technicianId: this.technicianId() === NO_TECHNICIAN ? null : this.technicianId(),
-            ...(this.needsBranch() ? { branchId: this.branchId() } : {}),
-          },
-        };
         break;
       }
     }

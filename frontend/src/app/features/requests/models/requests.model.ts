@@ -16,6 +16,20 @@ export type TimeWindow = 'morning' | 'afternoon' | 'evening' | 'any';
 
 export const PAGE_SIZE = 50;
 
+/** Navigation state key carrying a toast across routes (the Assessment page to the board). */
+export const TOAST_STATE_KEY = 'toast';
+export interface ToastHandoff {
+  readonly severity: 'success' | 'error';
+  readonly summary: string;
+}
+
+/** Fixed copy of the `409` toast (the backend title is never displayed). */
+export const CONFLICT_MESSAGE = 'This request changed. Refresh to see the latest.';
+export const SAVE_FAILED_MESSAGE = "We couldn't save this change. Please try again.";
+export const UNAVAILABLE_MESSAGE = "This request isn't available.";
+export const NO_EMAIL_MESSAGE = 'This customer has no email address.';
+export const REQUEST_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export const BOARD_STATUSES: readonly BoardStatus[] = [
   'new',
   'needs_review',
@@ -250,6 +264,9 @@ export interface RequestDetail {
       readonly name: string;
       readonly initials?: string;
     } | null;
+    /** BR-17: internal data; never shown to the customer. */
+    readonly purpose: string | null;
+    readonly internalInstructions: string | null;
   } | null;
   readonly attachments: readonly RequestAttachment[];
   readonly notes: readonly {
@@ -285,11 +302,88 @@ export interface CreateRequestBody {
   };
 }
 
+/** Schedule/reschedule body (BR-20); `start`/`end` are org-local `YYYY-MM-DDTHH:mm`. */
 export interface AssessmentBody {
   readonly start: string;
   readonly end: string;
-  readonly technicianId?: string | null;
-  readonly branchId?: string | null;
+  readonly technicianId: string;
+  /** Only for a request with no branch. */
+  readonly branchId?: string;
+  readonly purpose: string;
+  readonly internalInstructions: string | null;
+  readonly notifyCustomer: boolean;
+}
+
+// Assessment planner and calendar (Final contract: specs/schedule-assessment/spec.md)
+
+export type SlotState =
+  'available' | 'available_after' | 'outside_availability' | 'conflict' | 'time_off';
+
+export interface TechnicianSlot {
+  readonly state: SlotState;
+  readonly from: string | null;
+  readonly to: string | null;
+  readonly availableAfter: string | null;
+  readonly blocking: boolean;
+}
+
+export interface TechnicianWorkload {
+  readonly percent: number | null;
+  readonly state: 'percent' | 'no_availability' | 'none';
+}
+
+export interface PlannerTechnician {
+  readonly id: string;
+  readonly name: string;
+  readonly initials: string;
+  readonly primarySkill: string | null;
+  readonly slot: TechnicianSlot;
+  readonly workload: TechnicianWorkload;
+}
+
+export interface AssessmentPlanner {
+  readonly timezone: string;
+  readonly branchId: string | null;
+  readonly technicians: readonly PlannerTechnician[];
+}
+
+export interface TimeRange {
+  readonly start: string;
+  readonly end: string;
+}
+
+export interface CalendarDay {
+  readonly date: string;
+  readonly availability: readonly TimeRange[];
+  readonly timeOff: readonly TimeRange[];
+  readonly breaks: readonly TimeRange[];
+}
+
+export interface CalendarEvent {
+  readonly kind: 'assessment' | 'visit';
+  readonly start: string;
+  readonly end: string;
+  readonly label: string;
+  readonly isCurrent: boolean;
+}
+
+export interface AssessmentCalendar {
+  readonly timezone: string;
+  readonly days: readonly CalendarDay[];
+  readonly events: readonly CalendarEvent[];
+}
+
+export interface PlannerQuery {
+  readonly date: string;
+  readonly start: string;
+  readonly durationMinutes: number;
+  readonly branchId?: string;
+}
+
+export interface CalendarQuery {
+  readonly technicianId: string;
+  readonly from: string;
+  readonly to: string;
 }
 
 // BR-03: actions per status.

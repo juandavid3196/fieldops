@@ -1,0 +1,239 @@
+<form class="form" ngNoForm novalidate (submit)="$event.preventDefault(); submitted.emit()">
+  @if (needsBranch()) {
+    <app-form-field
+      label="Branch"
+      controlId="assessment-branchId"
+      [required]="true"
+      [error]="error('branchId')"
+    >
+      <p-select
+        inputId="assessment-branchId"
+        appendTo="body"
+        fluid
+        placeholder="Choose a branch"
+        optionLabel="label"
+        optionValue="code"
+        [options]="branches()"
+        [ngModel]="value().branchId"
+        [invalid]="error('branchId') !== null"
+        [attr.aria-describedby]="describedBy('branchId')"
+        (ngModelChange)="patch({ branchId: $event, technicianId: '' })"
+      />
+    </app-form-field>
+  }
+
+  <div class="form__row">
+    <app-form-field
+      label="Date"
+      controlId="assessment-date"
+      [required]="true"
+      [error]="error('date')"
+    >
+      <input
+        pInputText
+        id="assessment-date"
+        type="date"
+        name="date"
+        fluid
+        [min]="minDate()"
+        [attr.aria-invalid]="error('date') !== null ? 'true' : null"
+        [attr.aria-describedby]="describedBy('date')"
+        [ngModel]="value().date"
+        (ngModelChange)="patch({ date: $event })"
+      />
+    </app-form-field>
+    <app-form-field
+      label="Arrival window"
+      controlId="assessment-window"
+      [required]="true"
+      [error]="error('window')"
+    >
+      <p-select
+        inputId="assessment-window"
+        appendTo="body"
+        fluid
+        optionLabel="label"
+        optionValue="code"
+        [options]="windowOptions"
+        [ngModel]="value().window"
+        [invalid]="error('window') !== null"
+        [attr.aria-describedby]="describedBy('window')"
+        (ngModelChange)="patch({ window: $event })"
+      />
+    </app-form-field>
+  </div>
+
+  <div class="form__row">
+    <app-form-field
+      label="Estimated duration"
+      controlId="assessment-duration"
+      [required]="true"
+      [error]="error('duration')"
+    >
+      <p-select
+        inputId="assessment-duration"
+        appendTo="body"
+        fluid
+        optionLabel="label"
+        optionValue="code"
+        [options]="durationOptions"
+        [ngModel]="value().duration"
+        [invalid]="error('duration') !== null"
+        [attr.aria-describedby]="describedBy('duration')"
+        (ngModelChange)="patch({ duration: $event })"
+      />
+    </app-form-field>
+    <div class="form__technician">
+      <app-form-field
+        label="Assigned technician"
+        controlId="assessment-technicianId"
+        [required]="true"
+      >
+        <p-select
+          inputId="assessment-technicianId"
+          appendTo="body"
+          fluid
+          placeholder="Choose a technician"
+          optionLabel="label"
+          optionValue="code"
+          [options]="technicians()"
+          [ngModel]="value().technicianId"
+          [invalid]="error('technicianId') !== null"
+          [attr.aria-describedby]="describedBy('technicianId')"
+          (ngModelChange)="patch({ technicianId: $event })"
+        />
+      </app-form-field>
+      @if (error('technicianId'); as message) {
+        <p class="form__error" id="assessment-technicianId-error" role="alert">
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          {{ message }}
+        </p>
+      }
+    </div>
+  </div>
+
+  <app-form-field
+    label="Purpose for assessment"
+    controlId="assessment-purpose"
+    [required]="true"
+    [error]="error('purpose')"
+  >
+    <textarea
+      pTextarea
+      id="assessment-purpose"
+      name="purpose"
+      rows="3"
+      maxlength="500"
+      fluid
+      [attr.aria-invalid]="error('purpose') !== null ? 'true' : null"
+      [attr.aria-describedby]="describedBy('purpose')"
+      [ngModel]="value().purpose"
+      (ngModelChange)="patch({ purpose: $event })"
+    ></textarea>
+  </app-form-field>
+
+  <app-form-field
+    label="Internal instructions (not visible to customer)"
+    controlId="assessment-instructions"
+    [error]="error('internalInstructions')"
+  >
+    <textarea
+      pTextarea
+      id="assessment-instructions"
+      name="internalInstructions"
+      rows="3"
+      maxlength="2000"
+      fluid
+      [attr.aria-invalid]="error('internalInstructions') !== null ? 'true' : null"
+      [attr.aria-describedby]="describedBy('internalInstructions')"
+      [ngModel]="value().internalInstructions"
+      (ngModelChange)="patch({ internalInstructions: $event })"
+    ></textarea>
+  </app-form-field>
+
+  <section class="form__section" aria-labelledby="assessment-preview-heading">
+    <h3 class="form__heading" id="assessment-preview-heading">Customer message preview</h3>
+    <p class="form__preview" id="assessment-preview" aria-live="polite" aria-atomic="true">
+      @if (preview(); as message) {
+        {{ message }}
+      } @else {
+        <span class="form__placeholder">{{ previewPlaceholder }}</span>
+      }
+    </p>
+  </section>
+
+  <div class="form__footer">
+    <fieldset class="form__notify">
+      <legend class="form__heading">Notify customer</legend>
+      <div class="form__channels">
+        <div class="form__channel">
+          <div class="form__toggle">
+            <i class="pi pi-envelope" aria-hidden="true"></i>
+            <label id="assessment-notify-email-label" for="assessment-notify-email">Email</label>
+            <p-toggleswitch
+              inputId="assessment-notify-email"
+              name="notifyEmail"
+              [ngModel]="value().notify && emailAvailable()"
+              [disabled]="!emailAvailable() || submitting()"
+              [ariaLabelledBy]="emailLabelledBy()"
+              (ngModelChange)="patch({ notify: $event })"
+            />
+          </div>
+          @if (!emailAvailable()) {
+            <p class="form__helper" id="assessment-notify-email-helper">{{ noEmailMessage }}</p>
+          } @else if (error('notifyCustomer'); as message) {
+            <p class="form__error" role="alert">{{ message }}</p>
+          }
+        </div>
+        <div class="form__channel">
+          <div class="form__toggle">
+            <i class="pi pi-comment" aria-hidden="true"></i>
+            <label id="assessment-notify-sms-label" for="assessment-notify-sms">SMS</label>
+            <p-toggleswitch
+              inputId="assessment-notify-sms"
+              name="notifySms"
+              [ngModel]="false"
+              [disabled]="true"
+              ariaLabelledBy="assessment-notify-sms-label assessment-notify-sms-helper"
+            />
+          </div>
+          <p class="form__helper" id="assessment-notify-sms-helper">{{ smsMessage }}</p>
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="form__buttons">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="submitting()"
+        (click)="cancelled.emit()"
+      >
+        Cancel
+      </button>
+      <button pButton type="submit" [disabled]="submitting()">
+        @if (submitting()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        {{ primaryLabel() }}
+      </button>
+    </div>
+  </div>
+
+  @if (mode() === 'reschedule') {
+    <div class="form__danger">
+      <button
+        pButton
+        type="button"
+        severity="danger"
+        [outlined]="true"
+        [disabled]="submitting()"
+        (click)="cancelAssessment.emit()"
+      >
+        Cancel assessment
+      </button>
+    </div>
+  }
+</form>
