@@ -176,7 +176,7 @@ CREATE TABLE assessments (
   completed_at timestamptz, created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY(organization_id,request_id) REFERENCES service_requests(organization_id,id), CHECK(scheduled_start<scheduled_end), UNIQUE(organization_id,id)
 );
-CREATE TABLE assessment_attachments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), assessment_id uuid NOT NULL REFERENCES assessments(id) ON DELETE CASCADE, file_name varchar(255) NOT NULL, storage_key text NOT NULL, mime_type varchar(120) NOT NULL, size_bytes bigint NOT NULL, created_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE assessment_attachments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), assessment_id uuid NOT NULL REFERENCES assessments(id) ON DELETE CASCADE, file_name varchar(255) NOT NULL, storage_key text, content bytea, mime_type varchar(120) NOT NULL CHECK(mime_type IN ('image/jpeg','image/png')), size_bytes bigint NOT NULL CHECK(size_bytes>0 AND size_bytes<=10485760), created_at timestamptz NOT NULL DEFAULT now(), CHECK(content IS NOT NULL OR storage_key IS NOT NULL), FOREIGN KEY(organization_id,assessment_id) REFERENCES assessments(organization_id,id) ON DELETE CASCADE);
 
 CREATE TABLE quotes (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), branch_id uuid REFERENCES branches(id),
@@ -188,13 +188,14 @@ CREATE TABLE quotes (
 CREATE TABLE quote_versions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), quote_id uuid NOT NULL,
   version_no integer NOT NULL CHECK(version_no>0), scope text NOT NULL, customer_notes text, internal_notes text,
-  subtotal numeric(14,2) NOT NULL CHECK(subtotal>=0), tax_total numeric(14,2) NOT NULL CHECK(tax_total>=0), total numeric(14,2) NOT NULL CHECK(total>=0),
-  currency char(3) NOT NULL, valid_until date, sent_at timestamptz, is_immutable boolean NOT NULL DEFAULT false,
+  subtotal numeric(14,2) NOT NULL CHECK(subtotal>=0), discount_total numeric(14,2) NOT NULL DEFAULT 0 CHECK(discount_total>=0), tax_total numeric(14,2) NOT NULL CHECK(tax_total>=0), total numeric(14,2) NOT NULL CHECK(total>=0),
+  currency char(3) NOT NULL, terms text, valid_until date, sent_at timestamptz, is_immutable boolean NOT NULL DEFAULT false,
   created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY(organization_id,quote_id) REFERENCES quotes(organization_id,id), UNIQUE(quote_id,version_no), UNIQUE(organization_id,id)
 );
 ALTER TABLE quotes ADD CONSTRAINT fk_quotes_approved_version FOREIGN KEY(approved_version_id) REFERENCES quote_versions(id);
-CREATE TABLE quote_lines (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), quote_version_id uuid NOT NULL REFERENCES quote_versions(id) ON DELETE CASCADE, catalog_item_id uuid REFERENCES catalog_items(id), line_type catalog_item_type NOT NULL, description text NOT NULL, quantity numeric(12,3) NOT NULL CHECK(quantity>0), unit varchar(40) NOT NULL, unit_cost numeric(14,2) NOT NULL DEFAULT 0, unit_price numeric(14,2) NOT NULL CHECK(unit_price>=0), tax_rate numeric(7,4) NOT NULL DEFAULT 0, line_subtotal numeric(14,2) NOT NULL, line_tax numeric(14,2) NOT NULL, line_total numeric(14,2) NOT NULL, sort_order integer NOT NULL DEFAULT 0);
+CREATE TABLE quote_lines (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), quote_version_id uuid NOT NULL REFERENCES quote_versions(id) ON DELETE CASCADE, catalog_item_id uuid REFERENCES catalog_items(id), line_type catalog_item_type NOT NULL, name varchar(160) NOT NULL, description text NOT NULL, quantity numeric(12,3) NOT NULL CHECK(quantity>0), unit varchar(40) NOT NULL, unit_cost numeric(14,2) NOT NULL DEFAULT 0, unit_price numeric(14,2) NOT NULL CHECK(unit_price>=0), tax_rate numeric(7,4) NOT NULL DEFAULT 0, line_subtotal numeric(14,2) NOT NULL, line_tax numeric(14,2) NOT NULL, line_total numeric(14,2) NOT NULL, sort_order integer NOT NULL DEFAULT 0, is_optional boolean NOT NULL DEFAULT false, FOREIGN KEY(organization_id,quote_version_id) REFERENCES quote_versions(organization_id,id) ON DELETE CASCADE);
+CREATE TABLE quote_access_tokens (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), quote_version_id uuid NOT NULL, token_hash text NOT NULL UNIQUE, expires_at timestamptz NOT NULL, revoked_at timestamptz, created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,quote_version_id) REFERENCES quote_versions(organization_id,id), CONSTRAINT ck_quote_access_tokens_expires_after_created CHECK(expires_at>created_at));
 CREATE TABLE quote_responses (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), quote_version_id uuid NOT NULL REFERENCES quote_versions(id), response quote_status NOT NULL CHECK(response IN ('approved','rejected','clarification_requested')), responder_name varchar(180) NOT NULL, responder_contact_id uuid REFERENCES customer_contacts(id), comment text, responded_at timestamptz NOT NULL DEFAULT now(), ip_address inet);
 
 CREATE TABLE work_orders (
@@ -271,6 +272,9 @@ CREATE INDEX ix_invoices_status_due ON invoices(organization_id,status,due_date)
 CREATE INDEX ix_payments_customer_date ON payments(organization_id,customer_id,paid_at DESC);
 CREATE INDEX ix_audit_entity ON audit_logs(organization_id,entity_type,entity_id,occurred_at DESC);
 CREATE INDEX ix_audit_actor ON audit_logs(organization_id,actor_user_id,occurred_at DESC);
+CREATE INDEX ix_quote_access_tokens_version ON quote_access_tokens(quote_version_id) WHERE revoked_at IS NULL;
+CREATE UNIQUE INDEX ux_quotes_request_open ON quotes(organization_id,request_id) WHERE status<>'cancelled';
+CREATE UNIQUE INDEX ux_quote_versions_one_mutable ON quote_versions(quote_id) WHERE NOT is_immutable;
 
 INSERT INTO roles(code,name) VALUES
  ('owner','Owner'),('dispatcher','Dispatcher'),('technician','Technician'),('accounting','Accounting'),
