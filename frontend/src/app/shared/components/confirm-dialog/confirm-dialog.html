@@ -26,6 +26,22 @@
           {{ note }}
         </p>
       }
+      @if (checkboxLabel(); as label) {
+        <div class="confirm-dialog__option">
+          <p-checkbox
+            [inputId]="checkboxId"
+            [binary]="true"
+            [ngModel]="checkboxChecked()"
+            [disabled]="checkboxDisabled()"
+            [attr.aria-describedby]="checkboxHelper() ? helperId : null"
+            (ngModelChange)="checkboxChecked.set($event)"
+          />
+          <label [for]="checkboxId">{{ label }}</label>
+        </div>
+        @if (checkboxHelper(); as helper) {
+          <p class="confirm-dialog__helper" [id]="helperId">{{ helper }}</p>
+        }
+      }
       <div class="confirm-dialog__footer">
         @for (action of actions(confirmation, onAccept, onReject); track action.label) {
           <button

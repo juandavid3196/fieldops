@@ -162,6 +162,17 @@
                   <i class="pi pi-user" aria-hidden="true"></i>
                   {{ assessment.technician ?? 'No technician' }}
                 </p>
+                @if (assessment.purpose) {
+                  <p class="detail__line">
+                    <i class="pi pi-file" aria-hidden="true"></i>
+                    Purpose: {{ assessment.purpose }}
+                  </p>
+                }
+                @if (assessment.instructions) {
+                  <p class="detail__line detail__line--note">
+                    Internal instructions (not visible to customer): {{ assessment.instructions }}
+                  </p>
+                }
               </section>
             }
 

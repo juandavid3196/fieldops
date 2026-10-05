@@ -52,7 +52,39 @@ public static class ServiceRequestMessages
 
     public const string TechnicianNotAllowed = "Choose a technician from this request's branch.";
 
-    public const string TechnicianBusy = "This technician already has an assessment at that time.";
+    public const string TechnicianRequired = "Choose a technician.";
+
+    public const string TechnicianBusyTitle = "This technician already has a commitment at that time.";
+
+    public const string TechnicianTimeOffTitle = "This technician is off at that time.";
+
+    public const string RequestChangedCode = "request_changed";
+
+    public const string TechnicianConflictCode = "technician_conflict";
+
+    public const string TechnicianTimeOffCode = "technician_time_off";
+
+    public const string ArrivalWindowInvalid = "Choose an arrival window.";
+
+    public const string DurationInvalid = "Choose an estimated duration.";
+
+    public const string PurposeRequired = "Enter the purpose of the assessment.";
+
+    public const string PurposeTooLong = "Purpose must be 500 characters or fewer.";
+
+    public const string InstructionsTooLong = "Internal instructions must be 2000 characters or fewer.";
+
+    public const int InstructionsMaxLength = 2000;
+
+    public const string NotifyRequired = "Choose whether to notify the customer.";
+
+    public const string BranchAlreadySet = "This request already has a branch.";
+
+    public const string DateInvalid = "Enter a valid date.";
+
+    public const string RangeInvalid = "Enter a valid date range of up to 7 days.";
+
+    public const string TechnicianInvalid = "Choose an active technician from this request's branch.";
 
     public const string TooManyAttachments = "A request can have up to 5 files.";
 
@@ -230,9 +262,17 @@ public static class OrganizationTime
     }
 }
 
-/// <summary>Assessment slot rules (BR-15): future start, same local day, at most 8 hours.</summary>
+/// <summary>
+/// Assessment slot rules (requests-pipeline BR-15, schedule-assessment BR-08/BR-11): start on the hour in the
+/// future, same local day, at most 8 hours and one of the estimated durations.
+/// </summary>
 public static class AssessmentSlotRules
 {
+    public static readonly int[] DurationMinutes = [30, 60, 90, 120, 180, 240, 480];
+
+    public static bool IsAllowedDuration(TimeSpan duration) =>
+        duration.Ticks % TimeSpan.TicksPerMinute == 0 && DurationMinutes.Contains((int)duration.TotalMinutes);
+
     public static bool TryResolve(
         string? startText,
         string? endText,
@@ -253,6 +293,10 @@ public static class AssessmentSlotRules
         {
             errors["start"] = [ServiceRequestMessages.StartInvalid];
         }
+        else if (OrganizationTime.ToZone(start, zone) is { Minute: not 0 } or { Second: not 0 })
+        {
+            errors["start"] = [ServiceRequestMessages.ArrivalWindowInvalid];
+        }
         else if (start <= now)
         {
             errors["start"] = [ServiceRequestMessages.StartNotFuture];
@@ -271,6 +315,10 @@ public static class AssessmentSlotRules
             else if (end - start > TimeSpan.FromHours(ServiceRequestMessages.MaxAssessmentHours))
             {
                 errors["end"] = [ServiceRequestMessages.EndTooLong];
+            }
+            else if (!IsAllowedDuration(end - start))
+            {
+                errors["end"] = [ServiceRequestMessages.DurationInvalid];
             }
         }
 

@@ -103,7 +103,13 @@ public sealed record DetailAvailability(string? DateMode, string? PreferredDate,
 
 public sealed record DetailTechnician(Guid Id, string Name, string Initials);
 
-public sealed record DetailAssessment(Guid Id, DateTimeOffset Start, DateTimeOffset End, DetailTechnician? Technician);
+public sealed record DetailAssessment(
+    Guid Id,
+    DateTimeOffset Start,
+    DateTimeOffset End,
+    DetailTechnician? Technician,
+    string? Purpose,
+    string? InternalInstructions);
 
 public sealed record DetailAttachment(Guid Id, string FileName, string MimeType, long SizeBytes, DateTimeOffset CreatedAt);
 
@@ -174,12 +180,23 @@ public abstract record RequestMutation
     public sealed record LogResponse(string Body) : RequestMutation;
 
     public sealed record ScheduleAssessment(
-        DateTimeOffset Start, DateTimeOffset End, Guid? TechnicianId, Guid? BranchId) : RequestMutation;
+        DateTimeOffset Start,
+        DateTimeOffset End,
+        Guid TechnicianId,
+        Guid? BranchId,
+        string Purpose,
+        string? InternalNotes,
+        bool NotifyCustomer) : RequestMutation;
 
     public sealed record RescheduleAssessment(
-        DateTimeOffset Start, DateTimeOffset End, Guid? TechnicianId) : RequestMutation;
+        DateTimeOffset Start,
+        DateTimeOffset End,
+        Guid TechnicianId,
+        string Purpose,
+        string? InternalNotes,
+        bool NotifyCustomer) : RequestMutation;
 
-    public sealed record CancelAssessment : RequestMutation;
+    public sealed record CancelAssessment(bool NotifyCustomer) : RequestMutation;
 
     public sealed record CompleteAssessment : RequestMutation;
 
@@ -202,18 +219,43 @@ public sealed record InformationRequestEmail(
     string? OrganizationPhone,
     string MessageBody);
 
+public enum AssessmentEmailKind
+{
+    Scheduled,
+    Rescheduled,
+    Cancelled,
+}
+
+/// <summary>The data of the assessment email sent after the commit (schedule-assessment BR-13, BR-14).</summary>
+public sealed record AssessmentEmail(
+    Guid RequestId,
+    string RequestNumber,
+    AssessmentEmailKind Kind,
+    string RecipientEmail,
+    string? ContactFirstName,
+    string OrganizationName,
+    string? OrganizationPhone,
+    string TimezoneId,
+    DateTimeOffset Start,
+    string? TechnicianName);
+
 public abstract record RequestMutationOutcome
 {
     private RequestMutationOutcome()
     {
     }
 
-    public sealed record Succeeded(RequestDetail Detail, InformationRequestEmail? Email = null) : RequestMutationOutcome;
+    public sealed record Succeeded(
+        RequestDetail Detail, InformationRequestEmail? Email = null, AssessmentEmail? AssessmentEmail = null) : RequestMutationOutcome;
 
     public sealed record NotFound : RequestMutationOutcome;
 
-    /// <summary>An invalid transition or a concurrent change; <see cref="Message"/> overrides the default title.</summary>
-    public sealed record Conflict(string? Message = null) : RequestMutationOutcome;
+    /// <summary>
+    /// An invalid transition, a concurrent change or a technician conflict; <see cref="Message"/> overrides the
+    /// default title and <see cref="Code"/> is the machine-readable 409 code.
+    /// </summary>
+    public sealed record Conflict(
+        string? Message = null, string Code = ServiceRequestMessages.RequestChangedCode) : RequestMutationOutcome;
 
     public sealed record Invalid(IReadOnlyDictionary<string, string[]> Errors) : RequestMutationOutcome;
 }
@@ -241,14 +283,16 @@ public sealed record ServiceRequestResult<T>(
     ServiceRequestResultKind Kind,
     T? Value = default,
     IReadOnlyDictionary<string, string[]>? Errors = null,
-    string? Message = null)
+    string? Message = null,
+    string? Code = null)
 {
     public static ServiceRequestResult<T> Ok(T value) => new(ServiceRequestResultKind.Succeeded, value);
 
     public static ServiceRequestResult<T> NotFound() => new(ServiceRequestResultKind.NotFound);
 
-    public static ServiceRequestResult<T> Conflict(string? message = null) =>
-        new(ServiceRequestResultKind.Conflict, Message: message);
+    public static ServiceRequestResult<T> Conflict(
+        string? message = null, string code = ServiceRequestMessages.RequestChangedCode) =>
+        new(ServiceRequestResultKind.Conflict, Message: message, Code: code);
 
     public static ServiceRequestResult<T> Invalid(string key, string message) =>
         new(ServiceRequestResultKind.Invalid, Errors: new Dictionary<string, string[]>(StringComparer.Ordinal)

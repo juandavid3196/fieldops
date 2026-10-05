@@ -142,3 +142,9 @@ export function toLocalInput(iso: string, timeZone: string): string {
   const parts = Object.fromEntries(formatter.formatToParts(date).map((p) => [p.type, p.value]));
   return `${parts['year']}-${parts['month']}-${parts['day']}T${parts['hour']}:${parts['minute']}`;
 }
+
+/** `errors.availability.preferredDate` / `errors.attachments[0]` to a camelCase field key. */
+export function fieldKey(path: string): string {
+  const last = (path.split('.').pop() ?? path).replace(/\[\d+\]$/, '');
+  return last.charAt(0).toLowerCase() + last.slice(1);
+}

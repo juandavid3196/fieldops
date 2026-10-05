@@ -4,7 +4,7 @@
 | -------- | --------------------- |
 | Feature  | `schedule-assessment` |
 | Type     | Full-stack            |
-| Status   | APPROVED              |
+| Status   | AUDITED               |
 | Created  | 2026-10-05            |
 | Updated  | 2026-10-05            |
 | Approved | 2026-10-05            |
@@ -415,3 +415,5 @@ the BR-09 `409`.
 | 2026-10-05 | DRAFT → DRAFT | User clarifications: technician mandatory in API (BR-20); cancel assessment vs cancel edit separated (BR-18, AC-19); email failure never rolls back schedule or cancel (AC-17) |
 | 2026-10-05 | DRAFT → DRAFT | Validation fixes: FR-12 for optional assessment traced to AC-21; AC-14 aligned with BR-13; planner `branchId` on a branched request → `400` (BR-04); BR-20 in transition guards and error table; BR-20 row moved after BR-19 |
 | 2026-10-05 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-05 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-05 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

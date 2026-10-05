@@ -100,7 +100,7 @@ internal sealed partial class ServiceRequestStore
         var detail = await GetDetailAsync(actor.OrganizationId, actor.Scope, requestId, cancellationToken)
             ?? throw new InvalidOperationException("The request is no longer available.");
 
-        return new RequestMutationOutcome.Succeeded(detail, step.Email);
+        return new RequestMutationOutcome.Succeeded(detail, step.Email, step.AssessmentEmail);
     }
 
     private Task<Step> ApplyAsync(
@@ -118,7 +118,7 @@ internal sealed partial class ServiceRequestStore
             RequestMutation.LogResponse response => LogResponseAsync(actor, request, response),
             RequestMutation.ScheduleAssessment schedule => ScheduleAsync(actor, request, schedule, cancellationToken),
             RequestMutation.RescheduleAssessment reschedule => RescheduleAsync(actor, request, reschedule, cancellationToken),
-            RequestMutation.CancelAssessment => CancelAssessmentAsync(actor, request, cancellationToken),
+            RequestMutation.CancelAssessment cancel => CancelAssessmentAsync(actor, request, cancel, cancellationToken),
             RequestMutation.CompleteAssessment => CompleteAssessmentAsync(actor, request, cancellationToken),
             RequestMutation.CancelRequest cancel => CancelRequestAsync(actor, request, cancel, cancellationToken),
             RequestMutation.AddAttachments attachments => AddAttachmentsAsync(actor, request, attachments, cancellationToken),
@@ -261,16 +261,7 @@ internal sealed partial class ServiceRequestStore
             return Step.Fail(new RequestMutationOutcome.Conflict());
         }
 
-        var contact = request.ContactId is { } contactId
-            ? await dbContext.CustomerContacts.AsNoTracking()
-                .Where(candidate => candidate.Id == contactId && candidate.OrganizationId == actor.OrganizationId)
-                .Select(candidate => new { candidate.FirstName, candidate.Email, candidate.IsActive })
-                .SingleOrDefaultAsync(cancellationToken)
-            : null;
-
-        var recipient = contact is { IsActive: true } && !string.IsNullOrWhiteSpace(contact.Email)
-            ? contact.Email.Trim()
-            : string.IsNullOrWhiteSpace(request.GuestEmail) ? null : request.GuestEmail.Trim();
+        var (recipient, firstName) = await ResolveRecipientAsync(actor.OrganizationId, request, cancellationToken);
 
         if (recipient is null)
         {
@@ -302,7 +293,7 @@ internal sealed partial class ServiceRequestStore
             request.Id,
             RequestCardRules.DisplayNumber(organization.RequestPrefix, request.RequestNumber),
             recipient,
-            contact?.FirstName,
+            firstName,
             organization.Name,
             organization.Phone,
             message.Body));
@@ -369,15 +360,30 @@ internal sealed partial class ServiceRequestStore
             }
         }
 
-        if (branchId is { } slotBranch && mutation.TechnicianId is { } technicianId)
+        // The technician profile lock is taken only after the shape checks of the handler passed and the branch is known.
+        if (branchId is { } slotBranch)
         {
-            await ValidateTechnicianAsync(
-                actor.OrganizationId, slotBranch, technicianId, mutation.Start, mutation.End, Guid.Empty, errors, cancellationToken);
+            await ValidateTechnicianAsync(actor.OrganizationId, slotBranch, mutation.TechnicianId, errors, cancellationToken);
+        }
+
+        var (recipient, firstName) = mutation.NotifyCustomer
+            ? await ResolveRecipientAsync(actor.OrganizationId, request, cancellationToken)
+            : (null, null);
+
+        if (mutation.NotifyCustomer && recipient is null)
+        {
+            errors["notifyCustomer"] = [ServiceRequestMessages.NoEmail];
         }
 
         if (errors.Count > 0)
         {
             return Step.Fail(new RequestMutationOutcome.Invalid(errors));
+        }
+
+        if (await TechnicianConflictAsync(
+            actor.OrganizationId, mutation.TechnicianId, mutation.Start, mutation.End, null, cancellationToken) is { } conflict)
+        {
+            return Step.Fail(conflict);
         }
 
         var from = request.Status;
@@ -388,7 +394,14 @@ internal sealed partial class ServiceRequestStore
         }
 
         var assessment = Assessment.Create(
-            actor.OrganizationId, request.Id, mutation.Start, mutation.End, actor.UserId, mutation.TechnicianId);
+            actor.OrganizationId,
+            request.Id,
+            mutation.Start,
+            mutation.End,
+            actor.UserId,
+            mutation.TechnicianId,
+            mutation.Purpose,
+            mutation.InternalNotes);
         dbContext.Assessments.Add(assessment);
         Move(actor, request, to);
         Audit(
@@ -397,9 +410,13 @@ internal sealed partial class ServiceRequestStore
             "service_request.assessment_scheduled",
             StatusSide(from),
             StatusSide(to),
-            AssessmentMetadata(assessment));
+            AssessmentMetadata(assessment, mutation.NotifyCustomer));
 
-        return Step.Done();
+        return Step.Done(
+            assessmentEmail: recipient is null
+                ? null
+                : await BuildAssessmentEmailAsync(
+                    actor.OrganizationId, request, AssessmentEmailKind.Scheduled, recipient, firstName, assessment, cancellationToken));
     }
 
     private async Task<Step> RescheduleAsync(
@@ -416,10 +433,15 @@ internal sealed partial class ServiceRequestStore
 
         var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
 
-        if (mutation.TechnicianId is { } technicianId)
+        await ValidateTechnicianAsync(actor.OrganizationId, branchId, mutation.TechnicianId, errors, cancellationToken);
+
+        var (recipient, firstName) = mutation.NotifyCustomer
+            ? await ResolveRecipientAsync(actor.OrganizationId, request, cancellationToken)
+            : (null, null);
+
+        if (mutation.NotifyCustomer && recipient is null)
         {
-            await ValidateTechnicianAsync(
-                actor.OrganizationId, branchId, technicianId, mutation.Start, mutation.End, assessment.Id, errors, cancellationToken);
+            errors["notifyCustomer"] = [ServiceRequestMessages.NoEmail];
         }
 
         if (errors.Count > 0)
@@ -427,21 +449,51 @@ internal sealed partial class ServiceRequestStore
             return Step.Fail(new RequestMutationOutcome.Invalid(errors));
         }
 
-        assessment.Reschedule(mutation.Start, mutation.End, mutation.TechnicianId);
-        request.Touch();
-        Audit(actor, request, "service_request.assessment_rescheduled", null, null, AssessmentMetadata(assessment));
+        if (await TechnicianConflictAsync(
+            actor.OrganizationId, mutation.TechnicianId, mutation.Start, mutation.End, assessment.Id, cancellationToken) is { } conflict)
+        {
+            return Step.Fail(conflict);
+        }
 
-        return Step.Done();
+        assessment.Reschedule(mutation.Start, mutation.End, mutation.TechnicianId, mutation.Purpose, mutation.InternalNotes);
+        request.Touch();
+        Audit(
+            actor,
+            request,
+            "service_request.assessment_rescheduled",
+            null,
+            null,
+            AssessmentMetadata(assessment, mutation.NotifyCustomer));
+
+        return Step.Done(
+            assessmentEmail: recipient is null
+                ? null
+                : await BuildAssessmentEmailAsync(
+                    actor.OrganizationId, request, AssessmentEmailKind.Rescheduled, recipient, firstName, assessment, cancellationToken));
     }
 
     private async Task<Step> CancelAssessmentAsync(
-        RequestActor actor, ServiceRequest request, CancellationToken cancellationToken)
+        RequestActor actor, ServiceRequest request, RequestMutation.CancelAssessment mutation, CancellationToken cancellationToken)
     {
         if (!RequestTransitions.TryApply(request.Status, RequestAction.CancelAssessment, out var to)
             || await LoadActiveAssessmentAsync(actor.OrganizationId, request.Id, cancellationToken) is not { } assessment)
         {
             return Step.Fail(new RequestMutationOutcome.Conflict());
         }
+
+        var (recipient, firstName) = mutation.NotifyCustomer
+            ? await ResolveRecipientAsync(actor.OrganizationId, request, cancellationToken)
+            : (null, null);
+
+        if (mutation.NotifyCustomer && recipient is null)
+        {
+            return Step.Fail(Invalid("notifyCustomer", ServiceRequestMessages.NoEmail));
+        }
+
+        var email = recipient is null
+            ? null
+            : await BuildAssessmentEmailAsync(
+                actor.OrganizationId, request, AssessmentEmailKind.Cancelled, recipient, firstName, assessment, cancellationToken);
 
         var from = request.Status;
         assessment.Cancel();
@@ -452,9 +504,9 @@ internal sealed partial class ServiceRequestStore
             "service_request.assessment_cancelled",
             StatusSide(from),
             StatusSide(to),
-            AssessmentMetadata(assessment));
+            AssessmentMetadata(assessment, mutation.NotifyCustomer));
 
-        return Step.Done();
+        return Step.Done(assessmentEmail: email);
     }
 
     private async Task<Step> CompleteAssessmentAsync(
@@ -561,14 +613,71 @@ internal sealed partial class ServiceRequestStore
     private static Dictionary<string, object?> StatusSide(RequestStatus status) =>
         new() { ["status"] = RequestTransitions.Code(status) };
 
-    private static object AssessmentMetadata(Assessment assessment) =>
+    // BR-16: ids, times and the notification intent only; never the purpose, instructions, message or recipient.
+    private static object AssessmentMetadata(Assessment assessment, bool notified) =>
         new
         {
             assessmentId = assessment.Id,
             technicianId = assessment.TechnicianId,
             start = assessment.ScheduledStart,
             end = assessment.ScheduledEnd,
+            notified = notified ? "email" : "none",
         };
+
+    /// <summary>The recipient of customer emails: the active linked contact email, else the guest email (BR-14).</summary>
+    private async Task<(string? Email, string? FirstName)> ResolveRecipientAsync(
+        Guid organizationId, ServiceRequest request, CancellationToken cancellationToken)
+    {
+        var contact = request.ContactId is { } contactId
+            ? await dbContext.CustomerContacts.AsNoTracking()
+                .Where(candidate => candidate.Id == contactId && candidate.OrganizationId == organizationId)
+                .Select(candidate => new { candidate.FirstName, candidate.Email, candidate.IsActive })
+                .SingleOrDefaultAsync(cancellationToken)
+            : null;
+
+        var recipient = contact is { IsActive: true } && !string.IsNullOrWhiteSpace(contact.Email)
+            ? contact.Email.Trim()
+            : string.IsNullOrWhiteSpace(request.GuestEmail) ? null : request.GuestEmail.Trim();
+
+        return (recipient, contact?.FirstName);
+    }
+
+    private async Task<AssessmentEmail> BuildAssessmentEmailAsync(
+        Guid organizationId,
+        ServiceRequest request,
+        AssessmentEmailKind kind,
+        string recipient,
+        string? firstName,
+        Assessment assessment,
+        CancellationToken cancellationToken)
+    {
+        var organization = await GetOrganizationContextAsync(organizationId, cancellationToken)
+            ?? throw new InvalidOperationException("The organization is no longer available.");
+
+        string? technicianName = null;
+
+        if (kind != AssessmentEmailKind.Cancelled && assessment.TechnicianId is { } technicianId)
+        {
+            var row = await dbContext.TechnicianProfiles.AsNoTracking()
+                .Where(candidate => candidate.Id == technicianId && candidate.OrganizationId == organizationId)
+                .Select(candidate => new { candidate.FirstName, candidate.LastName })
+                .SingleOrDefaultAsync(cancellationToken);
+
+            technicianName = row is null ? null : FullName(row.FirstName, row.LastName);
+        }
+
+        return new AssessmentEmail(
+            request.Id,
+            RequestCardRules.DisplayNumber(organization.RequestPrefix, request.RequestNumber),
+            kind,
+            recipient,
+            firstName,
+            organization.Name,
+            organization.Phone,
+            organization.Timezone,
+            assessment.ScheduledStart,
+            technicianName);
+    }
 
     private static RequestMutationOutcome.Invalid Invalid(string key, string message) =>
         new(new Dictionary<string, string[]>(StringComparer.Ordinal) { [key] = [message] });
@@ -640,17 +749,14 @@ internal sealed partial class ServiceRequestStore
         && (branchId is not { } branch || await MemberHasBranchAsync(organizationId, userId, branch, cancellationToken));
 
     /// <summary>
-    /// BR-15: the technician is an active profile of the request branch and has no other scheduled
-    /// assessment overlapping the slot. The profile row is locked first so concurrent schedules of the
-    /// same technician serialize (lock order: request, technician).
+    /// BR-04, BR-10: the technician is an active profile of the request branch. The profile row is locked so
+    /// concurrent schedules of the same technician serialize (lock order: request, technician); the conflict
+    /// checks run after the lock.
     /// </summary>
     private async Task ValidateTechnicianAsync(
         Guid organizationId,
         Guid branchId,
         Guid technicianId,
-        DateTimeOffset start,
-        DateTimeOffset end,
-        Guid excludeAssessmentId,
         Dictionary<string, string[]> errors,
         CancellationToken cancellationToken)
     {
@@ -667,31 +773,46 @@ internal sealed partial class ServiceRequestStore
         if (locked.Count == 0)
         {
             errors["technicianId"] = [ServiceRequestMessages.TechnicianNotAllowed];
-
-            return;
-        }
-
-        var busy = await dbContext.Assessments.AsNoTracking().AnyAsync(
-            assessment => assessment.OrganizationId == organizationId
-                && assessment.TechnicianId == technicianId
-                && assessment.Status == AssessmentStatus.Scheduled
-                && assessment.ScheduledStart < end
-                && assessment.ScheduledEnd > start
-                && assessment.Id != excludeAssessmentId,
-            cancellationToken);
-
-        if (busy)
-        {
-            errors["technicianId"] = [ServiceRequestMessages.TechnicianBusy];
         }
     }
 
-    private readonly record struct Step(RequestMutationOutcome? Failure, bool Changed, InformationRequestEmail? Email)
+    /// <summary>
+    /// BR-09: a blocking BR-05 state (time off, then conflict with another scheduled assessment or an active
+    /// visit) is a 409 with its code. Warnings (available after, outside availability) are accepted. Runs after
+    /// the technician lock, so a concurrent booking committed first is seen.
+    /// </summary>
+    private async Task<RequestMutationOutcome.Conflict?> TechnicianConflictAsync(
+        Guid organizationId,
+        Guid technicianId,
+        DateTimeOffset start,
+        DateTimeOffset end,
+        Guid? excludeAssessmentId,
+        CancellationToken cancellationToken)
     {
-        public static Step Done(InformationRequestEmail? email = null) => new(null, true, email);
+        var organization = await GetOrganizationContextAsync(organizationId, cancellationToken)
+            ?? throw new InvalidOperationException("The organization is no longer available.");
+        var schedule = await LoadTechnicianScheduleAsync(
+            organizationId, technicianId, organization.Timezone, start.AddDays(-1), end.AddDays(1), cancellationToken);
+        var commitments = await LoadCommitmentsAsync(organizationId, technicianId, start, end, excludeAssessmentId, cancellationToken);
 
-        public static Step NoOp() => new(null, false, null);
+        return AssessmentSlotEvaluator.Blocking(schedule, commitments, start, end, excludeAssessmentId)?.State switch
+        {
+            SlotStates.TimeOff => new RequestMutationOutcome.Conflict(
+                ServiceRequestMessages.TechnicianTimeOffTitle, ServiceRequestMessages.TechnicianTimeOffCode),
+            SlotStates.Conflict => new RequestMutationOutcome.Conflict(
+                ServiceRequestMessages.TechnicianBusyTitle, ServiceRequestMessages.TechnicianConflictCode),
+            _ => null,
+        };
+    }
 
-        public static Step Fail(RequestMutationOutcome failure) => new(failure, false, null);
+    private readonly record struct Step(
+        RequestMutationOutcome? Failure, bool Changed, InformationRequestEmail? Email, AssessmentEmail? AssessmentEmail)
+    {
+        public static Step Done(InformationRequestEmail? email = null, AssessmentEmail? assessmentEmail = null) =>
+            new(null, true, email, assessmentEmail);
+
+        public static Step NoOp() => new(null, false, null, null);
+
+        public static Step Fail(RequestMutationOutcome failure) => new(failure, false, null, null);
     }
 }

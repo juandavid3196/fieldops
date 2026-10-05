@@ -88,6 +88,7 @@ public static class DependencyInjection
         services.AddScoped<IPublicRequestConfirmationSender, PublicRequestConfirmationSender>();
         services.AddScoped<IServiceRequestStore, ServiceRequestStore>();
         services.AddScoped<IRequestInformationNotifier, RequestInformationNotifier>();
+        services.AddScoped<IAssessmentNotifier, AssessmentNotifier>();
         services.AddEmail(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 

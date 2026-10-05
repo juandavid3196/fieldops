@@ -95,12 +95,6 @@
           ></textarea>
         </app-form-field>
       }
-      @case ('schedule-assessment') {
-        <ng-container *ngTemplateOutlet="assessmentFields" />
-      }
-      @case ('reschedule') {
-        <ng-container *ngTemplateOutlet="assessmentFields" />
-      }
       @default {
         @if (isMessage()) {
           <app-form-field
@@ -152,82 +146,3 @@
     </button>
   </ng-template>
 </p-dialog>
-
-<ng-template #assessmentFields>
-  @if (needsBranch()) {
-    <app-form-field
-      label="Branch"
-      controlId="request-dialog-branchId"
-      [required]="true"
-      [error]="error('branchId')"
-    >
-      <p-select
-        inputId="request-dialog-branchId"
-        appendTo="body"
-        fluid
-        placeholder="Choose a branch"
-        optionLabel="label"
-        optionValue="code"
-        [options]="branchOptions()"
-        [ngModel]="branchId()"
-        [invalid]="error('branchId') !== null"
-        [attr.aria-describedby]="describedBy('branchId')"
-        (ngModelChange)="branchId.set($event); technicianId.set('none')"
-      />
-    </app-form-field>
-  }
-  <app-form-field
-    label="Start"
-    controlId="request-dialog-start"
-    [required]="true"
-    [error]="error('start')"
-  >
-    <input
-      pInputText
-      id="request-dialog-start"
-      type="datetime-local"
-      name="start"
-      fluid
-      [attr.aria-invalid]="error('start') !== null ? 'true' : null"
-      [attr.aria-describedby]="describedBy('start')"
-      [ngModel]="start()"
-      (ngModelChange)="start.set($event)"
-    />
-  </app-form-field>
-  <app-form-field
-    label="End time"
-    controlId="request-dialog-end"
-    [required]="true"
-    [error]="error('end')"
-  >
-    <input
-      pInputText
-      id="request-dialog-end"
-      type="time"
-      name="end"
-      fluid
-      [attr.aria-invalid]="error('end') !== null ? 'true' : null"
-      [attr.aria-describedby]="describedBy('end')"
-      [ngModel]="endTime()"
-      (ngModelChange)="endTime.set($event)"
-    />
-  </app-form-field>
-  <app-form-field
-    label="Technician"
-    controlId="request-dialog-technicianId"
-    [error]="error('technicianId')"
-  >
-    <p-select
-      inputId="request-dialog-technicianId"
-      appendTo="body"
-      fluid
-      optionLabel="label"
-      optionValue="code"
-      [options]="technicianOptions()"
-      [ngModel]="technicianId()"
-      [invalid]="error('technicianId') !== null"
-      [attr.aria-describedby]="describedBy('technicianId')"
-      (ngModelChange)="technicianId.set($event)"
-    />
-  </app-form-field>
-</ng-template>

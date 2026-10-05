@@ -1,0 +1,283 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+
+  &__toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__nav {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  &__icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-control);
+    block-size: var(--fo-size-control);
+    padding: 0;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__range {
+    flex: 1 1 8rem;
+    margin: 0;
+    color: var(--fo-color-heading);
+    font-size: 1.0625rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  &__views {
+    display: inline-flex;
+  }
+
+  &__view {
+    min-block-size: var(--fo-size-control);
+    padding: 0 1rem;
+    color: var(--fo-color-primary-strong);
+    font: inherit;
+    font-weight: 600;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    cursor: pointer;
+
+    &:first-child {
+      border-start-start-radius: var(--fo-radius-control);
+      border-end-start-radius: var(--fo-radius-control);
+    }
+
+    &:last-child {
+      border-start-end-radius: var(--fo-radius-control);
+      border-end-end-radius: var(--fo-radius-control);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    &--active {
+      color: var(--fo-color-on-primary);
+      background: var(--fo-color-primary-hover);
+      border-color: var(--fo-color-primary-hover);
+    }
+  }
+
+  &__message {
+    margin: 0;
+    padding: 1rem;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  // The Week grid scrolls horizontally inside its card; the page never does.
+  &__scroll {
+    position: relative;
+    overflow-x: auto;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__loading {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 3px;
+    background: var(--fo-color-primary);
+    opacity: 0.6;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 3.5rem repeat(var(--calendar-columns), minmax(6.5rem, 1fr));
+    min-inline-size: min-content;
+    background: var(--fo-color-surface);
+  }
+
+  &__corner,
+  &__head {
+    padding: 0.5rem 0.25rem;
+    border-block-end: 1px solid var(--fo-color-border);
+  }
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--fo-color-text);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-inline-start: 1px solid var(--fo-color-row-divider);
+
+    &--selected {
+      background: var(--fo-color-info-background);
+    }
+  }
+
+  &__hours {
+    position: relative;
+    block-size: calc(var(--calendar-hours) * 3rem);
+  }
+
+  &__hour {
+    position: absolute;
+    inset-inline-end: 0.375rem;
+    color: var(--fo-color-text-secondary);
+    font-size: 0.75rem;
+    transform: translateY(-0.5em);
+  }
+
+  &__column {
+    position: relative;
+    block-size: calc(var(--calendar-hours) * 3rem);
+    border-inline-start: 1px solid var(--fo-color-row-divider);
+    background-image: linear-gradient(var(--fo-color-row-divider) 1px, transparent 1px);
+    background-size: 100% calc(100% / var(--calendar-hours));
+
+    &--selected {
+      background-color: var(--fo-color-info-background);
+    }
+  }
+
+  &__shade {
+    position: absolute;
+    inset-inline: 0;
+    padding: 0.125rem 0.25rem;
+    color: var(--fo-color-text-secondary);
+    font-size: 0.6875rem;
+    overflow: hidden;
+
+    &--unavailable {
+      background: repeating-linear-gradient(
+        135deg,
+        var(--fo-color-neutral-background),
+        var(--fo-color-neutral-background) 4px,
+        transparent 4px,
+        transparent 8px
+      );
+    }
+
+    &--time-off {
+      color: var(--fo-color-danger-text);
+      font-weight: 600;
+      background: var(--fo-color-danger-background);
+    }
+  }
+
+  &__event {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    padding: 0.125rem 0.375rem;
+    overflow: hidden;
+    color: var(--fo-color-info-text);
+    font-size: 0.75rem;
+    line-height: 1.25;
+    background: var(--fo-color-info-background);
+    border: 1px solid var(--fo-color-info-border);
+    border-radius: var(--fo-radius-control);
+
+    &--visit {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+      border-color: var(--fo-color-success-text);
+    }
+
+    &--current {
+      border: 2px solid var(--fo-color-info-text);
+    }
+
+    &--proposed {
+      color: var(--fo-color-heading);
+      font-weight: 600;
+      background: var(--fo-color-surface);
+      border: 2px dashed var(--fo-color-primary);
+    }
+  }
+
+  &__event-time {
+    font-weight: 600;
+  }
+
+  &__agenda {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__agenda-day {
+    margin: 0 0 0.25rem;
+    color: var(--fo-color-heading);
+    font-size: 0.9375rem;
+  }
+
+  &__agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__agenda-event {
+    padding: 0.5rem 0.75rem;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__agenda-time {
+    margin-inline-end: 0.5rem;
+    font-weight: 600;
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

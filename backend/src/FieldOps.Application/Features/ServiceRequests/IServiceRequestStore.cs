@@ -42,8 +42,37 @@ public interface IServiceRequestStore
     Task<RequestMutationOutcome> MutateAsync(
         RequestActor actor, Guid requestId, RequestMutation mutation, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// The eligible technicians of the request branch with their schedules and commitments for the range (BR-04),
+    /// or not found, a branch error or a not-schedulable conflict.
+    /// </summary>
+    Task<ServiceRequestResult<PlannerLoad>> LoadPlannerAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid requestId,
+        Guid? branchId,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken cancellationToken);
+
+    /// <summary>The schedule and commitments of one eligible technician for the range (BR-07).</summary>
+    Task<ServiceRequestResult<CalendarLoad>> LoadCalendarAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid requestId,
+        Guid technicianId,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        CancellationToken cancellationToken);
+
     Task<RequestCreationOutcome> CreateInternalAsync(
         RequestActor actor, InternalRequestInput input, CancellationToken cancellationToken);
+}
+
+/// <summary>Sends the assessment email after the commit (schedule-assessment BR-14); implementations never throw for a delivery failure.</summary>
+public interface IAssessmentNotifier
+{
+    Task SendAsync(AssessmentEmail email, CancellationToken cancellationToken);
 }
 
 /// <summary>Sends the information-request email after the commit (BR-13); implementations never throw for a delivery failure.</summary>

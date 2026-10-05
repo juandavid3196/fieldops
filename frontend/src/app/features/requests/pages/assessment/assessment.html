@@ -1,0 +1,239 @@
+<p-toast />
+<app-confirm-dialog
+  checkboxLabel="Notify customer by email"
+  [checkboxDisabled]="!emailAvailable()"
+  [checkboxHelper]="emailAvailable() ? undefined : noEmailMessage"
+  [(checkboxChecked)]="cancelNotify"
+/>
+<app-discard-changes-dialog />
+
+<div class="assessment">
+  <header class="assessment__header">
+    @if (detail(); as detail) {
+      <nav class="assessment__breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a routerLink="/requests">Requests</a></li>
+          <li>
+            <a routerLink="/requests" [queryParams]="requestQueryParams">{{ detail.number }}</a>
+          </li>
+          <li aria-current="page">{{ title() }}</li>
+        </ol>
+      </nav>
+    }
+    <div class="assessment__title-row">
+      <div class="assessment__title-group">
+        <h1 #heading class="assessment__title" tabindex="-1">{{ title() }}</h1>
+        @if (state() === 'ready' || state() === 'not-schedulable') {
+          <span class="assessment__status">{{ statusChip() }}</span>
+        }
+      </div>
+      @if (state() !== 'forbidden' && state() !== 'not-available') {
+        <a
+          pButton
+          class="assessment__back"
+          severity="secondary"
+          [outlined]="true"
+          routerLink="/requests"
+          [queryParams]="requestQueryParams"
+        >
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>
+          Back to request
+        </a>
+      }
+    </div>
+    @if (state() === 'ready') {
+      <p class="assessment__subtitle">{{ subtitle }}</p>
+    }
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="assessment__skeletons" aria-busy="true">
+        <p-skeleton height="3rem" />
+        <div class="assessment__grid">
+          <p-skeleton height="28rem" />
+          <p-skeleton height="28rem" />
+        </div>
+      </div>
+    }
+    @case ('forbidden') {
+      <p class="assessment__message" role="alert">{{ forbiddenMessage }}</p>
+    }
+    @case ('not-available') {
+      <div class="assessment__message" role="alert">
+        <p>{{ unavailableMessage }}</p>
+        <a pButton severity="secondary" size="small" routerLink="/requests">Back to requests</a>
+      </div>
+    }
+    @case ('not-schedulable') {
+      <div class="assessment__message" role="alert">
+        <p>{{ notSchedulableMessage }}</p>
+        <a
+          pButton
+          severity="secondary"
+          size="small"
+          routerLink="/requests"
+          [queryParams]="requestQueryParams"
+        >
+          Back to request
+        </a>
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="assessment__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retryLoad()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @default {
+      @if (form(); as form) {
+        @if (mode() === 'schedule') {
+          <p-message severity="info" [closable]="false">
+            <span class="assessment__info">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              <span>
+                <strong>Assessment is optional.</strong>
+                If the request already contains enough information, return to the request and choose
+                <strong>Mark ready for quote</strong> instead.
+              </span>
+            </span>
+          </p-message>
+        }
+
+        <div class="assessment__grid">
+          <section class="assessment__card" aria-labelledby="assessment-find-heading">
+            <h2 class="assessment__card-title" id="assessment-find-heading">
+              <i class="pi pi-calendar" aria-hidden="true"></i>
+              Find a time
+            </h2>
+
+            <div class="assessment__availability">
+              <i class="pi pi-user" aria-hidden="true"></i>
+              <div>
+                <h3 class="assessment__availability-title">Customer availability from request</h3>
+                <p class="assessment__availability-text">
+                  @if (preferred().visit; as visit) {
+                    <span>Preferred visit: {{ visit }}</span>
+                  } @else if (!preferred().notes) {
+                    <span>{{ noPreferredMessage }}</span>
+                  }
+                  @if (preferred().notes; as notes) {
+                    <span>{{ notes }}</span>
+                  }
+                </p>
+                <p class="assessment__availability-note">{{ preferredNote }}</p>
+              </div>
+            </div>
+
+            <h3 class="assessment__subheading" id="assessment-picker-label">Select a technician</h3>
+            <app-assessment-technician-picker
+              [technicians]="planner()?.technicians ?? null"
+              [timezone]="plannerZone()"
+              [selectedId]="form.technicianId"
+              [loading]="plannerLoading()"
+              [failed]="plannerFailed()"
+              [waitingForBranch]="waitingForBranch()"
+              (selectedChange)="selectTechnician($event)"
+              (retry)="loadPlanner()"
+            />
+
+            <app-assessment-calendar
+              [calendar]="calendar()"
+              [hasTechnician]="form.technicianId !== ''"
+              [loading]="calendarLoading()"
+              [failed]="calendarFailed()"
+              [view]="calendarView()"
+              [viewDate]="calendarDate()"
+              [proposed]="proposed()"
+              [timezone]="calendarZone()"
+              (viewChange)="onCalendarView($event)"
+              (shift)="onCalendarShift($event)"
+              (retry)="refreshCalendar(true)"
+            />
+          </section>
+
+          <section class="assessment__card" aria-labelledby="assessment-visit-heading">
+            <h2 class="assessment__card-title" id="assessment-visit-heading">
+              <i class="pi pi-file" aria-hidden="true"></i>
+              Assessment visit
+            </h2>
+
+            @if (summary(); as summary) {
+              <dl class="assessment__summary">
+                <div>
+                  <dt>Request</dt>
+                  <dd>{{ summary.number }}</dd>
+                </div>
+                <div>
+                  <dt>Customer</dt>
+                  <dd>{{ summary.customer }}</dd>
+                </div>
+                <div class="assessment__summary-wide">
+                  <dt>Property</dt>
+                  <dd>{{ summary.property }}</dd>
+                </div>
+                <div class="assessment__summary-wide">
+                  <dt>Issue</dt>
+                  <dd>{{ summary.issue }}</dd>
+                </div>
+              </dl>
+            }
+
+            <app-assessment-form
+              [value]="form"
+              [mode]="mode()"
+              [needsBranch]="needsBranch()"
+              [branches]="branchOptions()"
+              [technicians]="technicianOptions()"
+              [minDate]="today()"
+              [errors]="errors()"
+              [preview]="preview()"
+              [emailAvailable]="emailAvailable()"
+              [submitting]="submitting()"
+              (valueChange)="onFormChange($event)"
+              (submitted)="submit()"
+              (cancelled)="backToRequest()"
+              (cancelAssessment)="confirmCancelAssessment()"
+            />
+
+            <section class="assessment__process" aria-labelledby="assessment-process-heading">
+              <h3 class="assessment__subheading" id="assessment-process-heading">
+                Request process
+              </h3>
+              <ol class="assessment__steps">
+                @for (step of steps(); track step.label) {
+                  <li
+                    class="assessment__step assessment__step--{{ step.status }}"
+                    [attr.aria-current]="step.status === 'current' ? 'step' : null"
+                  >
+                    <span class="assessment__step-dot" aria-hidden="true">
+                      @if (step.status === 'done') {
+                        <i class="pi pi-check"></i>
+                      }
+                    </span>
+                    <span class="assessment__step-label">{{ step.label }}</span>
+                    @if (step.status === 'done') {
+                      <span class="assessment__sr">(completed)</span>
+                    } @else if (step.status === 'current') {
+                      <span class="assessment__sr">(current step)</span>
+                    }
+                  </li>
+                }
+              </ol>
+              <p-message severity="info" [closable]="false">
+                <span class="assessment__info">
+                  <i class="pi pi-info-circle" aria-hidden="true"></i>
+                  <span>{{ footerNote }}</span>
+                </span>
+              </p-message>
+            </section>
+          </section>
+        </div>
+      }
+    }
+  }
+</div>

@@ -232,6 +232,30 @@ public static class TechnicianAvailabilityCalculator
             : TodayStatuses.Off;
     }
 
+    /// <summary>
+    /// The effective availability inside the range (weekly windows minus breaks, plus available exceptions, minus
+    /// time off) as sorted, merged instants. Used by the assessment planner and calendar.
+    /// </summary>
+    public static IReadOnlyList<(DateTimeOffset Start, DateTimeOffset End)> AvailabilityRanges(
+        TechnicianSchedule schedule, DateTimeOffset from, DateTimeOffset to)
+    {
+        var merged = new List<(DateTimeOffset Start, DateTimeOffset End)>();
+
+        foreach (var span in Availability(schedule, BranchTime.FindZone(schedule.ZoneId), from, to).OrderBy(span => span.Start))
+        {
+            if (merged.Count > 0 && span.Start <= merged[^1].End)
+            {
+                merged[^1] = (merged[^1].Start, span.End > merged[^1].End ? span.End : merged[^1].End);
+            }
+            else
+            {
+                merged.Add((span.Start, span.End));
+            }
+        }
+
+        return merged;
+    }
+
     /// <summary>BR-04: window minutes weighted by capacity, plus exception-added minutes at 100 %.</summary>
     public static double AvailableMinutes(TechnicianSchedule schedule, DateTimeOffset from, DateTimeOffset to)
     {

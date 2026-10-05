@@ -28,6 +28,8 @@ public sealed class ServiceRequestsController(
     GetServiceRequestHandler detailHandler,
     GetRequestAttachmentHandler attachmentHandler,
     ServiceRequestActionHandler actions,
+    GetAssessmentPlannerHandler plannerHandler,
+    GetAssessmentCalendarHandler calendarHandler,
     CreateInternalRequestHandler createHandler) : ControllerBase
 {
     public const int MaxJsonBodyBytes = 64 * 1024;
@@ -281,6 +283,56 @@ public sealed class ServiceRequestsController(
         CancellationToken cancellationToken) =>
         RunBodyAsync(call => actions.LogResponseAsync(call, id, body.Body, cancellationToken));
 
+    [HttpGet("{id:guid}/assessment/planner")]
+    [Authorize(Policy = ServiceRequestPolicies.Manage)]
+    [ProducesResponseType<AssessmentPlanner>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AssessmentPlanner(
+        Guid id,
+        [FromQuery] string? date,
+        [FromQuery] string? start,
+        [FromQuery] string? durationMinutes,
+        [FromQuery] string? branchId,
+        CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        return Map(await plannerHandler.HandleAsync(
+            Call(ticket), id, new PlannerQueryText(date, start, durationMinutes, branchId), cancellationToken));
+    }
+
+    [HttpGet("{id:guid}/assessment/calendar")]
+    [Authorize(Policy = ServiceRequestPolicies.Manage)]
+    [ProducesResponseType<AssessmentCalendar>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> AssessmentCalendar(
+        Guid id,
+        [FromQuery] string? technicianId,
+        [FromQuery] string? from,
+        [FromQuery] string? to,
+        CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        return Map(await calendarHandler.HandleAsync(
+            Call(ticket), id, new CalendarQueryText(technicianId, from, to), cancellationToken));
+    }
+
     [HttpPost("{id:guid}/assessment")]
     [Authorize(Policy = ServiceRequestPolicies.Manage)]
     [Consumes("application/json")]
@@ -290,8 +342,7 @@ public sealed class ServiceRequestsController(
         Guid id,
         [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ScheduleAssessmentRequestBody body,
         CancellationToken cancellationToken) =>
-        RunBodyAsync(call => actions.ScheduleAssessmentAsync(
-            call, id, body.Start, body.End, body.TechnicianId, body.BranchId, cancellationToken));
+        RunBodyAsync(call => actions.ScheduleAssessmentAsync(call, id, body.ToText(), cancellationToken));
 
     [HttpPut("{id:guid}/assessment")]
     [Authorize(Policy = ServiceRequestPolicies.Manage)]
@@ -302,14 +353,16 @@ public sealed class ServiceRequestsController(
         Guid id,
         [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] RescheduleAssessmentRequestBody body,
         CancellationToken cancellationToken) =>
-        RunBodyAsync(call => actions.RescheduleAssessmentAsync(
-            call, id, body.Start, body.End, body.TechnicianId, cancellationToken));
+        RunBodyAsync(call => actions.RescheduleAssessmentAsync(call, id, body.ToText(), cancellationToken));
 
     [HttpPost("{id:guid}/assessment/cancel")]
     [Authorize(Policy = ServiceRequestPolicies.Manage)]
     [ProducesResponseType<RequestDetail>(StatusCodes.Status200OK)]
-    public Task<IActionResult> CancelAssessment(Guid id, CancellationToken cancellationToken) =>
-        RunAsync(call => actions.CancelAssessmentAsync(call, id, cancellationToken));
+    public Task<IActionResult> CancelAssessment(
+        Guid id,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Allow)] CancelAssessmentRequestBody? body,
+        CancellationToken cancellationToken) =>
+        RunBodyAsync(call => actions.CancelAssessmentAsync(call, id, body?.NotifyCustomer, cancellationToken));
 
     [HttpPost("{id:guid}/assessment/complete")]
     [Authorize(Policy = ServiceRequestPolicies.Manage)]
@@ -460,13 +513,22 @@ public sealed class ServiceRequestsController(
                 StatusCode = StatusCodes.Status400BadRequest,
             },
             ServiceRequestResultKind.NotFound => NotFound(),
-            ServiceRequestResultKind.Conflict => Conflict(new ProblemDetails
-            {
-                Status = StatusCodes.Status409Conflict,
-                Title = result.Message ?? ServiceRequestMessages.ConflictTitle,
-            }),
+            ServiceRequestResultKind.Conflict => Conflict(ConflictProblem(result.Message, result.Code)),
             _ => throw new InvalidOperationException("Unknown service request result."),
         };
+
+    // Every 409 carries a machine-readable code (schedule-assessment API contracts).
+    private static ProblemDetails ConflictProblem(string? title, string? code)
+    {
+        var problem = new ProblemDetails
+        {
+            Status = StatusCodes.Status409Conflict,
+            Title = title ?? ServiceRequestMessages.ConflictTitle,
+        };
+        problem.Extensions["code"] = code ?? ServiceRequestMessages.RequestChangedCode;
+
+        return problem;
+    }
 
     private IPAddress? GetClientIpAddress()
     {

@@ -15,10 +15,34 @@ public sealed record BranchRequestBody(Guid? BranchId);
 public sealed record MessageRequestBody(string? Body);
 
 /// <summary>Body of POST /service-requests/{id}/assessment (BR-15); times are local organization time.</summary>
-public sealed record ScheduleAssessmentRequestBody(string? Start, string? End, Guid? TechnicianId, Guid? BranchId);
+public sealed record ScheduleAssessmentRequestBody(
+    string? Start,
+    string? End,
+    Guid? TechnicianId,
+    Guid? BranchId,
+    string? Purpose,
+    string? InternalInstructions,
+    bool? NotifyCustomer)
+{
+    public AssessmentFormText ToText() =>
+        new(Start, End, TechnicianId, BranchId, Purpose, InternalInstructions, NotifyCustomer);
+}
 
 /// <summary>Body of PUT /service-requests/{id}/assessment (BR-15).</summary>
-public sealed record RescheduleAssessmentRequestBody(string? Start, string? End, Guid? TechnicianId);
+public sealed record RescheduleAssessmentRequestBody(
+    string? Start,
+    string? End,
+    Guid? TechnicianId,
+    string? Purpose,
+    string? InternalInstructions,
+    bool? NotifyCustomer)
+{
+    public AssessmentFormText ToText() =>
+        new(Start, End, TechnicianId, null, Purpose, InternalInstructions, NotifyCustomer);
+}
+
+/// <summary>Optional body of POST /service-requests/{id}/assessment/cancel; a missing body or flag means false (BR-15).</summary>
+public sealed record CancelAssessmentRequestBody(bool? NotifyCustomer);
 
 /// <summary>Body of POST /service-requests/{id}/cancel.</summary>
 public sealed record CancelRequestBody(string? Reason);

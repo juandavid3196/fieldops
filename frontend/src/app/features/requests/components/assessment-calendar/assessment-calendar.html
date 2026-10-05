@@ -1,0 +1,133 @@
+<section class="calendar" aria-label="Technician calendar">
+  <div class="calendar__toolbar">
+    <div class="calendar__nav">
+      <button
+        type="button"
+        class="calendar__icon-button"
+        [attr.aria-label]="'Previous ' + step()"
+        (click)="shift.emit(-1)"
+      >
+        <i class="pi pi-chevron-left" aria-hidden="true"></i>
+      </button>
+      <button
+        type="button"
+        class="calendar__icon-button"
+        [attr.aria-label]="'Next ' + step()"
+        (click)="shift.emit(1)"
+      >
+        <i class="pi pi-chevron-right" aria-hidden="true"></i>
+      </button>
+    </div>
+    <p class="calendar__range" aria-live="polite">{{ label() }}</p>
+    <div class="calendar__views" role="group" aria-label="Calendar view">
+      @for (option of views; track option.code) {
+        <button
+          type="button"
+          class="calendar__view"
+          [class.calendar__view--active]="option.code === view()"
+          [attr.aria-pressed]="option.code === view()"
+          (click)="viewChange.emit(option.code)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (!hasTechnician()) {
+    <p class="calendar__message">{{ noTechnicianMessage }}</p>
+  } @else if (failed()) {
+    <p-message severity="error" [closable]="false">
+      <span class="calendar__error" role="alert">
+        {{ errorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (model(); as model) {
+    @if (view() === 'agenda') {
+      @if (model.agenda.length === 0) {
+        <p class="calendar__message">{{ emptyAgendaMessage }}</p>
+      } @else {
+        <ol class="calendar__agenda">
+          @for (day of model.agenda; track day.date) {
+            <li>
+              <h3 class="calendar__agenda-day">{{ day.heading }}</h3>
+              <ul class="calendar__agenda-list">
+                @for (event of day.events; track $index) {
+                  <li class="calendar__agenda-event">
+                    <span class="calendar__agenda-time">{{ event.range }}</span>
+                    {{ event.label }}
+                  </li>
+                }
+              </ul>
+            </li>
+          }
+        </ol>
+      }
+    } @else {
+      <div class="calendar__scroll" [attr.aria-busy]="loading() ? 'true' : null">
+        <div
+          class="calendar__grid"
+          aria-hidden="true"
+          [style.--calendar-columns]="model.columns.length"
+          [style.--calendar-hours]="model.hourCount"
+        >
+          <div class="calendar__corner"></div>
+          @for (column of model.columns; track column.date) {
+            <div class="calendar__head" [class.calendar__head--selected]="column.selected">
+              <span>{{ column.weekday }}</span>
+              <span>{{ column.dayLabel }}</span>
+            </div>
+          }
+          <div class="calendar__hours">
+            @for (hour of model.hours; track hour.label) {
+              <span class="calendar__hour" [style.top.%]="hour.top">{{ hour.label }}</span>
+            }
+          </div>
+          @for (column of model.columns; track column.date) {
+            <div class="calendar__column" [class.calendar__column--selected]="column.selected">
+              @for (shade of column.shades; track $index) {
+                <span
+                  class="calendar__shade calendar__shade--{{ shade.kind }}"
+                  [style.top.%]="shade.top"
+                  [style.height.%]="shade.height"
+                >
+                  @if (shade.kind === 'time-off') {
+                    Time off
+                  }
+                </span>
+              }
+              @for (event of column.events; track event.key) {
+                <span
+                  class="calendar__event calendar__event--{{ event.kind }}"
+                  [class.calendar__event--current]="event.isCurrent"
+                  [style.top.%]="event.top"
+                  [style.height.%]="event.height"
+                  [style.left.%]="(event.lane / event.lanes) * 100"
+                  [style.width.%]="100 / event.lanes"
+                >
+                  <span class="calendar__event-time">{{ event.range }}</span>
+                  <span class="calendar__event-label">{{ event.label }}</span>
+                </span>
+              }
+            </div>
+          }
+        </div>
+        @if (loading()) {
+          <span class="calendar__loading" aria-hidden="true"></span>
+        }
+      </div>
+      <ul class="calendar__sr">
+        @for (item of model.listing; track $index) {
+          <li>{{ item }}</li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="calendar__skeleton" aria-busy="true">
+      <p-skeleton height="14rem" />
+    </div>
+  }
+</section>

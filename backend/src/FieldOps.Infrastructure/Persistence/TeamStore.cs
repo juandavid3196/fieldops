@@ -19,8 +19,6 @@ internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStor
     private static readonly VisitStatus[] UpcomingStatuses =
         [VisitStatus.Scheduled, VisitStatus.Assigned, VisitStatus.OnTheWay, VisitStatus.InProgress, VisitStatus.Paused];
 
-    private static readonly VisitStatus[] OnJobStatuses = [VisitStatus.OnTheWay, VisitStatus.InProgress, VisitStatus.Paused];
-
     private sealed record ProfileRow(
         Guid Id,
         Guid BranchId,
@@ -653,79 +651,22 @@ internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStor
                     .ToList());
     }
 
-    private async Task<Dictionary<Guid, TechnicianSchedule>> LoadSchedulesAsync(
+    private Task<Dictionary<Guid, TechnicianSchedule>> LoadSchedulesAsync(
         Guid organizationId,
         IReadOnlyList<ProfileRow> rows,
         (string? Timezone, string Prefix) context,
         DateTimeOffset now,
-        CancellationToken cancellationToken)
-    {
-        var ids = rows.Select(row => row.Id).ToArray();
-        var low = now.AddDays(-9);
-        var high = now.AddDays(9);
-
-        var slotRows = await dbContext.TechnicianWeeklyAvailabilities.AsNoTracking()
-            .Where(slot => ids.Contains(slot.TechnicianId))
-            .Select(slot => new { slot.Id, slot.TechnicianId, slot.DayOfWeek, slot.StartTime, slot.EndTime, slot.CapacityPercent })
-            .ToListAsync(cancellationToken);
-
-        var slotIds = slotRows.Select(slot => slot.Id).ToArray();
-        var breakRows = await dbContext.TechnicianBreaks.AsNoTracking()
-            .Where(item => slotIds.Contains(item.AvailabilityId))
-            .Select(item => new { item.AvailabilityId, item.StartTime, item.EndTime })
-            .ToListAsync(cancellationToken);
-
-        var exceptionRows = await dbContext.TechnicianExceptions.AsNoTracking()
-            .Where(item => ids.Contains(item.TechnicianId) && item.EndsAt > low && item.StartsAt < high)
-            .Select(item => new { item.TechnicianId, item.StartsAt, item.EndsAt, item.IsAvailable })
-            .ToListAsync(cancellationToken);
-
-        // Only on-job visits carry their scope text; counted visits are limited to the window around now.
-        var visitRows = await (
-            from assignment in dbContext.VisitAssignments.AsNoTracking()
-            join visit in dbContext.Visits.AsNoTracking() on assignment.VisitId equals visit.Id
-            join workOrder in dbContext.WorkOrders.AsNoTracking() on visit.WorkOrderId equals workOrder.Id
-            where ids.Contains(assignment.TechnicianId)
-                && assignment.UnassignedAt == null
-                && visit.OrganizationId == organizationId
-                && visit.Status != VisitStatus.Unscheduled
-                && visit.Status != VisitStatus.Cancelled
-                && (OnJobStatuses.Contains(visit.Status)
-                    || (visit.ScheduledStart >= low && visit.ScheduledStart < high))
-            select new
-            {
-                assignment.TechnicianId,
-                visit.Status,
-                visit.ScheduledStart,
-                visit.ScheduledEnd,
-                workOrder.WorkOrderNumber,
-                Scope = OnJobStatuses.Contains(visit.Status) ? workOrder.ScopeSnapshot : null,
-            })
-            .ToListAsync(cancellationToken);
-
-        var breaksBySlot = breakRows
-            .GroupBy(item => item.AvailabilityId)
-            .ToDictionary(group => group.Key, group => group.Select(item => new TimeRange(item.StartTime, item.EndTime)).ToList());
-
-        return rows.ToDictionary(
-            row => row.Id,
-            row => new TechnicianSchedule(
-                row.Status,
-                BranchTime.ResolveZoneId(row.BranchTimezone, context.Timezone),
-                [.. slotRows.Where(slot => slot.TechnicianId == row.Id).Select(slot => new AvailabilitySlot(
-                    slot.DayOfWeek,
-                    slot.StartTime,
-                    slot.EndTime,
-                    slot.CapacityPercent,
-                    breaksBySlot.TryGetValue(slot.Id, out var breaks) ? breaks : []))],
-                [.. exceptionRows.Where(item => item.TechnicianId == row.Id)
-                    .Select(item => new AvailabilityOverride(item.StartsAt, item.EndsAt, item.IsAvailable))],
-                [.. visitRows.Where(item => item.TechnicianId == row.Id).Select(item => new AssignedVisit(
-                    item.Status,
-                    item.ScheduledStart,
-                    item.ScheduledEnd,
-                    item.Scope is null ? null : $"{context.Prefix}-{item.WorkOrderNumber} – {FirstLine(item.Scope)}"))]));
-    }
+        CancellationToken cancellationToken) =>
+        TechnicianScheduleLoader.LoadAsync(
+            dbContext,
+            organizationId,
+            [.. rows.Select(row => new ScheduleSubject(row.Id, row.Status, row.BranchTimezone))],
+            context.Timezone,
+            context.Prefix,
+            now.AddDays(-9),
+            now.AddDays(9),
+            onlyActiveExceptions: false,
+            cancellationToken);
 
     private async Task<TechnicianProfileData> BuildProfileAsync(
         Guid organizationId, ProfileRow row, DateTimeOffset now, CancellationToken cancellationToken)
@@ -814,11 +755,4 @@ internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStor
             },
             _ => null,
         };
-
-    private static string FirstLine(string text)
-    {
-        var line = text.Split('\n', 2)[0].Trim();
-
-        return line;
-    }
 }

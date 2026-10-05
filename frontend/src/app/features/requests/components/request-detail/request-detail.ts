@@ -110,6 +110,8 @@ export class RequestDetailPanel {
       date: formatDate(assessment.start, zone),
       time: `${formatTime(assessment.start, zone)} – ${formatTime(assessment.end, zone)}`,
       technician: assessment.technician?.name ?? null,
+      purpose: assessment.purpose,
+      instructions: assessment.internalInstructions,
     };
   });
 
