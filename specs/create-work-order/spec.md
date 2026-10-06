@@ -4,7 +4,7 @@
 | -------- | ------------------- |
 | Feature  | `create-work-order` |
 | Type     | Full-stack          |
-| Status   | APPROVED            |
+| Status   | AUDITED             |
 | Created  | 2026-10-06          |
 | Updated  | 2026-10-06          |
 | Approved | 2026-10-06          |
@@ -459,3 +459,5 @@ ceiling. Agents run no browser automation.
 | 2026-10-06 | DRAFT → DRAFT | Revised after validation: template audit fields and item limits, Jobs sidebar visibility, list/detail time zones, BR-25 row, test-data note for the version mismatch |
 | 2026-10-06 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-06 | APPROVED → APPROVED | Amended on explicit user request during implementation: **Move up**/**Move down** buttons removed from task rows (BR-10, FR-04, AC-15, testing row, OD-07). Reordering is drag-and-drop only |
+| 2026-10-06 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-06 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |
