@@ -76,6 +76,45 @@ public sealed class RequestsHost : IAsyncDisposable
         return Client.SendAsync(request);
     }
 
+    /// <summary>Completes an assessment with the multipart form of quote-builder BR-01 (photos use the declared type of a real client).</summary>
+    public Task<HttpResponseMessage> CompleteAssessmentAsync(
+        Guid requestId,
+        string? cookie,
+        string? diagnosis = "Cracked supply line",
+        string? recommendedScope = null,
+        params (string FileName, byte[] Content)[] photos)
+    {
+        var form = new MultipartFormDataContent();
+
+        if (diagnosis is not null)
+        {
+            form.Add(new StringContent(diagnosis), "diagnosis");
+        }
+
+        if (recommendedScope is not null)
+        {
+            form.Add(new StringContent(recommendedScope), "recommendedScope");
+        }
+
+        foreach (var (fileName, bytes) in photos)
+        {
+            var part = new ByteArrayContent(bytes);
+            part.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            form.Add(part, "photos", fileName);
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/service-requests/{requestId}/assessment/complete") { Content = form };
+
+        if (cookie is not null)
+        {
+            request.Headers.Add("Cookie", cookie);
+        }
+
+        request.Headers.Add(TestClientIpStartupFilter.HeaderName, SessionApi.NewClientIp());
+
+        return Client.SendAsync(request);
+    }
+
     public static async Task<JsonNode> ReadAsync(HttpResponseMessage response) =>
         JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
 

@@ -1,0 +1,23 @@
+:host {
+  display: contents;
+}
+
+.preview {
+  &__message {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}

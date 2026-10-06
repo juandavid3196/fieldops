@@ -1,0 +1,71 @@
+@use '../../card';
+
+:host {
+  display: contents;
+}
+
+.card {
+  @include card.base;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  &__title {
+    @include card.title;
+  }
+
+  &__text {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__note {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__channels {
+    display: flex;
+    gap: 1.25rem;
+  }
+
+  &__channel {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__muted {
+    @include card.muted;
+
+    margin: 0;
+  }
+
+  &__label {
+    margin-block-start: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__count {
+    @include card.muted;
+
+    margin: 0;
+    text-align: end;
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+}

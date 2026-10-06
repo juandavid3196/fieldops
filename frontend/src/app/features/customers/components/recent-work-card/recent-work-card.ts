@@ -16,7 +16,7 @@ const TYPE_LABELS: Readonly<Record<RecentWorkType, string>> = {
 };
 const TYPE_LINKS: Readonly<Record<RecentWorkType, string>> = {
   request: '/requests',
-  quote: '/coming-soon/quotes',
+  quote: '/quotes',
   job: '/coming-soon/work-orders',
 };
 const TYPE_SEVERITY: Readonly<Record<RecentWorkType, 'success' | 'info' | 'secondary'>> = {
@@ -25,7 +25,7 @@ const TYPE_SEVERITY: Readonly<Record<RecentWorkType, 'success' | 'info' | 'secon
   request: 'secondary',
 };
 
-/** Recent work table (BR-14). Presentational; links go to Coming soon routes. */
+/** Recent work table (BR-14). Presentational; request and quote links open their pages, job links go to Coming soon. */
 @Component({
   selector: 'app-recent-work-card',
   imports: [RouterLink, ButtonDirective, Message, Skeleton, Tag],
@@ -44,7 +44,8 @@ export class RecentWorkCard {
       key: `${item.type}-${item.id}`,
       type: TYPE_LABELS[item.type],
       severity: TYPE_SEVERITY[item.type],
-      link: TYPE_LINKS[item.type],
+      // Quote links open the read-only quote page (quote-builder BR-30).
+      link: item.type === 'quote' ? `/quotes/${item.id}` : TYPE_LINKS[item.type],
       // BR-17: request links open the Requests panel on that request.
       queryParams: item.type === 'request' ? { request: item.id } : null,
       number: item.number,

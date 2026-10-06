@@ -1,0 +1,45 @@
+<section class="card" aria-labelledby="quote-customer-heading">
+  <header class="card__head">
+    <h2 class="card__title" id="quote-customer-heading">Customer</h2>
+    @if (customer().id; as customerId) {
+      <a class="card__link" [routerLink]="['/customers', customerId]">Edit</a>
+    }
+  </header>
+  <div class="card__person">
+    <span class="card__avatar" aria-hidden="true">{{ initials() }}</span>
+    <strong class="card__name">{{ customer().name }}</strong>
+  </div>
+  @if (customer().phone; as phone) {
+    <p class="card__line">
+      <i class="pi pi-phone" aria-hidden="true"></i>
+      <a class="card__link" [href]="'tel:' + phone">{{ phone }}</a>
+    </p>
+  }
+  @if (customer().email; as email) {
+    <p class="card__line">
+      <i class="pi pi-envelope" aria-hidden="true"></i>
+      <a class="card__link" [href]="'mailto:' + email">{{ email }}</a>
+    </p>
+  }
+  @if (customer().address; as address) {
+    <p class="card__line">
+      <i class="pi pi-map-marker" aria-hidden="true"></i>
+      {{ address }}
+    </p>
+  }
+</section>
+
+<section class="card" aria-labelledby="quote-request-heading">
+  <h2 class="card__title" id="quote-request-heading">Request</h2>
+  <a class="card__request" routerLink="/requests" [queryParams]="requestQueryParams()">
+    <span class="card__request-title">{{ request().title }}</span>
+    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+  </a>
+  <p class="card__muted">{{ request().displayNumber }}</p>
+  @if (request().category; as category) {
+    <p class="card__line">
+      <i class="pi pi-wrench" aria-hidden="true"></i>
+      {{ category }}
+    </p>
+  }
+</section>

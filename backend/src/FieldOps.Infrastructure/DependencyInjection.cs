@@ -7,6 +7,7 @@ using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
+using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.Users;
@@ -89,6 +90,8 @@ public static class DependencyInjection
         services.AddScoped<IServiceRequestStore, ServiceRequestStore>();
         services.AddScoped<IRequestInformationNotifier, RequestInformationNotifier>();
         services.AddScoped<IAssessmentNotifier, AssessmentNotifier>();
+        services.AddScoped<IQuoteStore, QuoteStore>();
+        services.AddScoped<IQuoteNotifier, QuoteNotifier>();
         services.AddEmail(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 

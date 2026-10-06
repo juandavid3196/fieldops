@@ -4,7 +4,7 @@
 | -------- | --------------- |
 | Feature  | `quote-builder` |
 | Type     | Full-stack      |
-| Status   | APPROVED        |
+| Status   | AUDITED         |
 | Created  | 2026-10-05      |
 | Updated  | 2026-10-05      |
 | Approved | 2026-10-05      |
@@ -516,3 +516,5 @@ consolidated into table-driven criteria.
 | ---- | ------------- | ------ |
 | 2026-10-05 | — → DRAFT | Created |
 | 2026-10-05 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-05 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-05 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

@@ -1,0 +1,298 @@
+<p-toast />
+<p-toast key="quote-changed">
+  <ng-template #message let-message>
+    <div class="editor__toast">
+      <span>{{ message.summary }}</span>
+      <button pButton type="button" size="small" severity="secondary" (click)="refresh()">
+        Refresh
+      </button>
+    </div>
+  </ng-template>
+</p-toast>
+<app-confirm-dialog />
+<app-discard-changes-dialog />
+<p-menu #moreMenu [popup]="true" appendTo="body" [model]="moreItems()" />
+
+<div class="editor">
+  <p class="editor__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+  <header class="editor__header">
+    @if (detail(); as detail) {
+      <nav class="editor__breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a routerLink="/requests">Requests</a></li>
+          <li>
+            <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
+              detail.request.displayNumber
+            }}</a>
+          </li>
+          <li aria-current="page">Quote</li>
+        </ol>
+      </nav>
+    }
+    <div class="editor__title-row">
+      <div class="editor__title-group">
+        <h1 #heading class="editor__title" tabindex="-1">
+          {{ state() === 'ready' ? title() : 'Quote' }}
+        </h1>
+        @if (state() === 'ready' && detail()?.completedAssessment) {
+          <span class="editor__chip">
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            Assessment completed
+          </span>
+        }
+      </div>
+      @if (state() === 'ready') {
+        <div class="editor__tools">
+          <span class="editor__number">#{{ detail()?.displayNumber }}</span>
+          <p class="editor__save-state">
+            <span class="editor__save-label">{{ saveState().label }}</span>
+            @if (saveState().time) {
+              <span class="editor__save-time">{{ saveState().time }}</span>
+            }
+          </p>
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            (click)="previewOpen.set(true)"
+          >
+            Preview
+          </button>
+          <button
+            type="button"
+            class="editor__icon"
+            aria-label="More actions"
+            aria-haspopup="menu"
+            [disabled]="submitting()"
+            (click)="openMoreMenu($event)"
+          >
+            <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
+    </div>
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="editor__skeletons" aria-busy="true">
+        <p-skeleton height="3rem" />
+        <div class="editor__grid">
+          <p-skeleton height="18rem" />
+          <p-skeleton height="26rem" />
+          <p-skeleton height="18rem" />
+        </div>
+      </div>
+    }
+    @case ('forbidden') {
+      <p class="editor__message" role="alert">{{ forbiddenMessage }}</p>
+    }
+    @case ('not-available') {
+      <div class="editor__message" role="alert">
+        <p>{{ unavailableMessage }}</p>
+        <a pButton severity="secondary" size="small" routerLink="/requests">Back to requests</a>
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="editor__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retryLoad()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @default {
+      @if (detail(); as detail) {
+        <div class="editor__grid">
+          <div class="editor__left">
+            <app-quote-customer-card [customer]="detail.customer" [request]="detail.request" />
+            <app-quote-assessment-card
+              [requestId]="detail.request.id"
+              [assessment]="detail.completedAssessment"
+            />
+          </div>
+
+          <div class="editor__main">
+            <app-quote-line-items
+              [lines]="lines()"
+              [errors]="errors()"
+              [currency]="detail.organization.currency"
+              [amounts]="amounts()"
+              [calcStatus]="calc().status"
+              [disabled]="submitting()"
+              (lineChange)="onLineChange($event)"
+              (lineMove)="onMoveLine($event)"
+              (lineDrop)="onDropLine($event)"
+              (lineRemove)="onRemoveLine($event)"
+              (lineAdd)="onAddLine($event)"
+            />
+
+            <section class="editor__card editor__texts" aria-label="Quote texts and terms">
+              <div class="editor__field editor__field--wide">
+                <label class="editor__label" for="quote-customer-message">Customer message</label>
+                <textarea
+                  pTextarea
+                  id="quote-customer-message"
+                  rows="4"
+                  fluid
+                  data-field-key="customerMessage"
+                  [attr.aria-invalid]="errors()['customerMessage'] ? 'true' : null"
+                  [attr.aria-describedby]="'quote-customer-message-count'"
+                  [ngModel]="customerMessage()"
+                  (ngModelChange)="onCustomerMessage($event)"
+                ></textarea>
+                <p class="editor__count" id="quote-customer-message-count">
+                  {{ customerMessage().length }}/{{ messageLimit }}
+                </p>
+                @if (errors()['customerMessage']; as errorText) {
+                  <p class="editor__error-text">{{ errorText }}</p>
+                }
+              </div>
+
+              <div class="editor__field">
+                <label class="editor__label" for="quote-internal-note">
+                  Internal note
+                  <span class="editor__chip editor__chip--internal">Internal</span>
+                  <span class="editor__hint">(Not visible to customer)</span>
+                </label>
+                <textarea
+                  pTextarea
+                  id="quote-internal-note"
+                  rows="4"
+                  fluid
+                  placeholder="Add internal note..."
+                  data-field-key="internalNote"
+                  [attr.aria-invalid]="errors()['internalNote'] ? 'true' : null"
+                  [attr.aria-describedby]="'quote-internal-note-count'"
+                  [ngModel]="internalNote()"
+                  (ngModelChange)="onInternalNote($event)"
+                ></textarea>
+                <p class="editor__count" id="quote-internal-note-count">
+                  {{ internalNote().length }}/{{ messageLimit }}
+                </p>
+                @if (errors()['internalNote']; as errorText) {
+                  <p class="editor__error-text">{{ errorText }}</p>
+                }
+              </div>
+
+              <div class="editor__field">
+                <label class="editor__label" for="quote-terms">Terms</label>
+                <p-select
+                  inputId="quote-terms"
+                  appendTo="body"
+                  fluid
+                  optionLabel="label"
+                  optionValue="code"
+                  [options]="termsPresets"
+                  [ngModel]="terms().preset"
+                  (ngModelChange)="onPreset($event)"
+                />
+                @if (terms().preset === 'custom') {
+                  <label class="editor__label" for="quote-terms-custom">Custom terms</label>
+                  <textarea
+                    pTextarea
+                    id="quote-terms-custom"
+                    rows="3"
+                    fluid
+                    data-field-key="terms.customText"
+                    [attr.aria-invalid]="errors()['terms.customText'] ? 'true' : null"
+                    [attr.aria-describedby]="
+                      errors()['terms.customText'] ? 'quote-terms-custom-error' : null
+                    "
+                    [ngModel]="terms().customText"
+                    (ngModelChange)="onCustomTerms($event)"
+                  ></textarea>
+                  @if (errors()['terms.customText']; as errorText) {
+                    <p class="editor__error-text" id="quote-terms-custom-error">
+                      {{ errorText }}
+                    </p>
+                  }
+                }
+
+                <label class="editor__label" for="quote-valid-until">Quote expiration</label>
+                <input
+                  pInputText
+                  id="quote-valid-until"
+                  type="date"
+                  fluid
+                  data-field-key="validUntil"
+                  [min]="minDate()"
+                  [max]="maxDate()"
+                  [attr.aria-invalid]="errors()['validUntil'] ? 'true' : null"
+                  [attr.aria-describedby]="
+                    errors()['validUntil'] ? 'quote-valid-until-error' : null
+                  "
+                  [ngModel]="validUntil()"
+                  (ngModelChange)="onValidUntil($event)"
+                />
+                @if (errors()['validUntil']; as errorText) {
+                  <p class="editor__error-text" id="quote-valid-until-error">{{ errorText }}</p>
+                }
+              </div>
+            </section>
+          </div>
+
+          <div class="editor__right">
+            <app-quote-summary
+              [status]="calc().status"
+              [data]="calc().data"
+              [invalid]="summaryInvalid()"
+              [currency]="detail.organization.currency"
+              [discount]="discountTotal()"
+              [discountError]="errors()['discountTotal'] ?? null"
+              (discountChange)="onDiscount($event)"
+              (retry)="retryCalculation()"
+            />
+            <app-quote-delivery-card
+              [recipient]="detail.recipient.email"
+              [message]="emailMessage()"
+              [error]="errors()['emailMessage'] ?? null"
+              [recipientError]="errors()['recipient'] ?? null"
+              (messageChange)="onEmailMessage($event)"
+            />
+            <div class="editor__actions">
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="submitting() || !dirty()"
+                (click)="save()"
+              >
+                Save draft
+              </button>
+              <button
+                pButton
+                type="button"
+                [attr.aria-describedby]="sendBlocked() ? 'quote-send-helper' : null"
+                [disabled]="submitting() || sendBlocked()"
+                (click)="send()"
+              >
+                @if (submitting()) {
+                  <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                }
+                Send quote
+              </button>
+              @if (sendBlocked()) {
+                <p class="editor__helper" id="quote-send-helper">{{ noRecipientMessage }}</p>
+              }
+            </div>
+          </div>
+        </div>
+
+        <app-quote-preview-dialog
+          [open]="previewOpen()"
+          [status]="calc().status"
+          [view]="previewModel()"
+          [invalid]="invalid()"
+          (dismissed)="previewOpen.set(false)"
+          (retry)="retryCalculation()"
+        />
+      }
+    }
+  }
+</div>

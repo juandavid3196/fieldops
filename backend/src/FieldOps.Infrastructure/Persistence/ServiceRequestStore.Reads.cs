@@ -1,8 +1,10 @@
 using System.Globalization;
 using System.Text.Json;
 using FieldOps.Application.Features.Access;
+using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Notifications;
+using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using Microsoft.EntityFrameworkCore;
 
@@ -147,6 +149,34 @@ internal sealed partial class ServiceRequestStore
                 && attachment.OrganizationId == organizationId
                 && attachment.Content != null)
             .Select(attachment => new { attachment.FileName, attachment.MimeType, attachment.Content })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return row is null ? null : new AttachmentDownload(row.FileName, row.MimeType, row.Content!);
+    }
+
+    public async Task<AttachmentDownload?> GetAssessmentPhotoAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid requestId,
+        Guid assessmentId,
+        Guid photoId,
+        CancellationToken cancellationToken)
+    {
+        if (!await Visible(organizationId, scope).AnyAsync(request => request.Id == requestId, cancellationToken))
+        {
+            return null;
+        }
+
+        // The assessment must belong to this request, so a photo id of another request is never served (BR-03).
+        var row = await dbContext.AssessmentAttachments.AsNoTracking()
+            .Where(photo => photo.Id == photoId
+                && photo.AssessmentId == assessmentId
+                && photo.OrganizationId == organizationId
+                && photo.Content != null
+                && dbContext.Assessments.Any(assessment => assessment.Id == assessmentId
+                    && assessment.OrganizationId == organizationId
+                    && assessment.RequestId == requestId))
+            .Select(photo => new { photo.FileName, photo.MimeType, photo.Content })
             .SingleOrDefaultAsync(cancellationToken);
 
         return row is null ? null : new AttachmentDownload(row.FileName, row.MimeType, row.Content!);
@@ -678,7 +708,30 @@ internal sealed partial class ServiceRequestStore
                     assessmentRow.InternalNotes),
             attachments,
             notes,
-            activity.OrderBy(entry => entry.OccurredAt).ToList());
+            activity.OrderBy(entry => entry.OccurredAt).ToList(),
+            await CompletedAssessmentReader.ReadAsync(dbContext, organizationId, request.Id, zone, cancellationToken),
+            await ReadQuoteRefAsync(organizationId, request.Id, cancellationToken));
+    }
+
+    private async Task<DetailQuote?> ReadQuoteRefAsync(Guid organizationId, Guid requestId, CancellationToken cancellationToken)
+    {
+        var quote = await dbContext.Quotes.AsNoTracking()
+            .Where(candidate => candidate.OrganizationId == organizationId
+                && candidate.RequestId == requestId
+                && candidate.Status != QuoteStatus.Cancelled)
+            .Select(candidate => new { candidate.Id, candidate.Status })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        if (quote is null)
+        {
+            return null;
+        }
+
+        var hasDraft = await dbContext.QuoteVersions.AsNoTracking().AnyAsync(
+            version => version.OrganizationId == organizationId && version.QuoteId == quote.Id && !version.IsImmutable,
+            cancellationToken);
+
+        return new DetailQuote(quote.Id, QuoteStatusCodes.Code(quote.Status), hasDraft);
     }
 
     private async Task<Dictionary<Guid, string>> UserNamesAsync(Guid[] userIds, CancellationToken cancellationToken)

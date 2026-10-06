@@ -1,0 +1,23 @@
+@if (photos().length > 0) {
+  <ul class="photos">
+    @for (photo of photos(); track photo.id; let index = $index) {
+      <li class="photos__item">
+        <button
+          type="button"
+          class="photos__open"
+          [attr.aria-label]="'Open photo ' + (index + 1) + ': ' + photo.fileName"
+          [disabled]="!thumbnails()[photo.id]"
+          (click)="open(photo.id)"
+        >
+          @if (thumbnails()[photo.id]; as url) {
+            <img class="photos__thumb" [src]="url" alt="" />
+          } @else {
+            <span class="photos__thumb photos__thumb--placeholder" aria-hidden="true">
+              <i class="pi pi-image"></i>
+            </span>
+          }
+        </button>
+      </li>
+    }
+  </ul>
+}

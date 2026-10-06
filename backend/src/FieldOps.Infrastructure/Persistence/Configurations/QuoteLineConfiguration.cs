@@ -1,4 +1,5 @@
 using FieldOps.Domain.Catalog;
+using FieldOps.Domain.Organizations;
 using FieldOps.Domain.Quotes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -24,6 +25,9 @@ internal sealed class QuoteLineConfiguration : IEntityTypeConfiguration<QuoteLin
         builder.Property(line => line.Id)
             .HasDefaultValueSql("gen_random_uuid()");
 
+        builder.Property(line => line.OrganizationId)
+            .IsRequired();
+
         builder.Property(line => line.QuoteVersionId)
             .IsRequired();
 
@@ -31,6 +35,10 @@ internal sealed class QuoteLineConfiguration : IEntityTypeConfiguration<QuoteLin
 
         // PostgreSQL enum catalog_item_type, mapped in FieldOpsDbContext.
         builder.Property(line => line.LineType)
+            .IsRequired();
+
+        builder.Property(line => line.Name)
+            .HasMaxLength(160)
             .IsRequired();
 
         // Snapshotted independently from CatalogItem: quote lines keep their
@@ -78,11 +86,25 @@ internal sealed class QuoteLineConfiguration : IEntityTypeConfiguration<QuoteLin
             .HasDefaultValue(0)
             .IsRequired();
 
-        // No organization_id column in the relational model: tenant isolation
-        // for this table is derived through quote_version_id -> quotes.
+        builder.Property(line => line.IsOptional)
+            .HasDefaultValue(false)
+            .IsRequired();
+
+        builder.HasOne<Organization>()
+            .WithMany()
+            .HasForeignKey(line => line.OrganizationId)
+            .OnDelete(DeleteBehavior.NoAction);
+
         builder.HasOne<QuoteVersion>()
             .WithMany()
             .HasForeignKey(line => line.QuoteVersionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // FOREIGN KEY (organization_id, quote_version_id) REFERENCES quote_versions (organization_id, id) ON DELETE CASCADE
+        builder.HasOne<QuoteVersion>()
+            .WithMany()
+            .HasForeignKey(line => new { line.OrganizationId, line.QuoteVersionId })
+            .HasPrincipalKey(version => new { version.OrganizationId, version.Id })
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne<CatalogItem>()

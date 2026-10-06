@@ -38,12 +38,16 @@ public class ServiceRequestMutationTests(CompanySettingsDatabaseFixture database
         Assert.Equal(member.UserId, changedBy);
 
         // Not allowed from the current status: 409 with the contract title and no extra rows.
-        foreach (var suffix in new[] { "start-review", "move-to-review", "assessment/cancel", "assessment/complete" })
+        foreach (var suffix in new[] { "start-review", "move-to-review", "assessment/cancel" })
         {
             var conflict = await host.SendAsync(HttpMethod.Post, Url(request.Id, suffix), cookie);
             Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
             Assert.Equal(ConflictTitle, (await RequestsHost.ReadAsync(conflict))["title"]!.GetValue<string>());
         }
+
+        var completeConflict = await host.CompleteAssessmentAsync(request.Id, cookie);
+        Assert.Equal(HttpStatusCode.Conflict, completeConflict.StatusCode);
+        Assert.Equal(ConflictTitle, (await RequestsHost.ReadAsync(completeConflict))["title"]!.GetValue<string>());
 
         Assert.Equal(2, await database.CountAsync("request_status_history", request.Id));
         Assert.Equal(1, await database.CountAsync("audit_logs", request.Id));
@@ -64,7 +68,7 @@ public class ServiceRequestMutationTests(CompanySettingsDatabaseFixture database
         var future = await database.SeedRequestAsync(world, status: "assessment_scheduled", branch: world.BranchA);
         var futureAssessment = await database.SeedAssessmentAsync(
             world.Org, future.Id, DateTimeOffset.UtcNow.AddHours(5), DateTimeOffset.UtcNow.AddHours(6), member.UserId);
-        var notStarted = await host.SendAsync(HttpMethod.Post, Url(future.Id, "assessment/complete"), cookie);
+        var notStarted = await host.CompleteAssessmentAsync(future.Id, cookie);
         Assert.Equal(HttpStatusCode.Conflict, notStarted.StatusCode);
         Assert.Equal("This assessment hasn't started yet.", (await RequestsHost.ReadAsync(notStarted))["title"]!.GetValue<string>());
         Assert.Equal("assessment_scheduled", await database.StatusOfAsync(future.Id));
@@ -74,7 +78,7 @@ public class ServiceRequestMutationTests(CompanySettingsDatabaseFixture database
         var started = await database.SeedRequestAsync(world, status: "assessment_scheduled", branch: world.BranchA);
         var startedAssessment = await database.SeedAssessmentAsync(
             world.Org, started.Id, DateTimeOffset.UtcNow.AddHours(-2), DateTimeOffset.UtcNow.AddHours(-1), member.UserId);
-        Assert.Equal(HttpStatusCode.OK, (await host.SendAsync(HttpMethod.Post, Url(started.Id, "assessment/complete"), cookie)).StatusCode);
+        Assert.Equal(HttpStatusCode.OK, (await host.CompleteAssessmentAsync(started.Id, cookie)).StatusCode);
         Assert.Equal("ready_for_quote", await database.StatusOfAsync(started.Id));
         Assert.Equal("completed", await database.ScalarAsync<string>("SELECT status::text FROM assessments WHERE id = @a", ("a", startedAssessment)));
         Assert.True(await database.ScalarAsync<bool>("SELECT completed_at IS NOT NULL FROM assessments WHERE id = @a", ("a", startedAssessment)));

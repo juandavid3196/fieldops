@@ -1,0 +1,36 @@
+<p-dialog
+  header="Preview"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="open()"
+  (visibleChange)="$event ? null : dismissed.emit()"
+  [style]="{ width: '40rem', maxWidth: '94vw' }"
+>
+  @if (invalid()) {
+    <p class="preview__message" role="alert">{{ invalidMessage }}</p>
+  } @else if (status() === 'error') {
+    <p-message severity="error" [closable]="false">
+      <span class="preview__error">
+        {{ errorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (view(); as view) {
+    <app-quote-customer-view [view]="view" />
+  } @else {
+    <div class="preview__skeletons" aria-busy="true">
+      <p-skeleton height="2rem" />
+      <p-skeleton height="8rem" />
+      <p-skeleton height="4rem" />
+    </div>
+  }
+
+  <ng-template #footer>
+    <button pButton type="button" severity="secondary" [outlined]="true" (click)="dismissed.emit()">
+      Close
+    </button>
+  </ng-template>
+</p-dialog>

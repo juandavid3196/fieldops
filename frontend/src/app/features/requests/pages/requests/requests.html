@@ -102,6 +102,7 @@
       [detail]="panelDetail()"
       [timezone]="timezone()"
       [canManage]="canManage()"
+      [canReadQuotes]="canReadQuotes()"
       [busy]="mutating()"
       [(noteText)]="noteText"
       [noteError]="noteError()"
@@ -123,6 +124,14 @@
         (unauthorized)="onUnauthorized()"
       />
     }
+
+    <app-complete-assessment-dialog
+      [open]="completeOpen()"
+      [submitting]="mutating()"
+      [fieldErrors]="completeErrors()"
+      (dismissed)="dismissComplete()"
+      (submitted)="onCompleteSubmit($event)"
+    />
 
     <app-request-action-dialog
       [kind]="dialogKind()"

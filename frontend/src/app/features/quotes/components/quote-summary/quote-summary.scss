@@ -1,0 +1,101 @@
+@use '../../card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.summary {
+  @include card.base;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__title {
+    @include card.title;
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+  }
+
+  &__row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    justify-content: space-between;
+
+    dt,
+    dd {
+      margin: 0;
+    }
+
+    dd {
+      font-variant-numeric: tabular-nums;
+    }
+
+    &--total {
+      padding-block: 0.5rem;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
+      border-block: 1px solid var(--fo-color-row-divider);
+    }
+
+    &--margin {
+      @include card.muted;
+    }
+  }
+
+  &__add {
+    @include card.link;
+
+    padding: 0;
+    margin-inline-start: 0.5rem;
+    font: inherit;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__discount {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  &__field-error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__chip {
+    @include card.chip;
+
+    margin-inline-start: 0.375rem;
+  }
+
+  &__loading {
+    @include card.muted;
+
+    margin: 0.5rem 0 0;
+  }
+}

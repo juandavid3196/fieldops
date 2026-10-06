@@ -6,6 +6,7 @@ using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
+using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.Users;
@@ -114,6 +115,16 @@ public static class DependencyInjection
         services.AddScoped<GetAssessmentPlannerHandler>();
         services.AddScoped<GetAssessmentCalendarHandler>();
         services.AddScoped<CreateInternalRequestHandler>();
+        services.AddScoped<GetAssessmentPhotoHandler>();
+        services.AddScoped<CreateQuoteHandler>();
+        services.AddScoped<GetQuoteHandler>();
+        services.AddScoped<GetQuoteVersionHandler>();
+        services.AddScoped<CalculateQuoteHandler>();
+        services.AddScoped<SaveQuoteDraftHandler>();
+        services.AddScoped<SendQuoteHandler>();
+        services.AddScoped<ReviseQuoteHandler>();
+        services.AddScoped<DiscardQuoteDraftHandler>();
+        services.AddScoped<ResendQuoteEmailHandler>();
 
         return services;
     }

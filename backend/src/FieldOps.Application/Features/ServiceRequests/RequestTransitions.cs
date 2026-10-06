@@ -12,6 +12,7 @@ public enum RequestAction
     CancelAssessment,
     MarkReadyForQuote,
     CompleteAssessment,
+    QuoteSent,
     MoveToReview,
     Cancel,
 }
@@ -68,6 +69,10 @@ public static class RequestTransitions
 
             case RequestAction.CompleteAssessment when from == RequestStatus.AssessmentScheduled:
                 to = RequestStatus.ReadyForQuote;
+                return true;
+
+            case RequestAction.QuoteSent when from == RequestStatus.ReadyForQuote:
+                to = RequestStatus.Quoted;
                 return true;
 
             case RequestAction.MoveToReview when from == RequestStatus.ReadyForQuote:

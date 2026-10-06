@@ -1,0 +1,299 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem 2.5rem;
+  overflow-wrap: anywhere;
+
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem 2.5rem;
+  }
+
+  &__sr {
+    @include card.sr-only;
+
+    margin: 0;
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  &__breadcrumb ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+    list-style: none;
+
+    li + li::before {
+      margin-inline-end: 0.5rem;
+      content: '/';
+    }
+
+    a {
+      color: var(--fo-color-primary-strong);
+    }
+  }
+
+  &__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title-group,
+  &__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--fo-color-heading);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__chip {
+    @include card.chip;
+
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-success-text);
+    background: var(--fo-color-success-background);
+
+    &--internal {
+      padding: 0.125rem 0.5rem;
+      font-size: 0.75rem;
+      color: var(--fo-color-neutral-text);
+      background: var(--fo-color-neutral-background);
+    }
+  }
+
+  &__number {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__save-state {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    font-size: 0.875rem;
+  }
+
+  &__save-time {
+    @include card.muted;
+  }
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text);
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__message {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+    margin: 0;
+    padding: 1rem;
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--p-content-border-radius);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__toast {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    inline-size: 100%;
+  }
+
+  // Mobile: one column in the order header, customer, request, assessment, lines, texts,
+  // summary, customer approval, delivery, actions.
+  &__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: start;
+
+    // Tablet and small desktop: the left cards above the lines in two columns, summary at the right.
+    @include bp.up(md) {
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      grid-template-areas:
+        'left right'
+        'main right';
+    }
+
+    // Wide desktop: three columns as in the mockup.
+    @media (min-width: 96rem) {
+      grid-template-columns: 17rem minmax(0, 1fr) 20rem;
+      grid-template-areas: 'left main right';
+    }
+  }
+
+  &__left,
+  &__main,
+  &__right {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  &__left {
+    @include bp.up(md) {
+      display: grid;
+      grid-area: left;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: stretch;
+
+      app-quote-assessment-card {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (min-width: 96rem) {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+
+  &__main {
+    @include bp.up(md) {
+      grid-area: main;
+    }
+  }
+
+  &__right {
+    @include bp.up(md) {
+      grid-area: right;
+    }
+  }
+
+  &__card {
+    @include card.base;
+  }
+
+  &__texts {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+
+    @include bp.up(md) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-width: 0;
+
+    &--wide {
+      @include bp.up(md) {
+        grid-column: 1 / -1;
+      }
+    }
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__hint,
+  &__helper {
+    @include card.muted;
+
+    font-weight: 400;
+  }
+
+  &__helper {
+    margin: 0;
+  }
+
+  &__count {
+    @include card.muted;
+
+    margin: 0;
+    text-align: end;
+  }
+
+  &__error-text {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  a[pButton] {
+    text-decoration: none;
+  }
+}

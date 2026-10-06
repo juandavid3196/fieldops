@@ -21,6 +21,7 @@ import {
   menuActions,
 } from '../../models/requests.model';
 import { activityTime, addressLine, preferredVisit } from '../../utils/requests-format';
+import { AssessmentPhotos } from '../assessment-photos/assessment-photos';
 import { RequestAttachments } from '../request-attachments/request-attachments';
 
 export type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
@@ -45,6 +46,7 @@ export const NOTE_PLACEHOLDER = 'Add an internal note (not visible to customer).
     Textarea,
     DrawerShell,
     RequestAttachments,
+    AssessmentPhotos,
   ],
   templateUrl: './request-detail.html',
   styleUrl: './request-detail.scss',
@@ -55,6 +57,8 @@ export class RequestDetailPanel {
   readonly detail = input<RequestDetail | null>(null);
   readonly timezone = input('UTC');
   readonly canManage = input(false);
+  /** Roles allowed to read quotes (View quote on a `quoted` request, BR-04). */
+  readonly canReadQuotes = input(false);
   /** A mutation is in flight: footer, menu and inputs are disabled. */
   readonly busy = input(false);
   readonly noteText = model('');
@@ -80,7 +84,9 @@ export class RequestDetailPanel {
   readonly title = computed(() => this.detail()?.title ?? 'Request');
   readonly footer = computed<RequestAction[]>(() => {
     const detail = this.detail();
-    return detail === null ? [] : footerActions(detail.status, this.canManage());
+    return detail === null
+      ? []
+      : footerActions(detail.status, this.canManage(), detail.quote, this.canReadQuotes());
   });
   readonly menuModel = computed<MenuItem[]>(() => {
     const detail = this.detail();
@@ -97,6 +103,31 @@ export class RequestDetailPanel {
   readonly localNoteError = computed(() =>
     this.noteText().length > 2000 ? 'Use 2000 characters or fewer.' : null,
   );
+
+  readonly findings = computed(() => {
+    const completed = this.detail()?.completedAssessment ?? null;
+    if (completed === null) {
+      return null;
+    }
+    const zone = this.timezone();
+    return {
+      id: completed.id,
+      completedAt: `${formatDate(completed.completedAt, zone)} ${formatTime(completed.completedAt, zone)}`,
+      technician: completed.technician?.name ?? null,
+      diagnosis: completed.diagnosis,
+      scope: completed.recommendedScope,
+      photos: completed.photos,
+    };
+  });
+  readonly quoteLine = computed(() => {
+    const quote = this.detail()?.quote ?? null;
+    if (quote === null) {
+      return null;
+    }
+    const status = quote.status.replace(/_/g, ' ');
+    const label = status.charAt(0).toUpperCase() + status.slice(1);
+    return quote.hasDraft && quote.status !== 'draft' ? `${label} (revision in progress)` : label;
+  });
 
   readonly address = computed(() => addressLine(this.detail()?.serviceAddress ?? null));
   readonly visit = computed(() => preferredVisit(this.detail()?.availability ?? null));

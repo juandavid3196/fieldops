@@ -176,6 +176,39 @@
               </section>
             }
 
+            @if (findings(); as findings) {
+              <section class="detail__section" aria-labelledby="request-findings-heading">
+                <h3 class="detail__heading" id="request-findings-heading">Assessment findings</h3>
+                <p class="detail__line">
+                  <i class="pi pi-user" aria-hidden="true"></i>
+                  {{ findings.technician ?? 'No technician' }} · {{ findings.completedAt }}
+                </p>
+                <p class="detail__muted">Diagnosis</p>
+                <p class="detail__description">
+                  {{ findings.diagnosis ?? 'No diagnosis recorded.' }}
+                </p>
+                @if (findings.scope) {
+                  <p class="detail__muted">Recommended scope</p>
+                  <p class="detail__description">{{ findings.scope }}</p>
+                }
+                <app-assessment-photos
+                  [requestId]="detail.id"
+                  [assessmentId]="findings.id"
+                  [photos]="findings.photos"
+                />
+              </section>
+            }
+
+            @if (quoteLine(); as quote) {
+              <section class="detail__section" aria-labelledby="request-quote-heading">
+                <h3 class="detail__heading" id="request-quote-heading">Quote</h3>
+                <p class="detail__line">
+                  <i class="pi pi-file" aria-hidden="true"></i>
+                  {{ quote }}
+                </p>
+              </section>
+            }
+
             <app-request-attachments
               [requestId]="detail.id"
               [attachments]="detail.attachments"

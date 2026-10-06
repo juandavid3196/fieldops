@@ -5,85 +5,86 @@ namespace FieldOps.UnitTests.Quotes;
 
 public class QuoteLineTests
 {
+    private static QuoteLine Create(
+        string name = "Drain cleaning",
+        string? description = "Clear the main drain",
+        decimal quantity = 2,
+        string unit = "hour",
+        decimal unitCost = 40m,
+        decimal unitPrice = 75m) =>
+        QuoteLine.Create(
+            Guid.NewGuid(),
+            Guid.NewGuid(),
+            null,
+            CatalogItemType.Service,
+            name,
+            description,
+            quantity,
+            unit,
+            unitCost,
+            unitPrice,
+            8.25m,
+            150m,
+            12.38m,
+            162.38m,
+            3,
+            true);
+
     [Fact]
-    public void Create_WithValidArguments_SetsDefaults()
+    public void Create_WithValidArguments_SetsSnapshotFields()
     {
-        var quoteVersionId = Guid.NewGuid();
+        var organizationId = Guid.NewGuid();
+        var versionId = Guid.NewGuid();
+        var catalogItemId = Guid.NewGuid();
 
         var line = QuoteLine.Create(
-            quoteVersionId,
-            CatalogItemType.Service,
-            " Drain cleaning ",
+            organizationId,
+            versionId,
+            catalogItemId,
+            CatalogItemType.Product,
+            " Copper pipe ",
+            " 3/4 inch ",
             2,
-            " hour ",
-            75m,
-            150m,
-            15m,
-            165m);
+            " m ",
+            4m,
+            9.5m,
+            8.25m,
+            19m,
+            1.57m,
+            20.57m,
+            3,
+            true);
 
         Assert.NotEqual(Guid.Empty, line.Id);
-        Assert.Equal(quoteVersionId, line.QuoteVersionId);
-        Assert.Equal(CatalogItemType.Service, line.LineType);
-        Assert.Equal("Drain cleaning", line.Description);
-        Assert.Equal(2, line.Quantity);
-        Assert.Equal("hour", line.Unit);
-        Assert.Equal(0m, line.UnitCost);
-        Assert.Equal(75m, line.UnitPrice);
-        Assert.Equal(0m, line.TaxRate);
-        Assert.Equal(150m, line.LineSubtotal);
-        Assert.Equal(15m, line.LineTax);
-        Assert.Equal(165m, line.LineTotal);
-        Assert.Equal(0, line.SortOrder);
-        Assert.Null(line.CatalogItemId);
+        Assert.Equal(organizationId, line.OrganizationId);
+        Assert.Equal(versionId, line.QuoteVersionId);
+        Assert.Equal(catalogItemId, line.CatalogItemId);
+        Assert.Equal(CatalogItemType.Product, line.LineType);
+        Assert.Equal("Copper pipe", line.Name);
+        Assert.Equal("3/4 inch", line.Description);
+        Assert.Equal("m", line.Unit);
+        Assert.Equal(4m, line.UnitCost);
+        Assert.Equal(8.25m, line.TaxRate);
+        Assert.Equal(3, line.SortOrder);
+        Assert.True(line.IsOptional);
     }
 
     [Fact]
-    public void Create_WithNonPositiveQuantity_Throws()
+    public void Create_WithoutDescription_StoresEmptyText()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(
-            () => QuoteLine.Create(
-                Guid.NewGuid(),
-                CatalogItemType.Service,
-                "Description",
-                0,
-                "hour",
-                75m,
-                0m,
-                0m,
-                0m));
-    }
-
-    [Fact]
-    public void Create_WithNegativeUnitPrice_Throws()
-    {
-        Assert.Throws<ArgumentOutOfRangeException>(
-            () => QuoteLine.Create(
-                Guid.NewGuid(),
-                CatalogItemType.Service,
-                "Description",
-                1,
-                "hour",
-                -1m,
-                0m,
-                0m,
-                0m));
+        Assert.Equal(string.Empty, Create(description: null).Description);
     }
 
     [Theory]
-    [InlineData("")]
-    [InlineData("   ")]
-    public void Create_WithBlankDescription_Throws(string description)
+    [InlineData("", "hour", 1, 1, 1)]
+    [InlineData("   ", "hour", 1, 1, 1)]
+    [InlineData("Name", "", 1, 1, 1)]
+    [InlineData("Name", "hour", 0, 1, 1)]
+    [InlineData("Name", "hour", 1, -1, 1)]
+    [InlineData("Name", "hour", 1, 1, -1)]
+    public void Create_WithInvalidField_Throws(string name, string unit, decimal quantity, decimal unitPrice, decimal unitCost)
     {
-        Assert.Throws<ArgumentException>(
-            () => QuoteLine.Create(
-                Guid.NewGuid(),
-                CatalogItemType.Service,
-                description,
-                1,
-                "hour",
-                75m,
-                75m,
-                0m,
-                75m));
+        Assert.ThrowsAny<ArgumentException>(
+            () => Create(name: name, unit: unit, quantity: quantity, unitPrice: unitPrice, unitCost: unitCost));
     }
 }

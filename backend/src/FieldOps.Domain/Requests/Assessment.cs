@@ -142,9 +142,18 @@ public sealed class Assessment
         UpdatedAt = DateTimeOffset.UtcNow;
     }
 
-    public void Complete()
+    /// <summary>Completes the assessment with its findings (quote-builder BR-01); the recommended scope is optional.</summary>
+    public void Complete(string diagnosis, string? recommendedScope)
     {
         EnsureScheduled();
+
+        if (string.IsNullOrWhiteSpace(diagnosis))
+        {
+            throw new ArgumentException("Diagnosis is required.", nameof(diagnosis));
+        }
+
+        Diagnosis = diagnosis.Trim();
+        RecommendedScope = string.IsNullOrWhiteSpace(recommendedScope) ? null : recommendedScope.Trim();
         Status = AssessmentStatus.Completed;
         CompletedAt = DateTimeOffset.UtcNow;
         UpdatedAt = CompletedAt.Value;

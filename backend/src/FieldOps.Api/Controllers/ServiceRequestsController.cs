@@ -27,6 +27,7 @@ public sealed class ServiceRequestsController(
     GetRequestCustomerOptionsHandler customerOptionsHandler,
     GetServiceRequestHandler detailHandler,
     GetRequestAttachmentHandler attachmentHandler,
+    GetAssessmentPhotoHandler photoHandler,
     ServiceRequestActionHandler actions,
     GetAssessmentPlannerHandler plannerHandler,
     GetAssessmentCalendarHandler calendarHandler,
@@ -38,6 +39,8 @@ public sealed class ServiceRequestsController(
     public const int MaxUploadRequestBytes = 27_262_976;
 
     public const string AttachmentsPartName = "attachments";
+
+    public const string PhotosPartName = "photos";
 
     [HttpGet("pipeline")]
     [Authorize(Policy = ServiceRequestPolicies.View)]
@@ -171,7 +174,12 @@ public sealed class ServiceRequestsController(
             return NotFound();
         }
 
-        // BR-16: images render inline, everything else downloads; the stored name is already sanitized.
+        return FileResult(download);
+    }
+
+    // BR-16: images render inline, everything else downloads; the stored name is already sanitized.
+    private FileContentResult FileResult(AttachmentDownload download)
+    {
         var disposition = new ContentDispositionHeaderValue(
             download.MimeType.StartsWith("image/", StringComparison.Ordinal) ? "inline" : "attachment");
         disposition.SetHttpFileName(download.FileName);
@@ -179,6 +187,27 @@ public sealed class ServiceRequestsController(
         Response.Headers.XContentTypeOptions = "nosniff";
 
         return File(download.Content, download.MimeType);
+    }
+
+    [HttpGet("{id:guid}/assessments/{assessmentId:guid}/photos/{photoId:guid}")]
+    [Authorize(Policy = ServiceRequestPolicies.View)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DownloadAssessmentPhoto(
+        Guid id, Guid assessmentId, Guid photoId, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "private, no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        var download = await photoHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, assessmentId, photoId, cancellationToken);
+
+        return download is null ? NotFound() : FileResult(download);
     }
 
     [HttpPost]
@@ -364,11 +393,45 @@ public sealed class ServiceRequestsController(
         CancellationToken cancellationToken) =>
         RunBodyAsync(call => actions.CancelAssessmentAsync(call, id, body?.NotifyCustomer, cancellationToken));
 
+    // Multipart like UploadAttachments (quote-builder BR-01, BR-02): the form is read here so an oversized body
+    // reaches BadHttpRequestExceptionHandler (413) while a malformed multipart body is a plain 400.
     [HttpPost("{id:guid}/assessment/complete")]
     [Authorize(Policy = ServiceRequestPolicies.Manage)]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(MaxUploadRequestBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = MaxUploadRequestBytes)]
     [ProducesResponseType<RequestDetail>(StatusCodes.Status200OK)]
-    public Task<IActionResult> CompleteAssessment(Guid id, CancellationToken cancellationToken) =>
-        RunAsync(call => actions.CompleteAssessmentAsync(call, id, cancellationToken));
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status415UnsupportedMediaType)]
+    public async Task<IActionResult> CompleteAssessment(Guid id, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        string? diagnosis;
+        string? recommendedScope;
+        List<UploadedFile> photos;
+
+        try
+        {
+            var form = await Request.ReadFormAsync(cancellationToken);
+            diagnosis = form["diagnosis"].FirstOrDefault();
+            recommendedScope = form["recommendedScope"].FirstOrDefault();
+            photos = await ReadFilesAsync(
+                form, PhotosPartName, AssessmentPhotoInspector.MaxPhotos, AssessmentPhotoInspector.MaxFileBytes, cancellationToken);
+        }
+        catch (InvalidDataException)
+        {
+            return BadRequest();
+        }
+
+        return Map(await actions.CompleteAssessmentAsync(Call(ticket), id, diagnosis, recommendedScope, photos, cancellationToken));
+    }
 
     [HttpPost("{id:guid}/ready-for-quote")]
     [Authorize(Policy = ServiceRequestPolicies.Manage)]
@@ -418,7 +481,8 @@ public sealed class ServiceRequestsController(
         try
         {
             var form = await Request.ReadFormAsync(cancellationToken);
-            files = await ReadFilesAsync(form, cancellationToken);
+            files = await ReadFilesAsync(
+                form, AttachmentsPartName, AttachmentContentInspector.MaxFiles, AttachmentContentInspector.MaxFileBytes, cancellationToken);
         }
         catch (InvalidDataException)
         {
@@ -428,15 +492,16 @@ public sealed class ServiceRequestsController(
         return Map(await actions.AddAttachmentsAsync(Call(ticket), id, files, cancellationToken));
     }
 
-    private static async Task<List<UploadedFile>> ReadFilesAsync(IFormCollection form, CancellationToken cancellationToken)
+    private static async Task<List<UploadedFile>> ReadFilesAsync(
+        IFormCollection form, string partName, int maxFiles, int maxFileBytes, CancellationToken cancellationToken)
     {
-        var parts = form.Files.GetFiles(AttachmentsPartName);
+        var parts = form.Files.GetFiles(partName);
         var files = new List<UploadedFile>(parts.Count);
 
         for (var index = 0; index < parts.Count; index++)
         {
             // Beyond the maximum the count error is reported without reading content.
-            if (index >= AttachmentContentInspector.MaxFiles)
+            if (index >= maxFiles)
             {
                 files.Add(new UploadedFile(parts[index].FileName, []));
                 continue;
@@ -446,7 +511,7 @@ public sealed class ServiceRequestsController(
             var buffer = new MemoryStream();
             var chunk = new byte[81920];
             long total = 0;
-            var limit = AttachmentContentInspector.MaxFileBytes + 1L;
+            var limit = maxFileBytes + 1L;
 
             await using var source = parts[index].OpenReadStream();
 

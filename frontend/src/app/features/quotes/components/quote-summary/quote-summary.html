@@ -1,0 +1,74 @@
+<section class="summary" aria-labelledby="quote-summary-heading">
+  <h2 class="summary__title" id="quote-summary-heading">Quote summary</h2>
+
+  @if (failed()) {
+    <p-message severity="error" [closable]="false">
+      <span class="summary__error">
+        {{ errorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  }
+
+  <div class="summary__totals" aria-live="polite" [attr.aria-busy]="loading()">
+    <dl class="summary__list">
+      <div class="summary__row">
+        <dt>Subtotal</dt>
+        <dd>{{ rows().subtotal }}</dd>
+      </div>
+      <div class="summary__row">
+        <dt>
+          Discount
+          @if (!discountOpen() && !readOnly()) {
+            <button type="button" class="summary__add" (click)="revealDiscount()">
+              Add discount
+            </button>
+          }
+        </dt>
+        <dd>{{ rows().discount }}</dd>
+      </div>
+      @if (discountOpen()) {
+        <div class="summary__discount">
+          <label for="quote-discount">Discount amount</label>
+          <input
+            pInputText
+            id="quote-discount"
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="0.01"
+            data-field-key="discountTotal"
+            fluid
+            [attr.aria-invalid]="discountError() ? 'true' : null"
+            [attr.aria-describedby]="discountError() ? 'quote-discount-error' : null"
+            [ngModel]="discount()"
+            (ngModelChange)="discount.set($event)"
+          />
+          @if (discountError(); as errorText) {
+            <p class="summary__field-error" id="quote-discount-error">{{ errorText }}</p>
+          }
+        </div>
+      }
+      <div class="summary__row">
+        <dt>{{ rows().taxLabel }}</dt>
+        <dd>{{ rows().tax }}</dd>
+      </div>
+      <div class="summary__row summary__row--total">
+        <dt>Total</dt>
+        <dd>{{ rows().total }}</dd>
+      </div>
+      <div class="summary__row summary__row--margin">
+        <dt>
+          Estimated margin
+          <span class="summary__chip">Internal</span>
+        </dt>
+        <dd>{{ rows().margin }}</dd>
+      </div>
+    </dl>
+    @if (loading()) {
+      <p class="summary__loading">Updating totals…</p>
+    }
+  </div>
+</section>

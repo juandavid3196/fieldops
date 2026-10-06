@@ -59,8 +59,10 @@ internal sealed class QuoteConfiguration : IEntityTypeConfiguration<Quote>
             .HasDefaultValueSql("now()")
             .IsRequired();
 
+        // Optimistic concurrency token (quote-builder BR-22).
         builder.Property(quote => quote.UpdatedAt)
             .HasDefaultValueSql("now()")
+            .IsConcurrencyToken()
             .IsRequired();
 
         // UNIQUE (organization_id, quote_number)
@@ -76,6 +78,12 @@ internal sealed class QuoteConfiguration : IEntityTypeConfiguration<Quote>
         })
             .HasDatabaseName("ix_quotes_status")
             .IsDescending(false, false, true);
+
+        // CREATE UNIQUE INDEX ux_quotes_request_open ON quotes (organization_id, request_id) WHERE status <> 'cancelled'
+        builder.HasIndex(quote => new { quote.OrganizationId, quote.RequestId })
+            .IsUnique()
+            .HasDatabaseName("ux_quotes_request_open")
+            .HasFilter("status <> 'cancelled'");
 
         builder.HasOne<Organization>()
             .WithMany()

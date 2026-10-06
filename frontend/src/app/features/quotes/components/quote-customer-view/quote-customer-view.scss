@@ -1,0 +1,116 @@
+@use '../../card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.view {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  &__org {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__title {
+    margin: 0.125rem 0 0;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  &__muted {
+    @include card.muted;
+
+    margin: 0;
+  }
+
+  &__customer,
+  &__scope,
+  &__message,
+  &__terms {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    margin: 0;
+  }
+
+  &__scope {
+    font-weight: 600;
+  }
+
+  &__message {
+    white-space: pre-line;
+  }
+
+  &__table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+
+    th,
+    td {
+      padding: 0.5rem 0.375rem;
+      text-align: start;
+      vertical-align: top;
+      border-block-end: 1px solid var(--fo-color-row-divider);
+    }
+
+    th:not(:first-child),
+    td:not(:first-child) {
+      text-align: end;
+      white-space: nowrap;
+    }
+  }
+
+  &__caption {
+    padding-block: 0.25rem;
+    font-weight: 700;
+    text-align: start;
+    color: var(--fo-color-heading);
+  }
+
+  &__name {
+    display: block;
+    font-weight: 600;
+  }
+
+  &__totals {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin: 0;
+    margin-inline-start: auto;
+    min-inline-size: min(100%, 16rem);
+
+    div {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+    }
+
+    dt,
+    dd {
+      margin: 0;
+    }
+  }
+
+  &__total {
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+}

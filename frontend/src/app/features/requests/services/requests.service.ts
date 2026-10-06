@@ -6,6 +6,7 @@ import { API_CONFIG, buildApiUrl } from '../../../core/config/api.config';
 import {
   AssessmentBody,
   BoardStatus,
+  CompleteAssessmentBody,
   CreateRequestBody,
   CustomerOptionsResponse,
   PipelineResponse,
@@ -123,8 +124,28 @@ export class RequestsService {
     return this.http.post<RequestDetail>(this.item(id, '/assessment/cancel'), { notifyCustomer });
   }
 
-  completeAssessment(id: string): Observable<RequestDetail> {
-    return this.http.post<RequestDetail>(this.item(id, '/assessment/complete'), null);
+  /** Multipart completion with the findings and 0-6 photos (BR-01, BR-02). */
+  completeAssessment(id: string, body: CompleteAssessmentBody): Observable<RequestDetail> {
+    const form = new FormData();
+    form.append('diagnosis', body.diagnosis);
+    if (body.recommendedScope !== null) {
+      form.append('recommendedScope', body.recommendedScope);
+    }
+    for (const file of body.photos) {
+      form.append('photos', file, file.name);
+    }
+    return this.http.post<RequestDetail>(this.item(id, '/assessment/complete'), form);
+  }
+
+  /** Authenticated assessment photo (BR-03); callers own the object URL they create from it. */
+  downloadAssessmentPhoto(id: string, assessmentId: string, photoId: string): Observable<Blob> {
+    return this.http.get(
+      this.item(
+        id,
+        `/assessments/${encodeURIComponent(assessmentId)}/photos/${encodeURIComponent(photoId)}`,
+      ),
+      { responseType: 'blob' },
+    );
   }
 
   markReadyForQuote(id: string): Observable<RequestDetail> {

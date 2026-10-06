@@ -1,0 +1,31 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--fo-color-app-background);
+}
+
+.approval {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 100dvh;
+  padding: 2rem 1rem;
+  text-align: center;
+
+  &__brand {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-primary-strong);
+  }
+
+  &__message {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+}

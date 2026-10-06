@@ -111,6 +111,23 @@ public sealed record DetailAssessment(
     string? Purpose,
     string? InternalInstructions);
 
+public sealed record DetailFindingsTechnician(Guid Id, string Name);
+
+public sealed record DetailPhoto(Guid Id, string FileName, string MimeType, long SizeBytes);
+
+/// <summary>The latest completed assessment with its findings (quote-builder BR-03); photo content is never part of it.</summary>
+public sealed record DetailCompletedAssessment(
+    Guid Id,
+    DateTimeOffset Start,
+    DateTimeOffset CompletedAt,
+    DetailFindingsTechnician? Technician,
+    string? Diagnosis,
+    string? RecommendedScope,
+    IReadOnlyList<DetailPhoto> Photos);
+
+/// <summary>The non-cancelled quote of the request; <see cref="HasDraft"/> is true while a mutable version exists.</summary>
+public sealed record DetailQuote(Guid Id, string Status, bool HasDraft);
+
 public sealed record DetailAttachment(Guid Id, string FileName, string MimeType, long SizeBytes, DateTimeOffset CreatedAt);
 
 public sealed record DetailNote(Guid Id, string Body, string? AuthorName, DateTimeOffset CreatedAt);
@@ -139,7 +156,9 @@ public sealed record RequestDetail(
     DetailAssessment? Assessment,
     IReadOnlyList<DetailAttachment> Attachments,
     IReadOnlyList<DetailNote> Notes,
-    IReadOnlyList<DetailActivity> Activity);
+    IReadOnlyList<DetailActivity> Activity,
+    DetailCompletedAssessment? CompletedAssessment,
+    DetailQuote? Quote);
 
 public sealed record AttachmentDownload(string FileName, string MimeType, byte[] Content);
 
@@ -198,7 +217,9 @@ public abstract record RequestMutation
 
     public sealed record CancelAssessment(bool NotifyCustomer) : RequestMutation;
 
-    public sealed record CompleteAssessment : RequestMutation;
+    /// <summary>Complete assessment with its findings and 0-6 validated photos (quote-builder BR-01, BR-02).</summary>
+    public sealed record CompleteAssessment(
+        string Diagnosis, string? RecommendedScope, IReadOnlyList<AttachmentInput> Photos) : RequestMutation;
 
     public sealed record MarkReadyForQuote : RequestMutation;
 

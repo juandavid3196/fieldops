@@ -1,6 +1,7 @@
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Notifications;
+using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -109,7 +110,7 @@ internal sealed partial class ServiceRequestStore
         {
             RequestMutation.StartReview => TransitionAsync(actor, request, RequestAction.StartReview, "service_request.status_changed"),
             RequestMutation.MarkReadyForQuote => TransitionAsync(actor, request, RequestAction.MarkReadyForQuote, "service_request.ready_for_quote"),
-            RequestMutation.MoveToReview => TransitionAsync(actor, request, RequestAction.MoveToReview, "service_request.status_changed"),
+            RequestMutation.MoveToReview => MoveToReviewAsync(actor, request, cancellationToken),
             RequestMutation.Assign assign => AssignAsync(actor, request, assign, cancellationToken),
             RequestMutation.ChangePriority priority => PriorityAsync(actor, request, priority),
             RequestMutation.SetBranch branch => SetBranchAsync(actor, request, branch, cancellationToken),
@@ -119,7 +120,7 @@ internal sealed partial class ServiceRequestStore
             RequestMutation.ScheduleAssessment schedule => ScheduleAsync(actor, request, schedule, cancellationToken),
             RequestMutation.RescheduleAssessment reschedule => RescheduleAsync(actor, request, reschedule, cancellationToken),
             RequestMutation.CancelAssessment cancel => CancelAssessmentAsync(actor, request, cancel, cancellationToken),
-            RequestMutation.CompleteAssessment => CompleteAssessmentAsync(actor, request, cancellationToken),
+            RequestMutation.CompleteAssessment complete => CompleteAssessmentAsync(actor, request, complete, cancellationToken),
             RequestMutation.CancelRequest cancel => CancelRequestAsync(actor, request, cancel, cancellationToken),
             RequestMutation.AddAttachments attachments => AddAttachmentsAsync(actor, request, attachments, cancellationToken),
             _ => throw new InvalidOperationException("Unknown request mutation."),
@@ -137,6 +138,31 @@ internal sealed partial class ServiceRequestStore
         Audit(actor, request, auditAction, StatusSide(from), StatusSide(to), null);
 
         return Task.FromResult(Step.Done());
+    }
+
+    // BR-31: a draft quote must be discarded before the request leaves ready_for_quote.
+    private async Task<Step> MoveToReviewAsync(RequestActor actor, ServiceRequest request, CancellationToken cancellationToken)
+    {
+        if (!RequestTransitions.TryApply(request.Status, RequestAction.MoveToReview, out var to))
+        {
+            return Step.Fail(new RequestMutationOutcome.Conflict());
+        }
+
+        if (await dbContext.Quotes.AsNoTracking().AnyAsync(
+            quote => quote.OrganizationId == actor.OrganizationId
+                && quote.RequestId == request.Id
+                && quote.Status == QuoteStatus.Draft,
+            cancellationToken))
+        {
+            return Step.Fail(new RequestMutationOutcome.Conflict(
+                ServiceRequestMessages.QuoteDraftExistsTitle, ServiceRequestMessages.QuoteDraftExistsCode));
+        }
+
+        var from = request.Status;
+        Move(actor, request, to);
+        Audit(actor, request, "service_request.status_changed", StatusSide(from), StatusSide(to), null);
+
+        return Step.Done();
     }
 
     private async Task<Step> AssignAsync(
@@ -510,7 +536,7 @@ internal sealed partial class ServiceRequestStore
     }
 
     private async Task<Step> CompleteAssessmentAsync(
-        RequestActor actor, ServiceRequest request, CancellationToken cancellationToken)
+        RequestActor actor, ServiceRequest request, RequestMutation.CompleteAssessment mutation, CancellationToken cancellationToken)
     {
         if (!RequestTransitions.TryApply(request.Status, RequestAction.CompleteAssessment, out var to)
             || await LoadActiveAssessmentAsync(actor.OrganizationId, request.Id, cancellationToken) is not { } assessment)
@@ -524,15 +550,24 @@ internal sealed partial class ServiceRequestStore
         }
 
         var from = request.Status;
-        assessment.Complete();
+        assessment.Complete(mutation.Diagnosis, mutation.RecommendedScope);
+
+        foreach (var photo in mutation.Photos)
+        {
+            dbContext.AssessmentAttachments.Add(AssessmentAttachment.Create(
+                actor.OrganizationId, assessment.Id, photo.FileName, photo.MimeType, photo.Content.Length, photo.Content));
+        }
+
         Move(actor, request, to);
+
+        // Quote-builder BR-33: ids and the photo count only; never the findings or file names.
         Audit(
             actor,
             request,
             "service_request.assessment_completed",
             StatusSide(from),
             StatusSide(to),
-            new { assessmentId = assessment.Id });
+            new { assessmentId = assessment.Id, photoCount = mutation.Photos.Count });
 
         return Step.Done();
     }
@@ -550,11 +585,49 @@ internal sealed partial class ServiceRequestStore
             assessment.Cancel();
         }
 
+        await CancelDraftQuoteAsync(actor, request, cancellationToken);
+
         var from = request.Status;
         Move(actor, request, to, mutation.Reason);
         Audit(actor, request, "service_request.status_changed", StatusSide(from), StatusSide(to), null);
 
         return Step.Done();
+    }
+
+    // BR-31: cancelling the request cancels its draft quote in the same transaction (lock order: request, quote).
+    private async Task CancelDraftQuoteAsync(RequestActor actor, ServiceRequest request, CancellationToken cancellationToken)
+    {
+        var organizationId = actor.OrganizationId;
+        var requestId = request.Id;
+        var locked = await dbContext.Database
+            .SqlQuery<Guid>(
+                $"""
+                SELECT id AS "Value" FROM quotes
+                WHERE organization_id = {organizationId} AND request_id = {requestId} AND status = 'draft'
+                FOR UPDATE
+                """)
+            .ToListAsync(cancellationToken);
+
+        if (locked.Count == 0)
+        {
+            return;
+        }
+
+        var quote = await dbContext.Quotes.SingleAsync(
+            candidate => candidate.Id == locked[0] && candidate.OrganizationId == organizationId, cancellationToken);
+        quote.Cancel();
+        quote.Touch(timeProvider.GetUtcNow());
+        dbContext.AuditLogs.Add(AuditLog.Create(
+            organizationId,
+            "quote.cancelled",
+            "quote",
+            actor.UserId,
+            quote.Id,
+            quote.BranchId,
+            actor.IpAddress,
+            Serialize(new Dictionary<string, object?> { ["status"] = "draft" }),
+            Serialize(new Dictionary<string, object?> { ["status"] = "cancelled" }),
+            Serialize(new { reason = "request_cancelled" })));
     }
 
     private async Task<Step> AddAttachmentsAsync(
