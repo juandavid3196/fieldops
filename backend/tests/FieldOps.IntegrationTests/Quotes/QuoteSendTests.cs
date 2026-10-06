@@ -100,7 +100,7 @@ public class QuoteSendTests(CompanySettingsDatabaseFixture database)
         Assert.Contains("Hi Pat, here is your quote.", message.TextBody, StringComparison.Ordinal);
         Assert.Contains("Quote Q-2036 · Total 194.85 USD · Valid until", message.TextBody, StringComparison.Ordinal);
         Assert.Contains("Questions? Call us at +1 555 010 0100.", message.TextBody, StringComparison.Ordinal);
-        Assert.Contains($"Review your quote: {FieldOpsApiFactory.AllowedOrigin}/quote-approval#token=", message.TextBody, StringComparison.Ordinal);
+        Assert.Contains($"Review your quote: {FieldOpsApiFactory.AllowedOrigin}/quotes/view#token=", message.TextBody, StringComparison.Ordinal);
         Assert.DoesNotContain("SECRET", message.TextBody + message.HtmlBody, StringComparison.Ordinal);
         var raw = QuotesApi.TokenOf(message.TextBody);
         Assert.Equal(43, raw.Length);

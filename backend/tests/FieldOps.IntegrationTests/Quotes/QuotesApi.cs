@@ -157,11 +157,11 @@ internal static partial class QuotesApi
     public static string TokenOf(string emailText)
     {
         var match = TokenPattern().Match(emailText);
-        Assert.True(match.Success, "The email must carry the /quote-approval#token= link.");
+        Assert.True(match.Success, "The email must carry the /quotes/view#token= link.");
 
         return match.Groups[1].Value;
     }
 
-    [GeneratedRegex("/quote-approval#token=([A-Za-z0-9_-]+)")]
+    [GeneratedRegex("/quotes/view#token=([A-Za-z0-9_-]+)")]
     private static partial Regex TokenPattern();
 }

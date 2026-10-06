@@ -1,0 +1,61 @@
+<section class="company" aria-label="Company">
+  @if (logoUrl(); as url) {
+    <img class="company__logo" [src]="url" alt="" />
+  } @else {
+    <span class="company__logo company__logo--initials" aria-hidden="true">{{ initials() }}</span>
+  }
+  <div class="company__info">
+    <p class="company__name">{{ quote().organization.name }}</p>
+    @if (quote().organization.phone; as phone) {
+      <p class="company__phone">
+        Questions? Call <a [href]="phoneHref()">{{ phone }}</a>
+      </p>
+    }
+  </div>
+  @if (canAsk()) {
+    <button pButton type="button" severity="secondary" [outlined]="true" (click)="asked.emit()">
+      <svg class="ask-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path
+          d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
+        />
+      </svg>
+      Ask a question
+    </button>
+  }
+</section>
+
+<section class="job" [class.job--photos]="quote().photos.length > 0" aria-label="Job">
+  <div class="job__section">
+    <h2 class="job__title">{{ quote().quote.scope }}</h2>
+    @if (quote().customer.address; as address) {
+      <p class="job__address">
+        <svg class="job__pin" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M12 21s-6-5.6-6-11a6 6 0 0 1 12 0c0 5.4-6 11-6 11z" />
+          <circle cx="12" cy="10" r="2.2" />
+        </svg>
+        {{ address }}
+      </p>
+    }
+    <p class="job__muted">Prepared for {{ quote().customer.name }}</p>
+    @if (quote().quote.customerMessage; as message) {
+      <p class="job__message">{{ message }}</p>
+    }
+  </div>
+  <div class="job__section">
+    <h3 class="job__subtitle">Scope of work</h3>
+    <ul class="job__scope">
+      @for (item of quote().scopeItems; track $index) {
+        <li>
+          <svg data-p-icon="check" class="job__check" aria-hidden="true"></svg>
+          {{ item }}
+        </li>
+      }
+    </ul>
+  </div>
+  @if (quote().photos.length > 0) {
+    <div class="job__section">
+      <h3 class="job__subtitle">Assessment photos</h3>
+      <app-public-quote-photos [photos]="quote().photos" />
+    </div>
+  }
+</section>

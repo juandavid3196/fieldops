@@ -4,9 +4,9 @@
 | -------- | ------------------------- |
 | Feature  | `customer-quote-approval` |
 | Type     | Full-stack                |
-| Status   | APPROVED                  |
+| Status   | AUDITED                   |
 | Created  | 2026-10-05                |
-| Updated  | 2026-10-05                |
+| Updated  | 2026-10-06                |
 | Approved | 2026-10-05                |
 
 ## Context and objective
@@ -434,3 +434,5 @@ table-driven.
 | 2026-10-05 | — → DRAFT | Created |
 | 2026-10-05 | DRAFT → DRAFT | Revised after validation: organization-local public dates, connection remote IP, `updated_at` on every customer transition (BR-26), declined copy, superseded precedence, wording cleanups, integration volume justification |
 | 2026-10-05 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-06 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-06 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

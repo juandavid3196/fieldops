@@ -11,6 +11,7 @@ using FieldOps.Domain.Users;
 using FieldOps.Domain.WorkOrders;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace FieldOps.UnitTests.Persistence;
@@ -71,6 +72,7 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(QuoteLine), "quote_lines")]
     [InlineData(typeof(QuoteAccessToken), "quote_access_tokens")]
     [InlineData(typeof(QuoteResponse), "quote_responses")]
+    [InlineData(typeof(QuoteResponseOptionalLine), "quote_response_optional_lines")]
     [InlineData(typeof(WorkOrder), "work_orders")]
     [InlineData(typeof(WorkOrderRequiredSkill), "work_order_required_skills")]
     [InlineData(typeof(WorkOrderChecklistTemplate), "work_order_checklist_templates")]
@@ -207,7 +209,10 @@ public class FieldOpsDbContextModelTests
         var toApprovedVersionFk = Assert.Single(
             quote!.GetForeignKeys(),
             fk => fk.PrincipalEntityType.ClrType == typeof(QuoteVersion));
-        Assert.Single(toApprovedVersionFk.Properties);
+
+        // FOREIGN KEY (organization_id, id, approved_version_id) REFERENCES quote_versions (organization_id, quote_id, id)
+        Assert.Equal(["OrganizationId", "Id", "ApprovedVersionId"], toApprovedVersionFk.Properties.Select(p => p.Name).ToArray());
+        Assert.Equal(["OrganizationId", "QuoteId", "Id"], toApprovedVersionFk.PrincipalKey.Properties.Select(p => p.Name).ToArray());
         Assert.False(toApprovedVersionFk.IsRequired);
 
         var quoteVersion = context.Model.FindEntityType(typeof(QuoteVersion));
@@ -246,14 +251,54 @@ public class FieldOpsDbContextModelTests
     }
 
     [Fact]
-    public void Model_ConfiguresQuoteResponseWithoutOrganizationId()
+    public void Model_ConfiguresQuoteResponseWithOrganizationScopedKeysChecksAndPartialIndexes()
     {
         using var context = CreateContext();
 
-        var quoteResponse = context.Model.FindEntityType(typeof(QuoteResponse));
+        var quoteResponse = context.Model.FindEntityType(typeof(QuoteResponse))!;
 
-        Assert.Null(quoteResponse!.FindProperty("OrganizationId"));
-        Assert.Equal(2, quoteResponse.GetForeignKeys().Count());
+        Assert.False(quoteResponse.FindProperty("OrganizationId")!.IsNullable);
+        Assert.True(quoteResponse.FindProperty("Subtotal")!.IsNullable);
+        Assert.Equal(
+            [["OrganizationId"], ["OrganizationId", "QuoteVersionId"], ["OrganizationId", "ResponderContactId"]],
+            quoteResponse.GetForeignKeys().Select(fk => fk.Properties.Select(p => p.Name).ToArray()).OrderBy(names => names.Length).ThenBy(names => names[^1]).ToArray());
+        Assert.Contains(
+            quoteResponse.GetKeys(),
+            key => !key.IsPrimaryKey() && key.Properties.Select(p => p.Name).SequenceEqual(["OrganizationId", "QuoteVersionId", "Id"]));
+
+        // Check constraints live in the design-time model only.
+        var designResponse = context.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(QuoteResponse))!;
+        var checks = designResponse.GetCheckConstraints().Select(check => check.Name).ToArray();
+        Assert.Contains("ck_quote_responses_totals", checks);
+        Assert.Contains("ck_quote_responses_totals_null", checks);
+        Assert.Equal(
+            "response IN ('approved','rejected','clarification_requested')",
+            designResponse.GetCheckConstraints().Single(check => check.Name == "ck_quote_responses_response").Sql);
+
+        var final = Assert.Single(quoteResponse.GetIndexes(), index => index.GetDatabaseName() == "ux_quote_responses_final");
+        var clarification = Assert.Single(quoteResponse.GetIndexes(), index => index.GetDatabaseName() == "ux_quote_responses_clarification");
+        Assert.True(final.IsUnique);
+        Assert.True(clarification.IsUnique);
+        Assert.Equal("response IN ('approved','rejected')", final.GetFilter());
+        Assert.Equal("response = 'clarification_requested'", clarification.GetFilter());
+    }
+
+    [Fact]
+    public void Model_ConfiguresQuoteResponseOptionalLineWithCompositeKeysAndCascadeToTheResponse()
+    {
+        using var context = CreateContext();
+
+        var selection = context.Model.FindEntityType(typeof(QuoteResponseOptionalLine))!;
+
+        Assert.Equal(["QuoteResponseId", "QuoteLineId"], selection.FindPrimaryKey()!.Properties.Select(p => p.Name).ToArray());
+
+        var toResponse = Assert.Single(selection.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(QuoteResponse));
+        Assert.Equal(["OrganizationId", "QuoteVersionId", "QuoteResponseId"], toResponse.Properties.Select(p => p.Name).ToArray());
+        Assert.Equal(DeleteBehavior.Cascade, toResponse.DeleteBehavior);
+
+        var toLine = Assert.Single(selection.GetForeignKeys(), fk => fk.PrincipalEntityType.ClrType == typeof(QuoteLine));
+        Assert.Equal(["OrganizationId", "QuoteVersionId", "QuoteLineId"], toLine.Properties.Select(p => p.Name).ToArray());
+        Assert.Equal(DeleteBehavior.NoAction, toLine.DeleteBehavior);
     }
 
     [Fact]

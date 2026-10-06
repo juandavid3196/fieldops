@@ -1,0 +1,23 @@
+<section class="progress" aria-labelledby="progress-heading">
+  <h2 class="progress__title" id="progress-heading">Quote progress</h2>
+  <ol class="progress__list">
+    @for (step of steps(); track step.label) {
+      <li class="progress__step" [attr.data-state]="step.state">
+        <span class="progress__marker" aria-hidden="true">
+          @if (step.state === 'completed') {
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M5 12.5l4.5 4.5L19 7.5" />
+            </svg>
+          }
+        </span>
+        <span class="progress__body">
+          <span class="progress__label">{{ step.label }}</span>
+          @if (step.date) {
+            <span class="progress__date">{{ step.date }}</span>
+          }
+        </span>
+        <span class="progress__state">{{ step.stateText }}</span>
+      </li>
+    }
+  </ol>
+</section>

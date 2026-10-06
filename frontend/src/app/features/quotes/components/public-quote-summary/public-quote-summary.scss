@@ -1,0 +1,157 @@
+@use '../../card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.summary {
+  @include card.base;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+
+  &__title {
+    @include card.title;
+  }
+
+  &__total {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--fo-color-heading);
+  }
+
+  &__spinner {
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    color: var(--fo-color-primary-strong);
+  }
+
+  &__muted {
+    @include card.muted;
+
+    margin: 0;
+  }
+
+  &__center {
+    text-align: center;
+  }
+
+  &__icon {
+    flex: none;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+  }
+
+  &__shield {
+    flex: none;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+  }
+
+  &__icon {
+    fill: none;
+    stroke: currentcolor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &__shield-body {
+    fill: var(--fo-color-neutral-text);
+  }
+
+  &__shield-check {
+    fill: none;
+    stroke: var(--fo-color-surface);
+    stroke-width: 2.25;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &__valid {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    padding-block: 0.75rem;
+    border-block: 1px solid var(--fo-color-row-divider);
+    color: var(--fo-color-text);
+  }
+
+  &__accept {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    font-size: 0.9375rem;
+    color: var(--fo-color-text);
+  }
+
+  &__approve {
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__confirm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0.75rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__final {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__secure {
+    @include card.muted;
+
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    padding-block-start: 0.75rem;
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__sr {
+    @include card.sr-only;
+  }
+}
+
+.summary button {
+  --p-button-outlined-secondary-color: var(--quote-link);
+  --p-button-outlined-secondary-hover-background: transparent;
+  --p-button-text-primary-color: var(--quote-link);
+  --p-button-text-primary-hover-background: transparent;
+}
+
+.ask-icon {
+  inline-size: 1.25rem;
+  block-size: 1.25rem;
+  margin-inline-end: 0.5rem;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}

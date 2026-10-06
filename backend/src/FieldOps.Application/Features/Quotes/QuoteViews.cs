@@ -42,12 +42,27 @@ public sealed record QuoteDraftView(
 
 public sealed record QuoteSentVersion(int VersionNo, DateTimeOffset SentAt, decimal Total, bool IsCurrent);
 
+public sealed record QuoteResponseLine(string Name, decimal LineSubtotal);
+
+public sealed record QuoteResponseTotals(decimal Subtotal, decimal DiscountTotal, decimal TaxTotal, decimal Total);
+
+/// <summary>A customer response of a sent version (customer-quote-approval BR-23); <c>Type</c> is approved, rejected or clarification_requested.</summary>
+public sealed record QuoteResponseView(
+    int VersionNo,
+    string Type,
+    DateTimeOffset RespondedAt,
+    string ResponderName,
+    string? Comment,
+    IReadOnlyList<QuoteResponseLine> SelectedOptionalLines,
+    QuoteResponseTotals? Totals);
+
 /// <summary>Internal quote read (API contracts QuoteDetail); margin, unit cost and internal note appear only here.</summary>
 public sealed record QuoteDetail(
     Guid Id,
     long Number,
     string DisplayNumber,
     string Status,
+    string DisplayStatus,
     DateTimeOffset UpdatedAt,
     bool CanManage,
     QuoteRequestRef Request,
@@ -56,7 +71,8 @@ public sealed record QuoteDetail(
     DetailCompletedAssessment? CompletedAssessment,
     QuoteOrganizationRef Organization,
     QuoteDraftView? Draft,
-    IReadOnlyList<QuoteSentVersion> SentVersions);
+    IReadOnlyList<QuoteSentVersion> SentVersions,
+    IReadOnlyList<QuoteResponseView> Responses);
 
 public sealed record QuoteVersionLine(
     string Type,

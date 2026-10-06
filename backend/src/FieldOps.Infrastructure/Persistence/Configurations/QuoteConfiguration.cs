@@ -122,11 +122,13 @@ internal sealed class QuoteConfiguration : IEntityTypeConfiguration<Quote>
             .OnDelete(DeleteBehavior.NoAction);
 
         // ALTER TABLE quotes ADD CONSTRAINT fk_quotes_approved_version
-        //   FOREIGN KEY (approved_version_id) REFERENCES quote_versions (id);
-        // Added after both tables exist to resolve the Quote <-> QuoteVersion cycle.
+        //   FOREIGN KEY (organization_id, id, approved_version_id) REFERENCES quote_versions (organization_id, quote_id, id);
+        // Added after both tables exist to resolve the Quote <-> QuoteVersion cycle; the approved version belongs
+        // to the same quote and organization (customer-quote-approval BR-25).
         builder.HasOne<QuoteVersion>()
             .WithMany()
-            .HasForeignKey(quote => quote.ApprovedVersionId)
+            .HasForeignKey(quote => new { quote.OrganizationId, quote.Id, quote.ApprovedVersionId })
+            .HasPrincipalKey(version => new { version.OrganizationId, version.QuoteId, version.Id })
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

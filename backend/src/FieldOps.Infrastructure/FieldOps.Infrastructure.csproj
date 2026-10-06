@@ -16,6 +16,14 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.*" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.*" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.*" />
+    <PackageReference Include="PDFsharp-MigraDoc" Version="6.2.4" />
+  </ItemGroup>
+
+  <!-- Inter Regular and Bold (SIL OFL 1.1) are embedded for the quote PDF only; no system font is ever used. -->
+  <ItemGroup>
+    <EmbeddedResource Include="Pdf\Fonts\Inter-Regular.ttf" LogicalName="FieldOps.Pdf.Fonts.Inter-Regular.ttf" />
+    <EmbeddedResource Include="Pdf\Fonts\Inter-Bold.ttf" LogicalName="FieldOps.Pdf.Fonts.Inter-Bold.ttf" />
+    <EmbeddedResource Include="Pdf\Fonts\OFL.txt" LogicalName="FieldOps.Pdf.Fonts.OFL.txt" />
   </ItemGroup>
 
   <ItemGroup>

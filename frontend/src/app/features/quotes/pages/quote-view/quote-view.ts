@@ -42,6 +42,8 @@ import {
   QUOTE_SAVE_FAILED_MESSAGE,
   QUOTE_UNAVAILABLE_MESSAGE,
   QuoteDetail,
+  QuoteResponse,
+  QuoteResponseType,
   QuoteVersion,
   SendResult,
   VIEW_FORBIDDEN_MESSAGE,
@@ -50,6 +52,7 @@ import { QuotesService } from '../../services/quotes.service';
 import {
   STATUS_LABELS,
   dateOnlyLabel,
+  dateTimeAt,
   defaultEmailMessage,
   localZone,
   versionView,
@@ -57,6 +60,12 @@ import {
 import { formatDate } from '../../../customers/utils/customer-format';
 
 export const NOT_SENT_MESSAGE = "This quote hasn't been sent yet.";
+export const NO_RESPONSE_MESSAGE = 'No response from the customer yet.';
+export const RESPONSE_LABELS: Readonly<Record<QuoteResponseType, string>> = {
+  approved: 'Approved',
+  rejected: 'Declined',
+  clarification_requested: 'Question',
+};
 export const CANCELLED_MESSAGE = 'This quote was cancelled.';
 const REVISABLE: readonly string[] = ['sent', 'clarification_requested', 'rejected', 'expired'];
 
@@ -110,6 +119,8 @@ export class QuoteView {
   readonly notSentMessage = NOT_SENT_MESSAGE;
   readonly cancelledMessage = CANCELLED_MESSAGE;
   readonly noRecipientMessage = NO_RECIPIENT_MESSAGE;
+  readonly noResponseMessage = NO_RESPONSE_MESSAGE;
+  readonly responseLabels = RESPONSE_LABELS;
 
   private readonly roleCode = computed(() => this.sessionService.session()?.role.code ?? '');
   /** UX only: the backend decides (BR-07). */
@@ -129,7 +140,7 @@ export class QuoteView {
   readonly resendError = signal<string | null>(null);
 
   readonly statusLabel = computed(() => {
-    const status = this.detail()?.status;
+    const status = this.detail()?.displayStatus;
     return status === undefined ? '' : STATUS_LABELS[status];
   });
   readonly requestQueryParams = computed(() => ({ request: this.detail()?.request.id ?? '' }));
@@ -153,6 +164,11 @@ export class QuoteView {
     return margin.percent === null
       ? '—'
       : `${margin.percent}% · ${formatMoney(margin.grossProfit, currency)}`;
+  });
+  /** Customer responses of the selected version, newest first (BR-23). */
+  readonly versionResponses = computed<readonly QuoteResponse[]>(() => {
+    const selected = this.selected();
+    return (this.detail()?.responses ?? []).filter((response) => response.versionNo === selected);
   });
   readonly validUntil = computed(() => {
     const value = this.version()?.validUntil;
@@ -298,6 +314,14 @@ export class QuoteView {
   private settle(state: PageState): void {
     this.state.set(state);
     afterNextRender(() => this.heading()?.nativeElement.focus(), { injector: this.injector });
+  }
+
+  responseDate(response: QuoteResponse): string {
+    return dateTimeAt(response.respondedAt, localZone());
+  }
+
+  money(value: number): string {
+    return formatMoney(value, this.detail()?.organization.currency ?? null);
   }
 
   selectVersion(versionNo: number): void {

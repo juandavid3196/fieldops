@@ -166,11 +166,22 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
             draft = await BuildDraftAsync(organizationId, mutable, organization, cancellationToken);
         }
 
+        var responses = await ReadResponsesAsync(organizationId, versions, cancellationToken);
+        var currentValidUntil = versions.FirstOrDefault(version => version.IsImmutable && version.VersionNo == quote.CurrentVersionNo)?.ValidUntil;
+
+        // BR-23: a sent or clarification-requested quote shows as expired once its version's last day has passed.
+        var displayStatus = quote.Status is QuoteStatus.Sent or QuoteStatus.ClarificationRequested
+            && currentValidUntil is { } validUntil
+            && QuoteAccessTokens.ExpiresAt(validUntil, zone) <= timeProvider.GetUtcNow()
+                ? QuoteStatusCodes.Code(QuoteStatus.Expired)
+                : QuoteStatusCodes.Code(quote.Status);
+
         return new QuoteDetail(
             quote.Id,
             quote.QuoteNumber,
             RequestCardRules.DisplayNumber(organization.QuotePrefix, quote.QuoteNumber),
             QuoteStatusCodes.Code(quote.Status),
+            displayStatus,
             quote.UpdatedAt,
             canManage,
             new QuoteRequestRef(
@@ -188,7 +199,52 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
                 .Where(version => version.IsImmutable && version.SentAt != null)
                 .Select(version => new QuoteSentVersion(
                     version.VersionNo, version.SentAt!.Value, version.Total, version.VersionNo == quote.CurrentVersionNo))
-                .ToList());
+                .ToList(),
+            responses);
+    }
+
+    // Newest first; an approval carries its selected optional lines and server totals (BR-23).
+    private async Task<IReadOnlyList<QuoteResponseView>> ReadResponsesAsync(
+        Guid organizationId, List<QuoteVersion> versions, CancellationToken cancellationToken)
+    {
+        var versionIds = versions.Select(version => version.Id).ToArray();
+        var rows = await dbContext.QuoteResponses.AsNoTracking()
+            .Where(response => response.OrganizationId == organizationId && versionIds.Contains(response.QuoteVersionId))
+            .OrderByDescending(response => response.RespondedAt)
+            .ThenByDescending(response => response.Id)
+            .ToListAsync(cancellationToken);
+
+        if (rows.Count == 0)
+        {
+            return [];
+        }
+
+        var responseIds = rows.Select(response => response.Id).ToArray();
+        var selected = await dbContext.QuoteResponseOptionalLines.AsNoTracking()
+            .Where(link => link.OrganizationId == organizationId && responseIds.Contains(link.QuoteResponseId))
+            .Join(
+                dbContext.QuoteLines.AsNoTracking().Where(line => line.OrganizationId == organizationId),
+                link => link.QuoteLineId,
+                line => line.Id,
+                (link, line) => new { link.QuoteResponseId, line.Name, line.LineSubtotal, line.SortOrder, line.Id })
+            .OrderBy(item => item.SortOrder)
+            .ThenBy(item => item.Id)
+            .ToListAsync(cancellationToken);
+
+        return rows
+            .Select(response => new QuoteResponseView(
+                versions.Single(version => version.Id == response.QuoteVersionId).VersionNo,
+                QuoteStatusCodes.Code(response.Response),
+                response.RespondedAt,
+                response.ResponderName,
+                response.Comment,
+                selected.Where(item => item.QuoteResponseId == response.Id)
+                    .Select(item => new QuoteResponseLine(item.Name, item.LineSubtotal))
+                    .ToList(),
+                response.Subtotal is { } subtotal
+                    ? new QuoteResponseTotals(subtotal, response.DiscountTotal ?? 0m, response.TaxTotal ?? 0m, response.Total ?? 0m)
+                    : null))
+            .ToList();
     }
 
     // A draft reads the current organization rate and currency on every calculation (BR-13, AS-05).
@@ -318,7 +374,7 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
             formatted);
     }
 
-    private static string? FormatServiceAddress(string? json)
+    internal static string? FormatServiceAddress(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
         {
@@ -341,7 +397,7 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
         }
     }
 
-    private static string? FormatAddress(string? line1, string? line2, string? city, string? state, string? postalCode)
+    internal static string? FormatAddress(string? line1, string? line2, string? city, string? state, string? postalCode)
     {
         var region = string.Join(' ', new[] { state, postalCode }.Where(part => !string.IsNullOrWhiteSpace(part)));
         var parts = new[] { line1, line2, city, region }.Where(part => !string.IsNullOrWhiteSpace(part)).Select(part => part!.Trim());

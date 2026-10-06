@@ -47,6 +47,8 @@ const detail = (patch: Partial<QuoteDetail> = {}): QuoteDetail => ({
   number: 2036,
   displayNumber: 'Q-2036',
   status: 'draft',
+  displayStatus: 'draft',
+  responses: [],
   updatedAt: UPDATED_AT,
   canManage: true,
   request: {

@@ -37,6 +37,45 @@ public static class ApiRateLimitingExtensions
 
     private const string PublicRequestSubmitGlobalPartition = "public-request-submit-global";
 
+    /// <summary>view, calculate, photos and logo of the public quote link (customer-quote-approval BR-20).</summary>
+    public const string QuoteLinkReadPolicy = "quote-link-read";
+
+    /// <summary>approve, decline and clarification of the public quote link.</summary>
+    public const string QuoteLinkActionPolicy = "quote-link-action";
+
+    /// <summary>pdf of the public quote link.</summary>
+    public const string QuoteLinkPdfPolicy = "quote-link-pdf";
+
+    public const int QuoteLinkReadPerClientPermitLimit = 60;
+
+    public const int QuoteLinkReadGlobalPermitLimit = 600;
+
+    public const int QuoteLinkActionPerClientPermitLimit = 10;
+
+    public const int QuoteLinkActionGlobalPermitLimit = 100;
+
+    public const int QuoteLinkPdfPerClientPermitLimit = 10;
+
+    public const int QuoteLinkPdfGlobalPermitLimit = 100;
+
+    public static readonly TimeSpan QuoteLinkReadPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan QuoteLinkReadGlobalWindow = TimeSpan.FromMinutes(1);
+
+    public static readonly TimeSpan QuoteLinkActionPerClientWindow = TimeSpan.FromMinutes(15);
+
+    public static readonly TimeSpan QuoteLinkActionGlobalWindow = TimeSpan.FromMinutes(1);
+
+    public static readonly TimeSpan QuoteLinkPdfPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan QuoteLinkPdfGlobalWindow = TimeSpan.FromMinutes(1);
+
+    private const string QuoteLinkReadGlobalPartition = "quote-link-read-global";
+
+    private const string QuoteLinkActionGlobalPartition = "quote-link-action-global";
+
+    private const string QuoteLinkPdfGlobalPartition = "quote-link-pdf-global";
+
     /// <summary>Shared by validate, accept and accept-existing (invitation BR-12).</summary>
     public const string InvitationPolicy = "invitation";
 
@@ -174,6 +213,36 @@ public static class ApiRateLimitingExtensions
                         QueueLimit = 0,
                     }));
 
+            options.AddPolicy(QuoteLinkReadPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, QuoteLinkReadPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = QuoteLinkReadPerClientPermitLimit,
+                        Window = QuoteLinkReadPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
+            options.AddPolicy(QuoteLinkActionPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, QuoteLinkActionPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = QuoteLinkActionPerClientPermitLimit,
+                        Window = QuoteLinkActionPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
+            options.AddPolicy(QuoteLinkPdfPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, QuoteLinkPdfPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = QuoteLinkPdfPerClientPermitLimit,
+                        Window = QuoteLinkPdfPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
             // Applies only to endpoints using one of the named policies above.
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                 GetEndpointPolicyName(httpContext) switch
@@ -225,6 +294,30 @@ public static class ApiRateLimitingExtensions
                         {
                             PermitLimit = PublicRequestSubmitGlobalPermitLimit,
                             Window = PublicRequestSubmitGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    QuoteLinkReadPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        QuoteLinkReadGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = QuoteLinkReadGlobalPermitLimit,
+                            Window = QuoteLinkReadGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    QuoteLinkActionPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        QuoteLinkActionGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = QuoteLinkActionGlobalPermitLimit,
+                            Window = QuoteLinkActionGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    QuoteLinkPdfPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        QuoteLinkPdfGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = QuoteLinkPdfGlobalPermitLimit,
+                            Window = QuoteLinkPdfGlobalWindow,
                             QueueLimit = 0,
                         }),
                     _ => RateLimitPartition.GetNoLimiter(string.Empty),

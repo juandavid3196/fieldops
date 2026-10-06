@@ -22,6 +22,14 @@ internal sealed class QuoteLineConfiguration : IEntityTypeConfiguration<QuoteLin
 
         builder.HasKey(line => line.Id);
 
+        // UNIQUE (organization_id, quote_version_id, id): target of the selected optional lines (customer-quote-approval BR-25).
+        builder.HasAlternateKey(line => new
+        {
+            line.OrganizationId,
+            line.QuoteVersionId,
+            line.Id,
+        });
+
         builder.Property(line => line.Id)
             .HasDefaultValueSql("gen_random_uuid()");
 

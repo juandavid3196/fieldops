@@ -45,7 +45,7 @@ public class QuoteDeliveryTests(CompanySettingsDatabaseFixture database)
         var logs = new CapturingLogs(host.Logs).AllText();
         Assert.Contains(quoteId.ToString(), logs, StringComparison.Ordinal);
         Assert.Contains("InvalidOperationException", logs, StringComparison.Ordinal);
-        foreach (var secret in new[] { QuotesApi.RecipientEmail, "quote-approval", "token=", "Hi Pat", "Carla" })
+        foreach (var secret in new[] { QuotesApi.RecipientEmail, "quotes/view", "token=", "Hi Pat", "Carla" })
         {
             Assert.DoesNotContain(secret, logs, StringComparison.Ordinal);
         }

@@ -1,0 +1,28 @@
+:host {
+  display: contents;
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+
+  &__text {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  &__count {
+    margin: 0;
+    font-size: 0.8125rem;
+    text-align: end;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__failure {
+    margin: 0;
+    color: var(--fo-color-danger-text);
+  }
+}

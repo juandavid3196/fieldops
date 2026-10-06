@@ -169,6 +169,32 @@
               @default {
                 @if (view(); as view) {
                   <app-quote-customer-view [view]="view" />
+                  <section class="view__internal-card" aria-labelledby="quote-response-heading">
+                    <h2 class="view__subtitle" id="quote-response-heading">Customer response</h2>
+                    @for (response of versionResponses(); track $index) {
+                      <div class="view__response">
+                        <p class="view__label">
+                          {{ responseLabels[response.type] }} · {{ response.responderName }} ·
+                          {{ responseDate(response) }}
+                        </p>
+                        @if (response.comment) {
+                          <p class="view__note">{{ response.comment }}</p>
+                        }
+                        @if (response.type === 'approved') {
+                          @for (line of response.selectedOptionalLines; track $index) {
+                            <p class="view__note">
+                              Optional: {{ line.name }} · {{ money(line.lineSubtotal) }}
+                            </p>
+                          }
+                          @if (response.totals; as totals) {
+                            <p class="view__note">Approved total: {{ money(totals.total) }}</p>
+                          }
+                        }
+                      </div>
+                    } @empty {
+                      <p class="view__note">{{ noResponseMessage }}</p>
+                    }
+                  </section>
                   <section class="view__internal-card" aria-labelledby="quote-internal-heading">
                     <h2 class="view__subtitle" id="quote-internal-heading">
                       Internal <span class="view__internal">Internal</span>
