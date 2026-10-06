@@ -38,6 +38,14 @@ internal sealed class QuoteVersionConfiguration : IEntityTypeConfiguration<Quote
             version.Id,
         });
 
+        // UNIQUE (organization_id, quote_id, id): target of the approved-version foreign key of quotes (customer-quote-approval BR-25).
+        builder.HasAlternateKey(version => new
+        {
+            version.OrganizationId,
+            version.QuoteId,
+            version.Id,
+        });
+
         builder.Property(version => version.Id)
             .HasDefaultValueSql("gen_random_uuid()");
 

@@ -37,6 +37,8 @@ const detail = (patch: Partial<QuoteDetail> = {}): QuoteDetail => ({
   number: 2036,
   displayNumber: 'Q-2036',
   status: 'sent',
+  displayStatus: 'sent',
+  responses: [],
   updatedAt: '2026-10-05T12:00:00Z',
   canManage: true,
   request: {
@@ -189,6 +191,51 @@ describe('Quote read-only view', () => {
     control('Revise quote')!.click();
     quote('/revise').flush(detail({ draft: { ...calculationDraft(), versionNo: 3 } }));
     await vi.waitFor(() => expect(TestBed.inject(Router).url).toBe(`/quotes/${QUOTE_ID}/edit`));
+  });
+
+  it('shows the derived Expired chip and the Customer response card of the selected version, or the empty text (customer-quote-approval FR-14, BR-23, AC-20, AC-21)', async () => {
+    await setup(
+      'viewer',
+      detail({
+        displayStatus: 'expired',
+        responses: [
+          {
+            versionNo: 2,
+            type: 'rejected',
+            respondedAt: '2026-10-07T15:00:00Z',
+            responderName: 'Sofia Martinez',
+            comment: 'Too expensive',
+            selectedOptionalLines: [],
+            totals: null,
+          },
+          {
+            versionNo: 1,
+            type: 'clarification_requested',
+            respondedAt: '2026-10-06T15:00:00Z',
+            responderName: 'Sofia Martinez',
+            comment: 'OLD VERSION QUESTION',
+            selectedOptionalLines: [],
+            totals: null,
+          },
+        ],
+      }),
+    );
+
+    expect(text()).toContain('Status: Expired');
+    expect(text()).toContain('Customer response');
+    expect(text()).toContain('Declined · Sofia Martinez');
+    expect(text()).toContain('Too expensive');
+    expect(text()).not.toContain('OLD VERSION QUESTION');
+
+    page.selectVersion(1);
+    quote('/versions/1').flush(version(1));
+    await settle();
+    expect(text()).toContain('Question · Sofia Martinez');
+    expect(text()).toContain('OLD VERSION QUESTION');
+
+    TestBed.resetTestingModule();
+    await setup('viewer', detail());
+    expect(text()).toContain('No response from the customer yet.');
   });
 
   it.each(['viewer', 'operations_manager', 'accounting'])(

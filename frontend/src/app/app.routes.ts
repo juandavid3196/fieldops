@@ -22,12 +22,19 @@ export const routes: Routes = [
     loadChildren: () => import('./features/service-request/service-request.routes'),
   },
   {
-    // Public on purpose: the emailed link lands here with the token in the URL fragment. Temporary
-    // placeholder: makes no API call and has no guard (quote-builder BR-27).
-    path: 'quote-approval',
+    // Public on purpose: the emailed link carries the token in the URL fragment. Declared outside
+    // the authenticated shell and before `quotes/:quoteId` so it is never matched as a quote id.
+    path: 'quotes/view',
+    pathMatch: 'full',
     title: 'Quote · FieldOps',
     loadComponent: () =>
       import('./features/quotes/pages/quote-approval/quote-approval').then((m) => m.QuoteApproval),
+  },
+  {
+    // Old emailed links: the redirect keeps the URL fragment (customer-quote-approval BR-02).
+    path: 'quote-approval',
+    pathMatch: 'full',
+    redirectTo: 'quotes/view',
   },
   {
     // Routes declare their own full paths (public registration lives at `auth/register-company`).

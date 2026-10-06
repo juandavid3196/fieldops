@@ -99,11 +99,35 @@ export interface SentVersionSummary {
   readonly isCurrent: boolean;
 }
 
+export type QuoteResponseType = 'approved' | 'rejected' | 'clarification_requested';
+
+/** A customer response of a sent version (BR-23), newest first in `QuoteDetail.responses`. */
+export interface QuoteResponse {
+  readonly versionNo: number;
+  readonly type: QuoteResponseType;
+  readonly respondedAt: string;
+  readonly responderName: string;
+  readonly comment: string | null;
+  readonly selectedOptionalLines: readonly {
+    readonly name: string;
+    readonly lineSubtotal: number;
+  }[];
+  readonly totals: {
+    readonly subtotal: number;
+    readonly discountTotal: number;
+    readonly taxTotal: number;
+    readonly total: number;
+  } | null;
+}
+
 export interface QuoteDetail {
   readonly id: string;
   readonly number: number;
   readonly displayNumber: string;
   readonly status: QuoteStatus;
+  /** `expired` when a sent quote is past its validity, else `status` (BR-23). */
+  readonly displayStatus: QuoteStatus;
+  readonly responses: readonly QuoteResponse[];
   readonly updatedAt: string;
   readonly canManage: boolean;
   readonly request: {

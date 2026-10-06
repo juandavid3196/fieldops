@@ -1,0 +1,116 @@
+<section class="summary" aria-labelledby="summary-heading">
+  <h2 class="summary__title" id="summary-heading">Quote total</h2>
+  <p class="summary__total" aria-live="polite" aria-atomic="true" [attr.aria-busy]="calculating()">
+    {{ money(totals().total) }}
+    @if (calculating()) {
+      <svg data-p-icon="spinner" class="summary__spinner" [spin]="true" aria-hidden="true"></svg>
+      <span class="summary__sr">Updating total</span>
+    }
+  </p>
+  <p class="summary__muted">No payment due today</p>
+  <p class="summary__valid">
+    <svg class="summary__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+    Valid until {{ validUntil() }}
+  </p>
+
+  @if (open()) {
+    @if (quote().clarification; as clarification) {
+      <p class="summary__confirm" role="status">
+        Your question was sent. {{ quote().organization.name }} will contact you soon.
+        <span class="summary__muted">{{ askedOn() }}</span>
+      </p>
+    }
+    <div class="summary__accept">
+      <p-checkbox
+        inputId="accept-terms"
+        [binary]="true"
+        [ngModel]="acceptTerms()"
+        (ngModelChange)="acceptTerms.set($event)"
+      />
+      <label for="accept-terms">I approve the scope of work and agree to the terms.</label>
+    </div>
+    <button
+      pButton
+      type="button"
+      class="summary__approve"
+      [disabled]="approveDisabled()"
+      [attr.aria-describedby]="acceptTerms() ? null : 'approve-hint'"
+      (click)="approved.emit()"
+    >
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Approve quote
+    </button>
+    @if (!acceptTerms()) {
+      <span class="summary__sr" id="approve-hint">{{ hint }}</span>
+    }
+    <p class="summary__muted summary__center">Approval does not charge your payment method.</p>
+    @if (actionError(); as message) {
+      <p class="summary__error" role="alert">{{ message }}</p>
+    }
+    @if (!quote().clarification) {
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="submitting()"
+        (click)="asked.emit()"
+      >
+        <svg class="ask-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path
+            d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
+          />
+        </svg>
+        Ask a question
+      </button>
+    }
+    <button
+      pButton
+      type="button"
+      variant="text"
+      [disabled]="submitting()"
+      (click)="declined.emit()"
+    >
+      Decline quote
+    </button>
+    <p class="summary__secure">
+      <svg class="summary__shield" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path
+          class="summary__shield-body"
+          d="M12 2.5l8 3v6c0 5-3.4 8.7-8 10-4.6-1.3-8-5-8-10v-6z"
+        />
+        <path class="summary__shield-check" d="M8.5 12l2.5 2.5 4.5-5" />
+      </svg>
+      Your approval will be recorded securely.
+    </p>
+  } @else if (quote().response?.type === 'approved') {
+    <p class="summary__final">Approved on {{ respondedOn() }}</p>
+    @for (line of approvedOptional(); track line.id) {
+      <p class="summary__muted">Included: {{ line.name }} · {{ money(line.lineSubtotal) }}</p>
+    }
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="pdfState() === 'downloading'"
+      (click)="pdfRequested.emit()"
+    >
+      @if (pdfState() === 'downloading') {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Download PDF
+    </button>
+    @if (pdfState() === 'failed') {
+      <p class="summary__error" role="alert">We couldn't download the PDF. Please try again.</p>
+    }
+  } @else {
+    <p class="summary__final">Declined on {{ respondedOn() }}</p>
+    <p class="summary__muted">Your decision was sent to {{ quote().organization.name }}.</p>
+  }
+</section>

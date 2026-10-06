@@ -1893,9 +1893,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasAlternateKey("OrganizationId", "Id")
                         .HasName("ak_quotes_organization_id_id");
 
-                    b.HasIndex("ApprovedVersionId")
-                        .HasDatabaseName("ix_quotes_approved_version_id");
-
                     b.HasIndex("BranchId")
                         .HasDatabaseName("ix_quotes_branch_id");
 
@@ -1916,6 +1913,9 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_quotes_request_open")
                         .HasFilter("status <> 'cancelled'");
+
+                    b.HasIndex("OrganizationId", "Id", "ApprovedVersionId")
+                        .HasDatabaseName("ix_quotes_organization_id_id_approved_version_id");
 
                     b.HasIndex("OrganizationId", "Status", "CreatedAt")
                         .IsDescending(false, false, true)
@@ -2081,14 +2081,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_quote_lines");
 
+                    b.HasAlternateKey("OrganizationId", "QuoteVersionId", "Id")
+                        .HasName("ak_quote_lines_organization_id_quote_version_id_id");
+
                     b.HasIndex("CatalogItemId")
                         .HasDatabaseName("ix_quote_lines_catalog_item_id");
 
                     b.HasIndex("QuoteVersionId")
                         .HasDatabaseName("ix_quote_lines_quote_version_id");
-
-                    b.HasIndex("OrganizationId", "QuoteVersionId")
-                        .HasDatabaseName("ix_quote_lines_organization_id_quote_version_id");
 
                     b.ToTable("quote_lines", null, t =>
                         {
@@ -2110,9 +2110,18 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("comment");
 
+                    b.Property<decimal?>("DiscountTotal")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("discount_total");
+
                     b.Property<IPAddress>("IpAddress")
                         .HasColumnType("inet")
                         .HasColumnName("ip_address");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
 
                     b.Property<Guid>("QuoteVersionId")
                         .HasColumnType("uuid")
@@ -2138,19 +2147,86 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("quote_status")
                         .HasColumnName("response");
 
+                    b.Property<decimal?>("Subtotal")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("subtotal");
+
+                    b.Property<decimal?>("TaxTotal")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("tax_total");
+
+                    b.Property<decimal?>("Total")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("total");
+
                     b.HasKey("Id")
                         .HasName("pk_quote_responses");
 
-                    b.HasIndex("QuoteVersionId")
-                        .HasDatabaseName("ix_quote_responses_quote_version_id");
+                    b.HasAlternateKey("OrganizationId", "QuoteVersionId", "Id")
+                        .HasName("ak_quote_responses_organization_id_quote_version_id_id");
 
-                    b.HasIndex("ResponderContactId")
-                        .HasDatabaseName("ix_quote_responses_responder_contact_id");
+                    b.HasIndex("OrganizationId", "ResponderContactId")
+                        .HasDatabaseName("ix_quote_responses_organization_id_responder_contact_id");
+
+                    b.HasIndex(new[] { "QuoteVersionId" }, "ux_quote_responses_clarification")
+                        .IsUnique()
+                        .HasDatabaseName("ux_quote_responses_clarification")
+                        .HasFilter("response = 'clarification_requested'");
+
+                    b.HasIndex(new[] { "QuoteVersionId" }, "ux_quote_responses_final")
+                        .IsUnique()
+                        .HasDatabaseName("ux_quote_responses_final")
+                        .HasFilter("response IN ('approved','rejected')");
 
                     b.ToTable("quote_responses", null, t =>
                         {
+                            t.HasCheckConstraint("ck_quote_responses_discount_total", "discount_total >= 0");
+
                             t.HasCheckConstraint("ck_quote_responses_response", "response IN ('approved','rejected','clarification_requested')");
+
+                            t.HasCheckConstraint("ck_quote_responses_subtotal", "subtotal >= 0");
+
+                            t.HasCheckConstraint("ck_quote_responses_tax_total", "tax_total >= 0");
+
+                            t.HasCheckConstraint("ck_quote_responses_total", "total >= 0");
+
+                            t.HasCheckConstraint("ck_quote_responses_totals", "(response = 'approved') = (subtotal IS NOT NULL AND discount_total IS NOT NULL AND tax_total IS NOT NULL AND total IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_quote_responses_totals_null", "response = 'approved' OR (subtotal IS NULL AND discount_total IS NULL AND tax_total IS NULL AND total IS NULL)");
                         });
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteResponseOptionalLine", b =>
+                {
+                    b.Property<Guid>("QuoteResponseId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_response_id");
+
+                    b.Property<Guid>("QuoteLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_line_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("QuoteVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_version_id");
+
+                    b.HasKey("QuoteResponseId", "QuoteLineId")
+                        .HasName("pk_quote_response_optional_lines");
+
+                    b.HasIndex("OrganizationId", "QuoteVersionId", "QuoteLineId")
+                        .HasDatabaseName("ix_quote_response_optional_lines_organization_id_quote_version");
+
+                    b.HasIndex("OrganizationId", "QuoteVersionId", "QuoteResponseId")
+                        .HasDatabaseName("ix_quote_response_optional_lines_organization_id_quote_version1");
+
+                    b.ToTable("quote_response_optional_lines", (string)null);
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteVersion", b =>
@@ -2249,6 +2325,9 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasAlternateKey("OrganizationId", "Id")
                         .HasName("ak_quote_versions_organization_id_id");
 
+                    b.HasAlternateKey("OrganizationId", "QuoteId", "Id")
+                        .HasName("ak_quote_versions_organization_id_quote_id_id");
+
                     b.HasIndex("CreatedByUserId")
                         .HasDatabaseName("ix_quote_versions_created_by_user_id");
 
@@ -2256,9 +2335,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ux_quote_versions_one_mutable")
                         .HasFilter("NOT is_immutable");
-
-                    b.HasIndex("OrganizationId", "QuoteId")
-                        .HasDatabaseName("ix_quote_versions_organization_id_quote_id");
 
                     b.HasIndex("QuoteId", "VersionNo")
                         .IsUnique()
@@ -4542,12 +4618,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("FieldOps.Domain.Quotes.Quote", b =>
                 {
-                    b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
-                        .WithMany()
-                        .HasForeignKey("ApprovedVersionId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("fk_quotes_quote_versions_approved_version_id");
-
                     b.HasOne("FieldOps.Domain.Branches.Branch", null)
                         .WithMany()
                         .HasForeignKey("BranchId")
@@ -4589,6 +4659,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_quotes_service_requests_organization_id_request_id");
+
+                    b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "Id", "ApprovedVersionId")
+                        .HasPrincipalKey("OrganizationId", "QuoteId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_quotes_quote_versions_organization_id_id_approved_version_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteAccessToken", b =>
@@ -4649,18 +4726,53 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteResponse", b =>
                 {
-                    b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
                         .WithMany()
-                        .HasForeignKey("QuoteVersionId")
+                        .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("fk_quote_responses_quote_versions_quote_version_id");
+                        .HasConstraintName("fk_quote_responses_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "QuoteVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_responses_quote_versions_organization_id_quote_versio");
 
                     b.HasOne("FieldOps.Domain.Customers.CustomerContact", null)
                         .WithMany()
-                        .HasForeignKey("ResponderContactId")
+                        .HasForeignKey("OrganizationId", "ResponderContactId")
+                        .HasPrincipalKey("OrganizationId", "Id")
                         .OnDelete(DeleteBehavior.NoAction)
-                        .HasConstraintName("fk_quote_responses_customer_contacts_responder_contact_id");
+                        .HasConstraintName("fk_quote_responses_customer_contacts_organization_id_responder");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteResponseOptionalLine", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_response_optional_lines_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Quotes.QuoteLine", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "QuoteVersionId", "QuoteLineId")
+                        .HasPrincipalKey("OrganizationId", "QuoteVersionId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_response_optional_lines_quote_lines_organization_id_q");
+
+                    b.HasOne("FieldOps.Domain.Quotes.QuoteResponse", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "QuoteVersionId", "QuoteResponseId")
+                        .HasPrincipalKey("OrganizationId", "QuoteVersionId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_response_optional_lines_quote_responses_organization_");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteVersion", b =>

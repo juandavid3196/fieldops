@@ -138,6 +138,44 @@ public sealed class Quote
         CurrentVersionNo = versionNo;
     }
 
+    /// <summary>The customer approves the sent version (customer-quote-approval BR-12); the approved version is that of the token.</summary>
+    public void Approve(Guid versionId, DateTimeOffset now)
+    {
+        if (versionId == Guid.Empty)
+        {
+            throw new ArgumentException("Version id is required.", nameof(versionId));
+        }
+
+        RequireAnswerable("approved");
+        Status = QuoteStatus.Approved;
+        ApprovedVersionId = versionId;
+        Touch(now);
+    }
+
+    /// <summary>The customer declines the sent version (BR-14).</summary>
+    public void Reject(DateTimeOffset now)
+    {
+        RequireAnswerable("rejected");
+        Status = QuoteStatus.Rejected;
+        Touch(now);
+    }
+
+    /// <summary>The customer asks the first question of the version (BR-15).</summary>
+    public void RequestClarification(DateTimeOffset now)
+    {
+        RequireAnswerable("questioned");
+        Status = QuoteStatus.ClarificationRequested;
+        Touch(now);
+    }
+
+    /// <summary>Lazy expiry (BR-18): only a sent or clarification-requested quote expires, never an approved or rejected one.</summary>
+    public void Expire(DateTimeOffset now)
+    {
+        RequireAnswerable("expired");
+        Status = QuoteStatus.Expired;
+        Touch(now);
+    }
+
     /// <summary>Cancels a quote that was never sent; its number is never reused.</summary>
     public void Cancel()
     {
@@ -147,6 +185,14 @@ public sealed class Quote
         }
 
         Status = QuoteStatus.Cancelled;
+    }
+
+    private void RequireAnswerable(string action)
+    {
+        if (Status is not (QuoteStatus.Sent or QuoteStatus.ClarificationRequested))
+        {
+            throw new InvalidOperationException($"A quote that is {Status} cannot be {action}.");
+        }
     }
 
     private static DateTimeOffset Truncate(DateTimeOffset value)

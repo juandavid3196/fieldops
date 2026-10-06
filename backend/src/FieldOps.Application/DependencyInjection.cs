@@ -6,6 +6,7 @@ using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
+using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
@@ -125,6 +126,14 @@ public static class DependencyInjection
         services.AddScoped<ReviseQuoteHandler>();
         services.AddScoped<DiscardQuoteDraftHandler>();
         services.AddScoped<ResendQuoteEmailHandler>();
+        services.AddScoped<ViewQuoteLinkHandler>();
+        services.AddScoped<CalculateQuoteLinkHandler>();
+        services.AddScoped<ApproveQuoteLinkHandler>();
+        services.AddScoped<DeclineQuoteLinkHandler>();
+        services.AddScoped<AskQuoteQuestionHandler>();
+        services.AddScoped<GetQuoteLinkPhotoHandler>();
+        services.AddScoped<GetQuoteLinkLogoHandler>();
+        services.AddScoped<DownloadQuoteLinkPdfHandler>();
 
         return services;
     }

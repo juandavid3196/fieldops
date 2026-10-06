@@ -1,0 +1,237 @@
+<p-toast />
+
+<div class="page">
+  <header class="page__header">
+    @if (quote(); as quote) {
+      @if (logoUrl(); as url) {
+        <img class="page__logo" [src]="url" alt="" />
+      } @else {
+        <span class="page__logo page__logo--initials" aria-hidden="true">{{ initials() }}</span>
+      }
+      <span class="page__brand">{{ quote.organization.name }}</span>
+    } @else {
+      <span class="page__brand">FieldOps</span>
+    }
+  </header>
+
+  <main class="page__main">
+    @switch (state()) {
+      @case ('loading') {
+        <div class="skeletons" aria-busy="true" aria-label="Loading quote">
+          <p-skeleton height="2.5rem" width="60%" />
+          <p-skeleton height="5rem" />
+          <p-skeleton height="12rem" />
+          <p-skeleton height="14rem" />
+        </div>
+      }
+      @case ('unavailable') {
+        <section class="notice">
+          <h1 #heading class="notice__title" tabindex="-1">{{ unavailableTitle }}</h1>
+          <p class="notice__text">{{ unavailableBody }}</p>
+        </section>
+      }
+      @case ('superseded') {
+        <section class="notice">
+          <h1 #heading class="notice__title" tabindex="-1">{{ supersededTitle }}</h1>
+          <p class="notice__text">{{ supersededBody }}</p>
+        </section>
+      }
+      @case ('rate-limited') {
+        <section class="notice">
+          <h1 #heading class="notice__title" tabindex="-1">{{ rateLimited }}</h1>
+          <button pButton type="button" severity="secondary" (click)="retry()">Try again</button>
+        </section>
+      }
+      @case ('error') {
+        <section class="notice">
+          <h1 #heading class="notice__title" tabindex="-1">{{ loadError }}</h1>
+          <button pButton type="button" severity="secondary" (click)="retry()">Try again</button>
+        </section>
+      }
+      @default {
+        @if (quote(); as quote) {
+          @if (totals(); as totals) {
+            <div class="layout">
+              <div class="layout__title">
+                <div class="title">
+                  <div class="title__heading">
+                    <h1 #heading class="title__text" tabindex="-1">Your quote is ready</h1>
+                    @if (chip(); as chip) {
+                      <span class="chip" [attr.data-tone]="chip.tone">
+                        @switch (chip.tone) {
+                          @case ('warning') {
+                            <svg data-p-icon="exclamation-triangle" aria-hidden="true"></svg>
+                          }
+                          @case ('info') {
+                            <svg data-p-icon="info-circle" aria-hidden="true"></svg>
+                          }
+                          @case ('success') {
+                            <svg data-p-icon="check" aria-hidden="true"></svg>
+                          }
+                          @default {
+                            <svg data-p-icon="times-circle" aria-hidden="true"></svg>
+                          }
+                        }
+                        {{ chip.label }}
+                      </span>
+                    }
+                  </div>
+                  <p class="title__subtitle">
+                    Review the proposed work for {{ quote.quote.scope }}.
+                  </p>
+                </div>
+                <dl class="meta">
+                  <div class="meta__item">
+                    <dt>Quote number</dt>
+                    <dd>#{{ quote.quote.displayNumber }}</dd>
+                  </div>
+                  <div class="meta__item">
+                    <dt>Sent date</dt>
+                    <dd>{{ sentOn() }}</dd>
+                  </div>
+                  <div class="meta__item">
+                    <dt>Valid until</dt>
+                    <dd>{{ validUntil() }}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="layout__aside">
+                <app-public-quote-summary
+                  class="layout__summary"
+                  [quote]="quote"
+                  [totals]="totals"
+                  [calculating]="calculating()"
+                  [submitting]="submitting()"
+                  [pdfState]="pdfState()"
+                  [actionError]="actionError()"
+                  [(acceptTerms)]="acceptTerms"
+                  (approved)="approve()"
+                  (asked)="openDialog('ask')"
+                  (declined)="openDialog('decline')"
+                  (pdfRequested)="downloadPdf()"
+                />
+                <app-public-quote-progress class="layout__progress" [quote]="quote" />
+              </div>
+
+              <div class="layout__main">
+                <app-public-quote-details
+                  [quote]="quote"
+                  [logoUrl]="logoUrl()"
+                  (asked)="openDialog('ask')"
+                />
+                <app-public-quote-price
+                  [quote]="quote"
+                  [totals]="totals"
+                  [selectedIds]="selectedIds()"
+                  [editable]="editable() && !submitting()"
+                  [calculating]="calculating()"
+                  (toggled)="toggleOptional($event)"
+                />
+                @if (calculateError(); as message) {
+                  <p class="layout__error" role="alert">{{ message }}</p>
+                }
+
+                <section class="terms" aria-labelledby="terms-heading">
+                  <h2 class="terms__title" id="terms-heading">Terms and next steps</h2>
+                  <div class="terms__grid">
+                    <div class="terms__block">
+                      <svg
+                        class="terms__icon"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                        <path d="M14 3v5h5M9 13h6M9 17h6" />
+                      </svg>
+                      <div class="terms__body">
+                        <h3 class="terms__subtitle">Payment terms</h3>
+                        @if (quote.quote.terms) {
+                          <p class="terms__text">{{ quote.quote.terms }}</p>
+                        }
+                        <p class="terms__text">No deposit required.</p>
+                      </div>
+                    </div>
+                    <div class="terms__block">
+                      <svg
+                        class="terms__icon"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <rect x="3" y="5" width="18" height="16" rx="2" />
+                        <path d="M3 10h18M8 3v4M16 3v4" />
+                      </svg>
+                      <div class="terms__body">
+                        <h3 class="terms__subtitle">What happens next?</h3>
+                        <p class="terms__text">
+                          After approval, our team will contact you to confirm the service date and
+                          assigned technician.
+                        </p>
+                      </div>
+                    </div>
+                    <div class="terms__block">
+                      <svg
+                        class="terms__icon"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                        <path d="M14 3v5h5M9 13h6M9 17h6" />
+                      </svg>
+                      <div class="terms__body">
+                        <h3 class="terms__subtitle">Need a copy?</h3>
+                        <button
+                          type="button"
+                          class="terms__download"
+                          [disabled]="pdfState() === 'downloading'"
+                          (click)="downloadPdf()"
+                        >
+                          @if (pdfState() === 'downloading') {
+                            <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                          } @else {
+                            <svg
+                              class="terms__download-icon"
+                              viewBox="0 0 24 24"
+                              aria-hidden="true"
+                              focusable="false"
+                            >
+                              <path d="M12 4v11M7 11l5 5 5-5M4 20h16" />
+                            </svg>
+                          }
+                          Download PDF
+                        </button>
+                        @if (pdfState() === 'failed') {
+                          <p class="terms__error" role="alert">{{ pdfError }}</p>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+            </div>
+
+            <app-public-quote-dialog
+              [kind]="dialog()"
+              [organizationName]="quote.organization.name"
+              [submitting]="submitting()"
+              [serverError]="dialogFieldError()"
+              [failure]="dialogFailure()"
+              (dismissed)="closeDialog()"
+              (submitted)="submitDialog($event)"
+            />
+          }
+        }
+      }
+    }
+  </main>
+
+  @if (quote(); as quote) {
+    <footer class="page__footer">
+      <span>© {{ year }} {{ quote.organization.name }}. All rights reserved.</span>
+      <span>Powered by FieldOps</span>
+    </footer>
+  }
+</div>

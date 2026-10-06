@@ -7,6 +7,7 @@ using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
+using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
@@ -22,6 +23,7 @@ using FieldOps.Domain.WorkOrders;
 using FieldOps.Infrastructure.Authentication;
 using FieldOps.Infrastructure.Email;
 using FieldOps.Infrastructure.PasswordResets;
+using FieldOps.Infrastructure.Pdf;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -92,6 +94,8 @@ public static class DependencyInjection
         services.AddScoped<IAssessmentNotifier, AssessmentNotifier>();
         services.AddScoped<IQuoteStore, QuoteStore>();
         services.AddScoped<IQuoteNotifier, QuoteNotifier>();
+        services.AddScoped<IQuoteLinkStore, QuoteLinkStore>();
+        services.AddSingleton<IQuotePdfRenderer, MigraDocQuotePdfRenderer>();
         services.AddEmail(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 

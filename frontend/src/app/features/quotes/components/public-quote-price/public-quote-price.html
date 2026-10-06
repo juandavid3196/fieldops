@@ -1,0 +1,70 @@
+<section class="price" aria-labelledby="price-heading">
+  <h2 class="price__title" id="price-heading">Price details</h2>
+
+  <ng-template #rows let-lines let-optional="optional">
+    @for (line of lines; track $index) {
+      <div class="price__row" role="row">
+        <div class="price__cell price__cell--name" role="cell">
+          @if (optional) {
+            <p-toggleswitch
+              [inputId]="'optional-' + line.id"
+              [ariaLabel]="line.name + ', ' + money(line.lineSubtotal)"
+              [ngModel]="checked(line)"
+              [disabled]="!editable()"
+              (onChange)="toggle(line, $event)"
+            />
+          }
+          <span>
+            <span class="price__name">{{ line.name }}</span>
+            @if (line.description) {
+              <span class="price__muted">{{ line.description }}</span>
+            }
+          </span>
+        </div>
+        <div class="price__cell price__cell--qty" role="cell">{{ quantity(line) }}</div>
+        <div class="price__cell price__cell--rate" role="cell">{{ money(line.unitPrice) }}</div>
+        <div class="price__cell price__cell--amount" role="cell">
+          {{ money(line.lineSubtotal) }}
+        </div>
+      </div>
+    }
+  </ng-template>
+
+  <div class="price__table" role="table" aria-label="Line items">
+    <div class="price__row price__row--head" role="row">
+      <div class="price__cell price__cell--name" role="columnheader">Description</div>
+      <div class="price__cell price__cell--qty" role="columnheader">Qty</div>
+      <div class="price__cell price__cell--rate" role="columnheader">Rate</div>
+      <div class="price__cell price__cell--amount" role="columnheader">Amount</div>
+    </div>
+    <ng-container *ngTemplateOutlet="rows; context: { $implicit: regular(), optional: false }" />
+  </div>
+
+  @if (optional().length > 0) {
+    <h3 class="price__subtitle" id="optional-heading">Optional items</h3>
+    <div class="price__table" role="table" aria-labelledby="optional-heading">
+      <ng-container *ngTemplateOutlet="rows; context: { $implicit: optional(), optional: true }" />
+    </div>
+  }
+
+  <dl class="price__totals" [attr.aria-busy]="calculating()">
+    <div class="price__total-row">
+      <dt>Subtotal</dt>
+      <dd>{{ money(totals().subtotal) }}</dd>
+    </div>
+    @if (totals().discountTotal > 0) {
+      <div class="price__total-row">
+        <dt>Discount</dt>
+        <dd>−{{ money(totals().discountTotal) }}</dd>
+      </div>
+    }
+    <div class="price__total-row">
+      <dt>{{ totals().taxLabel }}</dt>
+      <dd>{{ money(totals().taxTotal) }}</dd>
+    </div>
+    <div class="price__total-row price__total-row--band">
+      <dt>Total</dt>
+      <dd>{{ money(totals().total) }}</dd>
+    </div>
+  </dl>
+</section>

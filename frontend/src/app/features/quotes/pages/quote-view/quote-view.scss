@@ -161,6 +161,12 @@
     white-space: pre-line;
   }
 
+  &__response {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
   &__internal-card {
     display: flex;
     flex-direction: column;

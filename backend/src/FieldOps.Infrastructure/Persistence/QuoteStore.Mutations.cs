@@ -106,6 +106,12 @@ internal sealed partial class QuoteStore
             quoteId,
             async locked =>
             {
+                // An approved quote is final for revisions (customer-quote-approval BR-24).
+                if (locked.Quote.Status == QuoteStatus.Approved)
+                {
+                    return Fail<QuoteSent>(Conflict<QuoteSent>(QuoteMessages.QuoteChangedCode));
+                }
+
                 var (calculation, errors, organization) = await PrepareAsync(actor.OrganizationId, draft, cancellationToken);
                 var (recipient, _) = await ResolveRecipientAsync(actor.OrganizationId, locked.Request, cancellationToken);
 

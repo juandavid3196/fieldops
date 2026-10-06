@@ -1,0 +1,155 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.price {
+  @include card.base;
+
+  padding: 1.25rem;
+
+  &__title {
+    @include card.title;
+
+    margin-block-end: 0.75rem;
+  }
+
+  &__subtitle {
+    margin: 1rem 0 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    gap: 0.25rem 0.5rem;
+    padding: 0.625rem 0.5rem;
+    border-block-end: 1px solid var(--fo-color-row-divider);
+
+    @include bp.up(md) {
+      grid-template-columns: minmax(0, 1fr) 6rem 7rem 7rem;
+    }
+
+    &--head {
+      display: none;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
+      background: var(--fo-color-neutral-background);
+      border-block-end: 0;
+
+      @include bp.up(md) {
+        display: grid;
+      }
+    }
+  }
+
+  &__cell {
+    min-width: 0;
+    font-size: 0.875rem;
+
+    &--name {
+      display: flex;
+      grid-column: 1 / -1;
+      gap: 0.5rem;
+      align-items: center;
+
+      @include bp.up(md) {
+        grid-column: auto;
+      }
+    }
+
+    &--qty,
+    &--rate,
+    &--amount {
+      color: var(--fo-color-text-secondary);
+
+      @include bp.up(md) {
+        text-align: end;
+      }
+    }
+
+    &--qty {
+      @include bp.up(md) {
+        text-align: center;
+      }
+    }
+
+    &--rate::before {
+      margin-inline-end: 0.25rem;
+      content: '×';
+
+      @include bp.up(md) {
+        content: none;
+      }
+    }
+
+    &--amount {
+      grid-column: 4;
+      font-weight: 600;
+      color: var(--fo-color-text);
+      text-align: end;
+    }
+  }
+
+  &__name {
+    display: block;
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__muted {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__totals {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin: 1rem 0 0;
+    font-size: 0.875rem;
+  }
+
+  &__total-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: space-between;
+    padding-inline: 0.5rem;
+
+    @include bp.up(md) {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 14rem;
+
+      dt,
+      dd {
+        grid-row: 1;
+        grid-column: 2;
+      }
+
+      dd {
+        justify-self: end;
+      }
+    }
+
+    dt,
+    dd {
+      margin: 0;
+    }
+
+    &--band {
+      padding-block: 0.75rem;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
+      background: var(--fo-color-neutral-background);
+      border-radius: var(--fo-radius-control);
+    }
+  }
+}
