@@ -1,0 +1,135 @@
+@use '../../card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.tasks {
+  @include card.base;
+
+  &__head {
+    @include card.head;
+  }
+
+  &__title {
+    @include card.title;
+  }
+
+  &__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  &__error {
+    margin: 0 0 0.5rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__list {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    list-style: none;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+  }
+}
+
+.task {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.25rem 0.5rem;
+  border-block-end: 1px solid var(--fo-color-row-divider);
+
+  &:last-child {
+    border-block-end: 0;
+  }
+
+  &--over {
+    background: var(--fo-color-surface-hover);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+
+  // Plain-text look until hover or focus; stays an editable input (BR-10).
+  &__field input {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+
+    &:hover,
+    &:focus {
+      background: var(--fo-color-surface);
+      border-color: var(--fo-color-border-strong);
+    }
+  }
+
+  &__handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fo-color-text-muted);
+    cursor: grab;
+  }
+
+  &__check {
+    align-self: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    accent-color: var(--fo-color-primary);
+  }
+
+  &__field {
+    min-width: 0;
+  }
+
+  &__error {
+    margin: 0.25rem 0 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text);
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  }
+
+  &__icon--quiet {
+    color: var(--fo-color-text-muted);
+    background: transparent;
+    border-color: transparent;
+  }
+}
+
+button[pButton][data-tool] {
+  --p-button-outlined-secondary-color: var(--wo-blue);
+  --p-button-outlined-secondary-border-color: var(--wo-blue-border);
+  --p-button-outlined-secondary-hover-background: #e3f0fe;
+}

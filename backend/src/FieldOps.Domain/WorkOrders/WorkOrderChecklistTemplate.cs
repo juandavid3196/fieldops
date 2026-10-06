@@ -25,7 +25,7 @@ public sealed class WorkOrderChecklistTemplate
 
     public int SortOrder { get; private set; }
 
-    public static WorkOrderChecklistTemplate Create(Guid workOrderId, string label)
+    public static WorkOrderChecklistTemplate Create(Guid workOrderId, string label, int sortOrder = 0)
     {
         if (workOrderId == Guid.Empty)
         {
@@ -41,6 +41,9 @@ public sealed class WorkOrderChecklistTemplate
                 nameof(label));
         }
 
-        return new WorkOrderChecklistTemplate(Guid.NewGuid(), workOrderId, label.Trim());
+        return new WorkOrderChecklistTemplate(Guid.NewGuid(), workOrderId, label.Trim())
+        {
+            SortOrder = sortOrder,
+        };
     }
 }

@@ -69,6 +69,8 @@ describe('AppShell', () => {
               { path: 'admin/company', component: PageStub },
               { path: 'admin/products-services', component: PageStub },
               { path: 'coming-soon/:module', component: PageStub },
+              { path: 'jobs', component: PageStub },
+              { path: 'jobs/:id', component: PageStub },
             ],
           },
           { path: 'auth/sign-in', component: SignInStub },
@@ -103,7 +105,7 @@ describe('AppShell', () => {
     'Overview',
     'Requests',
     'Quotes',
-    'Work orders',
+    'Jobs',
     'Schedule',
     'Customers',
     'Team',
@@ -157,12 +159,11 @@ describe('AppShell', () => {
       expect(host.querySelector('nav')?.getAttribute('aria-label')).toBe('Main navigation');
       expect(host.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('Overview');
 
-      await router.navigateByUrl('/coming-soon/work-orders');
+      await router.navigateByUrl('/jobs/job-1');
       await settle();
       expect(host.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1);
-      expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe(
-        'Work orders',
-      );
+      expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe('Jobs');
+      expect(host.querySelector('nav [aria-current="page"]')?.getAttribute('href')).toBe('/jobs');
 
       await router.navigateByUrl('/admin/products-services');
       await settle();

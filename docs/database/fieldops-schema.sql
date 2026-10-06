@@ -215,16 +215,42 @@ CREATE TABLE quote_response_optional_lines (
 );
 
 CREATE TABLE work_orders (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), branch_id uuid NOT NULL REFERENCES branches(id),
-  work_order_number bigint NOT NULL, quote_version_id uuid NOT NULL UNIQUE REFERENCES quote_versions(id), customer_id uuid NOT NULL, property_id uuid NOT NULL,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), branch_id uuid NOT NULL,
+  work_order_number bigint NOT NULL, quote_version_id uuid NOT NULL UNIQUE, customer_id uuid NOT NULL, property_id uuid NOT NULL,
+  title varchar(160) NOT NULL, job_type varchar(20) NOT NULL DEFAULT 'one_time' CHECK (job_type IN ('one_time','recurring')),
+  service_category_id uuid NOT NULL,
+  estimated_duration_minutes integer CHECK (estimated_duration_minutes BETWEEN 30 AND 720 AND estimated_duration_minutes % 30 = 0),
+  recurrence_frequency varchar(20) CHECK (recurrence_frequency IN ('weekly','biweekly','monthly','quarterly')), recurrence_count smallint CHECK (recurrence_count BETWEEN 2 AND 24),
+  notify_customer_when_scheduled boolean NOT NULL DEFAULT true, send_technician_details boolean NOT NULL DEFAULT true, send_arrival_reminder boolean NOT NULL DEFAULT true,
   status work_order_status NOT NULL DEFAULT 'draft', priority smallint NOT NULL DEFAULT 3 CHECK(priority BETWEEN 1 AND 5), scope_snapshot text NOT NULL,
   internal_instructions text, preferred_start timestamptz, preferred_end timestamptz, created_by_user_id uuid NOT NULL REFERENCES users(id),
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY(organization_id,branch_id) REFERENCES branches(organization_id,id), FOREIGN KEY(organization_id,quote_version_id) REFERENCES quote_versions(organization_id,id),
+  FOREIGN KEY(organization_id,service_category_id) REFERENCES service_categories(organization_id,id),
   FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), FOREIGN KEY(organization_id,property_id) REFERENCES properties(organization_id,id),
+  CHECK ((job_type = 'recurring') = (recurrence_frequency IS NOT NULL AND recurrence_count IS NOT NULL)), CHECK ((recurrence_frequency IS NULL) = (recurrence_count IS NULL)),
+  CHECK ((preferred_start IS NULL) = (preferred_end IS NULL) AND (preferred_start IS NULL OR preferred_start < preferred_end)),
   UNIQUE(organization_id,work_order_number), UNIQUE(organization_id,id)
 );
 CREATE TABLE work_order_required_skills (work_order_id uuid NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE, skill_id uuid NOT NULL REFERENCES skills(id), minimum_proficiency smallint CHECK(minimum_proficiency BETWEEN 1 AND 5), PRIMARY KEY(work_order_id,skill_id));
 CREATE TABLE work_order_checklist_templates (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), work_order_id uuid NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE, label varchar(240) NOT NULL, is_required boolean NOT NULL DEFAULT true, sort_order integer NOT NULL DEFAULT 0);
+CREATE TABLE work_order_planned_materials (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), work_order_id uuid NOT NULL,
+  quote_line_id uuid REFERENCES quote_lines(id), catalog_item_id uuid, description varchar(240) NOT NULL, quantity numeric(12,3) NOT NULL CHECK(quantity>0),
+  unit varchar(40) NOT NULL, source varchar(20) NOT NULL CHECK (source IN ('truck_stock','warehouse','to_purchase')), sort_order integer NOT NULL DEFAULT 0,
+  FOREIGN KEY(organization_id,work_order_id) REFERENCES work_orders(organization_id,id) ON DELETE CASCADE,
+  FOREIGN KEY(organization_id,catalog_item_id) REFERENCES catalog_items(organization_id,id)
+);
+-- The version and the approval selection of quote_line_id are enforced by the application layer (create-work-order BR-09).
+CREATE TABLE checklist_templates (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), service_category_id uuid, name varchar(120) NOT NULL,
+  is_active boolean NOT NULL DEFAULT true, created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  FOREIGN KEY(organization_id,service_category_id) REFERENCES service_categories(organization_id,id), UNIQUE(organization_id,id)
+);
+CREATE TABLE checklist_template_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), template_id uuid NOT NULL, label varchar(240) NOT NULL,
+  sort_order integer NOT NULL DEFAULT 0, FOREIGN KEY(organization_id,template_id) REFERENCES checklist_templates(organization_id,id) ON DELETE CASCADE
+);
 CREATE TABLE visits (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), work_order_id uuid NOT NULL,
   visit_number integer NOT NULL CHECK(visit_number>0), status visit_status NOT NULL DEFAULT 'unscheduled', scheduled_start timestamptz, scheduled_end timestamptz,
@@ -282,6 +308,9 @@ CREATE INDEX ix_requests_customer ON service_requests(organization_id,customer_i
 CREATE INDEX ix_assessments_schedule ON assessments(organization_id,scheduled_start,status);
 CREATE INDEX ix_quotes_status ON quotes(organization_id,status,created_at DESC);
 CREATE INDEX ix_work_orders_status ON work_orders(organization_id,branch_id,status);
+CREATE INDEX ix_work_orders_org_created ON work_orders(organization_id,created_at DESC);
+CREATE INDEX ix_work_order_planned_materials_work_order ON work_order_planned_materials(work_order_id);
+CREATE UNIQUE INDEX ux_checklist_templates_org_name ON checklist_templates(organization_id,lower(name));
 CREATE INDEX ix_visits_schedule ON visits(organization_id,scheduled_start,status);
 CREATE INDEX ix_assignments_technician ON visit_assignments(technician_id,assigned_at) WHERE unassigned_at IS NULL;
 CREATE INDEX ix_invoices_status_due ON invoices(organization_id,status,due_date);

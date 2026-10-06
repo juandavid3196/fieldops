@@ -3439,6 +3439,102 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.WorkOrders.ChecklistTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("ServiceCategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("service_category_id");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_checklist_templates");
+
+                    b.HasAlternateKey("OrganizationId", "Id")
+                        .HasName("ak_checklist_templates_organization_id_id");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_checklist_templates_created_by_user_id");
+
+                    b.HasIndex("OrganizationId", "ServiceCategoryId")
+                        .HasDatabaseName("ix_checklist_templates_organization_id_service_category_id");
+
+                    b.ToTable("checklist_templates", (string)null);
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.WorkOrders.ChecklistTemplateItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("label");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<Guid>("TemplateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("template_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_checklist_template_items");
+
+                    b.HasIndex("OrganizationId", "TemplateId")
+                        .HasDatabaseName("ix_checklist_template_items_organization_id_template_id");
+
+                    b.ToTable("checklist_template_items", (string)null);
+                });
+
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.CustomerSignoff", b =>
                 {
                     b.Property<Guid>("Id")
@@ -4027,9 +4123,27 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("customer_id");
 
+                    b.Property<int?>("EstimatedDurationMinutes")
+                        .HasColumnType("integer")
+                        .HasColumnName("estimated_duration_minutes");
+
                     b.Property<string>("InternalInstructions")
                         .HasColumnType("text")
                         .HasColumnName("internal_instructions");
+
+                    b.Property<string>("JobType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("one_time")
+                        .HasColumnName("job_type");
+
+                    b.Property<bool>("NotifyCustomerWhenScheduled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("notify_customer_when_scheduled");
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
@@ -4057,16 +4171,48 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("quote_version_id");
 
+                    b.Property<short?>("RecurrenceCount")
+                        .HasColumnType("smallint")
+                        .HasColumnName("recurrence_count");
+
+                    b.Property<string>("RecurrenceFrequency")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("recurrence_frequency");
+
                     b.Property<string>("ScopeSnapshot")
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("scope_snapshot");
 
+                    b.Property<bool>("SendArrivalReminder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("send_arrival_reminder");
+
+                    b.Property<bool>("SendTechnicianDetails")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("send_technician_details");
+
+                    b.Property<Guid>("ServiceCategoryId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("service_category_id");
+
                     b.Property<WorkOrderStatus>("Status")
                         .HasColumnType("work_order_status")
                         .HasColumnName("status");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("title");
+
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
@@ -4082,9 +4228,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasAlternateKey("OrganizationId", "Id")
                         .HasName("ak_work_orders_organization_id_id");
 
-                    b.HasIndex("BranchId")
-                        .HasDatabaseName("ix_work_orders_branch_id");
-
                     b.HasIndex("CreatedByUserId")
                         .HasDatabaseName("ix_work_orders_created_by_user_id");
 
@@ -4092,11 +4235,21 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_work_orders_quote_version_id");
 
+                    b.HasIndex("OrganizationId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_work_orders_org_created");
+
                     b.HasIndex("OrganizationId", "CustomerId")
                         .HasDatabaseName("ix_work_orders_organization_id_customer_id");
 
                     b.HasIndex("OrganizationId", "PropertyId")
                         .HasDatabaseName("ix_work_orders_organization_id_property_id");
+
+                    b.HasIndex("OrganizationId", "QuoteVersionId")
+                        .HasDatabaseName("ix_work_orders_organization_id_quote_version_id");
+
+                    b.HasIndex("OrganizationId", "ServiceCategoryId")
+                        .HasDatabaseName("ix_work_orders_organization_id_service_category_id");
 
                     b.HasIndex("OrganizationId", "WorkOrderNumber")
                         .IsUnique()
@@ -4107,7 +4260,21 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.ToTable("work_orders", null, t =>
                         {
+                            t.HasCheckConstraint("ck_work_orders_estimated_duration_minutes", "estimated_duration_minutes BETWEEN 30 AND 720 AND estimated_duration_minutes % 30 = 0");
+
+                            t.HasCheckConstraint("ck_work_orders_job_type", "job_type IN ('one_time','recurring')");
+
+                            t.HasCheckConstraint("ck_work_orders_preferred_window", "(preferred_start IS NULL) = (preferred_end IS NULL) AND (preferred_start IS NULL OR preferred_start < preferred_end)");
+
                             t.HasCheckConstraint("ck_work_orders_priority", "priority BETWEEN 1 AND 5");
+
+                            t.HasCheckConstraint("ck_work_orders_recurrence_count", "recurrence_count BETWEEN 2 AND 24");
+
+                            t.HasCheckConstraint("ck_work_orders_recurrence_frequency", "recurrence_frequency IN ('weekly','biweekly','monthly','quarterly')");
+
+                            t.HasCheckConstraint("ck_work_orders_recurrence_job_type", "(job_type = 'recurring') = (recurrence_frequency IS NOT NULL AND recurrence_count IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_work_orders_recurrence_pair", "(recurrence_frequency IS NULL) = (recurrence_count IS NULL)");
                         });
                 });
 
@@ -4148,6 +4315,82 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_work_order_checklist_templates_work_order_id");
 
                     b.ToTable("work_order_checklist_templates", (string)null);
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.WorkOrders.WorkOrderPlannedMaterial", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("CatalogItemId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("catalog_item_id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(240)
+                        .HasColumnType("character varying(240)")
+                        .HasColumnName("description");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasPrecision(12, 3)
+                        .HasColumnType("numeric(12,3)")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid?>("QuoteLineId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_line_id");
+
+                    b.Property<int>("SortOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0)
+                        .HasColumnName("sort_order");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("source");
+
+                    b.Property<string>("Unit")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("unit");
+
+                    b.Property<Guid>("WorkOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_order_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_work_order_planned_materials");
+
+                    b.HasIndex("QuoteLineId")
+                        .HasDatabaseName("ix_work_order_planned_materials_quote_line_id");
+
+                    b.HasIndex("WorkOrderId")
+                        .HasDatabaseName("ix_work_order_planned_materials_work_order_id");
+
+                    b.HasIndex("OrganizationId", "CatalogItemId")
+                        .HasDatabaseName("ix_work_order_planned_materials_organization_id_catalog_item_id");
+
+                    b.HasIndex("OrganizationId", "WorkOrderId")
+                        .HasDatabaseName("ix_work_order_planned_materials_organization_id_work_order_id");
+
+                    b.ToTable("work_order_planned_materials", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_work_order_planned_materials_quantity", "quantity > 0");
+
+                            t.HasCheckConstraint("ck_work_order_planned_materials_source", "source IN ('truck_stock','warehouse','to_purchase')");
+                        });
                 });
 
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.WorkOrderRequiredSkill", b =>
@@ -5099,6 +5342,48 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_role_permissions_roles_role_id");
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.WorkOrders.ChecklistTemplate", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_checklist_templates_users_created_by_user_id");
+
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_checklist_templates_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Catalog.ServiceCategory", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ServiceCategoryId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_checklist_templates_service_categories_organization_id_serv");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.WorkOrders.ChecklistTemplateItem", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_checklist_template_items_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.WorkOrders.ChecklistTemplate", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "TemplateId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_checklist_template_items_checklist_templates_organization_i");
+                });
+
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.CustomerSignoff", b =>
                 {
                     b.HasOne("FieldOps.Domain.Customers.CustomerContact", null)
@@ -5270,13 +5555,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.WorkOrder", b =>
                 {
-                    b.HasOne("FieldOps.Domain.Branches.Branch", null)
-                        .WithMany()
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
-                        .HasConstraintName("fk_work_orders_branches_branch_id");
-
                     b.HasOne("FieldOps.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")
@@ -5291,12 +5569,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_work_orders_organizations_organization_id");
 
-                    b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
+                    b.HasOne("FieldOps.Domain.Branches.Branch", null)
                         .WithMany()
-                        .HasForeignKey("QuoteVersionId")
+                        .HasForeignKey("OrganizationId", "BranchId")
+                        .HasPrincipalKey("OrganizationId", "Id")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
-                        .HasConstraintName("fk_work_orders_quote_versions_quote_version_id");
+                        .HasConstraintName("fk_work_orders_branches_organization_id_branch_id");
 
                     b.HasOne("FieldOps.Domain.Customers.Customer", null)
                         .WithMany()
@@ -5313,6 +5592,22 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_work_orders_properties_organization_id_property_id");
+
+                    b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "QuoteVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_orders_quote_versions_organization_id_quote_version_id");
+
+                    b.HasOne("FieldOps.Domain.Catalog.ServiceCategory", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ServiceCategoryId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_orders_service_categories_organization_id_service_cate");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.WorkOrderChecklistTemplate", b =>
@@ -5323,6 +5618,37 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_work_order_checklist_templates_work_orders_work_order_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.WorkOrders.WorkOrderPlannedMaterial", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_order_planned_materials_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Quotes.QuoteLine", null)
+                        .WithMany()
+                        .HasForeignKey("QuoteLineId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_work_order_planned_materials_quote_lines_quote_line_id");
+
+                    b.HasOne("FieldOps.Domain.Catalog.CatalogItem", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "CatalogItemId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_work_order_planned_materials_catalog_items_organization_id_");
+
+                    b.HasOne("FieldOps.Domain.WorkOrders.WorkOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "WorkOrderId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_work_order_planned_materials_work_orders_organization_id_wo");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.WorkOrderRequiredSkill", b =>

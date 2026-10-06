@@ -56,6 +56,9 @@ public sealed record QuoteResponseView(
     IReadOnlyList<QuoteResponseLine> SelectedOptionalLines,
     QuoteResponseTotals? Totals);
 
+/// <summary>The work order of the approved version (create-work-order BR-04): status is <c>draft</c> or <c>ready_to_schedule</c>.</summary>
+public sealed record QuoteWorkOrderRef(Guid Id, string DisplayNumber, string Status);
+
 /// <summary>Internal quote read (API contracts QuoteDetail); margin, unit cost and internal note appear only here.</summary>
 public sealed record QuoteDetail(
     Guid Id,
@@ -72,7 +75,9 @@ public sealed record QuoteDetail(
     QuoteOrganizationRef Organization,
     QuoteDraftView? Draft,
     IReadOnlyList<QuoteSentVersion> SentVersions,
-    IReadOnlyList<QuoteResponseView> Responses);
+    IReadOnlyList<QuoteResponseView> Responses,
+    QuoteWorkOrderRef? WorkOrder,
+    bool CanManageWorkOrders);
 
 public sealed record QuoteVersionLine(
     string Type,
@@ -162,7 +167,7 @@ public interface IQuoteStore
     Task<QuoteContext?> GetContextAsync(Guid organizationId, BranchScope scope, Guid quoteId, CancellationToken cancellationToken);
 
     Task<QuoteDetail?> GetAsync(
-        Guid organizationId, BranchScope scope, Guid quoteId, bool canManage, CancellationToken cancellationToken);
+        Guid organizationId, BranchScope scope, Guid quoteId, bool canManage, bool canManageWorkOrders, CancellationToken cancellationToken);
 
     /// <summary>A sent version, otherwise null.</summary>
     Task<QuoteVersionView?> GetVersionAsync(

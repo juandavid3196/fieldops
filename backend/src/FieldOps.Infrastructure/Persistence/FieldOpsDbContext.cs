@@ -106,6 +106,13 @@ public sealed class FieldOpsDbContext(
     public DbSet<WorkOrderChecklistTemplate> WorkOrderChecklistTemplates =>
         Set<WorkOrderChecklistTemplate>();
 
+    public DbSet<WorkOrderPlannedMaterial> WorkOrderPlannedMaterials =>
+        Set<WorkOrderPlannedMaterial>();
+
+    public DbSet<ChecklistTemplate> ChecklistTemplates => Set<ChecklistTemplate>();
+
+    public DbSet<ChecklistTemplateItem> ChecklistTemplateItems => Set<ChecklistTemplateItem>();
+
     public DbSet<Visit> Visits => Set<Visit>();
 
     public DbSet<VisitAssignment> VisitAssignments => Set<VisitAssignment>();

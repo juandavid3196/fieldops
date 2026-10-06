@@ -2,6 +2,7 @@ using System.Text.Json;
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
+using FieldOps.Application.Features.WorkOrders;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Quotes;
 using FieldOps.Domain.Requests;
@@ -37,8 +38,8 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
     }
 
     public Task<QuoteDetail?> GetAsync(
-        Guid organizationId, BranchScope scope, Guid quoteId, bool canManage, CancellationToken cancellationToken) =>
-        BuildDetailAsync(organizationId, scope, quoteId, canManage, cancellationToken);
+        Guid organizationId, BranchScope scope, Guid quoteId, bool canManage, bool canManageWorkOrders, CancellationToken cancellationToken) =>
+        BuildDetailAsync(organizationId, scope, quoteId, canManage, canManageWorkOrders, cancellationToken);
 
     public async Task<QuoteVersionView?> GetVersionAsync(
         Guid organizationId, BranchScope scope, Guid quoteId, int versionNo, CancellationToken cancellationToken)
@@ -122,7 +123,7 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
             .ToListAsync(cancellationToken);
 
     private async Task<QuoteDetail?> BuildDetailAsync(
-        Guid organizationId, BranchScope scope, Guid quoteId, bool canManage, CancellationToken cancellationToken)
+        Guid organizationId, BranchScope scope, Guid quoteId, bool canManage, bool canManageWorkOrders, CancellationToken cancellationToken)
     {
         var quote = await VisibleQuotes(organizationId, scope)
             .Where(candidate => candidate.Id == quoteId)
@@ -167,6 +168,14 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
         }
 
         var responses = await ReadResponsesAsync(organizationId, versions, cancellationToken);
+
+        // create-work-order BR-04: the order of the approved version, when there is one.
+        var workOrder = quote.ApprovedVersionId is { } approvedVersionId
+            ? await dbContext.WorkOrders.AsNoTracking()
+                .Where(candidate => candidate.OrganizationId == organizationId && candidate.QuoteVersionId == approvedVersionId)
+                .Select(candidate => new { candidate.Id, candidate.WorkOrderNumber, candidate.Status })
+                .SingleOrDefaultAsync(cancellationToken)
+            : null;
         var currentValidUntil = versions.FirstOrDefault(version => version.IsImmutable && version.VersionNo == quote.CurrentVersionNo)?.ValidUntil;
 
         // BR-23: a sent or clarification-requested quote shows as expired once its version's last day has passed.
@@ -200,7 +209,14 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
                 .Select(version => new QuoteSentVersion(
                     version.VersionNo, version.SentAt!.Value, version.Total, version.VersionNo == quote.CurrentVersionNo))
                 .ToList(),
-            responses);
+            responses,
+            workOrder is null
+                ? null
+                : new QuoteWorkOrderRef(
+                    workOrder.Id,
+                    RequestCardRules.DisplayNumber(organization.WorkOrderPrefix, workOrder.WorkOrderNumber),
+                    WorkOrderCodes.StatusCode(workOrder.Status)),
+            canManageWorkOrders);
     }
 
     // Newest first; an approval carries its selected optional lines and server totals (BR-23).
@@ -310,7 +326,8 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
                 organization.Currency,
                 organization.DefaultTaxRate,
                 organization.QuotePrefix,
-                organization.RequestPrefix))
+                organization.RequestPrefix,
+                organization.WorkOrderPrefix))
             .SingleAsync(cancellationToken);
 
     /// <summary>The recipient of the quote email: the active linked contact email, else the guest email (requests-pipeline BR-13).</summary>
@@ -418,5 +435,6 @@ internal sealed partial class QuoteStore(FieldOpsDbContext dbContext, TimeProvid
         string Currency,
         decimal DefaultTaxRate,
         string QuotePrefix,
-        string RequestPrefix);
+        string RequestPrefix,
+        string WorkOrderPrefix);
 }

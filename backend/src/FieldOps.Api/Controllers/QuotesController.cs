@@ -82,7 +82,9 @@ public sealed class QuotesController(
         }
 
         var canManage = (await authorization.AuthorizeAsync(User, ServiceRequestPolicies.Manage)).Succeeded;
-        var detail = await getHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, id, canManage, cancellationToken);
+        var canManageWorkOrders = (await authorization.AuthorizeAsync(User, WorkOrderPolicies.Manage)).Succeeded;
+        var detail = await getHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, canManage, canManageWorkOrders, cancellationToken);
 
         return detail is null ? NotFound() : Ok(detail);
     }

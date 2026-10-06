@@ -39,7 +39,8 @@ public sealed class VisitChecklistItem
     public static VisitChecklistItem Create(
         Guid visitId,
         string label,
-        Guid? templateItemId = null)
+        Guid? templateItemId = null,
+        int sortOrder = 0)
     {
         if (visitId == Guid.Empty)
         {
@@ -58,6 +59,7 @@ public sealed class VisitChecklistItem
         return new VisitChecklistItem(Guid.NewGuid(), visitId, label.Trim())
         {
             TemplateItemId = templateItemId,
+            SortOrder = sortOrder,
         };
     }
 }

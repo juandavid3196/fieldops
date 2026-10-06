@@ -67,11 +67,11 @@ public sealed class CreateQuoteHandler(IQuoteStore store, IBranchScopeResolver s
 public sealed class GetQuoteHandler(IQuoteStore store, IBranchScopeResolver scopes)
 {
     public async Task<QuoteDetail?> HandleAsync(
-        Guid organizationId, Guid membershipId, Guid quoteId, bool canManage, CancellationToken cancellationToken)
+        Guid organizationId, Guid membershipId, Guid quoteId, bool canManage, bool canManageWorkOrders, CancellationToken cancellationToken)
     {
         var scope = await scopes.ResolveAsync(organizationId, membershipId, cancellationToken);
 
-        return await store.GetAsync(organizationId, scope, quoteId, canManage, cancellationToken);
+        return await store.GetAsync(organizationId, scope, quoteId, canManage, canManageWorkOrders, cancellationToken);
     }
 }
 

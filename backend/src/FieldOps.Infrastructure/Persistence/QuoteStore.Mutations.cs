@@ -408,7 +408,7 @@ internal sealed partial class QuoteStore
     private static Step<T> Fail<T>(QuoteOutcome<T> failure) => Step<T>.Fail(failure);
 
     private async Task<QuoteDetail> DetailAsync(QuoteActor actor, Guid quoteId, CancellationToken cancellationToken) =>
-        await BuildDetailAsync(actor.OrganizationId, actor.Scope, quoteId, true, cancellationToken)
+        await BuildDetailAsync(actor.OrganizationId, actor.Scope, quoteId, true, true, cancellationToken)
             ?? throw new InvalidOperationException("The quote is no longer available.");
 
     private Task<QuoteVersion?> LoadMutableVersionAsync(Quote quote, CancellationToken cancellationToken) =>

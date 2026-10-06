@@ -1,0 +1,63 @@
+<ul class="photos">
+  @for (item of items(); track item.id; let index = $index) {
+    <li class="photos__item">
+      @switch (item.state) {
+        @case ('ready') {
+          <button
+            type="button"
+            class="photos__button"
+            [attr.aria-label]="'Open ' + alt(index)"
+            (click)="open(index)"
+          >
+            <img class="photos__image" [src]="item.url" [alt]="alt(index)" />
+            <span class="photos__zoom" aria-hidden="true"><svg data-p-icon="search"></svg></span>
+          </button>
+        }
+        @case ('failed') {
+          <span class="photos__failed">Photo unavailable</span>
+        }
+        @default {
+          <p-skeleton height="100%" aria-hidden="true" />
+        }
+      }
+    </li>
+  }
+</ul>
+
+<p-dialog
+  header="Assessment photos"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="viewing() !== null"
+  (visibleChange)="$event ? null : close()"
+  [style]="{ width: '48rem', maxWidth: '96vw' }"
+>
+  @if (viewed(); as photo) {
+    <div class="viewer" tabindex="-1" (keydown)="onKey($event)">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        aria-label="Previous photo"
+        [disabled]="items().length < 2"
+        (click)="step(-1)"
+      >
+        <svg data-p-icon="chevron-left" aria-hidden="true"></svg>
+      </button>
+      <img class="viewer__image" [src]="photo.url" [alt]="alt(photo.index)" />
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        aria-label="Next photo"
+        [disabled]="items().length < 2"
+        (click)="step(1)"
+      >
+        <svg data-p-icon="chevron-right" aria-hidden="true"></svg>
+      </button>
+    </div>
+  }
+</p-dialog>

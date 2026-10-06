@@ -1,6 +1,7 @@
 using FieldOps.Application.Authentication;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Catalog;
+using FieldOps.Application.Features.ChecklistTemplates;
 using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
@@ -11,6 +12,7 @@ using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.Users;
+using FieldOps.Application.Features.WorkOrders;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -134,6 +136,13 @@ public static class DependencyInjection
         services.AddScoped<GetQuoteLinkPhotoHandler>();
         services.AddScoped<GetQuoteLinkLogoHandler>();
         services.AddScoped<DownloadQuoteLinkPdfHandler>();
+        services.AddScoped<GetWorkOrderEditorHandler>();
+        services.AddScoped<SaveWorkOrderDraftHandler>();
+        services.AddScoped<CreateWorkOrderHandler>();
+        services.AddScoped<ListWorkOrdersHandler>();
+        services.AddScoped<GetWorkOrderHandler>();
+        services.AddScoped<ListChecklistTemplatesHandler>();
+        services.AddScoped<CreateChecklistTemplateHandler>();
 
         return services;
     }

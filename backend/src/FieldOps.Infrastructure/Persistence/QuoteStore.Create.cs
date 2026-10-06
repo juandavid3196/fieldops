@@ -31,7 +31,7 @@ internal sealed partial class QuoteStore
                 var winner = await ExistingOpenQuoteAsync(actor.OrganizationId, requestId, cancellationToken);
 
                 return winner is { } id
-                    && await BuildDetailAsync(actor.OrganizationId, actor.Scope, id.Id, true, cancellationToken) is { } detail
+                    && await BuildDetailAsync(actor.OrganizationId, actor.Scope, id.Id, true, true, cancellationToken) is { } detail
                         ? new QuoteOutcome<QuoteCreated>.Succeeded(new QuoteCreated(detail, false))
                         : Conflict<QuoteCreated>(ServiceRequestMessages.RequestChangedCode);
             }

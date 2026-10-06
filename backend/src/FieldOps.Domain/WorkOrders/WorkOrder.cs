@@ -15,7 +15,8 @@ public sealed class WorkOrder
         Guid customerId,
         Guid propertyId,
         string scopeSnapshot,
-        Guid createdByUserId)
+        Guid createdByUserId,
+        WorkOrderFields fields)
     {
         Id = id;
         OrganizationId = organizationId;
@@ -27,9 +28,9 @@ public sealed class WorkOrder
         ScopeSnapshot = scopeSnapshot;
         CreatedByUserId = createdByUserId;
         Status = WorkOrderStatus.Draft;
-        Priority = 3;
         CreatedAt = DateTimeOffset.UtcNow;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = Truncate(DateTimeOffset.UtcNow);
+        Apply(fields);
     }
 
     public Guid Id { get; private set; }
@@ -49,6 +50,24 @@ public sealed class WorkOrder
     public WorkOrderStatus Status { get; private set; }
 
     public short Priority { get; private set; }
+
+    public string Title { get; private set; } = string.Empty;
+
+    public string JobType { get; private set; } = WorkOrderJobTypes.OneTime;
+
+    public Guid ServiceCategoryId { get; private set; }
+
+    public int? EstimatedDurationMinutes { get; private set; }
+
+    public string? RecurrenceFrequency { get; private set; }
+
+    public short? RecurrenceCount { get; private set; }
+
+    public bool NotifyCustomerWhenScheduled { get; private set; }
+
+    public bool SendTechnicianDetails { get; private set; }
+
+    public bool SendArrivalReminder { get; private set; }
 
     public string ScopeSnapshot { get; private set; } = string.Empty;
 
@@ -72,8 +91,11 @@ public sealed class WorkOrder
         Guid customerId,
         Guid propertyId,
         string scopeSnapshot,
-        Guid createdByUserId)
+        Guid createdByUserId,
+        WorkOrderFields fields)
     {
+        ArgumentNullException.ThrowIfNull(fields);
+
         if (organizationId == Guid.Empty)
         {
             throw new ArgumentException(
@@ -140,6 +162,101 @@ public sealed class WorkOrder
             customerId,
             propertyId,
             scopeSnapshot.Trim(),
-            createdByUserId);
+            createdByUserId,
+            fields);
+    }
+
+    /// <summary>Replaces every editable field of a draft (create-work-order BR-16) and sets a new concurrency value.</summary>
+    public void ReplaceDraft(Guid branchId, WorkOrderFields fields, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(fields);
+
+        if (Status != WorkOrderStatus.Draft)
+        {
+            throw new InvalidOperationException("Only a draft work order can be replaced.");
+        }
+
+        if (branchId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Branch id is required.",
+                nameof(branchId));
+        }
+
+        BranchId = branchId;
+        Apply(fields);
+        Touch(now);
+    }
+
+    /// <summary>The draft becomes executable and waits to be scheduled (create-work-order BR-18).</summary>
+    public void MarkReady(DateTimeOffset now)
+    {
+        if (Status != WorkOrderStatus.Draft)
+        {
+            throw new InvalidOperationException("Only a draft work order can become ready to schedule.");
+        }
+
+        Status = WorkOrderStatus.ReadyToSchedule;
+        Touch(now);
+    }
+
+    /// <summary>Sets a new concurrency value, truncated to microseconds (the PostgreSQL precision) and always different from the previous one.</summary>
+    public void Touch(DateTimeOffset now)
+    {
+        var next = Truncate(now);
+
+        if (next <= UpdatedAt)
+        {
+            next = UpdatedAt.AddTicks(10);
+        }
+
+        UpdatedAt = next;
+    }
+
+    private static DateTimeOffset Truncate(DateTimeOffset value)
+    {
+        var utc = value.UtcDateTime;
+
+        return new DateTimeOffset(utc.Ticks - (utc.Ticks % 10), TimeSpan.Zero);
+    }
+
+    private void Apply(WorkOrderFields fields)
+    {
+        Title = fields.Title.Trim();
+        JobType = fields.JobType;
+        ServiceCategoryId = fields.ServiceCategoryId;
+        Priority = fields.Priority;
+        EstimatedDurationMinutes = fields.EstimatedDurationMinutes;
+        RecurrenceFrequency = fields.RecurrenceFrequency;
+        RecurrenceCount = fields.RecurrenceCount;
+        InternalInstructions = string.IsNullOrWhiteSpace(fields.Instructions) ? null : fields.Instructions.Trim();
+        PreferredStart = fields.PreferredStart;
+        PreferredEnd = fields.PreferredEnd;
+        NotifyCustomerWhenScheduled = fields.NotifyCustomerWhenScheduled;
+        SendTechnicianDetails = fields.SendTechnicianDetails;
+        SendArrivalReminder = fields.SendArrivalReminder;
     }
 }
+
+public static class WorkOrderJobTypes
+{
+    public const string OneTime = "one_time";
+
+    public const string Recurring = "recurring";
+}
+
+/// <summary>The editable fields of a work order, already validated by the application layer.</summary>
+public sealed record WorkOrderFields(
+    string Title,
+    string JobType,
+    Guid ServiceCategoryId,
+    short Priority,
+    int? EstimatedDurationMinutes,
+    string? RecurrenceFrequency,
+    short? RecurrenceCount,
+    string? Instructions,
+    DateTimeOffset? PreferredStart,
+    DateTimeOffset? PreferredEnd,
+    bool NotifyCustomerWhenScheduled,
+    bool SendTechnicianDetails,
+    bool SendArrivalReminder);

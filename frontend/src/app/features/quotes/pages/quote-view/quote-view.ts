@@ -190,6 +190,32 @@ export class QuoteView {
       REVISABLE.includes(detail.status)
     );
   });
+  /** BR-04: the work order action of an approved quote; `null` when none applies. */
+  readonly workOrderAction = computed<{
+    readonly label: string;
+    readonly link: readonly string[];
+    readonly primary: boolean;
+  } | null>(() => {
+    const detail = this.detail();
+    if (detail === null || detail.status !== 'approved') {
+      return null;
+    }
+    const manage = detail.canManageWorkOrders;
+    const order = detail.workOrder;
+    if (order === null) {
+      return manage
+        ? { label: 'Create work order', link: ['/quotes', detail.id, 'work-order'], primary: true }
+        : null;
+    }
+    if (order.status === 'draft') {
+      return manage
+        ? { label: 'Continue draft', link: ['/quotes', detail.id, 'work-order'], primary: false }
+        : null;
+    }
+    return manage || this.roleCode() === 'viewer'
+      ? { label: 'View job', link: ['/jobs', order.id], primary: false }
+      : null;
+  });
   readonly canResend = computed(() => {
     const detail = this.detail();
     return (

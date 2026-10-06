@@ -3,7 +3,12 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { customerDetailRoute, customersRoute } from './features/customers/customers.routes';
-import { quoteEditRoute, quoteViewRoute } from './features/quotes/quotes.routes';
+import { jobDetailRoute, jobsRoute } from './features/jobs/jobs.routes';
+import {
+  quoteEditRoute,
+  quoteViewRoute,
+  workOrderEditorRoute,
+} from './features/quotes/quotes.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
 import { assessmentRoute, requestsRoute } from './features/requests/requests.routes';
@@ -63,6 +68,9 @@ export const routes: Routes = [
       assessmentRoute,
       quoteEditRoute,
       quoteViewRoute,
+      workOrderEditorRoute,
+      jobsRoute,
+      jobDetailRoute,
       teamRoute,
       skillsAvailabilityRoute,
     ],
