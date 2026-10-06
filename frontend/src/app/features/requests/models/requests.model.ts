@@ -19,7 +19,7 @@ export const PAGE_SIZE = 50;
 /** Navigation state key carrying a toast across routes (the Assessment page to the board). */
 export const TOAST_STATE_KEY = 'toast';
 export interface ToastHandoff {
-  readonly severity: 'success' | 'error';
+  readonly severity: 'success' | 'error' | 'warn';
   readonly summary: string;
 }
 
@@ -27,6 +27,8 @@ export interface ToastHandoff {
 export const CONFLICT_MESSAGE = 'This request changed. Refresh to see the latest.';
 export const SAVE_FAILED_MESSAGE = "We couldn't save this change. Please try again.";
 export const UNAVAILABLE_MESSAGE = "This request isn't available.";
+export const COMPLETE_FAILED_MESSAGE = "We couldn't complete this assessment. Please try again.";
+export const QUOTE_DRAFT_EXISTS_MESSAGE = 'This request has a draft quote. Discard it first.';
 export const NO_EMAIL_MESSAGE = 'This customer has no email address.';
 export const REQUEST_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -214,6 +216,31 @@ export interface RequestAttachment {
   readonly createdAt: string;
 }
 
+export interface AssessmentPhoto {
+  readonly id: string;
+  readonly fileName: string;
+  readonly mimeType: string;
+  readonly sizeBytes: number;
+}
+
+/** BR-03 (quote-builder): the latest completed assessment with its findings. */
+export interface CompletedAssessment {
+  readonly id: string;
+  readonly start: string;
+  readonly completedAt: string;
+  readonly technician: { readonly id: string; readonly name: string } | null;
+  readonly diagnosis: string | null;
+  readonly recommendedScope: string | null;
+  readonly photos: readonly AssessmentPhoto[];
+}
+
+/** The request's quote, if any (BR-04). */
+export interface RequestQuote {
+  readonly id: string;
+  readonly status: string;
+  readonly hasDraft: boolean;
+}
+
 export interface RequestAddress {
   readonly line1?: string | null;
   readonly line2?: string | null;
@@ -268,6 +295,8 @@ export interface RequestDetail {
     readonly purpose: string | null;
     readonly internalInstructions: string | null;
   } | null;
+  readonly completedAssessment?: CompletedAssessment | null;
+  readonly quote?: RequestQuote | null;
   readonly attachments: readonly RequestAttachment[];
   readonly notes: readonly {
     readonly id: string;
@@ -312,6 +341,13 @@ export interface AssessmentBody {
   readonly purpose: string;
   readonly internalInstructions: string | null;
   readonly notifyCustomer: boolean;
+}
+
+/** Complete assessment dialog value (BR-01). */
+export interface CompleteAssessmentBody {
+  readonly diagnosis: string;
+  readonly recommendedScope: string | null;
+  readonly photos: readonly File[];
 }
 
 // Assessment planner and calendar (Final contract: specs/schedule-assessment/spec.md)
@@ -395,6 +431,8 @@ export type RequestActionId =
   | 'complete-assessment'
   | 'reschedule'
   | 'create-quote'
+  | 'continue-quote'
+  | 'view-quote'
   | 'assign'
   | 'change-priority'
   | 'set-branch'
@@ -417,6 +455,8 @@ const ACTION_LABELS: Readonly<Record<RequestActionId, string>> = {
   'complete-assessment': 'Complete assessment',
   reschedule: 'Reschedule',
   'create-quote': 'Create quote',
+  'continue-quote': 'Continue quote',
+  'view-quote': 'View quote',
   assign: 'Assign',
   'change-priority': 'Change priority',
   'set-branch': 'Set branch',
@@ -439,8 +479,24 @@ export function isOpenStatus(status: RequestStatus): status is BoardStatus {
   return (BOARD_STATUSES as readonly string[]).includes(status);
 }
 
-/** Footer buttons: a pure function of status and the manager flag (BR-03). */
-export function footerActions(status: RequestStatus, manager: boolean): RequestAction[] {
+/** A quote that is not cancelled (BR-04, quote-builder). */
+export function hasOpenQuote(quote: RequestQuote | null | undefined): boolean {
+  return quote !== null && quote !== undefined && quote.status !== 'cancelled';
+}
+
+/**
+ * Footer buttons: a pure function of status, the manager flag and the quote (BR-03; BR-04 of
+ * quote-builder). Every role that reads quotes sees View quote on a `quoted` request.
+ */
+export function footerActions(
+  status: RequestStatus,
+  manager: boolean,
+  quote: RequestQuote | null | undefined = null,
+  readsQuotes = manager,
+): RequestAction[] {
+  if (status === 'quoted') {
+    return readsQuotes && hasOpenQuote(quote) ? actions(['view-quote'], 'view-quote') : [];
+  }
   if (!manager) {
     return [];
   }
@@ -457,7 +513,9 @@ export function footerActions(status: RequestStatus, manager: boolean): RequestA
         'complete-assessment',
       );
     case 'ready_for_quote':
-      return actions(['create-quote', 'request-information'], 'create-quote');
+      return hasOpenQuote(quote)
+        ? actions(['continue-quote', 'request-information'], 'continue-quote')
+        : actions(['create-quote', 'request-information'], 'create-quote');
     default:
       return [];
   }

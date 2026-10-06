@@ -1881,6 +1881,7 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("status");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
@@ -1912,13 +1913,77 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_quotes_organization_id_quote_number");
 
                     b.HasIndex("OrganizationId", "RequestId")
-                        .HasDatabaseName("ix_quotes_organization_id_request_id");
+                        .IsUnique()
+                        .HasDatabaseName("ux_quotes_request_open")
+                        .HasFilter("status <> 'cancelled'");
 
                     b.HasIndex("OrganizationId", "Status", "CreatedAt")
                         .IsDescending(false, false, true)
                         .HasDatabaseName("ix_quotes_status");
 
                     b.ToTable("quotes", (string)null);
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteAccessToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid>("QuoteVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("quote_version_id");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_quote_access_tokens");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_quote_access_tokens_created_by_user_id");
+
+                    b.HasIndex("QuoteVersionId")
+                        .HasDatabaseName("ix_quote_access_tokens_version")
+                        .HasFilter("revoked_at IS NULL");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_quote_access_tokens_token_hash");
+
+                    b.HasIndex("OrganizationId", "QuoteVersionId")
+                        .HasDatabaseName("ix_quote_access_tokens_organization_id_quote_version_id");
+
+                    b.ToTable("quote_access_tokens", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_quote_access_tokens_expires_after_created", "expires_at > created_at");
+                        });
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteLine", b =>
@@ -1938,6 +2003,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
+                    b.Property<bool>("IsOptional")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_optional");
+
                     b.Property<decimal>("LineSubtotal")
                         .HasPrecision(14, 2)
                         .HasColumnType("numeric(14,2)")
@@ -1956,6 +2027,16 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.Property<CatalogItemType>("LineType")
                         .HasColumnType("catalog_item_type")
                         .HasColumnName("line_type");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
 
                     b.Property<decimal>("Quantity")
                         .HasPrecision(12, 3)
@@ -2005,6 +2086,9 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("QuoteVersionId")
                         .HasDatabaseName("ix_quote_lines_quote_version_id");
+
+                    b.HasIndex("OrganizationId", "QuoteVersionId")
+                        .HasDatabaseName("ix_quote_lines_organization_id_quote_version_id");
 
                     b.ToTable("quote_lines", null, t =>
                         {
@@ -2098,6 +2182,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("customer_notes");
 
+                    b.Property<decimal>("DiscountTotal")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("discount_total");
+
                     b.Property<string>("InternalNotes")
                         .HasColumnType("text")
                         .HasColumnName("internal_notes");
@@ -2135,6 +2226,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("numeric(14,2)")
                         .HasColumnName("tax_total");
 
+                    b.Property<string>("Terms")
+                        .HasColumnType("text")
+                        .HasColumnName("terms");
+
                     b.Property<decimal>("Total")
                         .HasPrecision(14, 2)
                         .HasColumnType("numeric(14,2)")
@@ -2157,6 +2252,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("CreatedByUserId")
                         .HasDatabaseName("ix_quote_versions_created_by_user_id");
 
+                    b.HasIndex("QuoteId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_quote_versions_one_mutable")
+                        .HasFilter("NOT is_immutable");
+
                     b.HasIndex("OrganizationId", "QuoteId")
                         .HasDatabaseName("ix_quote_versions_organization_id_quote_id");
 
@@ -2166,6 +2266,8 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.ToTable("quote_versions", null, t =>
                         {
+                            t.HasCheckConstraint("ck_quote_versions_discount_total", "discount_total >= 0");
+
                             t.HasCheckConstraint("ck_quote_versions_subtotal", "subtotal >= 0");
 
                             t.HasCheckConstraint("ck_quote_versions_tax_total", "tax_total >= 0");
@@ -2281,6 +2383,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("assessment_id");
 
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("bytea")
+                        .HasColumnName("content");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -2299,12 +2405,15 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(120)")
                         .HasColumnName("mime_type");
 
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
                     b.Property<long>("SizeBytes")
                         .HasColumnType("bigint")
                         .HasColumnName("size_bytes");
 
                     b.Property<string>("StorageKey")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("storage_key");
 
@@ -2314,7 +2423,17 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("AssessmentId")
                         .HasDatabaseName("ix_assessment_attachments_assessment_id");
 
-                    b.ToTable("assessment_attachments", (string)null);
+                    b.HasIndex("OrganizationId", "AssessmentId")
+                        .HasDatabaseName("ix_assessment_attachments_organization_id_assessment_id");
+
+                    b.ToTable("assessment_attachments", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_assessment_attachments_content_or_storage", "content IS NOT NULL OR storage_key IS NOT NULL");
+
+                            t.HasCheckConstraint("ck_assessment_attachments_mime_type", "mime_type IN ('image/jpeg', 'image/png')");
+
+                            t.HasCheckConstraint("ck_assessment_attachments_size_bytes", "size_bytes > 0 AND size_bytes <= 10485760");
+                        });
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Requests.RequestAttachment", b =>
@@ -4472,6 +4591,31 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_quotes_service_requests_organization_id_request_id");
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteAccessToken", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_access_tokens_users_created_by_user_id");
+
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_access_tokens_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "QuoteVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_access_tokens_quote_versions_organization_id_quote_ve");
+                });
+
             modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteLine", b =>
                 {
                     b.HasOne("FieldOps.Domain.Catalog.CatalogItem", null)
@@ -4480,12 +4624,27 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_quote_lines_catalog_items_catalog_item_id");
 
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_lines_organizations_organization_id");
+
                     b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
                         .WithMany()
                         .HasForeignKey("QuoteVersionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_quote_lines_quote_versions_quote_version_id");
+
+                    b.HasOne("FieldOps.Domain.Quotes.QuoteVersion", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "QuoteVersionId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_quote_lines_quote_versions_organization_id_quote_version_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Quotes.QuoteResponse", b =>
@@ -4568,6 +4727,21 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_assessment_attachments_assessments_assessment_id");
+
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_assessment_attachments_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Requests.Assessment", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "AssessmentId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_assessment_attachments_assessments_organization_id_assessme");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Requests.RequestAttachment", b =>

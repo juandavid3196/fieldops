@@ -1,0 +1,33 @@
+<section class="card" aria-labelledby="quote-assessment-heading">
+  <h2 class="card__title" id="quote-assessment-heading">Assessment summary</h2>
+  @if (assessment(); as assessment) {
+    @if (summary(); as summary) {
+      <div class="card__person">
+        @if (summary.technician) {
+          <span class="card__avatar" aria-hidden="true">{{ summary.initials }}</span>
+        }
+        <div>
+          <strong>{{ summary.technician ?? 'No technician' }}</strong>
+          <p class="card__muted">{{ summary.start }}</p>
+        </div>
+      </div>
+    }
+    <h3 class="card__label">Diagnosis</h3>
+    <p class="card__text">{{ assessment.diagnosis ?? noDiagnosis }}</p>
+    @if (assessment.recommendedScope) {
+      <h3 class="card__label">Recommended scope</h3>
+      <p class="card__text">{{ assessment.recommendedScope }}</p>
+    }
+    <app-assessment-photos
+      [requestId]="requestId()"
+      [assessmentId]="assessment.id"
+      [photos]="assessment.photos"
+    />
+    <a class="card__link" routerLink="/requests" [queryParams]="requestQueryParams()">
+      View full assessment
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </a>
+  } @else {
+    <p class="card__text">{{ noAssessment }}</p>
+  }
+</section>

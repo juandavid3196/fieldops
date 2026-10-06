@@ -35,6 +35,15 @@ public interface IServiceRequestStore
     Task<AttachmentDownload?> GetAttachmentAsync(
         Guid organizationId, BranchScope scope, Guid requestId, Guid attachmentId, CancellationToken cancellationToken);
 
+    /// <summary>The photo of a completed assessment of a visible request, otherwise null (quote-builder BR-03).</summary>
+    Task<AttachmentDownload?> GetAssessmentPhotoAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid requestId,
+        Guid assessmentId,
+        Guid photoId,
+        CancellationToken cancellationToken);
+
     /// <summary>
     /// Runs one mutation in a transaction that first locks the request row, so conflicting mutations
     /// serialize and the loser sees the new status (FR-06).

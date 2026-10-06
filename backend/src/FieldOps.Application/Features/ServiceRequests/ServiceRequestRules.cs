@@ -60,6 +60,18 @@ public static class ServiceRequestMessages
 
     public const string RequestChangedCode = "request_changed";
 
+    public const string QuoteDraftExistsCode = "quote_draft_exists";
+
+    public const string QuoteDraftExistsTitle = "This request has a draft quote. Discard it first.";
+
+    public const string DiagnosisRequired = "Enter the diagnosis.";
+
+    public const string DiagnosisTooLong = "Diagnosis must be 2000 characters or fewer.";
+
+    public const string ScopeTooLong = "Recommended scope must be 2000 characters or fewer.";
+
+    public const int FindingsMaxLength = 2000;
+
     public const string TechnicianConflictCode = "technician_conflict";
 
     public const string TechnicianTimeOffCode = "technician_time_off";

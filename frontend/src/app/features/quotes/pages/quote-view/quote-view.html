@@ -1,0 +1,201 @@
+<p-toast />
+<p-toast key="quote-changed">
+  <ng-template #message let-message>
+    <div class="view__toast">
+      <span>{{ message.summary }}</span>
+      <button pButton type="button" size="small" severity="secondary" (click)="refresh()">
+        Refresh
+      </button>
+    </div>
+  </ng-template>
+</p-toast>
+
+<div class="view">
+  <header class="view__header">
+    @if (detail(); as detail) {
+      <nav class="view__breadcrumb" aria-label="Breadcrumb">
+        <ol>
+          <li><a routerLink="/requests">Requests</a></li>
+          <li>
+            <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
+              detail.request.displayNumber
+            }}</a>
+          </li>
+          <li aria-current="page">Quote</li>
+        </ol>
+      </nav>
+    }
+    <div class="view__title-row">
+      <h1 #heading class="view__title" tabindex="-1">
+        Quote
+        @if (detail(); as detail) {
+          #{{ detail.displayNumber }}
+        }
+      </h1>
+      @if (detail(); as detail) {
+        <span class="view__chip">Status: {{ statusLabel() }}</span>
+      }
+    </div>
+    @if (detail(); as detail) {
+      <p class="view__meta">
+        <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
+          detail.request.title
+        }}</a>
+        · {{ detail.customer.name }}
+      </p>
+    }
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="view__skeletons" aria-busy="true">
+        <p-skeleton height="3rem" />
+        <p-skeleton height="20rem" />
+      </div>
+    }
+    @case ('forbidden') {
+      <p class="view__message" role="alert">{{ forbiddenMessage }}</p>
+    }
+    @case ('not-available') {
+      <div class="view__message" role="alert">
+        <p>{{ unavailableMessage }}</p>
+        <a pButton severity="secondary" size="small" routerLink="/requests">Back to requests</a>
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="view__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retryLoad()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @default {
+      @if (detail(); as detail) {
+        @if (revisionNo(); as revision) {
+          <p-message severity="info" [closable]="false">
+            <span class="view__error">Version {{ revision }} is being revised.</span>
+          </p-message>
+        }
+
+        @if (canManage()) {
+          <div class="view__actions">
+            @if (canRevise()) {
+              <button pButton type="button" [disabled]="busy()" (click)="revise()">
+                Revise quote
+              </button>
+            }
+            @if (revisionNo() !== null) {
+              <a pButton [routerLink]="['/quotes', detail.id, 'edit']">Continue editing</a>
+            }
+            @if (canResend()) {
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="busy()"
+                (click)="openResend()"
+              >
+                Resend email
+              </button>
+            }
+          </div>
+        }
+
+        @if (unsent()) {
+          <section class="view__card">
+            @if (detail.status === 'cancelled') {
+              <p class="view__text">{{ cancelledMessage }}</p>
+            } @else {
+              <p class="view__text">{{ notSentMessage }}</p>
+              @if (detail.draft; as draft) {
+                @if (draft.internalNote) {
+                  <h2 class="view__subtitle">
+                    Internal note <span class="view__internal">Internal</span>
+                  </h2>
+                  <p class="view__note">{{ draft.internalNote }}</p>
+                }
+                <app-quote-summary
+                  [status]="'ready'"
+                  [data]="draft.calculation"
+                  [currency]="detail.organization.currency"
+                  [discount]="draft.discountTotal"
+                  [readOnly]="true"
+                />
+              }
+            }
+          </section>
+        } @else {
+          <section class="view__card" aria-label="Quote version">
+            <div class="view__version">
+              <label class="view__label" for="quote-version">Version</label>
+              <p-select
+                inputId="quote-version"
+                appendTo="body"
+                optionLabel="label"
+                optionValue="code"
+                [options]="versionOptions()"
+                [ngModel]="selected()"
+                (ngModelChange)="selectVersion($event)"
+              />
+            </div>
+
+            @switch (versionState()) {
+              @case ('loading') {
+                <div class="view__skeletons" aria-busy="true">
+                  <p-skeleton height="2rem" />
+                  <p-skeleton height="10rem" />
+                </div>
+              }
+              @case ('error') {
+                <p-message severity="error" [closable]="false">
+                  <span class="view__error">
+                    {{ loadErrorMessage }}
+                    <button
+                      pButton
+                      type="button"
+                      severity="secondary"
+                      size="small"
+                      (click)="retryVersion()"
+                    >
+                      Retry
+                    </button>
+                  </span>
+                </p-message>
+              }
+              @default {
+                @if (view(); as view) {
+                  <app-quote-customer-view [view]="view" />
+                  <section class="view__internal-card" aria-labelledby="quote-internal-heading">
+                    <h2 class="view__subtitle" id="quote-internal-heading">
+                      Internal <span class="view__internal">Internal</span>
+                    </h2>
+                    @if (version()?.internalNote; as note) {
+                      <p class="view__label">Internal note</p>
+                      <p class="view__note">{{ note }}</p>
+                    }
+                    <p class="view__label">Estimated margin</p>
+                    <p class="view__note">{{ margin() }}</p>
+                  </section>
+                }
+              }
+            }
+          </section>
+        }
+
+        <app-quote-resend-dialog
+          [open]="resendOpen()"
+          [recipient]="detail.recipient.email"
+          [initialMessage]="resendMessage()"
+          [submitting]="busy()"
+          [serverError]="resendError()"
+          (dismissed)="resendOpen.set(false)"
+          (submitted)="resend($event)"
+        />
+      }
+    }
+  }
+</div>

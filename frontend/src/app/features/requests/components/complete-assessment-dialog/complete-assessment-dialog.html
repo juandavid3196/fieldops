@@ -1,0 +1,117 @@
+<p-dialog
+  header="Complete assessment"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="false"
+  [closeOnEscape]="false"
+  [visible]="open()"
+  [style]="{ width: '34rem', maxWidth: '94vw' }"
+>
+  <form
+    class="complete"
+    ngNoForm
+    novalidate
+    (submit)="$event.preventDefault(); submit()"
+    (keydown.escape)="requestClose()"
+  >
+    <app-form-field
+      label="Diagnosis"
+      controlId="complete-assessment-diagnosis"
+      [required]="true"
+      [error]="error('diagnosis')"
+    >
+      <textarea
+        pTextarea
+        id="complete-assessment-diagnosis"
+        rows="4"
+        fluid
+        name="diagnosis"
+        [attr.aria-invalid]="error('diagnosis') !== null ? 'true' : null"
+        [attr.aria-describedby]="describedBy('diagnosis')"
+        [ngModel]="diagnosis()"
+        (ngModelChange)="diagnosis.set($event)"
+      ></textarea>
+    </app-form-field>
+
+    <app-form-field
+      label="Recommended scope"
+      controlId="complete-assessment-recommendedScope"
+      [error]="error('recommendedScope')"
+    >
+      <textarea
+        pTextarea
+        id="complete-assessment-recommendedScope"
+        rows="3"
+        fluid
+        name="recommendedScope"
+        [attr.aria-invalid]="error('recommendedScope') !== null ? 'true' : null"
+        [attr.aria-describedby]="describedBy('recommendedScope')"
+        [ngModel]="scope()"
+        (ngModelChange)="scope.set($event)"
+      ></textarea>
+    </app-form-field>
+
+    <app-form-field
+      label="Photos"
+      controlId="complete-assessment-photos"
+      [error]="error('photos')"
+      helper="Optional. Up to 6 JPG or PNG files of 10 MB or less."
+    >
+      <label class="complete__drop" for="complete-assessment-photos">
+        <i class="pi pi-upload" aria-hidden="true"></i>
+        Add photos (optional)
+        <input
+          class="complete__input"
+          id="complete-assessment-photos"
+          type="file"
+          multiple
+          [accept]="accept"
+          [attr.aria-describedby]="describedBy('photos')"
+          [attr.aria-invalid]="error('photos') !== null ? 'true' : null"
+          [disabled]="submitting()"
+          (change)="addPhotos($event)"
+        />
+      </label>
+    </app-form-field>
+
+    @if (photos().length > 0) {
+      <ul class="complete__files" aria-label="Selected photos">
+        @for (file of photos(); track $index) {
+          <li class="complete__file">
+            <span class="complete__name">{{ file.name }}</span>
+            <span class="complete__size">{{ size(file.size) }}</span>
+            <button
+              type="button"
+              class="complete__remove"
+              [attr.aria-label]="'Remove ' + file.name"
+              [disabled]="submitting()"
+              (click)="removePhoto($index)"
+            >
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </form>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      Cancel
+    </button>
+    <button pButton type="button" [disabled]="submitting()" (click)="submit()">
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Complete assessment
+    </button>
+  </ng-template>
+</p-dialog>

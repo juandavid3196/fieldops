@@ -1,0 +1,67 @@
+<section class="card" aria-labelledby="quote-approval-heading">
+  <h2 class="card__title" id="quote-approval-heading">Customer approval</h2>
+  <p class="card__text">The customer approves online through a secure link.</p>
+  <p class="card__note">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    A work order can be created after customer approval.
+  </p>
+</section>
+
+<section class="card" aria-labelledby="quote-delivery-heading">
+  <h2 class="card__title" id="quote-delivery-heading">Delivery</h2>
+  <div class="card__channels">
+    <label class="card__channel" for="quote-channel-email">
+      <p-checkbox
+        inputId="quote-channel-email"
+        [binary]="true"
+        [disabled]="true"
+        [ngModel]="true"
+      />
+      Email
+    </label>
+    <label class="card__channel" for="quote-channel-sms">
+      <p-checkbox
+        inputId="quote-channel-sms"
+        [binary]="true"
+        [disabled]="true"
+        [ngModel]="false"
+        ariaLabel="SMS. SMS isn't available yet."
+      />
+      SMS
+    </label>
+  </div>
+  <p class="card__muted" id="quote-sms-helper">{{ smsUnavailable }}</p>
+
+  <label class="card__label" for="quote-recipient">Send to</label>
+  <input
+    pInputText
+    id="quote-recipient"
+    class="card__input"
+    data-field-key="recipient"
+    readonly
+    fluid
+    [value]="recipientText()"
+    [attr.aria-invalid]="recipient() === null || recipientError() ? 'true' : null"
+    [attr.aria-describedby]="recipient() === null ? 'quote-recipient-helper' : null"
+  />
+  @if (recipient() === null) {
+    <p class="card__error" id="quote-recipient-helper">{{ recipientError() ?? noRecipient }}</p>
+  }
+
+  <label class="card__label" for="quote-email-message">Message</label>
+  <textarea
+    pTextarea
+    id="quote-email-message"
+    data-field-key="emailMessage"
+    rows="4"
+    fluid
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="error() ? 'quote-email-message-error' : 'quote-email-message-count'"
+    [ngModel]="message()"
+    (ngModelChange)="message.set($event)"
+  ></textarea>
+  <p class="card__count" id="quote-email-message-count">{{ count() }}/{{ limit }}</p>
+  @if (error(); as errorText) {
+    <p class="card__error" id="quote-email-message-error">{{ errorText }}</p>
+  }
+</section>

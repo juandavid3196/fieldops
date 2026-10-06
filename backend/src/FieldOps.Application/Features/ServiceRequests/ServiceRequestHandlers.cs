@@ -224,6 +224,17 @@ public sealed class GetServiceRequestHandler(IServiceRequestStore store, IBranch
     }
 }
 
+public sealed class GetAssessmentPhotoHandler(IServiceRequestStore store, IBranchScopeResolver scopes)
+{
+    public async Task<AttachmentDownload?> HandleAsync(
+        Guid organizationId, Guid membershipId, Guid requestId, Guid assessmentId, Guid photoId, CancellationToken cancellationToken)
+    {
+        var scope = await scopes.ResolveAsync(organizationId, membershipId, cancellationToken);
+
+        return await store.GetAssessmentPhotoAsync(organizationId, scope, requestId, assessmentId, photoId, cancellationToken);
+    }
+}
+
 public sealed class GetRequestAttachmentHandler(IServiceRequestStore store, IBranchScopeResolver scopes)
 {
     public async Task<AttachmentDownload?> HandleAsync(
@@ -331,9 +342,68 @@ public sealed class ServiceRequestActionHandler(
         MembershipCall call, Guid id, bool? notifyCustomer, CancellationToken cancellationToken) =>
         RunAsync(call, id, new RequestMutation.CancelAssessment(notifyCustomer ?? false), cancellationToken);
 
+    /// <summary>Completion with findings (quote-builder BR-01, BR-02): shape and photo content are validated before any lock.</summary>
     public Task<ServiceRequestResult<RequestDetail>> CompleteAssessmentAsync(
-        MembershipCall call, Guid id, CancellationToken cancellationToken) =>
-        RunAsync(call, id, new RequestMutation.CompleteAssessment(), cancellationToken);
+        MembershipCall call,
+        Guid id,
+        string? diagnosis,
+        string? recommendedScope,
+        IReadOnlyList<UploadedFile> photos,
+        CancellationToken cancellationToken)
+    {
+        var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
+        var findings = diagnosis?.Trim() ?? string.Empty;
+
+        if (findings.Length == 0)
+        {
+            errors["diagnosis"] = [ServiceRequestMessages.DiagnosisRequired];
+        }
+        else if (findings.Length > ServiceRequestMessages.FindingsMaxLength)
+        {
+            errors["diagnosis"] = [ServiceRequestMessages.DiagnosisTooLong];
+        }
+
+        var scope = string.IsNullOrWhiteSpace(recommendedScope) ? null : recommendedScope.Trim();
+
+        if (scope is { Length: > ServiceRequestMessages.FindingsMaxLength })
+        {
+            errors["recommendedScope"] = [ServiceRequestMessages.ScopeTooLong];
+        }
+
+        var inputs = new List<AttachmentInput>(photos.Count);
+
+        if (photos.Count > AssessmentPhotoInspector.MaxPhotos)
+        {
+            errors["photos"] = [AssessmentPhotoInspector.TooManyMessage];
+        }
+        else
+        {
+            long total = 0;
+
+            foreach (var photo in photos)
+            {
+                total += photo.Content.Length;
+
+                if (AssessmentPhotoInspector.Inspect(photo.FileName, photo.Content) is { } mimeType)
+                {
+                    inputs.Add(new AttachmentInput(AttachmentContentInspector.SanitizeFileName(photo.FileName), mimeType, photo.Content));
+                }
+                else
+                {
+                    errors["photos"] = [AssessmentPhotoInspector.PhotosMessage];
+                }
+            }
+
+            if (total > AssessmentPhotoInspector.MaxTotalBytes)
+            {
+                errors["photos"] = [AssessmentPhotoInspector.PhotosMessage];
+            }
+        }
+
+        return errors.Count > 0
+            ? Task.FromResult(ServiceRequestResult<RequestDetail>.Invalid(errors))
+            : RunAsync(call, id, new RequestMutation.CompleteAssessment(findings, scope, inputs), cancellationToken);
+    }
 
     public Task<ServiceRequestResult<RequestDetail>> MarkReadyForQuoteAsync(
         MembershipCall call, Guid id, CancellationToken cancellationToken) =>

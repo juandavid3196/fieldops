@@ -1,0 +1,43 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__open {
+    display: block;
+    inline-size: 100%;
+    padding: 0;
+    overflow: hidden;
+    cursor: pointer;
+    background: var(--fo-color-surface-muted);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    &:disabled {
+      cursor: default;
+    }
+  }
+
+  &__thumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 100%;
+    block-size: 5rem;
+    object-fit: cover;
+    color: var(--fo-color-text-muted);
+  }
+}

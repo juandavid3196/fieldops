@@ -167,6 +167,26 @@ describe('Customer detail page', () => {
           technicianName: 'Carlos Rivera',
           amount: 357.28,
         },
+        {
+          type: 'quote',
+          id: 'q-1',
+          number: 'Q-2036',
+          title: 'Kitchen sink',
+          status: 'sent',
+          date: '2026-09-19T15:00:00Z',
+          technicianName: null,
+          amount: 357.29,
+        },
+        {
+          type: 'request',
+          id: 'r-1',
+          number: 'REQ-1048',
+          title: 'Kitchen sink',
+          status: 'quoted',
+          date: '2026-09-18T15:00:00Z',
+          technicianName: null,
+          amount: null,
+        },
       ],
       currency: 'USD',
       timezone: 'America/Chicago',
@@ -298,6 +318,9 @@ describe('Customer detail page', () => {
         expect(names[0]).toContain('Home');
         expect(names[0]).toContain('Primary');
         expect(text()).toContain('Sep 20, 2026 · Sink repair');
+        // Quote links open the read-only quote page; request links the Requests panel (quote-builder BR-30).
+        expect(host.querySelector('a[href="/quotes/q-1"]')).not.toBeNull();
+        expect(host.querySelector('a[href="/requests?request=r-1"]')).not.toBeNull();
       }
     },
     20_000,

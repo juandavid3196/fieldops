@@ -1,0 +1,288 @@
+<p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+
+<ng-template #lineRow let-row>
+  <li
+    class="line"
+    [class.line--over]="dragOver() === row.line.uid"
+    [attr.data-line-uid]="row.line.uid"
+    (dragover)="onDragOver($event, row)"
+    (drop)="onDrop($event, row)"
+  >
+    <span
+      class="line__handle"
+      draggable="true"
+      aria-hidden="true"
+      (dragstart)="onDragStart($event, row)"
+      (dragend)="onDragEnd()"
+    >
+      <i class="pi pi-bars"></i>
+    </span>
+
+    <div class="line__item">
+      <span class="line__label" aria-hidden="true">Item</span>
+      <input
+        pInputText
+        fluid
+        [attr.aria-label]="label('Item name', row) + ' (' + typeLabel(row.line.type) + ')'"
+        [attr.data-field-key]="row.line.uid + '.name'"
+        [attr.aria-invalid]="error(row, 'name') ? 'true' : null"
+        [attr.aria-describedby]="describedBy(row, 'name')"
+        [disabled]="disabled()"
+        [ngModel]="row.line.name"
+        (ngModelChange)="patch(row, { name: $event })"
+      />
+      @if (error(row, 'name'); as errorText) {
+        <p class="line__error" [id]="'line-' + row.line.uid + '-name-error'">{{ errorText }}</p>
+      }
+    </div>
+
+    <div class="line__description">
+      <span class="line__label" aria-hidden="true">Description</span>
+      <textarea
+        pTextarea
+        rows="2"
+        fluid
+        [attr.aria-label]="label('Description', row)"
+        [attr.data-field-key]="row.line.uid + '.description'"
+        [attr.aria-invalid]="error(row, 'description') ? 'true' : null"
+        [attr.aria-describedby]="describedBy(row, 'description')"
+        [disabled]="disabled()"
+        [ngModel]="row.line.description"
+        (ngModelChange)="patch(row, { description: $event })"
+      ></textarea>
+      @if (error(row, 'description'); as errorText) {
+        <p class="line__error" [id]="'line-' + row.line.uid + '-description-error'">
+          {{ errorText }}
+        </p>
+      }
+    </div>
+
+    <div class="line__qty">
+      <span class="line__label" aria-hidden="true">Qty</span>
+      <div class="line__affix">
+        <input
+          pInputText
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="any"
+          fluid
+          [attr.aria-label]="label('Quantity', row)"
+          [attr.data-field-key]="row.line.uid + '.quantity'"
+          [attr.aria-invalid]="error(row, 'quantity') ? 'true' : null"
+          [attr.aria-describedby]="describedBy(row, 'quantity')"
+          [disabled]="disabled()"
+          [ngModel]="row.line.quantity"
+          (ngModelChange)="patch(row, { quantity: $event })"
+        />
+        @if (row.line.unit.trim() !== 'unit') {
+          <span class="line__suffix">{{ row.line.unit.trim() }}</span>
+        }
+      </div>
+      @if (error(row, 'quantity'); as errorText) {
+        <p class="line__error" [id]="'line-' + row.line.uid + '-quantity-error'">{{ errorText }}</p>
+      }
+    </div>
+
+    <div class="line__rate">
+      <span class="line__label" aria-hidden="true">Rate</span>
+      <div class="line__affix">
+        <span class="line__prefix" aria-hidden="true">$</span>
+        <input
+          pInputText
+          class="line__rate-input"
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="0.01"
+          fluid
+          [attr.aria-label]="label('Rate', row)"
+          [attr.data-field-key]="row.line.uid + '.unitPrice'"
+          [attr.aria-invalid]="error(row, 'unitPrice') ? 'true' : null"
+          [attr.aria-describedby]="describedBy(row, 'unitPrice')"
+          [disabled]="disabled()"
+          [ngModel]="row.line.unitPrice"
+          (ngModelChange)="patch(row, { unitPrice: $event })"
+        />
+      </div>
+      @if (error(row, 'unitPrice'); as errorText) {
+        <p class="line__error" [id]="'line-' + row.line.uid + '-unitPrice-error'">
+          {{ errorText }}
+        </p>
+      }
+    </div>
+
+    <div class="line__tax">
+      <span class="line__label" aria-hidden="true">Tax</span>
+      <p-select
+        appendTo="body"
+        fluid
+        optionLabel="label"
+        optionValue="code"
+        [ariaLabel]="label('Tax', row)"
+        [options]="taxOptions"
+        [disabled]="disabled()"
+        [ngModel]="row.line.taxable"
+        (ngModelChange)="patch(row, { taxable: $event })"
+      />
+    </div>
+
+    <div class="line__amount">
+      <span class="line__label" aria-hidden="true">Amount</span>
+      <output class="line__money" [class.line__money--busy]="isBusy()">{{ amount(row) }}</output>
+    </div>
+
+    <div class="line__actions">
+      <button
+        type="button"
+        class="line__icon"
+        aria-haspopup="menu"
+        [attr.aria-label]="'More actions for ' + name(row) + ', line ' + (row.index + 1)"
+        [attr.data-menu-uid]="row.line.uid"
+        [disabled]="disabled()"
+        (click)="openMenu($event, row)"
+      >
+        <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+      </button>
+      <button
+        type="button"
+        class="line__icon line__icon--danger"
+        [attr.aria-label]="'Delete ' + name(row) + ', line ' + (row.index + 1)"
+        [disabled]="disabled()"
+        (click)="lineRemove.emit(row.line.uid)"
+      >
+        <i class="pi pi-trash" aria-hidden="true"></i>
+      </button>
+    </div>
+    @if (detailsOpen(row)) {
+      <div class="line__details">
+        <span class="line__type">{{ typeLabel(row.line.type) }}</span>
+        <div class="line__field">
+          <label class="line__label" [for]="'line-' + row.line.uid + '-unit'">Unit</label>
+          <input
+            pInputText
+            fluid
+            [id]="'line-' + row.line.uid + '-unit'"
+            [attr.aria-label]="label('Unit', row)"
+            [attr.data-field-key]="row.line.uid + '.unit'"
+            [attr.aria-invalid]="error(row, 'unit') ? 'true' : null"
+            [attr.aria-describedby]="describedBy(row, 'unit')"
+            [disabled]="disabled()"
+            [ngModel]="row.line.unit"
+            (ngModelChange)="patch(row, { unit: $event })"
+          />
+          @if (error(row, 'unit'); as errorText) {
+            <p class="line__error" [id]="'line-' + row.line.uid + '-unit-error'">{{ errorText }}</p>
+          }
+        </div>
+        <div class="line__field">
+          <span class="line__label line__label--cost">
+            Unit cost <span class="line__internal">Internal</span>
+          </span>
+          <input
+            pInputText
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="0.01"
+            fluid
+            [attr.aria-label]="label('Unit cost (internal)', row)"
+            [attr.data-field-key]="row.line.uid + '.unitCost'"
+            [attr.aria-invalid]="error(row, 'unitCost') ? 'true' : null"
+            [attr.aria-describedby]="describedBy(row, 'unitCost')"
+            [disabled]="disabled()"
+            [ngModel]="row.line.unitCost"
+            (ngModelChange)="patch(row, { unitCost: $event })"
+          />
+          @if (error(row, 'unitCost'); as errorText) {
+            <p class="line__error" [id]="'line-' + row.line.uid + '-unitCost-error'">
+              {{ errorText }}
+            </p>
+          }
+        </div>
+      </div>
+    }
+  </li>
+</ng-template>
+
+<section class="items" aria-labelledby="quote-lines-heading">
+  <h2 class="items__title" id="quote-lines-heading">Line items</h2>
+
+  @if (lines().length === 0) {
+    <p class="items__empty">{{ emptyMessage }}</p>
+  }
+
+  @if (regular().length > 0) {
+    <div class="items__columns" aria-hidden="true">
+      <span>Item</span>
+      <span>Description</span>
+      <span>Qty</span>
+      <span>Rate</span>
+      <span>Tax</span>
+      <span>Amount</span>
+    </div>
+    <ul class="items__list" aria-label="Line items">
+      @for (row of regular(); track row.line.uid) {
+        <ng-container *ngTemplateOutlet="lineRow; context: { $implicit: row }" />
+      }
+    </ul>
+  }
+
+  <div class="items__add" data-field-key="lines">
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="disabled()"
+      (click)="openPicker('service', false)"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Add service
+    </button>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="disabled()"
+      (click)="openPicker('product', false)"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Add material
+    </button>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="disabled()"
+      (click)="openPicker(null, true)"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Add optional item
+    </button>
+  </div>
+  @if (errors()['lines']; as errorText) {
+    <p class="items__error" role="alert">{{ errorText }}</p>
+  }
+
+  @if (optional().length > 0) {
+    <h3 class="items__subtitle" id="quote-optional-heading">
+      Optional items
+      <span class="items__chip">Optional</span>
+    </h3>
+    <ul class="items__list" aria-labelledby="quote-optional-heading">
+      @for (row of optional(); track row.line.uid) {
+        <ng-container *ngTemplateOutlet="lineRow; context: { $implicit: row }" />
+      }
+    </ul>
+  }
+</section>
+
+<app-catalog-picker-dialog
+  [target]="picker()"
+  [currency]="currency()"
+  (picked)="onPicked($event)"
+  (dismissed)="picker.set(null)"
+/>

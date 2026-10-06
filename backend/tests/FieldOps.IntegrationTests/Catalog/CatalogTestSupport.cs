@@ -194,10 +194,10 @@ public static class CatalogSeed
             SET session_replication_role = replica;
             INSERT INTO quotes (id, organization_id, request_id, quote_number, status, current_version_no, created_by_user_id)
             VALUES (@q, @org, gen_random_uuid(), @n, 'cancelled', 2, @user);
-            INSERT INTO quote_versions (id, organization_id, quote_id, version_no, scope, subtotal, tax_total, total, currency, created_by_user_id)
-            VALUES (@v1, @org, @q, 1, 's', 0, 0, 0, 'USD', @user), (@v2, @org, @q, 2, 's', 0, 0, 0, 'USD', @user);
-            INSERT INTO quote_lines (id, quote_version_id, catalog_item_id, line_type, description, quantity, unit, unit_price, line_subtotal, line_tax, line_total)
-            VALUES (@l1, @v1, @item, 'service', 'd', 1, 'unit', 10, 10, 0, 10), (@l2, @v2, @item, 'service', 'd', 1, 'unit', 10, 10, 0, 10);
+            INSERT INTO quote_versions (id, organization_id, quote_id, version_no, scope, subtotal, tax_total, total, currency, created_by_user_id, is_immutable)
+            VALUES (@v1, @org, @q, 1, 's', 0, 0, 0, 'USD', @user, true), (@v2, @org, @q, 2, 's', 0, 0, 0, 'USD', @user, true);
+            INSERT INTO quote_lines (id, organization_id, quote_version_id, catalog_item_id, line_type, name, description, quantity, unit, unit_price, line_subtotal, line_tax, line_total)
+            VALUES (@l1, @org, @v1, @item, 'service', 'n', 'd', 1, 'unit', 10, 10, 0, 10), (@l2, @org, @v2, @item, 'service', 'n', 'd', 1, 'unit', 10, 10, 0, 10);
             INSERT INTO work_orders (id, organization_id, branch_id, work_order_number, quote_version_id, customer_id, property_id, status, scope_snapshot, created_by_user_id)
             VALUES (@wo, @org, @branch, @n, @v1, gen_random_uuid(), gen_random_uuid(), 'cancelled', 's', @user);
             INSERT INTO visits (id, organization_id, work_order_id, visit_number, status) VALUES (@vis, @org, @wo, 1, 'unscheduled');

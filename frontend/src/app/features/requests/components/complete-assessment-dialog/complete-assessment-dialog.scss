@@ -1,0 +1,82 @@
+:host {
+  display: contents;
+}
+
+.complete {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+
+  &__drop {
+    position: relative;
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+    cursor: pointer;
+    border: 1px dashed var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-panel);
+
+    &:focus-within {
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__input {
+    position: absolute;
+    inset: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    cursor: pointer;
+    opacity: 0;
+  }
+
+  &__files {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__file {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-width: 0;
+    font-size: 0.875rem;
+  }
+
+  &__name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__size {
+    flex: none;
+    color: var(--fo-color-text-muted);
+  }
+
+  &__remove {
+    flex: none;
+    padding: 0.375rem;
+    color: var(--fo-color-text-secondary);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+}

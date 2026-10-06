@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { customerDetailRoute, customersRoute } from './features/customers/customers.routes';
+import { quoteEditRoute, quoteViewRoute } from './features/quotes/quotes.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
 import { assessmentRoute, requestsRoute } from './features/requests/requests.routes';
@@ -19,6 +20,14 @@ export const routes: Routes = [
     // Public on purpose: anonymous request form, outside the authenticated shell.
     path: 'request/:slug',
     loadChildren: () => import('./features/service-request/service-request.routes'),
+  },
+  {
+    // Public on purpose: the emailed link lands here with the token in the URL fragment. Temporary
+    // placeholder: makes no API call and has no guard (quote-builder BR-27).
+    path: 'quote-approval',
+    title: 'Quote · FieldOps',
+    loadComponent: () =>
+      import('./features/quotes/pages/quote-approval/quote-approval').then((m) => m.QuoteApproval),
   },
   {
     // Routes declare their own full paths (public registration lives at `auth/register-company`).
@@ -45,6 +54,8 @@ export const routes: Routes = [
       customerDetailRoute,
       requestsRoute,
       assessmentRoute,
+      quoteEditRoute,
+      quoteViewRoute,
       teamRoute,
       skillsAvailabilityRoute,
     ],

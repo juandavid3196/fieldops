@@ -19,6 +19,9 @@ internal sealed class QuoteVersionConfiguration : IEntityTypeConfiguration<Quote
                 "ck_quote_versions_subtotal",
                 "subtotal >= 0");
             table.HasCheckConstraint(
+                "ck_quote_versions_discount_total",
+                "discount_total >= 0");
+            table.HasCheckConstraint(
                 "ck_quote_versions_tax_total",
                 "tax_total >= 0");
             table.HasCheckConstraint(
@@ -61,6 +64,11 @@ internal sealed class QuoteVersionConfiguration : IEntityTypeConfiguration<Quote
             .HasPrecision(14, 2)
             .IsRequired();
 
+        builder.Property(version => version.DiscountTotal)
+            .HasPrecision(14, 2)
+            .HasDefaultValue(0m)
+            .IsRequired();
+
         builder.Property(version => version.TaxTotal)
             .HasPrecision(14, 2)
             .IsRequired();
@@ -73,6 +81,9 @@ internal sealed class QuoteVersionConfiguration : IEntityTypeConfiguration<Quote
             .HasMaxLength(3)
             .IsFixedLength()
             .IsRequired();
+
+        builder.Property(version => version.Terms)
+            .HasColumnType("text");
 
         builder.Property(version => version.ValidUntil)
             .HasColumnType("date");
@@ -93,6 +104,12 @@ internal sealed class QuoteVersionConfiguration : IEntityTypeConfiguration<Quote
         // UNIQUE (quote_id, version_no)
         builder.HasIndex(version => new { version.QuoteId, version.VersionNo })
             .IsUnique();
+
+        // CREATE UNIQUE INDEX ux_quote_versions_one_mutable ON quote_versions (quote_id) WHERE NOT is_immutable
+        builder.HasIndex(version => version.QuoteId)
+            .IsUnique()
+            .HasDatabaseName("ux_quote_versions_one_mutable")
+            .HasFilter("NOT is_immutable");
 
         builder.HasOne<Organization>()
             .WithMany()

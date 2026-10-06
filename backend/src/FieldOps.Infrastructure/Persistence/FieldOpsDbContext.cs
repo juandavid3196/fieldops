@@ -92,6 +92,8 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<QuoteLine> QuoteLines => Set<QuoteLine>();
 
+    public DbSet<QuoteAccessToken> QuoteAccessTokens => Set<QuoteAccessToken>();
+
     public DbSet<QuoteResponse> QuoteResponses => Set<QuoteResponse>();
 
     public DbSet<WorkOrder> WorkOrders => Set<WorkOrder>();

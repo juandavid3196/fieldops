@@ -53,3 +53,30 @@ describe('request panel actions (BR-03)', () => {
     },
   );
 });
+
+describe('request panel quote actions (quote-builder BR-04)', () => {
+  const draft = { id: 'q-1', status: 'draft', hasDraft: true };
+
+  it.each<
+    [RequestStatus, boolean, Parameters<typeof footerActions>[2], boolean, RequestActionId[]]
+  >([
+    ['ready_for_quote', true, null, true, ['create-quote', 'request-information']],
+    [
+      'ready_for_quote',
+      true,
+      { ...draft, status: 'cancelled' },
+      true,
+      ['create-quote', 'request-information'],
+    ],
+    ['ready_for_quote', true, draft, true, ['continue-quote', 'request-information']],
+    ['quoted', true, { ...draft, status: 'sent' }, true, ['view-quote']],
+    ['quoted', false, { ...draft, status: 'sent' }, true, ['view-quote']],
+    ['quoted', false, { ...draft, status: 'sent' }, false, []],
+    ['quoted', true, null, true, []],
+  ])(
+    '%s (manager %s, quote %o, reads quotes %s) offers %o',
+    (status, manager, quote, reads, ids_) => {
+      expect(ids(footerActions(status, manager, quote, reads))).toEqual(ids_);
+    },
+  );
+});

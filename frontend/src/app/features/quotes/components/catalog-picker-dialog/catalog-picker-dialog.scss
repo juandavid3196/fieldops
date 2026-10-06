@@ -1,0 +1,99 @@
+:host {
+  display: contents;
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+
+  &__types {
+    display: flex;
+    gap: 1rem;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__legend {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__type {
+    display: inline-flex;
+    gap: 0.375rem;
+    align-items: center;
+  }
+
+  &__skeletons,
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__list {
+    max-block-size: 18rem;
+    overflow-y: auto;
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__empty {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.125rem 0.75rem;
+    inline-size: 100%;
+    padding: 0.625rem 0.75rem;
+    font: inherit;
+    color: var(--fo-color-text);
+    text-align: start;
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__name {
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__price {
+    grid-row: 1;
+    grid-column: 2;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__description {
+    grid-column: 1 / -1;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    overflow-wrap: anywhere;
+  }
+}

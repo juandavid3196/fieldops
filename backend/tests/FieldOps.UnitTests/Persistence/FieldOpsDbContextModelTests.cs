@@ -69,6 +69,7 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(Quote), "quotes")]
     [InlineData(typeof(QuoteVersion), "quote_versions")]
     [InlineData(typeof(QuoteLine), "quote_lines")]
+    [InlineData(typeof(QuoteAccessToken), "quote_access_tokens")]
     [InlineData(typeof(QuoteResponse), "quote_responses")]
     [InlineData(typeof(WorkOrder), "work_orders")]
     [InlineData(typeof(WorkOrderRequiredSkill), "work_order_required_skills")]
@@ -181,17 +182,20 @@ public class FieldOpsDbContextModelTests
     }
 
     [Fact]
-    public void Model_ConfiguresAssessmentAttachmentWithoutOrganizationIdAndCascadeDelete()
+    public void Model_ConfiguresAssessmentAttachmentWithOrganizationIdAndDoubleCascadeForeignKey()
     {
         using var context = CreateContext();
 
         var attachment = context.Model.FindEntityType(typeof(AssessmentAttachment));
 
-        Assert.Null(attachment!.FindProperty("OrganizationId"));
+        Assert.NotNull(attachment!.FindProperty("OrganizationId"));
+        Assert.True(attachment.FindProperty("StorageKey")!.IsNullable);
 
-        var toAssessmentFk = Assert.Single(attachment.GetForeignKeys());
-        Assert.Equal(typeof(Assessment), toAssessmentFk.PrincipalEntityType.ClrType);
-        Assert.Equal(DeleteBehavior.Cascade, toAssessmentFk.DeleteBehavior);
+        var toAssessmentFks = attachment.GetForeignKeys()
+            .Where(fk => fk.PrincipalEntityType.ClrType == typeof(Assessment))
+            .ToList();
+        Assert.Equal([1, 2], toAssessmentFks.Select(fk => fk.Properties.Count).Order().ToArray());
+        Assert.All(toAssessmentFks, fk => Assert.Equal(DeleteBehavior.Cascade, fk.DeleteBehavior));
     }
 
     [Fact]
@@ -221,18 +225,19 @@ public class FieldOpsDbContextModelTests
     }
 
     [Fact]
-    public void Model_ConfiguresQuoteLineWithoutOrganizationIdAndCascadeDelete()
+    public void Model_ConfiguresQuoteLineWithOrganizationIdAndDoubleCascadeForeignKey()
     {
         using var context = CreateContext();
 
         var quoteLine = context.Model.FindEntityType(typeof(QuoteLine));
 
-        Assert.Null(quoteLine!.FindProperty("OrganizationId"));
+        Assert.NotNull(quoteLine!.FindProperty("OrganizationId"));
 
-        var toQuoteVersionFk = Assert.Single(
-            quoteLine.GetForeignKeys(),
-            fk => fk.PrincipalEntityType.ClrType == typeof(QuoteVersion));
-        Assert.Equal(DeleteBehavior.Cascade, toQuoteVersionFk.DeleteBehavior);
+        var toQuoteVersionFks = quoteLine.GetForeignKeys()
+            .Where(fk => fk.PrincipalEntityType.ClrType == typeof(QuoteVersion))
+            .ToList();
+        Assert.Equal([1, 2], toQuoteVersionFks.Select(fk => fk.Properties.Count).Order().ToArray());
+        Assert.All(toQuoteVersionFks, fk => Assert.Equal(DeleteBehavior.Cascade, fk.DeleteBehavior));
 
         var toCatalogItemFk = Assert.Single(
             quoteLine.GetForeignKeys(),

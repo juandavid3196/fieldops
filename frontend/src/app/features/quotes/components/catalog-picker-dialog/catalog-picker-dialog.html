@@ -1,0 +1,91 @@
+<p-dialog
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="open()"
+  (visibleChange)="$event ? null : dismissed.emit()"
+  [style]="{ width: '32rem', maxWidth: '94vw' }"
+>
+  <div class="picker">
+    @if (target()?.optional) {
+      <fieldset class="picker__types">
+        <legend class="picker__legend">Type</legend>
+        <label class="picker__type">
+          <input
+            type="radio"
+            name="picker-type"
+            value="service"
+            [checked]="choice() === 'service'"
+            (change)="choice.set('service')"
+          />
+          Service
+        </label>
+        <label class="picker__type">
+          <input
+            type="radio"
+            name="picker-type"
+            value="product"
+            [checked]="choice() === 'product'"
+            (change)="choice.set('product')"
+          />
+          Material
+        </label>
+      </fieldset>
+    }
+
+    <label class="picker__legend" for="catalog-picker-search">Search the catalog</label>
+    <input
+      pInputText
+      id="catalog-picker-search"
+      type="search"
+      fluid
+      autocomplete="off"
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    />
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="picker__skeletons" aria-busy="true">
+          <p-skeleton height="3rem" />
+          <p-skeleton height="3rem" />
+          <p-skeleton height="3rem" />
+        </div>
+      }
+      @case ('error') {
+        <p-message severity="error" [closable]="false">
+          <span class="picker__error">
+            {{ errorMessage }}
+            <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+              Retry
+            </button>
+          </span>
+        </p-message>
+      }
+      @default {
+        @if (items().length === 0) {
+          <p class="picker__empty">No items found.</p>
+        } @else {
+          <ul class="picker__list">
+            @for (item of items(); track item.id) {
+              <li>
+                <button type="button" class="picker__item" (click)="pick(item)">
+                  <span class="picker__name">{{ item.name }}</span>
+                  @if (item.description) {
+                    <span class="picker__description">{{ item.description }}</span>
+                  }
+                  <span class="picker__price">{{ price(item) }}</span>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      }
+    }
+
+    <button pButton type="button" severity="secondary" [outlined]="true" (click)="pick(null)">
+      {{ customLabel() }}
+    </button>
+  </div>
+</p-dialog>

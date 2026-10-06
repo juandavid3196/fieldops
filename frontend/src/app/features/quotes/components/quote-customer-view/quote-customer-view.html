@@ -1,0 +1,92 @@
+<article class="view" [attr.aria-label]="'Quote ' + view().number">
+  <header class="view__head">
+    <div>
+      <p class="view__org">{{ view().organizationName }}</p>
+      <h3 class="view__title">Quote {{ view().number }} · Version {{ view().versionNo }}</h3>
+    </div>
+    <p class="view__muted">{{ view().date }}</p>
+  </header>
+
+  <p class="view__customer">
+    <strong>{{ view().customerName }}</strong>
+    @if (view().address) {
+      <span class="view__muted">{{ view().address }}</span>
+    }
+  </p>
+  <p class="view__scope">{{ view().scope }}</p>
+  @if (view().message) {
+    <p class="view__message">{{ view().message }}</p>
+  }
+
+  <ng-template #linesTable let-lines let-caption="caption">
+    <table class="view__table">
+      <caption class="view__caption">
+        {{
+          caption
+        }}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Item</th>
+          <th scope="col">Qty</th>
+          <th scope="col">Unit price</th>
+          <th scope="col">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (line of lines; track $index) {
+          <tr>
+            <td>
+              <span class="view__name">{{ line.name }}</span>
+              @if (line.description) {
+                <span class="view__muted">{{ line.description }}</span>
+              }
+            </td>
+            <td>{{ quantity(line) }}</td>
+            <td>{{ money(line.unitPrice) }}</td>
+            <td>{{ money(line.amount) }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </ng-template>
+
+  @if (view().lines.length > 0) {
+    <ng-container
+      *ngTemplateOutlet="linesTable; context: { $implicit: view().lines, caption: 'Line items' }"
+    />
+  }
+  @if (view().optionalLines.length > 0) {
+    <ng-container
+      *ngTemplateOutlet="
+        linesTable;
+        context: { $implicit: view().optionalLines, caption: 'Optional items' }
+      "
+    />
+    <p class="view__muted">Not included in the total</p>
+  }
+
+  <dl class="view__totals">
+    <div>
+      <dt>Subtotal</dt>
+      <dd>{{ money(view().subtotal) }}</dd>
+    </div>
+    @if (view().discountTotal > 0) {
+      <div>
+        <dt>Discount</dt>
+        <dd>−{{ money(view().discountTotal) }}</dd>
+      </div>
+    }
+    <div>
+      <dt>{{ view().taxLabel }}</dt>
+      <dd>{{ money(view().taxTotal) }}</dd>
+    </div>
+    <div class="view__total">
+      <dt>Total</dt>
+      <dd>{{ money(view().total) }}</dd>
+    </div>
+  </dl>
+
+  <p class="view__terms">{{ view().terms }}</p>
+  <p class="view__muted">Valid until {{ view().validUntil }}</p>
+</article>

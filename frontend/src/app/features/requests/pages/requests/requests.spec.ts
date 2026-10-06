@@ -14,6 +14,10 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { API_CONFIG } from '../../../../core/config/api.config';
 import { errorInterceptor } from '../../../../core/interceptors/error.interceptor';
 import { SessionService } from '../../../../core/services/session.service';
+import {
+  CompleteAssessmentDialog,
+  assessmentErrors,
+} from '../../components/complete-assessment-dialog/complete-assessment-dialog';
 import { RequestActionDialog } from '../../components/request-action-dialog/request-action-dialog';
 import {
   CONFLICT_MESSAGE,
@@ -26,6 +30,7 @@ import { EMPTY_FILTERED_MESSAGE, FORBIDDEN_MESSAGE, Requests } from './requests'
 const API = 'http://api.test';
 const ID_A = '11111111-1111-4111-8111-111111111111';
 const ID_B = '22222222-2222-4222-8222-222222222222';
+const QUOTE_ID = '33333333-3333-4333-8333-333333333333';
 
 @Component({ template: '<p>stub</p>' })
 class Stub {}
@@ -147,6 +152,8 @@ describe('Requests page', () => {
           { path: 'requests/:requestId/assessment', component: Stub },
           { path: 'auth/sign-in', component: Stub },
           { path: 'coming-soon/:module', component: Stub },
+          { path: 'quotes/:quoteId/edit', component: Stub },
+          { path: 'quotes/:quoteId', component: Stub },
         ]),
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
@@ -284,9 +291,12 @@ describe('Requests page', () => {
     expect(text()).toContain('Request marked ready for quote.');
     expect(cardButton(ID_A).getAttribute('aria-current')).toBe('true');
 
-    // Create quote only navigates (no request).
+    // Create quote posts once and opens the editor of the returned quote (quote-builder BR-04, BR-05).
     button('Create quote')!.click();
-    await vi.waitFor(() => expect(TestBed.inject(Router).url).toBe('/coming-soon/quotes'));
+    httpTesting
+      .expectOne((r) => r.method === 'POST' && r.url === `${API}/quotes`)
+      .flush({ id: QUOTE_ID }, { status: 201, statusText: 'Created' });
+    await vi.waitFor(() => expect(TestBed.inject(Router).url).toBe(`/quotes/${QUOTE_ID}/edit`));
   });
 
   it('cancels with a required reason through the dialog and handles 400, 409 and failures per surface (AC-19, FR-13)', async () => {
@@ -422,6 +432,151 @@ describe('Requests page', () => {
       httpTesting.expectNone((r) => r.url.includes('/service-requests'));
     },
   );
+
+  it('completes an assessment through the findings dialog: client checks, multipart POST, inline 400 and discard prompt (quote-builder FR-01, BR-01, BR-02)', async () => {
+    await setup('dispatcher', { url: `/requests?request=${ID_A}` });
+    call('GET', `/${ID_A}`).flush(
+      detail({
+        status: 'assessment_scheduled',
+        assessment: {
+          id: 'a-1',
+          start: '2020-01-01T15:00:00Z',
+          end: '2020-01-01T16:00:00Z',
+          technician: { id: 't-1', name: 'Carlos Rivera' },
+          purpose: null,
+          internalInstructions: null,
+        },
+      }),
+    );
+    await settle();
+    const dialog = harness.fixture.debugElement.query(By.directive(CompleteAssessmentDialog))
+      .componentInstance as CompleteAssessmentDialog;
+
+    // BR-01/BR-02 client rules (the backend re-validates and detects the content type).
+    const file = (name: string, size: number): File => {
+      const f = new File(['x'], name);
+      Object.defineProperty(f, 'size', { value: size });
+      return f;
+    };
+    const MB = 1024 * 1024;
+    expect(assessmentErrors('', '', [])).toEqual({ diagnosis: 'Enter the diagnosis.' });
+    expect(assessmentErrors('d'.repeat(2001), 's'.repeat(2001), [])).toEqual({
+      diagnosis: 'Diagnosis must be 2000 characters or fewer.',
+      recommendedScope: 'Recommended scope must be 2000 characters or fewer.',
+    });
+    expect(
+      assessmentErrors(
+        'd',
+        '',
+        Array.from({ length: 7 }, (_, i) => file(`${i}.png`, 5)),
+      ),
+    ).toEqual({
+      photos: 'Add up to 6 photos.',
+    });
+    for (const bad of [file('a.pdf', 5), file('a.png', 11 * MB), file('a.jpg', 0)]) {
+      expect(assessmentErrors('d', '', [bad])['photos']).toBe(
+        'Photos must be JPG or PNG files of 10 MB or less.',
+      );
+    }
+    expect(assessmentErrors('d', '', [file('a.JPEG', 5 * MB), file('b.png', MB)])).toEqual({});
+
+    // Opening shows the dialog; an empty diagnosis blocks the request with the inline error.
+    button('Complete assessment')!.click();
+    await settle();
+    expect(dialog.open()).toBe(true);
+    dialog.submit();
+    await settle();
+    expect(text()).toContain('Enter the diagnosis.');
+    httpTesting.expectNone((r) => r.url.endsWith('/assessment/complete'));
+
+    // A server 400 stays inline and keeps the data.
+    dialog.diagnosis.set('  Failed P-trap  ');
+    dialog.scope.set('');
+    dialog.submit();
+    const failed = call('POST', `/${ID_A}/assessment/complete`);
+    const sent = failed.request.body as FormData;
+    expect(sent.get('diagnosis')).toBe('Failed P-trap');
+    expect(sent.has('recommendedScope')).toBe(false);
+    failed.flush(
+      { errors: { photos: ['Photos must be JPG or PNG files of 10 MB or less.'] } },
+      { status: 400, statusText: 'Bad Request' },
+    );
+    await settle();
+    expect(text()).toContain('Photos must be JPG or PNG files of 10 MB or less.');
+    expect(dialog.open()).toBe(true);
+    expect(dialog.diagnosis()).toBe('  Failed P-trap  ');
+
+    // Success closes the dialog, refreshes the panel and toasts.
+    dialog.submit();
+    call('POST', `/${ID_A}/assessment/complete`).flush(
+      detail({
+        status: 'ready_for_quote',
+        completedAssessment: {
+          id: 'a-1',
+          start: '2020-01-01T15:00:00Z',
+          completedAt: '2020-01-01T16:00:00Z',
+          technician: { id: 't-1', name: 'Carlos Rivera' },
+          diagnosis: 'Failed P-trap',
+          recommendedScope: null,
+          photos: [],
+        },
+      }),
+    );
+    await settle();
+    flushRefresh();
+    await settle();
+    expect(text()).toContain('Assessment completed.');
+    expect(text()).toContain('Assessment findings');
+    expect(text()).toContain('Failed P-trap');
+    expect(dialog.open()).toBe(false);
+  });
+
+  it('offers Create, Continue and View quote per role and handles the draft-quote conflict on Move back (quote-builder FR-02, FR-14, BR-04, BR-31)', async () => {
+    await setup('owner', { url: `/requests?request=${ID_A}` });
+    call('GET', `/${ID_A}`).flush(
+      detail({
+        status: 'ready_for_quote',
+        quote: { id: QUOTE_ID, status: 'draft', hasDraft: true },
+      }),
+    );
+    await settle();
+
+    expect(button('Continue quote')).toBeDefined();
+    expect(button('Create quote')).toBeUndefined();
+
+    // Move back is blocked by the draft quote: fixed copy, no raw backend text, panel reloaded.
+    page.onAction('move-back');
+    call('POST', `/${ID_A}/move-to-review`).flush(
+      { title: 'backend text', code: 'quote_draft_exists' },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await settle();
+    expect(text()).toContain('This request has a draft quote. Discard it first.');
+    expect(text()).not.toContain('backend text');
+    call('GET', `/${ID_A}`).flush(
+      detail({
+        status: 'ready_for_quote',
+        quote: { id: QUOTE_ID, status: 'draft', hasDraft: true },
+      }),
+    );
+    flushRefresh();
+    await settle();
+
+    button('Continue quote')!.click();
+    await vi.waitFor(() => expect(TestBed.inject(Router).url).toBe(`/quotes/${QUOTE_ID}/edit`));
+  });
+
+  it('shows View quote on a quoted request to read roles and opens the read-only quote page (quote-builder BR-04, BR-30)', async () => {
+    await setup('viewer', { url: `/requests?request=${ID_A}` });
+    call('GET', `/${ID_A}`).flush(
+      detail({ status: 'quoted', quote: { id: QUOTE_ID, status: 'sent', hasDraft: false } }),
+    );
+    await settle();
+
+    expect(button('Create quote')).toBeUndefined();
+    button('View quote')!.click();
+    await vi.waitFor(() => expect(TestBed.inject(Router).url).toBe(`/quotes/${QUOTE_ID}`));
+  });
 
   it('read roles see board and panel with no New request, footer, menu, note input or Add file (AC-05)', async () => {
     await setup('viewer', { url: `/requests?request=${ID_A}` });
