@@ -1,0 +1,119 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.jobs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem 2.5rem;
+  overflow-wrap: anywhere;
+
+  &__title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__message {
+    margin: 0;
+    padding: 1rem;
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--p-content-border-radius);
+  }
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__scroll {
+    overflow-x: auto;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__table {
+    inline-size: 100%;
+    min-inline-size: 42rem;
+    font-size: 0.9375rem;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 0.75rem;
+      text-align: start;
+      vertical-align: top;
+      border-block-end: 1px solid var(--fo-color-row-divider);
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__row-link {
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+  }
+
+  &__link {
+    font-weight: 700;
+    color: var(--fo-color-primary-strong);
+  }
+
+  &__muted {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__chip {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--fo-color-warning-text);
+    background: var(--fo-color-warning-background);
+    border-radius: var(--fo-radius-pill);
+
+    &--draft {
+      color: var(--fo-color-neutral-text);
+      background: var(--fo-color-neutral-background);
+    }
+  }
+
+  &__pager {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: flex-end;
+  }
+}

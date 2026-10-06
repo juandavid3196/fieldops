@@ -41,6 +41,8 @@ const detail = (patch: Partial<QuoteDetail> = {}): QuoteDetail => ({
   responses: [],
   updatedAt: '2026-10-05T12:00:00Z',
   canManage: true,
+  workOrder: null,
+  canManageWorkOrders: false,
   request: {
     id: '11111111-1111-4111-8111-111111111111',
     displayNumber: 'REQ-1048',
@@ -247,6 +249,51 @@ describe('Quote read-only view', () => {
       expect(text()).toContain('Version 3 is being revised.');
       for (const label of ['Revise quote', 'Continue editing', 'Resend email']) {
         expect(control(label)).toBeUndefined();
+      }
+    },
+  );
+
+  it.each<[string, boolean, QuoteDetail['workOrder'], QuoteDetail['status'], string | null]>([
+    ['owner', true, null, 'approved', 'Create work order'],
+    [
+      'dispatcher',
+      true,
+      { id: 'wo-1', displayNumber: 'WO-7', status: 'draft' },
+      'approved',
+      'Continue draft',
+    ],
+    [
+      'operations_manager',
+      true,
+      { id: 'wo-1', displayNumber: 'WO-7', status: 'ready_to_schedule' },
+      'approved',
+      'View job',
+    ],
+    [
+      'viewer',
+      false,
+      { id: 'wo-1', displayNumber: 'WO-7', status: 'ready_to_schedule' },
+      'approved',
+      'View job',
+    ],
+    ['viewer', false, null, 'approved', null],
+    ['owner', true, null, 'sent', null],
+  ])(
+    '%s (manage work orders = %s) with work order %j on a %s quote sees the action %s (create-work-order FR-01, BR-04, AC-01)',
+    async (role, manage, workOrder, status, label) => {
+      await setup(
+        role,
+        detail({ status, displayStatus: status, workOrder, canManageWorkOrders: manage }),
+      );
+
+      const actions = ['Create work order', 'Continue draft', 'View job'];
+      expect(actions.filter((action) => control(action) !== undefined)).toEqual(
+        label === null ? [] : [label],
+      );
+      if (label === 'View job') {
+        expect(control(label)?.getAttribute('href')).toBe('/jobs/wo-1');
+      } else if (label !== null) {
+        expect(control(label)?.getAttribute('href')).toBe(`/quotes/${QUOTE_ID}/work-order`);
       }
     },
   );

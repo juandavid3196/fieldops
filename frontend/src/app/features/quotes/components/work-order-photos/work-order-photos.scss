@@ -1,0 +1,84 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.photos {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.25rem;
+  overflow-x: auto;
+  list-style: none;
+
+  &__item {
+    position: relative;
+    flex: 0 0 5.75rem;
+    block-size: 6.75rem;
+    overflow: hidden;
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__button {
+    all: unset;
+    position: relative;
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    cursor: pointer;
+
+    &:focus-visible {
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__image {
+    display: block;
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+
+  &__zoom {
+    position: absolute;
+    inset-block-end: 0.25rem;
+    inset-inline-end: 0.25rem;
+    display: grid;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    color: var(--fo-color-on-navy);
+    background: var(--fo-color-navy);
+    border-radius: var(--fo-radius-pill);
+
+    svg {
+      inline-size: 0.75rem;
+      block-size: 0.75rem;
+    }
+  }
+
+  &__failed {
+    display: grid;
+    place-items: center;
+    block-size: 100%;
+    padding: 0.25rem;
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--fo-color-text-secondary);
+    background: var(--fo-color-surface-muted);
+  }
+}
+
+.viewer {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: space-between;
+
+  &__image {
+    flex: 1;
+    min-width: 0;
+    max-block-size: 70vh;
+    object-fit: contain;
+  }
+}

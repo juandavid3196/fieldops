@@ -1,0 +1,121 @@
+<p-dialog
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="open()"
+  (visibleChange)="$event ? null : dismissed.emit()"
+  [style]="{ width: '34rem', maxWidth: '94vw' }"
+>
+  <div class="material">
+    <label class="material__label" for="wo-material-search">Search catalog products</label>
+    <input
+      pInputText
+      id="wo-material-search"
+      type="search"
+      fluid
+      autocomplete="off"
+      [ngModel]="search()"
+      (ngModelChange)="onSearch($event)"
+    />
+    <div class="material__results" [attr.aria-busy]="searching()">
+      @if (searching()) {
+        <p class="material__muted" role="status">
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+          Searching…
+        </p>
+      } @else if (products().length === 0) {
+        <p class="material__muted">No products found.</p>
+      } @else {
+        <ul class="material__list">
+          @for (product of products(); track product.id) {
+            <li>
+              <button type="button" class="material__product" (click)="pick(product)">
+                {{ product.name }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <label class="material__label" for="wo-material-description">Material</label>
+    <input
+      pInputText
+      id="wo-material-description"
+      fluid
+      [attr.aria-invalid]="errors().description ? 'true' : null"
+      [attr.aria-describedby]="errors().description ? 'wo-material-description-error' : null"
+      [ngModel]="description()"
+      (ngModelChange)="onDescription($event)"
+    />
+    @if (errors().description; as errorText) {
+      <p class="material__error" id="wo-material-description-error">{{ errorText }}</p>
+    }
+
+    <div class="material__row">
+      <div>
+        <label class="material__label" for="wo-material-quantity">Planned qty</label>
+        <input
+          pInputText
+          id="wo-material-quantity"
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="any"
+          fluid
+          [attr.aria-invalid]="errors().quantity ? 'true' : null"
+          [attr.aria-describedby]="errors().quantity ? 'wo-material-quantity-error' : null"
+          [ngModel]="quantity()"
+          (ngModelChange)="onQuantity($event)"
+        />
+        @if (errors().quantity; as errorText) {
+          <p class="material__error" id="wo-material-quantity-error">{{ errorText }}</p>
+        }
+      </div>
+      <div>
+        <label class="material__label" for="wo-material-unit">Unit</label>
+        <input
+          pInputText
+          id="wo-material-unit"
+          fluid
+          [attr.aria-invalid]="errors().unit ? 'true' : null"
+          [attr.aria-describedby]="errors().unit ? 'wo-material-unit-error' : null"
+          [ngModel]="unit()"
+          (ngModelChange)="onUnit($event)"
+        />
+        @if (errors().unit; as errorText) {
+          <p class="material__error" id="wo-material-unit-error">{{ errorText }}</p>
+        }
+      </div>
+    </div>
+
+    <label class="material__label" for="wo-material-source">Source</label>
+    <p-select
+      inputId="wo-material-source"
+      appendTo="body"
+      fluid
+      optionLabel="label"
+      optionValue="code"
+      [options]="sources"
+      [ngModel]="source()"
+      (ngModelChange)="source.set($event)"
+    />
+    @if (errors().source; as errorText) {
+      <p class="material__error">{{ errorText }}</p>
+    }
+
+    <div class="material__actions">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        (click)="dismissed.emit()"
+      >
+        Cancel
+      </button>
+      <button pButton type="button" (click)="save()">Save material</button>
+    </div>
+  </div>
+</p-dialog>

@@ -1,0 +1,88 @@
+<p-dialog
+  header="Use checklist template"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="open()"
+  (visibleChange)="$event ? null : dismissed.emit()"
+  [style]="{ width: '34rem', maxWidth: '94vw' }"
+>
+  <div class="templates">
+    @switch (state()) {
+      @case ('loading') {
+        <div class="templates__skeletons" role="status" aria-label="Loading templates">
+          <p-skeleton height="2.5rem" />
+          <p-skeleton height="2.5rem" />
+        </div>
+      }
+      @case ('error') {
+        <p-message severity="error" [closable]="false">
+          <span class="templates__row">
+            {{ errorMessage }}
+            <button pButton type="button" severity="secondary" size="small" (click)="load()">
+              Retry
+            </button>
+          </span>
+        </p-message>
+      }
+      @default {
+        @if (templates().length === 0) {
+          <p class="templates__muted">{{ emptyMessage }}</p>
+        } @else {
+          <fieldset class="templates__list">
+            <legend class="templates__legend">Templates</legend>
+            @for (template of templates(); track template.id) {
+              <label class="templates__item">
+                <input
+                  type="radio"
+                  name="wo-template"
+                  [checked]="selectedId() === template.id"
+                  (change)="select(template.id)"
+                />
+                <span class="templates__name">{{ template.name }}</span>
+                <span class="templates__muted">{{ taskCountLabel(template) }}</span>
+              </label>
+            }
+          </fieldset>
+          @if (limitError(); as limit) {
+            <p class="templates__error" role="alert">{{ limit }}</p>
+          }
+          <div class="templates__actions">
+            <button pButton type="button" [disabled]="selectedId() === null" (click)="apply()">
+              Add tasks
+            </button>
+          </div>
+        }
+      }
+    }
+
+    <div class="templates__save">
+      <label class="templates__legend" for="wo-template-name">Template name</label>
+      <input
+        pInputText
+        id="wo-template-name"
+        fluid
+        autocomplete="off"
+        [attr.aria-invalid]="errors()['name'] || errors()['items'] ? 'true' : null"
+        [attr.aria-describedby]="errors()['name'] ? 'wo-template-name-error' : null"
+        [ngModel]="name()"
+        (ngModelChange)="onName($event)"
+      />
+      @for (key of ['name', 'items', 'serviceCategoryId']; track key) {
+        @if (errors()[key]; as errorText) {
+          <p class="templates__error" [id]="'wo-template-' + key + '-error'">{{ errorText }}</p>
+        }
+      }
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="saving()"
+        (click)="saveCurrent()"
+      >
+        Save current tasks as template
+      </button>
+    </div>
+  </div>
+</p-dialog>

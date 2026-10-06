@@ -13,6 +13,7 @@ public enum RequestAction
     MarkReadyForQuote,
     CompleteAssessment,
     QuoteSent,
+    ConvertToWorkOrder,
     MoveToReview,
     Cancel,
 }
@@ -73,6 +74,10 @@ public static class RequestTransitions
 
             case RequestAction.QuoteSent when from == RequestStatus.ReadyForQuote:
                 to = RequestStatus.Quoted;
+                return true;
+
+            case RequestAction.ConvertToWorkOrder when from == RequestStatus.Quoted:
+                to = RequestStatus.Converted;
                 return true;
 
             case RequestAction.MoveToReview when from == RequestStatus.ReadyForQuote:

@@ -1,0 +1,100 @@
+<div class="jobs">
+  <header class="jobs__header">
+    <h1 #heading class="jobs__title" tabindex="-1">Jobs</h1>
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="jobs__skeletons" aria-busy="true">
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+        <p-skeleton height="2.5rem" />
+      </div>
+    }
+    @case ('forbidden') {
+      <p class="jobs__message" role="alert">{{ forbiddenMessage }}</p>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="jobs__row">
+          {{ errorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @default {
+      @if (items().length === 0) {
+        <p class="jobs__message">{{ emptyMessage }}</p>
+      } @else {
+        <div class="jobs__scroll" tabindex="0" role="region" aria-label="Jobs">
+          <table class="jobs__table">
+            <thead>
+              <tr>
+                <th scope="col">Job</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Branch</th>
+                <th scope="col">Priority</th>
+                <th scope="col">Status</th>
+                <th scope="col">Created</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of items(); track item.id) {
+                <tr class="jobs__row-link" (click)="open(item)">
+                  <td>
+                    <a
+                      class="jobs__link"
+                      [routerLink]="['/jobs', item.id]"
+                      (click)="$event.stopPropagation()"
+                    >
+                      #{{ item.displayNumber }}
+                    </a>
+                    <span class="jobs__muted">{{ item.title }}</span>
+                  </td>
+                  <td>{{ item.customerName }}</td>
+                  <td>{{ item.branchName }}</td>
+                  <td>{{ priorityLabels[item.priority] }}</td>
+                  <td>
+                    <span class="jobs__chip" [class.jobs__chip--draft]="item.status === 'draft'">
+                      {{ statusLabels[item.status] }}
+                    </span>
+                  </td>
+                  <td>{{ created(item) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (pageCount() > 1) {
+          <nav class="jobs__pager" aria-label="Pagination">
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              [disabled]="page() <= 1"
+              (click)="go(page() - 1)"
+            >
+              Previous
+            </button>
+            <span>Page {{ page() }} of {{ pageCount() }}</span>
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              [disabled]="page() >= pageCount()"
+              (click)="go(page() + 1)"
+            >
+              Next
+            </button>
+          </nav>
+        }
+      }
+    }
+  }
+</div>

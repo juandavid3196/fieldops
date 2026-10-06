@@ -1,0 +1,73 @@
+<section class="card" aria-labelledby="wo-customer-heading">
+  <header class="card__head">
+    <h2 class="card__title" id="wo-customer-heading">
+      Customer <span class="card__from">(from quote)</span>
+    </h2>
+    <i class="pi pi-lock card__lock" role="img" aria-label="Locked, from quote"></i>
+  </header>
+  <div class="card__person">
+    <span class="card__avatar" aria-hidden="true">{{ customerInitials() }}</span>
+    <div class="card__details">
+      <strong class="card__name">{{ editor().customer.name }}</strong>
+      @if (editor().customer.phone; as phone) {
+        <p class="card__line">
+          <i class="pi pi-phone" aria-hidden="true"></i>
+          <a class="card__link" [href]="'tel:' + phone">{{ phone }}</a>
+        </p>
+      }
+      @if (editor().customer.email; as email) {
+        <p class="card__line">
+          <i class="pi pi-envelope" aria-hidden="true"></i>
+          <a class="card__link" [href]="'mailto:' + email">{{ email }}</a>
+        </p>
+      }
+      <p class="card__line">
+        <i class="pi pi-map-marker" aria-hidden="true"></i>
+        {{ editor().customer.address }}
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="wo-quote-heading">
+  <header class="card__head">
+    <h2 class="card__title" id="wo-quote-heading">Approved quote</h2>
+    <i class="pi pi-lock card__lock" role="img" aria-label="Locked, from quote"></i>
+  </header>
+  <div class="card__person">
+    <span class="card__tile" aria-hidden="true"><i class="pi pi-file"></i></span>
+    <div class="card__details">
+      <p class="card__number">#{{ editor().quote.displayNumber }}</p>
+      <p class="card__muted">{{ approvedAt() }}</p>
+      <p class="card__total">{{ approvedTotal() }}</p>
+      <a class="card__link" [routerLink]="['/quotes', editor().quote.id]">
+        View approved quote
+        <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="card" aria-labelledby="wo-assessment-heading">
+  <header class="card__head">
+    <h2 class="card__title" id="wo-assessment-heading">
+      Assessment <span class="card__from">(from quote)</span>
+    </h2>
+    <i class="pi pi-lock card__lock" role="img" aria-label="Locked, from quote"></i>
+  </header>
+  @if (editor().assessment; as assessment) {
+    <div class="card__person">
+      <span class="card__avatar" aria-hidden="true">{{ technicianInitials() || '?' }}</span>
+      <div class="card__details">
+        <strong class="card__name">{{ assessment.technicianName ?? 'Unassigned' }}</strong>
+        <h3 class="card__label">Diagnosis:</h3>
+        <p class="card__text">{{ assessment.diagnosis || noDiagnosis }}</p>
+      </div>
+    </div>
+    @if (photos().length > 0) {
+      <app-work-order-photos [items]="photos()" />
+    }
+  } @else {
+    <p class="card__text">{{ noAssessment }}</p>
+  }
+</section>

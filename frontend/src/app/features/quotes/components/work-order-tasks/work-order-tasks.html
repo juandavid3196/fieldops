@@ -1,0 +1,87 @@
+<section class="tasks" aria-labelledby="wo-tasks-heading">
+  <header class="tasks__head">
+    <h2 class="tasks__title" id="wo-tasks-heading">Tasks &amp; checklist</h2>
+    <div class="tasks__tools">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        data-field-key="tasks"
+        [disabled]="disabled()"
+        (click)="added.emit()"
+      >
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        Add task
+      </button>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        data-tool
+        [disabled]="disabled()"
+        (click)="templateRequested.emit()"
+      >
+        <i class="pi pi-file" aria-hidden="true"></i>
+        Use checklist template
+      </button>
+    </div>
+  </header>
+
+  @if (errors()['tasks']; as errorText) {
+    <p class="tasks__error" role="alert">{{ errorText }}</p>
+  }
+
+  <ul class="tasks__list">
+    @for (task of tasks(); track task.uid; let index = $index) {
+      <li
+        class="task"
+        [class.task--over]="dragOver() === task.uid"
+        [attr.data-uid]="task.uid"
+        (dragover)="onDragOver($event, task)"
+        (drop)="onDrop($event, index)"
+      >
+        <span
+          class="task__handle"
+          draggable="true"
+          aria-hidden="true"
+          (dragstart)="onDragStart($event, index, task)"
+          (dragend)="onDragEnd()"
+        >
+          <i class="pi pi-bars"></i>
+        </span>
+        <input type="checkbox" class="task__check" disabled tabindex="-1" aria-hidden="true" />
+        <div class="task__field">
+          <input
+            pInputText
+            fluid
+            data-task-input
+            [attr.aria-label]="'Task ' + (index + 1)"
+            [attr.data-uid]="task.uid"
+            [attr.data-field-key]="'tasks[' + task.uid + ']'"
+            [attr.aria-invalid]="error(task) ? 'true' : null"
+            [attr.aria-describedby]="error(task) ? 'wo-task-' + task.uid + '-error' : null"
+            [disabled]="disabled()"
+            [ngModel]="task.label"
+            (ngModelChange)="labelChange.emit({ uid: task.uid, label: $event })"
+          />
+          @if (error(task); as errorText) {
+            <p class="task__error" [id]="'wo-task-' + task.uid + '-error'">{{ errorText }}</p>
+          }
+        </div>
+        <div class="task__actions">
+          <button
+            type="button"
+            class="task__icon task__icon--quiet"
+            [attr.aria-label]="'Remove ' + name(task, index)"
+            [disabled]="disabled()"
+            (click)="removed.emit(task.uid)"
+          >
+            <i class="pi pi-trash" aria-hidden="true"></i>
+          </button>
+        </div>
+      </li>
+    }
+  </ul>
+</section>

@@ -1,0 +1,95 @@
+<section class="materials" aria-labelledby="wo-materials-heading">
+  <header class="materials__head">
+    <h2 class="materials__title" id="wo-materials-heading">Required materials</h2>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      data-tool
+      [disabled]="disabled()"
+      (click)="add()"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Add material
+    </button>
+  </header>
+
+  @if (errors()['materials']; as errorText) {
+    <p class="materials__error" role="alert">{{ errorText }}</p>
+  }
+
+  @if (materials().length > 0) {
+    <div
+      class="materials__scroll"
+      tabindex="0"
+      role="region"
+      aria-labelledby="wo-materials-heading"
+    >
+      <table class="materials__table">
+        <thead>
+          <tr>
+            <th scope="col">Material</th>
+            <th scope="col">Planned qty</th>
+            <th scope="col">Source</th>
+            <th scope="col">Status</th>
+            <th scope="col"><span class="materials__sr">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (material of materials(); track material.uid) {
+            <tr>
+              <td>
+                {{ material.description }}
+                @if (error(material); as errorText) {
+                  <span class="materials__error">{{ errorText }}</span>
+                }
+              </td>
+              <td>{{ material.quantity }} {{ material.unit }}</td>
+              <td>{{ sourceLabels[material.source] }}</td>
+              <td>
+                <span class="materials__status">
+                  <i class="pi pi-clock" aria-hidden="true"></i>
+                  Planned
+                </span>
+              </td>
+              <td class="materials__actions">
+                <div class="materials__buttons">
+                  <button
+                    type="button"
+                    class="materials__icon"
+                    [attr.data-field-key]="'materials[' + material.uid + ']'"
+                    [attr.aria-label]="'Edit ' + material.description"
+                    [disabled]="disabled()"
+                    (click)="edit(material)"
+                  >
+                    <i class="pi pi-pencil" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="materials__icon"
+                    [attr.aria-label]="'Remove ' + material.description"
+                    [disabled]="disabled()"
+                    (click)="removed.emit(material.uid)"
+                  >
+                    <i class="pi pi-trash" aria-hidden="true"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <p class="materials__note">No materials planned.</p>
+  }
+  <p class="materials__note">{{ footnote }}</p>
+
+  <app-work-order-material-dialog
+    [open]="dialogOpen()"
+    [material]="editing()"
+    (saved)="onSaved($event)"
+    (dismissed)="dialogOpen.set(false)"
+  />
+</section>

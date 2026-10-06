@@ -80,6 +80,14 @@
           </p-message>
         }
 
+        @if (workOrderAction(); as action) {
+          <div class="view__actions">
+            <a pButton [outlined]="!action.primary" [routerLink]="action.link">{{
+              action.label
+            }}</a>
+          </div>
+        }
+
         @if (canManage()) {
           <div class="view__actions">
             @if (canRevise()) {

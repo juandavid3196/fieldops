@@ -1,0 +1,614 @@
+<p-toast />
+<app-confirm-dialog />
+<app-discard-changes-dialog />
+
+<div class="wo">
+  <p class="wo__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+  <header class="wo__header">
+    <nav class="wo__breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        <li>Quotes</li>
+        @if (editor(); as editor) {
+          <li>
+            <a [routerLink]="['/quotes', quoteId]">{{ editor.quote.displayNumber }}</a>
+          </li>
+        }
+        <li aria-current="page">Create work order</li>
+      </ol>
+    </nav>
+    <div class="wo__title-row">
+      <div class="wo__title-group">
+        <h1 #heading class="wo__title" tabindex="-1">Create work order</h1>
+        @if (state() === 'ready') {
+          <span class="wo__chip wo__chip--success">
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            Quote approved
+          </span>
+        }
+      </div>
+      @if (state() === 'ready' && editor(); as editor) {
+        <div class="wo__tools">
+          <span class="wo__number">From quote #{{ editor.quote.displayNumber }}</span>
+          @if (saveState()) {
+            <p class="wo__save-state">
+              <i class="pi pi-save" aria-hidden="true"></i>
+              {{ saveState() }}
+            </p>
+          }
+        </div>
+      }
+    </div>
+    <p class="wo__subtitle">Convert the approved scope into an executable job.</p>
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="wo__skeletons" aria-busy="true">
+        <p-skeleton height="18rem" />
+        <p-skeleton height="26rem" />
+        <p-skeleton height="18rem" />
+      </div>
+    }
+    @case ('forbidden') {
+      <p class="wo__message" role="alert">{{ forbiddenMessage }}</p>
+    }
+    @case ('not-available') {
+      <div class="wo__message" role="alert">
+        <p>{{ notAvailableMessage }}</p>
+        <a pButton severity="secondary" size="small" routerLink="/requests">Back to requests</a>
+      </div>
+    }
+    @case ('not-approved') {
+      <div class="wo__message" role="alert">
+        <p>{{ notApprovedMessage }}</p>
+        <a pButton severity="secondary" size="small" [routerLink]="['/quotes', quoteId]">
+          Back to quote
+        </a>
+      </div>
+    }
+    @case ('customer-required') {
+      <div class="wo__message" role="alert">
+        <p>{{ customerRequiredMessage }}</p>
+        <a pButton severity="secondary" size="small" [routerLink]="['/quotes', quoteId]">
+          Back to quote
+        </a>
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="wo__row">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retryLoad()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @default {
+      @if (editor(); as editor) {
+        @if (form(); as form) {
+          @if (banner(); as banner) {
+            <p-message severity="warn" [closable]="false">
+              <span class="wo__row">
+                {{ banner.message }}
+                @if (banner.reload) {
+                  <button pButton type="button" severity="secondary" (click)="reload()">
+                    Reload
+                  </button>
+                }
+              </span>
+            </p-message>
+          }
+
+          <div class="wo__grid">
+            <div class="wo__left">
+              <app-work-order-context [editor]="editor" [photos]="photos()" />
+            </div>
+
+            <div class="wo__main">
+              <section class="wo__card" aria-labelledby="wo-details-heading">
+                <h2 class="wo__card-title" id="wo-details-heading">Job details</h2>
+                <div class="wo__fields wo__fields--job">
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-title"
+                      >Work order title <span class="wo__req" aria-hidden="true">*</span></label
+                    >
+                    <input
+                      pInputText
+                      id="wo-title"
+                      fluid
+                      data-field-key="title"
+                      [attr.aria-invalid]="errors()['title'] ? 'true' : null"
+                      [attr.aria-describedby]="errors()['title'] ? 'wo-title-error' : null"
+                      [disabled]="busy()"
+                      [ngModel]="form.title"
+                      (ngModelChange)="update({ title: $event }, 'title')"
+                    />
+                    @if (errors()['title']; as errorText) {
+                      <p class="wo__error" id="wo-title-error">{{ errorText }}</p>
+                    }
+                  </div>
+
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-job-type"
+                      >Job type <span class="wo__req" aria-hidden="true">*</span></label
+                    >
+                    <p-select
+                      inputId="wo-job-type"
+                      appendTo="body"
+                      fluid
+                      optionLabel="label"
+                      optionValue="code"
+                      data-field-key="jobType"
+                      [options]="jobTypes"
+                      [disabled]="busy()"
+                      [ngModel]="form.jobType"
+                      (ngModelChange)="onJobType($event)"
+                    />
+                    @if (errors()['jobType']; as errorText) {
+                      <p class="wo__error">{{ errorText }}</p>
+                    }
+                  </div>
+
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-category"
+                      >Service category <span class="wo__req" aria-hidden="true">*</span></label
+                    >
+                    <p-select
+                      inputId="wo-category"
+                      appendTo="body"
+                      fluid
+                      optionLabel="name"
+                      optionValue="id"
+                      data-field-key="serviceCategoryId"
+                      [options]="editor.options.categories"
+                      [disabled]="busy()"
+                      [ngModel]="form.serviceCategoryId"
+                      (ngModelChange)="update({ serviceCategoryId: $event }, 'serviceCategoryId')"
+                    />
+                    @if (errors()['serviceCategoryId']; as errorText) {
+                      <p class="wo__error">{{ errorText }}</p>
+                    }
+                  </div>
+
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-branch"
+                      >Branch <span class="wo__req" aria-hidden="true">*</span></label
+                    >
+                    <p-select
+                      inputId="wo-branch"
+                      appendTo="body"
+                      fluid
+                      optionLabel="name"
+                      optionValue="id"
+                      data-field-key="branchId"
+                      [options]="editor.options.branches"
+                      [disabled]="busy()"
+                      [ngModel]="form.branchId"
+                      (ngModelChange)="update({ branchId: $event }, 'branchId', 'preferredDate')"
+                    />
+                    @if (errors()['branchId']; as errorText) {
+                      <p class="wo__error">{{ errorText }}</p>
+                    }
+                  </div>
+
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-priority"
+                      >Priority <span class="wo__req" aria-hidden="true">*</span></label
+                    >
+                    <p-select
+                      inputId="wo-priority"
+                      appendTo="body"
+                      fluid
+                      optionLabel="label"
+                      optionValue="code"
+                      data-field-key="priority"
+                      [options]="priorities"
+                      [disabled]="busy()"
+                      [ngModel]="form.priority"
+                      (ngModelChange)="onPriority($event)"
+                    >
+                      <ng-template #selectedItem let-item>
+                        <span class="wo__priority">
+                          @if (item.code === 'urgent' || item.code === 'high') {
+                            <i class="pi pi-arrow-up wo__hot" aria-hidden="true"></i>
+                          }
+                          {{ item.label }}
+                        </span>
+                      </ng-template>
+                      <ng-template #item let-item>
+                        <span class="wo__priority">
+                          @if (item.code === 'urgent' || item.code === 'high') {
+                            <i class="pi pi-arrow-up wo__hot" aria-hidden="true"></i>
+                          }
+                          {{ item.label }}
+                        </span>
+                      </ng-template>
+                    </p-select>
+                    @if (errors()['priority']; as errorText) {
+                      <p class="wo__error">{{ errorText }}</p>
+                    }
+                  </div>
+
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-duration">Estimated duration</label>
+                    <p-select
+                      inputId="wo-duration"
+                      appendTo="body"
+                      fluid
+                      optionLabel="label"
+                      optionValue="code"
+                      data-field-key="estimatedDurationMinutes"
+                      [options]="durations"
+                      [disabled]="busy()"
+                      [ngModel]="form.durationMinutes"
+                      (ngModelChange)="
+                        update({ durationMinutes: $event }, 'estimatedDurationMinutes')
+                      "
+                    />
+                    @if (errors()['estimatedDurationMinutes']; as errorText) {
+                      <p class="wo__error">{{ errorText }}</p>
+                    }
+                  </div>
+
+                  <div class="wo__field wo__field--span">
+                    <label class="wo__label" for="wo-skills">Skills required</label>
+                    <p-multiselect
+                      inputId="wo-skills"
+                      appendTo="body"
+                      display="chip"
+                      fluid
+                      optionLabel="name"
+                      optionValue="id"
+                      data-field-key="skillIds"
+                      [options]="editor.options.skills"
+                      [disabled]="busy()"
+                      [ngModel]="form.skillIds"
+                      (ngModelChange)="update({ skillIds: $event }, 'skillIds')"
+                    />
+                    @if (errors()['skillIds']; as errorText) {
+                      <p class="wo__error">{{ errorText }}</p>
+                    }
+                  </div>
+
+                  <div class="wo__field">
+                    <span class="wo__label">Status</span>
+                    <span class="wo__chip wo__chip--warn">
+                      <i class="pi pi-clock" aria-hidden="true"></i>
+                      Unscheduled
+                    </span>
+                    <p class="wo__muted">Will be available for scheduling after creation.</p>
+                  </div>
+                </div>
+              </section>
+
+              <app-work-order-tasks
+                [tasks]="form.tasks"
+                [errors]="errors()"
+                [disabled]="busy()"
+                (labelChange)="onTaskLabel($event)"
+                (dropped)="onDropTask($event)"
+                (removed)="onRemoveTask($event)"
+                (added)="onAddTask()"
+                (templateRequested)="templatesOpen.set(true)"
+              />
+
+              <app-work-order-materials
+                [materials]="form.materials"
+                [errors]="errors()"
+                [disabled]="busy()"
+                (saved)="onMaterialSaved($event)"
+                (removed)="onMaterialRemoved($event)"
+              />
+
+              <section class="wo__card" aria-labelledby="wo-instructions-heading">
+                <h2 class="wo__card-title" id="wo-instructions-heading">
+                  Instructions
+                  <span class="wo__hint">(visible to assigned technician)</span>
+                </h2>
+                <div class="wo__instructions">
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-instructions">Technician instructions</label>
+                    <textarea
+                      pTextarea
+                      id="wo-instructions"
+                      rows="5"
+                      fluid
+                      data-field-key="instructions"
+                      [attr.aria-invalid]="errors()['instructions'] ? 'true' : null"
+                      [attr.aria-describedby]="
+                        errors()['instructions']
+                          ? 'wo-instructions-count wo-instructions-error'
+                          : 'wo-instructions-count'
+                      "
+                      [disabled]="busy()"
+                      [ngModel]="form.instructions"
+                      (ngModelChange)="update({ instructions: $event }, 'instructions')"
+                    ></textarea>
+                    <p class="wo__count" id="wo-instructions-count">
+                      {{ form.instructions.length }}/{{ instructionsLimit }}
+                    </p>
+                    @if (errors()['instructions']; as errorText) {
+                      <p class="wo__error" id="wo-instructions-error">{{ errorText }}</p>
+                    }
+                  </div>
+                  <div class="wo__field">
+                    <span class="wo__label">
+                      Attachments <span class="wo__hint">(from assessment)</span>
+                    </span>
+                    @if (photos().length > 0) {
+                      <app-work-order-photos [items]="photos()" />
+                    } @else {
+                      <p class="wo__muted">No attachments.</p>
+                    }
+                  </div>
+                  <div class="wo__field">
+                    <span class="wo__label">Access note</span>
+                    <p class="wo__note">{{ editor.accessNote || 'No access note.' }}</p>
+                  </div>
+                </div>
+              </section>
+            </div>
+
+            <div class="wo__right">
+              <section class="wo__card" aria-labelledby="wo-scheduling-heading">
+                <h2 class="wo__card-title" id="wo-scheduling-heading">
+                  <i class="pi pi-calendar" aria-hidden="true"></i> Scheduling requirements
+                </h2>
+                <div class="wo__fields wo__fields--pair wo__fields--sched">
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-date">Preferred date</label>
+                    <input
+                      pInputText
+                      id="wo-date"
+                      type="date"
+                      fluid
+                      data-field-key="preferredDate"
+                      [min]="today()"
+                      [attr.aria-invalid]="errors()['preferredDate'] ? 'true' : null"
+                      [attr.aria-describedby]="errors()['preferredDate'] ? 'wo-date-error' : null"
+                      [disabled]="busy()"
+                      [ngModel]="form.preferredDate"
+                      (ngModelChange)="onPreferredDate($event)"
+                    />
+                    @if (errors()['preferredDate']; as errorText) {
+                      <p class="wo__error" id="wo-date-error">{{ errorText }}</p>
+                    }
+                  </div>
+                  <div class="wo__field">
+                    <label class="wo__label" for="wo-window">Preferred arrival window</label>
+                    <p-select
+                      class="wo__window"
+                      inputId="wo-window"
+                      appendTo="body"
+                      fluid
+                      optionLabel="label"
+                      optionValue="code"
+                      data-field-key="arrivalWindow"
+                      [options]="windows"
+                      [disabled]="busy() || form.preferredDate === ''"
+                      [ngModel]="form.arrivalWindow"
+                      (ngModelChange)="update({ arrivalWindow: $event }, 'arrivalWindow')"
+                    />
+                    @if (errors()['arrivalWindow']; as errorText) {
+                      <p class="wo__error">{{ errorText }}</p>
+                    }
+                  </div>
+                </div>
+
+                <div class="wo__field">
+                  <label class="wo__label" for="wo-recurrence">Recurrence</label>
+                  @if (form.jobType === 'recurring') {
+                    <div class="wo__fields wo__fields--pair">
+                      <p-select
+                        inputId="wo-recurrence"
+                        appendTo="body"
+                        fluid
+                        optionLabel="label"
+                        optionValue="code"
+                        placeholder="Select frequency"
+                        data-field-key="recurrence"
+                        [options]="frequencies"
+                        [disabled]="busy()"
+                        [ngModel]="form.frequency"
+                        (ngModelChange)="onFrequency($event)"
+                      />
+                      <input
+                        pInputText
+                        type="number"
+                        min="2"
+                        max="24"
+                        step="1"
+                        fluid
+                        aria-label="Occurrences"
+                        placeholder="Occurrences"
+                        [attr.aria-invalid]="errors()['recurrence'] ? 'true' : null"
+                        [attr.aria-describedby]="
+                          errors()['recurrence'] ? 'wo-recurrence-error' : null
+                        "
+                        [disabled]="busy()"
+                        [ngModel]="form.occurrences"
+                        (ngModelChange)="update({ occurrences: $event }, 'recurrence')"
+                      />
+                    </div>
+                  } @else {
+                    <p-select
+                      class="wo__soft"
+                      inputId="wo-recurrence"
+                      fluid
+                      optionLabel="label"
+                      optionValue="code"
+                      [options]="oneTimeRecurrence"
+                      [disabled]="true"
+                      [ngModel]="null"
+                    />
+                  }
+                  @if (errors()['recurrence']; as errorText) {
+                    <p class="wo__error" id="wo-recurrence-error">{{ errorText }}</p>
+                  }
+                </div>
+
+                <div class="wo__field">
+                  <label class="wo__label" for="wo-technician">Assigned technician</label>
+                  <p-select
+                    class="wo__soft"
+                    inputId="wo-technician"
+                    fluid
+                    optionLabel="label"
+                    optionValue="code"
+                    [options]="[{ code: null, label: 'Not assigned' }]"
+                    [disabled]="true"
+                    [ngModel]="null"
+                  >
+                    <ng-template #selectedItem let-item>
+                      <span class="wo__priority">
+                        <i class="pi pi-user" aria-hidden="true"></i>
+                        {{ item.label }}
+                      </span>
+                    </ng-template>
+                  </p-select>
+                  <p class="wo__muted">
+                    <i class="pi pi-info-circle" aria-hidden="true"></i>
+                    Assignment happens after the work order is created.
+                  </p>
+                </div>
+                <button
+                  pButton
+                  type="button"
+                  class="wo__avail"
+                  severity="secondary"
+                  [outlined]="true"
+                  fluid
+                  disabled
+                >
+                  <i class="pi pi-calendar" aria-hidden="true"></i>
+                  Check availability
+                </button>
+              </section>
+
+              <section class="wo__card" aria-labelledby="wo-communication-heading">
+                <h2 class="wo__card-title" id="wo-communication-heading">
+                  <i class="pi pi-envelope" aria-hidden="true"></i> Customer communication
+                </h2>
+                <label class="wo__check">
+                  <input
+                    type="checkbox"
+                    [disabled]="busy()"
+                    [checked]="form.communication.notifyCustomerWhenScheduled"
+                    (change)="onCommunication('notifyCustomerWhenScheduled', $event)"
+                  />
+                  Notify customer when scheduled
+                </label>
+                <label class="wo__check">
+                  <input
+                    type="checkbox"
+                    [disabled]="busy()"
+                    [checked]="form.communication.sendTechnicianDetails"
+                    (change)="onCommunication('sendTechnicianDetails', $event)"
+                  />
+                  Send technician details
+                </label>
+                <label class="wo__check">
+                  <input
+                    type="checkbox"
+                    [disabled]="busy()"
+                    [checked]="form.communication.sendArrivalReminder"
+                    (change)="onCommunication('sendArrivalReminder', $event)"
+                  />
+                  Send arrival reminder 2 hours before
+                </label>
+              </section>
+
+              <section class="wo__card" aria-labelledby="wo-summary-heading">
+                <h2 class="wo__card-title" id="wo-summary-heading">
+                  <i class="pi pi-file" aria-hidden="true"></i> Work order summary
+                </h2>
+                <dl class="wo__summary">
+                  <div class="wo__summary-row">
+                    <dt>Status</dt>
+                    <dd>
+                      <span class="wo__amber">
+                        <i class="pi pi-clock" aria-hidden="true"></i>
+                        Unscheduled
+                      </span>
+                    </dd>
+                  </div>
+                  <div class="wo__summary-row">
+                    <dt>Tasks</dt>
+                    <dd>{{ form.tasks.length }}</dd>
+                  </div>
+                  <div class="wo__summary-row">
+                    <dt>Planned materials</dt>
+                    <dd>{{ form.materials.length }}</dd>
+                  </div>
+                  <div class="wo__summary-row">
+                    <dt>Estimated duration</dt>
+                    <dd>{{ durationText() }}</dd>
+                  </div>
+                  <div class="wo__summary-row">
+                    <dt>Linked quote</dt>
+                    <dd>{{ approvedTotal() }} (#{{ editor.quote.displayNumber }})</dd>
+                  </div>
+                </dl>
+                <p-message class="wo__banner" severity="info" [closable]="false">
+                  <span class="wo__note-row">
+                    <span class="wo__info-icon" aria-hidden="true"><i class="pi pi-info"></i></span>
+                    <span>
+                      Pricing remains linked to the approved quote. Changes to billable items
+                      require customer approval.
+                    </span>
+                  </span>
+                </p-message>
+              </section>
+            </div>
+
+            <div class="wo__actions">
+              <button
+                pButton
+                type="button"
+                class="wo__ghost"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="busy()"
+                (click)="cancel()"
+              >
+                Cancel
+              </button>
+              <button
+                pButton
+                type="button"
+                class="wo__ghost"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="busy()"
+                (click)="saveDraft()"
+              >
+                @if (submitting() === 'draft') {
+                  <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                }
+                Save draft
+              </button>
+              <button pButton type="button" [disabled]="busy()" (click)="create()">
+                @if (submitting() === 'create') {
+                  <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                }
+                Create work order
+              </button>
+            </div>
+          </div>
+
+          <app-work-order-template-dialog
+            [open]="templatesOpen()"
+            [categoryId]="form.serviceCategoryId"
+            [taskCount]="form.tasks.length"
+            [labels]="taskLabels()"
+            (applied)="onTemplateApplied($event)"
+            (templateSaved)="onTemplateSaved()"
+            (dismissed)="templatesOpen.set(false)"
+          />
+        }
+      }
+    }
+  }
+</div>

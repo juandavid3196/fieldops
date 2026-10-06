@@ -1,3 +1,4 @@
+import { WorkOrderStatus } from '../../jobs/models/work-order.model';
 import { CompletedAssessment } from '../../requests/models/requests.model';
 
 export type LineType = 'service' | 'product';
@@ -130,6 +131,13 @@ export interface QuoteDetail {
   readonly responses: readonly QuoteResponse[];
   readonly updatedAt: string;
   readonly canManage: boolean;
+  /** The work order of the approved version, if any (create-work-order BR-04). */
+  readonly workOrder: {
+    readonly id: string;
+    readonly displayNumber: string;
+    readonly status: WorkOrderStatus;
+  } | null;
+  readonly canManageWorkOrders: boolean;
   readonly request: {
     readonly id: string;
     readonly displayNumber: string;

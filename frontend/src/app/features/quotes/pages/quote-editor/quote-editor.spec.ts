@@ -51,6 +51,8 @@ const detail = (patch: Partial<QuoteDetail> = {}): QuoteDetail => ({
   responses: [],
   updatedAt: UPDATED_AT,
   canManage: true,
+  workOrder: null,
+  canManageWorkOrders: false,
   request: {
     id: REQUEST_ID,
     displayNumber: 'REQ-1048',

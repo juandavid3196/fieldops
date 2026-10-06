@@ -79,9 +79,10 @@ internal static class QuoteLinkApi
         RequestWorld world,
         string ownerCookie,
         JsonObject? draft = null,
-        bool linkCustomer = true)
+        bool linkCustomer = true,
+        Guid? branch = null)
     {
-        var request = await db.SeedReadyRequestAsync(world, linkCustomer: linkCustomer);
+        var request = await db.SeedReadyRequestAsync(world, branch, linkCustomer);
         var quote = await QuotesApi.CreateAsync(host, ownerCookie, request);
         var sent = await QuotesApi.SendAsync(host, ownerCookie, quote, draft ?? Draft());
         var quoteId = quote["id"]!.GetValue<Guid>();
