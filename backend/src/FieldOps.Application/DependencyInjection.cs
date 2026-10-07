@@ -84,6 +84,9 @@ public static class DependencyInjection
         services.AddScoped<GetOwnTechnicianHandler>();
         services.AddScoped<GetTodayVisitsHandler>();
         services.AddScoped<GetTechnicianVisitHandler>();
+        services.AddScoped<StartTravelHandler>();
+        services.AddScoped<ArriveHandler>();
+        services.AddScoped<GetVisitAssessmentPhotoHandler>();
         services.AddScoped<CreateTechnicianHandler>();
         services.AddScoped<UpdateTechnicianHandler>();
         services.AddScoped<SetTechnicianStatusHandler>();
