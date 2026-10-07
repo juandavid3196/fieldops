@@ -472,6 +472,18 @@ describe('JobProgress', () => {
   });
 
   it('keeps every section on the page and scrolls to the one picked in the navigation (BR-16)', async () => {
+    let observed: IntersectionObserverCallback = () => undefined;
+    vi.stubGlobal(
+      'IntersectionObserver',
+      class {
+        constructor(callback: IntersectionObserverCallback) {
+          observed = callback;
+        }
+        observe = vi.fn();
+        unobserve = vi.fn();
+        disconnect = vi.fn();
+      },
+    );
     const root = await mount(job());
     const scroll = vi.fn();
     Element.prototype.scrollIntoView = scroll;
@@ -494,6 +506,20 @@ describe('JobProgress', () => {
     expect(link('Tasks').hasAttribute('aria-current')).toBe(false);
     expect(router.navigateByUrl).not.toHaveBeenCalled();
 
+    // The mark follows the section scrolled into view (AC-20).
+    observed(
+      [
+        {
+          isIntersecting: true,
+          target: root.querySelector('[data-section="photos"]')!,
+        } as unknown as IntersectionObserverEntry,
+      ],
+      {} as IntersectionObserver,
+    );
+    await settle();
+    expect(link('Photos').getAttribute('aria-current')).toBe('location');
+    expect(link('Materials').hasAttribute('aria-current')).toBe(false);
+
     // Original scope: numbered read-only lines; Close dismisses the dialog.
     await press(button('View original scope', root));
     const dialog = () => document.body.querySelector('.scope');
@@ -508,6 +534,123 @@ describe('JobProgress', () => {
     ]);
     await press(button('Close', dialog()!));
     expect(dialog()).toBeNull();
+  });
+
+  it.each<[string, TechnicianVisitDetail, string[], string[]]>([
+    [
+      'incomplete required task with a comment',
+      job(),
+      ['0 of 2 tasks completed', '0%', '1 required task remaining', 'Required'],
+      ['Has a comment'],
+    ],
+    [
+      'two required tasks incomplete',
+      job({
+        tasks: [
+          ...BASE.tasks,
+          { ...BASE.tasks[0], id: 't-3', label: 'Test drainage', notes: null },
+        ],
+      }),
+      ['0 of 3 tasks completed', '2 required tasks remaining'],
+      [],
+    ],
+    [
+      'completed with completion times',
+      job({
+        tasks: BASE.tasks.map((task, index) => ({
+          ...task,
+          isCompleted: index === 0,
+          completedAt: index === 0 ? '2026-10-07T10:15:00+13:00' : null,
+        })),
+      }),
+      ['1 of 2 tasks completed', '50%', 'All required tasks complete', '10:15 AM'],
+      [],
+    ],
+    [
+      'no tasks and no materials',
+      job({ tasks: [], plannedMaterials: [], additionalMaterials: [] }),
+      ['No tasks for this job.', 'No materials recorded.', 'Add task', 'Add material'],
+      [],
+    ],
+  ])(
+    'shows the Tasks and Materials section states for %s (AC-18, AC-19)',
+    async (_name, visit, texts, extra) => {
+      const root = await mount(visit);
+      const text = flat(root.querySelector('app-job-tasks')) + ' ' + flat(root);
+      for (const part of [...texts, ...extra]) {
+        expect(text).toContain(part);
+      }
+      expect(root.querySelector('app-job-tasks [role="progressbar"]') === null).toBe(
+        visit.tasks.length === 0,
+      );
+      expect(button('View original scope', root)).toBeDefined();
+    },
+  );
+
+  it('adds a task and a catalog or custom material, never steps below 0 (AC-18, AC-19)', async () => {
+    const root = await mount(
+      job({ plannedMaterials: [{ ...BASE.plannedMaterials[0], usedQuantity: 0 }] }),
+    );
+    expect(button('Decrease P-trap', root)!.disabled).toBe(true);
+
+    // Add task: label field with Add / Cancel; the response closes the form.
+    await press(button('Add task', root));
+    expect(button('Add', root)!.disabled).toBe(true);
+    await type(field<HTMLInputElement>('Task name'), 'Check valve');
+    await press(button('Add', root));
+    const added = await reply(
+      { method: 'POST', url: `${URL}/tasks` },
+      job({
+        tasks: [
+          ...BASE.tasks,
+          { ...BASE.tasks[0], id: 't-3', label: 'Check valve', isRequired: false },
+        ],
+        plannedMaterials: [{ ...BASE.plannedMaterials[0], usedQuantity: 0 }],
+      }),
+    );
+    expect(added.body).toEqual({ label: 'Check valve' });
+    expect(root.querySelector('[aria-label="Task name"]')).toBeNull();
+    expect(flat(root.querySelector('app-job-tasks'))).toContain('Check valve');
+
+    // Add material from the catalog: 2+ characters search, results show name and unit.
+    const dialog = () => document.querySelector('.p-dialog')!;
+    const search = () => dialog().querySelector<HTMLInputElement>('input[type="search"]')!;
+    const wait = () => new Promise((resolve) => setTimeout(resolve, 350));
+    await press(button('Add material', root));
+    expect(button('Add material', dialog())!.disabled).toBe(true);
+    await type(search(), 'p');
+    await wait();
+    httpTesting.expectNone({ method: 'GET', url: `${URL}/material-catalog?search=p` });
+    await type(search(), 'trap');
+    await wait();
+    httpTesting
+      .expectOne({ method: 'GET', url: `${URL}/material-catalog?search=trap` })
+      .flush([{ id: 'c-1', name: 'P-trap 1.5 in', unit: 'each' }]);
+    await settle();
+    expect(flat(dialog().querySelector('.add__result'))).toBe('P-trap 1.5 in each');
+    await press(dialog().querySelector<HTMLButtonElement>('.add__result')!);
+    await press(button('Add material', dialog()));
+    const catalog = await reply({ method: 'POST', url: `${URL}/materials` }, job());
+    expect(catalog.body).toEqual({ quantity: 1, catalogItemId: 'c-1' });
+    expect(document.querySelector('.p-dialog')).toBeNull();
+
+    // Custom material needs description, unit and a quantity.
+    await press(button('Add material', root));
+    await press(button('Custom material', dialog()));
+    expect(button('Add material', dialog())!.disabled).toBe(true);
+    const [description, unit] = Array.from(
+      dialog().querySelectorAll<HTMLInputElement>('input.add__input'),
+    );
+    await type(description, 'Flux');
+    await type(unit, 'tube');
+    await press(button('Add material', dialog()));
+    const custom = await reply({ method: 'POST', url: `${URL}/materials` }, null, {
+      status: 409,
+      code: 'material_limit_reached',
+    });
+    expect(custom.body).toEqual({ quantity: 1, description: 'Flux', unit: 'tube' });
+    expect(flat(dialog())).toContain('This job already has the maximum number of materials.');
+    expect(reloads).toBe(1);
   });
 
   it('gates Review & complete, saves notes before Save and exit and keeps non-primary read-only (AC-21)', async () => {
