@@ -34,9 +34,34 @@ public sealed record VisitAccess(string? Instructions, string? ContactPreference
 /// <summary>Travel of the visit from its most recent travel time entry (BR-04).</summary>
 public sealed record VisitTravel(DateTimeOffset? StartedAt, DateTimeOffset? ArrivedAt, int? DurationMinutes);
 
-public sealed record PlannedMaterialView(string Description, decimal Quantity, string Unit, string Source);
+public sealed record PlannedMaterialView(
+    Guid Id, string Description, decimal Quantity, string Unit, string Source, decimal UsedQuantity);
 
-public sealed record VisitTaskView(Guid Id, string Label, bool IsRequired, bool IsCompleted);
+public sealed record VisitTaskView(
+    Guid Id, string Label, bool IsRequired, bool IsCompleted, string? Notes, DateTimeOffset? CompletedAt);
+
+/// <summary>An additional (non-planned) material of the visit (mobile-job-progress BR-10); never carries a price.</summary>
+public sealed record AdditionalMaterialView(Guid Id, string Description, decimal Quantity, string Unit, Guid? CatalogItemId);
+
+/// <summary>A photo of the visit (BR-11); the content is served only by the evidence endpoint.</summary>
+public sealed record VisitEvidenceView(Guid Id, string Type, DateTimeOffset CreatedAt);
+
+/// <summary>The open work or pause entry of the visit (BR-14).</summary>
+public sealed record ActiveTimeEntry(string Type, DateTimeOffset StartedAt);
+
+/// <summary>Closed work and pause seconds, the open entry and the estimate in minutes (BR-14).</summary>
+public sealed record VisitTime(int WorkSeconds, int PauseSeconds, ActiveTimeEntry? ActiveEntry, int? EstimatedMinutes);
+
+/// <summary>The progress content of the detail (mobile-job-progress BR-14).</summary>
+public sealed record VisitProgressView(
+    DateTimeOffset? ActualStartedAt,
+    VisitTime Time,
+    IReadOnlyList<AdditionalMaterialView> AdditionalMaterials,
+    IReadOnlyList<VisitEvidenceView> Evidence,
+    string? TechnicianNotes);
+
+/// <summary>A material found by the catalog lookup (BR-10): no prices.</summary>
+public sealed record MaterialCatalogItem(Guid Id, string Name, string Unit);
 
 public sealed record AssessmentPhotoRef(Guid Id);
 
@@ -55,7 +80,8 @@ public sealed record TechnicianVisitExtras(
     VisitTravel Travel,
     IReadOnlyList<PlannedMaterialView> PlannedMaterials,
     IReadOnlyList<VisitTaskView> Tasks,
-    VisitAssessmentView? Assessment);
+    VisitAssessmentView? Assessment,
+    VisitProgressView Progress);
 
 /// <summary><see cref="TodayVisit"/> plus the local date, zone, dispatch note and the Design 8 content; fields are additive.</summary>
 public sealed record TechnicianVisitDetail : TodayVisit
@@ -77,6 +103,11 @@ public sealed record TechnicianVisitDetail : TodayVisit
         PlannedMaterials = extras.PlannedMaterials;
         Tasks = extras.Tasks;
         Assessment = extras.Assessment;
+        ActualStartedAt = extras.Progress.ActualStartedAt;
+        Time = extras.Progress.Time;
+        AdditionalMaterials = extras.Progress.AdditionalMaterials;
+        Evidence = extras.Progress.Evidence;
+        TechnicianNotes = extras.Progress.TechnicianNotes;
     }
 
     public string Date { get; }
@@ -104,13 +135,29 @@ public sealed record TechnicianVisitDetail : TodayVisit
     public IReadOnlyList<VisitTaskView> Tasks { get; }
 
     public VisitAssessmentView? Assessment { get; }
+
+    public DateTimeOffset? ActualStartedAt { get; }
+
+    public VisitTime Time { get; }
+
+    public IReadOnlyList<AdditionalMaterialView> AdditionalMaterials { get; }
+
+    public IReadOnlyList<VisitEvidenceView> Evidence { get; }
+
+    public string? TechnicianNotes { get; }
 }
 
 /// <summary>Response of start-travel and arrive; <c>Changed</c> is false on an idempotent repeat.</summary>
 public sealed record TravelResult(bool Changed, TechnicianVisitDetail Visit);
 
+/// <summary>Response of start-job, pause and resume; <c>Changed</c> is false on an idempotent repeat (mobile-job-progress BR-03, BR-05).</summary>
+public sealed record VisitActionResult(bool Changed, TechnicianVisitDetail Visit);
+
 /// <summary>The stored image of an assessment photo (BR-06).</summary>
 public sealed record AssessmentPhotoImage(string MimeType, byte[] Content);
+
+/// <summary>The stored image of a visit photo (mobile-job-progress BR-12).</summary>
+public sealed record VisitEvidenceImage(string MimeType, byte[] Content);
 
 public sealed record TodayTechnician(string FirstName, string Initials, string? ColorHex);
 
@@ -139,6 +186,7 @@ public enum TechnicianVisitResultKind
     NotFound,
     Forbidden,
     Conflict,
+    Invalid,
 }
 
 public static class TechnicianVisitCodes
@@ -154,6 +202,12 @@ public static class TechnicianVisitCodes
     public const string VisitNotToday = "visit_not_today";
 
     public const string AnotherVisitActive = "another_visit_active";
+
+    public const string TaskLimitReached = "task_limit_reached";
+
+    public const string MaterialLimitReached = "material_limit_reached";
+
+    public const string EvidenceLimitReached = "evidence_limit_reached";
 }
 
 /// <summary>Safe ProblemDetails titles by code (mobile-job-details Error behavior); a null code is the identical 404.</summary>
@@ -173,14 +227,45 @@ public static class TechnicianVisitMessages
     };
 }
 
-/// <summary>Outcome of a technician visit use case, mapped to HTTP by the controller.</summary>
-public sealed record TechnicianVisitResult<T>(TechnicianVisitResultKind Kind, T? Value = default, string? Code = null)
+/// <summary>Safe ProblemDetails titles of the mobile-job-progress mutations (BR-02, BR-03, BR-05, BR-06, limits).</summary>
+public static class VisitProgressMessages
+{
+    public const string NotPrimary = "The primary technician manages this job.";
+
+    public const string StartInvalid = "This job can't be started in its current state.";
+
+    public const string PauseResumeInvalid = "This job can't be paused or resumed in its current state.";
+
+    public const string EditInvalid = "This job can't be updated in its current state.";
+
+    public const string TaskLimit = "This job already has the maximum number of tasks.";
+
+    public const string MaterialLimit = "This job already has the maximum number of materials.";
+
+    public const string EvidenceLimit = "This job already has the maximum number of photos.";
+}
+
+/// <summary>
+/// Outcome of a technician visit use case, mapped to HTTP by the controller. <c>Message</c> overrides the title of
+/// <see cref="TechnicianVisitMessages.Title"/>; <c>Errors</c> carries the field errors of an invalid request.
+/// </summary>
+public sealed record TechnicianVisitResult<T>(
+    TechnicianVisitResultKind Kind,
+    T? Value = default,
+    string? Code = null,
+    string? Message = null,
+    IReadOnlyDictionary<string, string[]>? Errors = null)
 {
     public static TechnicianVisitResult<T> Ok(T value) => new(TechnicianVisitResultKind.Succeeded, value);
 
     public static TechnicianVisitResult<T> NotFound(string? code = null) => new(TechnicianVisitResultKind.NotFound, Code: code);
 
-    public static TechnicianVisitResult<T> Forbidden(string code) => new(TechnicianVisitResultKind.Forbidden, Code: code);
+    public static TechnicianVisitResult<T> Forbidden(string code, string? message = null) =>
+        new(TechnicianVisitResultKind.Forbidden, Code: code, Message: message);
 
-    public static TechnicianVisitResult<T> Conflict(string code) => new(TechnicianVisitResultKind.Conflict, Code: code);
+    public static TechnicianVisitResult<T> Conflict(string code, string? message = null) =>
+        new(TechnicianVisitResultKind.Conflict, Code: code, Message: message);
+
+    public static TechnicianVisitResult<T> Invalid(IReadOnlyDictionary<string, string[]> errors) =>
+        new(TechnicianVisitResultKind.Invalid, Errors: errors);
 }

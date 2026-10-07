@@ -24,6 +24,8 @@ internal sealed class VisitMaterialConfiguration
 
         builder.Property(material => material.CatalogItemId);
 
+        builder.Property(material => material.PlannedMaterialId);
+
         // Snapshotted independently from CatalogItem: kept even if the
         // catalog item's description, unit or cost changes later.
         builder.Property(material => material.Description)
@@ -47,6 +49,12 @@ internal sealed class VisitMaterialConfiguration
             .HasDefaultValue(false)
             .IsRequired();
 
+        // One recorded used quantity per planned material of a visit (mobile-job-progress SA-02).
+        builder.HasIndex(material => new { material.VisitId, material.PlannedMaterialId })
+            .HasDatabaseName("ux_visit_materials_planned")
+            .IsUnique()
+            .HasFilter("planned_material_id IS NOT NULL");
+
         builder.HasOne<Visit>()
             .WithMany()
             .HasForeignKey(material => material.VisitId)
@@ -56,5 +64,10 @@ internal sealed class VisitMaterialConfiguration
             .WithMany()
             .HasForeignKey(material => material.CatalogItemId)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne<WorkOrderPlannedMaterial>()
+            .WithMany()
+            .HasForeignKey(material => material.PlannedMaterialId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

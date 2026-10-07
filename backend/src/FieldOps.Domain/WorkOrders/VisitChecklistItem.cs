@@ -40,7 +40,8 @@ public sealed class VisitChecklistItem
         Guid visitId,
         string label,
         Guid? templateItemId = null,
-        int sortOrder = 0)
+        int sortOrder = 0,
+        bool isRequired = true)
     {
         if (visitId == Guid.Empty)
         {
@@ -60,6 +61,29 @@ public sealed class VisitChecklistItem
         {
             TemplateItemId = templateItemId,
             SortOrder = sortOrder,
+            IsRequired = isRequired,
         };
+    }
+
+    /// <summary>Completes or uncompletes the task (mobile-job-progress BR-08); uncompleting clears completer and time.</summary>
+    public void SetCompleted(bool isCompleted, Guid userId, DateTimeOffset now)
+    {
+        if (isCompleted)
+        {
+            IsCompleted = true;
+            CompletedByUserId = userId;
+            CompletedAt = now;
+
+            return;
+        }
+
+        IsCompleted = false;
+        CompletedByUserId = null;
+        CompletedAt = null;
+    }
+
+    public void SetNotes(string? notes)
+    {
+        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
     }
 }

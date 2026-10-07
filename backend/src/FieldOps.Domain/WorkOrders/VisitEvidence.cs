@@ -2,6 +2,8 @@ namespace FieldOps.Domain.WorkOrders;
 
 public sealed class VisitEvidence
 {
+    public const int MaxInlineBytes = 10_485_760;
+
     private VisitEvidence()
     {
     }
@@ -10,7 +12,7 @@ public sealed class VisitEvidence
         Guid id,
         Guid visitId,
         string fileName,
-        string storageKey,
+        string? storageKey,
         string mimeType,
         long sizeBytes,
         VisitEvidenceType evidenceType,
@@ -31,11 +33,13 @@ public sealed class VisitEvidence
 
     public Guid VisitId { get; private set; }
 
-    // Metadata and storage key only: binary file contents are never stored
-    // in the relational model.
     public string FileName { get; private set; } = string.Empty;
 
-    public string StorageKey { get; private set; } = string.Empty;
+    // Set for externally stored files; null when the image is stored inline (mobile-job-progress SA-01).
+    public string? StorageKey { get; private set; }
+
+    // Inline image bytes (mobile-job-progress BR-11); never projected into JSON responses.
+    public byte[]? Content { get; private set; }
 
     public string MimeType { get; private set; } = string.Empty;
 
@@ -110,5 +114,32 @@ public sealed class VisitEvidence
             sizeBytes,
             evidenceType,
             uploadedByUserId);
+    }
+
+    /// <summary>An image stored inline (mobile-job-progress BR-11): JPEG or PNG, at most 10 MiB, no storage key.</summary>
+    public static VisitEvidence CreateInline(
+        Guid visitId,
+        string fileName,
+        string mimeType,
+        byte[] content,
+        VisitEvidenceType evidenceType,
+        Guid uploadedByUserId)
+    {
+        ArgumentNullException.ThrowIfNull(content);
+
+        if (content.Length == 0 || content.Length > MaxInlineBytes)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(content),
+                content.Length,
+                "Inline content must be between 1 byte and 10 MiB.");
+        }
+
+        var evidence = Create(visitId, fileName, "inline", mimeType, content.Length, evidenceType, uploadedByUserId);
+
+        evidence.StorageKey = null;
+        evidence.Content = content;
+
+        return evidence;
     }
 }

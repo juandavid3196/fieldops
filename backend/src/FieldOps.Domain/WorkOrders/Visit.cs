@@ -159,6 +159,41 @@ public sealed class Visit
         Status = status;
     }
 
+    /// <summary>Start job (mobile-job-progress BR-04): the job is in progress and its actual start is recorded.</summary>
+    public void StartJob(DateTimeOffset now)
+    {
+        Status = VisitStatus.InProgress;
+        ActualStartedAt = now;
+        Touch(now);
+    }
+
+    /// <summary>Pause (BR-05).</summary>
+    public void Pause(DateTimeOffset now)
+    {
+        Status = VisitStatus.Paused;
+        Touch(now);
+    }
+
+    /// <summary>Resume (BR-05): the whole seconds of the closed pause entry join the pause total.</summary>
+    public void Resume(int pausedSeconds, DateTimeOffset now)
+    {
+        if (pausedSeconds < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pausedSeconds), pausedSeconds, "Paused seconds cannot be negative.");
+        }
+
+        Status = VisitStatus.InProgress;
+        PauseSeconds += pausedSeconds;
+        Touch(now);
+    }
+
+    /// <summary>Technician notes (mobile-job-progress BR-13): trimmed, empty is null.</summary>
+    public void SetTechnicianNotes(string? notes, DateTimeOffset now)
+    {
+        CompletionSummary = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim();
+        Touch(now);
+    }
+
     /// <summary>Sets a new concurrency value, truncated to microseconds (the PostgreSQL precision) and always different from the previous one.</summary>
     public void Touch(DateTimeOffset now)
     {

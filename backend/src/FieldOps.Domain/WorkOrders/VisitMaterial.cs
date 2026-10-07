@@ -28,6 +28,9 @@ public sealed class VisitMaterial
 
     public Guid? CatalogItemId { get; private set; }
 
+    // The planned material this row records the used quantity of (mobile-job-progress SA-02); null for additional materials.
+    public Guid? PlannedMaterialId { get; private set; }
+
     // Snapshotted independently from CatalogItem: kept even if the catalog
     // item's description, unit or cost changes later.
     public string Description { get; private set; } = string.Empty;
@@ -44,7 +47,10 @@ public sealed class VisitMaterial
         Guid visitId,
         string description,
         decimal quantity,
-        string unit)
+        string unit,
+        Guid? catalogItemId = null,
+        decimal unitCost = 0m,
+        Guid? plannedMaterialId = null)
     {
         if (visitId == Guid.Empty)
         {
@@ -75,11 +81,30 @@ public sealed class VisitMaterial
                 nameof(unit));
         }
 
+        // Version 7 ids sort by creation time, which is the order of the additional materials (no created_at column).
         return new VisitMaterial(
-            Guid.NewGuid(),
+            Guid.CreateVersion7(),
             visitId,
             description.Trim(),
             quantity,
-            unit.Trim());
+            unit.Trim())
+        {
+            CatalogItemId = catalogItemId,
+            UnitCost = unitCost,
+            PlannedMaterialId = plannedMaterialId,
+        };
+    }
+
+    public void SetQuantity(decimal quantity)
+    {
+        if (quantity <= 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(quantity),
+                quantity,
+                "Quantity must be greater than zero.");
+        }
+
+        Quantity = quantity;
     }
 }

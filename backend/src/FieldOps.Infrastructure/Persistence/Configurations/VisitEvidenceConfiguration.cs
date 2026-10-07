@@ -14,7 +14,13 @@ internal sealed class VisitEvidenceConfiguration
         {
             table.HasCheckConstraint(
                 "ck_visit_evidence_size_bytes",
-                "size_bytes > 0");
+                "size_bytes > 0 AND size_bytes <= 10485760");
+            table.HasCheckConstraint(
+                "ck_visit_evidence_mime_type",
+                "mime_type IN ('image/jpeg', 'image/png')");
+            table.HasCheckConstraint(
+                "ck_visit_evidence_content_or_storage",
+                "content IS NOT NULL OR storage_key IS NOT NULL");
             table.HasCheckConstraint(
                 "ck_visit_evidence_evidence_type",
                 "evidence_type IN ('before','during','after','incident','other')");
@@ -28,15 +34,16 @@ internal sealed class VisitEvidenceConfiguration
         builder.Property(evidence => evidence.VisitId)
             .IsRequired();
 
-        // Metadata and storage key only: binary file contents are never
-        // stored in the relational model.
         builder.Property(evidence => evidence.FileName)
             .HasMaxLength(255)
             .IsRequired();
 
+        // Nullable since photos store their content inline (mobile-job-progress SA-01).
         builder.Property(evidence => evidence.StorageKey)
-            .HasColumnType("text")
-            .IsRequired();
+            .HasColumnType("text");
+
+        builder.Property(evidence => evidence.Content)
+            .HasColumnType("bytea");
 
         builder.Property(evidence => evidence.MimeType)
             .HasMaxLength(120)
