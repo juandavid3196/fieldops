@@ -37,174 +37,210 @@
       @if (visit(); as job) {
         <app-visit-stepper [steps]="steps()" />
 
-        @if (banner(); as status) {
-          <section class="visit__banner" aria-label="Job status">
-            <i class="pi pi-car" aria-hidden="true"></i>
-            <p class="visit__banner-text">
-              <strong>{{ status.title }}</strong>
-              @if (status.detail) {
-                • {{ status.detail }}
+        <ng-template #jobHeader>
+          <article class="visit__card visit__job" aria-labelledby="visit-title">
+            <div class="visit__head">
+              <h1 class="visit__title" id="visit-title">{{ job.title }}</h1>
+              @if (!working() && priority(); as priorityText) {
+                <p-tag
+                  styleClass="visit__priority"
+                  [severity]="job.priority === 1 || job.priority === 'urgent' ? 'danger' : 'warn'"
+                  [icon]="
+                    job.priority === 1 || job.priority === 'urgent'
+                      ? 'pi pi-exclamation-triangle'
+                      : 'pi pi-arrow-up'
+                  "
+                  [value]="priorityText"
+                />
               }
-              @if (status.note) {
-                <span class="visit__banner-note">{{ status.note }}</span>
-              }
-            </p>
-          </section>
-        }
+            </div>
+            <p class="visit__muted">#{{ job.displayNumber }}</p>
+            <div class="visit__body">
+              <div class="visit__info">
+                <p class="visit__line visit__customer">
+                  <i class="pi pi-user" aria-hidden="true"></i>
+                  {{ job.customerName }}
+                </p>
+                <p class="visit__line">
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>
+                  {{ address() }}
+                </p>
+                @if (!working()) {
+                  <p class="visit__line">
+                    <i class="pi pi-calendar" aria-hidden="true"></i>
+                    <span>
+                      {{ schedule() }}
+                      <span class="visit__muted visit__caption">Scheduled window</span>
+                      @if (arrival(); as arrivalText) {
+                        <span class="visit__muted visit__caption">{{ arrivalText }}</span>
+                      }
+                    </span>
+                  </p>
+                }
+              </div>
+              <div class="visit__side">
+                <app-visit-actions
+                  [visit]="job"
+                  directionsLabel="Open directions"
+                  [featured]="true"
+                  [showCall]="!working()"
+                />
+              </div>
+            </div>
+          </article>
+        </ng-template>
 
-        <article class="visit__card visit__job" aria-labelledby="visit-title">
-          <div class="visit__head">
-            <h1 class="visit__title" id="visit-title">{{ job.title }}</h1>
-            @if (priority(); as priorityText) {
+        @if (working()) {
+          <app-job-progress
+            [visit]="job"
+            [photos]="photos()"
+            (visitChange)="visit.set($event)"
+            (reload)="load(true)"
+            (openReport)="openReport($event)"
+            (openPhoto)="openPhoto($event)"
+          >
+            <ng-container [ngTemplateOutlet]="jobHeader" />
+          </app-job-progress>
+        } @else {
+          @if (banner(); as status) {
+            <section class="visit__banner" aria-label="Job status">
+              <i class="pi pi-car" aria-hidden="true"></i>
+              <p class="visit__banner-text">
+                <strong>{{ status.title }}</strong>
+                @if (status.detail) {
+                  • {{ status.detail }}
+                }
+                @if (status.note) {
+                  <span class="visit__banner-note">{{ status.note }}</span>
+                }
+              </p>
+            </section>
+          }
+
+          <ng-container [ngTemplateOutlet]="jobHeader" />
+
+          <section class="visit__card" aria-labelledby="visit-access-title">
+            <div class="visit__head">
+              <h2 class="visit__section-title" id="visit-access-title">Access details</h2>
               <p-tag
-                styleClass="visit__priority"
-                [severity]="job.priority === 1 || job.priority === 'urgent' ? 'danger' : 'warn'"
-                [icon]="
-                  job.priority === 1 || job.priority === 'urgent'
-                    ? 'pi pi-exclamation-triangle'
-                    : 'pi pi-arrow-up'
-                "
-                [value]="priorityText"
+                styleClass="visit__type"
+                severity="success"
+                icon="pi pi-home"
+                [rounded]="true"
+                [value]="customerType()"
               />
+            </div>
+            @if (job.access.instructions?.trim()) {
+              <p class="visit__line">
+                <i class="pi pi-home" aria-hidden="true"></i>
+                {{ job.access.instructions }}
+              </p>
             }
-          </div>
-          <p class="visit__muted">#{{ job.displayNumber }}</p>
-          <div class="visit__body">
-            <div class="visit__info">
-              <p class="visit__line visit__customer">
-                <i class="pi pi-user" aria-hidden="true"></i>
-                {{ job.customerName }}
-              </p>
+            @if (contactPreference(); as preference) {
               <p class="visit__line">
-                <i class="pi pi-map-marker" aria-hidden="true"></i>
-                {{ address() }}
+                <i class="pi pi-comment" aria-hidden="true"></i>
+                {{ preference }}
               </p>
-              <p class="visit__line">
-                <i class="pi pi-calendar" aria-hidden="true"></i>
-                <span>
-                  {{ schedule() }}
-                  <span class="visit__muted visit__caption">Scheduled window</span>
-                  @if (arrival(); as arrivalText) {
-                    <span class="visit__muted visit__caption">{{ arrivalText }}</span>
+            }
+            @if (job.access.activeDamage) {
+              <p class="visit__warning">
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                Active damage reported by the customer. Check the site before starting.
+              </p>
+            }
+            @if (!hasAccessLines()) {
+              <p class="visit__muted">No access details provided.</p>
+            }
+          </section>
+
+          <app-visit-tabs
+            [visit]="job"
+            [photos]="photos()"
+            (openPhoto)="openPhoto($event)"
+            (openAssessment)="openAssessment($event)"
+          />
+
+          @if (bar(); as actions) {
+            <div class="bar">
+              @if (actionError(); as errorText) {
+                <p-message class="bar__error" severity="error" [closable]="false">{{
+                  errorText
+                }}</p-message>
+              }
+              @if (actions.message; as notice) {
+                <p class="bar__message">{{ notice }}</p>
+              }
+              <div class="bar__row">
+                @if (actions.travel; as travel) {
+                  @if (travel.kind === 'arrived') {
+                    <button pButton type="button" class="bar__button" severity="secondary" disabled>
+                      <i class="pi pi-check" aria-hidden="true"></i>
+                      {{ travel.label }}
+                    </button>
+                  } @else {
+                    <button
+                      pButton
+                      type="button"
+                      class="bar__button"
+                      [disabled]="pending() !== null"
+                      [loading]="pending() === travel.kind"
+                      [attr.aria-busy]="pending() === travel.kind"
+                      (click)="act(travel.kind)"
+                    >
+                      @if (pending() !== travel.kind) {
+                        <i
+                          class="pi"
+                          [class]="travel.kind === 'arrive' ? 'pi-map-marker' : 'pi-send'"
+                          aria-hidden="true"
+                        ></i>
+                      }
+                      {{ travel.label }}
+                    </button>
                   }
-                </span>
-              </p>
-            </div>
-            <div class="visit__side">
-              <app-visit-actions
-                [visit]="job"
-                directionsLabel="Open directions"
-                [featured]="true"
-              />
-            </div>
-          </div>
-        </article>
-
-        <section class="visit__card" aria-labelledby="visit-access-title">
-          <div class="visit__head">
-            <h2 class="visit__section-title" id="visit-access-title">Access details</h2>
-            <p-tag
-              styleClass="visit__type"
-              severity="success"
-              icon="pi pi-home"
-              [rounded]="true"
-              [value]="customerType()"
-            />
-          </div>
-          @if (job.access.instructions?.trim()) {
-            <p class="visit__line">
-              <i class="pi pi-home" aria-hidden="true"></i>
-              {{ job.access.instructions }}
-            </p>
-          }
-          @if (contactPreference(); as preference) {
-            <p class="visit__line">
-              <i class="pi pi-comment" aria-hidden="true"></i>
-              {{ preference }}
-            </p>
-          }
-          @if (job.access.activeDamage) {
-            <p class="visit__warning">
-              <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-              Active damage reported by the customer. Check the site before starting.
-            </p>
-          }
-          @if (!hasAccessLines()) {
-            <p class="visit__muted">No access details provided.</p>
-          }
-        </section>
-
-        <app-visit-tabs
-          [visit]="job"
-          [photos]="photos()"
-          (openPhoto)="openPhoto($event)"
-          (openAssessment)="openAssessment($event)"
-        />
-
-        @if (bar(); as actions) {
-          <div class="bar">
-            @if (actionError(); as errorText) {
-              <p-message class="bar__error" severity="error" [closable]="false">{{
-                errorText
-              }}</p-message>
-            }
-            @if (actions.message; as notice) {
-              <p class="bar__message">{{ notice }}</p>
-            }
-            <div class="bar__row">
-              @if (actions.travel; as travel) {
-                @if (travel.kind === 'arrived') {
-                  <button pButton type="button" class="bar__button" severity="secondary" disabled>
-                    <i class="pi pi-check" aria-hidden="true"></i>
-                    {{ travel.label }}
-                  </button>
-                } @else {
+                }
+                @if (actions.startJob) {
                   <button
                     pButton
                     type="button"
                     class="bar__button"
                     [disabled]="pending() !== null"
-                    [loading]="pending() === travel.kind"
-                    [attr.aria-busy]="pending() === travel.kind"
-                    (click)="act(travel.kind)"
+                    [loading]="pending() === 'start-job'"
+                    [attr.aria-busy]="pending() === 'start-job'"
+                    (click)="act('start-job')"
                   >
-                    @if (pending() !== travel.kind) {
-                      <i
-                        class="pi"
-                        [class]="travel.kind === 'arrive' ? 'pi-map-marker' : 'pi-send'"
-                        aria-hidden="true"
-                      ></i>
+                    @if (pending() !== 'start-job') {
+                      <i class="pi pi-play" aria-hidden="true"></i>
                     }
-                    {{ travel.label }}
-                  </button>
-                }
-              }
-              @if (actions.startJobHelper; as helper) {
-                <div class="bar__start-job">
-                  <button
-                    pButton
-                    type="button"
-                    class="bar__button"
-                    severity="secondary"
-                    disabled
-                    aria-describedby="visit-start-job-help"
-                  >
-                    <i class="pi pi-play" aria-hidden="true"></i>
                     Start job
                   </button>
-                  <p class="bar__helper" id="visit-start-job-help">{{ helper }}</p>
-                </div>
-              }
+                }
+                @if (actions.startJobHelper; as helper) {
+                  <div class="bar__start-job">
+                    <button
+                      pButton
+                      type="button"
+                      class="bar__button"
+                      severity="secondary"
+                      disabled
+                      aria-describedby="visit-start-job-help"
+                    >
+                      <i class="pi pi-play" aria-hidden="true"></i>
+                      Start job
+                    </button>
+                    <p class="bar__helper" id="visit-start-job-help">{{ helper }}</p>
+                  </div>
+                }
+              </div>
+              <button
+                type="button"
+                class="bar__report"
+                (click)="openReport($any($event.currentTarget))"
+              >
+                <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                Report delay or issue
+              </button>
             </div>
-            <button
-              type="button"
-              class="bar__report"
-              (click)="openReport($any($event.currentTarget))"
-            >
-              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-              Report delay or issue
-            </button>
-          </div>
+          }
         }
       }
     }
@@ -269,5 +305,48 @@
     </div>
   </p-dialog>
 
-  <app-photo-viewer [photos]="photos()" [(index)]="viewerIndex" (closed)="viewerClosed()" />
+  <app-photo-viewer
+    [photos]="photos()"
+    [deletable]="canDeletePhotos()"
+    [(index)]="viewerIndex"
+    (closed)="viewerClosed()"
+    (deleteRequest)="requestDelete($event)"
+  />
+
+  <p-dialog
+    header="Delete this photo?"
+    [modal]="true"
+    closeAriaLabel="Close"
+    [draggable]="false"
+    [resizable]="false"
+    [visible]="deleteTarget() !== null"
+    (visibleChange)="$event ? null : cancelDelete()"
+    [style]="{ width: '22rem', maxWidth: '96vw' }"
+  >
+    <div class="panel">
+      @if (deleteError(); as errorText) {
+        <p class="panel__text" role="alert">{{ errorText }}</p>
+      }
+      <button
+        pButton
+        type="button"
+        severity="danger"
+        [disabled]="deleting()"
+        [loading]="deleting()"
+        (click)="confirmDelete()"
+      >
+        Delete
+      </button>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="deleting()"
+        (click)="cancelDelete()"
+      >
+        Cancel
+      </button>
+    </div></p-dialog
+  >
 }

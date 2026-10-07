@@ -58,7 +58,9 @@ export class TechnicianShell {
   readonly signingOut = signal(false);
   readonly signOutFailed = signal(false);
   private readonly path = signal(this.currentPath());
-  readonly pageTitle = signal(this.titleFor());
+  private readonly routeTitle = signal(this.titleFor());
+  /** The job page overrides the route title while it shows Job in progress (BR-20). */
+  readonly pageTitle = computed(() => this.visits.pageTitle() ?? this.routeTitle());
   readonly back = signal(this.backFor());
 
   readonly moreOpen = computed(() => this.openPanel() === 'more');
@@ -92,7 +94,7 @@ export class TechnicianShell {
       )
       .subscribe(() => {
         this.path.set(this.currentPath());
-        this.pageTitle.set(this.titleFor());
+        this.routeTitle.set(this.titleFor());
         this.back.set(this.backFor());
         this.openPanel.set(null);
       });

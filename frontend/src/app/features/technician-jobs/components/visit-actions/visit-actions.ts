@@ -17,8 +17,13 @@ export class VisitActions {
   readonly directionsLabel = input('Directions');
   /** Job page: Open directions leads as the primary teal action, Call follows. */
   readonly featured = input(false);
+  /** Design 9 header shows only Open directions. */
+  readonly showCall = input(true);
 
   readonly callHref = computed(() => {
+    if (!this.showCall()) {
+      return null;
+    }
     const phone = this.visit().phone?.trim() ?? '';
     return phone === '' ? null : telUrl(phone);
   });

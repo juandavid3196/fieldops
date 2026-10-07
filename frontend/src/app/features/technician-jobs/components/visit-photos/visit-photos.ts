@@ -3,6 +3,16 @@ import { Component, input, output, signal } from '@angular/core';
 export interface VisitPhoto {
   readonly id: string;
   readonly url: string;
+  /** Job photos carry Before/After; assessment photos have none. */
+  readonly label?: string;
+}
+
+/** "<label> photo <k> of <n>" counting within the label, or "Assessment photo <k> of <n>". */
+export function photoAlt(photos: readonly VisitPhoto[], index: number): string {
+  const label = photos[index]?.label;
+  const group = label === undefined ? photos : photos.filter((photo) => photo.label === label);
+  const position = group.indexOf(photos[index]) + 1;
+  return `${label ?? 'Assessment'} photo ${position} of ${group.length}`;
 }
 
 export interface PhotoOpenRequest {
@@ -11,7 +21,7 @@ export interface PhotoOpenRequest {
   readonly trigger: HTMLElement;
 }
 
-/** BR-17 read-only thumbnails of the approved assessment photos. */
+/** BR-17 read-only thumbnails of the assessment or job photos, with their Before/After label. */
 @Component({
   selector: 'app-visit-photos',
   templateUrl: './visit-photos.html',
@@ -24,7 +34,7 @@ export class VisitPhotos {
   readonly failed = signal<ReadonlySet<string>>(new Set());
 
   alt(index: number): string {
-    return `Assessment photo ${index + 1} of ${this.photos().length}`;
+    return photoAlt(this.photos(), index);
   }
 
   markFailed(id: string): void {

@@ -1,0 +1,237 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tasks {
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__completion {
+    flex-direction: row;
+    gap: 0.75rem;
+  }
+
+  &__tile {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    color: var(--fo-color-on-primary);
+    background: var(--fo-color-success-solid);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__summary {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-inline-size: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.0625rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__muted {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__progress {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__track {
+    flex: 1;
+    block-size: 0.5rem;
+    overflow: hidden;
+    background: var(--fo-color-neutral-background);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__fill {
+    block-size: 100%;
+    background: var(--fo-color-success-solid);
+  }
+
+  &__percent {
+    font-weight: 700;
+    color: var(--fo-color-success-text);
+  }
+
+  &__required {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+
+    &--done {
+      color: var(--fo-color-success-text);
+    }
+  }
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+  }
+
+  & &__link {
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__error {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-danger-text);
+    background: var(--fo-color-danger-background);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__form,
+  &__editor {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    inline-size: 100%;
+  }
+
+  &__input {
+    flex: 1;
+    box-sizing: border-box;
+    min-inline-size: 0;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__editor-actions {
+    display: flex;
+    gap: 0.5rem;
+    inline-size: 100%;
+  }
+
+  & &__action {
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    padding-block: 0.25rem;
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__check {
+    display: flex;
+    flex: 1;
+    gap: 0.75rem;
+    align-items: center;
+    min-inline-size: 0;
+    min-block-size: var(--fo-size-touch-target);
+
+    input {
+      flex: none;
+      inline-size: 1.375rem;
+      block-size: 1.375rem;
+      accent-color: var(--fo-color-success-solid);
+    }
+  }
+
+  &__label {
+    overflow-wrap: anywhere;
+  }
+
+  &__badge {
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__time {
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__comment {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: var(--fo-size-touch-target);
+    min-block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-today-accent);
+    }
+  }
+
+  &__note {
+    inline-size: 100%;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__scope {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+  }
+}

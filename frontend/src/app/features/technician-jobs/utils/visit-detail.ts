@@ -88,7 +88,6 @@ export function announcementFor(visit: TechnicianVisitDetail): string {
 }
 
 export const START_JOB_AFTER_ARRIVAL = 'Available after arrival is recorded';
-export const START_JOB_SOON = 'Starting the job will be available soon.';
 
 export interface ActionBar {
   /** Primary travel control; `arrived` is the disabled confirmation after arrival. */
@@ -100,20 +99,28 @@ export interface ActionBar {
   readonly message: string | null;
   /** Disabled Start job with its helper text; `null` hides it. */
   readonly startJobHelper: string | null;
+  /** Enabled Start job (primary technician after arrival, BR-15). */
+  readonly startJob: boolean;
 }
 
-/** BR-14 action bar by role and status. */
+/** BR-14 action bar by role and status; BR-15 enables Start job after arrival. */
 export function actionBarFor(visit: TechnicianVisitDetail): ActionBar {
   const arrived = hasArrived(visit);
-  const helper = arrived ? START_JOB_SOON : START_JOB_AFTER_ARRIVAL;
+  const helper = START_JOB_AFTER_ARRIVAL;
   if (!visit.isPrimary) {
-    return { travel: null, message: NOT_PRIMARY_MESSAGE, startJobHelper: helper };
+    return {
+      travel: null,
+      message: NOT_PRIMARY_MESSAGE,
+      startJobHelper: arrived ? null : helper,
+      startJob: false,
+    };
   }
   if (visit.status === 'assigned') {
     return {
       travel: { kind: 'start-travel', label: 'Start travel' },
       message: null,
       startJobHelper: helper,
+      startJob: false,
     };
   }
   if (visit.status === 'on_the_way') {
@@ -123,9 +130,14 @@ export function actionBarFor(visit: TechnicianVisitDetail): ActionBar {
           label: `Arrived ${formatTime(visit.travel.arrivedAt!, visit.timezone)}`,
         }
       : { kind: 'arrive' as const, label: "I've arrived" };
-    return { travel, message: null, startJobHelper: helper };
+    return {
+      travel,
+      message: null,
+      startJobHelper: arrived ? null : helper,
+      startJob: arrived,
+    };
   }
-  return { travel: null, message: STATUS_INVALID_MESSAGE, startJobHelper: null };
+  return { travel: null, message: STATUS_INVALID_MESSAGE, startJobHelper: null, startJob: false };
 }
 
 export function customerTypeLabel(type: CustomerType): string {

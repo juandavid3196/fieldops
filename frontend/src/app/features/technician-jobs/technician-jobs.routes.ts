@@ -1,4 +1,4 @@
-import { Route } from '@angular/router';
+import { ActivatedRouteSnapshot, Route } from '@angular/router';
 
 import { knownModuleGuard, moduleTitle } from '../coming-soon/coming-soon.routes';
 
@@ -10,6 +10,7 @@ export const TODAY_BACK = { link: '/today', label: "Back to Today's jobs" };
 /** Titles shown in the technician top bar (`data.shellTitle`). */
 export const TODAY_TITLE = "Today's jobs";
 export const JOB_TITLE = 'Job details';
+export const REVIEW_TITLE = 'Review & complete';
 
 /** Today's jobs (`/today`); inside the technician shell. Not role-guarded: other roles see the forbidden state. */
 export const todayRoute: Route = {
@@ -29,6 +30,21 @@ export const visitDetailRoute: Route = {
   loadComponent: () => import('./pages/visit-detail/visit-detail').then((m) => m.VisitDetail),
 };
 
+/** Review placeholder (`/today/visits/:visitId/review`); Design 10 replaces it. Back returns to the job. */
+export const visitReviewRoute: Route = {
+  path: `${TODAY_ROUTE_PATH}/visits/:visitId/review`,
+  pathMatch: 'full',
+  title: 'Review & complete · FieldOps',
+  data: { shellTitle: REVIEW_TITLE },
+  resolve: {
+    shellBack: (route: ActivatedRouteSnapshot) => ({
+      link: `/${TODAY_ROUTE_PATH}/visits/${encodeURIComponent(route.paramMap.get('visitId') ?? '')}`,
+      label: 'Back to job',
+    }),
+  },
+  loadComponent: () => import('./pages/visit-review/visit-review').then((m) => m.VisitReview),
+};
+
 /** Schedule, Time, Messages and notifications: the shared Coming soon page inside the technician shell. */
 export const technicianComingSoonRoute: Route = {
   path: `${TODAY_ROUTE_PATH}/soon/:module`,
@@ -43,5 +59,6 @@ export const technicianComingSoonRoute: Route = {
 export const TECHNICIAN_SHELL_ROUTES: Route[] = [
   todayRoute,
   visitDetailRoute,
+  visitReviewRoute,
   technicianComingSoonRoute,
 ];

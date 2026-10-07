@@ -1,0 +1,117 @@
+// The host adds no box: banner, tabs, time summary and bar are items of the page's flex column.
+:host {
+  display: contents;
+}
+
+.progress {
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__tabs {
+    display: block;
+
+    --p-tabs-tab-active-border-color: var(--fo-today-accent);
+    --p-tabs-tab-active-color: var(--fo-today-accent);
+    --p-tabs-tab-color: var(--fo-color-text-secondary);
+    --p-tabs-tab-hover-color: var(--fo-color-heading);
+    --p-tabs-tab-padding: 0.875rem 0.5rem;
+    --p-tabs-active-bar-height: 3px;
+    --p-tabs-tablist-background: var(--fo-color-surface);
+    --p-tabs-tabpanel-background: transparent;
+    --p-tabs-tabpanel-padding: 0;
+
+    p-tablist {
+      display: block;
+      overflow: hidden;
+      background: var(--fo-color-surface);
+      border: 1px solid var(--fo-color-border);
+      border-radius: var(--fo-radius-card);
+    }
+
+    p-tab {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: center;
+      min-block-size: var(--fo-size-touch-target);
+      font-size: 0.875rem;
+      font-weight: 500;
+
+      &[aria-selected='true'] {
+        font-weight: 700;
+      }
+    }
+
+    p-tabpanel {
+      display: block;
+      margin-block-start: 0.75rem;
+    }
+  }
+}
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  color: light-dark(#126272, var(--fo-color-success-text));
+  background: light-dark(#ebf9f6, var(--fo-color-success-background));
+  border-radius: var(--fo-radius-card);
+
+  &__top {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    color: var(--fo-color-on-primary);
+    background: var(--fo-color-primary-hover);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    font-size: 0.875rem;
+
+    strong {
+      font-size: 1rem;
+      color: light-dark(#04595b, var(--fo-color-success-text));
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  & &__button {
+    min-block-size: var(--fo-size-touch-target);
+    justify-content: center;
+  }
+
+  &__error {
+    inline-size: 100%;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-danger-text);
+  }
+}

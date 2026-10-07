@@ -1,0 +1,87 @@
+<section class="ev" aria-labelledby="ev-title">
+  <h2 class="ev__title" id="ev-title">
+    <i class="pi pi-camera" aria-hidden="true"></i>
+    Photos &amp; evidence
+  </h2>
+
+  @if (photos().length === 0 && upload() === null) {
+    <p class="ev__muted">No photos yet.</p>
+  }
+  @if (photos().length > 0) {
+    <app-visit-photos [photos]="photos()" (open)="openPhoto.emit($event)" />
+  }
+  @if (upload(); as current) {
+    <div class="ev__upload">
+      <img class="ev__preview" alt="" [src]="current.previewUrl" />
+      <div class="ev__progress">
+        <span>Uploading {{ current.label }} photo</span>
+        <div
+          class="ev__track"
+          role="progressbar"
+          aria-label="Upload progress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="current.percent"
+        >
+          <div class="ev__fill" [style.inline-size.%]="current.percent"></div>
+        </div>
+        <span>{{ current.percent }}%</span>
+      </div>
+    </div>
+  }
+
+  @if (error(); as message) {
+    <p class="ev__error" role="alert">{{ message }}</p>
+  }
+
+  @if (!readOnly()) {
+    @if (chooserOpen()) {
+      <div class="ev__chooser" role="group" aria-label="Photo type">
+        <button pButton type="button" class="ev__button" (click)="choose('before')">Before</button>
+        <button pButton type="button" class="ev__button" (click)="choose('after')">After</button>
+        <button
+          pButton
+          type="button"
+          class="ev__button"
+          severity="secondary"
+          [outlined]="true"
+          (click)="chooserOpen.set(false)"
+        >
+          Cancel
+        </button>
+      </div>
+    } @else {
+      <button
+        pButton
+        type="button"
+        class="ev__button ev__add"
+        severity="info"
+        [outlined]="true"
+        [disabled]="pending()"
+        (click)="openChooser()"
+      >
+        <i class="pi pi-camera" aria-hidden="true"></i>
+        Add photo
+      </button>
+    }
+    <input
+      #file
+      type="file"
+      class="ev__file"
+      hidden
+      accept="image/jpeg,image/png"
+      (change)="picked(file)"
+    />
+  }
+
+  <p class="ev__indicator" [class.ev__indicator--ok]="complete()">
+    <i
+      class="pi"
+      [class]="complete() ? 'pi-check-circle' : 'pi-info-circle'"
+      aria-hidden="true"
+    ></i>
+    {{
+      complete() ? 'Before and after photos added' : 'Add at least one before and one after photo'
+    }}
+  </p>
+</section>

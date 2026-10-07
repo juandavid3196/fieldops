@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
@@ -7,7 +8,8 @@ import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 
 import { SessionService } from '../../../../core/services/session.service';
-import { PhotoViewer } from '../../components/photo-viewer/photo-viewer';
+import { JobProgress } from '../../components/job-progress/job-progress';
+import { PhotoDeleteRequest, PhotoViewer } from '../../components/photo-viewer/photo-viewer';
 import { VisitActions } from '../../components/visit-actions/visit-actions';
 import {
   PhotoOpenRequest,
@@ -18,6 +20,7 @@ import { VisitStepper } from '../../components/visit-stepper/visit-stepper';
 import { VisitTabs } from '../../components/visit-tabs/visit-tabs';
 import { TechnicianVisitDetail } from '../../models/technician-visits.model';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
+import { classifyMutationFailure } from '../../utils/job-progress';
 import {
   TechnicianLoadFailure,
   accessMessage,
@@ -44,23 +47,27 @@ import {
 export const NOT_AVAILABLE_MESSAGE = "This job isn't available.";
 export const LOAD_ERROR_MESSAGE = "We couldn't load this job. Try again.";
 export const TODAY_PATH = '/today';
+export const JOB_IN_PROGRESS_TITLE = 'Job in progress';
 
 type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
-type TravelAction = 'start-travel' | 'arrive';
+type TravelAction = 'start-travel' | 'arrive' | 'start-job';
 
 /**
- * Job page (`/today/visits/:visitId`, Design 8). Read-only except Start travel and I've arrived,
- * which the backend authorizes (frontend hiding is UX only).
+ * Job page (`/today/visits/:visitId`): Design 8 up to Start job, Design 9 (`app-job-progress`) while
+ * the visit is `in_progress` or `paused`. Every response replaces the visit; the backend authorizes
+ * each action (frontend hiding is UX only).
  */
 @Component({
   selector: 'app-visit-detail',
   imports: [
+    NgTemplateOutlet,
     RouterLink,
     ButtonDirective,
     Dialog,
     Message,
     Skeleton,
     Tag,
+    JobProgress,
     PhotoViewer,
     VisitActions,
     VisitPhotos,
@@ -73,6 +80,7 @@ type TravelAction = 'start-travel' | 'arrive';
 export class VisitDetail {
   private readonly visits = inject(TechnicianVisitsService);
   private readonly sessionService = inject(SessionService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly visitId = inject(ActivatedRoute).snapshot.paramMap.get('visitId') ?? '';
   /** Triggers of the open overlays; the last one is focused again when its overlay closes. */
   private readonly focusStack: HTMLElement[] = [];
@@ -90,6 +98,16 @@ export class VisitDetail {
   readonly assessmentOpen = signal(false);
   readonly reportOpen = signal(false);
   readonly viewerIndex = signal<number | null>(null);
+  readonly deleteTarget = signal<string | null>(null);
+  readonly deleting = signal(false);
+  readonly deleteError = signal<string | null>(null);
+
+  /** BR-15: Design 9 for `in_progress` and `paused`. */
+  readonly working = computed(() => {
+    const status = this.visit()?.status;
+    return status === 'in_progress' || status === 'paused';
+  });
+  readonly canDeletePhotos = computed(() => this.working() && this.visit()?.isPrimary === true);
 
   readonly accessText = computed(() => {
     const state = this.state();
@@ -141,13 +159,25 @@ export class VisitDetail {
         access.activeDamage)
     );
   });
-  readonly photos = computed<VisitPhoto[]>(
-    () =>
-      this.visit()?.assessment?.photos.map((photo) => ({
+  /** Job photos while working (Before/After labels); otherwise the approved assessment photos. */
+  readonly photos = computed<VisitPhoto[]>(() => {
+    const visit = this.visit();
+    if (this.working()) {
+      return (
+        visit?.evidence.map((item) => ({
+          id: item.id,
+          url: this.visits.evidencePhotoUrl(this.visitId, item.id),
+          label: item.type === 'before' ? 'Before' : 'After',
+        })) ?? []
+      );
+    }
+    return (
+      visit?.assessment?.photos.map((photo) => ({
         id: photo.id,
         url: this.visits.assessmentPhotoUrl(this.visitId, photo.id),
-      })) ?? [],
-  );
+      })) ?? []
+    );
+  });
   readonly completedText = computed(() => {
     const visit = this.visit();
     const assessment = visit?.assessment;
@@ -161,6 +191,9 @@ export class VisitDetail {
   });
 
   constructor() {
+    // The top bar reads "Job in progress" while Design 9 shows; a status change needs no navigation.
+    effect(() => this.visits.setPageTitle(this.working() ? JOB_IN_PROGRESS_TITLE : null));
+    this.destroyRef.onDestroy(() => this.visits.setPageTitle(null));
     if (this.sessionService.session()?.role.code !== 'technician') {
       this.state.set('forbidden');
       return;
@@ -188,7 +221,7 @@ export class VisitDetail {
     });
   }
 
-  /** BR-14: one action at a time; success updates the page in place and announces it. */
+  /** BR-14 / BR-15: one action at a time; success updates the page in place and announces it. */
   act(action: TravelAction): void {
     if (this.pending() !== null) {
       return;
@@ -198,15 +231,22 @@ export class VisitDetail {
     const request =
       action === 'start-travel'
         ? this.visits.startTravel(this.visitId)
-        : this.visits.arrive(this.visitId);
+        : action === 'arrive'
+          ? this.visits.arrive(this.visitId)
+          : this.visits.startJob(this.visitId);
     request.subscribe({
       next: (result) => {
         this.visit.set(result.visit);
         this.pending.set(null);
-        this.announcement.set(announcementFor(result.visit));
+        this.announcement.set(
+          action === 'start-job' ? 'Job started.' : announcementFor(result.visit),
+        );
       },
       error: (error: unknown) => {
-        const failure = classifyTravelFailure(error);
+        const failure = classifyTravelFailure(
+          error,
+          action === 'start-job' ? 'start-job' : 'travel',
+        );
         this.pending.set(null);
         this.actionError.set(failure.message);
         if (failure.reload) {
@@ -229,6 +269,54 @@ export class VisitDetail {
   openReport(trigger: HTMLElement): void {
     this.focusStack.push(trigger);
     this.reportOpen.set(true);
+  }
+
+  /** Viewer Delete photo: asks for confirmation on top of the viewer. */
+  requestDelete(request: PhotoDeleteRequest): void {
+    this.focusStack.push(request.trigger);
+    this.deleteError.set(null);
+    this.deleteTarget.set(request.id);
+  }
+
+  cancelDelete(): void {
+    if (this.deleteTarget() !== null && !this.deleting()) {
+      this.deleteTarget.set(null);
+      this.restoreFocus();
+    }
+  }
+
+  confirmDelete(): void {
+    const id = this.deleteTarget();
+    if (id === null || this.deleting()) {
+      return;
+    }
+    this.deleting.set(true);
+    this.deleteError.set(null);
+    this.visits.deleteEvidence(this.visitId, id).subscribe({
+      next: (visit) => {
+        this.visit.set(visit);
+        this.deleting.set(false);
+        this.deleteTarget.set(null);
+        this.restoreFocus();
+        this.announcement.set('Photo deleted.');
+        const count = this.photos().length;
+        const index = this.viewerIndex();
+        if (count === 0) {
+          this.viewerIndex.set(null);
+          this.restoreFocus();
+        } else if (index !== null && index >= count) {
+          this.viewerIndex.set(count - 1);
+        }
+      },
+      error: (error: unknown) => {
+        const failure = classifyMutationFailure(error);
+        this.deleting.set(false);
+        this.deleteError.set(failure.message);
+        if (failure.reload) {
+          this.load(true);
+        }
+      },
+    });
   }
 
   closeAssessment(): void {

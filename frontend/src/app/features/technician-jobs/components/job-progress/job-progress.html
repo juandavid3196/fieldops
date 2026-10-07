@@ -1,0 +1,137 @@
+<p class="progress__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+<section class="banner" aria-label="Job status">
+  <div class="banner__top">
+    <span class="banner__icon" aria-hidden="true">
+      <i class="pi" [class]="paused() ? 'pi-pause' : 'pi-play'"></i>
+    </span>
+    <p class="banner__text">
+      <strong>{{ paused() ? 'Paused' : 'In progress' }} • {{ laborText() }}</strong>
+      @if (startedText(); as started) {
+        <span class="banner__started">{{ started }}</span>
+      }
+    </p>
+  </div>
+  <div class="banner__actions">
+    @if (!readOnly()) {
+      <button
+        pButton
+        type="button"
+        class="banner__button"
+        severity="warn"
+        [outlined]="true"
+        [disabled]="transition() !== null"
+        [loading]="transition() !== null"
+        (click)="toggle()"
+      >
+        @if (transition() === null) {
+          <i class="pi" [class]="paused() ? 'pi-play' : 'pi-pause'" aria-hidden="true"></i>
+        }
+        {{ paused() ? 'Resume' : 'Pause' }}
+      </button>
+    }
+    <button
+      pButton
+      type="button"
+      class="banner__button"
+      severity="secondary"
+      [outlined]="true"
+      (click)="openReport.emit($any($event.currentTarget))"
+    >
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      Report issue
+    </button>
+  </div>
+  @if (transitionError(); as message) {
+    <p class="banner__error" role="alert">{{ message }}</p>
+  }
+</section>
+
+<ng-content />
+
+<p-tabs value="tasks" class="progress__tabs">
+  <p-tablist>
+    <p-tab value="tasks">Tasks</p-tab>
+    <p-tab value="materials">Materials</p-tab>
+    <p-tab value="photos">Photos</p-tab>
+    <p-tab value="notes">Notes</p-tab>
+  </p-tablist>
+  <p-tabpanels>
+    <p-tabpanel value="tasks">
+      <app-job-tasks
+        [visit]="visit()"
+        [readOnly]="readOnly()"
+        (visitChange)="visitChange.emit($event)"
+        (reload)="reload.emit()"
+      />
+    </p-tabpanel>
+    <p-tabpanel value="materials">
+      <app-job-materials
+        [visit]="visit()"
+        [readOnly]="readOnly()"
+        (visitChange)="visitChange.emit($event)"
+        (reload)="reload.emit()"
+      />
+    </p-tabpanel>
+    <p-tabpanel value="photos">
+      <app-job-evidence
+        [visit]="visit()"
+        [photos]="photos()"
+        [readOnly]="readOnly()"
+        (visitChange)="visitChange.emit($event)"
+        (reload)="reload.emit()"
+        (openPhoto)="openPhoto.emit($event)"
+        (announce)="announcement.set($event)"
+      />
+    </p-tabpanel>
+    <p-tabpanel value="notes">
+      <app-job-notes
+        [value]="notesDraft()"
+        [readOnly]="readOnly()"
+        [pending]="notesPending()"
+        [saved]="notesSaved()"
+        [error]="notesError()"
+        (valueChange)="notesDraft.set($event); notesSaved.set(false)"
+        (blurred)="notesBlurred()"
+      />
+    </p-tabpanel>
+  </p-tabpanels>
+</p-tabs>
+
+<app-job-time [time]="visit().time" [now]="now()" [live]="!paused()" />
+
+<div class="bar">
+  @if (readOnly()) {
+    <p class="bar__message">{{ notPrimaryText }}</p>
+    <a pButton class="bar__button" severity="secondary" [outlined]="true" [routerLink]="todayPath">
+      Back to Today's jobs
+    </a>
+  } @else {
+    @if (exitError(); as message) {
+      <p class="bar__error" role="alert">{{ message }}</p>
+    }
+    <div class="bar__row">
+      <button
+        pButton
+        type="button"
+        class="bar__button"
+        aria-describedby="progress-review-help"
+        [disabled]="!ready() || busy()"
+        (click)="review()"
+      >
+        Review &amp; complete
+      </button>
+      <button
+        pButton
+        type="button"
+        class="bar__button"
+        severity="secondary"
+        [attr.aria-busy]="notesPending()"
+        (click)="saveAndExit()"
+      >
+        Save and exit
+      </button>
+    </div>
+    <p class="bar__helper" id="progress-review-help">{{ ready() ? readyText : blockedText }}</p>
+  }
+</div>

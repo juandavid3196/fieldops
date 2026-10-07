@@ -1,0 +1,207 @@
+@if (tasks().length > 0) {
+  <section class="tasks__card tasks__completion" aria-labelledby="tasks-completion">
+    <span class="tasks__tile" aria-hidden="true"><i class="pi pi-check"></i></span>
+    <div class="tasks__summary">
+      <h2 class="tasks__title" id="tasks-completion">Job completion</h2>
+      <p class="tasks__muted">{{ completed() }} of {{ tasks().length }} tasks completed</p>
+      <div class="tasks__progress">
+        <div
+          class="tasks__track"
+          role="progressbar"
+          aria-label="Task completion"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="percent()"
+        >
+          <div class="tasks__fill" [style.inline-size.%]="percent()"></div>
+        </div>
+        <span class="tasks__percent">{{ percent() }}%</span>
+      </div>
+      <p class="tasks__required" [class.tasks__required--done]="remaining() === 0">
+        <i
+          class="pi"
+          [class]="remaining() === 0 ? 'pi-check-circle' : 'pi-info-circle'"
+          aria-hidden="true"
+        ></i>
+        {{ requiredText() }}
+      </p>
+    </div>
+  </section>
+}
+
+<section class="tasks__card" aria-labelledby="tasks-checklist">
+  <div class="tasks__head">
+    <h2 class="tasks__title" id="tasks-checklist">Task checklist</h2>
+    <div class="tasks__links">
+      @if (!readOnly()) {
+        <button
+          pButton
+          type="button"
+          class="tasks__link"
+          severity="info"
+          [text]="true"
+          [disabled]="pending() !== null"
+          (click)="openAdd()"
+        >
+          <i class="pi pi-plus" aria-hidden="true"></i>
+          Add task
+        </button>
+      }
+      @if (scope().length > 0) {
+        <button
+          pButton
+          type="button"
+          class="tasks__link"
+          severity="info"
+          [text]="true"
+          (click)="openScope($any($event.currentTarget))"
+        >
+          View original scope
+          <i class="pi pi-chevron-right" aria-hidden="true"></i>
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (error(); as message) {
+    <p class="tasks__error" role="alert">{{ message }}</p>
+  }
+
+  @if (addOpen()) {
+    <div class="tasks__form">
+      <input
+        type="text"
+        class="tasks__input"
+        maxlength="240"
+        aria-label="Task name"
+        [value]="labelDraft()"
+        (input)="labelDraft.set($any($event.target).value)"
+        (keydown.enter)="add()"
+      />
+      <button
+        pButton
+        type="button"
+        class="tasks__action"
+        [disabled]="pending() !== null || labelDraft().trim() === ''"
+        [loading]="pending() === 'add'"
+        (click)="add()"
+      >
+        Add
+      </button>
+      <button
+        pButton
+        type="button"
+        class="tasks__action"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="pending() === 'add'"
+        (click)="cancelAdd()"
+      >
+        Cancel
+      </button>
+    </div>
+  }
+
+  @if (tasks().length === 0) {
+    <p class="tasks__muted">No tasks for this job.</p>
+  } @else {
+    <ul class="tasks__list">
+      @for (task of tasks(); track task.id) {
+        <li class="tasks__row">
+          <label class="tasks__check">
+            <input
+              type="checkbox"
+              [checked]="task.isCompleted"
+              [disabled]="readOnly() || pending() !== null"
+              (change)="toggle(task, $any($event.target))"
+            />
+            <span class="tasks__label">{{ task.label }}</span>
+          </label>
+          @if (task.isRequired) {
+            <span class="tasks__badge">Required</span>
+          }
+          @if (task.completedAt !== null) {
+            <span class="tasks__time">{{ completedTime(task) }}</span>
+          }
+          @if (task.notes !== null && readOnly()) {
+            <i class="pi pi-comment tasks__flag" role="img" aria-label="Has a comment"></i>
+          }
+          @if (!readOnly()) {
+            <button
+              type="button"
+              class="tasks__comment"
+              [attr.aria-label]="'Comment on ' + task.label"
+              [attr.aria-expanded]="commentTaskId() === task.id"
+              [disabled]="pending() !== null"
+              (click)="openComment(task)"
+            >
+              <i
+                class="pi"
+                [class]="task.notes === null ? 'pi-comment' : 'pi-comments'"
+                aria-hidden="true"
+              ></i>
+              @if (task.notes !== null) {
+                <span class="tasks__sr">Has a comment</span>
+              }
+            </button>
+          }
+          @if (task.notes !== null && readOnly()) {
+            <p class="tasks__note">{{ task.notes }}</p>
+          }
+          @if (commentTaskId() === task.id) {
+            <div class="tasks__editor">
+              <textarea
+                class="tasks__input"
+                rows="3"
+                maxlength="1000"
+                [attr.aria-label]="'Comment for ' + task.label"
+                [value]="commentDraft()"
+                (input)="commentDraft.set($any($event.target).value)"
+              ></textarea>
+              <div class="tasks__editor-actions">
+                <button
+                  pButton
+                  type="button"
+                  class="tasks__action"
+                  [disabled]="pending() !== null"
+                  [loading]="pending() === 'comment:' + task.id"
+                  (click)="saveComment(task)"
+                >
+                  Save
+                </button>
+                <button
+                  pButton
+                  type="button"
+                  class="tasks__action"
+                  severity="secondary"
+                  [outlined]="true"
+                  [disabled]="pending() !== null"
+                  (click)="cancelComment()"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          }
+        </li>
+      }
+    </ul>
+  }
+</section>
+
+<p-dialog
+  header="Original scope"
+  [modal]="true"
+  closeAriaLabel="Close"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="scopeOpen()"
+  (visibleChange)="$event ? null : closeScope()"
+  [style]="{ width: '24rem', maxWidth: '96vw' }"
+>
+  <ul class="tasks__scope">
+    @for (line of scope(); track $index) {
+      <li>{{ line }}</li>
+    }
+  </ul>
+</p-dialog>

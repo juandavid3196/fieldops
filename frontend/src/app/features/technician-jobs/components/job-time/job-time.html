@@ -1,0 +1,39 @@
+<section class="time" aria-labelledby="time-title">
+  <h2 class="time__title" id="time-title">
+    <i class="pi pi-clock" aria-hidden="true"></i>
+    Time summary
+  </h2>
+  <div class="time__grid">
+    <dl class="time__cells">
+      <div class="time__cell">
+        <dt class="time__label">Labor time</dt>
+        <dd class="time__value">
+          {{ laborText() }}
+          @if (live()) {
+            <span class="time__live">Live</span>
+          }
+        </dd>
+      </div>
+      <div class="time__cell">
+        <dt class="time__label">Break time</dt>
+        <dd class="time__value">{{ breakText() }}</dd>
+      </div>
+      @if (estimateText(); as estimate) {
+        <div class="time__cell">
+          <dt class="time__label">Estimated</dt>
+          <dd class="time__value">{{ estimate }}</dd>
+        </div>
+      }
+    </dl>
+    @if (deviation(); as chip) {
+      <p class="time__chip" [class]="'time__chip time__chip--' + chip.kind">
+        <i
+          class="pi"
+          [class]="chip.kind === 'over' ? 'pi-clock' : 'pi-check-circle'"
+          aria-hidden="true"
+        ></i>
+        {{ chip.text }}
+      </p>
+    }
+  </div>
+</section>

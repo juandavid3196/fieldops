@@ -1,0 +1,201 @@
+:host {
+  display: block;
+}
+
+.mat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    font-size: 1.0625rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__indicator {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-warning-text);
+
+    &--ok {
+      color: var(--fo-color-success-text);
+    }
+  }
+
+  &__muted {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__error {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-danger-text);
+    background: var(--fo-color-danger-background);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__columns,
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 3.5rem auto;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__columns {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    text-align: center;
+
+    .mat__col-used {
+      inline-size: 9.75rem;
+    }
+  }
+
+  &__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__row {
+    padding-block: 0.25rem;
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__name {
+    overflow-wrap: anywhere;
+  }
+
+  &__unit {
+    margin-inline-start: 0.25rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__planned {
+    text-align: center;
+  }
+
+  &__stepper {
+    display: flex;
+    gap: 0.25rem;
+    align-items: center;
+  }
+
+  &__step,
+  &__input {
+    box-sizing: border-box;
+    min-inline-size: var(--fo-size-touch-target);
+    min-block-size: var(--fo-size-touch-target);
+    font: inherit;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__step {
+    cursor: pointer;
+
+    &:disabled {
+      color: var(--fo-color-disabled-text);
+      cursor: default;
+    }
+  }
+
+  &__input {
+    inline-size: 4rem;
+    text-align: center;
+  }
+
+  & &__add {
+    align-self: flex-start;
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.875rem;
+  }
+
+  &__text {
+    box-sizing: border-box;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__result {
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    color: var(--fo-color-text);
+    text-align: start;
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+
+    &[aria-pressed='true'] {
+      font-weight: 700;
+      background: var(--fo-color-primary-soft);
+      border-color: var(--fo-color-primary);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  & &__action {
+    flex: 1;
+    justify-content: center;
+    min-block-size: var(--fo-size-touch-target);
+  }
+}

@@ -1,0 +1,10 @@
+<div class="review">
+  @if (allowed) {
+    <p class="review__notice" role="status">{{ comingSoon }}</p>
+    <a pButton class="review__back" severity="secondary" [outlined]="true" [routerLink]="jobLink">
+      Back to job
+    </a>
+  } @else {
+    <p class="review__notice" role="status">{{ forbiddenMessage }}</p>
+  }
+</div>

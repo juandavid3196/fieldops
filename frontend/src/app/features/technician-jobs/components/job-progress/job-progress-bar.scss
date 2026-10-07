@@ -1,0 +1,41 @@
+// Action bar: sticky above the bottom navigation, so it never covers content (BR-21).
+.bar {
+  position: sticky;
+  inset-block-end: calc(4rem + env(safe-area-inset-bottom, 0px));
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: auto -1rem 0;
+  padding: 0.75rem 1rem;
+  background: var(--fo-color-surface);
+  border-block-start: 1px solid var(--fo-color-border);
+
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+
+  & &__button {
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    text-decoration: none;
+    justify-content: center;
+  }
+
+  &__helper,
+  &__message {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    text-align: center;
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-danger-text);
+    text-align: center;
+  }
+}

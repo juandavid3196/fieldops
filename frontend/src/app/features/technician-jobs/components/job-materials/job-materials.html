@@ -1,0 +1,242 @@
+<section class="mat" aria-labelledby="mat-title">
+  <div class="mat__head">
+    <h2 class="mat__title" id="mat-title">
+      <i class="pi pi-box" aria-hidden="true"></i>
+      Materials used
+    </h2>
+    @if (rows().length > 0) {
+      <p class="mat__indicator" [class.mat__indicator--ok]="matches()">
+        <i
+          class="pi"
+          [class]="matches() ? 'pi-check-circle' : 'pi-info-circle'"
+          aria-hidden="true"
+        ></i>
+        {{ matches() ? 'Matches planned quantities' : 'Differs from planned quantities' }}
+      </p>
+    }
+  </div>
+
+  @if (error(); as message) {
+    <p class="mat__error" role="alert">{{ message }}</p>
+  }
+
+  @if (rows().length === 0) {
+    <p class="mat__muted">No materials recorded.</p>
+  } @else {
+    <div class="mat__columns" aria-hidden="true">
+      <span class="mat__col-planned">Planned</span>
+      <span class="mat__col-used">Used</span>
+    </div>
+    <ul class="mat__list">
+      @for (row of rows(); track row.id) {
+        <li class="mat__row">
+          <span class="mat__name">
+            {{ row.description }}
+            <span class="mat__unit">{{ row.unit }}</span>
+          </span>
+          <span class="mat__planned">
+            @if (row.planned !== null) {
+              {{ row.planned }}
+            } @else {
+              Added
+            }
+          </span>
+          <span class="mat__stepper">
+            <button
+              type="button"
+              class="mat__step"
+              [attr.aria-label]="'Decrease ' + row.description"
+              [disabled]="readOnly() || pending() !== null || row.used <= 0"
+              (click)="step(row, -1, $any($event.currentTarget))"
+            >
+              <i class="pi pi-minus" aria-hidden="true"></i>
+            </button>
+            <input
+              #field
+              type="text"
+              inputmode="decimal"
+              class="mat__input"
+              [attr.aria-label]="'Used quantity for ' + row.description"
+              [readOnly]="readOnly()"
+              [value]="display(row)"
+              (input)="typed(row, field.value)"
+              (change)="commitTyped(row, field.value, field)"
+            />
+            <button
+              type="button"
+              class="mat__step"
+              [attr.aria-label]="'Increase ' + row.description"
+              [disabled]="readOnly() || pending() !== null"
+              (click)="step(row, 1, $any($event.currentTarget))"
+            >
+              <i class="pi pi-plus" aria-hidden="true"></i>
+            </button>
+          </span>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (!readOnly()) {
+    <button
+      #addButton
+      pButton
+      type="button"
+      class="mat__add"
+      severity="info"
+      [outlined]="true"
+      (click)="openAdd($any($event.currentTarget))"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Add material
+    </button>
+  }
+</section>
+
+<p-dialog
+  header="Add material"
+  [modal]="true"
+  closeAriaLabel="Close"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="addOpen()"
+  (visibleChange)="$event ? null : closeAdd()"
+  [style]="{ width: '26rem', maxWidth: '96vw' }"
+>
+  <div class="mat__panel">
+    @if (freeText()) {
+      <label class="mat__field">
+        Description
+        <input
+          type="text"
+          class="mat__text"
+          maxlength="240"
+          [value]="description()"
+          (input)="description.set($any($event.target).value)"
+        />
+      </label>
+      <label class="mat__field">
+        Unit
+        <input
+          type="text"
+          class="mat__text"
+          maxlength="40"
+          [value]="unit()"
+          (input)="unit.set($any($event.target).value)"
+        />
+      </label>
+      <button pButton type="button" severity="secondary" [text]="true" (click)="setFreeText(false)">
+        Search the catalog
+      </button>
+    } @else {
+      <label class="mat__field">
+        Search the catalog
+        <input
+          type="search"
+          class="mat__text"
+          maxlength="80"
+          [value]="searchText()"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </label>
+      @if (searching()) {
+        <p class="mat__muted" role="status">Searching…</p>
+      } @else if (searchFailed()) {
+        <p class="mat__error" role="alert">We couldn't search the catalog. Try again.</p>
+      } @else if (
+        searchText().trim().length >= 2 && results().length === 0 && selected() === null
+      ) {
+        <p class="mat__muted" role="status">No matching materials.</p>
+      }
+      <ul class="mat__results">
+        @for (item of results(); track item.id) {
+          <li>
+            <button
+              type="button"
+              class="mat__result"
+              [attr.aria-pressed]="selected()?.id === item.id"
+              (click)="selected.set(item)"
+            >
+              {{ item.name }}
+              <span class="mat__unit">{{ item.unit }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+      <button pButton type="button" severity="secondary" [text]="true" (click)="setFreeText(true)">
+        Not in catalog
+      </button>
+    }
+    <label class="mat__field">
+      Quantity
+      <input
+        type="text"
+        inputmode="decimal"
+        class="mat__text"
+        [value]="quantity()"
+        (input)="quantity.set($any($event.target).value)"
+      />
+    </label>
+    @if (addError(); as message) {
+      <p class="mat__error" role="alert">{{ message }}</p>
+    }
+    <div class="mat__actions">
+      <button
+        pButton
+        type="button"
+        class="mat__action"
+        [disabled]="!canAdd() || pending() !== null"
+        [loading]="pending() === 'add'"
+        (click)="add()"
+      >
+        Add
+      </button>
+      <button
+        pButton
+        type="button"
+        class="mat__action"
+        severity="secondary"
+        [outlined]="true"
+        (click)="closeAdd()"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+</p-dialog>
+
+<p-dialog
+  [header]="'Remove ' + (removeTarget()?.description ?? '') + '?'"
+  [modal]="true"
+  closeAriaLabel="Close"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="removeTarget() !== null"
+  (visibleChange)="$event ? null : closeRemove()"
+  [style]="{ width: '22rem', maxWidth: '96vw' }"
+>
+  <div class="mat__actions">
+    <button
+      pButton
+      type="button"
+      class="mat__action"
+      severity="danger"
+      [disabled]="pending() !== null"
+      [loading]="pending() !== null"
+      (click)="confirmRemove()"
+    >
+      Remove
+    </button>
+    <button
+      pButton
+      type="button"
+      class="mat__action"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="pending() !== null"
+      (click)="closeRemove()"
+    >
+      Cancel
+    </button>
+  </div>
+</p-dialog>
