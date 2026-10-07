@@ -4,6 +4,9 @@ import { knownModuleGuard, moduleTitle } from '../coming-soon/coming-soon.routes
 
 export const TODAY_ROUTE_PATH = 'today';
 
+/** Top-bar back button of the job page (`data.shellBack`). */
+export const TODAY_BACK = { link: '/today', label: "Back to Today's jobs" };
+
 /** Titles shown in the technician top bar (`data.shellTitle`). */
 export const TODAY_TITLE = "Today's jobs";
 export const JOB_TITLE = 'Job details';
@@ -17,12 +20,12 @@ export const todayRoute: Route = {
   loadComponent: () => import('./pages/today/today').then((m) => m.Today),
 };
 
-/** Minimal read-only job page (`/today/visits/:visitId`). */
+/** Job page (`/today/visits/:visitId`). */
 export const visitDetailRoute: Route = {
   path: `${TODAY_ROUTE_PATH}/visits/:visitId`,
   pathMatch: 'full',
   title: 'Job details · FieldOps',
-  data: { shellTitle: JOB_TITLE },
+  data: { shellTitle: JOB_TITLE, shellBack: TODAY_BACK },
   loadComponent: () => import('./pages/visit-detail/visit-detail').then((m) => m.VisitDetail),
 };
 

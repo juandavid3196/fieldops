@@ -1,0 +1,82 @@
+// Fixed action bar (BR-14): sticky above the bottom navigation, so it never covers content.
+.bar {
+  position: sticky;
+  inset-block-end: calc(4rem + env(safe-area-inset-bottom, 0px));
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: auto -1rem 0;
+  padding: 0.75rem 1rem;
+  background: var(--fo-color-surface);
+  border-block-start: 1px solid var(--fo-color-border);
+
+  &__row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: start;
+  }
+
+  &__start-job {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  & &__button {
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    justify-content: center;
+  }
+
+  &__helper,
+  &__message {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    text-align: center;
+  }
+
+  &__message {
+    font-size: 0.875rem;
+  }
+
+  &__report {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0 0.75rem;
+    font: inherit;
+    color: light-dark(#2860ff, var(--fo-color-primary-strong));
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-today-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__text {
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  & &__call {
+    justify-content: center;
+    min-block-size: var(--fo-size-touch-target);
+    text-decoration: none;
+  }
+}

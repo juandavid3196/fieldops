@@ -1,0 +1,11 @@
+<ol class="stepper" aria-label="Job progress">
+  @for (step of steps(); track step.label) {
+    <li class="stepper__step" [class]="'stepper__step--' + step.state">
+      <span class="stepper__marker" aria-hidden="true">
+        <i class="pi" [class]="step.state === 'done' ? 'pi-check' : icon(step.label)"></i>
+      </span>
+      <span class="stepper__label">{{ step.label }}</span>
+      <span class="stepper__state">({{ step.state }})</span>
+    </li>
+  }
+</ol>

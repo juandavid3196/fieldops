@@ -1,5 +1,5 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { ProgressBar } from 'primeng/progressbar';
@@ -14,6 +14,7 @@ import {
   TechnicianLoadFailure,
   accessMessage,
   classifyFailure,
+  classifyTravelFailure,
 } from '../../utils/technician-errors';
 import {
   STATUS_LABELS,
@@ -43,8 +44,9 @@ const IN_PROGRESS_GROUP = ['on_the_way', 'in_progress', 'paused'];
 type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
 
 /**
- * Today's jobs (`/today`, Design 7). Read-only: it never changes a visit. Roles other than
- * `technician` get the forbidden state with no request (UX only; the backend decides).
+ * Today's jobs (`/today`, Design 7). The only write is Start travel on the next job card, shown to
+ * the primary technician of an `assigned` visit (BR-15). Roles other than `technician` get the
+ * forbidden state with no request (UX only; the backend decides).
  */
 @Component({
   selector: 'app-today',
@@ -55,6 +57,7 @@ type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
 export class Today {
   private readonly visits = inject(TechnicianVisitsService);
   private readonly sessionService = inject(SessionService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
@@ -66,6 +69,9 @@ export class Today {
   readonly data = signal<TodayResponse | null>(null);
   readonly refreshing = signal(false);
   readonly refreshFailed = signal(false);
+  /** Start travel in flight on the next job card; blocks repeats (BR-15). */
+  readonly starting = signal(false);
+  readonly startError = signal<string | null>(null);
   private readonly loadedAt = signal(0);
   private readonly now = signal(Date.now());
   private readonly greetingText = signal('');
@@ -173,6 +179,31 @@ export class Today {
         }
         const failure = classifyFailure(error);
         this.state.set(failure === 'failed' || failure === 'not-found' ? 'error' : failure);
+      },
+    });
+  }
+
+  /** BR-15: only an `assigned` next visit where the caller is primary. */
+  canStartTravel(visit: TodayVisit): boolean {
+    return visit.status === 'assigned' && visit.isPrimary;
+  }
+
+  /** Records the transition, then opens the job page; a failure stays on the card. */
+  startTravel(visit: TodayVisit): void {
+    if (this.starting()) {
+      return;
+    }
+    this.starting.set(true);
+    this.startError.set(null);
+    this.visits.startTravel(visit.visitId).subscribe({
+      next: () => {
+        this.router.navigate(['/today/visits', visit.visitId]).finally(() => {
+          this.starting.set(false);
+        });
+      },
+      error: (error: unknown) => {
+        this.starting.set(false);
+        this.startError.set(classifyTravelFailure(error).message);
       },
     });
   }

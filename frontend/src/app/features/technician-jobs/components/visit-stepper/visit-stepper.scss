@@ -1,0 +1,79 @@
+:host {
+  display: block;
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    min-inline-size: 0;
+    font-size: 0.8125rem;
+    color: light-dark(#46598c, var(--fo-color-text-secondary));
+    text-align: center;
+
+    // Connector to the next step; teal once this step is done.
+    &:not(:last-child)::after {
+      position: absolute;
+      inset-block-start: 1.1875rem;
+      inset-inline-start: calc(50% + 1.5rem);
+      inline-size: calc(100% - 3rem);
+      border-block-start: 2px solid light-dark(#c4ccdd, var(--fo-color-border));
+      content: '';
+    }
+
+    &--done:not(:last-child)::after {
+      border-block-start-color: #148570;
+    }
+
+    &--current {
+      font-weight: 700;
+      color: light-dark(#03595b, var(--fo-color-text));
+    }
+  }
+
+  &__marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    font-size: 1.125rem;
+    color: light-dark(#46598c, var(--fo-color-text-secondary));
+    background: light-dark(#dfe6ee, var(--fo-color-surface-muted));
+    border-radius: 50%;
+
+    .stepper__step--done &,
+    .stepper__step--current & {
+      color: #fff;
+    }
+
+    .stepper__step--done &,
+    .stepper__step--current & {
+      background: var(--fo-today-accent);
+    }
+
+    .stepper__step--current & {
+      box-shadow: 0 0 0 3px var(--fo-color-primary-soft);
+    }
+  }
+
+  // State as text for assistive technology.
+  &__state {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}

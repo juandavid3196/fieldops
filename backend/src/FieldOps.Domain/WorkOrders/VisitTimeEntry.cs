@@ -70,4 +70,20 @@ public sealed class VisitTimeEntry
             EndedAt = endedAt,
         };
     }
+
+    /// <summary>
+    /// Closes an open entry. The end is at least one microsecond (the PostgreSQL precision) after the start, so a close
+    /// right after the start still satisfies <c>started_at &lt; ended_at</c>.
+    /// </summary>
+    public void Close(DateTimeOffset endedAt)
+    {
+        if (EndedAt is not null)
+        {
+            throw new InvalidOperationException("The time entry is already closed.");
+        }
+
+        var earliest = StartedAt.AddTicks(10);
+
+        EndedAt = endedAt < earliest ? earliest : endedAt;
+    }
 }

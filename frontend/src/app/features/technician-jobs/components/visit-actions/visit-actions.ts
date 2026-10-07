@@ -13,6 +13,10 @@ import { directionsUrl, telUrl } from '../../utils/technician-format';
 })
 export class VisitActions {
   readonly visit = input.required<TodayVisit>();
+  /** Design 7 shows "Directions"; the job page shows "Open directions". */
+  readonly directionsLabel = input('Directions');
+  /** Job page: Open directions leads as the primary teal action, Call follows. */
+  readonly featured = input(false);
 
   readonly callHref = computed(() => {
     const phone = this.visit().phone?.trim() ?? '';

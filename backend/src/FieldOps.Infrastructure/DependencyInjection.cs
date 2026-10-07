@@ -102,6 +102,7 @@ public static class DependencyInjection
         services.AddScoped<IWorkOrderStore, WorkOrderStore>();
         services.AddScoped<IDispatchStore, DispatchStore>();
         services.AddScoped<IVisitNotifier, VisitNotifier>();
+        services.AddScoped<ITravelNotifier, TravelNotifier>();
         services.AddScoped<ITechnicianVisitStore, TechnicianVisitStore>();
         services.AddScoped<IChecklistTemplateStore, ChecklistTemplateStore>();
         services.AddSingleton<IQuotePdfRenderer, MigraDocQuotePdfRenderer>();

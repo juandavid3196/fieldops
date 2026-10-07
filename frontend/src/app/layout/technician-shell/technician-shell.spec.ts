@@ -9,7 +9,10 @@ import { API_CONFIG } from '../../core/config/api.config';
 import { authInterceptor } from '../../core/interceptors/auth.interceptor';
 import { errorInterceptor } from '../../core/interceptors/error.interceptor';
 import { SessionService } from '../../core/services/session.service';
-import { technicianComingSoonRoute } from '../../features/technician-jobs/technician-jobs.routes';
+import {
+  TODAY_BACK,
+  technicianComingSoonRoute,
+} from '../../features/technician-jobs/technician-jobs.routes';
 import { SIGN_OUT_ERROR_MESSAGE, TechnicianShell } from './technician-shell';
 
 const API = 'http://api.test';
@@ -37,7 +40,7 @@ describe('TechnicianShell', () => {
               {
                 path: 'today/visits/:visitId',
                 component: PageStub,
-                data: { shellTitle: 'Job details' },
+                data: { shellTitle: 'Job details', shellBack: TODAY_BACK },
               },
               technicianComingSoonRoute,
             ],
@@ -100,6 +103,9 @@ describe('TechnicianShell', () => {
     await go('/today/visits/v-1');
     expect(current()).toEqual(['Today']);
     expect(title()).toBe('Job details');
+    const back = host.querySelector('a[aria-label="Back to Today\'s jobs"]');
+    expect(back?.getAttribute('href')).toBe('/today');
+    expect(host.querySelector('.tshell__logo')).toBeNull();
 
     for (const name of ['Schedule', 'Time', 'Messages']) {
       await go(`/today/soon/${name.toLowerCase()}`);
@@ -117,6 +123,10 @@ describe('TechnicianShell', () => {
     await go('/today/soon/notifications');
     expect(title()).toBe('Notifications');
     expect(current()).toEqual([]);
+
+    await go('/today');
+    expect(host.querySelector('.tshell__logo')).not.toBeNull();
+    expect(host.querySelector('a[aria-label="Back to Today\'s jobs"]')).toBeNull();
 
     await go('/today/soon/unknown');
     expect(router.url).toBe('/today');

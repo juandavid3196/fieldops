@@ -2,7 +2,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { API_CONFIG } from '../../../../core/config/api.config';
 import { errorInterceptor } from '../../../../core/interceptors/error.interceptor';
@@ -49,6 +49,7 @@ function visit(
     latitude: 30.25,
     longitude: -97.75,
     plannedMaterialsCount: 2,
+    isPrimary: true,
     ...overrides,
   };
 }
@@ -227,10 +228,8 @@ describe('Today', () => {
       a.textContent?.trim(),
       a.getAttribute('href'),
     ]).filter(([label]) => label === 'Start travel' || label === 'View job details');
-    expect(actions).toEqual([
-      ['Start travel', '/today/visits/2'],
-      ['View job details', '/today/visits/2'],
-    ]);
+    expect(actions).toEqual([['View job details', '/today/visits/2']]);
+    expect(card.querySelector('button')).toBeNull(); // a `scheduled` next visit cannot start travel
 
     const rows = Array.from(root().querySelectorAll('.today__route-list > li > a'));
     expect(root().querySelector('ol.today__route-list')).not.toBeNull();
@@ -313,6 +312,66 @@ describe('Today', () => {
     );
     expect(root().querySelector('.today__next')).not.toBeNull();
   });
+
+  it.each<[string, TodayVisit, boolean]>([
+    ['an assigned visit where the caller is primary', visit('2', 'assigned'), true],
+    [
+      'an assigned visit where the caller is not primary',
+      visit('2', 'assigned', { isPrimary: false }),
+      false,
+    ],
+    ['an on-the-way visit', visit('2', 'on_the_way'), false],
+  ])(
+    'offers Start travel only on %s; starting records the transition before opening the job, failing inline and staying (AC-16)',
+    async (_name, next, startable) => {
+      await load(response([next], { scheduledMinutes: 60 }, '2'));
+      const card = root().querySelector('.today__next')!;
+      const start = () =>
+        Array.from(card.querySelectorAll('button')).find((b) =>
+          b.textContent?.includes('Start travel'),
+        );
+      const detailLink = Array.from(card.querySelectorAll('a')).find((a) =>
+        a.textContent?.includes('View job details'),
+      );
+      expect(detailLink?.getAttribute('href')).toBe('/today/visits/2');
+      expect(start() !== undefined).toBe(startable);
+      if (!startable) {
+        return;
+      }
+      const router = TestBed.inject(Router);
+
+      // 409 keeps the card with the fixed message and no navigation.
+      start()!.click();
+      start()!.click();
+      await settle();
+      expect(start()!.disabled).toBe(true);
+      const failing = httpTesting.expectOne({
+        method: 'POST',
+        url: `${API}/technician/visits/2/start-travel`,
+      });
+      expect(failing.request.body).toBeNull();
+      failing.flush(
+        { status: 409, code: 'another_visit_active' },
+        { status: 409, statusText: 'Conflict' },
+      );
+      await settle();
+      expect(text('.today__start-error')).toBe(
+        "You're already traveling to or working on another job.",
+      );
+      expect(router.url).not.toContain('/today/visits');
+      expect(start()!.disabled).toBe(false);
+
+      // Success opens the job page after the POST.
+      start()!.click();
+      await settle();
+      expect(router.url).not.toContain('/today/visits');
+      httpTesting
+        .expectOne({ method: 'POST', url: `${API}/technician/visits/2/start-travel` })
+        .flush({ changed: true, visit: {} });
+      await settle();
+      expect(router.url).toBe('/today/visits/2');
+    },
+  );
 
   it.each([
     [

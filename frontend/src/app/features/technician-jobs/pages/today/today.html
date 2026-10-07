@@ -139,14 +139,27 @@
             </div>
             <app-visit-actions [visit]="next" />
             <div class="today__primary-actions">
-              <a
-                pButton
-                class="today__action today__action--start"
-                [routerLink]="['/today/visits', next.visitId]"
-              >
-                <i class="pi pi-send" aria-hidden="true"></i>
-                Start travel
-              </a>
+              @if (startError(); as errorText) {
+                <p-message class="today__start-error" severity="error" [closable]="false">{{
+                  errorText
+                }}</p-message>
+              }
+              @if (canStartTravel(next)) {
+                <button
+                  pButton
+                  type="button"
+                  class="today__action today__action--start"
+                  [disabled]="starting()"
+                  [loading]="starting()"
+                  [attr.aria-busy]="starting()"
+                  (click)="startTravel(next)"
+                >
+                  @if (!starting()) {
+                    <i class="pi pi-send" aria-hidden="true"></i>
+                  }
+                  Start travel
+                </button>
+              }
               <a
                 pButton
                 class="today__action today__action--link"

@@ -16,6 +16,11 @@ import { TechnicianVisitsService } from '../../features/technician-jobs/services
 import { avatarTextColor } from '../../features/technician-jobs/utils/technician-format';
 import { NOTIFICATIONS_LINK, PROFILE_LINK, TECHNICIAN_NAV } from './technician-shell.nav';
 
+export interface ShellBack {
+  readonly link: string;
+  readonly label: string;
+}
+
 export const SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
 type PanelKind = 'more' | 'account';
 
@@ -54,6 +59,7 @@ export class TechnicianShell {
   readonly signOutFailed = signal(false);
   private readonly path = signal(this.currentPath());
   readonly pageTitle = signal(this.titleFor());
+  readonly back = signal(this.backFor());
 
   readonly moreOpen = computed(() => this.openPanel() === 'more');
   readonly accountOpen = computed(() => this.openPanel() === 'account');
@@ -87,6 +93,7 @@ export class TechnicianShell {
       .subscribe(() => {
         this.path.set(this.currentPath());
         this.pageTitle.set(this.titleFor());
+        this.back.set(this.backFor());
         this.openPanel.set(null);
       });
   }
@@ -159,5 +166,18 @@ export class TechnicianShell {
       return shellTitle;
     }
     return comingSoonModuleName(leaf.paramMap.get('module') ?? '') ?? '';
+  }
+
+  /** `data.shellBack` replaces the logo with a back button (the job page). */
+  private backFor(): ShellBack | null {
+    const back: unknown = deepest(this.router.routerState.snapshot.root).data['shellBack'];
+    return typeof back === 'object' &&
+      back !== null &&
+      'link' in back &&
+      typeof back.link === 'string' &&
+      'label' in back &&
+      typeof back.label === 'string'
+      ? { link: back.link, label: back.label }
+      : null;
   }
 }

@@ -51,6 +51,16 @@ export function formatShortDate(date: string): string {
   return formatCalendarDate(date, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+/** "EEE, MMM d" of an instant in the response time zone. */
+export function formatInstantShortDate(iso: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    timeZone,
+  }).format(new Date(iso));
+}
+
 /** BR-06: 05:00-11:59 morning, 12:00-17:59 afternoon, otherwise evening, by local hour. */
 export function greetingFor(now: Date, timeZone: string): string {
   const hour = Number(

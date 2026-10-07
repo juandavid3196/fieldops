@@ -1,0 +1,24 @@
+<ul class="photos">
+  @for (photo of photos(); track photo.id; let index = $index) {
+    <li class="photos__item">
+      @if (failed().has(photo.id)) {
+        <span class="photos__failed">Photo unavailable.</span>
+      } @else {
+        <button
+          type="button"
+          class="photos__button"
+          [attr.aria-label]="'Open ' + alt(index)"
+          (click)="open.emit({ index, trigger: $any($event.currentTarget) })"
+        >
+          <img
+            class="photos__image"
+            loading="lazy"
+            [src]="photo.url"
+            [alt]="alt(index)"
+            (error)="markFailed(photo.id)"
+          />
+        </button>
+      }
+    </li>
+  }
+</ul>
