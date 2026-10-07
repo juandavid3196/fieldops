@@ -203,6 +203,28 @@ $nav-height: 4rem;
     block-size: $nav-height;
   }
 
+  // Job page: the top edge shows step progress instead of the current-item marker.
+  &__progress {
+    position: absolute;
+    inset: -1px 0 auto;
+    block-size: 3px;
+  }
+
+  &__progress-fill {
+    display: block;
+    block-size: 100%;
+    background: var(--fo-today-accent);
+    transition: inline-size 0.3s ease;
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
+  }
+
+  &__nav--progress &__nav-item--current {
+    box-shadow: none;
+  }
+
   &__nav-item {
     display: flex;
     flex-direction: column;

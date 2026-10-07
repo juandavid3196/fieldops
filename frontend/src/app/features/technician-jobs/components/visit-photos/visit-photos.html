@@ -18,6 +18,9 @@
             (error)="markFailed(photo.id)"
           />
         </button>
+        @if (photo.label; as label) {
+          <span class="photos__label">{{ label }}</span>
+        }
       }
     </li>
   }

@@ -44,6 +44,9 @@ const CONFLICT_MESSAGES: Readonly<Record<string, string>> = {
   another_visit_active: "You're already traveling to or working on another job.",
 };
 
+export const START_JOB_INVALID_MESSAGE = "This job can't be started in its current state.";
+export const NOT_PRIMARY_JOB_MESSAGE = 'The primary technician manages this job.';
+
 export interface TravelFailure {
   readonly message: string;
   /** A conflict or a lost primary assignment means the shown visit is stale. */
@@ -51,16 +54,25 @@ export interface TravelFailure {
 }
 
 /** Maps a failed Start travel / I've arrived call to its fixed copy by `status` and `code` (BR-14). */
-export function classifyTravelFailure(error: unknown): TravelFailure {
+export function classifyTravelFailure(
+  error: unknown,
+  action: 'travel' | 'start-job' = 'travel',
+): TravelFailure {
   if (isApiError(error)) {
     if (error.status === 409) {
       return {
-        message: CONFLICT_MESSAGES[error.code ?? ''] ?? UPDATE_ERROR_MESSAGE,
+        message:
+          action === 'start-job' && error.code === 'visit_status_invalid'
+            ? START_JOB_INVALID_MESSAGE
+            : (CONFLICT_MESSAGES[error.code ?? ''] ?? UPDATE_ERROR_MESSAGE),
         reload: true,
       };
     }
     if (error.status === 403 && error.code === 'not_primary_technician') {
-      return { message: NOT_PRIMARY_MESSAGE, reload: true };
+      return {
+        message: action === 'start-job' ? NOT_PRIMARY_JOB_MESSAGE : NOT_PRIMARY_MESSAGE,
+        reload: true,
+      };
     }
   }
   return { message: UPDATE_ERROR_MESSAGE, reload: false };

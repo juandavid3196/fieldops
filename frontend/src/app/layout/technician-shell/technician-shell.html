@@ -77,7 +77,24 @@
       </div>
     }
 
-    <nav class="tshell__nav" aria-label="Primary">
+    @let percent = jobProgress();
+    @if (percent !== null) {
+      <div
+        class="tshell__progress"
+        role="progressbar"
+        aria-label="Job progress"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="percent"
+      >
+        <span class="tshell__progress-fill" [style.inline-size.%]="percent"></span>
+      </div>
+    }
+    <nav
+      class="tshell__nav"
+      [class.tshell__nav--progress]="jobProgress() !== null"
+      aria-label="Primary"
+    >
       @for (item of nav; track item.label) {
         <a
           class="tshell__nav-item"

@@ -1,0 +1,140 @@
+<p class="progress__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+<section class="banner" aria-label="Job status">
+  <div class="banner__top">
+    <span class="banner__icon" aria-hidden="true">
+      <i class="pi" [class]="paused() ? 'pi-pause' : 'pi-play'"></i>
+    </span>
+    <p class="banner__text">
+      <strong>{{ paused() ? 'Paused' : 'In progress' }} • {{ laborText() }}</strong>
+      @if (startedText(); as started) {
+        <span class="banner__started">{{ started }}</span>
+      }
+    </p>
+  </div>
+  <div class="banner__actions">
+    @if (!readOnly()) {
+      <button
+        pButton
+        type="button"
+        class="banner__button banner__button--pause"
+        severity="warn"
+        [outlined]="true"
+        [disabled]="transition() !== null"
+        [loading]="transition() !== null"
+        (click)="toggle()"
+      >
+        @if (transition() === null) {
+          <i class="pi" [class]="paused() ? 'pi-play' : 'pi-pause'" aria-hidden="true"></i>
+        }
+        {{ paused() ? 'Resume' : 'Pause' }}
+      </button>
+    }
+    <button
+      pButton
+      type="button"
+      class="banner__button banner__button--report"
+      severity="secondary"
+      [outlined]="true"
+      (click)="openReport.emit($any($event.currentTarget))"
+    >
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      Report issue
+    </button>
+  </div>
+  @if (transitionError(); as message) {
+    <p class="banner__error" role="alert">{{ message }}</p>
+  }
+</section>
+
+<ng-content />
+
+<nav class="progress__nav" aria-label="Job sections">
+  @for (section of sections; track section.id) {
+    <a
+      class="progress__link"
+      [href]="'#' + sectionId(section.id)"
+      [attr.aria-current]="activeSection() === section.id ? 'location' : null"
+      (click)="goTo(section.id, $event)"
+    >
+      {{ section.label }}
+    </a>
+  }
+</nav>
+
+<div class="progress__section" [id]="sectionId('tasks')" data-section="tasks">
+  <app-job-tasks
+    [visit]="visit()"
+    [readOnly]="readOnly()"
+    (visitChange)="visitChange.emit($event)"
+    (reload)="reload.emit()"
+  />
+</div>
+<div class="progress__section" [id]="sectionId('materials')" data-section="materials">
+  <app-job-materials
+    [visit]="visit()"
+    [readOnly]="readOnly()"
+    (visitChange)="visitChange.emit($event)"
+    (reload)="reload.emit()"
+  />
+</div>
+<div class="progress__section" [id]="sectionId('photos')" data-section="photos">
+  <app-job-evidence
+    [visit]="visit()"
+    [photos]="photos()"
+    [readOnly]="readOnly()"
+    (visitChange)="visitChange.emit($event)"
+    (reload)="reload.emit()"
+    (openPhoto)="openPhoto.emit($event)"
+    (announce)="announcement.set($event)"
+  />
+</div>
+<div class="progress__section" [id]="sectionId('notes')" data-section="notes">
+  <app-job-notes
+    [value]="notesDraft()"
+    [readOnly]="readOnly()"
+    [pending]="notesPending()"
+    [saved]="notesSaved()"
+    [error]="notesError()"
+    (valueChange)="notesDraft.set($event); notesSaved.set(false)"
+    (blurred)="notesBlurred()"
+  />
+</div>
+
+<app-job-time [time]="visit().time" [now]="now()" [live]="!paused()" />
+
+<div class="bar">
+  @if (readOnly()) {
+    <p class="bar__message">{{ notPrimaryText }}</p>
+    <a pButton class="bar__button" severity="secondary" [outlined]="true" [routerLink]="todayPath">
+      Back to Today's jobs
+    </a>
+  } @else {
+    @if (exitError(); as message) {
+      <p class="bar__error" role="alert">{{ message }}</p>
+    }
+    <div class="bar__row">
+      <button
+        pButton
+        type="button"
+        class="bar__button"
+        aria-describedby="progress-review-help"
+        [disabled]="!ready() || busy()"
+        (click)="review()"
+      >
+        Review &amp; complete
+      </button>
+      <button
+        pButton
+        type="button"
+        class="bar__button"
+        severity="secondary"
+        [attr.aria-busy]="notesPending()"
+        (click)="saveAndExit()"
+      >
+        Save and exit
+      </button>
+    </div>
+    <p class="bar__helper" id="progress-review-help">{{ ready() ? readyText : blockedText }}</p>
+  }
+</div>

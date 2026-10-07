@@ -1,0 +1,108 @@
+// Report dialog design: amber tile header, Call office card, info note and full-width Close.
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+
+  &__head {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  &__tile {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    color: light-dark(#a35a00, var(--fo-color-warning-text));
+    background: light-dark(#fff1e0, var(--fo-color-warning-background));
+    border-radius: 0.75rem;
+
+    i.pi {
+      font-size: 1.5rem;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__intro {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__call {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    color: var(--fo-color-heading);
+    text-decoration: none;
+    background: var(--fo-color-surface);
+    border: 1.5px solid light-dark(#138784, #4fc3bd);
+    border-radius: var(--fo-radius-control);
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-today-accent);
+      outline-offset: 2px;
+    }
+
+    .pi {
+      flex: none;
+      color: light-dark(#138784, #4fc3bd);
+    }
+  }
+
+  &__call-icon {
+    font-size: 1.375rem;
+  }
+
+  &__call-text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+
+    strong {
+      font-size: 0.9375rem;
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__note {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.75rem 0.875rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-heading);
+    background: light-dark(#edf2fa, var(--fo-color-info-background));
+    border-radius: var(--fo-radius-control);
+
+    i.pi {
+      font-size: 1.125rem;
+      color: light-dark(#1a2ea0, #8aa8ff);
+    }
+  }
+
+  & &__close {
+    justify-content: center;
+    min-block-size: 2.75rem;
+    font-weight: 700;
+  }
+}

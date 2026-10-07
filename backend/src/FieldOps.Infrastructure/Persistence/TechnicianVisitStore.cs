@@ -144,6 +144,7 @@ internal sealed partial class TechnicianVisitStore(FieldOpsDbContext dbContext) 
                 candidate.QuoteVersionId,
                 candidate.InternalInstructions,
                 candidate.ScopeSnapshot,
+                candidate.EstimatedDurationMinutes,
             })
             .SingleAsync(cancellationToken);
         var customerType = await dbContext.Customers.AsNoTracking()
@@ -182,20 +183,56 @@ internal sealed partial class TechnicianVisitStore(FieldOpsDbContext dbContext) 
             .Where(organization => organization.Id == organizationId)
             .Select(organization => organization.Phone)
             .SingleAsync(cancellationToken);
-        var materials = await dbContext.WorkOrderPlannedMaterials.AsNoTracking()
+        var plannedRows = await dbContext.WorkOrderPlannedMaterials.AsNoTracking()
             .Where(material => material.OrganizationId == organizationId && material.WorkOrderId == workOrderId)
             .OrderBy(material => material.SortOrder)
             .ThenBy(material => material.Description)
             .ThenBy(material => material.Id)
-            .Select(material => new PlannedMaterialView(material.Description, material.Quantity, material.Unit, material.Source))
+            .Select(material => new { material.Id, material.Description, material.Quantity, material.Unit, material.Source })
             .ToListAsync(cancellationToken);
-        var tasks = await dbContext.VisitChecklistItems.AsNoTracking()
+        var recorded = await dbContext.VisitMaterials.AsNoTracking()
+            .Where(material => material.VisitId == visitId)
+            .OrderBy(material => material.Id)
+            .Select(material => new
+            {
+                material.Id,
+                material.PlannedMaterialId,
+                material.CatalogItemId,
+                material.Description,
+                material.Quantity,
+                material.Unit,
+            })
+            .ToListAsync(cancellationToken);
+        var used = recorded
+            .Where(material => material.PlannedMaterialId != null)
+            .ToDictionary(material => material.PlannedMaterialId!.Value, material => material.Quantity);
+        var materials = plannedRows
+            .Select(material => new PlannedMaterialView(
+                material.Id, material.Description, material.Quantity, material.Unit, material.Source, used.GetValueOrDefault(material.Id)))
+            .ToList();
+        var additional = recorded
+            .Where(material => material.PlannedMaterialId == null)
+            .Select(material => new AdditionalMaterialView(
+                material.Id, material.Description, material.Quantity, material.Unit, material.CatalogItemId))
+            .ToList();
+        var taskRows = await dbContext.VisitChecklistItems.AsNoTracking()
             .Where(item => item.VisitId == visitId)
             .OrderBy(item => item.SortOrder)
             .ThenBy(item => item.Label)
             .ThenBy(item => item.Id)
-            .Select(item => new VisitTaskView(item.Id, item.Label, item.IsRequired, item.IsCompleted))
+            .Select(item => new { item.Id, item.Label, item.IsRequired, item.IsCompleted, item.Notes, item.CompletedAt })
             .ToListAsync(cancellationToken);
+        var tasks = taskRows
+            .Select(item => new VisitTaskView(
+                item.Id,
+                item.Label,
+                item.IsRequired,
+                item.IsCompleted,
+                item.Notes,
+                item.CompletedAt is { } completedAt ? OrganizationTime.ToZone(completedAt, zone) : null))
+            .ToList();
+        var progress = await ReadProgressAsync(
+            visitId, order.EstimatedDurationMinutes, additional, zone, cancellationToken);
         var entry = await dbContext.VisitTimeEntries.AsNoTracking()
             .Where(candidate => candidate.VisitId == visitId && candidate.EntryType == VisitTimeEntryType.Travel)
             .OrderByDescending(candidate => candidate.StartedAt)
@@ -220,7 +257,69 @@ internal sealed partial class TechnicianVisitStore(FieldOpsDbContext dbContext) 
             travel,
             materials,
             tasks,
-            request is null ? null : await ReadAssessmentAsync(organizationId, request.Id, zone, cancellationToken));
+            request is null ? null : await ReadAssessmentAsync(organizationId, request.Id, zone, cancellationToken),
+            progress);
+    }
+
+    /// <summary>mobile-job-progress BR-14: actual start, time totals, additional materials, photo ids (never content) and notes.</summary>
+    private async Task<VisitProgressView> ReadProgressAsync(
+        Guid visitId,
+        int? estimatedDurationMinutes,
+        IReadOnlyList<AdditionalMaterialView> additional,
+        TimeZoneInfo zone,
+        CancellationToken cancellationToken)
+    {
+        var visit = await dbContext.Visits.AsNoTracking()
+            .Where(candidate => candidate.Id == visitId)
+            .Select(candidate => new
+            {
+                candidate.ActualStartedAt,
+                candidate.CompletionSummary,
+                candidate.ScheduledStart,
+                candidate.ScheduledEnd,
+            })
+            .SingleAsync(cancellationToken);
+        var entries = await dbContext.VisitTimeEntries.AsNoTracking()
+            .Where(candidate => candidate.VisitId == visitId && candidate.EntryType != VisitTimeEntryType.Travel)
+            .Select(candidate => new { candidate.EntryType, candidate.StartedAt, candidate.EndedAt, candidate.Id })
+            .ToListAsync(cancellationToken);
+        var evidence = await dbContext.VisitEvidences.AsNoTracking()
+            .Where(candidate => candidate.VisitId == visitId
+                && (candidate.EvidenceType == VisitEvidenceType.Before || candidate.EvidenceType == VisitEvidenceType.After))
+            .OrderBy(candidate => candidate.CreatedAt)
+            .ThenBy(candidate => candidate.Id)
+            .Select(candidate => new { candidate.Id, candidate.EvidenceType, candidate.CreatedAt })
+            .ToListAsync(cancellationToken);
+
+        int Seconds(VisitTimeEntryType type) => entries
+            .Where(entry => entry.EntryType == type && entry.EndedAt != null)
+            .Sum(entry => VisitProgressRules.WholeSeconds(entry.StartedAt, entry.EndedAt!.Value));
+
+        var open = entries
+            .Where(entry => entry.EndedAt == null)
+            .OrderByDescending(entry => entry.StartedAt)
+            .ThenByDescending(entry => entry.Id)
+            .FirstOrDefault();
+        int? estimate = estimatedDurationMinutes
+            ?? (visit.ScheduledStart is { } start && visit.ScheduledEnd is { } end
+                ? (int)Math.Floor((end - start).TotalMinutes)
+                : null);
+
+        return new VisitProgressView(
+            visit.ActualStartedAt is { } started ? OrganizationTime.ToZone(started, zone) : null,
+            new VisitTime(
+                Seconds(VisitTimeEntryType.Work),
+                Seconds(VisitTimeEntryType.Pause),
+                open is null
+                    ? null
+                    : new ActiveTimeEntry(open.EntryType == VisitTimeEntryType.Pause ? "pause" : "work", OrganizationTime.ToZone(open.StartedAt, zone)),
+                estimate),
+            additional,
+            [.. evidence.Select(candidate => new VisitEvidenceView(
+                candidate.Id,
+                candidate.EvidenceType == VisitEvidenceType.After ? "after" : "before",
+                OrganizationTime.ToZone(candidate.CreatedAt, zone)))],
+            visit.CompletionSummary);
     }
 
     private async Task<VisitAssessmentView?> ReadAssessmentAsync(

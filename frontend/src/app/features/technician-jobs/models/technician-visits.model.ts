@@ -84,10 +84,22 @@ export interface VisitTravel {
 }
 
 export interface PlannedMaterial {
+  readonly id: string;
   readonly description: string;
   readonly quantity: number;
   readonly unit: string;
   readonly source: MaterialSource;
+  /** Quantity used so far; 0 without a recorded row. */
+  readonly usedQuantity: number;
+}
+
+/** Material added by the technician: an active catalog product or free text. */
+export interface AdditionalMaterial {
+  readonly id: string;
+  readonly description: string;
+  readonly quantity: number;
+  readonly unit: string;
+  readonly catalogItemId: string | null;
 }
 
 export interface VisitTask {
@@ -95,6 +107,9 @@ export interface VisitTask {
   readonly label: string;
   readonly isRequired: boolean;
   readonly isCompleted: boolean;
+  readonly notes: string | null;
+  /** ISO instant with offset. */
+  readonly completedAt: string | null;
 }
 
 export interface VisitAssessment {
@@ -102,6 +117,34 @@ export interface VisitAssessment {
   readonly diagnosis: string | null;
   readonly recommendedScope: string | null;
   readonly photos: readonly { readonly id: string }[];
+}
+
+export type EvidenceType = 'before' | 'after';
+
+export interface VisitEvidence {
+  readonly id: string;
+  readonly type: EvidenceType;
+  readonly createdAt: string;
+}
+
+export interface VisitActiveEntry {
+  readonly type: 'work' | 'pause';
+  /** ISO instant with offset. */
+  readonly startedAt: string;
+}
+
+/** Closed entry totals in whole seconds; the active entry is added by the client clock. */
+export interface VisitTime {
+  readonly workSeconds: number;
+  readonly pauseSeconds: number;
+  readonly activeEntry: VisitActiveEntry | null;
+  readonly estimatedMinutes: number | null;
+}
+
+export interface CatalogItem {
+  readonly id: string;
+  readonly name: string;
+  readonly unit: string;
 }
 
 export interface TechnicianVisitDetail extends TodayVisit {
@@ -118,10 +161,28 @@ export interface TechnicianVisitDetail extends TodayVisit {
   readonly plannedMaterials: readonly PlannedMaterial[];
   readonly tasks: readonly VisitTask[];
   readonly assessment: VisitAssessment | null;
+  readonly actualStartedAt: string | null;
+  readonly time: VisitTime;
+  readonly additionalMaterials: readonly AdditionalMaterial[];
+  readonly evidence: readonly VisitEvidence[];
+  readonly technicianNotes: string | null;
 }
 
-/** Response of start-travel and arrive; `changed` is false on an idempotent repeat. */
+/** Response of start-travel, arrive, start-job, pause and resume; `changed` is false on an idempotent repeat. */
 export interface TravelResult {
   readonly changed: boolean;
   readonly visit: TechnicianVisitDetail;
 }
+
+export type EvidenceUploadEvent =
+  | { readonly kind: 'progress'; readonly percent: number }
+  | { readonly kind: 'done'; readonly visit: TechnicianVisitDetail };
+
+export interface TaskUpdate {
+  readonly isCompleted?: boolean;
+  readonly notes?: string;
+}
+
+export type NewMaterial =
+  | { readonly quantity: number; readonly catalogItemId: string }
+  | { readonly quantity: number; readonly description: string; readonly unit: string };

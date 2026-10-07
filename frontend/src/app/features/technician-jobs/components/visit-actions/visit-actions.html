@@ -22,7 +22,7 @@
     [href]="directionsHref()"
     [attr.aria-label]="directionsLabel() + ' to ' + visit().title + ' (opens in a new tab)'"
   >
-    <i class="pi pi-directions" aria-hidden="true"></i>
+    <i class="pi" [class]="featured() ? 'pi-send' : 'pi-directions'" aria-hidden="true"></i>
     {{ directionsLabel() }}
   </a>
 </div>

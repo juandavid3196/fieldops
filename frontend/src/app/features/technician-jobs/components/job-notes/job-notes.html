@@ -1,0 +1,31 @@
+<section class="notes" aria-labelledby="notes-title">
+  <h2 class="notes__title" id="notes-title">
+    <i class="pi pi-file-edit" aria-hidden="true"></i>
+    Technician notes
+  </h2>
+  <textarea
+    class="notes__field"
+    rows="5"
+    aria-labelledby="notes-title"
+    aria-describedby="notes-help"
+    [attr.maxlength]="maxLength"
+    [readOnly]="readOnly()"
+    [value]="value()"
+    (input)="valueChange.emit($any($event.target).value)"
+    (blur)="blurred.emit()"
+  ></textarea>
+  <div class="notes__foot">
+    <p class="notes__help" id="notes-help">Visible to office; include in completion report</p>
+    <p class="notes__count">{{ value().length }}/{{ maxLength }}</p>
+  </div>
+  @if (pending()) {
+    <p class="notes__status" role="status">Saving…</p>
+  } @else if (error(); as message) {
+    <p class="notes__error" role="alert">{{ message }}</p>
+  } @else if (saved()) {
+    <p class="notes__status" role="status">
+      <i class="pi pi-check" aria-hidden="true"></i>
+      Saved
+    </p>
+  }
+</section>

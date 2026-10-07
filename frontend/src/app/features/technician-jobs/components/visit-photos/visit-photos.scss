@@ -11,15 +11,23 @@
   list-style: none;
 
   &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
     inline-size: 5.5rem;
-    block-size: 5.5rem;
+  }
+
+  &__label {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    text-align: center;
   }
 
   &__button {
     display: block;
     box-sizing: border-box;
     inline-size: 100%;
-    block-size: 100%;
+    block-size: 5.5rem;
     min-inline-size: var(--fo-size-touch-target);
     min-block-size: var(--fo-size-touch-target);
     padding: 0;
@@ -48,7 +56,7 @@
     justify-content: center;
     box-sizing: border-box;
     inline-size: 100%;
-    block-size: 100%;
+    block-size: 5.5rem;
     padding: 0.25rem;
     font-size: 0.75rem;
     color: var(--fo-color-text-secondary);

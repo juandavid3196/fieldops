@@ -212,6 +212,18 @@ public sealed class WorkOrder
         Touch(now);
     }
 
+    /// <summary>A visit started its job (mobile-job-progress BR-04): a scheduled work order becomes in progress.</summary>
+    public void MarkInProgress(DateTimeOffset now)
+    {
+        if (Status != WorkOrderStatus.Scheduled)
+        {
+            throw new InvalidOperationException("Only a scheduled work order can become in progress.");
+        }
+
+        Status = WorkOrderStatus.InProgress;
+        Touch(now);
+    }
+
     /// <summary>No non-cancelled visit keeps a schedule (dispatch-calendar BR-16).</summary>
     public void ReturnToReadyToSchedule(DateTimeOffset now)
     {

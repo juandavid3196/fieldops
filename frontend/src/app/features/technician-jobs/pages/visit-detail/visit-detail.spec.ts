@@ -12,6 +12,8 @@ import {
   TodayVisitStatus,
   TravelResult,
 } from '../../models/technician-visits.model';
+import { TechnicianVisitsService } from '../../services/technician-visits.service';
+import { VisitReview } from '../visit-review/visit-review';
 import { VisitDetail } from './visit-detail';
 
 const API = 'http://api.test';
@@ -59,14 +61,56 @@ const DETAIL: TechnicianVisitDetail = {
   officePhone: '(512) 555-0199',
   travel: { startedAt: null, arrivedAt: null, durationMinutes: null },
   plannedMaterials: [
-    { description: 'P-trap assembly', quantity: 1, unit: 'each', source: 'truck_stock' },
-    { description: 'Shutoff valve', quantity: 2, unit: 'each', source: 'warehouse' },
-    { description: 'Plumbers tape', quantity: 1, unit: 'roll', source: 'to_purchase' },
-    { description: 'Silicone', quantity: 1, unit: 'tube', source: 'truck_stock' },
+    {
+      id: 'm-1',
+      description: 'P-trap assembly',
+      quantity: 1,
+      unit: 'each',
+      source: 'truck_stock',
+      usedQuantity: 0,
+    },
+    {
+      id: 'm-2',
+      description: 'Shutoff valve',
+      quantity: 2,
+      unit: 'each',
+      source: 'warehouse',
+      usedQuantity: 0,
+    },
+    {
+      id: 'm-3',
+      description: 'Plumbers tape',
+      quantity: 1,
+      unit: 'roll',
+      source: 'to_purchase',
+      usedQuantity: 0,
+    },
+    {
+      id: 'm-4',
+      description: 'Silicone',
+      quantity: 1,
+      unit: 'tube',
+      source: 'truck_stock',
+      usedQuantity: 0,
+    },
   ],
   tasks: [
-    { id: 't-1', label: 'Photograph repair', isRequired: true, isCompleted: true },
-    { id: 't-2', label: 'Clean up', isRequired: false, isCompleted: false },
+    {
+      id: 't-1',
+      label: 'Photograph repair',
+      isRequired: true,
+      isCompleted: true,
+      notes: null,
+      completedAt: '2026-10-07T09:50:00+13:00',
+    },
+    {
+      id: 't-2',
+      label: 'Clean up',
+      isRequired: false,
+      isCompleted: false,
+      notes: null,
+      completedAt: null,
+    },
   ],
   assessment: {
     completedAt: '2026-10-05T10:00:00+13:00',
@@ -74,6 +118,11 @@ const DETAIL: TechnicianVisitDetail = {
     recommendedScope: 'Replace trap and valve',
     photos: [{ id: 'p-1' }, { id: 'p-2' }],
   },
+  actualStartedAt: null,
+  time: { workSeconds: 0, pauseSeconds: 0, activeEntry: null, estimatedMinutes: null },
+  additionalMaterials: [],
+  evidence: [],
+  technicianNotes: null,
 };
 
 const MINIMAL: TechnicianVisitDetail = {
@@ -117,7 +166,10 @@ describe('VisitDetail', () => {
     TestBed.configureTestingModule({
       providers: [
         { provide: API_CONFIG, useValue: { baseUrl: API } },
-        provideRouter([{ path: 'today/visits/:visitId', component: VisitDetail }]),
+        provideRouter([
+          { path: 'today/visits/:visitId', component: VisitDetail },
+          { path: 'today/visits/:visitId/review', component: VisitReview },
+        ]),
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
       ],
@@ -189,7 +241,7 @@ describe('VisitDetail', () => {
       ['done', 'done', 'current', 'upcoming'],
       'Arrived • 9:24 AM Travel time 22 min',
     ],
-    ['in progress', visit('in_progress'), ['done', 'done', 'done', 'current'], 'In progress'],
+    ['in progress', visit('in_progress'), ['done', 'done', 'done', 'current'], null],
     ['completed', visit('completed'), ['done', 'done', 'done', 'done'], 'Completed'],
   ])(
     'shows the stepper states as text and the status banner for %s (AC-14)',
@@ -324,40 +376,45 @@ describe('VisitDetail', () => {
     },
   );
 
-  it.each<[string, TechnicianVisitDetail, string[], string]>([
+  it.each<[string, TechnicianVisitDetail, string[], string, boolean]>([
     [
       'primary, assigned',
       visit('assigned'),
       ['Start travel', 'Start job'],
       'Available after arrival is recorded',
+      false,
     ],
     [
       'primary, on the way',
       visit('on_the_way', { travel: openTravel }),
       ["I've arrived", 'Start job'],
       'Available after arrival is recorded',
+      false,
     ],
     [
       'primary, arrived',
       visit('on_the_way', { travel: arrivedTravel }),
       ['Arrived 9:24 AM', 'Start job'],
-      'Starting the job will be available soon.',
-    ],
-    [
-      'primary, paused',
-      visit('paused'),
-      [],
-      'Travel cannot be managed for this job in its current state.',
+      'Arrived 9:24 AM',
+      true,
     ],
     [
       'non-primary, assigned',
       visit('assigned', { isPrimary: false }),
       ['Start job'],
       'The primary technician manages travel for this job.|Available after arrival is recorded',
+      false,
+    ],
+    [
+      'non-primary, arrived',
+      visit('on_the_way', { travel: arrivedTravel, isPrimary: false }),
+      [],
+      'The primary technician manages travel for this job.',
+      false,
     ],
   ])(
-    'shows the action bar controls and helper texts for %s (AC-03, AC-15)',
-    async (_name, detail, buttons, texts) => {
+    'shows the action bar controls and helper texts for %s (AC-03, AC-15, AC-16)',
+    async (_name, detail, buttons, texts, startEnabled) => {
       const root = await open(detail);
       const actions = bar(root);
 
@@ -367,11 +424,93 @@ describe('VisitDetail', () => {
       for (const text of texts.split('|')) {
         expect(flat(actions)).toContain(text);
       }
-      expect(button('Start job', actions)?.disabled ?? true).toBe(true);
+      expect(flat(actions)).not.toContain('Starting the job will be available soon.');
+      expect(button('Start job', actions)?.disabled ?? true).toBe(!startEnabled);
       expect(button('Arrived', actions)?.disabled ?? true).toBe(true);
       expect(byText('button', 'Report delay or issue', actions)).toBeDefined();
     },
   );
+
+  it('starts the job in place with pending protection, an announcement and a 409 reload (AC-16)', async () => {
+    const root = await open(visit('on_the_way', { travel: arrivedTravel }));
+    const start = () => button('Start job', bar(root));
+    const working = visit('in_progress', {
+      travel: arrivedTravel,
+      actualStartedAt: '2026-10-07T09:31:00+13:00',
+      evidence: [
+        { id: 'e-1', type: 'before', createdAt: '2026-10-07T09:40:00+13:00' },
+        { id: 'e-2', type: 'after', createdAt: '2026-10-07T10:40:00+13:00' },
+      ],
+    });
+
+    start()!.click();
+    start()!.click();
+    await settle();
+    expect(start()!.disabled).toBe(true);
+    const request = httpTesting.expectOne({ method: 'POST', url: `${URL}/start-job` });
+    expect(request.request.body).toBeNull();
+    request.flush({ changed: true, visit: working } satisfies TravelResult);
+    await settle();
+
+    expect(root.querySelector('app-job-progress')).not.toBeNull();
+    expect(root.querySelector('.visit__banner')).toBeNull();
+    expect(flat(root.querySelector('.banner'))).toContain('In progress • ');
+    expect(flat(root.querySelector('.banner'))).toContain('Started 9:31 AM');
+    expect(root.querySelector('h1')?.textContent).toBe('Kitchen sink leak repair');
+    expect(flat(root.querySelector('.visit__sr'))).toBe('Job started.');
+    expect(flat(root.querySelector('.stepper'))).toContain('In progress(current)');
+    expect(TestBed.inject(TechnicianVisitsService).pageTitle()).toBe('Job in progress');
+    // Scheduled, On the way and Arrived are done: 3 of 4 steps.
+    expect(TestBed.inject(TechnicianVisitsService).jobProgress()).toBe(75);
+    expect(root.querySelector('a[href^="tel:"]')).toBeNull();
+    expect(flat(root)).not.toMatch(/Access details|Message|\bmi\b/);
+
+    // Job photos open in the viewer; Delete asks first, then replaces the visit and stays open.
+    const thumbnail = root.querySelector<HTMLButtonElement>('.photos__button')!;
+    thumbnail.focus();
+    await clickAndSettle(thumbnail);
+    expect(document.body.querySelector<HTMLImageElement>('.viewer__image')?.alt).toBe(
+      'Before photo 1 of 1',
+    );
+    const remove = () => button('Delete photo', document.body);
+    await clickAndSettle(remove());
+    expect(body()).toContain('Delete this photo?');
+    await clickAndSettle(button('Cancel', document.body));
+    httpTesting.expectNone(`${URL}/evidence/e-1`);
+    expect(document.activeElement).toBe(remove());
+    await clickAndSettle(remove());
+    const confirm = Array.from(document.querySelectorAll('.p-dialog')).find((dialog) =>
+      flat(dialog).includes('Delete this photo?'),
+    )!;
+    await clickAndSettle(button('Delete', confirm));
+    httpTesting
+      .expectOne({ method: 'DELETE', url: `${URL}/evidence/e-1` })
+      .flush({ ...working, evidence: [working.evidence[1]] });
+    await settle();
+    expect(document.body.querySelector<HTMLImageElement>('.viewer__image')?.alt).toBe(
+      'After photo 1 of 1',
+    );
+    expect(flat(root.querySelector('.visit__sr'))).toBe('Photo deleted.');
+    await clickAndSettle(
+      document.body.querySelector<HTMLButtonElement>('p-dialog button[aria-label="Close"]')!,
+    );
+
+    // 409: the fixed message, then the visit reloads and keeps the page.
+    TestBed.resetTestingModule();
+    const again = await open(visit('on_the_way', { travel: arrivedTravel }));
+    await clickAndSettle(button('Start job', bar(again)));
+    httpTesting
+      .expectOne({ method: 'POST', url: `${URL}/start-job` })
+      .flush(
+        { status: 409, code: 'visit_status_invalid' },
+        { status: 409, statusText: 'Conflict' },
+      );
+    await settle();
+    expect(flat(bar(again))).toContain("This job can't be started in its current state.");
+    httpTesting.expectOne({ method: 'GET', url: URL }).flush(visit('completed'));
+    await settle();
+    expect(flat(again.querySelector('.visit__banner'))).toBe('Completed');
+  });
 
   it("runs Start travel and I've arrived in place with pending protection, announcements and error handling (AC-15)", async () => {
     const root = await open(visit('assigned'));
@@ -407,7 +546,8 @@ describe('VisitDetail', () => {
     );
     httpTesting.expectOne({ method: 'GET', url: URL }).flush(visit('paused'));
     await settle();
-    expect(flat(root.querySelector('.visit__banner'))).toBe('Paused');
+    expect(root.querySelector('app-job-progress')).not.toBeNull();
+    expect(flat(root.querySelector('.banner'))).toContain('Paused • 0m');
     expect(control("I've arrived")).toBeUndefined();
 
     // Another failure keeps the page and does not reload.
@@ -499,6 +639,23 @@ describe('VisitDetail', () => {
     expect(byText('a', 'Call office', document.body)).toBeUndefined();
     expect(body()).toContain('Issue reporting is coming soon.');
     expect(byText('button', 'View approved assessment', minimal)).toBeUndefined();
+  });
+
+  it('shows the review placeholder with a way back for technicians only and writes nothing (AC-21)', async () => {
+    await open();
+    httpTesting.expectOne(URL).flush(visit('in_progress'));
+    await harness.navigateByUrl('/today/visits/v-1/review');
+    await settle();
+    const root = harness.routeNativeElement as HTMLElement;
+    expect(flat(root)).toContain('Review and completion is coming soon.');
+    expect(root.querySelector('a')?.getAttribute('href')).toBe('/today/visits/v-1');
+    expect(flat(root)).toContain('Back to job');
+
+    TestBed.resetTestingModule();
+    await open(undefined, 'dispatcher');
+    await harness.navigateByUrl('/today/visits/v-1/review');
+    await settle();
+    expect(flat(harness.routeNativeElement)).toContain("You don't have access to Today's jobs.");
   });
 
   it.each([

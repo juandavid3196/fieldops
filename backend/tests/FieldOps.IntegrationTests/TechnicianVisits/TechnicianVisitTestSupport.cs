@@ -68,6 +68,36 @@ internal sealed class TechnicianHost : IAsyncDisposable
     public Task<HttpResponseMessage> PostAsync(string path, string? cookie) =>
         CompanySettingsApi.SendRawAsync(_client, HttpMethod.Post, path, null, cookie);
 
+    /// <summary>A request with an optional JSON body (mobile-job-progress mutations).</summary>
+    public Task<HttpResponseMessage> SendAsync(HttpMethod method, string path, string? cookie, JsonObject? body = null) =>
+        CompanySettingsApi.SendRawAsync(_client, method, path, body?.ToJsonString(), cookie);
+
+    /// <summary>A multipart photo upload: the <c>file</c> part with its declared type and file name, and the <c>type</c> field when given.</summary>
+    public Task<HttpResponseMessage> UploadAsync(
+        string path, string? cookie, byte[] bytes, string declaredType, string? type, string fileName = "photo.jpg")
+    {
+        var part = new ByteArrayContent(bytes);
+        part.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(declaredType);
+
+        var form = new MultipartFormDataContent { { part, "file", fileName } };
+
+        if (type is not null)
+        {
+            form.Add(new StringContent(type), "type");
+        }
+
+        var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = form };
+
+        if (cookie is not null)
+        {
+            request.Headers.Add("Cookie", cookie);
+        }
+
+        request.Headers.Add(TestClientIpStartupFilter.HeaderName, SessionApi.NewClientIp());
+
+        return _client.SendAsync(request);
+    }
+
     public async ValueTask DisposeAsync()
     {
         _client.Dispose();
@@ -152,6 +182,33 @@ internal static class TechnicianVisitSeed
             ("t", technician),
             ("s", started),
             ("e", ended));
+
+    public static Task SeedEntryAsync(
+        this CompanySettingsDatabaseFixture db, Guid visit, Guid technician, string type, DateTimeOffset started, DateTimeOffset? ended = null) =>
+        db.ExecuteAsync(
+            "INSERT INTO visit_time_entries (visit_id, technician_id, started_at, ended_at, entry_type) VALUES (@v, @t, @s, @e, @y)",
+            ("v", visit),
+            ("t", technician),
+            ("s", started),
+            ("e", ended),
+            ("y", type));
+
+    /// <summary>Every write-relevant column of a visit as one text: status, updated_at, notes, work order status, children and audit rows.</summary>
+    public static Task<string> ProgressStateAsync(this CompanySettingsDatabaseFixture db, Guid visit) =>
+        db.ScalarAsync<string>(
+            """
+            SELECT v.status::text || '|' || v.updated_at::text || '|' || COALESCE(v.actual_started_at::text, '-') || '|' || v.pause_seconds
+                || '|' || COALESCE(v.completion_summary, '-')
+                || '|wo=' || (SELECT w.status::text FROM work_orders w WHERE w.id = v.work_order_id)
+                || '|h=' || (SELECT COUNT(*) FROM visit_status_history WHERE visit_id = @v)
+                || '|t=' || (SELECT COALESCE(string_agg(id::text || COALESCE(ended_at::text, '-'), ',' ORDER BY id), '') FROM visit_time_entries WHERE visit_id = @v)
+                || '|k=' || (SELECT COALESCE(string_agg(id::text || is_completed::text || COALESCE(notes, '-'), ',' ORDER BY id), '') FROM visit_checklist_items WHERE visit_id = @v)
+                || '|m=' || (SELECT COALESCE(string_agg(id::text || quantity::text, ',' ORDER BY id), '') FROM visit_materials WHERE visit_id = @v)
+                || '|e=' || (SELECT COALESCE(string_agg(id::text, ',' ORDER BY id), '') FROM visit_evidence WHERE visit_id = @v)
+                || '|a=' || (SELECT COUNT(*) FROM audit_logs WHERE entity_id = @v)
+            FROM visits v WHERE v.id = @v
+            """,
+            ("v", visit));
 
     public static Task SetSendFlagsAsync(
         this CompanySettingsDatabaseFixture db, Guid order, bool reminder, bool technicianDetails) =>

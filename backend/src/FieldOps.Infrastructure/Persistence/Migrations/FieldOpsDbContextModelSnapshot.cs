@@ -3868,6 +3868,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("caption");
 
+                    b.Property<byte[]>("Content")
+                        .HasColumnType("bytea")
+                        .HasColumnName("content");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
@@ -3897,7 +3901,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("size_bytes");
 
                     b.Property<string>("StorageKey")
-                        .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("storage_key");
 
@@ -3920,9 +3923,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.ToTable("visit_evidence", null, t =>
                         {
+                            t.HasCheckConstraint("ck_visit_evidence_content_or_storage", "content IS NOT NULL OR storage_key IS NOT NULL");
+
                             t.HasCheckConstraint("ck_visit_evidence_evidence_type", "evidence_type IN ('before','during','after','incident','other')");
 
-                            t.HasCheckConstraint("ck_visit_evidence_size_bytes", "size_bytes > 0");
+                            t.HasCheckConstraint("ck_visit_evidence_mime_type", "mime_type IN ('image/jpeg', 'image/png')");
+
+                            t.HasCheckConstraint("ck_visit_evidence_size_bytes", "size_bytes > 0 AND size_bytes <= 10485760");
                         });
                 });
 
@@ -4000,6 +4007,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("description");
 
+                    b.Property<Guid?>("PlannedMaterialId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("planned_material_id");
+
                     b.Property<decimal>("Quantity")
                         .HasPrecision(12, 3)
                         .HasColumnType("numeric(12,3)")
@@ -4028,8 +4039,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("CatalogItemId")
                         .HasDatabaseName("ix_visit_materials_catalog_item_id");
 
-                    b.HasIndex("VisitId")
-                        .HasDatabaseName("ix_visit_materials_visit_id");
+                    b.HasIndex("PlannedMaterialId")
+                        .HasDatabaseName("ix_visit_materials_planned_material_id");
+
+                    b.HasIndex("VisitId", "PlannedMaterialId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_visit_materials_planned")
+                        .HasFilter("planned_material_id IS NOT NULL");
 
                     b.ToTable("visit_materials", null, t =>
                         {
@@ -5544,6 +5560,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasForeignKey("CatalogItemId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_visit_materials_catalog_items_catalog_item_id");
+
+                    b.HasOne("FieldOps.Domain.WorkOrders.WorkOrderPlannedMaterial", null)
+                        .WithMany()
+                        .HasForeignKey("PlannedMaterialId")
+                        .OnDelete(DeleteBehavior.SetNull)
+                        .HasConstraintName("fk_visit_materials_work_order_planned_materials_planned_materi");
 
                     b.HasOne("FieldOps.Domain.WorkOrders.Visit", null)
                         .WithMany()

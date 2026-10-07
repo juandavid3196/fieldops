@@ -1,0 +1,21 @@
+.review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+
+  &__notice {
+    margin: 0;
+    padding: 1rem;
+    color: var(--fo-color-text-secondary);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__back {
+    justify-content: center;
+    min-block-size: var(--fo-size-touch-target);
+    text-decoration: none;
+  }
+}

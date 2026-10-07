@@ -495,4 +495,36 @@ public class FieldOpsDbContextModelTests
         Assert.Single(toContactFk.Properties);
         Assert.Equal(DeleteBehavior.NoAction, toContactFk.DeleteBehavior);
     }
+
+    [Fact]
+    public void Model_ConfiguresMobileJobProgressMaterialLinkAndInlineEvidence()
+    {
+        using var context = CreateContext();
+
+        // SA-02: planned_material_id REFERENCES work_order_planned_materials (id) ON DELETE SET NULL plus a filtered unique index.
+        var material = context.Model.FindEntityType(typeof(VisitMaterial));
+        var toPlannedFk = Assert.Single(
+            material!.GetForeignKeys(),
+            fk => fk.PrincipalEntityType.ClrType == typeof(WorkOrderPlannedMaterial));
+        Assert.Equal(DeleteBehavior.SetNull, toPlannedFk.DeleteBehavior);
+        Assert.True(material.FindProperty(nameof(VisitMaterial.PlannedMaterialId))!.IsNullable);
+
+        var plannedIndex = Assert.Single(
+            material.GetIndexes(),
+            index => index.IsUnique
+                && index.Properties.Select(p => p.Name).SequenceEqual(["VisitId", "PlannedMaterialId"]));
+        Assert.Equal("planned_material_id IS NOT NULL", plannedIndex.GetFilter());
+
+        // SA-01: content bytea, nullable storage_key and the three checks.
+        var evidence = context.Model.FindEntityType(typeof(VisitEvidence));
+        Assert.True(evidence!.FindProperty(nameof(VisitEvidence.StorageKey))!.IsNullable);
+        Assert.True(evidence.FindProperty(nameof(VisitEvidence.Content))!.IsNullable);
+        Assert.Equal("bytea", evidence.FindProperty(nameof(VisitEvidence.Content))!.GetColumnType());
+
+        var designEvidence = context.GetService<IDesignTimeModel>().Model.FindEntityType(typeof(VisitEvidence))!;
+        var checks = designEvidence.GetCheckConstraints().ToDictionary(check => check.Name!, check => check.Sql);
+        Assert.Equal("size_bytes > 0 AND size_bytes <= 10485760", checks["ck_visit_evidence_size_bytes"]);
+        Assert.Equal("mime_type IN ('image/jpeg', 'image/png')", checks["ck_visit_evidence_mime_type"]);
+        Assert.Equal("content IS NOT NULL OR storage_key IS NOT NULL", checks["ck_visit_evidence_content_or_storage"]);
+    }
 }

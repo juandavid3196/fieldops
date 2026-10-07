@@ -44,10 +44,13 @@
   &--featured &__button--directions {
     flex-basis: 100%;
     order: -1;
-    min-block-size: 3rem;
+    // Same height as the Design 9 banner buttons (Pause, Report issue).
+    min-block-size: 2.5rem;
+    padding-block: 0.375rem;
     font-weight: 700;
-    color: light-dark(#005054, var(--fo-today-action));
-    border: 2px solid var(--fo-today-accent, var(--fo-color-border));
+    white-space: nowrap;
+    color: light-dark(#095b69, var(--fo-today-action));
+    border: 2px solid light-dark(#84c9c7, var(--fo-color-border-strong));
 
     i.pi {
       color: inherit;

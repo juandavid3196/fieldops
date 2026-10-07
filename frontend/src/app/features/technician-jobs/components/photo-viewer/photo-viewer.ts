@@ -2,7 +2,13 @@ import { Component, computed, input, model, output, signal } from '@angular/core
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 
-import { VisitPhoto } from '../visit-photos/visit-photos';
+import { VisitPhoto, photoAlt } from '../visit-photos/visit-photos';
+
+export interface PhotoDeleteRequest {
+  readonly id: string;
+  /** Element to focus again when the confirmation closes. */
+  readonly trigger: HTMLElement;
+}
 
 /** BR-17 full-size viewer with close and previous/next; the page returns focus on `closed`. */
 @Component({
@@ -13,6 +19,9 @@ import { VisitPhoto } from '../visit-photos/visit-photos';
 })
 export class PhotoViewer {
   readonly photos = input.required<readonly VisitPhoto[]>();
+  /** Job photos can be deleted by the primary technician (BR-17). */
+  readonly deletable = input(false);
+  readonly deleteRequest = output<PhotoDeleteRequest>();
   /** Index of the open photo; `null` keeps the viewer closed. */
   readonly index = model.required<number | null>();
   readonly closed = output<void>();
@@ -24,9 +33,11 @@ export class PhotoViewer {
     const index = this.index();
     return index === null ? null : (this.photos()[index] ?? null);
   });
-  readonly alt = computed(
-    () => `Assessment photo ${(this.index() ?? 0) + 1} of ${this.photos().length}`,
-  );
+  readonly alt = computed(() => photoAlt(this.photos(), this.index() ?? 0));
+  readonly header = computed(() => {
+    const label = this.photo()?.label;
+    return label === undefined ? 'Assessment photo' : `${label} photo`;
+  });
   readonly unavailable = computed(() => {
     const photo = this.photo();
     return photo !== null && this.failed().has(photo.id);

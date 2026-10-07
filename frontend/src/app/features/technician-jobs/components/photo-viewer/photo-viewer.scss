@@ -18,3 +18,10 @@
     text-align: center;
   }
 }
+
+.viewer__delete {
+  justify-content: center;
+  inline-size: 100%;
+  min-block-size: var(--fo-size-touch-target);
+  margin-block-start: 0.75rem;
+}
