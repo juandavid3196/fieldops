@@ -4,7 +4,7 @@
 | -------- | --------------------- |
 | Feature  | `mobile-job-progress` |
 | Type     | Full-stack            |
-| Status   | APPROVED              |
+| Status   | AUDITED               |
 | Created  | 2026-10-07            |
 | Updated  | 2026-10-07            |
 | Approved | 2026-10-07            |
@@ -333,3 +333,5 @@ checks). Agents run no browser automation or Playwright.
 | 2026-10-07 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-07 | APPROVED → DRAFT | Revised by user request: Design 9 tabs replaced by a section navigation over stacked sections with scroll and `aria-current` (FR-10, BR-16); ACs AC-18–AC-20, UI states and testing wording aligned. Requires re-approval |
 | 2026-10-07 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-07 | APPROVED → IMPLEMENTED | Implementation committed (fd11230, 1d9dbf4, 364e267); backend resume stage stopped by user order |
+| 2026-10-07 | IMPLEMENTED → AUDITED | User override: final-audit returned AUDIT FAIL (I-1: backend integration tests not executed, Docker unavailable; Minor M-1–M-3); marked AUDITED by user order without a passing audit |
