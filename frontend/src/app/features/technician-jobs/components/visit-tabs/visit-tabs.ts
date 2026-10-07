@@ -45,6 +45,12 @@ export class VisitTabs {
     materialsCountText(this.visit().plannedMaterials.length),
   );
   readonly tasksText = computed(() => tasksSummary(this.visit().tasks));
+  /** Decorative checklist progress; the "<n> of <m> tasks" text carries the meaning. */
+  readonly progress = computed(() => {
+    const tasks = this.visit().tasks;
+    const completed = tasks.filter((task) => task.isCompleted).length;
+    return tasks.length === 0 ? 0 : Math.round((completed / tasks.length) * 100);
+  });
   readonly hasInstructions = computed(() => {
     const visit = this.visit();
     return visit.instructions !== null || visit.dispatchNote !== null;

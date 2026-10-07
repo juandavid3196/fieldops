@@ -1,4 +1,4 @@
-<div class="visit-actions">
+<div class="visit-actions" [class.visit-actions--featured]="featured()">
   @if (callHref(); as href) {
     <a
       pButton
@@ -14,7 +14,7 @@
   }
   <a
     pButton
-    class="visit-actions__button"
+    class="visit-actions__button visit-actions__button--directions"
     severity="secondary"
     [outlined]="true"
     target="_blank"

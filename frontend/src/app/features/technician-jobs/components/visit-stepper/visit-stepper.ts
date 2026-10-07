@@ -10,4 +10,18 @@ import { Step } from '../../utils/visit-detail';
 })
 export class VisitStepper {
   readonly steps = input.required<readonly Step[]>();
+
+  /** Design 8 step glyphs; a completed step always shows a check. */
+  icon(label: string): string {
+    switch (label) {
+      case 'On the way':
+        return 'pi-car';
+      case 'Arrived':
+        return 'pi-map-marker';
+      case 'In progress':
+        return 'pi-clipboard';
+      default:
+        return 'pi-calendar';
+    }
+  }
 }

@@ -274,9 +274,9 @@ describe('VisitDetail', () => {
         ]) {
           expect(overview).toContain(part);
         }
-        expect(Array.from(root.querySelectorAll('.tabs__list li'), (li) => li.textContent)).toEqual(
-          ['Replace P-trap', 'Install shutoff valve', 'Test drainage', 'Clean work area'],
-        );
+        expect(
+          Array.from(root.querySelectorAll('.tabs__list li'), (li) => li.textContent?.trim()),
+        ).toEqual(['Replace P-trap', 'Install shutoff valve', 'Test drainage', 'Clean work area']);
         expect(
           Array.from(root.querySelectorAll('.tabs__chips li'), (chip) => chip.textContent),
         ).toEqual(['Leak repair', 'Plumbing']);

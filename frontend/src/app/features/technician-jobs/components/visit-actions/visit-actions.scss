@@ -30,4 +30,27 @@
       line-height: 1;
     }
   }
+
+  // Job page: Open directions spans the row as the primary action, Call sits below it.
+  &--featured {
+    flex-wrap: wrap;
+    gap: 0.625rem;
+  }
+
+  &--featured &__button {
+    border-color: light-dark(#d5dff0, var(--fo-color-border));
+  }
+
+  &--featured &__button--directions {
+    flex-basis: 100%;
+    order: -1;
+    min-block-size: 3rem;
+    font-weight: 700;
+    color: light-dark(#005054, var(--fo-today-action));
+    border: 2px solid var(--fo-today-accent, var(--fo-color-border));
+
+    i.pi {
+      color: inherit;
+    }
+  }
 }

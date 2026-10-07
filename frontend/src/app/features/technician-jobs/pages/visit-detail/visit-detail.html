@@ -52,11 +52,12 @@
           </section>
         }
 
-        <article class="visit__card" aria-labelledby="visit-title">
+        <article class="visit__card visit__job" aria-labelledby="visit-title">
           <div class="visit__head">
             <h1 class="visit__title" id="visit-title">{{ job.title }}</h1>
             @if (priority(); as priorityText) {
               <p-tag
+                styleClass="visit__priority"
                 [severity]="job.priority === 1 || job.priority === 'urgent' ? 'danger' : 'warn'"
                 [icon]="
                   job.priority === 1 || job.priority === 'urgent'
@@ -68,35 +69,51 @@
             }
           </div>
           <p class="visit__muted">#{{ job.displayNumber }}</p>
-          <p class="visit__line visit__customer">
-            <i class="pi pi-user" aria-hidden="true"></i>
-            {{ job.customerName }}
-          </p>
-          <p class="visit__line">
-            <i class="pi pi-map-marker" aria-hidden="true"></i>
-            {{ address() }}
-          </p>
-          <p class="visit__line">
-            <i class="pi pi-calendar" aria-hidden="true"></i>
-            <span>
-              {{ schedule() }}
-              <span class="visit__muted visit__caption">Scheduled window</span>
-              @if (arrival(); as arrivalText) {
-                <span class="visit__muted visit__caption">{{ arrivalText }}</span>
-              }
-            </span>
-          </p>
-          <app-visit-actions [visit]="job" directionsLabel="Open directions" />
+          <div class="visit__body">
+            <div class="visit__info">
+              <p class="visit__line visit__customer">
+                <i class="pi pi-user" aria-hidden="true"></i>
+                {{ job.customerName }}
+              </p>
+              <p class="visit__line">
+                <i class="pi pi-map-marker" aria-hidden="true"></i>
+                {{ address() }}
+              </p>
+              <p class="visit__line">
+                <i class="pi pi-calendar" aria-hidden="true"></i>
+                <span>
+                  {{ schedule() }}
+                  <span class="visit__muted visit__caption">Scheduled window</span>
+                  @if (arrival(); as arrivalText) {
+                    <span class="visit__muted visit__caption">{{ arrivalText }}</span>
+                  }
+                </span>
+              </p>
+            </div>
+            <div class="visit__side">
+              <app-visit-actions
+                [visit]="job"
+                directionsLabel="Open directions"
+                [featured]="true"
+              />
+            </div>
+          </div>
         </article>
 
         <section class="visit__card" aria-labelledby="visit-access-title">
           <div class="visit__head">
             <h2 class="visit__section-title" id="visit-access-title">Access details</h2>
-            <p-tag severity="success" icon="pi pi-home" [value]="customerType()" />
+            <p-tag
+              styleClass="visit__type"
+              severity="success"
+              icon="pi pi-home"
+              [rounded]="true"
+              [value]="customerType()"
+            />
           </div>
           @if (job.access.instructions?.trim()) {
             <p class="visit__line">
-              <i class="pi pi-key" aria-hidden="true"></i>
+              <i class="pi pi-home" aria-hidden="true"></i>
               {{ job.access.instructions }}
             </p>
           }
@@ -108,7 +125,7 @@
           }
           @if (job.access.activeDamage) {
             <p class="visit__warning">
-              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
               Active damage reported by the customer. Check the site before starting.
             </p>
           }
