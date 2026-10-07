@@ -1,9 +1,19 @@
 <div class="tshell">
   <header class="tshell__topbar">
-    <a class="tshell__logo" routerLink="/today" aria-label="FieldOps, Today's jobs">
-      <span class="tshell__logo-mark" aria-hidden="true">F</span>
-      <span aria-hidden="true">Field<span class="tshell__accent">Ops</span></span>
-    </a>
+    @if (back(); as backTarget) {
+      <a
+        class="tshell__icon-button"
+        [routerLink]="backTarget.link"
+        [attr.aria-label]="backTarget.label"
+      >
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      </a>
+    } @else {
+      <a class="tshell__logo" routerLink="/today" aria-label="FieldOps, Today's jobs">
+        <span class="tshell__logo-mark" aria-hidden="true">F</span>
+        <span aria-hidden="true">Field<span class="tshell__accent">Ops</span></span>
+      </a>
+    }
     <p class="tshell__title">{{ pageTitle() }}</p>
 
     <a class="tshell__icon-button" [routerLink]="notificationsLink" aria-label="Notifications">

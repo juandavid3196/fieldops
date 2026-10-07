@@ -7,9 +7,10 @@ import {
   TechnicianVisitDetail,
   TodayResponse,
   TodayTechnician,
+  TravelResult,
 } from '../models/technician-visits.model';
 
-/** Read-only `/technician` endpoints. The technician is resolved server-side from the session. */
+/** `/technician` endpoints. The technician is resolved server-side from the session. */
 @Injectable({ providedIn: 'root' })
 export class TechnicianVisitsService {
   private readonly http = inject(HttpClient);
@@ -29,5 +30,23 @@ export class TechnicianVisitsService {
     return this.http.get<TechnicianVisitDetail>(
       buildApiUrl(this.config, `technician/visits/${encodeURIComponent(visitId)}`),
     );
+  }
+
+  /** Primary technician only; the backend decides (BR-02). No request body. */
+  startTravel(visitId: string): Observable<TravelResult> {
+    return this.http.post<TravelResult>(this.visitUrl(visitId, 'start-travel'), null);
+  }
+
+  arrive(visitId: string): Observable<TravelResult> {
+    return this.http.post<TravelResult>(this.visitUrl(visitId, 'arrive'), null);
+  }
+
+  /** Image URL for `img src`; the session cookie authorizes it (BR-06). */
+  assessmentPhotoUrl(visitId: string, photoId: string): string {
+    return this.visitUrl(visitId, `assessment-photos/${encodeURIComponent(photoId)}`);
+  }
+
+  private visitUrl(visitId: string, suffix: string): string {
+    return buildApiUrl(this.config, `technician/visits/${encodeURIComponent(visitId)}/${suffix}`);
   }
 }

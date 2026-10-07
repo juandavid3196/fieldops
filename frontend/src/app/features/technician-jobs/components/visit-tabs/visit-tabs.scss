@@ -1,0 +1,117 @@
+:host {
+  display: block;
+}
+
+.tabs {
+  display: block;
+  overflow: hidden;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  --p-tabs-tab-active-border-color: var(--fo-today-accent);
+  --p-tabs-tab-active-color: var(--fo-today-accent);
+  --p-tabs-tablist-background: var(--fo-color-surface);
+  --p-tabs-tabpanel-background: var(--fo-color-surface);
+
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__title {
+    margin: 0 0 0.375rem;
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--fo-today-ink);
+  }
+
+  &__subtitle {
+    margin: 0.5rem 0 0.25rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+  }
+
+  &__text,
+  &__muted {
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+  }
+
+  &__muted {
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__list {
+    margin: 0;
+    padding-inline-start: 1.25rem;
+  }
+
+  &__skills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__chip {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  & &__link {
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__materials,
+  &__tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__material,
+  &__task {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.5rem 0.75rem;
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__source {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-info-text);
+  }
+
+  &__note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+}

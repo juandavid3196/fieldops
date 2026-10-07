@@ -1,9 +1,13 @@
 <div class="visit">
+  <p class="visit__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
   @switch (state()) {
     @case ('loading') {
       <div class="visit__skeletons" aria-busy="true" aria-label="Loading job" role="status">
-        <p-skeleton height="2rem" width="70%" />
-        <p-skeleton height="1rem" width="40%" />
+        <p-skeleton height="4rem" />
+        <p-skeleton height="3.5rem" />
+        <p-skeleton height="11rem" />
+        <p-skeleton height="7rem" />
         <p-skeleton height="14rem" />
       </div>
     }
@@ -31,55 +35,160 @@
     }
     @case ('ready') {
       @if (visit(); as job) {
+        <app-visit-stepper [steps]="steps()" />
+
+        @if (banner(); as status) {
+          <section class="visit__banner" aria-label="Job status">
+            <i class="pi pi-car" aria-hidden="true"></i>
+            <p class="visit__banner-text">
+              <strong>{{ status.title }}</strong>
+              @if (status.detail) {
+                • {{ status.detail }}
+              }
+              @if (status.note) {
+                <span class="visit__banner-note">{{ status.note }}</span>
+              }
+            </p>
+          </section>
+        }
+
         <article class="visit__card" aria-labelledby="visit-title">
-          <div class="visit__chips">
-            <p-tag [severity]="statusSeverity()" [value]="statusLabel()" />
+          <div class="visit__head">
+            <h1 class="visit__title" id="visit-title">{{ job.title }}</h1>
             @if (priority(); as priorityText) {
-              <p-tag severity="danger" icon="pi pi-exclamation-triangle" [value]="priorityText" />
+              <p-tag
+                [severity]="job.priority === 1 || job.priority === 'urgent' ? 'danger' : 'warn'"
+                [icon]="
+                  job.priority === 1 || job.priority === 'urgent'
+                    ? 'pi pi-exclamation-triangle'
+                    : 'pi pi-arrow-up'
+                "
+                [value]="priorityText"
+              />
             }
-            <p-tag severity="secondary" [value]="job.serviceCategory" />
           </div>
-          <h1 class="visit__title" id="visit-title">{{ job.title }}</h1>
           <p class="visit__muted">#{{ job.displayNumber }}</p>
-
-          <dl class="visit__facts">
-            <dt>Date</dt>
-            <dd>{{ dateText() }}</dd>
-            <dt>Schedule</dt>
-            <dd>{{ schedule() }}</dd>
-            @if (arrival(); as arrivalText) {
-              <dt>Arrival</dt>
-              <dd>{{ arrivalText }}</dd>
-            }
-            <dt>Customer</dt>
-            <dd>{{ job.customerName }}</dd>
-            <dt>Address</dt>
-            <dd>{{ address() }}</dd>
-            @if (materials(); as materialsText) {
-              <dt>Materials</dt>
-              <dd>{{ materialsText }}</dd>
-            }
-          </dl>
-
-          <app-visit-actions [visit]="job" />
-
-          @if (job.dispatchNote; as note) {
-            <section aria-labelledby="visit-note-title">
-              <h2 class="visit__section-title" id="visit-note-title">Dispatch note</h2>
-              <p class="visit__note">{{ note }}</p>
-            </section>
-          }
-          <p class="visit__muted">{{ comingSoonNote }}</p>
+          <p class="visit__line visit__customer">
+            <i class="pi pi-user" aria-hidden="true"></i>
+            {{ job.customerName }}
+          </p>
+          <p class="visit__line">
+            <i class="pi pi-map-marker" aria-hidden="true"></i>
+            {{ address() }}
+          </p>
+          <p class="visit__line">
+            <i class="pi pi-calendar" aria-hidden="true"></i>
+            <span>
+              {{ schedule() }}
+              <span class="visit__muted visit__caption">Scheduled window</span>
+              @if (arrival(); as arrivalText) {
+                <span class="visit__muted visit__caption">{{ arrivalText }}</span>
+              }
+            </span>
+          </p>
+          <app-visit-actions [visit]="job" directionsLabel="Open directions" />
         </article>
-        <a
-          pButton
-          class="visit__back"
-          severity="secondary"
-          [outlined]="true"
-          [routerLink]="todayPath"
-        >
-          Back to Today's jobs
-        </a>
+
+        <section class="visit__card" aria-labelledby="visit-access-title">
+          <div class="visit__head">
+            <h2 class="visit__section-title" id="visit-access-title">Access details</h2>
+            <p-tag severity="success" icon="pi pi-home" [value]="customerType()" />
+          </div>
+          @if (job.access.instructions?.trim()) {
+            <p class="visit__line">
+              <i class="pi pi-key" aria-hidden="true"></i>
+              {{ job.access.instructions }}
+            </p>
+          }
+          @if (contactPreference(); as preference) {
+            <p class="visit__line">
+              <i class="pi pi-comment" aria-hidden="true"></i>
+              {{ preference }}
+            </p>
+          }
+          @if (job.access.activeDamage) {
+            <p class="visit__warning">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              Active damage reported by the customer. Check the site before starting.
+            </p>
+          }
+          @if (!hasAccessLines()) {
+            <p class="visit__muted">No access details provided.</p>
+          }
+        </section>
+
+        <app-visit-tabs
+          [visit]="job"
+          [photos]="photos()"
+          (openPhoto)="openPhoto($event)"
+          (openAssessment)="openAssessment($event)"
+        />
+
+        @if (bar(); as actions) {
+          <div class="bar">
+            @if (actionError(); as errorText) {
+              <p-message class="bar__error" severity="error" [closable]="false">{{
+                errorText
+              }}</p-message>
+            }
+            @if (actions.message; as notice) {
+              <p class="bar__message">{{ notice }}</p>
+            }
+            <div class="bar__row">
+              @if (actions.travel; as travel) {
+                @if (travel.kind === 'arrived') {
+                  <button pButton type="button" class="bar__button" severity="secondary" disabled>
+                    <i class="pi pi-check" aria-hidden="true"></i>
+                    {{ travel.label }}
+                  </button>
+                } @else {
+                  <button
+                    pButton
+                    type="button"
+                    class="bar__button"
+                    [disabled]="pending() !== null"
+                    [loading]="pending() === travel.kind"
+                    [attr.aria-busy]="pending() === travel.kind"
+                    (click)="act(travel.kind)"
+                  >
+                    @if (pending() !== travel.kind) {
+                      <i
+                        class="pi"
+                        [class]="travel.kind === 'arrive' ? 'pi-map-marker' : 'pi-send'"
+                        aria-hidden="true"
+                      ></i>
+                    }
+                    {{ travel.label }}
+                  </button>
+                }
+              }
+              @if (actions.startJobHelper; as helper) {
+                <div class="bar__start-job">
+                  <button
+                    pButton
+                    type="button"
+                    class="bar__button"
+                    severity="secondary"
+                    disabled
+                    aria-describedby="visit-start-job-help"
+                  >
+                    <i class="pi pi-play" aria-hidden="true"></i>
+                    Start job
+                  </button>
+                  <p class="bar__helper" id="visit-start-job-help">{{ helper }}</p>
+                </div>
+              }
+            </div>
+            <button
+              type="button"
+              class="bar__report"
+              (click)="openReport($any($event.currentTarget))"
+            >
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              Report delay or issue
+            </button>
+          </div>
+        }
       }
     }
     @default {
@@ -87,3 +196,61 @@
     }
   }
 </div>
+
+@if (state() === 'ready' && visit(); as job) {
+  <p-dialog
+    header="Approved assessment"
+    [modal]="true"
+    closeAriaLabel="Close"
+    [draggable]="false"
+    [resizable]="false"
+    [visible]="assessmentOpen()"
+    (visibleChange)="$event ? null : closeAssessment()"
+    [style]="{ width: '30rem', maxWidth: '96vw' }"
+  >
+    @if (job.assessment; as assessment) {
+      <div class="panel">
+        <p class="visit__muted">{{ completedText() }}</p>
+        @if (assessment.diagnosis) {
+          <section aria-labelledby="assessment-diagnosis">
+            <h3 class="visit__section-title" id="assessment-diagnosis">Diagnosis</h3>
+            <p class="panel__text">{{ assessment.diagnosis }}</p>
+          </section>
+        }
+        @if (assessment.recommendedScope) {
+          <section aria-labelledby="assessment-scope">
+            <h3 class="visit__section-title" id="assessment-scope">Recommended scope</h3>
+            <p class="panel__text">{{ assessment.recommendedScope }}</p>
+          </section>
+        }
+        @if (photos().length > 0) {
+          <app-visit-photos [photos]="photos()" (open)="openPhoto($event)" />
+        }
+      </div>
+    }
+  </p-dialog>
+
+  <p-dialog
+    header="Report delay or issue"
+    [modal]="true"
+    closeAriaLabel="Close"
+    [draggable]="false"
+    [resizable]="false"
+    [visible]="reportOpen()"
+    (visibleChange)="$event ? null : closeReport()"
+    [style]="{ width: '24rem', maxWidth: '96vw' }"
+  >
+    <div class="panel">
+      @if (officeHref(); as href) {
+        <a pButton class="panel__call" severity="secondary" [outlined]="true" [href]="href">
+          <i class="pi pi-phone" aria-hidden="true"></i>
+          Call office
+        </a>
+      }
+      <p class="panel__text">Issue reporting is coming soon.</p>
+      <button pButton type="button" severity="secondary" (click)="closeReport()">Close</button>
+    </div>
+  </p-dialog>
+
+  <app-photo-viewer [photos]="photos()" [(index)]="viewerIndex" (closed)="viewerClosed()" />
+}

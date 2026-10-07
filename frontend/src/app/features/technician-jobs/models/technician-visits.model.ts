@@ -39,6 +39,8 @@ export interface TodayVisit {
   readonly latitude: number | null;
   readonly longitude: number | null;
   readonly plannedMaterialsCount: number;
+  /** The caller holds the primary assignment; only the primary technician manages travel. */
+  readonly isPrimary: boolean;
 }
 
 export interface TodayTechnician {
@@ -64,8 +66,62 @@ export interface TodayResponse {
   readonly visits: readonly TodayVisit[];
 }
 
+export type CustomerType = 'person' | 'company';
+export type ContactPreference = 'email' | 'sms' | 'email_or_sms';
+export type MaterialSource = 'truck_stock' | 'warehouse' | 'to_purchase';
+
+export interface VisitAccess {
+  readonly instructions: string | null;
+  readonly contactPreference: ContactPreference | null;
+  readonly activeDamage: boolean;
+}
+
+export interface VisitTravel {
+  /** ISO instants with offset; `durationMinutes` is set once arrival is recorded. */
+  readonly startedAt: string | null;
+  readonly arrivedAt: string | null;
+  readonly durationMinutes: number | null;
+}
+
+export interface PlannedMaterial {
+  readonly description: string;
+  readonly quantity: number;
+  readonly unit: string;
+  readonly source: MaterialSource;
+}
+
+export interface VisitTask {
+  readonly id: string;
+  readonly label: string;
+  readonly isRequired: boolean;
+  readonly isCompleted: boolean;
+}
+
+export interface VisitAssessment {
+  readonly completedAt: string;
+  readonly diagnosis: string | null;
+  readonly recommendedScope: string | null;
+  readonly photos: readonly { readonly id: string }[];
+}
+
 export interface TechnicianVisitDetail extends TodayVisit {
   readonly date: string;
   readonly timezone: string;
   readonly dispatchNote: string | null;
+  readonly customerType: CustomerType;
+  readonly access: VisitAccess;
+  readonly instructions: string | null;
+  readonly scope: string;
+  readonly requiredSkills: readonly string[];
+  readonly officePhone: string | null;
+  readonly travel: VisitTravel;
+  readonly plannedMaterials: readonly PlannedMaterial[];
+  readonly tasks: readonly VisitTask[];
+  readonly assessment: VisitAssessment | null;
+}
+
+/** Response of start-travel and arrive; `changed` is false on an idempotent repeat. */
+export interface TravelResult {
+  readonly changed: boolean;
+  readonly visit: TechnicianVisitDetail;
 }

@@ -20,9 +20,9 @@
     target="_blank"
     rel="noopener noreferrer"
     [href]="directionsHref()"
-    [attr.aria-label]="'Directions to ' + visit().title + ' (opens in a new tab)'"
+    [attr.aria-label]="directionsLabel() + ' to ' + visit().title + ' (opens in a new tab)'"
   >
     <i class="pi pi-directions" aria-hidden="true"></i>
-    Directions
+    {{ directionsLabel() }}
   </a>
 </div>

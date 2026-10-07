@@ -1,0 +1,151 @@
+<ng-template #materialRows let-items>
+  <ul class="tabs__materials">
+    @for (material of items; track $index) {
+      <li class="tabs__material">
+        <span>{{ line(material) }}</span>
+        <span class="tabs__source">{{ source(material) }}</span>
+      </li>
+    }
+  </ul>
+</ng-template>
+
+<p-tabs value="overview" class="tabs">
+  <p-tablist>
+    <p-tab value="overview">Overview</p-tab>
+    <p-tab value="tasks">Tasks</p-tab>
+    <p-tab value="materials">Materials</p-tab>
+    <p-tab value="photos">Photos</p-tab>
+  </p-tablist>
+  <p-tabpanels>
+    <p-tabpanel value="overview">
+      <div class="tabs__panel">
+        @if (hasInstructions()) {
+          <section aria-labelledby="tabs-instructions">
+            <h2 class="tabs__title" id="tabs-instructions">Technician instructions</h2>
+            @if (visit().instructions; as instructions) {
+              <p class="tabs__text">{{ instructions }}</p>
+            }
+            @if (visit().dispatchNote; as note) {
+              <h3 class="tabs__subtitle">Dispatch note</h3>
+              <p class="tabs__text">{{ note }}</p>
+            }
+          </section>
+        }
+
+        @if (scope().length > 0) {
+          <section aria-labelledby="tabs-scope">
+            <h2 class="tabs__title" id="tabs-scope">Scope of work</h2>
+            <ul class="tabs__list">
+              @for (line of scope(); track $index) {
+                <li>{{ line }}</li>
+              }
+            </ul>
+          </section>
+        }
+
+        @if (visit().requiredSkills.length > 0 || visit().assessment) {
+          <section aria-labelledby="tabs-skills">
+            <h2 class="tabs__title" id="tabs-skills">Required skills</h2>
+            <div class="tabs__skills">
+              @if (visit().requiredSkills.length > 0) {
+                <ul class="tabs__chips">
+                  @for (skill of visit().requiredSkills; track skill) {
+                    <li class="tabs__chip">{{ skill }}</li>
+                  }
+                </ul>
+              }
+              @if (visit().assessment) {
+                <button
+                  type="button"
+                  pButton
+                  class="tabs__link"
+                  severity="info"
+                  [text]="true"
+                  (click)="openAssessment.emit($any($event.currentTarget))"
+                >
+                  View approved assessment
+                  <i class="pi pi-chevron-right" aria-hidden="true"></i>
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @if (photos().length > 0) {
+          <section aria-labelledby="tabs-photos">
+            <h2 class="tabs__title" id="tabs-photos">Assessment photos ({{ photos().length }})</h2>
+            <app-visit-photos [photos]="photos()" (open)="openPhoto.emit($event)" />
+          </section>
+        }
+
+        @if (visit().plannedMaterials.length > 0) {
+          <section aria-labelledby="tabs-materials">
+            <h2 class="tabs__title" id="tabs-materials">Planned materials</h2>
+            <p class="tabs__muted">{{ materialsCount() }}</p>
+            <ng-container
+              *ngTemplateOutlet="materialRows; context: { $implicit: overviewMaterials() }"
+            />
+            <p class="tabs__note">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              Confirm quantities after starting the job.
+            </p>
+          </section>
+        }
+      </div>
+    </p-tabpanel>
+
+    <p-tabpanel value="tasks">
+      <div class="tabs__panel">
+        @if (visit().tasks.length === 0) {
+          <p class="tabs__text">No tasks for this job.</p>
+        } @else {
+          <p class="tabs__muted">{{ tasksText() }}</p>
+          <ul class="tabs__tasks">
+            @for (task of visit().tasks; track task.id) {
+              <li class="tabs__task">
+                <label>
+                  <input type="checkbox" disabled [checked]="task.isCompleted" />
+                  {{ task.label }}
+                </label>
+                @if (task.isRequired) {
+                  <span class="tabs__chip">Required</span>
+                }
+              </li>
+            }
+          </ul>
+          <p class="tabs__note">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            Tasks can be completed after starting the job.
+          </p>
+        }
+      </div>
+    </p-tabpanel>
+
+    <p-tabpanel value="materials">
+      <div class="tabs__panel">
+        @if (visit().plannedMaterials.length === 0) {
+          <p class="tabs__text">No planned materials.</p>
+        } @else {
+          <p class="tabs__muted">{{ materialsCount() }}</p>
+          <ng-container
+            *ngTemplateOutlet="materialRows; context: { $implicit: visit().plannedMaterials }"
+          />
+          <p class="tabs__note">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            Confirm quantities after starting the job.
+          </p>
+        }
+      </div>
+    </p-tabpanel>
+
+    <p-tabpanel value="photos">
+      <div class="tabs__panel">
+        @if (photos().length === 0) {
+          <p class="tabs__text">No assessment photos.</p>
+        } @else {
+          <app-visit-photos [photos]="photos()" (open)="openPhoto.emit($event)" />
+        }
+      </div>
+    </p-tabpanel>
+  </p-tabpanels>
+</p-tabs>
