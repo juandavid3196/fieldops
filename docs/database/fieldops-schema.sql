@@ -256,11 +256,16 @@ CREATE TABLE visits (
   visit_number integer NOT NULL CHECK(visit_number>0), status visit_status NOT NULL DEFAULT 'unscheduled', scheduled_start timestamptz, scheduled_end timestamptz,
   actual_started_at timestamptz, actual_completed_at timestamptz, pause_seconds integer NOT NULL DEFAULT 0 CHECK(pause_seconds>=0),
   completion_summary text, completion_without_signature_reason text, review_notes text, reviewed_by_user_id uuid REFERENCES users(id), reviewed_at timestamptz,
+  preferred_start timestamptz, preferred_end timestamptz, arrival_window_start timestamptz, arrival_window_end timestamptz, dispatch_note varchar(1000),
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY(organization_id,work_order_id) REFERENCES work_orders(organization_id,id), UNIQUE(work_order_id,visit_number), UNIQUE(organization_id,id),
-  CHECK(scheduled_end IS NULL OR scheduled_start IS NULL OR scheduled_start<scheduled_end)
+  CHECK(scheduled_end IS NULL OR scheduled_start IS NULL OR scheduled_start<scheduled_end),
+  CHECK((scheduled_start IS NULL) = (scheduled_end IS NULL)),
+  CHECK((preferred_start IS NULL) = (preferred_end IS NULL) AND (preferred_start IS NULL OR preferred_start < preferred_end)),
+  CHECK((arrival_window_start IS NULL) = (arrival_window_end IS NULL)),
+  CHECK(arrival_window_start IS NULL OR (scheduled_start IS NOT NULL AND arrival_window_start <= scheduled_start AND scheduled_start <= arrival_window_end))
 );
-CREATE TABLE visit_assignments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL REFERENCES visits(id) ON DELETE CASCADE, technician_id uuid NOT NULL REFERENCES technician_profiles(id), assigned_by_user_id uuid NOT NULL REFERENCES users(id), is_primary boolean NOT NULL DEFAULT true, assigned_at timestamptz NOT NULL DEFAULT now(), unassigned_at timestamptz, UNIQUE(visit_id,technician_id,unassigned_at));
+CREATE TABLE visit_assignments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL REFERENCES visits(id) ON DELETE CASCADE, technician_id uuid NOT NULL REFERENCES technician_profiles(id), assigned_by_user_id uuid NOT NULL REFERENCES users(id), is_primary boolean NOT NULL DEFAULT true, assigned_at timestamptz NOT NULL DEFAULT now(), unassigned_at timestamptz);
 CREATE TABLE visit_status_history (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL REFERENCES visits(id) ON DELETE CASCADE, from_status visit_status, to_status visit_status NOT NULL, changed_by_user_id uuid REFERENCES users(id), reason text, changed_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE visit_time_entries (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL REFERENCES visits(id) ON DELETE CASCADE, technician_id uuid NOT NULL REFERENCES technician_profiles(id), started_at timestamptz NOT NULL, ended_at timestamptz, entry_type varchar(20) NOT NULL CHECK(entry_type IN ('work','pause','travel')), CHECK(ended_at IS NULL OR started_at<ended_at));
 CREATE TABLE visit_checklist_items (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL REFERENCES visits(id) ON DELETE CASCADE, template_item_id uuid REFERENCES work_order_checklist_templates(id), label varchar(240) NOT NULL, is_required boolean NOT NULL DEFAULT true, is_completed boolean NOT NULL DEFAULT false, completed_by_user_id uuid REFERENCES users(id), completed_at timestamptz, notes text, sort_order integer NOT NULL DEFAULT 0);
@@ -312,7 +317,10 @@ CREATE INDEX ix_work_orders_org_created ON work_orders(organization_id,created_a
 CREATE INDEX ix_work_order_planned_materials_work_order ON work_order_planned_materials(work_order_id);
 CREATE UNIQUE INDEX ux_checklist_templates_org_name ON checklist_templates(organization_id,lower(name));
 CREATE INDEX ix_visits_schedule ON visits(organization_id,scheduled_start,status);
+CREATE INDEX ix_visits_org_status_preferred ON visits(organization_id,status,preferred_start);
 CREATE INDEX ix_assignments_technician ON visit_assignments(technician_id,assigned_at) WHERE unassigned_at IS NULL;
+CREATE UNIQUE INDEX ux_visit_assignments_active ON visit_assignments(visit_id,technician_id) WHERE unassigned_at IS NULL;
+CREATE UNIQUE INDEX ux_visit_assignments_primary ON visit_assignments(visit_id) WHERE is_primary AND unassigned_at IS NULL;
 CREATE INDEX ix_invoices_status_due ON invoices(organization_id,status,due_date);
 CREATE INDEX ix_payments_customer_date ON payments(organization_id,customer_id,paid_at DESC);
 CREATE INDEX ix_audit_entity ON audit_logs(organization_id,entity_type,entity_id,occurred_at DESC);

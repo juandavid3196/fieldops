@@ -7,9 +7,9 @@ import { Skeleton } from 'primeng/skeleton';
 import { AppointmentsResponse, RegionState } from '../../models/customer.model';
 import { formatRange } from '../../utils/customer-detail-format';
 
-export const SCHEDULE_LINK = '/coming-soon/schedule';
+export const SCHEDULE_LINK = '/schedule';
 
-/** Upcoming appointments (BR-15). Presentational; links go to the Coming soon schedule. */
+/** Upcoming appointments (BR-15). Presentational; links go to the dispatch calendar. */
 @Component({
   selector: 'app-appointments-card',
   imports: [RouterLink, ButtonDirective, Message, Skeleton],

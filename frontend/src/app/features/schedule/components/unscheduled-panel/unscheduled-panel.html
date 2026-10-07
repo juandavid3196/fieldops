@@ -1,0 +1,118 @@
+<section class="up" aria-labelledby="up-title">
+  <div class="up__head">
+    <h2 class="up__title" id="up-title">Unscheduled jobs</h2>
+    <span class="up__count" [attr.aria-label]="total() + ' unscheduled visits'">{{ total() }}</span>
+  </div>
+
+  <div class="up__filters" role="group" aria-label="Unscheduled filter">
+    @for (option of filters; track option.code) {
+      <button
+        pButton
+        type="button"
+        size="small"
+        [severity]="filter() === option.code ? 'primary' : 'secondary'"
+        [outlined]="filter() !== option.code"
+        [attr.aria-pressed]="filter() === option.code"
+        (click)="filterChange.emit(option.code)"
+      >
+        {{ option.label }}
+      </button>
+    }
+  </div>
+
+  <p-iconfield>
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      maxlength="100"
+      placeholder="Search jobs..."
+      aria-label="Search unscheduled jobs"
+      fluid
+      [ngModel]="searchText()"
+      (ngModelChange)="onSearch($event ?? '')"
+    />
+  </p-iconfield>
+
+  @if (status() === 'loading') {
+    <div class="up__list" aria-busy="true">
+      @for (item of skeletons; track item) {
+        <p-skeleton height="8rem" />
+      }
+    </div>
+  } @else if (status() === 'error') {
+    <p-message severity="error" [closable]="false">
+      <span class="up__inline">
+        {{ errorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else if (cards().length === 0) {
+    <p class="up__empty">{{ emptyText() }}</p>
+  } @else {
+    <ul class="up__list">
+      @for (card of cards(); track card.item.visitId) {
+        <li>
+          <button
+            type="button"
+            class="up__card"
+            [class.up__card--selected]="card.item.visitId === selectedVisitId()"
+            [attr.aria-label]="card.ariaLabel"
+            [attr.aria-pressed]="card.item.visitId === selectedVisitId()"
+            (click)="selected.emit(card.item.visitId)"
+          >
+            <i class="pi pi-bars up__handle" aria-hidden="true"></i>
+            <span class="up__body">
+              <span class="up__row">
+                <strong class="up__name">{{ card.item.title }}</strong>
+                @if (card.item.isOverdue) {
+                  <p-tag severity="danger" value="Overdue" />
+                }
+              </span>
+              <span class="up__meta">
+                <span>{{ card.number }}</span>
+                <span class="up__priority" [attr.data-priority]="card.item.priority">
+                  <i class="pi" [class]="priorityIcons[card.item.priority]" aria-hidden="true"></i>
+                  {{ priorityText[card.item.priority] }}
+                </span>
+                <span><i class="pi pi-clock" aria-hidden="true"></i> {{ card.duration }}</span>
+              </span>
+              <span
+                ><i class="pi pi-user" aria-hidden="true"></i> {{ card.item.customerName }}</span
+              >
+              <span
+                ><i class="pi pi-map-marker" aria-hidden="true"></i> {{ card.item.address }}</span
+              >
+              <span><i class="pi pi-calendar" aria-hidden="true"></i> {{ card.window }}</span>
+              @if (card.visitOf) {
+                <span>{{ card.visitOf }}</span>
+              }
+              @if (card.item.skills.length > 0) {
+                <span class="up__row up__skills">
+                  @for (skill of card.item.skills; track skill.id) {
+                    <span class="up__skill">{{ skill.name }}</span>
+                  }
+                </span>
+              }
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+    @if (hasMore()) {
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="loadingMore()"
+        [disabled]="loadingMore()"
+        (click)="loadMore.emit()"
+      >
+        Load more
+      </button>
+    }
+  }
+</section>

@@ -4,6 +4,7 @@ using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.Catalog;
 using FieldOps.Application.Features.ChecklistTemplates;
 using FieldOps.Application.Features.Customers;
+using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
@@ -98,6 +99,8 @@ public static class DependencyInjection
         services.AddScoped<IQuoteNotifier, QuoteNotifier>();
         services.AddScoped<IQuoteLinkStore, QuoteLinkStore>();
         services.AddScoped<IWorkOrderStore, WorkOrderStore>();
+        services.AddScoped<IDispatchStore, DispatchStore>();
+        services.AddScoped<IVisitNotifier, VisitNotifier>();
         services.AddScoped<IChecklistTemplateStore, ChecklistTemplateStore>();
         services.AddSingleton<IQuotePdfRenderer, MigraDocQuotePdfRenderer>();
         services.AddEmail(configuration);

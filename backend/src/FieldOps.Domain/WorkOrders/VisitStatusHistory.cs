@@ -10,13 +10,16 @@ public sealed class VisitStatusHistory
         Guid id,
         Guid visitId,
         VisitStatus? fromStatus,
-        VisitStatus toStatus)
+        VisitStatus toStatus,
+        Guid? changedByUserId,
+        DateTimeOffset changedAt)
     {
         Id = id;
         VisitId = visitId;
         FromStatus = fromStatus;
         ToStatus = toStatus;
-        ChangedAt = DateTimeOffset.UtcNow;
+        ChangedByUserId = changedByUserId;
+        ChangedAt = changedAt;
     }
 
     public Guid Id { get; private set; }
@@ -36,7 +39,9 @@ public sealed class VisitStatusHistory
     public static VisitStatusHistory Create(
         Guid visitId,
         VisitStatus? fromStatus,
-        VisitStatus toStatus)
+        VisitStatus toStatus,
+        Guid? changedByUserId = null,
+        DateTimeOffset? changedAt = null)
     {
         if (visitId == Guid.Empty)
         {
@@ -49,6 +54,8 @@ public sealed class VisitStatusHistory
             Guid.NewGuid(),
             visitId,
             fromStatus,
-            toStatus);
+            toStatus,
+            changedByUserId,
+            changedAt ?? DateTimeOffset.UtcNow);
     }
 }

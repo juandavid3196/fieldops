@@ -13,6 +13,7 @@ import { companyAdminRoute } from './features/organizations/organizations.routes
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
 import { assessmentRoute, requestsRoute } from './features/requests/requests.routes';
 import { skillsAvailabilityRoute, teamRoute } from './features/team/team.routes';
+import { scheduleRoute } from './features/schedule/schedule.routes';
 import { usersAdminRoute } from './features/users/users.routes';
 
 export const routes: Routes = [
@@ -73,6 +74,7 @@ export const routes: Routes = [
       jobDetailRoute,
       teamRoute,
       skillsAvailabilityRoute,
+      scheduleRoute,
     ],
   },
   { path: '**', redirectTo: 'auth/sign-in' },

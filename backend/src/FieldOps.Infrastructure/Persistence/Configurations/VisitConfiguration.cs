@@ -21,6 +21,18 @@ internal sealed class VisitConfiguration : IEntityTypeConfiguration<Visit>
             table.HasCheckConstraint(
                 "ck_visits_schedule_range",
                 "scheduled_end IS NULL OR scheduled_start IS NULL OR scheduled_start < scheduled_end");
+            table.HasCheckConstraint(
+                "ck_visits_schedule_pair",
+                "(scheduled_start IS NULL) = (scheduled_end IS NULL)");
+            table.HasCheckConstraint(
+                "ck_visits_preferred_range",
+                "(preferred_start IS NULL) = (preferred_end IS NULL) AND (preferred_start IS NULL OR preferred_start < preferred_end)");
+            table.HasCheckConstraint(
+                "ck_visits_arrival_window_pair",
+                "(arrival_window_start IS NULL) = (arrival_window_end IS NULL)");
+            table.HasCheckConstraint(
+                "ck_visits_arrival_window_range",
+                "arrival_window_start IS NULL OR (scheduled_start IS NOT NULL AND arrival_window_start <= scheduled_start AND scheduled_start <= arrival_window_end)");
         });
 
         builder.HasKey(visit => visit.Id);
@@ -51,6 +63,17 @@ internal sealed class VisitConfiguration : IEntityTypeConfiguration<Visit>
         builder.Property(visit => visit.ScheduledStart);
 
         builder.Property(visit => visit.ScheduledEnd);
+
+        builder.Property(visit => visit.PreferredStart);
+
+        builder.Property(visit => visit.PreferredEnd);
+
+        builder.Property(visit => visit.ArrivalWindowStart);
+
+        builder.Property(visit => visit.ArrivalWindowEnd);
+
+        builder.Property(visit => visit.DispatchNote)
+            .HasMaxLength(1000);
 
         builder.Property(visit => visit.ActualStartedAt);
 
@@ -93,6 +116,15 @@ internal sealed class VisitConfiguration : IEntityTypeConfiguration<Visit>
             visit.Status,
         })
             .HasDatabaseName("ix_visits_schedule");
+
+        // CREATE INDEX ix_visits_org_status_preferred ON visits (organization_id, status, preferred_start)
+        builder.HasIndex(visit => new
+        {
+            visit.OrganizationId,
+            visit.Status,
+            visit.PreferredStart,
+        })
+            .HasDatabaseName("ix_visits_org_status_preferred");
 
         builder.HasOne<Organization>()
             .WithMany()

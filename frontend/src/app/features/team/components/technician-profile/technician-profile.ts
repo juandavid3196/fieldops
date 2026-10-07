@@ -16,7 +16,7 @@ import {
 
 export const SKILLS_PATH = comingSoonPath('team-skills');
 export const AVAILABILITY_PATH = comingSoonPath('team-availability');
-export const SCHEDULE_PATH = comingSoonPath('schedule');
+export const SCHEDULE_PATH = '/schedule';
 
 /**
  * BR-13 sections (profile, account link, skills, availability, today) shared by the detail drawer

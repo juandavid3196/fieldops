@@ -151,12 +151,22 @@ describe('Jobs list and detail', { timeout: 20_000 }, () => {
     expect(text()).toContain('Oct 6, 2026');
     document.querySelector<HTMLElement>('tbody tr')!.click();
     await vi.waitFor(() => expect(TestBed.inject(Router).url).toBe('/jobs/wo-1'));
-    httpTesting.expectOne(`${API}/work-orders/wo-1`).flush(detail());
+    httpTesting.expectOne(`${API}/work-orders/wo-1`).flush(
+      detail({
+        status: 'scheduled',
+        visits: [
+          { visitNumber: 1, status: 'scheduled' },
+          { visitNumber: 2, status: 'unscheduled' },
+        ],
+      }),
+    );
     await settle();
 
-    // Read-only detail of a created order: no actions, one unscheduled visit.
+    // Read-only detail of a scheduled order (BR-16): aggregate status and per-visit labels.
     expect(text()).toContain('#WO-7');
-    expect(text()).toContain('Visit #1 · Unscheduled');
+    expect(text()).toContain('Scheduled');
+    expect(text()).toContain('Visit #1 · Scheduled');
+    expect(text()).toContain('Visit #2 · Unscheduled');
     expect(text()).toContain('Monthly × 6');
     expect(text()).toContain('Plumbing');
     expect(text()).toContain('Austin Central');

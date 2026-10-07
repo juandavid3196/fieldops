@@ -1,0 +1,176 @@
+<header class="tb">
+  <div class="tb__top">
+    <div class="tb__heading">
+      <h1 class="tb__title">Dispatch calendar</h1>
+      <p class="tb__subtitle">Schedule and assign work orders to your team</p>
+    </div>
+    <div class="tb__controls">
+      <button
+        pButton
+        type="button"
+        class="tb__today"
+        severity="secondary"
+        [outlined]="true"
+        (click)="todayRequested.emit()"
+      >
+        Today
+      </button>
+      <div class="tb__range" role="group" aria-label="Date range">
+        <button
+          type="button"
+          class="tb__nav"
+          [attr.aria-label]="view() === 'day' ? 'Previous day' : 'Previous week'"
+          (click)="previousRequested.emit()"
+        >
+          <i class="pi pi-chevron-left" aria-hidden="true"></i>
+        </button>
+        <span class="tb__label" aria-live="polite">{{ rangeLabel() }}</span>
+        <button
+          type="button"
+          class="tb__nav"
+          [attr.aria-label]="view() === 'day' ? 'Next day' : 'Next week'"
+          (click)="nextRequested.emit()"
+        >
+          <i class="pi pi-chevron-right" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="tb__toggle" role="group" aria-label="Calendar view">
+        <button
+          type="button"
+          class="tb__seg"
+          [class.tb__seg--active]="view() === 'day'"
+          [attr.aria-pressed]="view() === 'day'"
+          (click)="viewChange.emit('day')"
+        >
+          Day
+        </button>
+        <button
+          type="button"
+          class="tb__seg"
+          [class.tb__seg--active]="view() === 'week'"
+          [attr.aria-pressed]="view() === 'week'"
+          (click)="viewChange.emit('week')"
+        >
+          Week
+        </button>
+      </div>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        disabled
+        [attr.title]="mapMessage"
+        aria-describedby="tb-map-note"
+      >
+        <i class="pi pi-map" aria-hidden="true"></i>
+        Map view
+      </button>
+      <span class="tb__sr" id="tb-map-note">{{ mapMessage }}</span>
+    </div>
+  </div>
+
+  @if (compact()) {
+    <button
+      pButton
+      type="button"
+      class="tb__filters-toggle"
+      severity="secondary"
+      [outlined]="true"
+      aria-controls="tb-filters"
+      [attr.aria-expanded]="filtersOpen()"
+      (click)="filtersOpen.set(!filtersOpen())"
+    >
+      <i class="pi pi-filter" aria-hidden="true"></i>
+      Filters
+    </button>
+  }
+  @if (!compact() || filtersOpen()) {
+    <div class="tb__filters" id="tb-filters">
+      <div class="tb__filter">
+        <label class="tb__sr" for="tb-branch">Branch</label>
+        <p-select
+          [options]="branchOptions()"
+          optionLabel="name"
+          optionValue="id"
+          [inputId]="'tb-branch'"
+          ariaLabel="Branch"
+          appendTo="body"
+          fluid
+          [ngModel]="branchModel()"
+          (onChange)="onBranch($event.value)"
+        >
+          <ng-template #selectedItem let-item>
+            <span class="tb__value"
+              >Branch: <strong>{{ item.name }}</strong></span
+            >
+          </ng-template>
+        </p-select>
+      </div>
+      <div class="tb__filter">
+        <label class="tb__sr" for="tb-team">Team</label>
+        <p-multiselect
+          [options]="teamChoices()"
+          optionLabel="name"
+          optionValue="id"
+          [inputId]="'tb-team'"
+          ariaLabel="Team"
+          placeholder="Team: All"
+          [showToggleAll]="false"
+          appendTo="body"
+          fluid
+          [ngModel]="teamIds()"
+          (onChange)="teamChange.emit($event.value ?? [])"
+        >
+          <ng-template #selectedItems let-value>
+            <span class="tb__value"
+              >Team: <strong>{{ teamNames(value) }}</strong></span
+            >
+          </ng-template>
+        </p-multiselect>
+      </div>
+      <div class="tb__filter">
+        <label class="tb__sr" for="tb-skills">Skills</label>
+        <p-select
+          [options]="skillChoices()"
+          optionLabel="name"
+          optionValue="id"
+          [inputId]="'tb-skills'"
+          ariaLabel="Skills"
+          placeholder="Skills: All"
+          [showClear]="true"
+          appendTo="body"
+          fluid
+          [ngModel]="skillId()"
+          (onChange)="skillChange.emit($event.value ?? null)"
+        >
+          <ng-template #selectedItem let-item>
+            <span class="tb__value"
+              >Skills: <strong>{{ item.name }}</strong></span
+            >
+          </ng-template>
+        </p-select>
+      </div>
+      <div class="tb__filter">
+        <label class="tb__sr" for="tb-status">Status</label>
+        <p-select
+          [options]="statusChoices"
+          optionLabel="label"
+          optionValue="code"
+          [inputId]="'tb-status'"
+          ariaLabel="Status"
+          appendTo="body"
+          fluid
+          [ngModel]="status()"
+          (onChange)="statusChange.emit($event.value)"
+        >
+          <ng-template #selectedItem let-item>
+            <span class="tb__value"
+              >Status: <strong>{{ item.label }}</strong></span
+            >
+          </ng-template>
+        </p-select>
+      </div>
+    </div>
+  }
+</header>

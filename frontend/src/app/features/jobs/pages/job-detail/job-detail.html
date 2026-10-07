@@ -176,7 +176,7 @@
             @for (visit of detail.visits; track visit.visitNumber) {
               <p>
                 Visit #{{ visit.visitNumber }} ·
-                {{ visit.status === 'unscheduled' ? 'Unscheduled' : visit.status }}
+                {{ visitLabel(visit.status) }}
               </p>
             } @empty {
               <p>{{ noVisits }}</p>

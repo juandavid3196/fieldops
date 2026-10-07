@@ -38,6 +38,7 @@ import {
   PRIORITY_LABELS,
   SOURCE_LABELS,
   STATUS_LABELS,
+  visitStatusLabel,
   WINDOW_LABELS,
   durationLabel,
   plainDate,
@@ -76,6 +77,7 @@ export class JobDetail {
   readonly noVisits = NO_VISITS_MESSAGE;
   readonly priorityLabels = PRIORITY_LABELS;
   readonly statusLabels = STATUS_LABELS;
+  readonly visitLabel = visitStatusLabel;
   readonly jobTypeLabels = JOB_TYPE_LABELS;
   readonly sourceLabels = SOURCE_LABELS;
   readonly windowLabels = WINDOW_LABELS;
