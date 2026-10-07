@@ -1,6 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
 import { Observable } from 'rxjs';
 
 import { TechnicianVisitDetail, VisitTask } from '../../models/technician-visits.model';
@@ -13,6 +12,7 @@ import {
 import { formatTime } from '../../utils/technician-format';
 import { scopeLines } from '../../utils/visit-detail';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
+import { JobScope } from '../job-scope/job-scope';
 
 export const COMMENT_INVALID_MESSAGE = 'Enter a comment up to 1000 characters.';
 export const LABEL_INVALID_MESSAGE = 'Enter a task name up to 240 characters.';
@@ -20,7 +20,7 @@ export const LABEL_INVALID_MESSAGE = 'Enter a task name up to 240 characters.';
 /** BR-16 Tasks section: completion card, checklist, comments, optional tasks and original scope. */
 @Component({
   selector: 'app-job-tasks',
-  imports: [ButtonDirective, Dialog],
+  imports: [ButtonDirective, JobScope],
   templateUrl: './job-tasks.html',
   styleUrl: './job-tasks.scss',
 })

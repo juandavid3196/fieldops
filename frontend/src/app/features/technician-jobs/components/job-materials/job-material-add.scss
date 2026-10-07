@@ -1,0 +1,210 @@
+// Add material dialog design: tile header, source toggle, catalog search and quantity stepper.
+.add {
+  --add-teal: light-dark(#138784, #4fc3bd);
+  --add-soft: light-dark(#e3f4f2, var(--fo-color-success-background));
+  --add-field: var(--fo-color-surface-muted);
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  font-size: 0.875rem;
+
+  &__head {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  &__tile {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    font-size: 1.375rem;
+    color: light-dark(#138784, #4fc3bd);
+    background: light-dark(#e3f4f2, var(--fo-color-success-background));
+    border-radius: 0.75rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__intro,
+  &__help {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__help {
+    margin-block-start: -0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  &__modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    padding: 0.1875rem;
+    background: var(--add-field);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__mode {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 2.5rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    border-radius: calc(var(--fo-radius-control) - 2px);
+
+    &[aria-pressed='true'] {
+      color: var(--fo-color-on-primary);
+      background: var(--add-teal);
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__search {
+    position: relative;
+    display: flex;
+
+    i.pi {
+      position: absolute;
+      inset-block-start: 50%;
+      inset-inline-start: 0.875rem;
+      color: var(--fo-color-text-secondary);
+      transform: translateY(-50%);
+    }
+
+    .add__input {
+      flex: 1;
+      padding-inline-start: 2.5rem;
+    }
+  }
+
+  &__input,
+  &__count,
+  &__step,
+  &__unit {
+    box-sizing: border-box;
+    min-block-size: 2.75rem;
+    font: inherit;
+    font-weight: 400;
+    color: var(--fo-color-text);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__input {
+    padding: 0.5rem 0.75rem;
+    background: var(--add-field);
+  }
+
+  &__results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__result {
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+
+    &[aria-pressed='true'] {
+      font-weight: 700;
+      background: var(--add-soft);
+      border-color: var(--add-teal);
+    }
+  }
+
+  &__quantity {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  // Joined − / value / + control.
+  &__stepper {
+    display: flex;
+  }
+
+  &__step {
+    inline-size: 2.75rem;
+    color: var(--fo-color-heading);
+    cursor: pointer;
+    background: var(--fo-color-surface-hover);
+
+    &:first-child {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+    }
+
+    &:last-child {
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+    }
+  }
+
+  &__count {
+    inline-size: 4.5rem;
+    text-align: center;
+    background: var(--fo-color-surface);
+    border-inline-width: 0;
+    border-radius: 0;
+  }
+
+  &__unit {
+    display: inline-flex;
+    align-items: center;
+    min-inline-size: 4.5rem;
+    padding-inline: 0.875rem;
+    background: var(--add-field);
+    border-color: var(--fo-color-border);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-block-start: 0.25rem;
+  }
+
+  & &__cancel,
+  & &__submit {
+    min-block-size: 2.75rem;
+    font-weight: 700;
+  }
+
+  & &__submit {
+    --p-button-primary-background: var(--add-teal);
+    --p-button-primary-border-color: var(--add-teal);
+  }
+}

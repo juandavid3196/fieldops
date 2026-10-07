@@ -10,6 +10,7 @@ import { Tag } from 'primeng/tag';
 import { SessionService } from '../../../../core/services/session.service';
 import { JobProgress } from '../../components/job-progress/job-progress';
 import { PhotoDeleteRequest, PhotoViewer } from '../../components/photo-viewer/photo-viewer';
+import { ReportIssue } from '../../components/report-issue/report-issue';
 import { VisitActions } from '../../components/visit-actions/visit-actions';
 import {
   PhotoOpenRequest,
@@ -69,6 +70,7 @@ type TravelAction = 'start-travel' | 'arrive' | 'start-job';
     Tag,
     JobProgress,
     PhotoViewer,
+    ReportIssue,
     VisitActions,
     VisitPhotos,
     VisitStepper,
@@ -194,6 +196,13 @@ export class VisitDetail {
     // The top bar reads "Job in progress" while Design 9 shows; a status change needs no navigation.
     effect(() => this.visits.setPageTitle(this.working() ? JOB_IN_PROGRESS_TITLE : null));
     this.destroyRef.onDestroy(() => this.visits.setPageTitle(null));
+    // The bottom-nav line grows with the stepper's completed steps (Scheduled, On the way, …).
+    effect(() => {
+      const steps = this.steps();
+      const done = steps.filter((step) => step.state === 'done').length;
+      this.visits.setJobProgress(steps.length === 0 ? null : (done / steps.length) * 100);
+    });
+    this.destroyRef.onDestroy(() => this.visits.setJobProgress(null));
     if (this.sessionService.session()?.role.code !== 'technician') {
       this.state.set('forbidden');
       return;

@@ -1,0 +1,46 @@
+<p-dialog
+  [modal]="true"
+  closeAriaLabel="Close"
+  [closeButtonProps]="closeProps"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="visible()"
+  (visibleChange)="$event ? null : closed.emit()"
+  [style]="{ width: '28rem', maxWidth: '94vw' }"
+>
+  <ng-template #header>
+    <div class="report__head">
+      <span class="report__tile" aria-hidden="true">
+        <i class="pi pi-exclamation-triangle"></i>
+      </span>
+      <h2 class="report__title">Report delay or issue</h2>
+    </div>
+  </ng-template>
+
+  <div class="report">
+    <p class="report__intro">Need immediate help with this job?</p>
+    @if (officeHref(); as href) {
+      <a class="report__call" [href]="href">
+        <i class="pi pi-phone report__call-icon" aria-hidden="true"></i>
+        <span class="report__call-text">
+          <strong>Call office</strong>
+          <span>Contact dispatch for urgent support</span>
+        </span>
+        <i class="pi pi-chevron-right" aria-hidden="true"></i>
+      </a>
+    }
+    <p class="report__note">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      Issue reporting is coming soon.
+    </p>
+    <button
+      pButton
+      type="button"
+      class="report__close"
+      severity="secondary"
+      (click)="closed.emit()"
+    >
+      Close
+    </button>
+  </div>
+</p-dialog>

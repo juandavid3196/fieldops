@@ -117,6 +117,16 @@ describe('TechnicianShell', () => {
     harness.fixture.detectChanges();
     expect(title()).toBe('Job details');
 
+    // The job page's step progress replaces the bottom nav's current-item line.
+    const progress = () => host.querySelector('[role="progressbar"][aria-label="Job progress"]');
+    expect(progress()).toBeNull();
+    visits.setJobProgress(75);
+    harness.fixture.detectChanges();
+    expect(progress()?.getAttribute('aria-valuenow')).toBe('75');
+    visits.setJobProgress(null);
+    harness.fixture.detectChanges();
+    expect(progress()).toBeNull();
+
     for (const name of ['Schedule', 'Time', 'Messages']) {
       await go(`/today/soon/${name.toLowerCase()}`);
       expect(current()).toEqual([name]);

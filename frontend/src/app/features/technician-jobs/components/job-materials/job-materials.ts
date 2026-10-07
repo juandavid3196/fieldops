@@ -12,6 +12,7 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import type { ButtonDirectiveOptions } from 'primeng/types/button';
 import {
   Observable,
   Subject,
@@ -54,7 +55,7 @@ interface MaterialRow {
   selector: 'app-job-materials',
   imports: [ButtonDirective, Dialog],
   templateUrl: './job-materials.html',
-  styleUrl: './job-materials.scss',
+  styleUrls: ['./job-materials.scss', './job-material-add.scss'],
 })
 export class JobMaterials {
   private readonly visits = inject(TechnicianVisitsService);
@@ -122,6 +123,25 @@ export class JobMaterials {
       : this.selected() !== null;
     return quantity !== null && quantity > 0 && source;
   });
+
+  /** Unit beside the Add material quantity: the custom unit or the selected catalog item's. */
+  readonly newUnit = computed(() => {
+    const unit = this.freeText() ? this.unit().trim() : (this.selected()?.unit ?? '');
+    return unit === '' ? 'unit' : unit;
+  });
+
+  /** Add material dialog: round, filled close button from the design. */
+  readonly closeProps: ButtonDirectiveOptions = {
+    severity: 'secondary',
+    variant: 'text',
+    rounded: true,
+    style: {
+      width: '2.75rem',
+      height: '2.75rem',
+      color: 'var(--fo-color-heading)',
+      background: 'var(--fo-color-surface-hover)',
+    },
+  };
 
   constructor() {
     this.search$
@@ -201,7 +221,7 @@ export class JobMaterials {
     this.selected.set(null);
     this.description.set('');
     this.unit.set('');
-    this.quantity.set('');
+    this.quantity.set('1');
     this.addOpen.set(true);
   }
 
@@ -216,6 +236,11 @@ export class JobMaterials {
     this.searchText.set(text);
     this.selected.set(null);
     this.search$.next(text.trim());
+  }
+
+  /** Add material stepper; an unreadable typed value restarts from 0. */
+  stepNew(delta: number): void {
+    this.quantity.set(formatQuantity(stepQuantity(parseQuantity(this.quantity()) ?? 0, delta)));
   }
 
   setFreeText(value: boolean): void {

@@ -62,6 +62,8 @@ export class TechnicianShell {
   /** The job page overrides the route title while it shows Job in progress (BR-20). */
   readonly pageTitle = computed(() => this.visits.pageTitle() ?? this.routeTitle());
   readonly back = signal(this.backFor());
+  /** Job page step progress drawn on the bottom nav's top edge; `null` elsewhere. */
+  readonly jobProgress = this.visits.jobProgress;
 
   readonly moreOpen = computed(() => this.openPanel() === 'more');
   readonly accountOpen = computed(() => this.openPanel() === 'account');

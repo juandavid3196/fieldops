@@ -1,6 +1,8 @@
 import {
   Component,
   DestroyRef,
+  ElementRef,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -13,7 +15,6 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs';
 
 import { TechnicianVisitDetail } from '../../models/technician-visits.model';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
@@ -39,23 +40,21 @@ export const REVIEW_READY_TEXT = 'Next: customer review and signature';
 export const REVIEW_BLOCKED_TEXT = 'Complete required tasks and add before and after photos';
 export const NOT_PRIMARY_JOB_TEXT = 'The primary technician manages this job.';
 
-/** Design 9 body for `in_progress` and `paused` visits: banner, tabs, time summary and action bar. */
+export type JobSection = 'tasks' | 'materials' | 'photos' | 'notes';
+const SECTIONS: readonly { readonly id: JobSection; readonly label: string }[] = [
+  { id: 'tasks', label: 'Tasks' },
+  { id: 'materials', label: 'Materials' },
+  { id: 'photos', label: 'Photos' },
+  { id: 'notes', label: 'Notes' },
+];
+
+/**
+ * Design 9 body for `in_progress` and `paused` visits: banner, section navigation, every section
+ * stacked, time summary and action bar.
+ */
 @Component({
   selector: 'app-job-progress',
-  imports: [
-    RouterLink,
-    ButtonDirective,
-    Tabs,
-    TabList,
-    Tab,
-    TabPanels,
-    TabPanel,
-    JobTasks,
-    JobMaterials,
-    JobEvidence,
-    JobNotes,
-    JobTime,
-  ],
+  imports: [RouterLink, ButtonDirective, JobTasks, JobMaterials, JobEvidence, JobNotes, JobTime],
   templateUrl: './job-progress.html',
   styleUrls: ['./job-progress.scss', './job-progress-bar.scss'],
 })
@@ -66,6 +65,8 @@ export class JobProgress {
   private readonly tasks = viewChild(JobTasks);
   private readonly materials = viewChild(JobMaterials);
   private readonly evidence = viewChild(JobEvidence);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly visit = input.required<TechnicianVisitDetail>();
   /** Job photos for thumbnails and the viewer (owned by the page). */
@@ -79,6 +80,9 @@ export class JobProgress {
   readonly readyText = REVIEW_READY_TEXT;
   readonly blockedText = REVIEW_BLOCKED_TEXT;
   readonly notPrimaryText = NOT_PRIMARY_JOB_TEXT;
+  readonly sections = SECTIONS;
+  /** Section marked in the navigation: the last one clicked, then whichever is scrolled into view. */
+  readonly activeSection = signal<JobSection>('tasks');
 
   /** Client clock for the live labor and break time. */
   readonly now = signal(Date.now());
@@ -119,12 +123,26 @@ export class JobProgress {
 
   constructor() {
     const timer = setInterval(() => this.now.set(Date.now()), TICK_MS);
-    inject(DestroyRef).onDestroy(() => clearInterval(timer));
+    this.destroyRef.onDestroy(() => clearInterval(timer));
     // A fresh response restarts the clock so the active entry is measured against "now".
     effect(() => {
       this.visit();
       untracked(() => this.now.set(Date.now()));
     });
+    afterNextRender(() => this.observeSections());
+  }
+
+  sectionId(section: JobSection): string {
+    return `job-section-${section}`;
+  }
+
+  /** Section navigation scrolls to the section instead of following the fragment link. */
+  goTo(section: JobSection, event: Event): void {
+    event.preventDefault();
+    this.activeSection.set(section);
+    const target = this.host.nativeElement.ownerDocument.getElementById(this.sectionId(section));
+    const reduced = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    target?.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' });
   }
 
   /** Pause or Resume; the response replaces the visit. */
@@ -205,6 +223,27 @@ export class JobProgress {
         }
       },
     });
+  }
+
+  /** Marks the section crossing the upper part of the viewport while the technician scrolls. */
+  private observeSections(): void {
+    if (typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.find((entry) => entry.isIntersecting);
+        const section = (visible?.target as HTMLElement | undefined)?.dataset['section'];
+        if (section !== undefined) {
+          this.activeSection.set(section as JobSection);
+        }
+      },
+      { rootMargin: '-20% 0px -70% 0px' },
+    );
+    this.host.nativeElement
+      .querySelectorAll('[data-section]')
+      .forEach((element) => observer.observe(element));
+    this.destroyRef.onDestroy(() => observer.disconnect());
   }
 
   private finishExit(): void {

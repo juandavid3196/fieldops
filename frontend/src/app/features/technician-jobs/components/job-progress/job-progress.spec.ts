@@ -187,7 +187,7 @@ describe('JobProgress', () => {
     return request.request;
   };
 
-  // PrimeNG Tabs observe their list size; the test DOM has no ResizeObserver.
+  // The test DOM has no ResizeObserver, which PrimeNG overlays may use.
   beforeEach(() => {
     vi.stubGlobal(
       'ResizeObserver',
@@ -469,6 +469,45 @@ describe('JobProgress', () => {
       ['After photo 1 of 1', `${URL}/evidence/e-2`],
     ]);
     expect(flat(root.querySelector('.progress__sr'))).toBe('Photo added.');
+  });
+
+  it('keeps every section on the page and scrolls to the one picked in the navigation (BR-16)', async () => {
+    const root = await mount(job());
+    const scroll = vi.fn();
+    Element.prototype.scrollIntoView = scroll;
+    const link = (label: string) =>
+      Array.from(root.querySelectorAll<HTMLAnchorElement>('nav a')).find((a) => flat(a) === label)!;
+    for (const section of [
+      'app-job-tasks',
+      'app-job-materials',
+      'app-job-evidence',
+      'app-job-notes',
+    ]) {
+      expect(root.querySelector(section)).not.toBeNull();
+    }
+    expect(link('Tasks').getAttribute('aria-current')).toBe('location');
+
+    await press(link('Materials'));
+    expect(scroll).toHaveBeenCalledOnce();
+    expect((scroll.mock.contexts[0] as HTMLElement).id).toBe('job-section-materials');
+    expect(link('Materials').getAttribute('aria-current')).toBe('location');
+    expect(link('Tasks').hasAttribute('aria-current')).toBe(false);
+    expect(router.navigateByUrl).not.toHaveBeenCalled();
+
+    // Original scope: numbered read-only lines; Close dismisses the dialog.
+    await press(button('View original scope', root));
+    const dialog = () => document.body.querySelector('.scope');
+    expect(flat(dialog())).toContain('2 scope items Read only');
+    expect(
+      Array.from(document.body.querySelectorAll('.scope__item'), (item) =>
+        [item.querySelector('.scope__number'), item.querySelector('.scope__text')].map(flat),
+      ),
+    ).toEqual([
+      ['01', 'Replace P-trap'],
+      ['02', 'Test drainage'],
+    ]);
+    await press(button('Close', dialog()!));
+    expect(dialog()).toBeNull();
   });
 
   it('gates Review & complete, saves notes before Save and exit and keeps non-primary read-only (AC-21)', async () => {

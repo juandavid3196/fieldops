@@ -31,8 +31,11 @@
       @for (row of rows(); track row.id) {
         <li class="mat__row">
           <span class="mat__name">
-            {{ row.description }}
-            <span class="mat__unit">{{ row.unit }}</span>
+            <i class="pi pi-box" aria-hidden="true"></i>
+            <span>
+              {{ row.description }}
+              <span class="mat__unit">{{ row.unit }}</span>
+            </span>
           </span>
           <span class="mat__planned">
             @if (row.planned !== null) {
@@ -94,66 +97,98 @@
 </section>
 
 <p-dialog
-  header="Add material"
   [modal]="true"
   closeAriaLabel="Close"
+  [closeButtonProps]="closeProps"
   [draggable]="false"
   [resizable]="false"
   [visible]="addOpen()"
   (visibleChange)="$event ? null : closeAdd()"
-  [style]="{ width: '26rem', maxWidth: '96vw' }"
+  [style]="{ width: '28rem', maxWidth: '94vw' }"
 >
-  <div class="mat__panel">
+  <ng-template #header>
+    <div class="add__head">
+      <span class="add__tile" aria-hidden="true"><i class="pi pi-box"></i></span>
+      <h2 class="add__title">Add material</h2>
+    </div>
+  </ng-template>
+
+  <div class="add">
+    <p class="add__intro">Choose a catalog item or add a custom material.</p>
+    <div class="add__modes" role="group" aria-label="Material source">
+      <button
+        type="button"
+        class="add__mode"
+        [attr.aria-pressed]="!freeText()"
+        (click)="setFreeText(false)"
+      >
+        <i class="pi pi-search" aria-hidden="true"></i>
+        From catalog
+      </button>
+      <button
+        type="button"
+        class="add__mode"
+        [attr.aria-pressed]="freeText()"
+        (click)="setFreeText(true)"
+      >
+        <i class="pi pi-pencil" aria-hidden="true"></i>
+        Custom material
+      </button>
+    </div>
+
     @if (freeText()) {
-      <label class="mat__field">
+      <label class="add__field">
         Description
         <input
           type="text"
-          class="mat__text"
+          class="add__input"
           maxlength="240"
           [value]="description()"
           (input)="description.set($any($event.target).value)"
         />
       </label>
-      <label class="mat__field">
+      <label class="add__field">
         Unit
         <input
           type="text"
-          class="mat__text"
+          class="add__input"
           maxlength="40"
           [value]="unit()"
           (input)="unit.set($any($event.target).value)"
         />
       </label>
-      <button pButton type="button" severity="secondary" [text]="true" (click)="setFreeText(false)">
-        Search the catalog
-      </button>
     } @else {
-      <label class="mat__field">
-        Search the catalog
-        <input
-          type="search"
-          class="mat__text"
-          maxlength="80"
-          [value]="searchText()"
-          (input)="onSearch($any($event.target).value)"
-        />
+      <label class="add__field">
+        Search catalog
+        <span class="add__search">
+          <i class="pi pi-search" aria-hidden="true"></i>
+          <input
+            type="search"
+            class="add__input"
+            maxlength="80"
+            placeholder="Search materials"
+            aria-describedby="add-catalog-help"
+            [value]="searchText()"
+            (input)="onSearch($any($event.target).value)"
+          />
+        </span>
       </label>
+      <p class="add__help" id="add-catalog-help">Only active catalog materials are shown.</p>
       @if (searching()) {
-        <p class="mat__muted" role="status">Searching…</p>
+        <p class="add__help" role="status">Searching…</p>
       } @else if (searchFailed()) {
         <p class="mat__error" role="alert">We couldn't search the catalog. Try again.</p>
       } @else if (
         searchText().trim().length >= 2 && results().length === 0 && selected() === null
       ) {
-        <p class="mat__muted" role="status">No matching materials.</p>
+        <p class="add__help" role="status">No matching materials.</p>
       }
-      <ul class="mat__results">
+      <ul class="add__results">
         @for (item of results(); track item.id) {
           <li>
             <button
               type="button"
-              class="mat__result"
+              class="add__result"
               [attr.aria-pressed]="selected()?.id === item.id"
               (click)="selected.set(item)"
             >
@@ -163,43 +198,64 @@
           </li>
         }
       </ul>
-      <button pButton type="button" severity="secondary" [text]="true" (click)="setFreeText(true)">
-        Not in catalog
-      </button>
     }
-    <label class="mat__field">
-      Quantity
-      <input
-        type="text"
-        inputmode="decimal"
-        class="mat__text"
-        [value]="quantity()"
-        (input)="quantity.set($any($event.target).value)"
-      />
-    </label>
+
+    <div class="add__field">
+      <span id="add-quantity-label">Quantity</span>
+      <div class="add__quantity">
+        <span class="add__stepper">
+          <button
+            type="button"
+            class="add__step"
+            aria-label="Decrease quantity"
+            (click)="stepNew(-1)"
+          >
+            <i class="pi pi-minus" aria-hidden="true"></i>
+          </button>
+          <input
+            type="text"
+            inputmode="decimal"
+            class="add__count"
+            aria-labelledby="add-quantity-label"
+            [value]="quantity()"
+            (input)="quantity.set($any($event.target).value)"
+          />
+          <button
+            type="button"
+            class="add__step"
+            aria-label="Increase quantity"
+            (click)="stepNew(1)"
+          >
+            <i class="pi pi-plus" aria-hidden="true"></i>
+          </button>
+        </span>
+        <span class="add__unit">{{ newUnit() }}</span>
+      </div>
+    </div>
+
     @if (addError(); as message) {
       <p class="mat__error" role="alert">{{ message }}</p>
     }
-    <div class="mat__actions">
+    <div class="add__actions">
       <button
         pButton
         type="button"
-        class="mat__action"
-        [disabled]="!canAdd() || pending() !== null"
-        [loading]="pending() === 'add'"
-        (click)="add()"
-      >
-        Add
-      </button>
-      <button
-        pButton
-        type="button"
-        class="mat__action"
+        class="add__cancel"
         severity="secondary"
         [outlined]="true"
         (click)="closeAdd()"
       >
         Cancel
+      </button>
+      <button
+        pButton
+        type="button"
+        class="add__submit"
+        [disabled]="!canAdd() || pending() !== null"
+        [loading]="pending() === 'add'"
+        (click)="add()"
+      >
+        Add material
       </button>
     </div>
   </div>

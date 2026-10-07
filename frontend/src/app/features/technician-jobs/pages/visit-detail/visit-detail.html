@@ -38,7 +38,11 @@
         <app-visit-stepper [steps]="steps()" />
 
         <ng-template #jobHeader>
-          <article class="visit__card visit__job" aria-labelledby="visit-title">
+          <article
+            class="visit__card visit__job"
+            [class.visit__job--working]="working()"
+            aria-labelledby="visit-title"
+          >
             <div class="visit__head">
               <h1 class="visit__title" id="visit-title">{{ job.title }}</h1>
               @if (!working() && priority(); as priorityText) {
@@ -283,27 +287,7 @@
     }
   </p-dialog>
 
-  <p-dialog
-    header="Report delay or issue"
-    [modal]="true"
-    closeAriaLabel="Close"
-    [draggable]="false"
-    [resizable]="false"
-    [visible]="reportOpen()"
-    (visibleChange)="$event ? null : closeReport()"
-    [style]="{ width: '24rem', maxWidth: '96vw' }"
-  >
-    <div class="panel">
-      @if (officeHref(); as href) {
-        <a pButton class="panel__call" severity="secondary" [outlined]="true" [href]="href">
-          <i class="pi pi-phone" aria-hidden="true"></i>
-          Call office
-        </a>
-      }
-      <p class="panel__text">Issue reporting is coming soon.</p>
-      <button pButton type="button" severity="secondary" (click)="closeReport()">Close</button>
-    </div>
-  </p-dialog>
+  <app-report-issue [visible]="reportOpen()" [officeHref]="officeHref()" (closed)="closeReport()" />
 
   <app-photo-viewer
     [photos]="photos()"

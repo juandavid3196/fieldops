@@ -1,0 +1,50 @@
+<p-dialog
+  [modal]="true"
+  closeAriaLabel="Close"
+  [closeButtonProps]="closeProps"
+  [draggable]="false"
+  [resizable]="false"
+  [visible]="visible()"
+  (visibleChange)="$event ? null : closed.emit()"
+  [style]="dialogStyle"
+>
+  <ng-template #header>
+    <div class="scope__head">
+      <span class="scope__tile" aria-hidden="true"><i class="pi pi-clipboard"></i></span>
+      <div>
+        <h2 class="scope__title">Original scope</h2>
+        <p class="scope__subtitle">Scope captured when this job was created.</p>
+      </div>
+    </div>
+  </ng-template>
+
+  <div class="scope">
+    <p class="scope__meta">
+      {{ countText() }}
+      <span class="scope__pill">Read only</span>
+    </p>
+    <ol class="scope__list">
+      @for (line of lines(); track $index) {
+        <li class="scope__item">
+          <span class="scope__number" aria-hidden="true">{{ number($index) }}</span>
+          <span class="scope__text">{{ line }}</span>
+          <i class="pi pi-check scope__check" aria-hidden="true"></i>
+        </li>
+      }
+    </ol>
+    <p class="scope__note">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      Use the checklist to track the work completed on site.
+    </p>
+    <button
+      pButton
+      type="button"
+      class="scope__close"
+      severity="secondary"
+      [outlined]="true"
+      (click)="closed.emit()"
+    >
+      Close
+    </button>
+  </div>
+</p-dialog>

@@ -31,7 +31,10 @@
 
 <section class="tasks__card" aria-labelledby="tasks-checklist">
   <div class="tasks__head">
-    <h2 class="tasks__title" id="tasks-checklist">Task checklist</h2>
+    <h2 class="tasks__title" id="tasks-checklist">
+      <i class="pi pi-clipboard" aria-hidden="true"></i>
+      Task checklist
+    </h2>
     <div class="tasks__links">
       @if (!readOnly()) {
         <button
@@ -39,7 +42,7 @@
           type="button"
           class="tasks__link"
           severity="info"
-          [text]="true"
+          [outlined]="true"
           [disabled]="pending() !== null"
           (click)="openAdd()"
         >
@@ -53,7 +56,7 @@
           type="button"
           class="tasks__link"
           severity="info"
-          [text]="true"
+          [outlined]="true"
           (click)="openScope($any($event.currentTarget))"
         >
           View original scope
@@ -189,19 +192,4 @@
   }
 </section>
 
-<p-dialog
-  header="Original scope"
-  [modal]="true"
-  closeAriaLabel="Close"
-  [draggable]="false"
-  [resizable]="false"
-  [visible]="scopeOpen()"
-  (visibleChange)="$event ? null : closeScope()"
-  [style]="{ width: '24rem', maxWidth: '96vw' }"
->
-  <ul class="tasks__scope">
-    @for (line of scope(); track $index) {
-      <li>{{ line }}</li>
-    }
-  </ul>
-</p-dialog>
+<app-job-scope [visible]="scopeOpen()" [lines]="scope()" (closed)="closeScope()" />

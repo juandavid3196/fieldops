@@ -34,6 +34,15 @@ export class TechnicianVisitsService {
     this.titleOverride.set(title);
   }
 
+  private readonly progressOverride = signal<number | null>(null);
+
+  /** Percent of job steps completed, shown by the shell above the bottom nav; `null` hides it. */
+  readonly jobProgress = this.progressOverride.asReadonly();
+
+  setJobProgress(percent: number | null): void {
+    this.progressOverride.set(percent);
+  }
+
   today(): Observable<TodayResponse> {
     return this.http
       .get<TodayResponse>(buildApiUrl(this.config, 'technician/today'))

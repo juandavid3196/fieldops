@@ -16,8 +16,12 @@
     gap: 0.5rem;
     align-items: center;
     margin: 0;
-    font-size: 1.0625rem;
+    font-size: 1rem;
     color: var(--fo-color-heading);
+
+    i.pi {
+      font-size: 1.25rem;
+    }
   }
 
   &__muted {

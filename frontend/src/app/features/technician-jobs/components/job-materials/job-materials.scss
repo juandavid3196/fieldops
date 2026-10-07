@@ -11,6 +11,11 @@
   border: 1px solid var(--fo-color-border);
   border-radius: var(--fo-radius-card);
 
+  // Design 9 stepper: compact navy controls; the header columns reuse the same widths.
+  --mat-action: light-dark(#1a2ea0, var(--fo-color-text));
+  --mat-step: 2.25rem;
+  --mat-stepper: calc(var(--mat-step) * 2 + 3.25rem + 0.5rem);
+
   &__head {
     display: flex;
     flex-wrap: wrap;
@@ -24,8 +29,12 @@
     gap: 0.5rem;
     align-items: center;
     margin: 0;
-    font-size: 1.0625rem;
+    font-size: 1rem;
     color: var(--fo-color-heading);
+
+    i.pi {
+      font-size: 1.25rem;
+    }
   }
 
   &__indicator {
@@ -33,7 +42,7 @@
     gap: 0.5rem;
     align-items: center;
     margin: 0;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     color: var(--fo-color-warning-text);
 
     &--ok {
@@ -59,7 +68,7 @@
   &__columns,
   &__row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 3.5rem auto;
+    grid-template-columns: minmax(0, 1fr) 3.5rem var(--mat-stepper);
     gap: 0.5rem;
     align-items: center;
   }
@@ -69,8 +78,8 @@
     color: var(--fo-color-text-secondary);
     text-align: center;
 
-    .mat__col-used {
-      inline-size: 9.75rem;
+    .mat__col-planned {
+      grid-column: 2;
     }
   }
 
@@ -86,7 +95,17 @@
   }
 
   &__name {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+    font-size: 0.875rem;
     overflow-wrap: anywhere;
+
+    i.pi {
+      flex: none;
+      font-size: 1.125rem;
+      color: var(--fo-color-heading);
+    }
   }
 
   &__unit {
@@ -96,6 +115,7 @@
   }
 
   &__planned {
+    font-size: 0.875rem;
     text-align: center;
   }
 
@@ -103,14 +123,16 @@
     display: flex;
     gap: 0.25rem;
     align-items: center;
+    justify-content: center;
   }
 
   &__step,
   &__input {
     box-sizing: border-box;
-    min-inline-size: var(--fo-size-touch-target);
-    min-block-size: var(--fo-size-touch-target);
+    block-size: var(--mat-step);
+    padding: 0;
     font: inherit;
+    font-size: 0.875rem;
     color: var(--fo-color-text);
     background: var(--fo-color-surface);
     border: 1px solid var(--fo-color-border-strong);
@@ -118,7 +140,19 @@
   }
 
   &__step {
+    inline-size: var(--mat-step);
+    color: var(--mat-action);
     cursor: pointer;
+    background: var(--fo-color-surface-hover);
+
+    i.pi {
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    &:hover:not(:disabled) {
+      background: var(--fo-color-neutral-background);
+    }
 
     &:disabled {
       color: var(--fo-color-disabled-text);
@@ -127,65 +161,15 @@
   }
 
   &__input {
-    inline-size: 4rem;
+    inline-size: 3.25rem;
     text-align: center;
   }
 
   & &__add {
     align-self: flex-start;
-    min-block-size: var(--fo-size-touch-target);
-  }
-
-  &__panel {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  &__field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    min-block-size: 2.5rem;
     font-size: 0.875rem;
-  }
-
-  &__text {
-    box-sizing: border-box;
-    min-block-size: var(--fo-size-touch-target);
-    padding: 0.5rem 0.75rem;
-    font: inherit;
-    color: var(--fo-color-text);
-    background: var(--fo-color-surface);
-    border: 1px solid var(--fo-color-border-strong);
-    border-radius: var(--fo-radius-control);
-  }
-
-  &__results {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  &__result {
-    inline-size: 100%;
-    min-block-size: var(--fo-size-touch-target);
-    padding: 0.5rem 0.75rem;
-    font: inherit;
-    color: var(--fo-color-text);
-    text-align: start;
-    cursor: pointer;
-    background: var(--fo-color-surface);
-    border: 1px solid var(--fo-color-border);
-    border-radius: var(--fo-radius-control);
-
-    &[aria-pressed='true'] {
-      font-weight: 700;
-      background: var(--fo-color-primary-soft);
-      border-color: var(--fo-color-primary);
-    }
+    font-weight: 600;
   }
 
   &__actions {

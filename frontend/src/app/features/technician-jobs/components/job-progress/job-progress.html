@@ -17,7 +17,7 @@
       <button
         pButton
         type="button"
-        class="banner__button"
+        class="banner__button banner__button--pause"
         severity="warn"
         [outlined]="true"
         [disabled]="transition() !== null"
@@ -33,7 +33,7 @@
     <button
       pButton
       type="button"
-      class="banner__button"
+      class="banner__button banner__button--report"
       severity="secondary"
       [outlined]="true"
       (click)="openReport.emit($any($event.currentTarget))"
@@ -49,54 +49,57 @@
 
 <ng-content />
 
-<p-tabs value="tasks" class="progress__tabs">
-  <p-tablist>
-    <p-tab value="tasks">Tasks</p-tab>
-    <p-tab value="materials">Materials</p-tab>
-    <p-tab value="photos">Photos</p-tab>
-    <p-tab value="notes">Notes</p-tab>
-  </p-tablist>
-  <p-tabpanels>
-    <p-tabpanel value="tasks">
-      <app-job-tasks
-        [visit]="visit()"
-        [readOnly]="readOnly()"
-        (visitChange)="visitChange.emit($event)"
-        (reload)="reload.emit()"
-      />
-    </p-tabpanel>
-    <p-tabpanel value="materials">
-      <app-job-materials
-        [visit]="visit()"
-        [readOnly]="readOnly()"
-        (visitChange)="visitChange.emit($event)"
-        (reload)="reload.emit()"
-      />
-    </p-tabpanel>
-    <p-tabpanel value="photos">
-      <app-job-evidence
-        [visit]="visit()"
-        [photos]="photos()"
-        [readOnly]="readOnly()"
-        (visitChange)="visitChange.emit($event)"
-        (reload)="reload.emit()"
-        (openPhoto)="openPhoto.emit($event)"
-        (announce)="announcement.set($event)"
-      />
-    </p-tabpanel>
-    <p-tabpanel value="notes">
-      <app-job-notes
-        [value]="notesDraft()"
-        [readOnly]="readOnly()"
-        [pending]="notesPending()"
-        [saved]="notesSaved()"
-        [error]="notesError()"
-        (valueChange)="notesDraft.set($event); notesSaved.set(false)"
-        (blurred)="notesBlurred()"
-      />
-    </p-tabpanel>
-  </p-tabpanels>
-</p-tabs>
+<nav class="progress__nav" aria-label="Job sections">
+  @for (section of sections; track section.id) {
+    <a
+      class="progress__link"
+      [href]="'#' + sectionId(section.id)"
+      [attr.aria-current]="activeSection() === section.id ? 'location' : null"
+      (click)="goTo(section.id, $event)"
+    >
+      {{ section.label }}
+    </a>
+  }
+</nav>
+
+<div class="progress__section" [id]="sectionId('tasks')" data-section="tasks">
+  <app-job-tasks
+    [visit]="visit()"
+    [readOnly]="readOnly()"
+    (visitChange)="visitChange.emit($event)"
+    (reload)="reload.emit()"
+  />
+</div>
+<div class="progress__section" [id]="sectionId('materials')" data-section="materials">
+  <app-job-materials
+    [visit]="visit()"
+    [readOnly]="readOnly()"
+    (visitChange)="visitChange.emit($event)"
+    (reload)="reload.emit()"
+  />
+</div>
+<div class="progress__section" [id]="sectionId('photos')" data-section="photos">
+  <app-job-evidence
+    [visit]="visit()"
+    [photos]="photos()"
+    [readOnly]="readOnly()"
+    (visitChange)="visitChange.emit($event)"
+    (reload)="reload.emit()"
+    (openPhoto)="openPhoto.emit($event)"
+    (announce)="announcement.set($event)"
+  />
+</div>
+<div class="progress__section" [id]="sectionId('notes')" data-section="notes">
+  <app-job-notes
+    [value]="notesDraft()"
+    [readOnly]="readOnly()"
+    [pending]="notesPending()"
+    [saved]="notesSaved()"
+    [error]="notesError()"
+    (valueChange)="notesDraft.set($event); notesSaved.set(false)"
+    (blurred)="notesBlurred()"
+  />
+</div>
 
 <app-job-time [time]="visit().time" [now]="now()" [live]="!paused()" />
 

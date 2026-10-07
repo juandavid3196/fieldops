@@ -460,6 +460,8 @@ describe('VisitDetail', () => {
     expect(flat(root.querySelector('.visit__sr'))).toBe('Job started.');
     expect(flat(root.querySelector('.stepper'))).toContain('In progress(current)');
     expect(TestBed.inject(TechnicianVisitsService).pageTitle()).toBe('Job in progress');
+    // Scheduled, On the way and Arrived are done: 3 of 4 steps.
+    expect(TestBed.inject(TechnicianVisitsService).jobProgress()).toBe(75);
     expect(root.querySelector('a[href^="tel:"]')).toBeNull();
     expect(flat(root)).not.toMatch(/Access details|Message|\bmi\b/);
 
