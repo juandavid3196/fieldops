@@ -19,6 +19,7 @@ import { InputPassword } from 'primeng/inputpassword';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 
+import { landingPath } from '../../../../core/config/landing';
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
 import { SignInBrandPanel } from '../../components/sign-in-brand-panel/sign-in-brand-panel';
@@ -152,14 +153,16 @@ export class SignIn {
 
   private handleSignedIn(): void {
     // The submitting state stays until the navigation replaces this page.
-    this.router.navigateByUrl('/overview', { replaceUrl: true }).then(
-      (navigated) => {
-        if (!navigated) {
-          this.submitting.set(false);
-        }
-      },
-      () => this.submitting.set(false),
-    );
+    this.router
+      .navigateByUrl(landingPath(this.sessionService.session()?.role.code), { replaceUrl: true })
+      .then(
+        (navigated) => {
+          if (!navigated) {
+            this.submitting.set(false);
+          }
+        },
+        () => this.submitting.set(false),
+      );
   }
 
   private handleSignInError(error: unknown): void {

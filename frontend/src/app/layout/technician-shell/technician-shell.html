@@ -1,0 +1,94 @@
+<div class="tshell">
+  <header class="tshell__topbar">
+    <a class="tshell__logo" routerLink="/today" aria-label="FieldOps, Today's jobs">
+      <span class="tshell__logo-mark" aria-hidden="true">F</span>
+      <span aria-hidden="true">Field<span class="tshell__accent">Ops</span></span>
+    </a>
+    <p class="tshell__title">{{ pageTitle() }}</p>
+
+    <a class="tshell__icon-button" [routerLink]="notificationsLink" aria-label="Notifications">
+      <i class="pi pi-bell" aria-hidden="true"></i>
+    </a>
+
+    <div class="tshell__account" data-shell-panel>
+      <button
+        type="button"
+        class="tshell__avatar"
+        aria-controls="tshell-account-panel"
+        [attr.aria-expanded]="accountOpen()"
+        [attr.aria-label]="'Account menu, ' + fullName()"
+        [style]="avatarStyle()"
+        (click)="togglePanel('account')"
+      >
+        <span aria-hidden="true">{{ initials() }}</span>
+      </button>
+
+      @if (accountOpen()) {
+        <div class="tshell__panel tshell__panel--account" id="tshell-account-panel">
+          <p class="tshell__panel-name">{{ fullName() }}</p>
+          <button
+            type="button"
+            class="tshell__panel-item"
+            [attr.aria-disabled]="signingOut()"
+            (click)="signOut()"
+          >
+            <i class="pi pi-sign-out" aria-hidden="true"></i>
+            Sign out
+          </button>
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (signOutFailed()) {
+    <p-message class="tshell__alert" severity="error">{{ signOutErrorMessage }}</p-message>
+  }
+
+  <main class="tshell__main">
+    <router-outlet />
+  </main>
+
+  <div class="tshell__bottom" data-shell-panel>
+    @if (moreOpen()) {
+      <div class="tshell__panel tshell__panel--more" id="tshell-more-panel">
+        <a class="tshell__panel-item" [routerLink]="profileLink">
+          <i class="pi pi-user" aria-hidden="true"></i>
+          My profile
+        </a>
+        <button
+          type="button"
+          class="tshell__panel-item"
+          [attr.aria-disabled]="signingOut()"
+          (click)="signOut()"
+        >
+          <i class="pi pi-sign-out" aria-hidden="true"></i>
+          Sign out
+        </button>
+      </div>
+    }
+
+    <nav class="tshell__nav" aria-label="Primary">
+      @for (item of nav; track item.label) {
+        <a
+          class="tshell__nav-item"
+          [class.tshell__nav-item--current]="isCurrent(item.matches)"
+          [routerLink]="item.link"
+          [attr.aria-current]="isCurrent(item.matches) ? 'page' : null"
+        >
+          <i class="pi" [class]="item.icon" aria-hidden="true"></i>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+      <button
+        type="button"
+        class="tshell__nav-item"
+        aria-controls="tshell-more-panel"
+        [attr.aria-expanded]="moreOpen()"
+        (click)="togglePanel('more')"
+      >
+        <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+        <span>More</span>
+      </button>
+    </nav>
+  </div>
+</div>

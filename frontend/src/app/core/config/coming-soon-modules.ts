@@ -14,6 +14,9 @@ export const COMING_SOON_MODULES: Readonly<Record<string, string>> = {
   help: 'Help',
   search: 'Search',
   'tax-rates': 'Tax rates',
+  schedule: 'Schedule',
+  time: 'Time',
+  messages: 'Messages',
 };
 
 /** Own-property lookup (never inherited keys such as `constructor`). */
@@ -23,4 +26,9 @@ export function comingSoonModuleName(slug: string): string | null {
 
 export function comingSoonPath(slug: string): string {
   return `/coming-soon/${slug}`;
+}
+
+/** Coming soon destinations inside the technician shell. */
+export function technicianComingSoonPath(slug: string): string {
+  return `/today/soon/${slug}`;
 }

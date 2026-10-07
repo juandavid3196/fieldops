@@ -12,6 +12,7 @@ import {
 import { companyAdminRoute } from './features/organizations/organizations.routes';
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
 import { assessmentRoute, requestsRoute } from './features/requests/requests.routes';
+import { TECHNICIAN_SHELL_ROUTES } from './features/technician-jobs/technician-jobs.routes';
 import { skillsAvailabilityRoute, teamRoute } from './features/team/team.routes';
 import { scheduleRoute } from './features/schedule/schedule.routes';
 import { usersAdminRoute } from './features/users/users.routes';
@@ -76,6 +77,16 @@ export const routes: Routes = [
       skillsAvailabilityRoute,
       scheduleRoute,
     ],
+  },
+  {
+    // Dedicated technician shell (Today's jobs): same guard rules as the desktop shell. Declared
+    // after it; paths that match no child fall through to the next sibling.
+    path: '',
+    canActivate: [authGuard],
+    runGuardsAndResolvers: 'always',
+    loadComponent: () =>
+      import('./layout/technician-shell/technician-shell').then((m) => m.TechnicianShell),
+    children: TECHNICIAN_SHELL_ROUTES,
   },
   { path: '**', redirectTo: 'auth/sign-in' },
 ];

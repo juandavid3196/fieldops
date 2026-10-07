@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 
 import { comingSoonModuleName } from '../../../../core/config/coming-soon-modules';
+import { comingSoonTarget } from '../../coming-soon.routes';
 
 /** FR-03: placeholder for a future module. Static: no request, no data. */
 @Component({
@@ -13,9 +14,11 @@ import { comingSoonModuleName } from '../../../../core/config/coming-soon-module
   styleUrl: './coming-soon.scss',
 })
 export class ComingSoon {
-  private readonly params = toSignal(inject(ActivatedRoute).paramMap);
+  private readonly route = inject(ActivatedRoute);
+  private readonly params = toSignal(this.route.paramMap);
 
   readonly moduleName = computed(
     () => comingSoonModuleName(this.params()?.get('module') ?? '') ?? '',
   );
+  readonly target = comingSoonTarget(this.route.snapshot);
 }

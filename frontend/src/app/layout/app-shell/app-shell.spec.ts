@@ -147,8 +147,12 @@ describe('AppShell', () => {
     async (code, canSeeAdministration) => {
       await setup({ ...SESSION, role: { code, name: 'Some role' } });
 
+      const expected =
+        code === 'technician'
+          ? ['Overview', "Today's jobs", ...MODULE_LABELS.slice(1)]
+          : MODULE_LABELS;
       expect(linkLabels()).toEqual(
-        canSeeAdministration ? [...MODULE_LABELS, 'Administration'] : MODULE_LABELS,
+        canSeeAdministration ? [...expected, 'Administration'] : expected,
       );
       expect(
         Array.from(host.querySelectorAll('.sidebar__group-label'), (n) => n.textContent),

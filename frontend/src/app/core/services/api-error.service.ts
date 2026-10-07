@@ -51,8 +51,11 @@ export class ApiErrorService {
     const apiError = createApiError(kind, error.status, fieldErrors, readTraceId(problem));
     const retryAfterSeconds =
       error.status === 429 ? readRetryAfterSeconds(error.headers?.get('Retry-After')) : undefined;
+    // `code` is read for 403 and 404 too (technician_inactive, technician_profile_not_linked).
     const code =
-      error.status === 409 && typeof problem?.['code'] === 'string' ? problem['code'] : undefined;
+      [403, 404, 409].includes(error.status) && typeof problem?.['code'] === 'string'
+        ? problem['code']
+        : undefined;
 
     const rowErrors = error.status === 400 ? readRowErrors(problem) : undefined;
     const visits = problem?.['upcomingVisitCount'];

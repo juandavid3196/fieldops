@@ -99,10 +99,13 @@ export class AppShell {
   readonly orgMenuOpen = computed(() => this.openMenu() === 'org');
 
   readonly groups = computed(() =>
-    NAV_GROUPS.filter(
-      (group) =>
-        !group.adminOnly || ADMINISTRATION_ROLE_CODES.includes(this.session()?.role.code ?? ''),
-    ),
+    NAV_GROUPS.filter((group) => {
+      const role = this.session()?.role.code ?? '';
+      return (
+        (!group.adminOnly || ADMINISTRATION_ROLE_CODES.includes(role)) &&
+        (!group.technicianOnly || role === 'technician')
+      );
+    }),
   );
   readonly showAdministration = computed(() =>
     this.groups().some((group) => group.adminOnly === true),

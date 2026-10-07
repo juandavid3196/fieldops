@@ -21,6 +21,7 @@ import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 
+import { landingPath } from '../../../../core/config/landing';
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
 import { InvitationBrandPanel } from '../../components/invitation-brand-panel/invitation-brand-panel';
@@ -316,14 +317,16 @@ export class Invitation {
   private handleAccepted(): void {
     this.tokens.clear();
     // The submitting state stays until the navigation replaces this page.
-    this.router.navigateByUrl('/overview', { replaceUrl: true }).then(
-      (navigated) => {
-        if (!navigated) {
-          this.submitting.set(false);
-        }
-      },
-      () => this.submitting.set(false),
-    );
+    this.router
+      .navigateByUrl(landingPath(this.sessionService.session()?.role.code), { replaceUrl: true })
+      .then(
+        (navigated) => {
+          if (!navigated) {
+            this.submitting.set(false);
+          }
+        },
+        () => this.submitting.set(false),
+      );
   }
 
   private handleActionError(error: unknown, afterSignIn: boolean): void {
