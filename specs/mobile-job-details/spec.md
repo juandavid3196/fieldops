@@ -4,7 +4,7 @@
 | -------- | -------------------- |
 | Feature  | `mobile-job-details` |
 | Type     | Full-stack           |
-| Status   | APPROVED             |
+| Status   | AUDITED              |
 | Created  | 2026-10-07           |
 | Updated  | 2026-10-07           |
 | Approved | 2026-10-07           |
@@ -300,3 +300,5 @@ Playwright.
 | 2026-10-07 | — → DRAFT     | Created |
 | 2026-10-07 | DRAFT → DRAFT | Revised after validation: `GET /technician/today` contract row with `isPrimary`; CSRF statement corrected to the existing `SameSite=Strict` cookie session; dependency statuses; BR-09 open travel entry of another profile → `409`; implementation references replaced by spec rules (BR-06, BR-11) |
 | 2026-10-07 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-07 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-07 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |
