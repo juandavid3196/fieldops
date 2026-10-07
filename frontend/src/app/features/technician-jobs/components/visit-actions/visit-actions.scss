@@ -1,0 +1,33 @@
+:host {
+  display: block;
+  --fo-today-action: light-dark(#1a2ea0, var(--fo-color-text));
+}
+
+.visit-actions {
+  display: flex;
+  gap: 0.75rem;
+
+  & &__button {
+    flex: 1;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--fo-size-touch-target);
+    color: var(--fo-today-action);
+    text-decoration: none;
+    background: var(--fo-color-surface);
+    border-color: var(--fo-color-border);
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    i.pi {
+      display: inline-flex;
+      font-size: 1.125rem;
+      color: var(--fo-today-action);
+      align-items: center;
+      line-height: 1;
+    }
+  }
+}

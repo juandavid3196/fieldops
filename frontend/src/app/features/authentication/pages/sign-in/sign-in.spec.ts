@@ -45,6 +45,7 @@ describe('SignIn', () => {
         provideRouter([
           { path: 'auth/sign-in', component: SignIn },
           { path: 'overview', component: OverviewStub },
+          { path: 'today', component: OverviewStub },
         ]),
         provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
         provideHttpClientTesting(),
@@ -412,6 +413,15 @@ describe('SignIn', () => {
       expect(TestBed.inject(SessionService).session()).toEqual(SESSION);
       expect(router.url).toBe('/overview');
       expect(pageMessage()).toBeNull();
+    });
+
+    it("lands a technician on Today's jobs after sign-in (BR-16, AC-17)", async () => {
+      const request = await submitValid();
+
+      request.flush({ ...SESSION, role: { code: 'technician', name: 'Technician' } });
+      await stable();
+
+      expect(router.url).toBe('/today');
     });
 
     it('shows the 401 message as an alert, keeps the email, clears and focuses the password (AC-41)', async () => {

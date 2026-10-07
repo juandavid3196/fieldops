@@ -63,6 +63,17 @@ describe('guestGuard', () => {
     expect(redirect.navigationBehaviorOptions?.replaceUrl).toBe(true);
   });
 
+  it("redirects a technician with a valid session to Today's jobs (BR-16, AC-17)", () => {
+    const result = runGuard();
+
+    httpTesting
+      .expectOne(SESSION_URL)
+      .flush({ ...SESSION, role: { code: 'technician', name: 'Technician' } });
+
+    const redirect = result.value as RedirectCommand;
+    expect(TestBed.inject(Router).serializeUrl(redirect.redirectTo)).toBe('/today');
+  });
+
   it.each([
     [401, 'Unauthorized'],
     [500, 'Server Error'],

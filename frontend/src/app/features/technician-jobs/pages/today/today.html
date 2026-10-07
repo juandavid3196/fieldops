@@ -1,0 +1,207 @@
+<div class="today">
+  @switch (state()) {
+    @case ('loading') {
+      <div
+        class="today__skeletons"
+        aria-busy="true"
+        aria-label="Loading today's jobs"
+        role="status"
+      >
+        <p-skeleton height="2rem" width="70%" />
+        <p-skeleton height="1rem" width="50%" />
+        <div class="today__metrics">
+          <p-skeleton height="5rem" />
+          <p-skeleton height="5rem" />
+          <p-skeleton height="5rem" />
+        </div>
+        <p-skeleton height="12rem" />
+        @for (row of skeletonRows; track row) {
+          <p-skeleton height="3.5rem" />
+        }
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="today__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="load()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @case ('ready') {
+      @if (data(); as today) {
+        <header class="today__header">
+          <div class="today__heading">
+            <h1 class="today__greeting">{{ greeting() }}</h1>
+            <p class="today__date">{{ dateText() }}</p>
+          </div>
+          <div class="today__updated">
+            <span role="status">{{ updated() }}</span>
+            <button
+              type="button"
+              class="today__refresh"
+              aria-label="Refresh today's jobs"
+              [attr.aria-disabled]="refreshing()"
+              [attr.aria-busy]="refreshing()"
+              (click)="load()"
+            >
+              <i class="pi pi-refresh" [class.pi-spin]="refreshing()" aria-hidden="true"></i>
+            </button>
+          </div>
+          @if (refreshFailed()) {
+            <p-message class="today__refresh-error" severity="error" [closable]="false">{{
+              loadErrorMessage
+            }}</p-message>
+          }
+        </header>
+
+        <ul class="today__metrics" aria-label="Today's summary">
+          @for (metric of metrics(); track metric.label) {
+            <li class="today__metric">
+              <i class="pi today__metric-icon" [class]="metric.icon" aria-hidden="true"></i>
+              <span class="today__metric-text">
+                <span class="today__metric-value">{{ metric.value }}</span>
+                <span class="today__metric-label">{{ metric.label }}</span>
+              </span>
+            </li>
+          }
+        </ul>
+
+        @if (today.metrics.jobs > 0) {
+          <section class="today__progress" aria-label="Progress">
+            <div class="today__progress-text">
+              <span>{{ progressText() }}</span>
+              <p-progressbar
+                class="today__bar"
+                [value]="percent()"
+                [showValue]="false"
+                aria-label="Jobs completed"
+                [attr.aria-valuetext]="progressText() + ', ' + percent() + '%'"
+              />
+              <span>{{ percent() }}%</span>
+            </div>
+          </section>
+        }
+
+        @if (nextVisit(); as next) {
+          <section class="today__next" aria-labelledby="today-next-title">
+            <div class="today__next-head">
+              <p class="today__next-label">{{ nextLabel() }} • {{ range(next) }}</p>
+              @if (priority(next); as priorityText) {
+                <p-tag
+                  class="today__priority"
+                  [severity]="next.priority === 1 ? 'danger' : 'warn'"
+                  [icon]="next.priority === 1 ? 'pi pi-exclamation-triangle' : 'pi pi-arrow-up'"
+                  [value]="priorityText"
+                />
+              }
+            </div>
+            <div class="today__next-body">
+              <div class="today__next-main">
+                <h2 class="today__next-title" id="today-next-title">{{ next.title }}</h2>
+                <p class="today__muted">#{{ next.displayNumber }}</p>
+                <p class="today__line today__customer">
+                  <i class="pi pi-user" aria-hidden="true"></i>
+                  {{ next.customerName }}
+                </p>
+                <p class="today__line">
+                  <i class="pi pi-map-marker" aria-hidden="true"></i>
+                  {{ address(next) }}
+                </p>
+                <p-tag
+                  class="today__category"
+                  severity="info"
+                  icon="pi pi-wrench"
+                  [value]="next.serviceCategory"
+                />
+              </div>
+              <div class="today__next-side">
+                @if (arrival(next); as arrivalText) {
+                  <p class="today__arrival">
+                    <i class="pi pi-clock" aria-hidden="true"></i>
+                    <span class="today__arrival-text">
+                      {{ arrivalText.main }}
+                      @if (arrivalText.caption) {
+                        <span class="today__muted">{{ arrivalText.caption }}</span>
+                      }
+                    </span>
+                  </p>
+                }
+                @if (materialsText(next); as materials) {
+                  <p class="today__materials">
+                    <i class="pi pi-box" aria-hidden="true"></i>
+                    {{ materials }}
+                  </p>
+                }
+              </div>
+            </div>
+            <app-visit-actions [visit]="next" />
+            <div class="today__primary-actions">
+              <a
+                pButton
+                class="today__action today__action--start"
+                [routerLink]="['/today/visits', next.visitId]"
+              >
+                <i class="pi pi-send" aria-hidden="true"></i>
+                Start travel
+              </a>
+              <a
+                pButton
+                class="today__action today__action--link"
+                severity="info"
+                [text]="true"
+                [routerLink]="['/today/visits', next.visitId]"
+              >
+                View job details
+                <i class="pi pi-chevron-right" aria-hidden="true"></i>
+              </a>
+            </div>
+          </section>
+        } @else {
+          <p class="today__empty">{{ emptyText() }}</p>
+        }
+
+        @if (today.metrics.jobs > 0) {
+          <section class="today__route" aria-labelledby="today-route-title">
+            <h2 class="today__route-title" id="today-route-title">Today's route</h2>
+            <ol class="today__route-list">
+              @for (visit of today.visits; track visit.visitId; let index = $index) {
+                <li>
+                  <a
+                    class="today__row"
+                    [class.today__row--next]="isNext(visit)"
+                    [routerLink]="['/today/visits', visit.visitId]"
+                  >
+                    <span
+                      class="today__marker"
+                      [class.today__marker--done]="completed(visit)"
+                      [class.today__marker--next]="isNext(visit)"
+                      aria-hidden="true"
+                    >
+                      @if (completed(visit)) {
+                        <i class="pi pi-check"></i>
+                      } @else {
+                        {{ index + 1 }}
+                      }
+                    </span>
+                    <span class="today__row-time">{{ time(visit) }}</span>
+                    <span class="today__row-body">
+                      <span class="today__row-title">{{ visit.title }}</span>
+                      <span class="today__muted">{{ visit.address.line1 }}</span>
+                    </span>
+                    <span [class]="chipClass(visit)">{{ chipLabel(visit) }}</span>
+                  </a>
+                </li>
+              }
+            </ol>
+          </section>
+        }
+      }
+    }
+    @default {
+      <p class="today__notice" role="status">{{ accessText() }}</p>
+    }
+  }
+</div>

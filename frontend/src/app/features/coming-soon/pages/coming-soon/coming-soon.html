@@ -1,5 +1,7 @@
 <section class="coming-soon">
   <h1 class="coming-soon__title">{{ moduleName() }}</h1>
   <p class="coming-soon__text">{{ moduleName() }} isn't available yet.</p>
-  <a pButton routerLink="/overview" severity="secondary" [outlined]="true">Back to Overview</a>
+  <a pButton [routerLink]="target.link" severity="secondary" [outlined]="true">{{
+    target.label
+  }}</a>
 </section>

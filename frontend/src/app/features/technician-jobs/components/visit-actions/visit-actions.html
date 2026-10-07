@@ -1,0 +1,28 @@
+<div class="visit-actions">
+  @if (callHref(); as href) {
+    <a
+      pButton
+      class="visit-actions__button"
+      severity="secondary"
+      [outlined]="true"
+      [href]="href"
+      [attr.aria-label]="'Call ' + visit().customerName"
+    >
+      <i class="pi pi-phone" aria-hidden="true"></i>
+      Call
+    </a>
+  }
+  <a
+    pButton
+    class="visit-actions__button"
+    severity="secondary"
+    [outlined]="true"
+    target="_blank"
+    rel="noopener noreferrer"
+    [href]="directionsHref()"
+    [attr.aria-label]="'Directions to ' + visit().title + ' (opens in a new tab)'"
+  >
+    <i class="pi pi-directions" aria-hidden="true"></i>
+    Directions
+  </a>
+</div>

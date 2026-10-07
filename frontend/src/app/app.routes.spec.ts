@@ -155,6 +155,18 @@ describe('app routes', () => {
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent).toContain('Welcome');
   });
 
+  it('mounts the technician Coming soon page in the technician shell, not the desktop shell (FR-07, AC-16)', async () => {
+    await navigate('/today/soon/schedule', [
+      { ...SESSION, role: { code: 'technician', name: 'Technician' } },
+    ]);
+
+    const root = harness.routeNativeElement as HTMLElement;
+    expect(root.tagName).toBe('APP-TECHNICIAN-SHELL');
+    expect(root.querySelector('h1')?.textContent?.trim()).toBe('Schedule');
+    expect(root.querySelector('app-coming-soon a')?.getAttribute('href')).toBe('/today');
+    expect(root.querySelector('app-shell')).toBeNull();
+  });
+
   it('resolves the compound path /auth/register-company as a sibling of auth, with no guard', async () => {
     await harness.navigateByUrl('/auth/register-company');
     await harness.fixture.whenStable();

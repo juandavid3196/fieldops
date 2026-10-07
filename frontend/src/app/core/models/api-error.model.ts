@@ -30,7 +30,7 @@ export interface ApiError {
    * not a non-negative integer of seconds.
    */
   readonly retryAfterSeconds?: number;
-  /** Machine-readable ProblemDetails extension `code` (e.g. on a `409`); never displayed. */
+  /** Machine-readable ProblemDetails extension `code` (on a `403`, `404` or `409`); never displayed. */
   readonly code?: string;
   /** Upcoming assigned visits blocking a technician deactivation (`409` extension); never a message. */
   readonly upcomingVisitCount?: number;

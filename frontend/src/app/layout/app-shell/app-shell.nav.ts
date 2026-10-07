@@ -19,6 +19,8 @@ export interface NavGroup {
   readonly divider?: boolean;
   /** BR-01: shown only to `owner` and `viewer` (UX only; the backend decides). */
   readonly adminOnly?: boolean;
+  /** BR-16: shown only to `technician` (UX only; the backend decides). */
+  readonly technicianOnly?: boolean;
 }
 
 function moduleItem(label: string, icon: string, slug: string): NavItem {
@@ -31,6 +33,12 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     id: 'overview',
     heading: null,
     items: [{ label: 'Overview', icon: 'pi-th-large', link: '/overview', exact: true }],
+  },
+  {
+    id: 'technician',
+    heading: null,
+    technicianOnly: true,
+    items: [{ label: "Today's jobs", icon: 'pi-briefcase', link: '/today', exact: true }],
   },
   {
     id: 'operations',

@@ -13,6 +13,7 @@ using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
+using FieldOps.Application.Features.TechnicianVisits;
 using FieldOps.Application.Features.Users;
 using FieldOps.Application.Features.WorkOrders;
 using FieldOps.Domain.Catalog;
@@ -101,6 +102,7 @@ public static class DependencyInjection
         services.AddScoped<IWorkOrderStore, WorkOrderStore>();
         services.AddScoped<IDispatchStore, DispatchStore>();
         services.AddScoped<IVisitNotifier, VisitNotifier>();
+        services.AddScoped<ITechnicianVisitStore, TechnicianVisitStore>();
         services.AddScoped<IChecklistTemplateStore, ChecklistTemplateStore>();
         services.AddSingleton<IQuotePdfRenderer, MigraDocQuotePdfRenderer>();
         services.AddEmail(configuration);

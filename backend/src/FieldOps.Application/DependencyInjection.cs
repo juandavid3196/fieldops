@@ -12,6 +12,7 @@ using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
+using FieldOps.Application.Features.TechnicianVisits;
 using FieldOps.Application.Features.Users;
 using FieldOps.Application.Features.WorkOrders;
 using FluentValidation;
@@ -81,6 +82,8 @@ public static class DependencyInjection
         services.AddScoped<ListTechniciansHandler>();
         services.AddScoped<GetTechnicianHandler>();
         services.AddScoped<GetOwnTechnicianHandler>();
+        services.AddScoped<GetTodayVisitsHandler>();
+        services.AddScoped<GetTechnicianVisitHandler>();
         services.AddScoped<CreateTechnicianHandler>();
         services.AddScoped<UpdateTechnicianHandler>();
         services.AddScoped<SetTechnicianStatusHandler>();

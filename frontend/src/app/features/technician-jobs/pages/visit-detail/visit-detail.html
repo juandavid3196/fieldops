@@ -1,0 +1,89 @@
+<div class="visit">
+  @switch (state()) {
+    @case ('loading') {
+      <div class="visit__skeletons" aria-busy="true" aria-label="Loading job" role="status">
+        <p-skeleton height="2rem" width="70%" />
+        <p-skeleton height="1rem" width="40%" />
+        <p-skeleton height="14rem" />
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="visit__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="load()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @case ('not-found') {
+      <p class="visit__notice" role="status">{{ notAvailableMessage }}</p>
+      <a
+        pButton
+        class="visit__back"
+        severity="secondary"
+        [outlined]="true"
+        [routerLink]="todayPath"
+      >
+        Back to Today's jobs
+      </a>
+    }
+    @case ('ready') {
+      @if (visit(); as job) {
+        <article class="visit__card" aria-labelledby="visit-title">
+          <div class="visit__chips">
+            <p-tag [severity]="statusSeverity()" [value]="statusLabel()" />
+            @if (priority(); as priorityText) {
+              <p-tag severity="danger" icon="pi pi-exclamation-triangle" [value]="priorityText" />
+            }
+            <p-tag severity="secondary" [value]="job.serviceCategory" />
+          </div>
+          <h1 class="visit__title" id="visit-title">{{ job.title }}</h1>
+          <p class="visit__muted">#{{ job.displayNumber }}</p>
+
+          <dl class="visit__facts">
+            <dt>Date</dt>
+            <dd>{{ dateText() }}</dd>
+            <dt>Schedule</dt>
+            <dd>{{ schedule() }}</dd>
+            @if (arrival(); as arrivalText) {
+              <dt>Arrival</dt>
+              <dd>{{ arrivalText }}</dd>
+            }
+            <dt>Customer</dt>
+            <dd>{{ job.customerName }}</dd>
+            <dt>Address</dt>
+            <dd>{{ address() }}</dd>
+            @if (materials(); as materialsText) {
+              <dt>Materials</dt>
+              <dd>{{ materialsText }}</dd>
+            }
+          </dl>
+
+          <app-visit-actions [visit]="job" />
+
+          @if (job.dispatchNote; as note) {
+            <section aria-labelledby="visit-note-title">
+              <h2 class="visit__section-title" id="visit-note-title">Dispatch note</h2>
+              <p class="visit__note">{{ note }}</p>
+            </section>
+          }
+          <p class="visit__muted">{{ comingSoonNote }}</p>
+        </article>
+        <a
+          pButton
+          class="visit__back"
+          severity="secondary"
+          [outlined]="true"
+          [routerLink]="todayPath"
+        >
+          Back to Today's jobs
+        </a>
+      }
+    }
+    @default {
+      <p class="visit__notice" role="status">{{ accessText() }}</p>
+    }
+  }
+</div>

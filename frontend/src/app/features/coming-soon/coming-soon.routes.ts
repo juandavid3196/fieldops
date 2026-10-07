@@ -3,12 +3,29 @@ import { ActivatedRouteSnapshot, CanActivateFn, ResolveFn, Route, Router } from 
 
 import { comingSoonModuleName } from '../../core/config/coming-soon-modules';
 
-/** FR-03: an unknown slug redirects to Overview; no request is made. */
-const knownModuleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) =>
-  comingSoonModuleName(route.paramMap.get('module') ?? '') !== null ||
-  inject(Router).parseUrl('/overview');
+/** Where the page returns and where an unknown slug redirects; configured through route `data`. */
+export interface ComingSoonTarget {
+  readonly link: string;
+  readonly label: string;
+}
 
-const moduleTitle: ResolveFn<string> = (route: ActivatedRouteSnapshot) => {
+export const DEFAULT_COMING_SOON_TARGET: ComingSoonTarget = {
+  link: '/overview',
+  label: 'Back to Overview',
+};
+
+export function comingSoonTarget(route: ActivatedRouteSnapshot): ComingSoonTarget {
+  return (
+    (route.data['comingSoonTarget'] as ComingSoonTarget | undefined) ?? DEFAULT_COMING_SOON_TARGET
+  );
+}
+
+/** FR-03: an unknown slug redirects to the shell's home (Overview by default); no request is made. */
+export const knownModuleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) =>
+  comingSoonModuleName(route.paramMap.get('module') ?? '') !== null ||
+  inject(Router).parseUrl(comingSoonTarget(route).link);
+
+export const moduleTitle: ResolveFn<string> = (route: ActivatedRouteSnapshot) => {
   const name = comingSoonModuleName(route.paramMap.get('module') ?? '');
   return name === null ? 'FieldOps' : `${name} · FieldOps`;
 };
