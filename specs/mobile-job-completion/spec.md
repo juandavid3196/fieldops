@@ -96,7 +96,7 @@ the service and never confirms payment.
 | ----- | ---- | ----------- |
 | BR-01 | Authorization reuses `mobile-job-progress` BR-01: policy TechnicianSelf; profile resolution with `technician_profile_not_linked` / `technician_inactive` before any read or write; visibility by active assignment of the caller's profile; `unscheduled`/`cancelled` visits, other technicians' visits, unassigned visits, other organizations and random ids → identical `404` with no foreign data and no write. No organization, technician, signer contact or work order id is accepted from the client. | Backend |
 | BR-02 | Primary control: `POST …/complete` requires the caller's active assignment with `is_primary = true`; otherwise `403` `not_primary_technician` "The primary technician manages this job.", no write. Reads are allowed to every active assignee. | Backend |
-| BR-03 | Status guard, after BR-01/BR-02 and body validation (BR-06, BR-07), evaluated after locking (BR-10): `completed` → `200 { changed: false, visit }` with no write, whatever the body; `in_progress` or `paused` → continue to BR-04; any other status → `409 visit_status_invalid` "This job can't be completed in its current state.", no write. | Backend |
+| BR-03 | Status guard, after BR-01/BR-02 and body validation (BR-06, BR-07), evaluated after locking (BR-10): `completed` → `200 { changed: false, visit }` with no write, for any valid body (an invalid body returns the BR-06/BR-07 `400` first); `in_progress` or `paused` → continue to BR-04; any other status → `409 visit_status_invalid` "This job can't be completed in its current state.", no write. | Backend |
 | BR-04 | Requirements, evaluated in the same transaction: every `visit_checklist_items` row of the visit with `is_required = true` has `is_completed = true`, and the visit has at least one `visit_evidence` row with `evidence_type = 'before'` and at least one with `'after'`. Optional tasks and materials never block completion. Otherwise `409 completion_requirements_unmet` "Complete required tasks and add before and after photos before completing this job.", no write. | Backend |
 | BR-05 | Acknowledgment methods (API code · Design 10 label · description): `signed` · "Signature obtained" · "Customer signs on this device."; `customer_absent` · "Customer not available" · "Customer was not present on site."; `customer_refused` · "Customer declined to sign" · "Customer reviewed the work but declined to sign."; `remote_confirmation` · "Remote confirmation" · "Acknowledged via email or phone.". Remote confirmation records that the customer confirmed through another channel; the system sends nothing. Exactly one method is required (`400`). | Both |
 | BR-06 | Fields per method follow the Acknowledgment field rules table below. A field marked "—" must not be sent for that method (`400`). Text fields are trimmed; an optional empty text → null. Relationship codes and labels: `customer` "Customer", `family_member` "Family member", `tenant` "Tenant", `property_manager` "Property manager", `employee` "Employee", `other` "Other". Validation errors → `400` ProblemDetails with field errors. | Both |
@@ -118,10 +118,10 @@ the service and never confirms payment.
 
 | Field             | `signed`                  | `customer_absent` | `customer_refused` | `remote_confirmation`     | Format                                          | Message when invalid                              |
 | ----------------- | ------------------------- | ----------------- | ------------------ | ------------------------- | ----------------------------------------------- | ------------------------------------------------- |
-| `signerName`      | Required                  | —                 | Optional           | Required                  | Trimmed, 1–180 characters                       | "Enter the signer's name."                        |
+| `signerName`      | Required                  | —                 | Optional           | Required                  | Trimmed, 1–180 characters                       | Missing or empty: "Enter the signer's name."; over 180: "Use 180 characters or fewer." |
 | `relationship`    | Required                  | —                 | —                  | Required                  | One of the BR-06 codes                          | "Select the relationship."                        |
 | `signature`       | Required (BR-07)          | —                 | —                  | —                         | PNG, 1 byte–512 KiB                             | "Add the customer's signature."                   |
-| `comment`         | Optional                  | Required          | Required           | Required                  | Trimmed, 1–1000 characters (optional: 0–1000)   | "Enter the reason." / "Enter how the customer confirmed." |
+| `comment`         | Optional                  | Required          | Required           | Required                  | Trimmed, 1–1000 characters (optional: 0–1000)   | Missing or empty: "Enter the reason." (absent, refused) / "Enter how the customer confirmed." (remote); over 1000: "Use 1000 characters or fewer." |
 | `reviewConfirmed` | Required, `true`          | —                 | —                  | Required, `true`          | Boolean                                         | "Confirm that the customer reviewed the work."    |
 | Comment label     | "Customer comment (optional)" | "Reason"      | "Reason"           | "Confirmation details"    | —                                               | —                                                 |
 
@@ -188,7 +188,7 @@ the service and never confirms payment.
 ## API contracts
 
 Contract status: Final. Errors use ProblemDetails with `code` where listed.
-Paths are relative to `/technician/visits/{visitId}`. Permission
+The first row is `/technician/visits/{visitId}`; every other path is relative to it. Permission
 TechnicianSelf. Common errors for every row: `403` (role; `technician_inactive`)
 · `404` (BR-01; `technician_profile_not_linked`).
 
@@ -197,7 +197,7 @@ TechnicianSelf. Common errors for every row: `403` (role; `technician_inactive`)
 
 | Method | Path        | Request                                                                                                                         | Success                     | Errors                                                                                              | Permission     |
 | ------ | ----------- | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------------------------------------------------------------- | -------------- |
-| GET    | (detail)    | —                                                                                                                               | `200 TechnicianVisitDetail` | —                                                                                                   | TechnicianSelf |
+| GET    | `/technician/visits/{visitId}` | —                                                                                                                               | `200 TechnicianVisitDetail` | —                                                                                                   | TechnicianSelf |
 | POST   | `/complete` | `multipart/form-data`: `method`, `signerName?`, `relationship?`, `comment?`, `reviewConfirmed?`, `signature?` (file), per BR-05–BR-07 | `200 VisitActionResult`     | `400` · `403 not_primary_technician` · `409 visit_status_invalid`, `completion_requirements_unmet` | TechnicianSelf |
 
 Mutations rely on the existing cookie session (`HttpOnly`, `Secure`,
@@ -237,7 +237,7 @@ Mutations rely on the existing cookie session (`HttpOnly`, `Secure`,
 | AC-02 | Other roles (parameterized), an unlinked and an inactive/suspended technician, and an actively assigned non-primary technician | They call `POST …/complete` | Roles `403`; unlinked `404 technician_profile_not_linked`; inactive `403 technician_inactive`; non-primary `403 not_primary_technician`; no write; the non-primary can read the detail with `completion` |
 | AC-03 | A ready `in_progress` one-time visit with an open `work` entry | It is completed with a valid `signed` acknowledgment | `200 changed = true`; the work entry is closed; visit `completed` with `actual_completed_at`; one history row `in_progress → completed`; one signoff row with method, name, relationship, PNG content, `review_confirmed = true`, `accepted = true`, `recorded_by_user_id`; `completion_without_signature_reason` null; one `visit.completed` audit row whose data contain no name, relationship, comment or signature; no invoice, payment or notification row |
 | AC-04 | A ready `paused` visit with an open `pause` entry | It is completed | The pause entry is closed, its whole seconds are added to `pause_seconds`, the history row is `paused → completed`, and no entry of the visit remains open |
-| AC-05 | A completed visit | Completion is called again with a valid or a different body, and Start job, Pause, a task edit and a photo upload are called | Completion `200 changed = false` with no write; Start job and edits `409 visit_status_invalid` per `mobile-job-progress` |
+| AC-05 | A completed visit | Completion is called again with the same and with a different valid body, and Start job, Pause, a task edit and a photo upload are called | Completion `200 changed = false` with no write; Start job and edits `409 visit_status_invalid` per `mobile-job-progress` |
 | AC-06 | Visits `assigned`, `on_the_way`, `needs_correction` and `approved` (table-driven) | Completion is called with a valid body | `409 visit_status_invalid` with the BR-03 message and no write |
 | AC-07 | Ready visits altered to have one required task incomplete, no Before photo, no After photo, and only optional tasks incomplete (table-driven) | Completion is called | The first three `409 completion_requirements_unmet` with no write; the last succeeds |
 | AC-08 | Each method with its required fields missing, empty, too long, a disallowed field sent, an unknown relationship, `reviewConfirmed = false` and no method (table-driven) | Completion is called | `400` with the field-table messages and no write; valid bodies of each method succeed |
@@ -329,3 +329,4 @@ automation or Playwright.
 | Date       | Status change | Reason  |
 | ---------- | ------------- | ------- |
 | 2026-10-07 | — → DRAFT     | Created |
+| 2026-10-07 | DRAFT → DRAFT | Revised after validation: BR-03 repeat applies to any valid body (invalid body `400` first); max-length messages for `signerName` and `comment`; explicit detail path in API contracts; AC-05 wording |
