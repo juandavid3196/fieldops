@@ -4,10 +4,10 @@
 | -------- | ----------------------- |
 | Feature  | `mobile-job-completion` |
 | Type     | Full-stack              |
-| Status   | DRAFT                   |
+| Status   | APPROVED                |
 | Created  | 2026-10-07              |
 | Updated  | 2026-10-07              |
-| Approved | —                       |
+| Approved | 2026-10-07              |
 
 ## Context and objective
 
@@ -330,3 +330,4 @@ automation or Playwright.
 | ---------- | ------------- | ------- |
 | 2026-10-07 | — → DRAFT     | Created |
 | 2026-10-07 | DRAFT → DRAFT | Revised after validation: BR-03 repeat applies to any valid body (invalid body `400` first); max-length messages for `signerName` and `comment`; explicit detail path in API contracts; AC-05 wording |
+| 2026-10-07 | DRAFT → APPROVED | Approved by user via /spec approve |
