@@ -40,29 +40,22 @@ internal sealed class VisitAssignmentConfiguration
 
         builder.Property(assignment => assignment.UnassignedAt);
 
-        // UNIQUE (visit_id, technician_id, unassigned_at), as declared in the
-        // relational model. PostgreSQL treats NULLs as distinct in unique
-        // constraints, so this alone does not prevent two simultaneously
-        // active (unassigned_at IS NULL) assignments of the same technician
-        // to the same visit; see the partial unique index below.
-        builder.HasIndex(assignment => new
-        {
-            assignment.VisitId,
-            assignment.TechnicianId,
-            assignment.UnassignedAt,
-        })
-            .IsUnique();
-
-        // Prevents duplicate active assignments: at most one row per
-        // (visit_id, technician_id) may have a NULL unassigned_at.
+        // Dispatch-calendar BR-22: replaces UNIQUE (visit_id, technician_id, unassigned_at), which PostgreSQL never
+        // enforces for NULLs. At most one active assignment per technician and visit.
         builder.HasIndex(assignment => new
         {
             assignment.VisitId,
             assignment.TechnicianId,
         })
-            .HasDatabaseName("ix_visit_assignments_active_technician_unique")
+            .HasDatabaseName("ux_visit_assignments_active")
             .IsUnique()
             .HasFilter("unassigned_at IS NULL");
+
+        // At most one active primary assignment per visit.
+        builder.HasIndex(assignment => assignment.VisitId)
+            .HasDatabaseName("ux_visit_assignments_primary")
+            .IsUnique()
+            .HasFilter("is_primary AND unassigned_at IS NULL");
 
         // CREATE INDEX ix_assignments_technician
         //   ON visit_assignments (technician_id, assigned_at) WHERE unassigned_at IS NULL

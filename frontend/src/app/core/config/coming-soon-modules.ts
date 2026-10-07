@@ -2,7 +2,6 @@
 export const COMING_SOON_MODULES: Readonly<Record<string, string>> = {
   quotes: 'Quotes',
   'work-orders': 'Work orders',
-  schedule: 'Schedule',
   team: 'Team',
   'team-skills': 'Team skills',
   'team-availability': 'Team availability',

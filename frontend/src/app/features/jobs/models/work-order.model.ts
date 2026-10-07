@@ -1,6 +1,6 @@
 export type JobType = 'one_time' | 'recurring';
 export type Priority = 'urgent' | 'high' | 'normal' | 'low';
-export type WorkOrderStatus = 'draft' | 'ready_to_schedule';
+export type WorkOrderStatus = 'draft' | 'ready_to_schedule' | 'scheduled';
 export type MaterialSource = 'truck_stock' | 'warehouse' | 'to_purchase';
 export type ArrivalWindow = 'any' | '08-11' | '09-12' | '12-15' | '13-16' | '15-18';
 export type RecurrenceFrequency = 'weekly' | 'biweekly' | 'monthly' | 'quarterly';

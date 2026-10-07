@@ -1,0 +1,501 @@
+<app-drawer-shell
+  size="26rem"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <div class="dd__heading">
+      <h2 class="dd__title" [id]="titleId" tabindex="-1">Assign work order</h2>
+    </div>
+    <span class="dd__spacer"></span>
+    <button
+      type="button"
+      class="dd__close"
+      aria-label="Close assign work order"
+      [disabled]="saving()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (loadState() === 'loading') {
+      <div class="dd__skeletons" aria-busy="true">
+        @for (item of skeletons; track item) {
+          <p-skeleton height="6rem" />
+        }
+      </div>
+    } @else if (loadState() === 'error') {
+      <p-message severity="error" [closable]="false">
+        <span class="dd__inline">
+          {{ loadFailedMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="reload()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else if (detail(); as current) {
+      @if (form(); as f) {
+        <p class="dd__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+        <div class="dd__wo">
+          <span class="dd__wo-icon" aria-hidden="true"><i class="pi pi-file"></i></span>
+          <div class="dd__wo-text">
+            <p class="dd__wo-line">
+              <strong>#{{ current.workOrder.displayNumber.replace('#', '') }}</strong>
+              <span class="dd__status">{{ statusLabel(current.status) }}</span>
+              @if (current.recurrence; as recurrence) {
+                <span class="dd__wo-visit"
+                  >Visit {{ current.visitNumber }} of {{ recurrence.count }}</span
+                >
+              }
+            </p>
+            <p class="dd__wo-title">{{ current.workOrder.title }}</p>
+          </div>
+        </div>
+
+        @if (showLockedNote()) {
+          <p-message severity="warn" [closable]="false">{{ lockedMessage }}</p-message>
+        }
+        @if (saveProblem() === 'changed') {
+          <p-message severity="warn" [closable]="false">
+            <span class="dd__inline">
+              {{ changedMessage }}
+              <button pButton type="button" size="small" (click)="reload()">Reload</button>
+            </span>
+          </p-message>
+        } @else if (saveProblem() === 'failed') {
+          <p-message severity="error" [closable]="false">{{ saveFailedMessage }}</p-message>
+        }
+
+        <section class="dd__section" aria-labelledby="dd-customer">
+          <h3 class="dd__heading-2" id="dd-customer">Customer</h3>
+          <div class="dd__customer">
+            <span class="dd__avatar" aria-hidden="true">{{ current.customer.initials }}</span>
+            <div>
+              <p class="dd__strong">{{ current.customer.name }}</p>
+              @if (current.customer.phone; as phone) {
+                <p>
+                  <a class="dd__phone" [href]="'tel:' + phone"
+                    ><i class="pi pi-phone" aria-hidden="true"></i> {{ phone }}</a
+                  >
+                </p>
+              }
+              <p>
+                <i class="pi pi-map-marker" aria-hidden="true"></i> {{ current.customer.address }}
+              </p>
+            </div>
+          </div>
+          <div class="dd__req">
+            <span class="dd__priority" [attr.data-priority]="current.workOrder.priority">
+              <i
+                class="pi"
+                [class]="priorityIcons[current.workOrder.priority]"
+                aria-hidden="true"
+              ></i>
+              {{ priorityText[current.workOrder.priority] }}
+            </span>
+            @if (current.workOrder.requiredSkills.length > 0) {
+              <span>Requires:</span>
+              @for (skill of current.workOrder.requiredSkills; track skill.id) {
+                <span class="dd__skill">{{ skill.name }}</span>
+              }
+            }
+          </div>
+        </section>
+
+        <section class="dd__section" aria-labelledby="dd-schedule">
+          <h3 class="dd__heading-2" id="dd-schedule">Schedule</h3>
+          <app-form-field
+            label="Date"
+            [controlId]="controlIds.date"
+            [required]="true"
+            [error]="errors().date ?? null"
+          >
+            <input
+              pInputText
+              type="date"
+              fluid
+              [id]="controlIds.date"
+              [ngModel]="f.date"
+              (ngModelChange)="patch({ date: $event ?? '' }, 'date')"
+              [disabled]="readOnly() || saving()"
+              [attr.aria-invalid]="errors().date ? 'true' : null"
+              [attr.aria-describedby]="describedBy('date')"
+            />
+          </app-form-field>
+          <div class="dd__row">
+            <app-form-field
+              label="Start time"
+              [controlId]="controlIds.start"
+              [required]="true"
+              [error]="errors().start ?? null"
+            >
+              <p-select
+                [inputId]="controlIds.start"
+                [options]="timeOptions().start"
+                optionLabel="label"
+                optionValue="code"
+                appendTo="body"
+                placeholder="Select"
+                ariaLabel="Start time"
+                fluid
+                [ngModel]="f.start"
+                (ngModelChange)="patch({ start: $event }, 'start')"
+                [disabled]="readOnly() || saving()"
+                [invalid]="!!errors().start"
+              />
+            </app-form-field>
+            <app-form-field
+              label="End time"
+              [controlId]="controlIds.end"
+              [required]="true"
+              [error]="errors().end ?? null"
+            >
+              <p-select
+                [inputId]="controlIds.end"
+                [options]="timeOptions().end"
+                optionLabel="label"
+                optionValue="code"
+                appendTo="body"
+                placeholder="Select"
+                ariaLabel="End time"
+                fluid
+                [ngModel]="f.end"
+                (ngModelChange)="patch({ end: $event }, 'end')"
+                [disabled]="readOnly() || saving()"
+                [invalid]="!!errors().end"
+              />
+            </app-form-field>
+          </div>
+          <app-form-field
+            label="Preferred arrival window"
+            [controlId]="controlIds.arrivalWindow"
+            [error]="errors().arrivalWindow ?? null"
+          >
+            <p-select
+              [inputId]="controlIds.arrivalWindow"
+              [options]="arrivalOptions()"
+              optionLabel="label"
+              optionValue="code"
+              appendTo="body"
+              ariaLabel="Preferred arrival window"
+              fluid
+              [ngModel]="f.arrivalWindow"
+              (ngModelChange)="patch({ arrivalWindow: $event }, 'arrivalWindow')"
+              [disabled]="readOnly() || saving()"
+            />
+          </app-form-field>
+          <p class="dd__meta">Times use the branch time zone ({{ current.timezone }}).</p>
+        </section>
+
+        <section class="dd__section" aria-labelledby="dd-technicians">
+          <h3 class="dd__heading-2" id="dd-technicians">Assign to technicians</h3>
+          @if (technicians().length === 0) {
+            <p class="dd__meta">{{ noTechniciansMessage }}</p>
+          } @else {
+            <app-form-field
+              label="Technicians"
+              [controlId]="controlIds.technicianIds"
+              [error]="errors().technicianIds ?? null"
+              [helper]="hasSchedule() ? null : needsScheduleMessage"
+            >
+              <p-multiselect
+                [inputId]="controlIds.technicianIds"
+                [options]="technicians()"
+                optionLabel="name"
+                optionValue="id"
+                [selectionLimit]="maxTechnicians"
+                [showToggleAll]="false"
+                display="chip"
+                appendTo="body"
+                placeholder="Select up to 5 technicians"
+                ariaLabel="Technicians"
+                fluid
+                [ngModel]="f.technicianIds"
+                (ngModelChange)="setTechnicians($event)"
+                [disabled]="readOnly() || saving() || !hasSchedule()"
+                [invalid]="!!errors().technicianIds"
+              >
+                <ng-template #item let-technician>
+                  <span class="dd__option">
+                    <span class="dd__tech-avatar" aria-hidden="true">{{
+                      technician.initials
+                    }}</span>
+                    <span class="dd__option-text">
+                      <span class="dd__strong">{{ technician.name }}</span>
+                      @if (technician.primarySkill) {
+                        <small>{{ technician.primarySkill }}</small>
+                      }
+                    </span>
+                    @if (technician.id === bestMatchId()) {
+                      <p-tag severity="success" icon="pi pi-star" value="Best match" />
+                    }
+                  </span>
+                </ng-template>
+                <ng-template #selectedItems>
+                  <span class="dd__selected">
+                    @for (technician of selectedTechnicians(); track technician.id) {
+                      <span class="dd__option">
+                        <span class="dd__tech-avatar" aria-hidden="true">{{
+                          technician.initials
+                        }}</span>
+                        <span class="dd__option-text">
+                          <span class="dd__strong">{{ technician.name }}</span>
+                          @if (technician.primarySkill) {
+                            <small>{{ technician.primarySkill }}</small>
+                          }
+                        </span>
+                      </span>
+                    }
+                  </span>
+                </ng-template>
+              </p-multiselect>
+            </app-form-field>
+
+            @if (selectedTechnicians().length > 0) {
+              <fieldset
+                class="dd__primary"
+                [attr.aria-describedby]="describedBy('primaryTechnicianId')"
+              >
+                <legend class="dd__legend">Primary technician</legend>
+                @for (technician of selectedTechnicians(); track technician.id) {
+                  <div class="dd__tech">
+                    <label class="dd__radio">
+                      <input
+                        type="radio"
+                        name="dispatch-primary"
+                        [id]="technician.id === f.primaryId ? controlIds.primaryTechnicianId : null"
+                        [value]="technician.id"
+                        [checked]="technician.id === f.primaryId"
+                        [disabled]="readOnly() || saving()"
+                        (change)="patch({ primaryId: technician.id }, 'primaryTechnicianId')"
+                      />
+                      <span class="dd__strong">{{ technician.name }}</span>
+                      <span class="dd__meta">Primary</span>
+                      @if (technician.id === bestMatchId()) {
+                        <p-tag severity="success" icon="pi pi-star" value="Best match" />
+                      }
+                    </label>
+                    <div class="dd__checks">
+                      @for (check of checksFor(technician.id); track $index) {
+                        <p class="dd__check" [class.dd__check--bad]="!check.passed">
+                          @if (check.passed) {
+                            <span class="dd__tick" aria-hidden="true"
+                              ><i class="pi pi-check"></i
+                            ></span>
+                          } @else {
+                            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                          }
+                          {{ check.label }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (errors().primaryTechnicianId; as message) {
+                  <p class="dd__error" [id]="controlIds.primaryTechnicianId + '-error'">
+                    {{ message }}
+                  </p>
+                }
+              </fieldset>
+            }
+          }
+
+          @if (evaluation(); as result) {
+            <p class="dd__check" [class.dd__check--bad]="!result.skills.passed">
+              @if (result.skills.passed) {
+                <span class="dd__tick" aria-hidden="true"><i class="pi pi-check"></i></span>
+              } @else {
+                <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              }
+              {{ result.skills.label }}
+            </p>
+          }
+          <p class="dd__meta">Planned materials: {{ current.workOrder.plannedMaterialsCount }}</p>
+        </section>
+
+        @if (hasSchedule()) {
+          <section class="dd__section" aria-labelledby="dd-impact">
+            <h3 class="dd__heading-2" id="dd-impact">Workload and route impact</h3>
+            @if (evaluating()) {
+              <p-skeleton height="3rem" />
+              <p class="dd__meta" aria-busy="true">Checking availability…</p>
+            } @else if (evaluationFailed()) {
+              <p-message severity="error" [closable]="false">
+                <span class="dd__inline">
+                  {{ evaluationFailedMessage }}
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    size="small"
+                    (click)="queueEvaluation()"
+                  >
+                    Retry
+                  </button>
+                </span>
+              </p-message>
+            } @else if (evaluation(); as result) {
+              @for (entry of impactLines(); track entry.name) {
+                <div class="dd__impact">
+                  <p class="dd__strong">{{ entry.name }}</p>
+                  <div class="dd__checks">
+                    @for (line of entry.lines; track $index) {
+                      <p>
+                        <i class="pi" [class]="impactIcons[$index]" aria-hidden="true"></i>
+                        {{ line }}
+                      </p>
+                    }
+                  </div>
+                </div>
+              }
+              <div
+                class="dd__banner"
+                [class.dd__banner--warn]="result.conflicts.length > 0"
+                [class.dd__banner--ok]="result.conflicts.length === 0"
+              >
+                <p class="dd__strong">
+                  <i
+                    class="pi"
+                    [class]="
+                      result.conflicts.length === 0 ? 'pi-check-circle' : 'pi-exclamation-triangle'
+                    "
+                    aria-hidden="true"
+                  ></i>
+                  {{ bannerText() }}
+                </p>
+                @if (result.conflicts.length > 0) {
+                  <ul class="dd__conflicts">
+                    @for (conflict of result.conflicts; track $index) {
+                      <li>
+                        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                        {{ conflict.label }}
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+          </section>
+        }
+
+        @if (reasonNeeded()) {
+          <app-form-field
+            class="dd__field"
+            label="Justification"
+            [controlId]="controlIds.overrideReason"
+            [required]="true"
+            [error]="errors().overrideReason ?? null"
+            helper="Required to confirm despite the conflicts."
+          >
+            <textarea
+              pTextarea
+              rows="3"
+              fluid
+              [id]="controlIds.overrideReason"
+              [maxlength]="reasonMax + 100"
+              [ngModel]="f.reason"
+              (ngModelChange)="patch({ reason: $event ?? '' }, 'overrideReason')"
+              [disabled]="readOnly() || saving()"
+              [attr.aria-invalid]="errors().overrideReason ? 'true' : null"
+              [attr.aria-describedby]="describedBy('overrideReason')"
+            ></textarea>
+          </app-form-field>
+        }
+
+        <section class="dd__section dd__section--notify" aria-labelledby="dd-notify">
+          <h3 class="dd__heading-2" id="dd-notify">Customer notification</h3>
+          <span class="dd__check-row">
+            <p-checkbox
+              [inputId]="controlIds.notifyCustomer"
+              [binary]="true"
+              [ngModel]="f.notify"
+              (ngModelChange)="patch({ notify: $event }, 'notifyCustomer')"
+              [disabled]="emailDisabled()"
+              [attr.aria-describedby]="describedBy('notifyCustomer')"
+            /><label [for]="controlIds.notifyCustomer">Email customer when scheduled</label>
+          </span>
+          @if (!current.customer.hasEmail) {
+            <p class="dd__hint">{{ noEmailMessage }}</p>
+          }
+          @if (errors().notifyCustomer; as message) {
+            <p class="dd__error dd__hint" [id]="controlIds.notifyCustomer + '-error'">
+              {{ message }}
+            </p>
+          }
+          <span class="dd__check-row">
+            <p-checkbox
+              inputId="dispatch-sms"
+              [binary]="true"
+              [ngModel]="false"
+              [disabled]="true"
+            /><label for="dispatch-sms">Send SMS to customer</label>
+          </span>
+          <p class="dd__hint">{{ smsMessage }}</p>
+          <span class="dd__check-row">
+            <p-checkbox
+              inputId="dispatch-details"
+              [binary]="true"
+              [ngModel]="f.sendDetails"
+              (ngModelChange)="patch({ sendDetails: $event })"
+              [disabled]="emailDisabled() || !f.notify"
+            /><label for="dispatch-details">Send technician details to customer</label>
+          </span>
+        </section>
+
+        <app-form-field
+          class="dd__field"
+          label="Internal note (optional)"
+          [controlId]="controlIds.dispatchNote"
+          [error]="errors().dispatchNote ?? null"
+        >
+          <textarea
+            pTextarea
+            rows="3"
+            fluid
+            placeholder="Add a note for the technician…"
+            [id]="controlIds.dispatchNote"
+            [ngModel]="f.note"
+            (ngModelChange)="patch({ note: $event ?? '' }, 'dispatchNote')"
+            [disabled]="readOnly() || saving()"
+            [attr.aria-invalid]="errors().dispatchNote ? 'true' : null"
+            [attr.aria-describedby]="describedBy('dispatchNote')"
+          ></textarea>
+        </app-form-field>
+      }
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    @if (loadState() === 'ready' && readOnly()) {
+      <button pButton type="button" severity="secondary" [outlined]="true" (click)="requestClose()">
+        Close
+      </button>
+    } @else {
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        class="dd__action"
+        [disabled]="saving()"
+        (click)="requestClose()"
+      >
+        Cancel
+      </button>
+      <button
+        pButton
+        type="button"
+        class="dd__action dd__action--primary"
+        [disabled]="loadState() !== 'ready' || saving()"
+        [loading]="saving()"
+        (click)="submit()"
+      >
+        {{ primaryLabel() }}
+      </button>
+    }
+  </ng-container>
+</app-drawer-shell>

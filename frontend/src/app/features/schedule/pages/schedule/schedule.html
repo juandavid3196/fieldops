@@ -1,0 +1,119 @@
+<p-toast />
+<app-discard-changes-dialog />
+
+<div class="sched">
+  <div class="sched__main">
+    @if (forbidden()) {
+      <h1 class="sched__title">Dispatch calendar</h1>
+      <p class="sched__forbidden">{{ forbiddenMessage }}</p>
+    } @else if (store.optionsStatus() === 'loading') {
+      <div class="sched__skeletons" aria-busy="true">
+        <p-skeleton height="3rem" />
+        @for (item of skeletons; track item) {
+          <p-skeleton height="7rem" />
+        }
+      </div>
+    } @else if (store.optionsStatus() === 'error') {
+      <p-message severity="error" [closable]="false">
+        <span class="sched__inline">
+          {{ loadErrorMessage }}
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            size="small"
+            (click)="store.retryAll()"
+          >
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else if (branches().length === 0) {
+      <h1 class="sched__title">Dispatch calendar</h1>
+      <p class="sched__empty">{{ noBranchesMessage }}</p>
+    } @else {
+      <app-schedule-toolbar
+        #toolbar
+        [view]="view()"
+        [rangeLabel]="label()"
+        [branches]="branches()"
+        [branchId]="store.route()?.branchId ?? null"
+        [teamOptions]="store.teamOptions()"
+        [teamIds]="store.teamIds()"
+        [skills]="skills()"
+        [skillId]="store.skillId()"
+        [status]="store.statusFilter()"
+        [compact]="compact()"
+        (todayRequested)="onToday()"
+        (previousRequested)="onShift(-1)"
+        (nextRequested)="onShift(1)"
+        (viewChange)="onView($event)"
+        (branchChange)="onBranch($event, toolbar)"
+        (teamChange)="store.setTeam($event)"
+        (skillChange)="store.setSkill($event)"
+        (statusChange)="store.setStatus($event)"
+      />
+
+      <div class="sched__body" [attr.data-layout]="layout()">
+        @if (layout() === 'tablet') {
+          <button
+            pButton
+            type="button"
+            class="sched__panel-toggle"
+            severity="secondary"
+            [outlined]="true"
+            aria-controls="sched-panel"
+            [attr.aria-expanded]="panelOpen()"
+            (click)="panelOpen.set(!panelOpen())"
+          >
+            Unscheduled ({{ store.total() }})
+          </button>
+        }
+        @if (layout() !== 'tablet' || panelOpen()) {
+          <app-unscheduled-panel
+            id="sched-panel"
+            class="sched__panel"
+            [items]="store.items()"
+            [total]="store.total()"
+            [status]="store.panelStatus()"
+            [filter]="store.panelFilter()"
+            [searchText]="store.searchText()"
+            [loadingMore]="store.loadingMore()"
+            [hasMore]="store.hasMore()"
+            [selectedVisitId]="store.selectedVisitId()"
+            [timezone]="store.timezone()"
+            (filterChange)="store.setPanelFilter($event)"
+            (searchChange)="store.setSearch($event)"
+            (selected)="openVisit($event)"
+            (loadMore)="store.loadMore()"
+            (retry)="store.loadPanel()"
+          />
+        }
+        <app-schedule-calendar
+          class="sched__calendar"
+          [calendar]="store.calendar()"
+          [status]="store.calendarStatus()"
+          [view]="view()"
+          [timezone]="store.timezone()"
+          [proposed]="store.proposed()"
+          [selectedVisitId]="store.selectedVisitId()"
+          [today]="today()"
+          [nowMinutes]="clockMinutes()"
+          (visitSelected)="openVisit($event)"
+          (retry)="store.loadCalendar()"
+        />
+      </div>
+    }
+  </div>
+
+  @if (!forbidden()) {
+    <app-dispatch-drawer
+      [visitId]="store.selectedVisitId()"
+      (closeRequested)="onDrawerCloseRequested()"
+      (saved)="onDrawerSaved($event)"
+      (unavailable)="onDrawerUnavailable()"
+      (dirtyChange)="store.drawerDirty.set($event)"
+      (proposedChange)="onProposed($event)"
+    />
+  }
+</div>

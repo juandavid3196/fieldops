@@ -3607,6 +3607,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("actual_started_at");
 
+                    b.Property<DateTimeOffset?>("ArrivalWindowEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("arrival_window_end");
+
+                    b.Property<DateTimeOffset?>("ArrivalWindowStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("arrival_window_start");
+
                     b.Property<string>("CompletionSummary")
                         .HasColumnType("text")
                         .HasColumnName("completion_summary");
@@ -3621,6 +3629,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("created_at")
                         .HasDefaultValueSql("now()");
 
+                    b.Property<string>("DispatchNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasColumnName("dispatch_note");
+
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
@@ -3630,6 +3643,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(0)
                         .HasColumnName("pause_seconds");
+
+                    b.Property<DateTimeOffset?>("PreferredEnd")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("preferred_end");
+
+                    b.Property<DateTimeOffset?>("PreferredStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("preferred_start");
 
                     b.Property<string>("ReviewNotes")
                         .HasColumnType("text")
@@ -3688,9 +3709,20 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId", "ScheduledStart", "Status")
                         .HasDatabaseName("ix_visits_schedule");
 
+                    b.HasIndex("OrganizationId", "Status", "PreferredStart")
+                        .HasDatabaseName("ix_visits_org_status_preferred");
+
                     b.ToTable("visits", null, t =>
                         {
+                            t.HasCheckConstraint("ck_visits_arrival_window_pair", "(arrival_window_start IS NULL) = (arrival_window_end IS NULL)");
+
+                            t.HasCheckConstraint("ck_visits_arrival_window_range", "arrival_window_start IS NULL OR (scheduled_start IS NOT NULL AND arrival_window_start <= scheduled_start AND scheduled_start <= arrival_window_end)");
+
                             t.HasCheckConstraint("ck_visits_pause_seconds", "pause_seconds >= 0");
+
+                            t.HasCheckConstraint("ck_visits_preferred_range", "(preferred_start IS NULL) = (preferred_end IS NULL) AND (preferred_start IS NULL OR preferred_start < preferred_end)");
+
+                            t.HasCheckConstraint("ck_visits_schedule_pair", "(scheduled_start IS NULL) = (scheduled_end IS NULL)");
 
                             t.HasCheckConstraint("ck_visits_schedule_range", "scheduled_end IS NULL OR scheduled_start IS NULL OR scheduled_start < scheduled_end");
 
@@ -3740,18 +3772,19 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("AssignedByUserId")
                         .HasDatabaseName("ix_visit_assignments_assigned_by_user_id");
 
+                    b.HasIndex("VisitId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_visit_assignments_primary")
+                        .HasFilter("is_primary AND unassigned_at IS NULL");
+
                     b.HasIndex("TechnicianId", "AssignedAt")
                         .HasDatabaseName("ix_assignments_technician")
                         .HasFilter("unassigned_at IS NULL");
 
                     b.HasIndex("VisitId", "TechnicianId")
                         .IsUnique()
-                        .HasDatabaseName("ix_visit_assignments_active_technician_unique")
+                        .HasDatabaseName("ux_visit_assignments_active")
                         .HasFilter("unassigned_at IS NULL");
-
-                    b.HasIndex("VisitId", "TechnicianId", "UnassignedAt")
-                        .IsUnique()
-                        .HasDatabaseName("ix_visit_assignments_visit_id_technician_id_unassigned_at");
 
                     b.ToTable("visit_assignments", (string)null);
                 });

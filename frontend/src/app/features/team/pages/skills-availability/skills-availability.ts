@@ -106,7 +106,7 @@ export class SkillsAvailabilityPage {
   protected readonly conflictMessage = SAVE_CONFLICT_MESSAGE;
   protected readonly saveFailedMessage = SAVE_FAILED_MESSAGE;
   protected readonly profilePath = comingSoonPath('technician-profile');
-  protected readonly schedulePath = comingSoonPath('schedule');
+  protected readonly schedulePath = '/schedule';
   protected readonly historyPath = comingSoonPath('technician-job-history');
   protected readonly statusLabels = PROFILE_STATUS_LABELS;
   protected readonly statusSeverity = profileStatusSeverity;

@@ -147,7 +147,7 @@ public class CustomerDetailReadTests(CompanySettingsDatabaseFixture database)
 
         foreach (var day in future)
         {
-            var visit = await database.SeedVisitAsync(org, job, number++, day == 2 ? "on_the_way" : "scheduled", now.AddDays(day), day == 1 ? null : now.AddDays(day).AddHours(2));
+            var visit = await database.SeedVisitAsync(org, job, number++, day == 2 ? "on_the_way" : "scheduled", now.AddDays(day), now.AddDays(day).AddHours(2));
 
             if (day == 3)
             {
@@ -165,7 +165,7 @@ public class CustomerDetailReadTests(CompanySettingsDatabaseFixture database)
             Enumerable.Range(1, 5).Select(day => now.AddDays(day)).ToArray(),
             appointments.Select(item => item!["startsAt"]!.GetValue<DateTimeOffset>()).ToArray(),
             new ApproximateComparer());
-        Assert.Null(appointments[0]!["endsAt"]);
+        Assert.Equal(appointments[0]!["startsAt"]!.GetValue<DateTimeOffset>().AddHours(2), appointments[0]!["endsAt"]!.GetValue<DateTimeOffset>(), new ApproximateComparer());
         Assert.Equal(("WO-57", "Roof inspection", "Warehouse"), (
             appointments[0]!["jobNumber"]!.GetValue<string>(),
             appointments[0]!["jobTitle"]!.GetValue<string>(),

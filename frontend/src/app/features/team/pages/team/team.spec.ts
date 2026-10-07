@@ -248,7 +248,7 @@ describe('Team page', () => {
       if (status === 200) {
         expect(text()).toContain('Ana López');
         expect(text()).toContain('Plumbing');
-        expect(button('View schedule')?.getAttribute('href')).toBe('/coming-soon/schedule');
+        expect(button('View schedule')?.getAttribute('href')).toBe('/schedule');
         for (const hidden of [
           'Edit skills',
           'Edit availability',

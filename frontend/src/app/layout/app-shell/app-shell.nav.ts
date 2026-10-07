@@ -39,7 +39,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       { label: 'Requests', icon: 'pi-inbox', link: '/requests', exact: false },
       moduleItem('Quotes', 'pi-file-edit', 'quotes'),
       { label: 'Jobs', icon: 'pi-wrench', link: '/jobs', exact: false },
-      moduleItem('Schedule', 'pi-calendar', 'schedule'),
+      { label: 'Schedule', icon: 'pi-calendar', link: '/schedule', exact: false },
     ],
   },
   {

@@ -1,0 +1,198 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.tb {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-block-end: 1rem;
+
+  &__top {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    @include bp.up(md) {
+      flex-flow: row wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__subtitle {
+    margin: 0.125rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+
+    > button {
+      block-size: var(--fo-size-control);
+    }
+  }
+
+  &__range,
+  &__toggle {
+    display: inline-flex;
+    align-items: stretch;
+    block-size: var(--fo-size-control);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__nav,
+  &__seg {
+    padding: 0 0.875rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-text);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset var(--fo-focus-ring);
+    }
+  }
+
+  &__today {
+    font-weight: 600;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border-color: var(--fo-color-border-strong);
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+  }
+
+  &__toggle {
+    flex: 1;
+
+    @include bp.up(md) {
+      flex: none;
+      margin-inline-start: 1.5rem;
+    }
+
+    .tb__seg {
+      flex: 1;
+    }
+  }
+
+  &__nav {
+    inline-size: var(--fo-size-control);
+    padding: 0;
+
+    &:first-child {
+      border-inline-end: 1px solid var(--fo-color-border);
+    }
+
+    &:last-child {
+      border-inline-start: 1px solid var(--fo-color-border);
+    }
+  }
+
+  &__seg--active,
+  &__seg--active:hover {
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    box-shadow: 0 0 0 1px var(--fo-color-primary);
+  }
+
+  &__seg {
+    position: relative;
+
+    &:first-child {
+      border-start-start-radius: var(--fo-radius-control);
+      border-end-start-radius: var(--fo-radius-control);
+    }
+
+    &:last-child {
+      border-start-end-radius: var(--fo-radius-control);
+      border-end-end-radius: var(--fo-radius-control);
+    }
+  }
+
+  &__seg--active {
+    z-index: 1;
+  }
+
+  &__range {
+    flex: 1;
+
+    @include bp.up(md) {
+      flex: none;
+    }
+  }
+
+  &__label {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-inline-size: 9.5rem;
+    padding-inline: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__filters {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+
+    @include bp.up(md) {
+      display: flex;
+      flex-wrap: wrap;
+    }
+  }
+
+  &__filter {
+    min-width: 0;
+
+    @include bp.up(md) {
+      flex: 0 0 12.5rem;
+    }
+  }
+
+  &__value {
+    color: var(--fo-color-text-secondary);
+
+    strong {
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__filters-toggle {
+    inline-size: 100%;
+    justify-content: center;
+  }
+}

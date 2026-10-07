@@ -329,9 +329,9 @@ describe('Skills & availability page', () => {
     expect(href('Team')).toBe('/team');
     expect(href('View profile')).toBe('/coming-soon/technician-profile');
     expect(href('Overview')).toBe('/coming-soon/technician-profile');
-    expect(href('Schedule')).toBe('/coming-soon/schedule');
+    expect(href('Schedule')).toBe('/schedule');
     expect(href('Job history')).toBe('/coming-soon/technician-job-history');
-    expect(href('Open dispatch calendar')).toBe('/coming-soon/schedule');
+    expect(href('Open dispatch calendar')).toBe('/schedule');
     expect(text()).toContain('85%');
     expect(text()).toContain('FieldOps never assigns a technician automatically.');
   });

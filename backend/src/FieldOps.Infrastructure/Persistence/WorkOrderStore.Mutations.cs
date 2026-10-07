@@ -129,7 +129,9 @@ internal sealed partial class WorkOrderStore
 
                 MoveRequestToConverted(actor, held.Request);
 
-                var visit = Visit.Create(actor.OrganizationId, order.Id, 1);
+                // Dispatch-calendar BR-22: visit #1 carries the work order preferred window.
+                var visit = Visit.Create(
+                    actor.OrganizationId, order.Id, 1, preferredStart: order.PreferredStart, preferredEnd: order.PreferredEnd);
                 dbContext.Visits.Add(visit);
                 dbContext.VisitStatusHistories.Add(VisitStatusHistory.Create(visit.Id, null, VisitStatus.Unscheduled));
 

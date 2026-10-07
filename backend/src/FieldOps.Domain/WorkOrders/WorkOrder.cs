@@ -200,6 +200,30 @@ public sealed class WorkOrder
         Touch(now);
     }
 
+    /// <summary>A visit gained a schedule (dispatch-calendar BR-16): ready to schedule becomes scheduled.</summary>
+    public void MarkScheduled(DateTimeOffset now)
+    {
+        if (Status != WorkOrderStatus.ReadyToSchedule)
+        {
+            throw new InvalidOperationException("Only a ready to schedule work order can become scheduled.");
+        }
+
+        Status = WorkOrderStatus.Scheduled;
+        Touch(now);
+    }
+
+    /// <summary>No non-cancelled visit keeps a schedule (dispatch-calendar BR-16).</summary>
+    public void ReturnToReadyToSchedule(DateTimeOffset now)
+    {
+        if (Status != WorkOrderStatus.Scheduled)
+        {
+            throw new InvalidOperationException("Only a scheduled work order can return to ready to schedule.");
+        }
+
+        Status = WorkOrderStatus.ReadyToSchedule;
+        Touch(now);
+    }
+
     /// <summary>Sets a new concurrency value, truncated to microseconds (the PostgreSQL precision) and always different from the previous one.</summary>
     public void Touch(DateTimeOffset now)
     {

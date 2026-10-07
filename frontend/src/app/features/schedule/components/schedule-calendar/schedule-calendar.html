@@ -1,0 +1,224 @@
+<section class="cal" aria-label="Dispatch calendar" [attr.aria-busy]="status() === 'loading'">
+  @if (status() === 'loading' && calendar() === null) {
+    <div class="cal__skeletons" aria-busy="true">
+      @for (item of skeletons; track item) {
+        <p-skeleton height="6rem" />
+      }
+    </div>
+  } @else if (status() === 'error' && calendar() === null) {
+    <p-message severity="error" [closable]="false">
+      <span class="cal__inline">
+        {{ errorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </span>
+    </p-message>
+  } @else {
+    @if (status() === 'error') {
+      <p-message severity="error" [closable]="false">
+        <span class="cal__inline">
+          {{ errorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    <div class="cal__card">
+      <div class="cal__scroll" [class.cal__scroll--busy]="status() === 'loading'">
+        <div
+          class="cal__grid"
+          [class.cal__grid--day]="view() === 'day'"
+          [style.--cal-cols]="days().length"
+          [style.--cal-hours]="axis().endHour - axis().startHour"
+        >
+          <div class="cal__row cal__row--head">
+            <div class="cal__lane-head"></div>
+            @if (view() === 'day') {
+              <div class="cal__axis" aria-hidden="true">
+                @for (tick of axisLabels(); track tick.hour) {
+                  <span class="cal__tick" [style.inset-inline-start.%]="tick.left">{{
+                    tick.label
+                  }}</span>
+                }
+              </div>
+            } @else {
+              @for (header of headers(); track header.date) {
+                <div class="cal__day" [class.cal__day--today]="header.today">
+                  <strong>{{ header.weekday }}</strong>
+                  <span>{{ header.monthDay }}</span>
+                </div>
+              }
+            }
+          </div>
+
+          @for (lane of lanes(); track lane.id) {
+            <div
+              class="cal__row"
+              role="group"
+              [attr.aria-label]="lane.unassigned ? 'Unassigned' : lane.technician?.name"
+            >
+              <div class="cal__lane-head">
+                @if (lane.technician; as technician) {
+                  <span
+                    class="cal__avatar"
+                    aria-hidden="true"
+                    [style.border-color]="technician.colorHex ?? null"
+                    >{{ technician.initials }}</span
+                  >
+                  <div class="cal__lane-text">
+                    <strong>{{ technician.name }}</strong>
+                    @if (technician.primarySkill) {
+                      <span class="cal__muted">{{ technician.primarySkill }}</span>
+                    }
+                    @if (technician.tag === 'inactive') {
+                      <span class="cal__tag">Inactive</span>
+                    } @else if (technician.tag === 'other_branch') {
+                      <span class="cal__tag">Other branch</span>
+                    }
+                    @if (lane.load; as load) {
+                      <span class="cal__load-text">{{ load.text }}</span>
+                      <span class="cal__bar" aria-hidden="true">
+                        <span
+                          class="cal__bar-fill"
+                          [attr.data-tone]="load.tone"
+                          [style.inline-size.%]="load.percent"
+                        ></span>
+                      </span>
+                    }
+                  </div>
+                } @else {
+                  <span class="cal__avatar cal__avatar--unassigned" aria-hidden="true">
+                    <i class="pi pi-user"></i>
+                  </span>
+                  <div class="cal__lane-text"><strong>Unassigned</strong></div>
+                }
+              </div>
+
+              @for (cell of lane.cells; track cell.date) {
+                @if (view() === 'day') {
+                  <div class="cal__track" [class.cal__track--off]="cell.off">
+                    @for (segment of cell.available; track $index) {
+                      <span
+                        class="cal__avail"
+                        [style.inset-inline-start.%]="segment.left"
+                        [style.inline-size.%]="segment.width"
+                      ></span>
+                    }
+                    @for (segment of cell.breaks; track $index) {
+                      <span
+                        class="cal__shade"
+                        [style.inset-inline-start.%]="segment.left"
+                        [style.inline-size.%]="segment.width"
+                      ></span>
+                    }
+                    @for (segment of cell.timeOffSegments; track $index) {
+                      <span
+                        class="cal__shade cal__shade--time-off"
+                        [style.inset-inline-start.%]="segment.left"
+                        [style.inline-size.%]="segment.width"
+                      ></span>
+                    }
+                    @if (showNow()) {
+                      <span
+                        class="cal__now"
+                        aria-hidden="true"
+                        [style.inset-inline-start.%]="nowLeft()"
+                      ></span>
+                    }
+                    @for (block of cell.blocks; track block.key) {
+                      <ng-container
+                        *ngTemplateOutlet="
+                          blockTpl;
+                          context: { $implicit: block, positioned: true }
+                        "
+                      />
+                    }
+                  </div>
+                } @else {
+                  <div
+                    class="cal__cell"
+                    [class.cal__cell--off]="cell.off"
+                    [class.cal__cell--today]="cell.date === today()"
+                  >
+                    @if (cell.timeOff) {
+                      <span class="cal__tag"
+                        ><i class="pi pi-ban" aria-hidden="true"></i> Time off</span
+                      >
+                    }
+                    @for (block of cell.blocks; track block.key) {
+                      <ng-container
+                        *ngTemplateOutlet="
+                          blockTpl;
+                          context: { $implicit: block, positioned: false }
+                        "
+                      />
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <ul class="cal__legend" aria-label="Legend">
+        <li><span class="cal__swatch cal__swatch--scheduled"></span> Scheduled</li>
+        <li><span class="cal__swatch cal__swatch--proposed"></span> Proposed</li>
+        <li><span class="cal__swatch cal__swatch--conflict"></span> Conflict</li>
+        <li><span class="cal__swatch cal__swatch--now"></span> Current time</li>
+      </ul>
+    </div>
+
+    @if (!hasTechnicians() && status() === 'ready') {
+      <p class="cal__empty">
+        {{ noTechniciansMessage }}
+        <a pButton severity="secondary" size="small" [outlined]="true" routerLink="/team"
+          >Go to Team</a
+        >
+      </p>
+    }
+  }
+</section>
+
+<ng-template #blockTpl let-block let-positioned="positioned">
+  @if (block.kind === 'visit') {
+    <button
+      type="button"
+      class="cal__block"
+      [class.cal__block--conflict]="block.conflict"
+      [class.cal__block--selected]="block.selected"
+      [class.cal__block--positioned]="positioned"
+      [style.inset-inline-start.%]="positioned ? block.left : null"
+      [style.inline-size.%]="positioned ? block.width : null"
+      [attr.aria-label]="block.ariaLabel"
+      [attr.aria-pressed]="block.selected"
+      (click)="visitSelected.emit(block.visitId)"
+    >
+      <span class="cal__block-time">{{ block.time }}</span>
+      <span class="cal__block-title">{{ block.title }}</span>
+      <span class="cal__block-meta">{{ block.number }}</span>
+      <span class="cal__block-meta">{{ block.street }}</span>
+      @if (block.conflict) {
+        <span class="cal__block-conflict"
+          ><i class="pi pi-exclamation-triangle" aria-hidden="true"></i> (Conflict)</span
+        >
+      }
+    </button>
+  } @else {
+    <div
+      class="cal__block"
+      [class.cal__block--assessment]="block.kind === 'assessment'"
+      [class.cal__block--proposed]="block.kind === 'proposed'"
+      [class.cal__block--positioned]="positioned"
+      [style.inset-inline-start.%]="positioned ? block.left : null"
+      [style.inline-size.%]="positioned ? block.width : null"
+      role="img"
+      [attr.aria-label]="block.ariaLabel"
+    >
+      <span class="cal__block-time">{{ block.time }}</span>
+      <span class="cal__block-title">{{ block.title }}</span>
+    </div>
+  }
+</ng-template>

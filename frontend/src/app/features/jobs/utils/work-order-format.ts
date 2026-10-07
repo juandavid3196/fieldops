@@ -17,6 +17,7 @@ export const PRIORITY_LABELS: Readonly<Record<Priority, string>> = {
 export const STATUS_LABELS: Readonly<Record<WorkOrderStatus, string>> = {
   draft: 'Draft',
   ready_to_schedule: 'Unscheduled',
+  scheduled: 'Scheduled',
 };
 
 export const JOB_TYPE_LABELS: Readonly<Record<JobType, string>> = {
@@ -77,4 +78,22 @@ export function plainDate(value: string): string {
     year: 'numeric',
     timeZone: 'UTC',
   }).format(new Date(`${value}T12:00:00Z`));
+}
+
+/** BR-16: visit status labels shown in the job detail ("Visit #<k> · <label>"). */
+export const VISIT_STATUS_LABELS: Readonly<Record<string, string>> = {
+  unscheduled: 'Unscheduled',
+  scheduled: 'Scheduled',
+  assigned: 'Assigned',
+  on_the_way: 'On the way',
+  in_progress: 'In progress',
+  paused: 'Paused',
+  completed: 'Completed',
+  needs_correction: 'Needs correction',
+  approved: 'Approved',
+  cancelled: 'Cancelled',
+};
+
+export function visitStatusLabel(status: string): string {
+  return Object.hasOwn(VISIT_STATUS_LABELS, status) ? VISIT_STATUS_LABELS[status] : status;
 }

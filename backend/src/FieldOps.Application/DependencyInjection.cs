@@ -3,6 +3,7 @@ using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Catalog;
 using FieldOps.Application.Features.ChecklistTemplates;
 using FieldOps.Application.Features.Customers;
+using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
@@ -143,6 +144,12 @@ public static class DependencyInjection
         services.AddScoped<GetWorkOrderHandler>();
         services.AddScoped<ListChecklistTemplatesHandler>();
         services.AddScoped<CreateChecklistTemplateHandler>();
+        services.AddScoped<GetDispatchOptionsHandler>();
+        services.AddScoped<GetDispatchCalendarHandler>();
+        services.AddScoped<ListUnscheduledVisitsHandler>();
+        services.AddScoped<GetVisitDispatchHandler>();
+        services.AddScoped<EvaluateVisitHandler>();
+        services.AddScoped<DispatchVisitHandler>();
 
         return services;
     }

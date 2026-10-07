@@ -10,14 +10,16 @@ public sealed class VisitAssignment
         Guid id,
         Guid visitId,
         Guid technicianId,
-        Guid assignedByUserId)
+        Guid assignedByUserId,
+        bool isPrimary,
+        DateTimeOffset assignedAt)
     {
         Id = id;
         VisitId = visitId;
         TechnicianId = technicianId;
         AssignedByUserId = assignedByUserId;
-        IsPrimary = true;
-        AssignedAt = DateTimeOffset.UtcNow;
+        IsPrimary = isPrimary;
+        AssignedAt = assignedAt;
     }
 
     public Guid Id { get; private set; }
@@ -37,7 +39,9 @@ public sealed class VisitAssignment
     public static VisitAssignment Create(
         Guid visitId,
         Guid technicianId,
-        Guid assignedByUserId)
+        Guid assignedByUserId,
+        bool isPrimary = true,
+        DateTimeOffset? assignedAt = null)
     {
         if (visitId == Guid.Empty)
         {
@@ -64,6 +68,23 @@ public sealed class VisitAssignment
             Guid.NewGuid(),
             visitId,
             technicianId,
-            assignedByUserId);
+            assignedByUserId,
+            isPrimary,
+            assignedAt ?? DateTimeOffset.UtcNow);
+    }
+
+    public void SetPrimary(bool isPrimary)
+    {
+        IsPrimary = isPrimary;
+    }
+
+    public void Unassign(DateTimeOffset now)
+    {
+        if (UnassignedAt is not null)
+        {
+            throw new InvalidOperationException("The assignment is already closed.");
+        }
+
+        UnassignedAt = now;
     }
 }
