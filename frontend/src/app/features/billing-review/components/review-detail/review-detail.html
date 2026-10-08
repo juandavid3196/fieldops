@@ -1,0 +1,248 @@
+<article class="detail" [attr.aria-label]="detail().header.title">
+  <header class="detail__header">
+    <h2 class="detail__title">
+      {{ detail().header.title }}
+      <span class="detail__chip detail__chip--ok">
+        <i class="pi pi-check-circle" aria-hidden="true"></i>
+        Completed
+      </span>
+      <span class="detail__chip detail__chip--dot">Not invoiced</span>
+    </h2>
+    <p class="detail__muted">
+      #{{ detail().header.number }} <span class="detail__divider" aria-hidden="true">|</span> Quote
+      #{{ detail().header.quoteNumber }}
+    </p>
+    <dl class="detail__facts">
+      <div>
+        <dt>
+          <i class="pi pi-user" aria-hidden="true"></i><span class="detail__sr">Customer</span>
+        </dt>
+        <dd>{{ detail().header.customerName }}</dd>
+      </div>
+      <div>
+        <dt>
+          <i class="pi pi-map-marker" aria-hidden="true"></i
+          ><span class="detail__sr">Property</span>
+        </dt>
+        <dd>{{ detail().header.propertyAddress }}</dd>
+      </div>
+      <div>
+        <dt><i class="pi pi-id-card" aria-hidden="true"></i>Completed by</dt>
+        <dd>{{ detail().header.completedByName ?? '—' }}</dd>
+      </div>
+      <div>
+        <dt><i class="pi pi-calendar" aria-hidden="true"></i>Completed</dt>
+        <dd>{{ view().completed }}</dd>
+      </div>
+    </dl>
+  </header>
+
+  <div class="detail__tabs" role="tablist" aria-label="Job review sections">
+    @for (item of tabs; track item.code; let index = $index) {
+      <button
+        type="button"
+        role="tab"
+        class="detail__tab"
+        [id]="id + '-tab-' + item.code"
+        [attr.aria-controls]="id + '-panel'"
+        [attr.aria-selected]="tab() === item.code"
+        [attr.tabindex]="tab() === item.code ? 0 : -1"
+        (click)="select(item.code)"
+        (keydown)="onTabKeydown($event, index)"
+      >
+        {{ item.label }}
+      </button>
+    }
+  </div>
+
+  <div [id]="id + '-panel'" role="tabpanel" [attr.aria-labelledby]="id + '-tab-' + tab()">
+    @switch (tab()) {
+      @case ('billing') {
+        <div class="detail__section-head">
+          <h3 class="detail__heading">Billing comparison</h3>
+          <span class="detail__adjust-group">
+            <button
+              type="button"
+              class="detail__adjust"
+              disabled
+              [attr.aria-describedby]="id + '-adjust'"
+            >
+              <i class="pi pi-plus" aria-hidden="true"></i>
+              Add adjustment
+            </button>
+            <span class="detail__hint" [id]="id + '-adjust'">{{ adjustmentHint }}</span>
+          </span>
+          @if (view().warn) {
+            <p class="detail__warning">
+              <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+              Additional charges require customer approval.
+            </p>
+          }
+        </div>
+
+        <div
+          class="detail__scroll"
+          tabindex="0"
+          role="region"
+          aria-label="Billing comparison table"
+        >
+          <table class="detail__table">
+            <thead>
+              <tr>
+                <th scope="col">#</th>
+                <th scope="col">Line item</th>
+                <th scope="col">Approved</th>
+                <th scope="col">Actual</th>
+                <th scope="col">Billable</th>
+                <th scope="col">Tax</th>
+                <th scope="col">Amount</th>
+                <th scope="col">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of view().rows; track $index) {
+                <tr>
+                  <td>{{ row.line.index ?? '' }}</td>
+                  <th scope="row">{{ row.line.name }}</th>
+                  <td>{{ row.line.approved ?? '—' }}</td>
+                  <td>{{ row.line.actual ?? '—' }}</td>
+                  <td>{{ row.line.billable ?? '—' }}</td>
+                  <td>
+                    {{
+                      row.line.tax === 'taxable'
+                        ? 'Taxable'
+                        : row.line.tax === 'non_taxable'
+                          ? 'Non-taxable'
+                          : '—'
+                    }}
+                  </td>
+                  <td>{{ row.amount }}</td>
+                  <td>
+                    <span class="detail__status detail__status--{{ row.status.tone }}">
+                      <i class="pi {{ row.status.icon }}" aria-hidden="true"></i>
+                      {{ row.status.label }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="detail__heading">Totals comparison</h3>
+        <dl class="detail__totals">
+          <div>
+            <dt>Approved subtotal</dt>
+            <dd>{{ view().totals.approved }}</dd>
+          </div>
+          <div>
+            <dt>Actual billable subtotal</dt>
+            <dd>{{ view().totals.billable }}</dd>
+          </div>
+          @if (view().totals.discount; as discount) {
+            <div>
+              <dt>Discount</dt>
+              <dd>{{ discount }}</dd>
+            </div>
+          }
+          <div>
+            <dt>{{ detail().totals.taxLabel }}</dt>
+            <dd>{{ view().totals.tax }}</dd>
+          </div>
+          <div class="detail__total-strong">
+            <dt>Invoice total</dt>
+            <dd>{{ view().totals.total }}</dd>
+          </div>
+          <div class="detail__variance">
+            <dt>Variance</dt>
+            <dd>{{ view().totals.variance }}</dd>
+          </div>
+        </dl>
+
+        <div class="detail__split">
+          <section class="detail__box" [attr.aria-labelledby]="id + '-verification'">
+            <h3 class="detail__heading" [id]="id + '-verification'">Completion verification</h3>
+            <ul class="detail__list detail__list--checks">
+              @for (item of detail().verification; track item.key) {
+                <li [class.detail__unmet]="!item.met && item.mandatory" [attr.data-met]="item.met">
+                  <i
+                    class="pi detail__mark"
+                    [class.pi-check]="item.met"
+                    [class.pi-times]="!item.met && item.mandatory"
+                    [class.pi-minus]="!item.met && !item.mandatory"
+                    aria-hidden="true"
+                  ></i>
+                  <span>
+                    {{ item.label }}
+                    @if (!item.met && item.mandatory) {
+                      <strong class="detail__required">Required before invoicing</strong>
+                    }
+                  </span>
+                </li>
+              }
+            </ul>
+          </section>
+          <section class="detail__box" [attr.aria-labelledby]="id + '-evidence'">
+            <h3 class="detail__heading" [id]="id + '-evidence'">
+              Evidence ({{ detail().evidence.count }})
+            </h3>
+            <ul class="detail__thumbs">
+              @for (thumb of detail().evidence.thumbnails; track thumb.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="detail__thumb"
+                    [attr.aria-label]="'Open ' + thumb.type + ' photo in work evidence'"
+                    (click)="select('work')"
+                  >
+                    <img
+                      loading="lazy"
+                      [src]="evidenceUrl(thumb.id)"
+                      [alt]="(thumb.type === 'before' ? 'Before' : 'After') + ' photo'"
+                    />
+                  </button>
+                </li>
+              }
+            </ul>
+          </section>
+        </div>
+
+        <h3 class="detail__heading">
+          <label [for]="id + '-note'">Accounting note <small>(internal only)</small></label>
+        </h3>
+        <textarea
+          pTextarea
+          rows="3"
+          fluid
+          placeholder="Add an internal note about billing, variances, or customer communication..."
+          [id]="id + '-note'"
+          [maxlength]="maxLength"
+          [readOnly]="readOnly()"
+          [ngModel]="note()"
+          (ngModelChange)="noteChange.emit($event)"
+          [invalid]="noteError() !== null"
+          [attr.aria-invalid]="noteError() !== null ? 'true' : null"
+          [attr.aria-describedby]="id + '-note-help'"
+        ></textarea>
+        <p class="detail__counter" [id]="id + '-note-help'">
+          @if (noteError(); as message) {
+            <span class="detail__error">{{ message }}</span>
+          }
+          <span>{{ note().length }}/{{ maxLength }}</span>
+        </p>
+      }
+      @case ('work') {
+        <app-review-work-evidence
+          [workOrderId]="detail().header.workOrderId"
+          [visits]="detail().workEvidence"
+        />
+      }
+      @case ('audit') {
+        <app-review-audit-trail
+          [entries]="detail().auditTrail"
+          [timezone]="detail().header.timezone"
+        />
+      }
+    }
+  </div>
+</article>

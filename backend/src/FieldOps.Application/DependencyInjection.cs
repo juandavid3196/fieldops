@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Catalog;
 using FieldOps.Application.Features.ChecklistTemplates;
@@ -157,6 +158,13 @@ public static class DependencyInjection
         services.AddScoped<GetVisitDispatchHandler>();
         services.AddScoped<EvaluateVisitHandler>();
         services.AddScoped<DispatchVisitHandler>();
+        services.AddScoped<GetBillingOptionsHandler>();
+        services.AddScoped<GetBillingQueueHandler>();
+        services.AddScoped<ExportBillingQueueHandler>();
+        services.AddScoped<GetBillingDetailHandler>();
+        services.AddScoped<GetBillingEvidenceHandler>();
+        services.AddScoped<UpdateBillingReviewHandler>();
+        services.AddScoped<GenerateBillingInvoiceHandler>();
 
         return services;
     }

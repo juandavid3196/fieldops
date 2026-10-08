@@ -8,6 +8,8 @@ export interface NavItem {
   readonly exact: boolean;
   /** Non-exact items are current under this path prefix instead of their own link. */
   readonly activePrefix?: string;
+  /** Sub-items rendered as an expandable group under this item (sidebar only). */
+  readonly children?: readonly NavItem[];
 }
 
 /** A sidebar block: an optional heading label (never a link) and its items. */
@@ -68,7 +70,20 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         link: '/admin/products-services',
         exact: true,
       },
-      moduleItem('Invoices', 'pi-receipt', 'invoices'),
+      {
+        label: 'Invoices',
+        icon: 'pi-receipt',
+        link: '/invoices/review',
+        exact: false,
+        activePrefix: '/invoices',
+        children: [
+          { label: 'Needs review', icon: 'pi-list-check', link: '/invoices/review', exact: false },
+          moduleItem('Drafts', 'pi-file-edit', 'invoice-drafts'),
+          moduleItem('Sent', 'pi-send', 'invoice-sent'),
+          moduleItem('Payments', 'pi-wallet', 'invoice-payments'),
+          moduleItem('Overdue', 'pi-clock', 'invoice-overdue'),
+        ],
+      },
       moduleItem('Reports', 'pi-chart-bar', 'reports'),
     ],
   },

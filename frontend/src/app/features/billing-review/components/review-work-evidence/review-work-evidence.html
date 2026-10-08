@@ -1,0 +1,147 @@
+@for (item of view(); track item.visit.visitId) {
+  <section class="work" [attr.aria-labelledby]="'visit-' + item.visit.visitId">
+    <h3 class="work__visit" [id]="'visit-' + item.visit.visitId">
+      Visit {{ item.visit.visitNumber }}
+    </h3>
+
+    <ul class="work__strip" aria-label="Visit summary">
+      <li>
+        <i
+          class="pi work__mark"
+          [class.pi-check]="item.tasks.met"
+          [class.pi-times]="!item.tasks.met"
+          [class.work__mark--off]="!item.tasks.met"
+          aria-hidden="true"
+        ></i>
+        {{ item.tasks.text }}
+      </li>
+      <li><i class="pi pi-box work__icon" aria-hidden="true"></i>{{ item.materials }}</li>
+      <li>
+        <i class="pi pi-image work__icon" aria-hidden="true"></i>
+        {{ item.photos.text }}
+      </li>
+    </ul>
+
+    <div class="work__columns">
+      <div class="work__stack">
+        <section class="work__card">
+          <h4 class="work__title">Completion checklist</h4>
+          @if (item.visit.checklist.length === 0) {
+            <p class="work__muted">No tasks recorded.</p>
+          } @else {
+            <ul class="work__rows">
+              @for (task of item.visit.checklist; track $index) {
+                <li>
+                  <i
+                    class="pi work__mark"
+                    [class.pi-check]="task.completed"
+                    [class.pi-minus]="!task.completed"
+                    [class.work__mark--off]="!task.completed"
+                    aria-hidden="true"
+                  ></i>
+                  <span class="work__grow">{{ task.label }}</span>
+                  @if (task.required) {
+                    <span class="work__pill work__pill--info">Required</span>
+                  }
+                  <span class="work__pill" [class.work__pill--ok]="task.completed">
+                    {{ task.completed ? 'Done' : 'Not done' }}
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section class="work__card">
+          <h4 class="work__title">Materials used</h4>
+          @if (item.visit.materials.length === 0) {
+            <p class="work__muted">No materials recorded.</p>
+          } @else {
+            <ul class="work__rows">
+              @for (material of item.visit.materials; track $index) {
+                <li>
+                  <i class="pi pi-box work__icon" aria-hidden="true"></i>
+                  <strong class="work__grow">{{ material.description }}</strong>
+                  <span class="work__muted">{{ material.quantity }} {{ material.unit }}</span>
+                  <span class="work__pill">
+                    {{ material.origin === 'planned' ? 'Planned' : 'Added' }}
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        @if (item.visit.completionSummary) {
+          <section class="work__card">
+            <h4 class="work__title">Technician completion summary</h4>
+            <p class="work__text">{{ item.visit.completionSummary }}</p>
+          </section>
+        }
+      </div>
+
+      <div class="work__stack">
+        <section class="work__card">
+          <h4 class="work__title">Photo evidence</h4>
+          @for (group of item.groups; track group.label) {
+            <div class="work__group">
+              <h5>{{ group.label }}</h5>
+              <span class="work__muted">{{ group.count }}</span>
+            </div>
+            @for (photo of group.items; track photo.id) {
+              <figure class="work__photo">
+                <img
+                  loading="lazy"
+                  [src]="evidenceUrl(photo.id)"
+                  [alt]="photo.caption ?? group.label + ' photo'"
+                />
+                <a
+                  class="work__expand"
+                  target="_blank"
+                  rel="noopener"
+                  [href]="evidenceUrl(photo.id)"
+                  [attr.aria-label]="'Open ' + group.label.toLowerCase() + ' photo in a new tab'"
+                >
+                  <i
+                    class="pi pi-arrow-up-right-and-arrow-down-left-from-center"
+                    aria-hidden="true"
+                  ></i>
+                </a>
+                @if (photo.caption) {
+                  <figcaption>{{ photo.caption }}</figcaption>
+                }
+              </figure>
+            }
+          } @empty {
+            <p class="work__muted">No photos recorded.</p>
+          }
+        </section>
+
+        @if (item.ack; as ack) {
+          <section class="work__card">
+            <h4 class="work__title">Customer acknowledgment</h4>
+            <p class="work__banner" [class.work__banner--ok]="ack.signatureCaptured">
+              @if (ack.signatureCaptured) {
+                <i class="pi pi-check work__mark" aria-hidden="true"></i>
+              }
+              {{ ack.title }}
+            </p>
+            <ul class="work__facts">
+              @if (ack.signerName) {
+                <li><i class="pi pi-user" aria-hidden="true"></i>{{ ack.signerName }}</li>
+              }
+              @if (ack.relationship) {
+                <li><i class="pi pi-users" aria-hidden="true"></i>{{ ack.relationship }}</li>
+              }
+              @if (ack.comment) {
+                <li><i class="pi pi-comment" aria-hidden="true"></i>{{ ack.comment }}</li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+    </div>
+  </section>
+} @empty {
+  <p class="work__muted">No activity recorded.</p>
+}

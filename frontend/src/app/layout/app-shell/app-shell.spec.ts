@@ -97,7 +97,9 @@ describe('AppShell', () => {
 
   const settle = () => harness.fixture.whenStable();
   const linkLabels = () =>
-    Array.from(host.querySelectorAll('nav a'), (link) => link.textContent?.trim());
+    Array.from(host.querySelectorAll('nav a, nav .sidebar__link--parent'), (link) =>
+      link.textContent?.trim(),
+    );
   const userButton = () => host.querySelector<HTMLButtonElement>('.shell__user-button')!;
   const orgButton = () => host.querySelector<HTMLButtonElement>('.shell__org-button');
   const menuItem = () => host.querySelector<HTMLButtonElement>('[role="menuitem"]')!;

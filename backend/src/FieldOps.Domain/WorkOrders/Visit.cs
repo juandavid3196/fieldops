@@ -210,6 +210,20 @@ public sealed class Visit
         Touch(now);
     }
 
+    /// <summary>Billing review (completed-jobs-review BR-19): a completed visit becomes approved by the reviewer.</summary>
+    public void Approve(Guid reviewerUserId, DateTimeOffset now)
+    {
+        if (Status != VisitStatus.Completed)
+        {
+            throw new InvalidOperationException("Only a completed visit can be approved.");
+        }
+
+        Status = VisitStatus.Approved;
+        ReviewedByUserId = reviewerUserId;
+        ReviewedAt = now;
+        Touch(now);
+    }
+
     /// <summary>Technician notes (mobile-job-progress BR-13): trimmed, empty is null.</summary>
     public void SetTechnicianNotes(string? notes, DateTimeOffset now)
     {

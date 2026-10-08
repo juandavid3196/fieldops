@@ -40,6 +40,13 @@ internal sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             table.HasCheckConstraint(
                 "ck_invoices_amount_paid_le_total",
                 "amount_paid <= total");
+            // SA-05 (completed-jobs-review).
+            table.HasCheckConstraint(
+                "ck_invoices_discount_total",
+                "discount_total >= 0");
+            table.HasCheckConstraint(
+                "ck_invoices_payment_terms",
+                "payment_terms IN ('due_upon_receipt','net_15','net_30')");
         });
 
         builder.HasKey(invoice => invoice.Id);
@@ -88,6 +95,16 @@ internal sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .HasPrecision(14, 2)
             .IsRequired();
 
+        // SA-05: the sentinel keeps an explicit 0 from being replaced by the database default.
+        builder.Property(invoice => invoice.DiscountTotal)
+            .HasPrecision(14, 2)
+            .HasDefaultValue(0m)
+            .HasSentinel(0m)
+            .IsRequired();
+
+        builder.Property(invoice => invoice.PaymentTerms)
+            .HasMaxLength(20);
+
         builder.Property(invoice => invoice.TaxTotal)
             .HasPrecision(14, 2)
             .IsRequired();
@@ -129,6 +146,12 @@ internal sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         // UNIQUE (organization_id, invoice_number)
         builder.HasIndex(invoice => new { invoice.OrganizationId, invoice.InvoiceNumber })
             .IsUnique();
+
+        // SA-04: CREATE UNIQUE INDEX ux_invoices_work_order_active ON invoices (organization_id, work_order_id) WHERE status <> 'void'
+        builder.HasIndex(invoice => new { invoice.OrganizationId, invoice.WorkOrderId })
+            .IsUnique()
+            .HasFilter("status <> 'void'")
+            .HasDatabaseName("ux_invoices_work_order_active");
 
         // CREATE INDEX ix_invoices_status_due ON invoices (organization_id, status, due_date)
         builder.HasIndex(invoice => new

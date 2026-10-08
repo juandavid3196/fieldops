@@ -888,6 +888,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("customer_id");
 
+                    b.Property<decimal>("DiscountTotal")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("discount_total");
+
                     b.Property<DateOnly?>("DueDate")
                         .HasColumnType("date")
                         .HasColumnName("due_date");
@@ -907,6 +914,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uuid")
                         .HasColumnName("organization_id");
+
+                    b.Property<string>("PaymentTerms")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("payment_terms");
 
                     b.Property<DateTimeOffset?>("SentAt")
                         .HasColumnType("timestamp with time zone")
@@ -971,6 +983,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_invoices_organization_id_invoice_number");
 
+                    b.HasIndex("OrganizationId", "WorkOrderId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_invoices_work_order_active")
+                        .HasFilter("status <> 'void'");
+
                     b.HasIndex("OrganizationId", "Status", "DueDate")
                         .HasDatabaseName("ix_invoices_status_due");
 
@@ -983,6 +1000,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_invoices_balance_due", "balance_due >= 0");
 
                             t.HasCheckConstraint("ck_invoices_date_range", "due_date IS NULL OR issue_date IS NULL OR due_date >= issue_date");
+
+                            t.HasCheckConstraint("ck_invoices_discount_total", "discount_total >= 0");
+
+                            t.HasCheckConstraint("ck_invoices_payment_terms", "payment_terms IN ('due_upon_receipt','net_15','net_30')");
 
                             t.HasCheckConstraint("ck_invoices_subtotal", "subtotal >= 0");
 
@@ -4200,6 +4221,19 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("id")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<DateTimeOffset?>("BillingFollowUpAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("billing_follow_up_at");
+
+                    b.Property<Guid?>("BillingFollowUpByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("billing_follow_up_by_user_id");
+
+                    b.Property<string>("BillingReviewNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("billing_review_note");
+
                     b.Property<Guid>("BranchId")
                         .HasColumnType("uuid")
                         .HasColumnName("branch_id");
@@ -4323,6 +4357,9 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasAlternateKey("OrganizationId", "Id")
                         .HasName("ak_work_orders_organization_id_id");
 
+                    b.HasIndex("BillingFollowUpByUserId")
+                        .HasDatabaseName("ix_work_orders_billing_follow_up_by_user_id");
+
                     b.HasIndex("CreatedByUserId")
                         .HasDatabaseName("ix_work_orders_created_by_user_id");
 
@@ -4355,6 +4392,8 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.ToTable("work_orders", null, t =>
                         {
+                            t.HasCheckConstraint("ck_work_orders_billing_follow_up_pair", "(billing_follow_up_at IS NULL) = (billing_follow_up_by_user_id IS NULL)");
+
                             t.HasCheckConstraint("ck_work_orders_estimated_duration_minutes", "estimated_duration_minutes BETWEEN 30 AND 720 AND estimated_duration_minutes % 30 = 0");
 
                             t.HasCheckConstraint("ck_work_orders_job_type", "job_type IN ('one_time','recurring')");
@@ -5663,6 +5702,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.WorkOrder", b =>
                 {
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("BillingFollowUpByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_work_orders_users_billing_follow_up_by_user_id");
+
                     b.HasOne("FieldOps.Domain.Users.User", null)
                         .WithMany()
                         .HasForeignKey("CreatedByUserId")

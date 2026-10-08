@@ -77,6 +77,12 @@ public sealed class WorkOrder
 
     public DateTimeOffset? PreferredEnd { get; private set; }
 
+    public string? BillingReviewNote { get; private set; }
+
+    public DateTimeOffset? BillingFollowUpAt { get; private set; }
+
+    public Guid? BillingFollowUpByUserId { get; private set; }
+
     public Guid CreatedByUserId { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -233,6 +239,57 @@ public sealed class WorkOrder
         }
 
         Status = WorkOrderStatus.Completed;
+        Touch(now);
+    }
+
+    /// <summary>
+    /// Saves the accounting note and the follow-up mark (completed-jobs-review BR-15). A mark that is already set is kept;
+    /// returns true when anything changed, in which case the concurrency value moves.
+    /// </summary>
+    public bool UpdateBillingReview(string? note, bool? followUp, Guid actorUserId, DateTimeOffset now)
+    {
+        var normalized = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        var changed = false;
+
+        if (!string.Equals(BillingReviewNote, normalized, StringComparison.Ordinal))
+        {
+            BillingReviewNote = normalized;
+            changed = true;
+        }
+
+        if (followUp is true && BillingFollowUpAt is null)
+        {
+            BillingFollowUpAt = Truncate(now);
+            BillingFollowUpByUserId = actorUserId;
+            changed = true;
+        }
+        else if (followUp is false && BillingFollowUpAt is not null)
+        {
+            BillingFollowUpAt = null;
+            BillingFollowUpByUserId = null;
+            changed = true;
+        }
+
+        if (changed)
+        {
+            Touch(now);
+        }
+
+        return changed;
+    }
+
+    /// <summary>The draft invoice was generated (completed-jobs-review BR-19): the order is approved for billing and the follow-up mark is cleared.</summary>
+    public void MarkApprovedForBilling(string? note, DateTimeOffset now)
+    {
+        if (Status != WorkOrderStatus.Completed)
+        {
+            throw new InvalidOperationException("Only a completed work order can be approved for billing.");
+        }
+
+        Status = WorkOrderStatus.ApprovedForBilling;
+        BillingReviewNote = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+        BillingFollowUpAt = null;
+        BillingFollowUpByUserId = null;
         Touch(now);
     }
 

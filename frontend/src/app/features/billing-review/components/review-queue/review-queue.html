@@ -1,0 +1,109 @@
+<section class="queue" aria-labelledby="queue-title">
+  <h2 class="queue__title" id="queue-title">Needs review ({{ queue()?.tabs?.all ?? '—' }})</h2>
+
+  <div class="queue__tabs" role="tablist" aria-label="Queue view">
+    @for (tab of tabs; track tab.code; let index = $index) {
+      <button
+        type="button"
+        role="tab"
+        class="queue__tab"
+        aria-controls="queue-list"
+        [attr.aria-selected]="filters().tab === tab.code"
+        [attr.tabindex]="filters().tab === tab.code ? 0 : -1"
+        (click)="filtersChange.emit({ tab: tab.code })"
+        (keydown)="onTabKeydown($event, index)"
+      >
+        {{ tab.label }} ({{ count(tab.code) }})
+      </button>
+    }
+  </div>
+
+  <div id="queue-list" role="tabpanel" [attr.aria-busy]="loading()">
+    @if (failed()) {
+      <p class="queue__message" role="alert">
+        {{ errorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          Retry
+        </button>
+      </p>
+    } @else if (loading() && queue() === null) {
+      <div class="queue__skeletons">
+        @for (n of [1, 2, 3, 4]; track n) {
+          <p-skeleton height="5.5rem" />
+        }
+      </div>
+    } @else if (rows().length === 0) {
+      <p class="queue__message">
+        {{ emptyMessage() }}
+        @if (filtered() || filters().tab !== 'all') {
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            size="small"
+            (click)="clearFilters.emit()"
+          >
+            Clear filters
+          </button>
+        }
+      </p>
+    } @else {
+      <ul class="queue__list" [class.queue__list--loading]="loading()">
+        @for (row of rows(); track row.item.workOrderId) {
+          <li>
+            <button
+              type="button"
+              class="queue__item"
+              [class.queue__item--selected]="row.item.workOrderId === selectedId()"
+              [attr.aria-current]="row.item.workOrderId === selectedId() ? 'true' : null"
+              (click)="selected.emit(row.item.workOrderId)"
+            >
+              <span class="queue__customer">{{ row.item.customerName }}</span>
+              <span class="queue__total">{{ row.total }}</span>
+              <span class="queue__details">
+                <span class="queue__job">{{ row.item.title }}</span>
+                <span class="queue__meta">#{{ row.item.number }}</span>
+                <span class="queue__meta">{{ row.completed }}</span>
+              </span>
+              <span class="queue__tags">
+                <span class="queue__badge" [class.queue__badge--variance]="row.hasVariance">
+                  {{ row.badge }}
+                </span>
+                @if (row.item.followUp) {
+                  <span class="queue__badge queue__badge--follow-up">Follow-up</span>
+                }
+              </span>
+            </button>
+          </li>
+        }
+      </ul>
+      @if (pageCount() > 1) {
+        <nav class="queue__pager" aria-label="Pagination">
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            [disabled]="filters().page <= 1"
+            (click)="go(filters().page - 1)"
+          >
+            Previous
+          </button>
+          <span>Page {{ filters().page }} of {{ pageCount() }}</span>
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            [disabled]="filters().page >= pageCount()"
+            (click)="go(filters().page + 1)"
+          >
+            Next
+          </button>
+        </nav>
+      }
+    }
+  </div>
+</section>

@@ -19,14 +19,10 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Subscription } from 'rxjs';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
+import { saveCsv } from '../../../../shared/utils/csv-file';
 import { ImportPreview, ImportRowError } from '../../models/customer.model';
 import { CustomersService } from '../../services/customers.service';
-import {
-  CSV_SIZE_MESSAGE,
-  CSV_TYPE_MESSAGE,
-  saveCsv,
-  validateCsvFile,
-} from '../../utils/customer-format';
+import { CSV_SIZE_MESSAGE, CSV_TYPE_MESSAGE, validateCsvFile } from '../../utils/customer-format';
 
 export const TEMPLATE_FAILED_MESSAGE = "We couldn't download the template. Try again.";
 export const IMPORT_FAILED_MESSAGE = "We couldn't import the file. Try again.";

@@ -68,7 +68,9 @@ public sealed class InvoiceLine
         decimal lineTax,
         decimal lineTotal,
         Guid? sourceQuoteLineId = null,
-        Guid? sourceVisitMaterialId = null)
+        Guid? sourceVisitMaterialId = null,
+        decimal taxRate = 0m,
+        int sortOrder = 0)
     {
         if (invoiceId == Guid.Empty)
         {
@@ -120,6 +122,8 @@ public sealed class InvoiceLine
         {
             SourceQuoteLineId = sourceQuoteLineId,
             SourceVisitMaterialId = sourceVisitMaterialId,
+            TaxRate = taxRate,
+            SortOrder = sortOrder,
         };
     }
 }

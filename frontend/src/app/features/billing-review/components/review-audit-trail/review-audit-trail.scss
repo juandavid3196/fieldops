@@ -1,0 +1,172 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+  // Design 11 activity accents without a shared token (purple) plus status tokens.
+  --audit-purple: light-dark(#6d3fd1, #b9a2f2);
+  --audit-purple-soft: light-dark(#f1ecfd, rgb(109 63 209 / 22%));
+}
+
+.audit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-block-start: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__muted {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__filters {
+    display: grid;
+    flex: 1 1 18rem;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+    max-inline-size: 30rem;
+
+    @include bp.up(md) {
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    }
+  }
+
+  &__day {
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    color: var(--fo-color-heading);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__list {
+    position: relative;
+    margin: 0;
+    padding: 0 0 0 0.5rem;
+    list-style: none;
+
+    // Timeline rail behind the icons.
+    &::before {
+      position: absolute;
+      inset: 0 auto 0 1.6875rem;
+      content: '';
+      border-inline-start: 1px solid var(--fo-color-border);
+    }
+  }
+
+  &__row {
+    display: flex;
+    gap: 0.875rem;
+    align-items: center;
+    padding-block: 0.375rem;
+  }
+
+  &__icon {
+    position: relative;
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    font-size: 1rem;
+    color: var(--audit-fg);
+    background: var(--audit-bg);
+    border-radius: 50%;
+  }
+
+  &__body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-width: 0;
+
+    strong {
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__tag {
+    flex: none;
+    padding: 0.1875rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--audit-fg);
+    background: var(--audit-bg);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__row--status,
+  &__row--time,
+  &__row--billing {
+    --audit-fg: var(--fo-color-info-text);
+    --audit-bg: var(--fo-color-info-background);
+  }
+
+  &__row--completion {
+    --audit-fg: var(--fo-color-success-text);
+    --audit-bg: var(--fo-color-success-background);
+  }
+
+  &__row--completion &__icon {
+    color: var(--fo-color-on-primary);
+    background: var(--fo-color-success-solid);
+  }
+
+  &__row--evidence,
+  &__row--schedule {
+    --audit-fg: var(--audit-purple);
+    --audit-bg: var(--audit-purple-soft);
+  }
+
+  &__row--materials {
+    --audit-fg: var(--fo-color-warning-text);
+    --audit-bg: var(--fo-color-warning-background);
+  }
+
+  &__row--travel {
+    --audit-fg: var(--fo-color-primary-strong);
+    --audit-bg: var(--fo-color-primary-soft);
+  }
+
+  &__row--creation,
+  &__row--other {
+    --audit-fg: var(--fo-color-neutral-text);
+    --audit-bg: var(--fo-color-neutral-background);
+  }
+
+  &__note {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+    background: var(--fo-color-surface-muted);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+
+    i {
+      color: var(--fo-color-info-text);
+    }
+  }
+}

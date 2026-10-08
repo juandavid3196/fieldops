@@ -40,6 +40,10 @@ internal sealed class WorkOrderConfiguration : IEntityTypeConfiguration<WorkOrde
             table.HasCheckConstraint(
                 "ck_work_orders_preferred_window",
                 "(preferred_start IS NULL) = (preferred_end IS NULL) AND (preferred_start IS NULL OR preferred_start < preferred_end)");
+            // SA-06 (completed-jobs-review): the follow-up time and user are set and cleared together.
+            table.HasCheckConstraint(
+                "ck_work_orders_billing_follow_up_pair",
+                "(billing_follow_up_at IS NULL) = (billing_follow_up_by_user_id IS NULL)");
         });
 
         builder.HasKey(workOrder => workOrder.Id);
@@ -128,6 +132,13 @@ internal sealed class WorkOrderConfiguration : IEntityTypeConfiguration<WorkOrde
 
         builder.Property(workOrder => workOrder.PreferredEnd);
 
+        builder.Property(workOrder => workOrder.BillingReviewNote)
+            .HasMaxLength(500);
+
+        builder.Property(workOrder => workOrder.BillingFollowUpAt);
+
+        builder.Property(workOrder => workOrder.BillingFollowUpByUserId);
+
         builder.Property(workOrder => workOrder.CreatedByUserId)
             .IsRequired();
 
@@ -207,6 +218,11 @@ internal sealed class WorkOrderConfiguration : IEntityTypeConfiguration<WorkOrde
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(workOrder => workOrder.CreatedByUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(workOrder => workOrder.BillingFollowUpByUserId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

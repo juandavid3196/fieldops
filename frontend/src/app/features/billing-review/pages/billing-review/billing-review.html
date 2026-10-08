@@ -1,0 +1,250 @@
+<p-toast />
+<app-confirm-dialog [key]="varianceKey" />
+<app-confirm-dialog [key]="discardKey" acceptFirst />
+<p-menu #menu [popup]="true" appendTo="body" [model]="exportMenu" />
+
+<div class="review">
+  <header class="review__header">
+    <div class="review__heading">
+      <h1 #heading class="review__title" tabindex="-1">Completed jobs review</h1>
+      <p class="review__subtitle">Verify completed work before invoicing.</p>
+    </div>
+
+    @if (state() === 'ready') {
+      @if (metrics(); as metrics) {
+        <dl class="review__metrics" aria-label="Review metrics">
+          <div class="review__metric review__metric--info">
+            <dt>
+              <span class="review__metric-icon" aria-hidden="true"><i class="pi pi-file"></i></span
+              >Needs review
+            </dt>
+            <dd>{{ metrics.needsReview }}</dd>
+          </div>
+          <div class="review__metric review__metric--warning">
+            <dt>
+              <span class="review__metric-icon" aria-hidden="true"
+                ><i class="pi pi-exclamation-triangle"></i></span
+              >With variances
+            </dt>
+            <dd>{{ metrics.withVariances }}</dd>
+          </div>
+          <div class="review__metric review__metric--success">
+            <dt>
+              <span class="review__metric-icon" aria-hidden="true"><i class="pi pi-check"></i></span
+              >Ready to invoice
+            </dt>
+            <dd>{{ metrics.readyToInvoice }}</dd>
+          </div>
+          <div class="review__metric review__metric--value">
+            <dt>
+              <span class="review__metric-icon" aria-hidden="true"
+                ><i class="pi pi-dollar"></i></span
+              >Completed value
+            </dt>
+            <dd>{{ metrics.valueText }}</dd>
+          </div>
+        </dl>
+      } @else if (queueLoading()) {
+        <div class="review__metrics" aria-busy="true">
+          @for (n of [1, 2, 3, 4]; track n) {
+            <p-skeleton height="3.5rem" />
+          }
+        </div>
+      }
+      <button
+        pButton
+        type="button"
+        class="review__export"
+        severity="secondary"
+        [outlined]="true"
+        aria-haspopup="menu"
+        [disabled]="exporting()"
+        [attr.aria-busy]="exporting()"
+        (click)="menu.toggle($event)"
+      >
+        <i class="pi pi-upload" aria-hidden="true"></i>
+        Export
+        <i class="pi pi-chevron-down" aria-hidden="true"></i>
+      </button>
+    }
+  </header>
+
+  @if (state() === 'ready') {
+    <div class="review__filters" role="search" aria-label="Filter completed jobs">
+      <div class="review__field">
+        <span id="review-branch-label">Branch</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="review-branch-label"
+          [options]="branchOptions()"
+          optionLabel="label"
+          optionValue="code"
+          [ngModel]="filters().branchId ?? 'all'"
+          (ngModelChange)="changeFilters({ branchId: $event === 'all' ? null : $event })"
+        />
+      </div>
+      <div class="review__field">
+        <span id="review-completed-label">Completion date</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="review-completed-label"
+          [options]="completedOptions"
+          optionLabel="label"
+          optionValue="code"
+          [ngModel]="filters().completed"
+          (ngModelChange)="changeFilters({ completed: $event })"
+        />
+      </div>
+      <div class="review__field">
+        <span id="review-technician-label">Technician</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="review-technician-label"
+          [options]="technicianOptions()"
+          optionLabel="label"
+          optionValue="code"
+          [ngModel]="filters().technicianId ?? 'all'"
+          (ngModelChange)="changeFilters({ technicianId: $event === 'all' ? null : $event })"
+        />
+      </div>
+      <div class="review__field">
+        <span id="review-variance-label">Variance status</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="review-variance-label"
+          [options]="varianceOptions"
+          optionLabel="label"
+          optionValue="code"
+          [ngModel]="filters().variance"
+          (ngModelChange)="changeFilters({ variance: $event })"
+        />
+      </div>
+      <p-iconfield class="review__search">
+        <p-inputicon class="pi pi-search" />
+        <input
+          pInputText
+          type="search"
+          fluid
+          maxlength="100"
+          placeholder="Search by customer, WO #, or job description..."
+          aria-label="Search completed jobs"
+          [ngModel]="searchText()"
+          (ngModelChange)="searchChanged($event)"
+        />
+      </p-iconfield>
+    </div>
+  }
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="review__skeletons" aria-busy="true">
+        <p-skeleton height="3rem" />
+        <p-skeleton height="12rem" />
+      </div>
+    }
+    @case ('forbidden') {
+      <p class="review__message" role="alert">{{ forbiddenMessage }}</p>
+    }
+    @case ('error') {
+      <p class="review__message" role="alert">
+        {{ errorMessage }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+          Retry
+        </button>
+      </p>
+    }
+    @default {
+      <div class="review__columns" [class.review__columns--detail]="detailOpen()">
+        <app-review-queue
+          class="review__queue"
+          [filters]="filters()"
+          [timezone]="timezone()"
+          [queue]="queue()"
+          [loading]="queueLoading()"
+          [failed]="queueFailed()"
+          [filtered]="filtered()"
+          [selectedId]="selectedId()"
+          (filtersChange)="changeFilters($event)"
+          (selected)="select($event)"
+          (retry)="retry()"
+          (clearFilters)="clearFilters()"
+        />
+
+        <div class="review__detail">
+          <button type="button" class="review__back" (click)="backToQueue()">
+            <i class="pi pi-arrow-left" aria-hidden="true"></i>
+            Back to quote
+          </button>
+          @switch (detailState()) {
+            @case ('loading') {
+              <div class="review__skeletons" aria-busy="true">
+                <p-skeleton height="4rem" />
+                <p-skeleton height="14rem" />
+              </div>
+            }
+            @case ('gone') {
+              <p class="review__message" role="alert">{{ goneMessage }}</p>
+            }
+            @case ('error') {
+              <p class="review__message" role="alert">
+                {{ detailErrorMessage }}
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  (click)="retryDetail()"
+                >
+                  Retry
+                </button>
+              </p>
+            }
+            @default {
+              @if (detail(); as detail) {
+                <app-review-detail
+                  [detail]="detail"
+                  [note]="note()"
+                  [noteError]="errors().note ?? null"
+                  [readOnly]="!canAct()"
+                  (noteChange)="setNote($event)"
+                />
+              } @else if (!queueLoading() && !queueFailed()) {
+                <p class="review__message">Select a job to review it.</p>
+              }
+            }
+          }
+        </div>
+
+        <div class="review__invoice">
+          @if (detailState() === 'loading') {
+            <div class="review__skeletons" aria-busy="true">
+              <p-skeleton height="12rem" />
+            </div>
+          } @else if (detailState() === 'ready' && detail(); as detail) {
+            <app-invoice-panel
+              [detail]="detail"
+              [issueDate]="issueDate()"
+              [paymentTerms]="paymentTerms()"
+              [dueDate]="dueDate()"
+              [minDate]="minDate()"
+              [maxDate]="today()"
+              [errors]="errors()"
+              [pending]="pending()"
+              [readOnly]="!canAct()"
+              [timezone]="timezone()"
+              (issueDateChange)="setIssueDate($event)"
+              (paymentTermsChange)="setTerms($event)"
+              (returnToQueue)="returnToQueue()"
+              (toggleFollowUp)="toggleFollowUp()"
+              (generate)="generate()"
+            />
+          }
+        </div>
+      </div>
+    }
+  }
+</div>
