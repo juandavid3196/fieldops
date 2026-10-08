@@ -4,10 +4,10 @@
 | -------- | ---------------------- |
 | Feature  | `completed-jobs-review` |
 | Type     | Full-stack             |
-| Status   | DRAFT                  |
+| Status   | APPROVED               |
 | Created  | 2026-10-08             |
 | Updated  | 2026-10-08             |
-| Approved | —                      |
+| Approved | 2026-10-08             |
 
 ## Context and objective
 
@@ -396,3 +396,4 @@ and requires its own evidence.
 | 2026-10-08 | DRAFT → DRAFT | Revised after validation: explicit `BillingReviewDetail` contract, `PATCH` lock and queue re-check (BR-15, BR-20), BR-08 counts only billed hourly lines |
 | 2026-10-08 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-08 | APPROVED → DRAFT | Revised with user confirmation after final audit: return-action, message and mobile back copy changed to "Return to quote", "Returned to quote." and "Back to quote" (OD-13, BR-16, BR-25, BR-27, BR-28, BR-29); behavior unchanged |
+| 2026-10-08 | DRAFT → APPROVED | Approved by user via /spec approve |
