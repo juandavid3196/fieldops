@@ -187,6 +187,29 @@ public sealed class Visit
         Touch(now);
     }
 
+    /// <summary>
+    /// Complete job (mobile-job-completion BR-08): the whole seconds of the closed pause entry join the pause total and
+    /// the reason is kept for every acknowledgement without a signature.
+    /// </summary>
+    public void Complete(int closedPauseSeconds, string? withoutSignatureReason, DateTimeOffset now)
+    {
+        if (closedPauseSeconds < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(closedPauseSeconds), closedPauseSeconds, "Paused seconds cannot be negative.");
+        }
+
+        if (Status is not (VisitStatus.InProgress or VisitStatus.Paused))
+        {
+            throw new InvalidOperationException("Only a visit in progress or paused can be completed.");
+        }
+
+        Status = VisitStatus.Completed;
+        ActualCompletedAt = now;
+        PauseSeconds += closedPauseSeconds;
+        CompletionWithoutSignatureReason = withoutSignatureReason;
+        Touch(now);
+    }
+
     /// <summary>Technician notes (mobile-job-progress BR-13): trimmed, empty is null.</summary>
     public void SetTechnicianNotes(string? notes, DateTimeOffset now)
     {

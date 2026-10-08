@@ -58,7 +58,7 @@ public class QuoteLinkContentTests(CompanySettingsDatabaseFixture database)
 
         // The latest completed assessment lists its photos (up to 6); an older one and other quotes' photos are not served.
         var (_, older) = await SeedCompletedAssessmentAsync(world.Org, sent.RequestId, member.UserId, 1, "OLD", hoursAgo: 30);
-        var (_, photos) = await SeedCompletedAssessmentAsync(world.Org, sent.RequestId, member.UserId, 8, "NEW");
+        var (latest, photos) = await SeedCompletedAssessmentAsync(world.Org, sent.RequestId, member.UserId, 8, "NEW");
         var (_, siblingPhotos) = await SeedCompletedAssessmentAsync(world.Org, sibling.RequestId, member.UserId, 1, "SIB");
         var (_, foreignPhotos) = await SeedCompletedAssessmentAsync(foreign.Org, foreignSent.RequestId, foreignMember.UserId, 1, "FOR");
         var logo = CatalogSeed.Png(200);
@@ -101,7 +101,10 @@ public class QuoteLinkContentTests(CompanySettingsDatabaseFixture database)
         Assert.Equal((190m, 10m, "Tax (8.25%)", 14.85m, 194.85m, "USD"), (totals["subtotal"]!.GetValue<decimal>(), totals["discountTotal"]!.GetValue<decimal>(), totals["taxLabel"]!.GetValue<string>(), totals["taxTotal"]!.GetValue<decimal>(), totals["total"]!.GetValue<decimal>(), totals["currency"]!.GetValue<string>()));
         Assert.Equal(photos.Take(6).Select(id => id.ToString()).ToArray(), view["photos"]!.AsArray().Select(photo => photo!["id"]!.GetValue<string>()).ToArray());
         Assert.Equal(QuotesApi.Today(), view["progress"]!["requestSubmittedOn"]!.GetValue<string>());
-        Assert.Equal(QuotesApi.Today(), view["progress"]!["assessmentCompletedOn"]!.GetValue<string>());
+        // The latest assessment completed hours ago, so near midnight UTC its date is yesterday: compare with the stored instant.
+        var completedOn = await database.ScalarAsync<string>(
+            "SELECT to_char(completed_at AT TIME ZONE 'UTC', 'YYYY-MM-DD') FROM assessments WHERE id = @a", ("a", latest));
+        Assert.Equal(completedOn, view["progress"]!["assessmentCompletedOn"]!.GetValue<string>());
         Assert.Null(view["clarification"]);
         Assert.Null(view["response"]);
 

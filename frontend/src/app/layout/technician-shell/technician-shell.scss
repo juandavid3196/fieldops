@@ -82,6 +82,59 @@ $nav-height: 4rem;
     white-space: nowrap;
   }
 
+  &__title--job {
+    flex: none;
+    text-align: start;
+  }
+
+  &__chip,
+  &__time {
+    display: inline-flex;
+    flex: none;
+    gap: 0.375rem;
+    align-items: center;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  // Status chip sits right-aligned beside the work time, with a dot instead of an icon.
+  &__chip {
+    margin-inline-start: auto;
+    padding: 0.375rem 0.625rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-border);
+    border-radius: var(--fo-radius-control);
+
+    &--paused {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+  }
+
+  &__dot {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    background: var(--p-blue-500);
+    border-radius: 50%;
+  }
+
+  &__chip--paused &__dot {
+    background: currentcolor;
+  }
+
+  &__time {
+    margin-inline-start: 0.5rem;
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
   &__icon-button,
   &__avatar {
     display: inline-flex;

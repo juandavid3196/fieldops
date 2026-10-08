@@ -182,7 +182,7 @@ public class TechnicianProgressTests(CompanySettingsDatabaseFixture database)
 
         var notFound = Assert.Single(bodies);
         Assert.DoesNotContain("\"code\"", notFound);
-        Assert.Contains(NotAvailable, notFound);
+        Assert.Equal(NotAvailable, JsonNode.Parse(notFound)!["title"]!.GetValue<string>());
 
         // AC-02: an actively assigned non-primary technician reads everything and writes nothing.
         foreach (var call in Calls(host, mine.Visit, mineChildren, foreignItem))

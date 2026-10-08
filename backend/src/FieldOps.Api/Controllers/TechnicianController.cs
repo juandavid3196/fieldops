@@ -27,6 +27,11 @@ public sealed class TechnicianController(
     // 10 MiB of image plus the multipart envelope; a larger body is the existing 413.
     public const int MaxEvidenceRequestBytes = 11_534_336;
 
+    // 1 MiB: the signature of at most 512 KiB plus the text fields and the multipart envelope (mobile-job-completion BR-07).
+    public const int MaxCompleteRequestBytes = 1_048_576;
+
+    public const string SignatureKey = "signature";
+
     public const string FileKey = "file";
 
     public const string TypeKey = "type";
@@ -340,6 +345,50 @@ public sealed class TechnicianController(
             : MapFailure(result);
     }
 
+    [HttpPost("visits/{visitId:guid}/complete")]
+    [Authorize(Policy = TeamPolicies.Self)]
+    [Consumes("multipart/form-data")]
+    [RequestSizeLimit(MaxCompleteRequestBytes)]
+    [RequestFormLimits(MultipartBodyLengthLimit = MaxCompleteRequestBytes)]
+    [ProducesResponseType<VisitActionResult>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status415UnsupportedMediaType)]
+    public async Task<IActionResult> Complete(Guid visitId, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        var call = Call(ticket);
+
+        // Authorization and primary control are decided before the request body is read (BR-01, BR-02, BR-07).
+        var precheck = await progressHandler.PrecheckCompleteAsync(call, visitId, cancellationToken);
+
+        if (precheck.Kind != TechnicianVisitResultKind.Succeeded)
+        {
+            return MapFailure(precheck);
+        }
+
+        var (input, malformed) = await ReadCompleteInputAsync(cancellationToken);
+
+        if (malformed)
+        {
+            return BadRequest();
+        }
+
+        var result = await progressHandler.CompleteAsync(call, visitId, input!, cancellationToken);
+
+        return result.Kind == TechnicianVisitResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
+    }
+
     [HttpGet("visits/{visitId:guid}/evidence/{evidenceId:guid}")]
     [Authorize(Policy = TeamPolicies.Self)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -454,6 +503,37 @@ public sealed class TechnicianController(
             return (null, null, true);
         }
     }
+
+    // Same reading as the photo upload; the signature is copied up to its limit plus one byte so an oversize part is detected.
+    private async Task<(CompleteInput? Input, bool Malformed)> ReadCompleteInputAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            var form = await Request.ReadFormAsync(cancellationToken);
+            var signature = form.Files.GetFile(SignatureKey);
+
+            return (
+                new CompleteInput(
+                    Field(form, "method"),
+                    Field(form, "signerName"),
+                    Field(form, "relationship"),
+                    Field(form, "comment"),
+                    Field(form, "reviewConfirmed"),
+                    signature is not null,
+                    signature is null
+                        ? null
+                        : await ReadAtMostAsync(signature, VisitCompletionRules.SignatureMaxBytes + 1L, cancellationToken),
+                    signature?.ContentType),
+                false);
+        }
+        catch (InvalidDataException)
+        {
+            return (null, true);
+        }
+    }
+
+    private static string? Field(IFormCollection form, string key) =>
+        form.TryGetValue(key, out var values) ? values.ToString() : null;
 
     // Copies at most limit bytes so an oversized part is detected without buffering more than needed.
     private static async Task<byte[]> ReadAtMostAsync(IFormFile file, long limit, CancellationToken cancellationToken)

@@ -147,6 +147,16 @@ export interface CatalogItem {
   readonly unit: string;
 }
 
+/** BR-11: server-side completion readiness of the visit. */
+export interface VisitCompletion {
+  readonly requiredTasksComplete: boolean;
+  readonly hasBeforePhoto: boolean;
+  readonly hasAfterPhoto: boolean;
+  readonly ready: boolean;
+  /** Completing this visit now would also complete the work order. */
+  readonly completesWorkOrder: boolean;
+}
+
 export interface TechnicianVisitDetail extends TodayVisit {
   readonly date: string;
   readonly timezone: string;
@@ -166,6 +176,9 @@ export interface TechnicianVisitDetail extends TodayVisit {
   readonly additionalMaterials: readonly AdditionalMaterial[];
   readonly evidence: readonly VisitEvidence[];
   readonly technicianNotes: string | null;
+  /** First and last name of the active primary assignee. */
+  readonly primaryTechnicianName: string;
+  readonly completion: VisitCompletion;
 }
 
 /** Response of start-travel, arrive, start-job, pause and resume; `changed` is false on an idempotent repeat. */

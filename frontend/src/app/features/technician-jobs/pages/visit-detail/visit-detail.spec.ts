@@ -123,6 +123,14 @@ const DETAIL: TechnicianVisitDetail = {
   additionalMaterials: [],
   evidence: [],
   technicianNotes: null,
+  primaryTechnicianName: 'Carlos Rivera',
+  completion: {
+    requiredTasksComplete: true,
+    hasBeforePhoto: false,
+    hasAfterPhoto: false,
+    ready: false,
+    completesWorkOrder: false,
+  },
 };
 
 const MINIMAL: TechnicianVisitDetail = {
@@ -641,15 +649,15 @@ describe('VisitDetail', () => {
     expect(byText('button', 'View approved assessment', minimal)).toBeUndefined();
   });
 
-  it('shows the review placeholder with a way back for technicians only and writes nothing (AC-21)', async () => {
+  it('opens Review & complete for technicians only and writes nothing on the way (AC-21)', async () => {
     await open();
     httpTesting.expectOne(URL).flush(visit('in_progress'));
     await harness.navigateByUrl('/today/visits/v-1/review');
+    httpTesting.expectOne({ method: 'GET', url: URL }).flush(visit('in_progress'));
     await settle();
     const root = harness.routeNativeElement as HTMLElement;
-    expect(flat(root)).toContain('Review and completion is coming soon.');
-    expect(root.querySelector('a')?.getAttribute('href')).toBe('/today/visits/v-1');
-    expect(flat(root)).toContain('Back to job');
+    expect(root.querySelector('h1')?.textContent).toContain('Review & complete');
+    expect(flat(root)).not.toContain('coming soon');
 
     TestBed.resetTestingModule();
     await open(undefined, 'dispatcher');

@@ -58,6 +58,13 @@ public interface ITechnicianVisitStore
     Task<ProgressOutcome> TransitionAsync(
         ProgressActor actor, Guid visitId, ProgressTransition transition, DateTimeOffset now, CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Complete job in one transaction (mobile-job-completion BR-03, BR-04, BR-08 to BR-10): locks the caller's profile row,
+    /// the visit row and the work order row, re-reads the state and writes everything or nothing. A repeat is an unchanged save.
+    /// </summary>
+    Task<ProgressOutcome> CompleteAsync(
+        ProgressActor actor, Guid visitId, VisitCompletion completion, DateTimeOffset now, CancellationToken cancellationToken);
+
     /// <summary>One task, material, photo or notes edit in one locked transaction (BR-06 to BR-13).</summary>
     Task<ProgressOutcome> EditAsync(
         ProgressActor actor, Guid visitId, VisitEdit edit, DateTimeOffset now, CancellationToken cancellationToken);
@@ -116,6 +123,7 @@ public enum ProgressOutcomeKind
     NotPrimary,
     StatusInvalid,
     LimitReached,
+    RequirementsUnmet,
 }
 
 /// <summary><c>Found</c> and <c>Changed</c> are set for <see cref="ProgressOutcomeKind.Saved"/>; <c>LimitCode</c> for <see cref="ProgressOutcomeKind.LimitReached"/>.</summary>

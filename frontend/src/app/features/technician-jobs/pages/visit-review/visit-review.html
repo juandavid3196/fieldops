@@ -1,10 +1,405 @@
 <div class="review">
-  @if (allowed) {
-    <p class="review__notice" role="status">{{ comingSoon }}</p>
-    <a pButton class="review__back" severity="secondary" [outlined]="true" [routerLink]="jobLink">
-      Back to job
-    </a>
-  } @else {
-    <p class="review__notice" role="status">{{ forbiddenMessage }}</p>
+  <p class="review__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="review__skeletons" aria-busy="true" aria-label="Loading job" role="status">
+        <p-skeleton height="4rem" />
+        <p-skeleton height="9rem" />
+        <p-skeleton height="14rem" />
+        <p-skeleton height="5rem" />
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="review__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="load()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @case ('not-found') {
+      <p class="review__notice" role="status">{{ notAvailableMessage }}</p>
+      <a
+        pButton
+        class="review__back"
+        severity="secondary"
+        [outlined]="true"
+        [routerLink]="todayPath"
+      >
+        Back to Today's jobs
+      </a>
+    }
+    @case ('ready') {
+      @if (visit(); as job) {
+        <header class="review__head">
+          <h1 class="review__title" id="review-title" tabindex="-1" #title>
+            {{ currentStep() === 'review' ? 'Review & complete' : 'Customer acknowledgment' }}
+          </h1>
+          <p class="review__subtitle">
+            {{
+              currentStep() === 'review'
+                ? 'Review completed work before capturing customer acknowledgment.'
+                : 'Choose how completion was acknowledged.'
+            }}
+          </p>
+        </header>
+
+        @if (currentStep() === 'review') {
+          <section class="review__card review__summary" aria-label="Job summary">
+            <p class="review__fact">
+              <i class="pi pi-wrench" aria-hidden="true"></i>
+              <span>
+                <span class="review__caption">Service</span>
+                {{ job.title }}
+              </span>
+            </p>
+            <p class="review__fact">
+              <i class="pi pi-user" aria-hidden="true"></i>
+              <span>
+                <span class="review__caption">Customer</span>
+                {{ job.customerName }}
+              </span>
+            </p>
+            <p class="review__fact">
+              <i class="pi pi-home" aria-hidden="true"></i>
+              <span>
+                <span class="review__caption">Property</span>
+                {{ address() }}
+              </span>
+            </p>
+          </section>
+
+          <ul class="review__card review__rows">
+            <li>
+              <a
+                class="review__row"
+                [routerLink]="jobLink"
+                [fragment]="sectionLink('tasks')"
+                aria-describedby="review-checklist-text"
+              >
+                <span class="review__tile" aria-hidden="true"
+                  ><i class="pi pi-check-square"></i
+                ></span>
+                <span class="review__text">
+                  <strong>Completion checklist</strong>
+                  <span id="review-checklist-text">
+                    {{ tasksDone() }} of {{ tasksTotal() }} tasks complete.
+                  </span>
+                </span>
+                <span
+                  class="review__badge"
+                  [class.review__badge--ok]="job.completion.requiredTasksComplete"
+                >
+                  @if (job.completion.requiredTasksComplete) {
+                    <span class="review__check-disc" aria-hidden="true"
+                      ><i class="pi pi-check"></i
+                    ></span>
+                  }
+                  {{ tasksDone() }}/{{ tasksTotal() }}
+                </span>
+                <i class="pi pi-chevron-right review__chevron" aria-hidden="true"></i>
+              </a>
+            </li>
+            <li>
+              <a class="review__row" [routerLink]="jobLink" [fragment]="sectionLink('materials')">
+                <span class="review__tile" aria-hidden="true"><i class="pi pi-box"></i></span>
+                <span class="review__text">
+                  <strong>Materials used</strong>
+                  @for (line of materials().lines; track $index) {
+                    <span>{{ line }}</span>
+                  } @empty {
+                    <span>No materials recorded.</span>
+                  }
+                  @if (materials().more > 0) {
+                    <span>+{{ materials().more }} more</span>
+                  }
+                </span>
+                <i class="pi pi-chevron-right review__chevron" aria-hidden="true"></i>
+              </a>
+            </li>
+            <li>
+              <a class="review__row" [routerLink]="jobLink" [fragment]="sectionLink('photos')">
+                <span class="review__tile" aria-hidden="true"><i class="pi pi-camera"></i></span>
+                <span class="review__text">
+                  <strong>Evidence</strong>
+                  <span>Before photos: {{ beforeCount() }}</span>
+                  <span>After photos: {{ afterCount() }}</span>
+                </span>
+                <i class="pi pi-chevron-right review__chevron" aria-hidden="true"></i>
+              </a>
+            </li>
+            <li>
+              <a class="review__row" [routerLink]="jobLink" [fragment]="sectionLink('notes')">
+                <span class="review__tile" aria-hidden="true"><i class="pi pi-file-edit"></i></span>
+                <span class="review__text">
+                  <strong>Technician completion note</strong>
+                  <span class="review__note">{{ note() || 'No completion note.' }}</span>
+                </span>
+                <i class="pi pi-chevron-right review__chevron" aria-hidden="true"></i>
+              </a>
+            </li>
+            <li class="review__row review__row--static">
+              <span class="review__tile" aria-hidden="true"><i class="pi pi-clock"></i></span>
+              <span class="review__text">
+                <strong>Summary</strong>
+                <span class="review__pair">
+                  <span>
+                    <span class="review__caption">Work time</span>
+                    <strong>{{ laborText() }}</strong>
+                  </span>
+                  <span>
+                    <span class="review__caption">Technician</span>
+                    <strong>{{ job.primaryTechnicianName }}</strong>
+                  </span>
+                </span>
+              </span>
+            </li>
+          </ul>
+
+          <section
+            class="review__card review__ready"
+            [class.review__ready--ok]="ready()"
+            aria-labelledby="review-ready-title"
+          >
+            <h2 class="review__ready-title" id="review-ready-title">
+              @if (ready()) {
+                <span class="review__check-disc" aria-hidden="true"
+                  ><i class="pi pi-check"></i
+                ></span>
+              } @else {
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+              }
+              {{ ready() ? 'Ready to complete' : 'Not ready to complete' }}
+            </h2>
+            @if (!ready()) {
+              <p class="review__ready-help">
+                Complete required tasks and add before and after photos
+              </p>
+            }
+            <ul class="review__items">
+              @for (item of readiness(); track item.label) {
+                <li class="review__item">
+                  <i
+                    class="pi"
+                    [class]="
+                      item.state === 'met'
+                        ? 'pi-check-circle'
+                        : item.state === 'unmet'
+                          ? 'pi-times-circle'
+                          : 'pi-minus-circle'
+                    "
+                    aria-hidden="true"
+                  ></i>
+                  {{ item.label }}
+                </li>
+              }
+            </ul>
+          </section>
+
+          <div class="bar">
+            @if (formError(); as message) {
+              <p class="bar__error" role="alert">{{ message }}</p>
+            }
+            @if (readOnly()) {
+              <p class="bar__message">{{ notPrimaryText }}</p>
+              <a
+                pButton
+                class="bar__button"
+                severity="secondary"
+                [outlined]="true"
+                [routerLink]="jobLink"
+              >
+                Back to job
+              </a>
+            } @else {
+              <button
+                pButton
+                type="button"
+                class="bar__button"
+                [disabled]="!ready()"
+                (click)="show('acknowledgment')"
+              >
+                Continue to acknowledgment
+                <i class="pi pi-arrow-right" aria-hidden="true"></i>
+              </button>
+            }
+          </div>
+        } @else {
+          <form class="ack" novalidate (submit)="complete($event)">
+            <fieldset class="ack__methods" [disabled]="pending()">
+              <legend class="review__sr">Acknowledgment method</legend>
+              @for (option of methods; track option.code) {
+                <label class="ack__method" [class.ack__method--selected]="method() === option.code">
+                  <input
+                    type="radio"
+                    name="ack-method"
+                    class="ack__radio"
+                    [value]="option.code"
+                    [checked]="method() === option.code"
+                    (change)="selectMethod(option.code)"
+                  />
+                  <i class="pi" [class]="option.icon" aria-hidden="true"></i>
+                  <span class="ack__method-text">
+                    <strong>{{ option.label }}</strong>
+                    <span>{{ option.description }}</span>
+                  </span>
+                </label>
+              }
+            </fieldset>
+
+            <div class="review__card ack__fields">
+              @if (rules().signerName !== null || rules().relationship) {
+                <div class="ack__pair">
+                  @if (rules().signerName !== null) {
+                    <div class="ack__field">
+                      <label class="ack__label" for="ack-signerName">
+                        Signer name{{ rules().signerName === 'optional' ? ' (optional)' : '' }}
+                      </label>
+                      <input
+                        pInputText
+                        id="ack-signerName"
+                        class="ack__input"
+                        type="text"
+                        autocomplete="off"
+                        [value]="signerName()"
+                        [disabled]="pending()"
+                        [attr.aria-invalid]="errors().signerName ? 'true' : null"
+                        [attr.aria-describedby]="errors().signerName ? errorId('signerName') : null"
+                        (input)="setField('signerName', $any($event.target).value)"
+                      />
+                      @if (errors().signerName; as message) {
+                        <p class="ack__error" [id]="errorId('signerName')">{{ message }}</p>
+                      }
+                    </div>
+                  }
+                  @if (rules().relationship) {
+                    <div class="ack__field">
+                      <label class="ack__label" for="ack-relationship">Relationship</label>
+                      <select
+                        id="ack-relationship"
+                        class="ack__input ack__select"
+                        [disabled]="pending()"
+                        [attr.aria-invalid]="errors().relationship ? 'true' : null"
+                        [attr.aria-describedby]="
+                          errors().relationship ? errorId('relationship') : null
+                        "
+                        (change)="setField('relationship', $any($event.target).value)"
+                      >
+                        @for (item of relationships; track item.code) {
+                          <option [value]="item.code" [selected]="relationship() === item.code">
+                            {{ item.label }}
+                          </option>
+                        }
+                      </select>
+                      @if (errors().relationship; as message) {
+                        <p class="ack__error" [id]="errorId('relationship')">{{ message }}</p>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (rules().signature) {
+                <div class="ack__field">
+                  <span class="ack__label" id="ack-signature-label">Customer signature</span>
+                  <app-signature-pad
+                    [strokes]="strokes()"
+                    [disabled]="pending()"
+                    [invalid]="!!errors().signature"
+                    [errorId]="errors().signature ? errorId('signature') : null"
+                    (strokesChange)="setStrokes($event)"
+                  />
+                  @if (errors().signature; as message) {
+                    <p class="ack__error" [id]="errorId('signature')">{{ message }}</p>
+                  }
+                </div>
+              }
+
+              <div class="ack__field">
+                <label class="ack__label" for="ack-comment">{{ rules().commentLabel }}</label>
+                <textarea
+                  pInputText
+                  id="ack-comment"
+                  class="ack__input ack__textarea"
+                  rows="3"
+                  [value]="comment()"
+                  [disabled]="pending()"
+                  [attr.aria-invalid]="errors().comment ? 'true' : null"
+                  [attr.aria-describedby]="errors().comment ? errorId('comment') : null"
+                  (input)="setField('comment', $any($event.target).value)"
+                ></textarea>
+                @if (errors().comment; as message) {
+                  <p class="ack__error" [id]="errorId('comment')">{{ message }}</p>
+                }
+              </div>
+
+              @if (rules().reviewConfirmed) {
+                <div class="ack__field">
+                  <label class="ack__check">
+                    <input
+                      id="ack-reviewConfirmed"
+                      type="checkbox"
+                      [checked]="reviewConfirmed()"
+                      [disabled]="pending()"
+                      [attr.aria-invalid]="errors().reviewConfirmed ? 'true' : null"
+                      [attr.aria-describedby]="
+                        errors().reviewConfirmed ? errorId('reviewConfirmed') : null
+                      "
+                      (change)="setConfirmed($any($event.target).checked)"
+                    />
+                    Customer confirms the work was reviewed.
+                  </label>
+                  @if (errors().reviewConfirmed; as message) {
+                    <p class="ack__error" [id]="errorId('reviewConfirmed')">{{ message }}</p>
+                  }
+                </div>
+              }
+            </div>
+
+            <p class="ack__info">
+              <span class="ack__info-icon" aria-hidden="true"><i class="pi pi-info"></i></span>
+              A signature confirms service acknowledgment. It does not confirm payment.
+            </p>
+
+            <div class="bar">
+              @if (formError(); as message) {
+                <p class="bar__error" role="alert">{{ message }}</p>
+              }
+              <div class="bar__row">
+                <button
+                  pButton
+                  type="button"
+                  class="bar__button"
+                  severity="info"
+                  [outlined]="true"
+                  [disabled]="pending()"
+                  (click)="show('review')"
+                >
+                  Back
+                </button>
+                <button
+                  pButton
+                  type="submit"
+                  class="bar__button"
+                  [disabled]="pending()"
+                  [loading]="pending()"
+                >
+                  Complete job
+                </button>
+              </div>
+              <p class="bar__helper">{{ footerText() }}</p>
+            </div>
+          </form>
+        }
+      }
+    }
+    @default {
+      @if (accessText(); as message) {
+        <p class="review__notice" role="status">{{ message }}</p>
+      }
+    }
   }
 </div>

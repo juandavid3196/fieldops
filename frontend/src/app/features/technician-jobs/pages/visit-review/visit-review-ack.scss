@@ -1,0 +1,212 @@
+// Customer acknowledgment step: method cards and the fields of the selected method.
+.ack {
+  // Design 9 action blue (as in job-progress) for Back, Clear, Redo and the info note.
+  --ack-blue: light-dark(#2860ff, #8aa8ff);
+  --p-button-outlined-info-color: var(--ack-blue);
+  --p-button-outlined-info-border-color: var(--ack-blue);
+  --p-button-outlined-info-hover-background: light-dark(#eef3ff, rgb(40 96 255 / 15%));
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__method {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    box-sizing: border-box;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.625rem 0.75rem;
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    &--selected {
+      border-color: var(--fo-color-primary);
+      box-shadow: 0 0 0 1px var(--fo-color-primary);
+    }
+
+    &:focus-within {
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    > .pi {
+      flex: none;
+      inline-size: 1.5rem;
+      font-size: 1.25rem;
+      text-align: center;
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__radio,
+  &__check input {
+    flex: none;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    margin: 0;
+    accent-color: var(--fo-color-primary);
+  }
+
+  &__method-text {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    color: var(--fo-color-text-secondary);
+
+    strong {
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  &__pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-inline-size: 0;
+  }
+
+  &__label {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__input {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    font: inherit;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+
+    &[aria-invalid='true'] {
+      border-color: var(--fo-color-danger-solid);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-color-primary);
+      outline-offset: 1px;
+    }
+  }
+
+  &__select {
+    padding-inline: 0.5rem;
+  }
+
+  &__textarea {
+    min-block-size: 5rem;
+    resize: vertical;
+  }
+
+  &__check {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  // Custom box: rounded corners and a smooth rounded check mark.
+  & &__check input {
+    appearance: none;
+    display: grid;
+    place-content: center;
+    background: var(--fo-color-surface);
+    border: 1.5px solid var(--fo-color-border-strong);
+    border-radius: 0.375rem;
+    cursor: pointer;
+
+    &::after {
+      content: '';
+      inline-size: 0.75rem;
+      block-size: 0.75rem;
+      background: center / contain no-repeat
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 6.3l2.3 2.3 4.7-5' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      opacity: 0;
+    }
+
+    &:checked {
+      background: var(--fo-color-primary);
+      border-color: var(--fo-color-primary);
+
+      &::after {
+        opacity: 1;
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-color-primary);
+      outline-offset: 2px;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+
+    &[aria-invalid='true'] {
+      border-color: var(--fo-color-danger-solid);
+    }
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+
+    &::before {
+      content: '\26A0\00a0';
+    }
+  }
+
+  &__info {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    color: light-dark(#1f4fd6, #8aa8ff);
+    background: light-dark(#eef3ff, rgb(40 96 255 / 15%));
+    border: 1px solid light-dark(#c9d7ff, rgb(138 168 255 / 35%));
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__info-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    font-size: 0.6875rem;
+    color: var(--fo-color-on-primary);
+    background: var(--ack-blue);
+    border-radius: 50%;
+  }
+}

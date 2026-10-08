@@ -1,5 +1,14 @@
-import { NgTemplateOutlet } from '@angular/common';
-import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { DOCUMENT, NgTemplateOutlet } from '@angular/common';
+import {
+  Component,
+  DestroyRef,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
@@ -83,7 +92,14 @@ export class VisitDetail {
   private readonly visits = inject(TechnicianVisitsService);
   private readonly sessionService = inject(SessionService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly visitId = inject(ActivatedRoute).snapshot.paramMap.get('visitId') ?? '';
+  private readonly route = inject(ActivatedRoute).snapshot;
+  private readonly visitId = this.route.paramMap.get('visitId') ?? '';
+  private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
+  /** Section requested by the link (`#job-section-tasks`); scrolled to once after the first load. */
+  private pendingSection = this.route.fragment?.startsWith('job-section-')
+    ? this.route.fragment
+    : null;
   /** Triggers of the open overlays; the last one is focused again when its overlay closes. */
   private readonly focusStack: HTMLElement[] = [];
 
@@ -219,6 +235,7 @@ export class VisitDetail {
       next: (visit) => {
         this.visit.set(visit);
         this.state.set('ready');
+        this.scrollToSection();
       },
       error: (error: unknown) => {
         if (silent) {
@@ -228,6 +245,16 @@ export class VisitDetail {
         this.state.set(failure === 'failed' ? 'error' : failure);
       },
     });
+  }
+
+  private scrollToSection(): void {
+    const id = this.pendingSection;
+    this.pendingSection = null;
+    if (id !== null && this.working()) {
+      afterNextRender(() => this.document.getElementById(id)?.scrollIntoView(), {
+        injector: this.injector,
+      });
+    }
   }
 
   /** BR-14 / BR-15: one action at a time; success updates the page in place and announces it. */

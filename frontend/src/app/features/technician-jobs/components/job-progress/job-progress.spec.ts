@@ -92,6 +92,14 @@ const BASE: TechnicianVisitDetail = {
   ],
   evidence: [],
   technicianNotes: null,
+  primaryTechnicianName: 'Carlos Rivera',
+  completion: {
+    requiredTasksComplete: true,
+    hasBeforePhoto: false,
+    hasAfterPhoto: false,
+    ready: false,
+    completesWorkOrder: false,
+  },
 };
 
 function job(overrides: Partial<TechnicianVisitDetail> = {}): TechnicianVisitDetail {

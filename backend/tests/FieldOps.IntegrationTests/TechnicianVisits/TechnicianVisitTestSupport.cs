@@ -77,7 +77,7 @@ internal sealed class TechnicianHost : IAsyncDisposable
         string path, string? cookie, byte[] bytes, string declaredType, string? type, string fileName = "photo.jpg")
     {
         var part = new ByteArrayContent(bytes);
-        part.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(declaredType);
+        part.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse(declaredType);
 
         var form = new MultipartFormDataContent { { part, "file", fileName } };
 
@@ -86,6 +86,21 @@ internal sealed class TechnicianHost : IAsyncDisposable
             form.Add(new StringContent(type), "type");
         }
 
+        var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = form };
+
+        if (cookie is not null)
+        {
+            request.Headers.Add("Cookie", cookie);
+        }
+
+        request.Headers.Add(TestClientIpStartupFilter.HeaderName, SessionApi.NewClientIp());
+
+        return _client.SendAsync(request);
+    }
+
+    /// <summary>A multipart request built by the caller (the complete-job acknowledgment).</summary>
+    public Task<HttpResponseMessage> PostFormAsync(string path, string? cookie, MultipartFormDataContent form)
+    {
         var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = form };
 
         if (cookie is not null)
