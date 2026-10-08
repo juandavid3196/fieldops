@@ -4,7 +4,7 @@
 | -------- | ---------------------- |
 | Feature  | `completed-jobs-review` |
 | Type     | Full-stack             |
-| Status   | APPROVED               |
+| Status   | AUDITED                |
 | Created  | 2026-10-08             |
 | Updated  | 2026-10-08             |
 | Approved | 2026-10-08             |
@@ -397,3 +397,5 @@ and requires its own evidence.
 | 2026-10-08 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-08 | APPROVED → DRAFT | Revised with user confirmation after final audit: return-action, message and mobile back copy changed to "Return to quote", "Returned to quote." and "Back to quote" (OD-13, BR-16, BR-25, BR-27, BR-28, BR-29); behavior unchanged |
 | 2026-10-08 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-08 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-08 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |
