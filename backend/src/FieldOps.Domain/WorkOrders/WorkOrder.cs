@@ -224,6 +224,18 @@ public sealed class WorkOrder
         Touch(now);
     }
 
+    /// <summary>The last open occurrence was completed (mobile-job-completion BR-09).</summary>
+    public void MarkCompleted(DateTimeOffset now)
+    {
+        if (Status is not (WorkOrderStatus.Scheduled or WorkOrderStatus.InProgress))
+        {
+            throw new InvalidOperationException("Only a scheduled or in progress work order can become completed.");
+        }
+
+        Status = WorkOrderStatus.Completed;
+        Touch(now);
+    }
+
     /// <summary>No non-cancelled visit keeps a schedule (dispatch-calendar BR-16).</summary>
     public void ReturnToReadyToSchedule(DateTimeOffset now)
     {

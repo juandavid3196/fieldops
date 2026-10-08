@@ -145,6 +145,9 @@ internal sealed partial class TechnicianVisitStore(FieldOpsDbContext dbContext) 
                 candidate.InternalInstructions,
                 candidate.ScopeSnapshot,
                 candidate.EstimatedDurationMinutes,
+                candidate.Status,
+                candidate.JobType,
+                candidate.RecurrenceCount,
             })
             .SingleAsync(cancellationToken);
         var customerType = await dbContext.Customers.AsNoTracking()
@@ -240,6 +243,31 @@ internal sealed partial class TechnicianVisitStore(FieldOpsDbContext dbContext) 
             .Select(candidate => new { candidate.StartedAt, candidate.EndedAt })
             .FirstOrDefaultAsync(cancellationToken);
 
+        var primary = await (
+            from assignment in dbContext.VisitAssignments.AsNoTracking()
+            join technician in dbContext.TechnicianProfiles.AsNoTracking() on assignment.TechnicianId equals technician.Id
+            where assignment.VisitId == visitId
+                && assignment.IsPrimary
+                && assignment.UnassignedAt == null
+                && technician.OrganizationId == organizationId
+            select new { technician.FirstName, technician.LastName })
+            .FirstOrDefaultAsync(cancellationToken);
+        var siblings = await dbContext.Visits.AsNoTracking()
+            .Where(candidate => candidate.OrganizationId == organizationId && candidate.WorkOrderId == workOrderId)
+            .Select(candidate => new OrderVisitState(candidate.Id, candidate.VisitNumber, candidate.Status))
+            .ToListAsync(cancellationToken);
+
+        // mobile-job-completion BR-11: the BR-04 condition and what BR-09 would do if this visit were completed now.
+        var requiredTasksComplete = taskRows.All(item => !item.IsRequired || item.IsCompleted);
+        var hasBefore = progress.Evidence.Any(item => item.Type == "before");
+        var hasAfter = progress.Evidence.Any(item => item.Type == "after");
+        var completion = new VisitCompletionView(
+            requiredTasksComplete,
+            hasBefore,
+            hasAfter,
+            requiredTasksComplete && hasBefore && hasAfter,
+            VisitCompletionRules.CompletesWorkOrder(order.Status, order.JobType, order.RecurrenceCount, siblings, visitId));
+
         var travel = entry is null
             ? new VisitTravel(null, null, null)
             : new VisitTravel(
@@ -258,7 +286,9 @@ internal sealed partial class TechnicianVisitStore(FieldOpsDbContext dbContext) 
             materials,
             tasks,
             request is null ? null : await ReadAssessmentAsync(organizationId, request.Id, zone, cancellationToken),
-            progress);
+            progress,
+            primary is null ? null : $"{primary.FirstName} {primary.LastName}".Trim(),
+            completion);
     }
 
     /// <summary>mobile-job-progress BR-14: actual start, time totals, additional materials, photo ids (never content) and notes.</summary>

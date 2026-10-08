@@ -272,7 +272,17 @@ CREATE TABLE visit_checklist_items (id uuid PRIMARY KEY DEFAULT gen_random_uuid(
 CREATE TABLE visit_materials (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL REFERENCES visits(id) ON DELETE CASCADE, catalog_item_id uuid REFERENCES catalog_items(id), planned_material_id uuid REFERENCES work_order_planned_materials(id) ON DELETE SET NULL, description text NOT NULL, quantity numeric(12,3) NOT NULL CHECK(quantity>0), unit varchar(40) NOT NULL, unit_cost numeric(14,2) NOT NULL DEFAULT 0, billable boolean NOT NULL DEFAULT false);
 CREATE TABLE visit_evidence (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL REFERENCES visits(id) ON DELETE CASCADE, file_name varchar(255) NOT NULL, storage_key text, content bytea, mime_type varchar(120) NOT NULL CHECK(mime_type IN ('image/jpeg','image/png')), size_bytes bigint NOT NULL CHECK(size_bytes>0 AND size_bytes<=10485760), evidence_type varchar(30) NOT NULL CHECK(evidence_type IN ('before','during','after','incident','other')), caption text, uploaded_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), CHECK(content IS NOT NULL OR storage_key IS NOT NULL));
 CREATE TABLE visit_incidents (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL REFERENCES visits(id) ON DELETE CASCADE, type varchar(80) NOT NULL, description text NOT NULL, additional_work_requested boolean NOT NULL DEFAULT false, created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now());
-CREATE TABLE customer_signoffs (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL UNIQUE REFERENCES visits(id), signer_name varchar(180), signer_contact_id uuid REFERENCES customer_contacts(id), signature_storage_key text, accepted boolean NOT NULL, comments text, absence_reason text, signed_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE customer_signoffs (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), visit_id uuid NOT NULL UNIQUE REFERENCES visits(id), signer_name varchar(180), signer_contact_id uuid REFERENCES customer_contacts(id), signature_storage_key text, accepted boolean NOT NULL, comments text, absence_reason text, signed_at timestamptz NOT NULL DEFAULT now(),
+  -- SA-03 (mobile-job-completion): acknowledgment method, inline PNG signature, review confirmation and recorder.
+  acknowledgement_method varchar(30) NOT NULL CHECK(acknowledgement_method IN ('signed','customer_absent','customer_refused','remote_confirmation')),
+  signer_relationship varchar(40) CHECK(signer_relationship IN ('customer','family_member','tenant','property_manager','employee','other')),
+  signature_content bytea, signature_mime_type varchar(40) CHECK(signature_mime_type = 'image/png'),
+  review_confirmed boolean NOT NULL DEFAULT false, recorded_by_user_id uuid NOT NULL REFERENCES users(id),
+  CHECK((signature_content IS NULL) = (signature_mime_type IS NULL)),
+  CHECK((acknowledgement_method = 'signed') = (signature_content IS NOT NULL OR signature_storage_key IS NOT NULL)),
+  CHECK(signature_content IS NULL OR octet_length(signature_content) <= 524288)
+);
 
 CREATE TABLE invoices (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), branch_id uuid NOT NULL REFERENCES branches(id),

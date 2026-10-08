@@ -105,18 +105,19 @@ internal sealed partial class TechnicianVisitStore
         Guid visitId,
         bool requireEditable,
         Func<Visit, WorkOrder, Task<Step>> apply,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool lockWorkOrder = false)
     {
         try
         {
-            return await ExecuteLockedAsync(actor, visitId, requireEditable, apply, cancellationToken);
+            return await ExecuteLockedAsync(actor, visitId, requireEditable, apply, cancellationToken, lockWorkOrder);
         }
         catch (Exception exception) when (IsLockConflict(exception))
         {
             // The whole transaction was rolled back: it runs once more on a clean tracker, then fails as a 500.
             dbContext.ChangeTracker.Clear();
 
-            return await ExecuteLockedAsync(actor, visitId, requireEditable, apply, cancellationToken);
+            return await ExecuteLockedAsync(actor, visitId, requireEditable, apply, cancellationToken, lockWorkOrder);
         }
     }
 
@@ -125,7 +126,8 @@ internal sealed partial class TechnicianVisitStore
         Guid visitId,
         bool requireEditable,
         Func<Visit, WorkOrder, Task<Step>> apply,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool lockWorkOrder = false)
     {
         var organizationId = actor.OrganizationId;
         var technicianId = actor.TechnicianId;
@@ -163,6 +165,25 @@ internal sealed partial class TechnicianVisitStore
         if (!locked[0])
         {
             return new ProgressOutcome(ProgressOutcomeKind.NotPrimary);
+        }
+
+        // (2b) The completion also locks the work order row, after the visit row, so completions of sibling visits
+        // serialize and the last one evaluates the aggregate with the others committed (mobile-job-completion BR-10).
+        if (lockWorkOrder)
+        {
+            var workOrderId = await dbContext.Visits.AsNoTracking()
+                .Where(candidate => candidate.OrganizationId == organizationId && candidate.Id == visitId)
+                .Select(candidate => candidate.WorkOrderId)
+                .SingleAsync(cancellationToken);
+
+            await dbContext.Database
+                .SqlQuery<Guid>(
+                    $"""
+                    SELECT id AS "Value" FROM work_orders
+                    WHERE id = {workOrderId} AND organization_id = {organizationId}
+                    FOR UPDATE
+                    """)
+                .ToListAsync(cancellationToken);
         }
 
         // (3) State read after the locks, so a concurrent request is already visible.

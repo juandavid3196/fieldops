@@ -69,6 +69,10 @@ public sealed record AssessmentPhotoRef(Guid Id);
 public sealed record VisitAssessmentView(
     DateTimeOffset CompletedAt, string? Diagnosis, string? RecommendedScope, IReadOnlyList<AssessmentPhotoRef> Photos);
 
+/// <summary>Completion readiness of the visit (mobile-job-completion BR-11); never carries acknowledgment or signature data.</summary>
+public sealed record VisitCompletionView(
+    bool RequiredTasksComplete, bool HasBeforePhoto, bool HasAfterPhoto, bool Ready, bool CompletesWorkOrder);
+
 /// <summary>The additive Design 8 content of the visit detail (BR-03 to BR-06). Instants carry the offset of the profile zone.</summary>
 public sealed record TechnicianVisitExtras(
     string CustomerType,
@@ -81,7 +85,9 @@ public sealed record TechnicianVisitExtras(
     IReadOnlyList<PlannedMaterialView> PlannedMaterials,
     IReadOnlyList<VisitTaskView> Tasks,
     VisitAssessmentView? Assessment,
-    VisitProgressView Progress);
+    VisitProgressView Progress,
+    string? PrimaryTechnicianName,
+    VisitCompletionView Completion);
 
 /// <summary><see cref="TodayVisit"/> plus the local date, zone, dispatch note and the Design 8 content; fields are additive.</summary>
 public sealed record TechnicianVisitDetail : TodayVisit
@@ -108,6 +114,8 @@ public sealed record TechnicianVisitDetail : TodayVisit
         AdditionalMaterials = extras.Progress.AdditionalMaterials;
         Evidence = extras.Progress.Evidence;
         TechnicianNotes = extras.Progress.TechnicianNotes;
+        PrimaryTechnicianName = extras.PrimaryTechnicianName;
+        Completion = extras.Completion;
     }
 
     public string Date { get; }
@@ -145,6 +153,10 @@ public sealed record TechnicianVisitDetail : TodayVisit
     public IReadOnlyList<VisitEvidenceView> Evidence { get; }
 
     public string? TechnicianNotes { get; }
+
+    public string? PrimaryTechnicianName { get; }
+
+    public VisitCompletionView Completion { get; }
 }
 
 /// <summary>Response of start-travel and arrive; <c>Changed</c> is false on an idempotent repeat.</summary>
@@ -208,6 +220,8 @@ public static class TechnicianVisitCodes
     public const string MaterialLimitReached = "material_limit_reached";
 
     public const string EvidenceLimitReached = "evidence_limit_reached";
+
+    public const string CompletionRequirementsUnmet = "completion_requirements_unmet";
 }
 
 /// <summary>Safe ProblemDetails titles by code (mobile-job-details Error behavior); a null code is the identical 404.</summary>
@@ -243,6 +257,10 @@ public static class VisitProgressMessages
     public const string MaterialLimit = "This job already has the maximum number of materials.";
 
     public const string EvidenceLimit = "This job already has the maximum number of photos.";
+
+    public const string CompleteInvalid = "This job can't be completed in its current state.";
+
+    public const string CompletionRequirementsUnmet = "Complete required tasks and add before and after photos before completing this job.";
 }
 
 /// <summary>

@@ -4,33 +4,45 @@ namespace FieldOps.UnitTests.WorkOrders;
 
 public class CustomerSignoffTests
 {
-    [Fact]
-    public void Create_WithValidArguments_SetsDefaults()
+    private static readonly byte[] Png = [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A];
+
+    [Theory]
+    [InlineData(AcknowledgementMethods.Signed, true, true)]
+    [InlineData(AcknowledgementMethods.RemoteConfirmation, false, true)]
+    [InlineData(AcknowledgementMethods.CustomerAbsent, false, false)]
+    [InlineData(AcknowledgementMethods.CustomerRefused, false, false)]
+    public void Create_PerMethod_MapsAcceptedAndSignature(string method, bool withSignature, bool accepted)
     {
         var visitId = Guid.NewGuid();
+        var user = Guid.NewGuid();
 
-        var signoff = CustomerSignoff.Create(visitId, accepted: true);
+        var signoff = CustomerSignoff.Create(
+            visitId, method, user, DateTimeOffset.UtcNow, signatureContent: withSignature ? Png : null);
 
         Assert.NotEqual(Guid.Empty, signoff.Id);
         Assert.Equal(visitId, signoff.VisitId);
-        Assert.True(signoff.Accepted);
-        Assert.Null(signoff.SignerName);
+        Assert.Equal(user, signoff.RecordedByUserId);
+        Assert.Equal(accepted, signoff.Accepted);
+        Assert.Equal(withSignature ? "image/png" : null, signoff.SignatureMimeType);
+        Assert.Null(signoff.SignerContactId);
         Assert.Null(signoff.SignatureStorageKey);
-        Assert.Null(signoff.AbsenceReason);
     }
 
-    [Fact]
-    public void Create_WithAcceptedFalse_PreservesExplicitFalse()
+    [Theory]
+    [InlineData(AcknowledgementMethods.Signed, false, "Only a signed")]
+    [InlineData(AcknowledgementMethods.CustomerAbsent, true, "Only a signed")]
+    public void Create_WithSignatureNotMatchingTheMethod_Throws(string method, bool withSignature, string message)
     {
-        var signoff = CustomerSignoff.Create(Guid.NewGuid(), accepted: false);
+        var exception = Assert.Throws<ArgumentException>(() => CustomerSignoff.Create(
+            Guid.NewGuid(), method, Guid.NewGuid(), DateTimeOffset.UtcNow, signatureContent: withSignature ? Png : null));
 
-        Assert.False(signoff.Accepted);
+        Assert.StartsWith(message, exception.Message, StringComparison.Ordinal);
     }
 
     [Fact]
     public void Create_WithEmptyVisitId_Throws()
     {
         Assert.Throws<ArgumentException>(
-            () => CustomerSignoff.Create(Guid.Empty, accepted: true));
+            () => CustomerSignoff.Create(Guid.Empty, AcknowledgementMethods.CustomerAbsent, Guid.NewGuid(), DateTimeOffset.UtcNow));
     }
 }

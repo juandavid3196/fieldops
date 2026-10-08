@@ -191,6 +191,54 @@ public sealed class TechnicianVisitProgressHandler(ITechnicianVisitStore store, 
             errors);
     }
 
+    /// <summary>The read-only check run before the complete body is read: 404 or 403 end the request without reading it (mobile-job-completion BR-01, BR-02, BR-07).</summary>
+    public async Task<TechnicianVisitResult<bool>> PrecheckCompleteAsync(
+        TravelCall call, Guid visitId, CancellationToken cancellationToken)
+    {
+        var (_, failure) = await CheckCompleteAsync<bool>(call, visitId, cancellationToken);
+
+        return failure ?? TechnicianVisitResult<bool>.Ok(true);
+    }
+
+    /// <summary>
+    /// Complete job: profile, visibility and primary control, the acknowledgment validation, then the locked
+    /// transaction of the store, which decides the status (BR-03) and the requirements (BR-04) authoritatively.
+    /// </summary>
+    public async Task<TechnicianVisitResult<VisitActionResult>> CompleteAsync(
+        TravelCall call, Guid visitId, CompleteInput input, CancellationToken cancellationToken)
+    {
+        var (profile, failure) = await CheckCompleteAsync<VisitActionResult>(call, visitId, cancellationToken);
+
+        if (profile is null)
+        {
+            return failure!;
+        }
+
+        var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
+        var completion = VisitCompletionRules.Validate(input, errors);
+
+        if (completion is null)
+        {
+            return TechnicianVisitResult<VisitActionResult>.Invalid(errors);
+        }
+
+        var outcome = await store.CompleteAsync(
+            Actor(call, profile), visitId, completion, timeProvider.GetUtcNow(), cancellationToken);
+
+        return outcome.Kind switch
+        {
+            ProgressOutcomeKind.Saved => TechnicianVisitResult<VisitActionResult>.Ok(
+                new VisitActionResult(outcome.Changed, TechnicianVisitRules.Detail(outcome.Found!, profile))),
+            ProgressOutcomeKind.NotPrimary => TechnicianVisitResult<VisitActionResult>.Forbidden(
+                TechnicianVisitCodes.NotPrimaryTechnician, VisitProgressMessages.NotPrimary),
+            ProgressOutcomeKind.StatusInvalid => TechnicianVisitResult<VisitActionResult>.Conflict(
+                TechnicianVisitCodes.VisitStatusInvalid, VisitProgressMessages.CompleteInvalid),
+            ProgressOutcomeKind.RequirementsUnmet => TechnicianVisitResult<VisitActionResult>.Conflict(
+                TechnicianVisitCodes.CompletionRequirementsUnmet, VisitProgressMessages.CompletionRequirementsUnmet),
+            _ => TechnicianVisitResult<VisitActionResult>.NotFound(),
+        };
+    }
+
     public async Task<TechnicianVisitResult<IReadOnlyList<MaterialCatalogItem>>> SearchMaterialCatalogAsync(
         Guid organizationId, Guid membershipId, Guid visitId, string? search, CancellationToken cancellationToken)
     {
@@ -332,6 +380,30 @@ public sealed class TechnicianVisitProgressHandler(ITechnicianVisitStore store, 
         return access.Status is VisitStatus.InProgress or VisitStatus.Paused
             ? (profile, null)
             : (null, TechnicianVisitResult<T>.Conflict(TechnicianVisitCodes.VisitStatusInvalid, VisitProgressMessages.EditInvalid));
+    }
+
+    // BR-01, BR-02 over the lock-free read; the status is decided later, after the body validation and the locks (BR-03).
+    private async Task<(TechnicianVisitProfile? Profile, TechnicianVisitResult<T>? Failure)> CheckCompleteAsync<T>(
+        TravelCall call, Guid visitId, CancellationToken cancellationToken)
+    {
+        var (profile, failure) = await TechnicianVisitRules.ResolveAsync<T>(
+            store, call.OrganizationId, call.MembershipId, cancellationToken);
+
+        if (profile is null)
+        {
+            return (null, failure);
+        }
+
+        var access = await store.GetProgressAccessAsync(call.OrganizationId, profile.Id, visitId, cancellationToken);
+
+        if (access is null)
+        {
+            return (null, TechnicianVisitResult<T>.NotFound());
+        }
+
+        return access.IsPrimary
+            ? (profile, null)
+            : (null, TechnicianVisitResult<T>.Forbidden(TechnicianVisitCodes.NotPrimaryTechnician, VisitProgressMessages.NotPrimary));
     }
 
     private static TechnicianVisitResult<TechnicianVisitDetail> LimitReached(string code) =>

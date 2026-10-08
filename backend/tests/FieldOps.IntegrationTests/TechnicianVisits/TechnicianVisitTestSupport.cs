@@ -98,6 +98,21 @@ internal sealed class TechnicianHost : IAsyncDisposable
         return _client.SendAsync(request);
     }
 
+    /// <summary>A multipart request built by the caller (the complete-job acknowledgment).</summary>
+    public Task<HttpResponseMessage> PostFormAsync(string path, string? cookie, MultipartFormDataContent form)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = form };
+
+        if (cookie is not null)
+        {
+            request.Headers.Add("Cookie", cookie);
+        }
+
+        request.Headers.Add(TestClientIpStartupFilter.HeaderName, SessionApi.NewClientIp());
+
+        return _client.SendAsync(request);
+    }
+
     public async ValueTask DisposeAsync()
     {
         _client.Dispose();
