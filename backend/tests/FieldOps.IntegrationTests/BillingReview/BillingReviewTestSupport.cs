@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Text.Json.Nodes;
 using FieldOps.IntegrationTests.CompanySettings;
+using FieldOps.IntegrationTests.Customers;
 using FieldOps.IntegrationTests.ServiceRequests;
 using FieldOps.IntegrationTests.Team;
 using Npgsql;
@@ -403,8 +404,10 @@ internal static class BillingSeed
         // status is a test-controlled constant, never user input.
         await db.ExecuteAsync(
             $"""
-            INSERT INTO invoices (id, organization_id, branch_id, invoice_number, work_order_id, customer_id, status, currency, subtotal, tax_total, total, balance_due, created_by_user_id)
-            VALUES (@id, @org, @branch, @number, @order, @customer, CAST('{status}' AS invoice_status), 'USD', @sub, @tax, @total, @total, @user);
+            INSERT INTO invoices (id, organization_id, branch_id, invoice_number, work_order_id, customer_id, status, currency, subtotal, tax_total, total, balance_due, created_by_user_id, customer_snapshot)
+            VALUES (@id, @org, @branch, @number, @order, @customer, CAST('{status}' AS invoice_status), 'USD', @sub, @tax, @total, @total, @user,
+                CASE WHEN '{status}' IN ('draft', 'void') THEN NULL
+                     ELSE CAST(@snap AS jsonb) END);
             UPDATE organizations SET next_invoice_number = @number + 1 WHERE id = @org;
             """,
             ("id", id),
@@ -416,6 +419,7 @@ internal static class BillingSeed
             ("sub", job.Subtotal),
             ("tax", job.Tax),
             ("total", job.Total),
+            ("snap", SeedInvoiceSnapshot.Json),
             ("user", user));
 
         return id;

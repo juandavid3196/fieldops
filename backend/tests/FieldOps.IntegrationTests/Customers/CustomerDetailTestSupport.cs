@@ -252,8 +252,10 @@ public static class CustomerDetailSeed
         db.ExecuteAsync(
             $"""
             SET session_replication_role = replica;
-            INSERT INTO invoices (id, organization_id, branch_id, invoice_number, work_order_id, customer_id, status, issue_date, currency, subtotal, tax_total, total, amount_paid, balance_due, created_by_user_id, created_at)
-            VALUES (gen_random_uuid(), @org, @branch, @number, gen_random_uuid(), @customer, '{status}', @issue, 'USD', @total, 0, @total, @paid, @total - @paid, @user, @created);
+            INSERT INTO invoices (id, organization_id, branch_id, invoice_number, work_order_id, customer_id, status, issue_date, currency, subtotal, tax_total, total, amount_paid, balance_due, created_by_user_id, created_at, customer_snapshot)
+            VALUES (gen_random_uuid(), @org, @branch, @number, gen_random_uuid(), @customer, '{status}', @issue, 'USD', @total, 0, @total, @paid, @total - @paid, @user, @created,
+                CASE WHEN '{status}' IN ('draft', 'void') THEN NULL
+                     ELSE CAST(@snap AS jsonb) END);
             """,
             ("org", organizationId),
             ("branch", branchId),
@@ -262,6 +264,7 @@ public static class CustomerDetailSeed
             ("issue", issueDate),
             ("total", total),
             ("paid", amountPaid),
+            ("snap", SeedInvoiceSnapshot.Json),
             ("user", userId),
             ("created", createdAt));
 

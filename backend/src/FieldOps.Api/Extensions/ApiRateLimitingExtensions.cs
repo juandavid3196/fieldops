@@ -76,6 +76,32 @@ public static class ApiRateLimitingExtensions
 
     private const string QuoteLinkPdfGlobalPartition = "quote-link-pdf-global";
 
+    /// <summary>view and logo of the public invoice link (invoice-draft-delivery BR-21).</summary>
+    public const string InvoiceLinkReadPolicy = "invoice-link-read";
+
+    /// <summary>pdf of the public invoice link.</summary>
+    public const string InvoiceLinkPdfPolicy = "invoice-link-pdf";
+
+    public const int InvoiceLinkReadPerClientPermitLimit = 60;
+
+    public const int InvoiceLinkReadGlobalPermitLimit = 600;
+
+    public const int InvoiceLinkPdfPerClientPermitLimit = 10;
+
+    public const int InvoiceLinkPdfGlobalPermitLimit = 100;
+
+    public static readonly TimeSpan InvoiceLinkReadPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan InvoiceLinkReadGlobalWindow = TimeSpan.FromMinutes(1);
+
+    public static readonly TimeSpan InvoiceLinkPdfPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan InvoiceLinkPdfGlobalWindow = TimeSpan.FromMinutes(1);
+
+    private const string InvoiceLinkReadGlobalPartition = "invoice-link-read-global";
+
+    private const string InvoiceLinkPdfGlobalPartition = "invoice-link-pdf-global";
+
     /// <summary>Shared by validate, accept and accept-existing (invitation BR-12).</summary>
     public const string InvitationPolicy = "invitation";
 
@@ -243,6 +269,26 @@ public static class ApiRateLimitingExtensions
                         QueueLimit = 0,
                     }));
 
+            options.AddPolicy(InvoiceLinkReadPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, InvoiceLinkReadPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = InvoiceLinkReadPerClientPermitLimit,
+                        Window = InvoiceLinkReadPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
+            options.AddPolicy(InvoiceLinkPdfPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, InvoiceLinkPdfPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = InvoiceLinkPdfPerClientPermitLimit,
+                        Window = InvoiceLinkPdfPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
             // Applies only to endpoints using one of the named policies above.
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                 GetEndpointPolicyName(httpContext) switch
@@ -318,6 +364,22 @@ public static class ApiRateLimitingExtensions
                         {
                             PermitLimit = QuoteLinkPdfGlobalPermitLimit,
                             Window = QuoteLinkPdfGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    InvoiceLinkReadPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        InvoiceLinkReadGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = InvoiceLinkReadGlobalPermitLimit,
+                            Window = InvoiceLinkReadGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    InvoiceLinkPdfPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        InvoiceLinkPdfGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = InvoiceLinkPdfGlobalPermitLimit,
+                            Window = InvoiceLinkPdfGlobalWindow,
                             QueueLimit = 0,
                         }),
                     _ => RateLimitPartition.GetNoLimiter(string.Empty),

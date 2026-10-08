@@ -1,0 +1,76 @@
+<div class="page">
+  <header class="page__header">
+    @if (invoice(); as invoice) {
+      @if (logoUrl(); as url) {
+        <img class="page__logo" [src]="url" alt="" />
+      } @else {
+        <span class="page__logo page__logo--initials" aria-hidden="true">{{ initials() }}</span>
+      }
+      <span class="page__brand">{{ invoice.organization.name }}</span>
+    } @else {
+      <span class="page__brand">FieldOps</span>
+    }
+  </header>
+
+  <main class="page__main">
+    @switch (state()) {
+      @case ('loading') {
+        <div class="page__skeletons" aria-busy="true" aria-label="Loading invoice">
+          <p-skeleton height="2.5rem" width="60%" />
+          <p-skeleton height="30rem" />
+        </div>
+      }
+      @case ('unavailable') {
+        <section class="notice">
+          <h1 #heading class="notice__title" tabindex="-1">{{ unavailableMessage }}</h1>
+        </section>
+      }
+      @case ('rate-limited') {
+        <section class="notice">
+          <h1 #heading class="notice__title" tabindex="-1">{{ rateLimitedMessage }}</h1>
+          <button pButton type="button" severity="secondary" (click)="retry()">Retry</button>
+        </section>
+      }
+      @case ('error') {
+        <section class="notice">
+          <h1 #heading class="notice__title" tabindex="-1">{{ loadErrorMessage }}</h1>
+          <button pButton type="button" severity="secondary" (click)="retry()">Retry</button>
+        </section>
+      }
+      @default {
+        @if (invoice(); as invoice) {
+          <div class="doc">
+            <div class="doc__head">
+              <h1 #heading class="doc__title" tabindex="-1">Invoice {{ invoice.number }}</h1>
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                [outlined]="true"
+                [disabled]="pdfState() === 'downloading'"
+                [attr.aria-busy]="pdfState() === 'downloading'"
+                (click)="downloadPdf()"
+              >
+                @if (pdfState() === 'downloading') {
+                  <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                } @else {
+                  <i class="pi pi-download" aria-hidden="true"></i>
+                }
+                Download PDF
+              </button>
+            </div>
+            @if (pdfState() === 'failed') {
+              <p class="doc__error" role="alert">{{ pdfErrorMessage }}</p>
+            }
+            <div class="doc__card">
+              <app-invoice-preview [preview]="invoice" [logoUrl]="logoUrl()" />
+            </div>
+            <p class="doc__payment">{{ paymentNote }}</p>
+          </div>
+        }
+      }
+    }
+  </main>
+
+  <footer class="page__footer">Powered by FieldOps</footer>
+</div>

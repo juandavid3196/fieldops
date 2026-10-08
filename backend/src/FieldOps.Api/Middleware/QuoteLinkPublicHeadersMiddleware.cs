@@ -1,7 +1,7 @@
 namespace FieldOps.Api.Middleware;
 
 /// <summary>
-/// Every response under <c>/public/quote-links</c> is uncached and leaves no referrer (customer-quote-approval BR-21):
+/// Every response under <c>/public/quote-links</c> and <c>/public/invoice-links</c> (invoice-draft-delivery BR-21) is uncached and leaves no referrer (customer-quote-approval BR-21):
 /// <c>Cache-Control: no-store</c>, <c>Referrer-Policy: no-referrer</c> and <c>X-Content-Type-Options: nosniff</c>,
 /// including rate-limit, size-limit and media-type rejections that never reach the controller. The headers are set when
 /// the response starts, so an error handler that resets the response cannot drop them; an image or PDF endpoint
@@ -11,9 +11,12 @@ public sealed class QuoteLinkPublicHeadersMiddleware(RequestDelegate next)
 {
     private const string QuoteLinksPath = "/public/quote-links";
 
+    private const string InvoiceLinksPath = "/public/invoice-links";
+
     public Task InvokeAsync(HttpContext context)
     {
-        if (context.Request.Path.StartsWithSegments(QuoteLinksPath, StringComparison.OrdinalIgnoreCase))
+        if (context.Request.Path.StartsWithSegments(QuoteLinksPath, StringComparison.OrdinalIgnoreCase)
+            || context.Request.Path.StartsWithSegments(InvoiceLinksPath, StringComparison.OrdinalIgnoreCase))
         {
             context.Response.OnStarting(
                 static state =>

@@ -1,4 +1,18 @@
 <p-toast />
+<p-toast [key]="invoiceToastKey">
+  <ng-template #message let-message>
+    <div class="review__toast">
+      <span>{{ message.summary }}</span>
+      <a
+        pButton
+        size="small"
+        severity="secondary"
+        [routerLink]="['/invoices', message.data.invoiceId]"
+        >View invoice</a
+      >
+    </div>
+  </ng-template>
+</p-toast>
 <app-confirm-dialog [key]="varianceKey" />
 <app-confirm-dialog [key]="discardKey" acceptFirst />
 <p-menu #menu [popup]="true" appendTo="body" [model]="exportMenu" />

@@ -47,6 +47,10 @@ internal sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             table.HasCheckConstraint(
                 "ck_invoices_payment_terms",
                 "payment_terms IN ('due_upon_receipt','net_15','net_30')");
+            // SA-09 (invoice-draft-delivery): a sent (or later) invoice always carries its frozen customer content.
+            table.HasCheckConstraint(
+                "ck_invoices_customer_snapshot",
+                "status = 'draft' OR status = 'void' OR customer_snapshot IS NOT NULL");
         });
 
         builder.HasKey(invoice => invoice.Id);
@@ -105,6 +109,17 @@ internal sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         builder.Property(invoice => invoice.PaymentTerms)
             .HasMaxLength(20);
 
+        // SA-08 (invoice-draft-delivery).
+        builder.Property(invoice => invoice.RecipientEmail)
+            .HasMaxLength(254);
+
+        builder.Property(invoice => invoice.DeliveryMessage)
+            .HasMaxLength(500);
+
+        // SA-09: { billTo, serviceAddress, completionNote } as JSON text, like customers.billing_address.
+        builder.Property(invoice => invoice.CustomerSnapshot)
+            .HasColumnType("jsonb");
+
         builder.Property(invoice => invoice.TaxTotal)
             .HasPrecision(14, 2)
             .IsRequired();
@@ -139,8 +154,10 @@ internal sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
             .HasDefaultValueSql("now()")
             .IsRequired();
 
+        // Optimistic concurrency token of the delivery actions (invoice-draft-delivery BR-10).
         builder.Property(invoice => invoice.UpdatedAt)
             .HasDefaultValueSql("now()")
+            .IsConcurrencyToken()
             .IsRequired();
 
         // UNIQUE (organization_id, invoice_number)

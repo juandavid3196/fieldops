@@ -7,6 +7,7 @@ using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
+using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
@@ -103,11 +104,15 @@ public static class DependencyInjection
         services.AddScoped<IWorkOrderStore, WorkOrderStore>();
         services.AddScoped<IDispatchStore, DispatchStore>();
         services.AddScoped<IBillingReviewStore, BillingReviewStore>();
+        services.AddScoped<IInvoiceDeliveryStore, InvoiceDeliveryStore>();
+        services.AddScoped<IInvoiceLinkStore, InvoiceLinkStore>();
+        services.AddScoped<IInvoiceNotifier, InvoiceNotifier>();
         services.AddScoped<IVisitNotifier, VisitNotifier>();
         services.AddScoped<ITravelNotifier, TravelNotifier>();
         services.AddScoped<ITechnicianVisitStore, TechnicianVisitStore>();
         services.AddScoped<IChecklistTemplateStore, ChecklistTemplateStore>();
         services.AddSingleton<IQuotePdfRenderer, MigraDocQuotePdfRenderer>();
+        services.AddSingleton<IInvoicePdfRenderer, MigraDocInvoicePdfRenderer>();
         services.AddEmail(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 

@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
@@ -75,6 +75,9 @@ import {
   todayIn,
   validateGenerate,
 } from '../../utils/billing-review-format';
+
+/** Toast outlet whose template adds the View invoice action (BR-27). */
+const INVOICE_TOAST_KEY = 'invoice-link';
 
 type PageState = 'loading' | 'ready' | 'forbidden' | 'error';
 type DetailState = 'loading' | 'ready' | 'gone' | 'error';
@@ -141,6 +144,7 @@ export const DEFAULT_FILTERS: QueueFilters = {
     Menu,
     ReviewDetail,
     ReviewQueue,
+    RouterLink,
     Select,
     Skeleton,
     Toast,
@@ -161,6 +165,7 @@ export class BillingReview {
   private readonly panel = viewChild(InvoicePanel);
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
+  readonly invoiceToastKey = INVOICE_TOAST_KEY;
   readonly forbiddenMessage = FORBIDDEN_MESSAGE;
   readonly errorMessage = QUEUE_ERROR_MESSAGE;
   readonly detailErrorMessage = DETAIL_ERROR_MESSAGE;
@@ -604,12 +609,15 @@ export class BillingReview {
         acknowledgeVariances,
       }),
       (result: GeneratedInvoice) => {
-        this.toast(
-          'success',
-          result.changed
+        // BR-27: the toast offers View invoice (`/invoices/<id>`) in its own keyed outlet.
+        this.messages.add({
+          key: INVOICE_TOAST_KEY,
+          severity: 'success',
+          summary: result.changed
             ? `Draft invoice ${result.invoice.number} created.`
             : `Draft invoice ${result.invoice.number} already exists.`,
-        );
+          data: { invoiceId: result.invoice.id },
+        });
         this.reloadAfter(id);
       },
       (error) => this.generateFailed(error, id),

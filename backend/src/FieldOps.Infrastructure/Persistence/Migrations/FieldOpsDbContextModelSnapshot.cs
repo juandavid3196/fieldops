@@ -888,6 +888,15 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasColumnName("customer_id");
 
+                    b.Property<string>("CustomerSnapshot")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("customer_snapshot");
+
+                    b.Property<string>("DeliveryMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("delivery_message");
+
                     b.Property<decimal>("DiscountTotal")
                         .ValueGeneratedOnAdd()
                         .HasPrecision(14, 2)
@@ -920,6 +929,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)")
                         .HasColumnName("payment_terms");
 
+                    b.Property<string>("RecipientEmail")
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("recipient_email");
+
                     b.Property<DateTimeOffset?>("SentAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("sent_at");
@@ -944,6 +958,7 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("total");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
+                        .IsConcurrencyToken()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
@@ -999,6 +1014,8 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                             t.HasCheckConstraint("ck_invoices_balance_due", "balance_due >= 0");
 
+                            t.HasCheckConstraint("ck_invoices_customer_snapshot", "status = 'draft' OR status = 'void' OR customer_snapshot IS NOT NULL");
+
                             t.HasCheckConstraint("ck_invoices_date_range", "due_date IS NULL OR issue_date IS NULL OR due_date >= issue_date");
 
                             t.HasCheckConstraint("ck_invoices_discount_total", "discount_total >= 0");
@@ -1010,6 +1027,68 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                             t.HasCheckConstraint("ck_invoices_tax_total", "tax_total >= 0");
 
                             t.HasCheckConstraint("ck_invoices_total", "total >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Invoices.InvoiceAccessToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("created_by_user_id");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_invoice_access_tokens");
+
+                    b.HasIndex("CreatedByUserId")
+                        .HasDatabaseName("ix_invoice_access_tokens_created_by_user_id");
+
+                    b.HasIndex("InvoiceId")
+                        .HasDatabaseName("ix_invoice_access_tokens_invoice")
+                        .HasFilter("revoked_at IS NULL");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_invoice_access_tokens_token_hash");
+
+                    b.HasIndex("OrganizationId", "InvoiceId")
+                        .HasDatabaseName("ix_invoice_access_tokens_organization_id_invoice_id");
+
+                    b.ToTable("invoice_access_tokens", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_invoice_access_tokens_expires_after_created", "expires_at > created_at");
                         });
                 });
 
@@ -4786,6 +4865,31 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_invoices_customers_organization_id_customer_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Invoices.InvoiceAccessToken", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_invoice_access_tokens_users_created_by_user_id");
+
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_invoice_access_tokens_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Invoices.Invoice", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "InvoiceId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_invoice_access_tokens_invoices_organization_id_invoice_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Invoices.InvoiceLine", b =>

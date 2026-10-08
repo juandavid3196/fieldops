@@ -1,0 +1,138 @@
+<article class="doc" aria-label="Invoice preview">
+  <header class="doc__top">
+    <div class="doc__org">
+      <div class="doc__brand">
+        @if (logoUrl(); as url) {
+          <img class="doc__logo" [src]="url" alt="" />
+        } @else {
+          <span class="doc__logo doc__logo--initials" aria-hidden="true">{{
+            view().initials
+          }}</span>
+        }
+        <p class="doc__org-name">{{ preview().organization.name }}</p>
+      </div>
+      <address class="doc__address">
+        @for (line of preview().organization.addressLines; track $index) {
+          <span>{{ line }}</span>
+        }
+        @if (preview().organization.phone; as phone) {
+          <span>{{ phone }}</span>
+        }
+        @if (preview().organization.email; as email) {
+          <span>{{ email }}</span>
+        }
+      </address>
+    </div>
+    <div class="doc__invoice">
+      <p class="doc__word">INVOICE</p>
+      <p class="doc__number">{{ preview().number }}</p>
+      <dl class="doc__dates">
+        <div>
+          <dt>Issue date</dt>
+          <dd>{{ view().issueDate }}</dd>
+        </div>
+        <div>
+          <dt>Due date</dt>
+          <dd>{{ view().dueDate }}</dd>
+        </div>
+        <div>
+          <dt>Work order</dt>
+          <dd>
+            @if (workOrderId(); as id) {
+              <a [routerLink]="['/jobs', id]">{{ preview().workOrderNumber }}</a>
+            } @else {
+              {{ preview().workOrderNumber }}
+            }
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </header>
+
+  <div class="doc__parties">
+    <section aria-labelledby="doc-bill-to">
+      <h3 class="doc__label" id="doc-bill-to">Bill to</h3>
+      <p class="doc__strong">{{ preview().billTo.name }}</p>
+      <address class="doc__address">
+        @if (preview().billTo.email; as email) {
+          <span>{{ email }}</span>
+        }
+        @if (preview().billTo.phone; as phone) {
+          <span>{{ phone }}</span>
+        }
+        @for (line of preview().billTo.addressLines; track $index) {
+          <span>{{ line }}</span>
+        }
+      </address>
+    </section>
+    @if (preview().serviceAddress; as address) {
+      <section aria-labelledby="doc-service-address">
+        <h3 class="doc__label" id="doc-service-address">Service address</h3>
+        <address class="doc__address">
+          <span>{{ address }}</span>
+        </address>
+      </section>
+    }
+  </div>
+
+  <div class="doc__scroll" role="region" aria-label="Invoice lines" tabindex="0">
+    <table class="doc__table">
+      <thead>
+        <tr>
+          <th scope="col">Description</th>
+          <th scope="col" class="doc__num">Qty</th>
+          <th scope="col" class="doc__num">Rate</th>
+          <th scope="col" class="doc__num">Tax</th>
+          <th scope="col" class="doc__num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (line of view().lines; track $index) {
+          <tr>
+            <th scope="row">
+              <span class="doc__line">{{ line.description }}</span>
+              @if (line.detail) {
+                <span class="doc__detail">{{ line.detail }}</span>
+              }
+            </th>
+            <td class="doc__num">{{ line.quantity }}</td>
+            <td class="doc__num">{{ line.rate }}</td>
+            <td class="doc__num">{{ line.tax }}</td>
+            <td class="doc__num">{{ line.amount }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="doc__bottom">
+    @if (preview().completionNote; as note) {
+      <section class="doc__note" aria-labelledby="doc-note">
+        <h3 class="doc__label" id="doc-note">Service completion note</h3>
+        <p>{{ note }}</p>
+      </section>
+    }
+    <dl class="doc__totals">
+      <div>
+        <dt>Subtotal</dt>
+        <dd>{{ view().subtotal }}</dd>
+      </div>
+      @if (view().discount; as discount) {
+        <div>
+          <dt>Discount</dt>
+          <dd>−{{ discount }}</dd>
+        </div>
+      }
+      <div>
+        <dt>{{ preview().totals.taxLabel }}</dt>
+        <dd>{{ view().tax }}</dd>
+      </div>
+      <div class="doc__total">
+        <dt>Total due</dt>
+        <dd>{{ view().total }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <p class="doc__thanks">Thank you for your business!</p>
+</article>

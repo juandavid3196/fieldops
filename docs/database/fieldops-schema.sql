@@ -294,11 +294,17 @@ CREATE TABLE invoices (
   total numeric(14,2) NOT NULL CHECK(total>=0), amount_paid numeric(14,2) NOT NULL DEFAULT 0 CHECK(amount_paid>=0), balance_due numeric(14,2) NOT NULL CHECK(balance_due>=0),
   -- SA-05 (completed-jobs-review): approved quote discount and selected payment terms.
   discount_total numeric(14,2) NOT NULL DEFAULT 0 CHECK(discount_total>=0), payment_terms varchar(20) CHECK(payment_terms IN ('due_upon_receipt','net_15','net_30')),
+  -- SA-08 (invoice-draft-delivery): delivery recipient and message. SA-09: customer-facing content frozen at send
+  -- ({ billTo, serviceAddress, completionNote }); required once the invoice is neither draft nor void.
+  recipient_email varchar(254), delivery_message varchar(500), customer_snapshot jsonb,
   notes text, sent_at timestamptz, voided_at timestamptz, void_reason text, created_by_user_id uuid NOT NULL REFERENCES users(id),
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
-  FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,invoice_number), UNIQUE(organization_id,id), CHECK(due_date IS NULL OR issue_date IS NULL OR due_date>=issue_date), CHECK(amount_paid<=total)
+  FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,invoice_number), UNIQUE(organization_id,id), CHECK(due_date IS NULL OR issue_date IS NULL OR due_date>=issue_date), CHECK(amount_paid<=total),
+  CHECK(status='draft' OR status='void' OR customer_snapshot IS NOT NULL)
 );
 CREATE TABLE invoice_lines (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), invoice_id uuid NOT NULL REFERENCES invoices(id) ON DELETE CASCADE, source_quote_line_id uuid REFERENCES quote_lines(id), source_visit_material_id uuid REFERENCES visit_materials(id), description text NOT NULL, quantity numeric(12,3) NOT NULL CHECK(quantity>0), unit varchar(40) NOT NULL, unit_price numeric(14,2) NOT NULL CHECK(unit_price>=0), tax_rate numeric(7,4) NOT NULL DEFAULT 0, line_subtotal numeric(14,2) NOT NULL, line_tax numeric(14,2) NOT NULL, line_total numeric(14,2) NOT NULL, sort_order integer NOT NULL DEFAULT 0);
+-- SA-10 (invoice-draft-delivery): hashed secret of the public invoice link; only the SHA-256 hex of the token is stored.
+CREATE TABLE invoice_access_tokens (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), invoice_id uuid NOT NULL, token_hash text NOT NULL UNIQUE, expires_at timestamptz NOT NULL, revoked_at timestamptz, created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,invoice_id) REFERENCES invoices(organization_id,id), CONSTRAINT ck_invoice_access_tokens_expires_after_created CHECK(expires_at>created_at));
 CREATE TABLE payments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL, payment_number bigint NOT NULL, method payment_method NOT NULL, amount numeric(14,2) NOT NULL CHECK(amount>0), currency char(3) NOT NULL, paid_at timestamptz NOT NULL, external_reference varchar(160), notes text, recorded_by_user_id uuid REFERENCES users(id), receipt_storage_key text, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,payment_number), UNIQUE(organization_id,id));
 CREATE TABLE payment_allocations (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), payment_id uuid NOT NULL REFERENCES payments(id) ON DELETE CASCADE, invoice_id uuid NOT NULL REFERENCES invoices(id), amount numeric(14,2) NOT NULL CHECK(amount>0), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(payment_id,invoice_id));
 
@@ -344,6 +350,7 @@ CREATE INDEX ix_payments_customer_date ON payments(organization_id,customer_id,p
 CREATE INDEX ix_audit_entity ON audit_logs(organization_id,entity_type,entity_id,occurred_at DESC);
 CREATE INDEX ix_audit_actor ON audit_logs(organization_id,actor_user_id,occurred_at DESC);
 CREATE INDEX ix_quote_access_tokens_version ON quote_access_tokens(quote_version_id) WHERE revoked_at IS NULL;
+CREATE INDEX ix_invoice_access_tokens_invoice ON invoice_access_tokens(invoice_id) WHERE revoked_at IS NULL;
 CREATE UNIQUE INDEX ux_quotes_request_open ON quotes(organization_id,request_id) WHERE status<>'cancelled';
 CREATE UNIQUE INDEX ux_quote_versions_one_mutable ON quote_versions(quote_id) WHERE NOT is_immutable;
 CREATE UNIQUE INDEX ux_quote_responses_final ON quote_responses(quote_version_id) WHERE response IN ('approved','rejected');
