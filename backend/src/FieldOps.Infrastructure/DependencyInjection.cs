@@ -4,6 +4,7 @@ using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.Catalog;
 using FieldOps.Application.Features.ChecklistTemplates;
 using FieldOps.Application.Features.Customers;
+using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
@@ -101,6 +102,7 @@ public static class DependencyInjection
         services.AddScoped<IQuoteLinkStore, QuoteLinkStore>();
         services.AddScoped<IWorkOrderStore, WorkOrderStore>();
         services.AddScoped<IDispatchStore, DispatchStore>();
+        services.AddScoped<IBillingReviewStore, BillingReviewStore>();
         services.AddScoped<IVisitNotifier, VisitNotifier>();
         services.AddScoped<ITravelNotifier, TravelNotifier>();
         services.AddScoped<ITechnicianVisitStore, TechnicianVisitStore>();

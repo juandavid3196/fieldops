@@ -1,4 +1,4 @@
-import { CsvFile, DisplayStatus } from '../models/customer.model';
+import { DisplayStatus } from '../models/customer.model';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_CHARACTERS = /^\+?[\d\s().-]*$/;
@@ -131,16 +131,4 @@ export function validateCsvFile(file: {
     return CSV_TYPE_MESSAGE;
   }
   return file.size > CSV_MAX_BYTES ? CSV_SIZE_MESSAGE : null;
-}
-
-/** Saves a downloaded CSV through a temporary object URL. */
-export function saveCsv(file: CsvFile): void {
-  const url = URL.createObjectURL(file.blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = file.fileName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
 }

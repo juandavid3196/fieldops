@@ -17,13 +17,9 @@ import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 
 import { ApiError, ApiRowError, isApiError } from '../../../../core/models/api-error.model';
+import { saveCsv } from '../../../../shared/utils/csv-file';
 import { CatalogItemsService } from '../../services/catalog-items.service';
-import {
-  CSV_SIZE_MESSAGE,
-  CSV_TYPE_MESSAGE,
-  saveCsv,
-  validateCsvFile,
-} from '../../utils/catalog-format';
+import { CSV_SIZE_MESSAGE, CSV_TYPE_MESSAGE, validateCsvFile } from '../../utils/catalog-format';
 
 export const TEMPLATE_FAILED_MESSAGE = "We couldn't download the template. Try again.";
 export const IMPORT_CONFLICT_MESSAGE = 'Some items already exist. Review the file and try again.';

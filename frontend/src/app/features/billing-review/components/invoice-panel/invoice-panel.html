@@ -1,0 +1,168 @@
+<section class="invoice" aria-labelledby="invoice-title">
+  <h2 class="invoice__title" id="invoice-title">Invoice details</h2>
+
+  <div class="invoice__grid">
+    <div class="invoice__field">
+      <label [for]="id + '-number'">Invoice number (preview)</label>
+      <input
+        pInputText
+        fluid
+        readonly
+        [id]="id + '-number'"
+        [value]="'#' + detail().invoiceDefaults.numberPreview"
+      />
+    </div>
+    <div class="invoice__field">
+      <label [for]="id + '-issue'">Issue date</label>
+      <input
+        #issueDateField
+        pInputText
+        fluid
+        type="date"
+        [id]="id + '-issue'"
+        [min]="minDate()"
+        [max]="maxDate()"
+        [readOnly]="readOnly()"
+        [value]="issueDate()"
+        [invalid]="!!errors().issueDate"
+        [attr.aria-invalid]="errors().issueDate ? 'true' : null"
+        [attr.aria-describedby]="errors().issueDate ? id + '-issue-error' : null"
+        (input)="issueDateChange.emit($any($event.target).value)"
+      />
+      @if (errors().issueDate; as message) {
+        <p class="invoice__error" [id]="id + '-issue-error'">{{ message }}</p>
+      }
+    </div>
+    <div class="invoice__field">
+      <span [id]="id + '-terms-label'">Payment terms</span>
+      <p-select
+        appendTo="body"
+        fluid
+        [ariaLabelledBy]="id + '-terms-label'"
+        [options]="termsOptions"
+        optionLabel="label"
+        optionValue="code"
+        [readonly]="readOnly()"
+        [ngModel]="paymentTerms()"
+        [invalid]="!!errors().paymentTerms"
+        (ngModelChange)="paymentTermsChange.emit($event)"
+      />
+      @if (errors().paymentTerms; as message) {
+        <p class="invoice__error" role="alert">{{ message }}</p>
+      }
+    </div>
+    <div class="invoice__field">
+      <label [for]="id + '-due'">Due date</label>
+      <input pInputText fluid readonly [id]="id + '-due'" [value]="view().due" />
+    </div>
+    <div class="invoice__field">
+      <label [for]="id + '-tax'">Tax jurisdiction</label>
+      <input pInputText fluid readonly [id]="id + '-tax'" [value]="view().jurisdiction" />
+    </div>
+    <div class="invoice__field">
+      <label [for]="id + '-currency'">Currency</label>
+      <input
+        pInputText
+        fluid
+        readonly
+        [id]="id + '-currency'"
+        [value]="detail().invoiceDefaults.currency"
+      />
+    </div>
+  </div>
+
+  <fieldset class="invoice__group" disabled>
+    <legend>Delivery after generation</legend>
+    <label><input type="checkbox" /> Email invoice to customer</label>
+    <label><input type="checkbox" /> SMS link to invoice</label>
+    <label>
+      Recipient email
+      <input pInputText fluid disabled value="" />
+    </label>
+    <label><input type="checkbox" /> Attach completion report</label>
+  </fieldset>
+  <fieldset class="invoice__group" disabled>
+    <legend>Payment options (on invoice)</legend>
+    <label><input type="checkbox" /> Card (credit/debit)</label>
+    <label><input type="checkbox" /> ACH (bank transfer)</label>
+    <label><input type="checkbox" /> Cash or check (Record manually)</label>
+  </fieldset>
+  <p class="invoice__muted">Sending and online payments will be available later.</p>
+
+  <dl class="invoice__summary">
+    <div>
+      <dt>Subtotal</dt>
+      <dd>{{ view().subtotal }}</dd>
+    </div>
+    @if (view().discount; as discount) {
+      <div>
+        <dt>Discount</dt>
+        <dd>{{ discount }}</dd>
+      </div>
+    }
+    <div>
+      <dt>{{ detail().invoiceDefaults.taxLabel }}</dt>
+      <dd>{{ view().tax }}</dd>
+    </div>
+    <div class="invoice__total">
+      <dt>Total</dt>
+      <dd>{{ view().total }}</dd>
+    </div>
+  </dl>
+
+  <p class="invoice__info">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    Generating creates a draft invoice. Review it before sending.
+  </p>
+
+  @if (view().followUp; as followUp) {
+    <p class="invoice__muted">{{ followUp }}</p>
+  }
+
+  @if (readOnly()) {
+    <p class="invoice__muted" role="note">{{ readOnlyMessage }}</p>
+  } @else {
+    <div class="invoice__actions">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="pending() !== null"
+        [attr.aria-busy]="pending() === 'return'"
+        (click)="returnToQueue.emit()"
+      >
+        @if (pending() === 'return') {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        Return to quote
+      </button>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="pending() !== null"
+        [attr.aria-busy]="pending() === 'follow-up'"
+        (click)="toggleFollowUp.emit()"
+      >
+        @if (pending() === 'follow-up') {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        {{ detail().followUp === null ? 'Mark for follow-up' : 'Remove follow-up' }}
+      </button>
+      <button
+        pButton
+        type="button"
+        [disabled]="pending() !== null"
+        [attr.aria-busy]="pending() === 'generate'"
+        (click)="generate.emit()"
+      >
+        @if (pending() === 'generate') {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        Generate invoice
+      </button>
+    </div>
+  }
+</section>

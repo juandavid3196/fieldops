@@ -36,21 +36,58 @@
           <ul class="sidebar__list">
             @for (item of group.items; track item.link) {
               <li>
-                <a
-                  class="sidebar__link"
-                  [routerLink]="item.link"
-                  [class.sidebar__link--active]="isActive(item)"
-                  [attr.aria-current]="isActive(item) ? 'page' : null"
-                  [attr.aria-label]="rail() ? item.label : null"
-                  [pTooltip]="rail() ? item.label : undefined"
-                  tooltipPosition="right"
-                  (click)="navigated.emit()"
-                >
-                  <i class="pi" [class]="item.icon" aria-hidden="true"></i>
-                  <span class="sidebar__link-label" [class.sidebar__hidden]="rail()">{{
-                    item.label
-                  }}</span>
-                </a>
+                @if (item.children && !rail()) {
+                  <button
+                    type="button"
+                    class="sidebar__link sidebar__link--parent"
+                    [class.sidebar__link--active]="isActive(item)"
+                    [attr.aria-expanded]="isOpen(item)"
+                    [attr.aria-controls]="isOpen(item) ? groupId(item) : null"
+                    (click)="toggle(item)"
+                  >
+                    <i class="pi" [class]="item.icon" aria-hidden="true"></i>
+                    <span class="sidebar__link-label">{{ item.label }}</span>
+                    <i
+                      class="pi sidebar__chevron"
+                      [class.pi-chevron-down]="isOpen(item)"
+                      [class.pi-chevron-right]="!isOpen(item)"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                  @if (isOpen(item)) {
+                    <ul class="sidebar__list sidebar__sublist" [id]="groupId(item)">
+                      @for (child of item.children; track child.link) {
+                        <li>
+                          <a
+                            class="sidebar__link sidebar__link--child"
+                            [routerLink]="child.link"
+                            [class.sidebar__link--active]="isActive(child)"
+                            [attr.aria-current]="isActive(child) ? 'page' : null"
+                            (click)="navigated.emit()"
+                          >
+                            <span class="sidebar__link-label">{{ child.label }}</span>
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  }
+                } @else {
+                  <a
+                    class="sidebar__link"
+                    [routerLink]="item.link"
+                    [class.sidebar__link--active]="isActive(item)"
+                    [attr.aria-current]="isActive(item) ? 'page' : null"
+                    [attr.aria-label]="rail() ? item.label : null"
+                    [pTooltip]="rail() ? item.label : undefined"
+                    tooltipPosition="right"
+                    (click)="navigated.emit()"
+                  >
+                    <i class="pi" [class]="item.icon" aria-hidden="true"></i>
+                    <span class="sidebar__link-label" [class.sidebar__hidden]="rail()">{{
+                      item.label
+                    }}</span>
+                  </a>
+                }
               </li>
             }
           </ul>

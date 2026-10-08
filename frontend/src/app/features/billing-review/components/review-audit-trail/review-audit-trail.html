@@ -1,0 +1,63 @@
+<section class="audit" [attr.aria-labelledby]="id + '-title'">
+  <div class="audit__head">
+    <div>
+      <h3 class="audit__title" [id]="id + '-title'">Activity history</h3>
+      <p class="audit__muted">
+        {{ entries().length }} recorded {{ entries().length === 1 ? 'event' : 'events' }}
+      </p>
+    </div>
+    @if (entries().length > 0) {
+      <div class="audit__filters" role="search" aria-label="Filter activity">
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="search"
+            fluid
+            placeholder="Search activity"
+            aria-label="Search activity"
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+          />
+        </p-iconfield>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabel="Activity type"
+          [options]="categoryOptions()"
+          optionLabel="label"
+          optionValue="code"
+          [ngModel]="category()"
+          (ngModelChange)="category.set($event)"
+        />
+      </div>
+    }
+  </div>
+
+  @if (entries().length === 0) {
+    <p class="audit__muted">No activity recorded.</p>
+  } @else {
+    @for (day of days(); track day.date) {
+      <h4 class="audit__day">{{ day.date }}</h4>
+      <ol class="audit__list">
+        @for (row of day.rows; track $index) {
+          <li class="audit__row audit__row--{{ row.category }}">
+            <span class="audit__icon" aria-hidden="true"><i class="pi {{ row.icon }}"></i></span>
+            <span class="audit__body">
+              <strong>{{ row.label }}</strong>
+              <span class="audit__muted">{{ row.actorName }} • {{ row.time }}</span>
+            </span>
+            <span class="audit__tag">{{ row.tag }}</span>
+          </li>
+        }
+      </ol>
+    } @empty {
+      <p class="audit__muted" role="status">No activity matches these filters.</p>
+    }
+  }
+
+  <p class="audit__note">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    Audit history is read-only and uses the organization time zone.
+  </p>
+</section>

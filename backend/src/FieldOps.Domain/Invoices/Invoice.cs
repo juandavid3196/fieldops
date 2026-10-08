@@ -62,9 +62,13 @@ public sealed class Invoice
 
     public DateOnly? DueDate { get; private set; }
 
+    public string? PaymentTerms { get; private set; }
+
     public string Currency { get; private set; } = string.Empty;
 
     public decimal Subtotal { get; private set; }
+
+    public decimal DiscountTotal { get; private set; }
 
     public decimal TaxTotal { get; private set; }
 
@@ -101,7 +105,9 @@ public sealed class Invoice
         decimal balanceDue,
         Guid createdByUserId,
         DateOnly? issueDate = null,
-        DateOnly? dueDate = null)
+        DateOnly? dueDate = null,
+        decimal discountTotal = 0m,
+        string? paymentTerms = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -178,6 +184,21 @@ public sealed class Invoice
                 "Balance due cannot be negative.");
         }
 
+        if (discountTotal < 0)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(discountTotal),
+                discountTotal,
+                "Discount total cannot be negative.");
+        }
+
+        if (paymentTerms is not null && !PaymentTermsCodes.All.Contains(paymentTerms))
+        {
+            throw new ArgumentException(
+                "Payment terms must be due_upon_receipt, net_15 or net_30.",
+                nameof(paymentTerms));
+        }
+
         if (issueDate is not null && dueDate is not null && dueDate < issueDate)
         {
             throw new ArgumentException(
@@ -208,6 +229,20 @@ public sealed class Invoice
         {
             IssueDate = issueDate,
             DueDate = dueDate,
+            DiscountTotal = discountTotal,
+            PaymentTerms = paymentTerms,
         };
     }
+}
+
+/// <summary>Payment terms of an invoice (completed-jobs-review SA-05, BR-14).</summary>
+public static class PaymentTermsCodes
+{
+    public const string DueUponReceipt = "due_upon_receipt";
+
+    public const string Net15 = "net_15";
+
+    public const string Net30 = "net_30";
+
+    public static readonly string[] All = [DueUponReceipt, Net15, Net30];
 }

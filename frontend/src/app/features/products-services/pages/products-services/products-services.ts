@@ -23,6 +23,7 @@ import {
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
+import { saveCsv } from '../../../../shared/utils/csv-file';
 import { AdministrationNav } from '../../../organizations/components/administration-nav/administration-nav';
 import { handleUnauthorized } from '../../../organizations/utils/handle-unauthorized';
 import { CategoryDialog } from '../../components/category-dialog/category-dialog';
@@ -55,7 +56,7 @@ import {
 } from '../../models/catalog.model';
 import { CatalogCategoriesService } from '../../services/catalog-categories.service';
 import { CatalogItemsService } from '../../services/catalog-items.service';
-import { moneyFormat, saveCsv } from '../../utils/catalog-format';
+import { moneyFormat } from '../../utils/catalog-format';
 import {
   DiscardChangesDialog,
   discardChangesConfirmation,
