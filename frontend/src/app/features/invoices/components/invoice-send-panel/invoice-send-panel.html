@@ -1,0 +1,180 @@
+<section class="panel" [attr.aria-labelledby]="id + '-title'">
+  <h2 class="panel__title" [id]="id + '-title'">{{ isDraft() ? 'Send invoice' : 'Delivery' }}</h2>
+  @if (isDraft()) {
+    <p class="panel__subtitle">Send this invoice to your customer by email.</p>
+  }
+
+  <div class="panel__field">
+    <label [for]="id + '-recipient'">Recipient email</label>
+    <input
+      #recipientField
+      pInputText
+      fluid
+      type="email"
+      autocomplete="off"
+      [id]="id + '-recipient'"
+      [readOnly]="locked()"
+      [value]="values().recipientEmail"
+      [invalid]="!!errors().recipientEmail"
+      [attr.aria-invalid]="errors().recipientEmail ? 'true' : null"
+      [attr.aria-describedby]="errors().recipientEmail ? id + '-recipient-error' : null"
+      (input)="update({ recipientEmail: $any($event.target).value })"
+    />
+    @if (errors().recipientEmail; as message) {
+      <p class="panel__error" [id]="id + '-recipient-error'">{{ message }}</p>
+    }
+  </div>
+
+  <div class="panel__toggle">
+    <p-toggleswitch
+      [inputId]="id + '-sms'"
+      [ngModel]="false"
+      [disabled]="true"
+      [ariaLabel]="'Send SMS notification. ' + smsUnavailable"
+    />
+    <div>
+      <label [for]="id + '-sms'">Send SMS notification</label>
+      <p class="panel__muted">{{ smsUnavailable }}</p>
+    </div>
+  </div>
+
+  <div class="panel__row">
+    <div class="panel__field">
+      <span [id]="id + '-terms-label'">Payment terms</span>
+      <p-select
+        appendTo="body"
+        fluid
+        [ariaLabelledBy]="id + '-terms-label'"
+        [options]="termsOptions"
+        optionLabel="label"
+        optionValue="code"
+        [readonly]="locked()"
+        [ngModel]="values().paymentTerms"
+        [invalid]="!!errors().paymentTerms"
+        [pt]="termsPt()"
+        (ngModelChange)="setTerms($event)"
+      />
+      @if (errors().paymentTerms; as message) {
+        <p class="panel__error" role="alert" [id]="id + '-terms-error'">{{ message }}</p>
+      }
+    </div>
+    <div class="panel__field">
+      <label [for]="id + '-due'">Due date</label>
+      <input pInputText fluid readonly [id]="id + '-due'" [value]="dueText()" />
+    </div>
+  </div>
+
+  <fieldset class="panel__group" [attr.aria-describedby]="id + '-later'">
+    <legend>Accepted payment methods</legend>
+    <div class="panel__option">
+      <p-checkbox
+        [inputId]="id + '-card'"
+        [binary]="true"
+        [ngModel]="false"
+        [disabled]="true"
+        ariaLabel="Card (credit/debit). Not available yet."
+      />
+      <label [for]="id + '-card'">Card (credit/debit)</label>
+    </div>
+    <div class="panel__option">
+      <p-checkbox
+        [inputId]="id + '-ach'"
+        [binary]="true"
+        [ngModel]="false"
+        [disabled]="true"
+        ariaLabel="Bank transfer (ACH). Not available yet."
+      />
+      <label [for]="id + '-ach'">Bank transfer (ACH)</label>
+    </div>
+    <div class="panel__option">
+      <p-checkbox
+        [inputId]="id + '-cash'"
+        [binary]="true"
+        [ngModel]="false"
+        [disabled]="true"
+        ariaLabel="Cash. Not available yet."
+      />
+      <label [for]="id + '-cash'">Cash</label>
+    </div>
+  </fieldset>
+
+  <div class="panel__field">
+    <label [for]="id + '-message'">Message to customer</label>
+    <textarea
+      #messageField
+      pTextarea
+      fluid
+      rows="8"
+      [id]="id + '-message'"
+      [readOnly]="locked()"
+      [value]="values().message"
+      [attr.aria-invalid]="errors().message ? 'true' : null"
+      [attr.aria-describedby]="
+        errors().message ? id + '-message-error ' + id + '-count' : id + '-count'
+      "
+      (input)="update({ message: $any($event.target).value })"
+    ></textarea>
+    <p class="panel__count" [id]="id + '-count'">{{ values().message.length }}/{{ limit }}</p>
+    @if (errors().message; as message) {
+      <p class="panel__error" [id]="id + '-message-error'">{{ message }}</p>
+    }
+  </div>
+
+  <div class="panel__toggle">
+    <p-toggleswitch
+      [inputId]="id + '-report'"
+      [ngModel]="false"
+      [disabled]="true"
+      ariaLabel="Attach completion report. Not available yet."
+    />
+    <label [for]="id + '-report'">Attach completion report</label>
+  </div>
+  <div class="panel__toggle">
+    <p-toggleswitch
+      [inputId]="id + '-photos'"
+      [ngModel]="false"
+      [disabled]="true"
+      ariaLabel="Attach before & after photos. Not available yet."
+    />
+    <label [for]="id + '-photos'">Attach before &amp; after photos</label>
+  </div>
+  <p class="panel__muted" [id]="id + '-later'">{{ laterMessage }}</p>
+
+  <ul class="panel__checks" aria-label="Readiness checks">
+    @for (check of invoice().checks; track check.key) {
+      <li [class.panel__check--unmet]="!check.met">
+        <i
+          class="pi"
+          [class.pi-check-circle]="check.met"
+          [class.pi-exclamation-circle]="!check.met"
+          aria-hidden="true"
+        ></i>
+        <span class="panel__sr">{{ check.met ? 'Done: ' : 'To do: ' }}</span
+        >{{ check.label }}
+      </li>
+    }
+  </ul>
+
+  @if (!invoice().canAct) {
+    <p class="panel__note" role="note">{{ readOnlyMessage }}</p>
+  }
+  @if (sentText(); as text) {
+    <p class="panel__sent">{{ text }}</p>
+  }
+  @if (canResend()) {
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="pending() !== null"
+      [attr.aria-busy]="pending() === 'resend'"
+      (click)="resend.emit()"
+    >
+      @if (pending() === 'resend') {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Resend email
+    </button>
+  }
+</section>

@@ -90,6 +90,7 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(CustomerSignoff), "customer_signoffs")]
     [InlineData(typeof(Invoice), "invoices")]
     [InlineData(typeof(InvoiceLine), "invoice_lines")]
+    [InlineData(typeof(InvoiceAccessToken), "invoice_access_tokens")]
     [InlineData(typeof(Payment), "payments")]
     [InlineData(typeof(PaymentAllocation), "payment_allocations")]
     [InlineData(typeof(Notification), "notifications")]

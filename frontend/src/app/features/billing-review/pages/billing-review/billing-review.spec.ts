@@ -173,7 +173,7 @@ describe('Billing review page', () => {
   let fixture: ComponentFixture<BillingReview>;
   let page: BillingReview;
   let host: HTMLElement;
-  let toasts: { severity?: string; summary?: string }[];
+  let toasts: { key?: string; severity?: string; summary?: string; data?: unknown }[];
 
   const call = (method: string, path: string): TestRequest =>
     httpTesting.expectOne((r) => r.method === method && r.url === `${API}/${path}`);
@@ -586,6 +586,14 @@ describe('Billing review page', () => {
       { status: 201, statusText: 'Created' },
     );
     expect(toasts.at(-1)?.summary).toBe('Draft invoice INV-5084 created.');
+    // BR-27: the toast carries View invoice → /invoices/<id> (rendered through the real service).
+    expect(toasts.at(-1)).toMatchObject({ key: 'invoice-link', data: { invoiceId: 'i-1' } });
+    MessageService.prototype.add.call(
+      fixture.debugElement.injector.get(MessageService),
+      toasts.at(-1)!,
+    );
+    await settle();
+    expect(host.querySelector('a[href="/invoices/i-1"]')?.textContent?.trim()).toBe('View invoice');
     call('GET', 'queue').flush(queueBody([ITEM_1], 1));
     call('GET', 'work-orders/wo-1').flush(detailBody('wo-1'));
     await settle();

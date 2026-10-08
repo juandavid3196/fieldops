@@ -1,0 +1,149 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-height: 100dvh;
+  background: var(--fo-color-app-background);
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-height: 100dvh;
+
+  &__header {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: var(--fo-color-surface);
+    border-block-end: 1px solid var(--fo-color-border);
+
+    @include bp.up(md) {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  &__logo {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--fo-color-primary-strong);
+    object-fit: contain;
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__brand {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__main {
+    flex: 1;
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: 56rem;
+    min-width: 0;
+    margin-inline: auto;
+    padding: 1rem;
+
+    @include bp.up(md) {
+      padding: 1.5rem;
+    }
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__footer {
+    padding: 1rem;
+    font-size: 0.75rem;
+    color: var(--fo-color-text-secondary);
+    text-align: center;
+  }
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  box-sizing: border-box;
+  max-inline-size: 32rem;
+  margin: 2rem auto;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+}
+
+.doc {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+
+    button {
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--fo-color-heading);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__error {
+    margin: 0;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__card {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__payment {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+    text-align: center;
+  }
+}

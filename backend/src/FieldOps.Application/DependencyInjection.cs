@@ -6,6 +6,7 @@ using FieldOps.Application.Features.ChecklistTemplates;
 using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
+using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
@@ -165,6 +166,14 @@ public static class DependencyInjection
         services.AddScoped<GetBillingEvidenceHandler>();
         services.AddScoped<UpdateBillingReviewHandler>();
         services.AddScoped<GenerateBillingInvoiceHandler>();
+        services.AddScoped<GetInvoiceHandler>();
+        services.AddScoped<DownloadInvoicePdfHandler>();
+        services.AddScoped<SaveInvoiceDraftHandler>();
+        services.AddScoped<SendInvoiceHandler>();
+        services.AddScoped<ResendInvoiceEmailHandler>();
+        services.AddScoped<ViewInvoiceLinkHandler>();
+        services.AddScoped<DownloadInvoiceLinkPdfHandler>();
+        services.AddScoped<GetInvoiceLinkLogoHandler>();
 
         return services;
     }

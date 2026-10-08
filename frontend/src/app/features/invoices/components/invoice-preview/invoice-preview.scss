@@ -1,0 +1,240 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.doc {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1rem;
+  overflow-wrap: anywhere;
+  color: var(--fo-color-text);
+  background: var(--fo-color-surface);
+  border-radius: var(--fo-radius-panel);
+
+  &__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    justify-content: space-between;
+    padding-block-end: 1rem;
+    border-block-end: 1px solid var(--fo-color-border);
+  }
+
+  &__org,
+  &__invoice {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  &__brand {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__logo {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-primary-strong);
+    object-fit: contain;
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+
+    &--initials {
+      user-select: none;
+    }
+  }
+
+  &__org-name {
+    margin: 0;
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__address {
+    display: flex;
+    flex-direction: column;
+    font-size: 0.875rem;
+    font-style: normal;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__invoice {
+    align-items: flex-start;
+
+    @media (min-width: 40rem) {
+      align-items: flex-end;
+      text-align: end;
+    }
+  }
+
+  &__word {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    color: var(--fo-color-heading);
+  }
+
+  &__number {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  &__dates {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    font-size: 0.875rem;
+
+    div {
+      display: flex;
+      gap: 1.5rem;
+      justify-content: space-between;
+    }
+
+    dt {
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+    }
+
+    a {
+      color: var(--fo-color-primary-strong);
+      text-decoration: underline;
+    }
+  }
+
+  &__parties {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 1rem;
+  }
+
+  &__label {
+    margin: 0 0 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__strong {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  &__scroll {
+    max-inline-size: 100%;
+    overflow-x: auto;
+    border-radius: var(--fo-radius-panel);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__table {
+    inline-size: 100%;
+    min-inline-size: 32rem;
+    font-size: 0.875rem;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 0.625rem 0.75rem;
+      font-weight: 400;
+      text-align: start;
+      vertical-align: top;
+      border-block-end: 1px solid var(--fo-color-border);
+    }
+
+    thead th {
+      font-weight: 700;
+      color: var(--fo-color-heading);
+      background: var(--fo-color-surface-muted);
+    }
+
+    tbody th {
+      font-weight: 400;
+    }
+
+    .doc__num {
+      text-align: end;
+      white-space: nowrap;
+    }
+  }
+
+  &__line {
+    display: block;
+    font-weight: 600;
+  }
+
+  &__detail {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2rem;
+    justify-content: space-between;
+  }
+
+  &__note {
+    flex: 1 1 14rem;
+    font-size: 0.875rem;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__totals {
+    flex: 1 1 14rem;
+    max-inline-size: 18rem;
+    margin: 0 0 0 auto;
+    font-size: 0.875rem;
+
+    div {
+      display: flex;
+      gap: 1rem;
+      justify-content: space-between;
+      padding: 0.25rem 0.5rem;
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  &__total {
+    margin-block-start: 0.25rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    background: var(--fo-color-primary-soft);
+  }
+
+  &__thanks {
+    margin: 0;
+    font-style: italic;
+    color: var(--fo-color-text-secondary);
+  }
+}

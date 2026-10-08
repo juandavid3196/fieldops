@@ -135,6 +135,8 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<InvoiceLine> InvoiceLines => Set<InvoiceLine>();
 
+    public DbSet<InvoiceAccessToken> InvoiceAccessTokens => Set<InvoiceAccessToken>();
+
     public DbSet<Payment> Payments => Set<Payment>();
 
     public DbSet<PaymentAllocation> PaymentAllocations => Set<PaymentAllocation>();

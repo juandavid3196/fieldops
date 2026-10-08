@@ -1,0 +1,165 @@
+<p-toast />
+<app-confirm-dialog [key]="sendKey" />
+<app-discard-changes-dialog />
+<p class="page__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+<div class="page">
+  <header class="page__header">
+    <nav class="page__breadcrumb" aria-label="Breadcrumb">
+      <ol>
+        <li>Billing</li>
+        <li><a routerLink="/invoices/review">Invoices</a></li>
+        <li aria-current="page">{{ invoice()?.number ?? 'Invoice' }}</li>
+      </ol>
+    </nav>
+
+    @if (invoice(); as invoice) {
+      <div class="page__title-row">
+        <div class="page__heading">
+          <h1 #heading class="page__title" tabindex="-1">Invoice {{ invoice.number }}</h1>
+          <span class="page__chip" [attr.data-status]="invoice.status">
+            <i
+              class="pi"
+              [class.pi-file-edit]="invoice.status === 'draft'"
+              [class.pi-send]="invoice.status === 'sent'"
+              [class.pi-info-circle]="invoice.status !== 'draft' && invoice.status !== 'sent'"
+              aria-hidden="true"
+            ></i>
+            {{ statusText() }}
+          </span>
+        </div>
+        <div class="page__actions">
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            [disabled]="pending() !== null"
+            [attr.aria-busy]="pending() === 'pdf'"
+            (click)="downloadPdf()"
+          >
+            @if (pending() === 'pdf') {
+              <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+            } @else {
+              <i class="pi pi-download" aria-hidden="true"></i>
+            }
+            Download PDF
+          </button>
+          @if (canEdit()) {
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              [disabled]="pending() !== null || !dirty()"
+              [attr.aria-busy]="pending() === 'save'"
+              (click)="save()"
+            >
+              @if (pending() === 'save') {
+                <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+              } @else {
+                <i class="pi pi-save" aria-hidden="true"></i>
+              }
+              Save draft
+            </button>
+            <button
+              pButton
+              type="button"
+              [disabled]="pending() !== null"
+              [attr.aria-busy]="pending() === 'send'"
+              (click)="requestSend()"
+            >
+              @if (pending() === 'send') {
+                <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+              } @else {
+                <i class="pi pi-send" aria-hidden="true"></i>
+              }
+              Send invoice
+            </button>
+          }
+        </div>
+      </div>
+      @if (dates(); as dates) {
+        <dl class="page__meta">
+          <div>
+            <dt>
+              <i class="pi pi-user" aria-hidden="true"></i><span class="page__sr">Customer</span>
+            </dt>
+            <dd>{{ invoice.customerName }}</dd>
+          </div>
+          <div>
+            <dt><i class="pi pi-calendar" aria-hidden="true"></i>Issue date:</dt>
+            <dd>{{ dates.issue }}</dd>
+          </div>
+          <div>
+            <dt><i class="pi pi-calendar" aria-hidden="true"></i>Due date:</dt>
+            <dd>{{ dates.due }}</dd>
+          </div>
+          <div>
+            <dt><i class="pi pi-link" aria-hidden="true"></i>Work order:</dt>
+            <dd>
+              <a [routerLink]="['/jobs', invoice.workOrderId]">{{ invoice.workOrderNumber }}</a>
+            </dd>
+          </div>
+        </dl>
+      }
+    } @else {
+      <h1 #heading class="page__title" tabindex="-1">Invoice</h1>
+    }
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="page__skeletons" aria-busy="true" aria-label="Loading invoice">
+        <p-skeleton height="2.5rem" width="50%" />
+        <div class="page__body">
+          <p-skeleton height="34rem" />
+          <p-skeleton height="34rem" />
+        </div>
+      </div>
+    }
+    @case ('forbidden') {
+      <p class="page__message" role="alert">{{ forbiddenMessage }}</p>
+    }
+    @case ('not-available') {
+      <div class="page__message" role="alert">
+        <p>{{ unavailableMessage }}</p>
+        <a pButton severity="secondary" size="small" routerLink="/invoices/review">Needs review</a>
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="page__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @default {
+      @if (invoice(); as invoice) {
+        <div class="page__body">
+          <section class="page__card" aria-label="Invoice">
+            <app-invoice-preview [preview]="invoice" [workOrderId]="invoice.workOrderId" />
+            @if (activity(); as activity) {
+              <footer class="page__activity">
+                <span><i class="pi pi-clock" aria-hidden="true"></i>{{ activity.text }}</span>
+                <span>{{ activity.meta }}</span>
+              </footer>
+            }
+          </section>
+          <app-invoice-send-panel
+            [invoice]="invoice"
+            [values]="values()"
+            [dueDate]="dueDate()"
+            [errors]="errors()"
+            [pending]="pending()"
+            (valuesChange)="changeValues($event)"
+            (resend)="resend()"
+          />
+        </div>
+      }
+    }
+  }
+</div>

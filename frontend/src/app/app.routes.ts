@@ -7,6 +7,7 @@ import {
 } from './features/billing-review/billing-review.routes';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { customerDetailRoute, customersRoute } from './features/customers/customers.routes';
+import { invoiceDetailRoute, publicInvoiceRoute } from './features/invoices/invoices.routes';
 import { jobDetailRoute, jobsRoute } from './features/jobs/jobs.routes';
 import {
   quoteEditRoute,
@@ -41,6 +42,9 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/quotes/pages/quote-approval/quote-approval').then((m) => m.QuoteApproval),
   },
+  // Public on purpose: the emailed invoice link; declared before the shell so `invoices/view` is
+  // never matched as an invoice id (invoice-draft-delivery BR-23).
+  publicInvoiceRoute,
   {
     // Old emailed links: the redirect keeps the URL fragment (customer-quote-approval BR-02).
     path: 'quote-approval',
@@ -82,6 +86,7 @@ export const routes: Routes = [
       scheduleRoute,
       invoicesRedirectRoute,
       billingReviewRoute,
+      invoiceDetailRoute,
     ],
   },
   {
