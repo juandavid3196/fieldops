@@ -178,7 +178,7 @@ export class BillingReview {
   readonly queueLoading = signal(true);
   readonly queueFailed = signal(false);
   readonly selectedId = signal<string | null>(null);
-  /** Mobile (< 768 px): the detail replaces the queue until Back to queue. */
+  /** Mobile (< 768 px): the detail replaces the queue until Back to quote. */
   readonly detailOpen = signal(false);
 
   readonly detailState = signal<DetailState>('loading');

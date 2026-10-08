@@ -45,14 +45,16 @@
 
   &__metrics {
     display: grid;
-    flex: 1;
+    flex: 1 1 100%;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
     margin: 0;
     min-width: 0;
 
     @include bp.up(lg) {
+      flex: 1;
       grid-template-columns: repeat(4, minmax(0, 1fr));
+      white-space: nowrap;
       max-inline-size: 56rem;
     }
   }
@@ -61,7 +63,6 @@
   &__metric {
     position: relative;
     padding: 0.5rem 0.75rem 0.5rem 3.5rem;
-    white-space: nowrap;
     background: var(--fo-color-surface);
     border: 1px solid var(--fo-color-border);
     border-radius: var(--fo-radius-card);
