@@ -312,6 +312,19 @@ describe('Billing review page', () => {
     await settle();
     expect(text()).toContain('Page 2 of 3');
 
+    // A page emptied by jobs leaving the queue reloads the last page instead of the empty state.
+    button('Next')!.click();
+    queue = call('GET', 'queue');
+    expect(queue.request.params.get('page')).toBe('3');
+    queue.flush({ ...queueBody([], 40), page: 3 });
+    queue = call('GET', 'queue');
+    expect(queue.request.params.get('page')).toBe('2');
+    queue.flush({ ...queueBody([ITEM_2], 40), page: 2 });
+    call('GET', 'work-orders/wo-2').flush(detailBody('wo-2'));
+    await settle();
+    expect(text()).toContain('Page 2 of 2');
+    expect(text()).not.toContain('No completed jobs need review.');
+
     // Filtered empty offers Clear filters; the unfiltered empty is the plain message.
     page.changeFilters({ variance: 'labor' });
     call('GET', 'queue').flush(queueBody([], 0));

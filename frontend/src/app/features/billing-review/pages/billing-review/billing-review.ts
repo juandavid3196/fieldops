@@ -336,6 +336,13 @@ export class BillingReview {
       return;
     }
     this.queueFailed.set(false);
+    // BR-05: a page beyond the last (its last job just left the queue) reloads the last page.
+    const lastPage = Math.ceil(queue.total / queue.pageSize);
+    if (queue.items.length === 0 && lastPage > 0 && lastPage < queue.page) {
+      this.filters.update((filters) => ({ ...filters, page: lastPage }));
+      this.queueLoads.next(prefer);
+      return;
+    }
     this.queue.set(queue);
     const ids = queue.items.map((item) => item.workOrderId);
     const keep = this.selectedId();
