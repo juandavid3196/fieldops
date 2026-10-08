@@ -224,12 +224,15 @@ CREATE TABLE work_orders (
   notify_customer_when_scheduled boolean NOT NULL DEFAULT true, send_technician_details boolean NOT NULL DEFAULT true, send_arrival_reminder boolean NOT NULL DEFAULT true,
   status work_order_status NOT NULL DEFAULT 'draft', priority smallint NOT NULL DEFAULT 3 CHECK(priority BETWEEN 1 AND 5), scope_snapshot text NOT NULL,
   internal_instructions text, preferred_start timestamptz, preferred_end timestamptz, created_by_user_id uuid NOT NULL REFERENCES users(id),
+  -- SA-06 (completed-jobs-review): internal accounting note and follow-up mark (time and user are set and cleared together).
+  billing_review_note varchar(500), billing_follow_up_at timestamptz, billing_follow_up_by_user_id uuid REFERENCES users(id),
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY(organization_id,branch_id) REFERENCES branches(organization_id,id), FOREIGN KEY(organization_id,quote_version_id) REFERENCES quote_versions(organization_id,id),
   FOREIGN KEY(organization_id,service_category_id) REFERENCES service_categories(organization_id,id),
   FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), FOREIGN KEY(organization_id,property_id) REFERENCES properties(organization_id,id),
   CHECK ((job_type = 'recurring') = (recurrence_frequency IS NOT NULL AND recurrence_count IS NOT NULL)), CHECK ((recurrence_frequency IS NULL) = (recurrence_count IS NULL)),
   CHECK ((preferred_start IS NULL) = (preferred_end IS NULL) AND (preferred_start IS NULL OR preferred_start < preferred_end)),
+  CHECK ((billing_follow_up_at IS NULL) = (billing_follow_up_by_user_id IS NULL)),
   UNIQUE(organization_id,work_order_number), UNIQUE(organization_id,id)
 );
 CREATE TABLE work_order_required_skills (work_order_id uuid NOT NULL REFERENCES work_orders(id) ON DELETE CASCADE, skill_id uuid NOT NULL REFERENCES skills(id), minimum_proficiency smallint CHECK(minimum_proficiency BETWEEN 1 AND 5), PRIMARY KEY(work_order_id,skill_id));
@@ -289,6 +292,8 @@ CREATE TABLE invoices (
   invoice_number bigint NOT NULL, work_order_id uuid NOT NULL REFERENCES work_orders(id), customer_id uuid NOT NULL, status invoice_status NOT NULL DEFAULT 'draft',
   issue_date date, due_date date, currency char(3) NOT NULL, subtotal numeric(14,2) NOT NULL CHECK(subtotal>=0), tax_total numeric(14,2) NOT NULL CHECK(tax_total>=0),
   total numeric(14,2) NOT NULL CHECK(total>=0), amount_paid numeric(14,2) NOT NULL DEFAULT 0 CHECK(amount_paid>=0), balance_due numeric(14,2) NOT NULL CHECK(balance_due>=0),
+  -- SA-05 (completed-jobs-review): approved quote discount and selected payment terms.
+  discount_total numeric(14,2) NOT NULL DEFAULT 0 CHECK(discount_total>=0), payment_terms varchar(20) CHECK(payment_terms IN ('due_upon_receipt','net_15','net_30')),
   notes text, sent_at timestamptz, voided_at timestamptz, void_reason text, created_by_user_id uuid NOT NULL REFERENCES users(id),
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,invoice_number), UNIQUE(organization_id,id), CHECK(due_date IS NULL OR issue_date IS NULL OR due_date>=issue_date), CHECK(amount_paid<=total)
@@ -333,6 +338,8 @@ CREATE UNIQUE INDEX ux_visit_assignments_active ON visit_assignments(visit_id,te
 CREATE UNIQUE INDEX ux_visit_assignments_primary ON visit_assignments(visit_id) WHERE is_primary AND unassigned_at IS NULL;
 CREATE UNIQUE INDEX ux_visit_materials_planned ON visit_materials(visit_id,planned_material_id) WHERE planned_material_id IS NOT NULL;
 CREATE INDEX ix_invoices_status_due ON invoices(organization_id,status,due_date);
+-- SA-04 (completed-jobs-review): at most one non-void invoice per work order.
+CREATE UNIQUE INDEX ux_invoices_work_order_active ON invoices(organization_id,work_order_id) WHERE status <> 'void';
 CREATE INDEX ix_payments_customer_date ON payments(organization_id,customer_id,paid_at DESC);
 CREATE INDEX ix_audit_entity ON audit_logs(organization_id,entity_type,entity_id,occurred_at DESC);
 CREATE INDEX ix_audit_actor ON audit_logs(organization_id,actor_user_id,occurred_at DESC);
