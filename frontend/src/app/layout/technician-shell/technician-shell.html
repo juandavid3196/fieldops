@@ -11,7 +11,7 @@
       </button>
       <p class="tshell__title tshell__title--job">{{ job.title }}</p>
       <span class="tshell__chip" [class.tshell__chip--paused]="job.paused">
-        <i class="pi" [class]="job.paused ? 'pi-pause' : 'pi-play'" aria-hidden="true"></i>
+        <span class="tshell__dot" aria-hidden="true"></span>
         {{ job.status }}
       </span>
       <span class="tshell__time">

@@ -211,6 +211,9 @@ export class VisitReview {
       });
     });
     this.destroyRef.onDestroy(() => this.visits.setShellHeader(null));
+    // Review & complete is the job's last step, so the bottom-nav progress line shows full.
+    effect(() => this.visits.setJobProgress(this.state() === 'ready' ? 100 : null));
+    this.destroyRef.onDestroy(() => this.visits.setJobProgress(null));
     if (this.sessionService.session()?.role.code !== 'technician') {
       this.state.set('forbidden');
       return;

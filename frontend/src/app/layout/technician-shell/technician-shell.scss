@@ -98,11 +98,13 @@ $nav-height: 4rem;
     white-space: nowrap;
   }
 
+  // Status chip sits right-aligned beside the work time, with a dot instead of an icon.
   &__chip {
-    padding: 0.25rem 0.625rem;
+    margin-inline-start: auto;
+    padding: 0.375rem 0.625rem;
     color: var(--fo-color-info-text);
-    background: var(--fo-color-info-background);
-    border-radius: var(--fo-radius-pill);
+    background: var(--fo-color-info-border);
+    border-radius: var(--fo-radius-control);
 
     &--paused {
       color: var(--fo-color-warning-text);
@@ -110,8 +112,19 @@ $nav-height: 4rem;
     }
   }
 
+  &__dot {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    background: var(--p-blue-500);
+    border-radius: 50%;
+  }
+
+  &__chip--paused &__dot {
+    background: currentcolor;
+  }
+
   &__time {
-    margin-inline-start: auto;
+    margin-inline-start: 0.5rem;
   }
 
   &__sr {

@@ -94,7 +94,9 @@
                   [class.review__badge--ok]="job.completion.requiredTasksComplete"
                 >
                   @if (job.completion.requiredTasksComplete) {
-                    <i class="pi pi-check-circle" aria-hidden="true"></i>
+                    <span class="review__check-disc" aria-hidden="true"
+                      ><i class="pi pi-check"></i
+                    ></span>
                   }
                   {{ tasksDone() }}/{{ tasksTotal() }}
                 </span>
@@ -163,11 +165,13 @@
             aria-labelledby="review-ready-title"
           >
             <h2 class="review__ready-title" id="review-ready-title">
-              <i
-                class="pi"
-                [class]="ready() ? 'pi-check-circle' : 'pi-exclamation-circle'"
-                aria-hidden="true"
-              ></i>
+              @if (ready()) {
+                <span class="review__check-disc" aria-hidden="true"
+                  ><i class="pi pi-check"></i
+                ></span>
+              } @else {
+                <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+              }
               {{ ready() ? 'Ready to complete' : 'Not ready to complete' }}
             </h2>
             @if (!ready()) {
@@ -356,7 +360,7 @@
             </div>
 
             <p class="ack__info">
-              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              <span class="ack__info-icon" aria-hidden="true"><i class="pi pi-info"></i></span>
               A signature confirms service acknowledgment. It does not confirm payment.
             </p>
 
@@ -369,7 +373,7 @@
                   pButton
                   type="button"
                   class="bar__button"
-                  severity="secondary"
+                  severity="info"
                   [outlined]="true"
                   [disabled]="pending()"
                   (click)="show('review')"
