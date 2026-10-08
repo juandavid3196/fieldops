@@ -64,7 +64,6 @@ public class InvoiceDeliveryPublicTests(CompanySettingsDatabaseFixture database)
         Assert.Equal(HttpStatusCode.OK, (await host.SendAsync(HttpMethod.Get, InvoiceApi.Path(invoice.Id, "/pdf"), owner)).StatusCode);
 
         // AC-13: the valid token returns the frozen PublicInvoice, PDF and logo with the public headers and no internal data.
-        var stable = await database.StateAsync(invoice.Id);
         var audits = await database.CountAsync("audit_logs", "organization_id = @o", ("o", world.Org));
         var view = await InvoiceApi.PublicAsync(host.Client, "view", raw);
         var publicJson = await BillingSeed.ReadAsync(view);
@@ -101,7 +100,8 @@ public class InvoiceDeliveryPublicTests(CompanySettingsDatabaseFixture database)
         Assert.Equal(HttpStatusCode.OK, pdf.StatusCode);
         Assert.Equal("application/pdf", pdf.Content.Headers.ContentType?.MediaType);
         Assert.Equal($"attachment; filename=\"{invoice.Number}.pdf\"", pdf.Content.Headers.ContentDisposition?.ToString());
-        Assert.Equal("private, no-store", pdf.Headers.CacheControl?.ToString());
+        Assert.True(pdf.Headers.CacheControl?.NoStore);
+        Assert.True(pdf.Headers.CacheControl?.Private);
         Assert.Equal("no-referrer", pdf.Headers.GetValues("Referrer-Policy").Single());
         Assert.Equal("nosniff", pdf.Headers.GetValues("X-Content-Type-Options").Single());
         Assert.Equal("%PDF", System.Text.Encoding.ASCII.GetString(bytes, 0, 4));
@@ -109,7 +109,8 @@ public class InvoiceDeliveryPublicTests(CompanySettingsDatabaseFixture database)
         var logo = await InvoiceApi.PublicAsync(host.Client, "logo", raw);
         Assert.Equal(HttpStatusCode.OK, logo.StatusCode);
         Assert.Equal("image/png", logo.Content.Headers.ContentType?.MediaType);
-        Assert.Equal("private, no-store", logo.Headers.CacheControl?.ToString());
+        Assert.True(logo.Headers.CacheControl?.NoStore);
+        Assert.True(logo.Headers.CacheControl?.Private);
         Assert.Equal(BillingSeed.Png, await logo.Content.ReadAsByteArrayAsync());
 
         // Every other token is the same 404 for view, PDF and logo: malformed, unknown, expired, draft and void.
@@ -121,6 +122,7 @@ public class InvoiceDeliveryPublicTests(CompanySettingsDatabaseFixture database)
         await database.InsertTokenAsync(world.Org, voided.Id, member.UserId, ofVoid);
         await database.ExecuteAsync("UPDATE invoices SET status = 'void' WHERE id = @i", ("i", voided.Id));
         var unavailable = new List<string>();
+        var stable = await database.StateAsync(invoice.Id);
 
         foreach (var bad in new string?[] { null, string.Empty, "short", new string('!', 43), new string('A', 44), InvoiceApi.NewToken(), expired, ofDraft, ofVoid })
         {

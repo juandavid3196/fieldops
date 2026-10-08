@@ -25,6 +25,12 @@
     color: var(--fo-color-heading);
   }
 
+  &__icon {
+    margin-inline-end: 0.3125rem;
+    font-size: 1.125rem;
+    color: var(--fo-color-heading);
+  }
+
   &__subtitle,
   &__muted {
     margin: 0;
@@ -40,6 +46,8 @@
 
     > label,
     > span {
+      display: flex;
+      align-items: center;
       font-size: 0.875rem;
       font-weight: 600;
       color: var(--fo-color-heading);
@@ -62,6 +70,11 @@
     label {
       font-weight: 600;
     }
+
+    // Same icon spacing as the field labels, inside the wider toggle row gap.
+    .panel__icon {
+      margin-inline-end: -0.4375rem;
+    }
   }
 
   &__group {
@@ -75,6 +88,8 @@
     border-radius: var(--fo-radius-panel);
 
     legend {
+      display: flex;
+      align-items: center;
       padding-inline: 0.25rem;
       font-size: 0.875rem;
       font-weight: 600;
@@ -117,6 +132,18 @@
       display: flex;
       gap: 0.5rem;
       align-items: center;
+    }
+
+    li:not(.panel__check--unmet) .panel__mark {
+      display: grid;
+      place-items: center;
+      inline-size: 1.125rem;
+      block-size: 1.125rem;
+      font-size: 0.625rem;
+      font-weight: 700;
+      color: var(--fo-color-on-primary);
+      background: var(--fo-color-success-solid);
+      border-radius: var(--fo-radius-pill);
     }
 
     .panel__check--unmet {

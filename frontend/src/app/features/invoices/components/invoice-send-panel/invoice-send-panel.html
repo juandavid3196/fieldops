@@ -5,7 +5,9 @@
   }
 
   <div class="panel__field">
-    <label [for]="id + '-recipient'">Recipient email</label>
+    <label [for]="id + '-recipient'"
+      ><i class="pi pi-envelope panel__icon" aria-hidden="true"></i>Recipient email</label
+    >
     <input
       #recipientField
       pInputText
@@ -26,6 +28,7 @@
   </div>
 
   <div class="panel__toggle">
+    <i class="pi pi-comment panel__icon" aria-hidden="true"></i>
     <p-toggleswitch
       [inputId]="id + '-sms'"
       [ngModel]="false"
@@ -40,7 +43,9 @@
 
   <div class="panel__row">
     <div class="panel__field">
-      <span [id]="id + '-terms-label'">Payment terms</span>
+      <span [id]="id + '-terms-label'"
+        ><i class="pi pi-calendar panel__icon" aria-hidden="true"></i>Payment terms</span
+      >
       <p-select
         appendTo="body"
         fluid
@@ -59,13 +64,17 @@
       }
     </div>
     <div class="panel__field">
-      <label [for]="id + '-due'">Due date</label>
+      <label [for]="id + '-due'"
+        ><i class="pi pi-calendar panel__icon" aria-hidden="true"></i>Due date</label
+      >
       <input pInputText fluid readonly [id]="id + '-due'" [value]="dueText()" />
     </div>
   </div>
 
   <fieldset class="panel__group" [attr.aria-describedby]="id + '-later'">
-    <legend>Accepted payment methods</legend>
+    <legend>
+      <i class="pi pi-credit-card panel__icon" aria-hidden="true"></i>Accepted payment methods
+    </legend>
     <div class="panel__option">
       <p-checkbox
         [inputId]="id + '-card'"
@@ -99,7 +108,9 @@
   </fieldset>
 
   <div class="panel__field">
-    <label [for]="id + '-message'">Message to customer</label>
+    <label [for]="id + '-message'"
+      ><i class="pi pi-comments panel__icon" aria-hidden="true"></i>Message to customer</label
+    >
     <textarea
       #messageField
       pTextarea
@@ -121,6 +132,7 @@
   </div>
 
   <div class="panel__toggle">
+    <i class="pi pi-file panel__icon" aria-hidden="true"></i>
     <p-toggleswitch
       [inputId]="id + '-report'"
       [ngModel]="false"
@@ -130,6 +142,7 @@
     <label [for]="id + '-report'">Attach completion report</label>
   </div>
   <div class="panel__toggle">
+    <i class="pi pi-image panel__icon" aria-hidden="true"></i>
     <p-toggleswitch
       [inputId]="id + '-photos'"
       [ngModel]="false"
@@ -144,8 +157,8 @@
     @for (check of invoice().checks; track check.key) {
       <li [class.panel__check--unmet]="!check.met">
         <i
-          class="pi"
-          [class.pi-check-circle]="check.met"
+          class="pi panel__mark"
+          [class.pi-check]="check.met"
           [class.pi-exclamation-circle]="!check.met"
           aria-hidden="true"
         ></i>

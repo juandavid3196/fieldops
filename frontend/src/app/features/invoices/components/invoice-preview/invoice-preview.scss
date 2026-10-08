@@ -115,8 +115,13 @@
     }
 
     a {
-      color: var(--fo-color-primary-strong);
-      text-decoration: underline;
+      color: var(--fo-color-link);
+      text-decoration: none;
+
+      &:hover,
+      &:focus-visible {
+        text-decoration: underline;
+      }
     }
   }
 
@@ -141,6 +146,7 @@
   &__scroll {
     max-inline-size: 100%;
     overflow-x: auto;
+    border: 1px solid var(--fo-color-border);
     border-radius: var(--fo-radius-panel);
 
     &:focus-visible {
@@ -162,6 +168,10 @@
       text-align: start;
       vertical-align: top;
       border-block-end: 1px solid var(--fo-color-border);
+    }
+
+    tbody tr:last-child > * {
+      border-block-end: none;
     }
 
     thead th {

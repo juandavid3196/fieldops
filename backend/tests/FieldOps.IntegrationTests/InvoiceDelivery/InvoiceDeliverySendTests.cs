@@ -88,7 +88,7 @@ public class InvoiceDeliverySendTests(CompanySettingsDatabaseFixture database)
                 ("o", world.Org)));
         Assert.Equal(["invoice.sent"], await database.AuditActionsAsync(invoice.Id));
         var audit = await database.TextsAsync(
-            "SELECT (before_data ->> 'status') || '|' || (after_data ->> 'status') || '|' || (metadata ->> 'invoiceNumber') || '|' || (metadata ->> 'currency') || '|' || (metadata ->> 'notified') || '|' || (metadata ->> 'total') || '|' || branch_id::text FROM audit_logs WHERE entity_id = @i",
+            "SELECT (before_data ->> 'status') || '|' || (after_data ->> 'status') || '|' || (metadata ->> 'invoiceNumber') || '|' || (metadata ->> 'currency') || '|' || (metadata ->> 'notified') || '|' || (metadata ->> 'total') || '|' || branch_id::text FROM audit_logs WHERE entity_id = @i AND action = 'invoice.sent'",
             ("i", invoice.Id));
         var totalValue = after["totals"]!["total"]!.GetValue<decimal>();
         Assert.Equal(

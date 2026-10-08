@@ -156,7 +156,8 @@ describe('InvoiceDetailPage', () => {
     await load(invoiceBody());
 
     // Header, metadata, preview, panel and checks (BR-03, BR-04, BR-24).
-    expect(text()).toContain('Invoice INV-1048 Draft');
+    expect(host.querySelector('h1')?.textContent).toBe('Invoice INV-1048');
+    expect(host.querySelector('.page__chip')?.textContent?.trim()).toBe('Draft');
     expect(Array.from(host.querySelectorAll('nav li'), (li) => li.textContent?.trim())).toEqual([
       'Billing',
       'Invoices',

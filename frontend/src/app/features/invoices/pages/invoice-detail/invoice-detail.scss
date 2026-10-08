@@ -83,7 +83,12 @@ $side-by-side: 80rem;
     font-weight: 600;
     color: var(--fo-color-neutral-text);
     background: var(--fo-color-neutral-background);
-    border-radius: var(--fo-radius-pill);
+    border-radius: var(--fo-radius-panel);
+
+    &[data-status='draft'] {
+      color: color-mix(in srgb, var(--fo-color-info-text) 60%, var(--fo-color-heading));
+      background: color-mix(in srgb, var(--fo-color-info-background), var(--fo-color-info-border));
+    }
 
     &[data-status='sent'] {
       color: var(--fo-color-success-text);
@@ -100,6 +105,15 @@ $side-by-side: 80rem;
     button {
       flex: 1 1 100%;
       min-block-size: var(--fo-size-touch-target);
+    }
+
+    // Design 12: white secondary actions with dark text, readable on the muted page background.
+    .page__secondary {
+      --p-button-outlined-secondary-color: var(--fo-color-heading);
+      --p-button-outlined-secondary-border-color: var(--fo-color-border-strong);
+      --p-button-outlined-secondary-hover-background: var(--fo-color-surface-muted);
+
+      background: var(--fo-color-surface);
     }
 
     @include bp.up(md) {
@@ -136,8 +150,13 @@ $side-by-side: 80rem;
     }
 
     a {
-      color: var(--fo-color-primary-strong);
-      text-decoration: underline;
+      color: var(--fo-color-link);
+      text-decoration: none;
+
+      &:hover,
+      &:focus-visible {
+        text-decoration: underline;
+      }
     }
   }
 

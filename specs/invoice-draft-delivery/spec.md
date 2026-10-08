@@ -4,7 +4,7 @@
 | -------- | ------------------------ |
 | Feature  | `invoice-draft-delivery` |
 | Type     | Full-stack               |
-| Status   | APPROVED                 |
+| Status   | AUDITED                  |
 | Created  | 2026-10-08               |
 | Updated  | 2026-10-08               |
 | Approved | 2026-10-08               |
@@ -389,3 +389,5 @@ public-secret boundary.
 | ---------- | ------------- | ------ |
 | 2026-10-08 | — → DRAFT     | Created from Design 12 with decisions OD-01–OD-12 resolved by the user |
 | 2026-10-08 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-08 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-08 | IMPLEMENTED → AUDITED | Accepted by the user over a final-audit `AUDIT FAIL` (not re-run): backend test fixes applied and the 11 corrected integration tests pass; full frontend suite still had intermittent 5 s timeouts in unrelated specs; BR-24 status chip implemented without icon per user request (Design 12). |

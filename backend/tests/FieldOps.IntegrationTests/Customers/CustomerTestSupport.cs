@@ -226,14 +226,17 @@ public static class CustomerSeed
         db.ExecuteAsync(
             $"""
             SET session_replication_role = replica;
-            INSERT INTO invoices (id, organization_id, branch_id, invoice_number, work_order_id, customer_id, status, currency, subtotal, tax_total, total, amount_paid, balance_due, created_by_user_id)
-            VALUES (gen_random_uuid(), @org, @branch, @number, gen_random_uuid(), @customer, '{status}', 'USD', @balance, 0, @balance, 0, @balance, @user);
+            INSERT INTO invoices (id, organization_id, branch_id, invoice_number, work_order_id, customer_id, status, currency, subtotal, tax_total, total, amount_paid, balance_due, created_by_user_id, customer_snapshot)
+            VALUES (gen_random_uuid(), @org, @branch, @number, gen_random_uuid(), @customer, '{status}', 'USD', @balance, 0, @balance, 0, @balance, @user,
+                CASE WHEN '{status}' IN ('draft', 'void') THEN NULL
+                     ELSE CAST(@snap AS jsonb) END);
             """,
             ("org", organizationId),
             ("branch", branchId),
             ("number", Random.Shared.NextInt64(1, 1_000_000_000)),
             ("customer", customerId),
             ("balance", balance),
+            ("snap", SeedInvoiceSnapshot.Json),
             ("user", userId));
 
     public static Task<long> CountCustomersAsync(this CompanySettingsDatabaseFixture db, Guid organizationId) =>
@@ -258,4 +261,11 @@ public static class CustomerSeed
     public static string CsvOf(params string[] lines) => string.Join("\r\n", lines) + "\r\n";
 
     public static byte[] Utf8(string text) => new UTF8Encoding(false).GetBytes(text);
+}
+
+/// <summary>Minimal valid frozen snapshot that satisfies ck_invoices_customer_snapshot for seeded non-draft invoices.</summary>
+public static class SeedInvoiceSnapshot
+{
+    public const string Json =
+        """{"billTo":{"name":"Seed","email":null,"phone":null,"addressLines":[]},"serviceAddress":null,"completionNote":null}""";
 }

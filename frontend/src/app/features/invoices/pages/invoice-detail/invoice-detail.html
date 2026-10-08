@@ -17,20 +17,12 @@
       <div class="page__title-row">
         <div class="page__heading">
           <h1 #heading class="page__title" tabindex="-1">Invoice {{ invoice.number }}</h1>
-          <span class="page__chip" [attr.data-status]="invoice.status">
-            <i
-              class="pi"
-              [class.pi-file-edit]="invoice.status === 'draft'"
-              [class.pi-send]="invoice.status === 'sent'"
-              [class.pi-info-circle]="invoice.status !== 'draft' && invoice.status !== 'sent'"
-              aria-hidden="true"
-            ></i>
-            {{ statusText() }}
-          </span>
+          <span class="page__chip" [attr.data-status]="invoice.status">{{ statusText() }}</span>
         </div>
         <div class="page__actions">
           <button
             pButton
+            class="page__secondary"
             type="button"
             severity="secondary"
             [outlined]="true"
@@ -48,6 +40,7 @@
           @if (canEdit()) {
             <button
               pButton
+              class="page__secondary"
               type="button"
               severity="secondary"
               [outlined]="true"

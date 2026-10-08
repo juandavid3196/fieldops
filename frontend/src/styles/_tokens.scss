@@ -28,6 +28,9 @@
   --fo-color-on-primary: #fff;
   --fo-focus-ring: 0 0 0 3px rgb(15 157 154 / 24%);
 
+  // Inline links to other records
+  --fo-color-link: light-dark(#2349ec, #8fa2ff);
+
   // Disabled
   --fo-color-disabled-background: light-dark(#e9eef3, #24313e);
   --fo-color-disabled-text: light-dark(#9aa5b1, #6b7a89);

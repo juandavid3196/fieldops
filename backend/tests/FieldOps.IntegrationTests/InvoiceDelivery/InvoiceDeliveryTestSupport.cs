@@ -96,20 +96,21 @@ internal static partial class InvoiceApi
                 || '|' || COALESCE(i.payment_terms, '-') || '|' || COALESCE(i.due_date::text, '-') || '|' || COALESCE(i.sent_at::text, '-')
                 || '|' || COALESCE(i.customer_snapshot::text, '-')
                 || '|' || (SELECT COUNT(*) FROM invoice_access_tokens WHERE invoice_id = i.id)
-                || '|' || (SELECT COUNT(*) FROM audit_logs WHERE entity_id = i.id)
+                || '|' || (SELECT COUNT(*) FROM audit_logs WHERE entity_id = i.id AND action <> 'invoice.created')
             FROM invoices i WHERE i.id = @i
             """,
             ("i", invoice));
 
+    /// <summary>Feature audit actions only: the seed's own <c>invoice.created</c> row is excluded.</summary>
     public static Task<List<string>> AuditActionsAsync(this CompanySettingsDatabaseFixture db, Guid invoice) =>
-        db.TextsAsync("SELECT action FROM audit_logs WHERE entity_id = @i ORDER BY id", ("i", invoice));
+        db.TextsAsync("SELECT action FROM audit_logs WHERE entity_id = @i AND action <> 'invoice.created' ORDER BY id", ("i", invoice));
 
     /// <summary>Every audit value of the invoice as one text, to prove what it never contains.</summary>
     public static async Task<string> AuditTextAsync(this CompanySettingsDatabaseFixture db, Guid invoice) =>
         string.Join(
             '\n',
             await db.TextsAsync(
-                "SELECT COALESCE(before_data::text, '') || COALESCE(after_data::text, '') || metadata::text || COALESCE(ip_address::text, '') FROM audit_logs WHERE entity_id = @i",
+                "SELECT COALESCE(before_data::text, '') || COALESCE(after_data::text, '') || metadata::text || COALESCE(ip_address::text, '') FROM audit_logs WHERE entity_id = @i AND action <> 'invoice.created'",
                 ("i", invoice)));
 
     public static Task<long> ActiveTokensAsync(this CompanySettingsDatabaseFixture db, Guid invoice) =>
