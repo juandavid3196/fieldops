@@ -77,7 +77,7 @@ internal sealed class TechnicianHost : IAsyncDisposable
         string path, string? cookie, byte[] bytes, string declaredType, string? type, string fileName = "photo.jpg")
     {
         var part = new ByteArrayContent(bytes);
-        part.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(declaredType);
+        part.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse(declaredType);
 
         var form = new MultipartFormDataContent { { part, "file", fileName } };
 
