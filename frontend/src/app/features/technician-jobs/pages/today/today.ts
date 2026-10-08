@@ -1,12 +1,23 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  Injector,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { ProgressBar } from 'primeng/progressbar';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
+import { Toast } from 'primeng/toast';
 
 import { SessionService } from '../../../../core/services/session.service';
+import { TOAST_STATE_KEY, ToastHandoff } from '../../../requests/models/requests.model';
 import { VisitActions } from '../../components/visit-actions/visit-actions';
 import { TodayResponse, TodayVisit } from '../../models/technician-visits.model';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
@@ -50,7 +61,8 @@ type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
  */
 @Component({
   selector: 'app-today',
-  imports: [RouterLink, ButtonDirective, Message, ProgressBar, Skeleton, Tag, VisitActions],
+  imports: [RouterLink, ButtonDirective, Message, ProgressBar, Skeleton, Tag, Toast, VisitActions],
+  providers: [MessageService],
   templateUrl: './today.html',
   styleUrls: ['./today.scss', './today-route.scss'],
 })
@@ -59,6 +71,8 @@ export class Today {
   private readonly sessionService = inject(SessionService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly messageService = inject(MessageService);
 
   readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
   readonly statusLabels = STATUS_LABELS;
@@ -141,6 +155,12 @@ export class Today {
   constructor() {
     const timer = setInterval(() => this.now.set(Date.now()), TICK_MS);
     this.destroyRef.onDestroy(() => clearInterval(timer));
+    // Job completion hands over its "Job completed." toast through the navigation state.
+    const handoff = this.router.currentNavigation()?.extras.state?.[TOAST_STATE_KEY] as
+      ToastHandoff | undefined;
+    if (handoff !== undefined) {
+      afterNextRender(() => this.messageService.add(handoff), { injector: this.injector });
+    }
 
     if (this.sessionService.session()?.role.code !== 'technician') {
       this.state.set('forbidden');

@@ -15,6 +15,16 @@ import {
   TravelResult,
 } from '../models/technician-visits.model';
 
+/** Shell top bar of the Review & complete page. */
+export interface ShellHeader {
+  readonly backLabel: string;
+  readonly onBack: () => void;
+  readonly title: string;
+  readonly status: string;
+  readonly paused: boolean;
+  readonly time: string;
+}
+
 /** `/technician` endpoints. The technician is resolved server-side from the session. */
 @Injectable({ providedIn: 'root' })
 export class TechnicianVisitsService {
@@ -41,6 +51,15 @@ export class TechnicianVisitsService {
 
   setJobProgress(percent: number | null): void {
     this.progressOverride.set(percent);
+  }
+
+  private readonly headerOverride = signal<ShellHeader | null>(null);
+
+  /** Review & complete top bar (back action, work order number, status chip, labor time); `null` keeps the default. */
+  readonly shellHeader = this.headerOverride.asReadonly();
+
+  setShellHeader(header: ShellHeader | null): void {
+    this.headerOverride.set(header);
   }
 
   today(): Observable<TodayResponse> {
@@ -146,6 +165,11 @@ export class TechnicianVisitsService {
         }),
         filter((event): event is EvidenceUploadEvent => event !== null),
       );
+  }
+
+  /** Multipart completion: method and only the fields it allows (BR-05–BR-07). Primary technician only. */
+  complete(visitId: string, body: FormData): Observable<TravelResult> {
+    return this.http.post<TravelResult>(this.visitUrl(visitId, 'complete'), body);
   }
 
   deleteEvidence(visitId: string, evidenceId: string): Observable<TechnicianVisitDetail> {

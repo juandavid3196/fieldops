@@ -1,0 +1,150 @@
+// Customer acknowledgment step: method cards and the fields of the selected method.
+.ack {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  &__methods {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-inline-size: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__method {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    box-sizing: border-box;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.625rem 0.75rem;
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    &--selected {
+      border-color: var(--fo-color-primary);
+      box-shadow: 0 0 0 1px var(--fo-color-primary);
+    }
+
+    &:focus-within {
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    > .pi {
+      flex: none;
+      inline-size: 1.5rem;
+      font-size: 1.25rem;
+      text-align: center;
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__radio,
+  &__check input {
+    flex: none;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    margin: 0;
+    accent-color: var(--fo-color-primary);
+  }
+
+  &__method-text {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    color: var(--fo-color-text-secondary);
+
+    strong {
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__fields {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  &__pair {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-inline-size: 0;
+  }
+
+  &__label {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__input {
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    font: inherit;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+
+    &[aria-invalid='true'] {
+      border-color: var(--fo-color-danger-solid);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-color-primary);
+      outline-offset: 1px;
+    }
+  }
+
+  &__select {
+    padding-inline: 0.5rem;
+  }
+
+  &__textarea {
+    min-block-size: 5rem;
+    resize: vertical;
+  }
+
+  &__check {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+
+    &::before {
+      content: '\26A0\00a0';
+    }
+  }
+
+  &__info {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin: 0;
+    padding: 0.625rem 0.75rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border: 1px solid var(--fo-color-info-border);
+    border-radius: var(--fo-radius-control);
+  }
+}

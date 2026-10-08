@@ -1,0 +1,46 @@
+<div class="pad">
+  <canvas
+    #canvas
+    class="pad__canvas"
+    role="img"
+    tabindex="0"
+    aria-label="Customer signature"
+    [class.pad__canvas--invalid]="invalid()"
+    [attr.aria-describedby]="describedBy()"
+    [attr.aria-invalid]="invalid() ? 'true' : null"
+    (pointerdown)="start($event)"
+    (pointermove)="move($event)"
+    (pointerup)="end($event)"
+    (pointercancel)="end($event)"
+  ></canvas>
+  <div class="pad__actions">
+    <button
+      pButton
+      type="button"
+      class="pad__button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="disabled() || !captured()"
+      (click)="clear()"
+    >
+      Clear
+    </button>
+    <button
+      pButton
+      type="button"
+      class="pad__button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="disabled() || !captured()"
+      (click)="undo()"
+    >
+      <i class="pi pi-undo" aria-hidden="true"></i>
+      Redo
+    </button>
+  </div>
+  <p class="pad__status" [id]="statusId" role="status">
+    <i class="pi" [class]="captured() ? 'pi-check-circle' : 'pi-pencil'" aria-hidden="true"></i>
+    {{ statusText() }}
+  </p>
+  <p class="pad__notice" role="status">{{ notice() }}</p>
+</div>

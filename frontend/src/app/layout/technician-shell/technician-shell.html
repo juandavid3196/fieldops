@@ -1,6 +1,25 @@
 <div class="tshell">
   <header class="tshell__topbar">
-    @if (back(); as backTarget) {
+    @if (header(); as job) {
+      <button
+        type="button"
+        class="tshell__icon-button"
+        [attr.aria-label]="job.backLabel"
+        (click)="job.onBack()"
+      >
+        <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      </button>
+      <p class="tshell__title tshell__title--job">{{ job.title }}</p>
+      <span class="tshell__chip" [class.tshell__chip--paused]="job.paused">
+        <i class="pi" [class]="job.paused ? 'pi-pause' : 'pi-play'" aria-hidden="true"></i>
+        {{ job.status }}
+      </span>
+      <span class="tshell__time">
+        <i class="pi pi-clock" aria-hidden="true"></i>
+        <span class="tshell__sr">Work time</span>
+        {{ job.time }}
+      </span>
+    } @else if (back(); as backTarget) {
       <a
         class="tshell__icon-button"
         [routerLink]="backTarget.link"
@@ -14,40 +33,42 @@
         <span aria-hidden="true">Field<span class="tshell__accent">Ops</span></span>
       </a>
     }
-    <p class="tshell__title">{{ pageTitle() }}</p>
+    @if (header() === null) {
+      <p class="tshell__title">{{ pageTitle() }}</p>
 
-    <a class="tshell__icon-button" [routerLink]="notificationsLink" aria-label="Notifications">
-      <i class="pi pi-bell" aria-hidden="true"></i>
-    </a>
+      <a class="tshell__icon-button" [routerLink]="notificationsLink" aria-label="Notifications">
+        <i class="pi pi-bell" aria-hidden="true"></i>
+      </a>
 
-    <div class="tshell__account" data-shell-panel>
-      <button
-        type="button"
-        class="tshell__avatar"
-        aria-controls="tshell-account-panel"
-        [attr.aria-expanded]="accountOpen()"
-        [attr.aria-label]="'Account menu, ' + fullName()"
-        [style]="avatarStyle()"
-        (click)="togglePanel('account')"
-      >
-        <span aria-hidden="true">{{ initials() }}</span>
-      </button>
+      <div class="tshell__account" data-shell-panel>
+        <button
+          type="button"
+          class="tshell__avatar"
+          aria-controls="tshell-account-panel"
+          [attr.aria-expanded]="accountOpen()"
+          [attr.aria-label]="'Account menu, ' + fullName()"
+          [style]="avatarStyle()"
+          (click)="togglePanel('account')"
+        >
+          <span aria-hidden="true">{{ initials() }}</span>
+        </button>
 
-      @if (accountOpen()) {
-        <div class="tshell__panel tshell__panel--account" id="tshell-account-panel">
-          <p class="tshell__panel-name">{{ fullName() }}</p>
-          <button
-            type="button"
-            class="tshell__panel-item"
-            [attr.aria-disabled]="signingOut()"
-            (click)="signOut()"
-          >
-            <i class="pi pi-sign-out" aria-hidden="true"></i>
-            Sign out
-          </button>
-        </div>
-      }
-    </div>
+        @if (accountOpen()) {
+          <div class="tshell__panel tshell__panel--account" id="tshell-account-panel">
+            <p class="tshell__panel-name">{{ fullName() }}</p>
+            <button
+              type="button"
+              class="tshell__panel-item"
+              [attr.aria-disabled]="signingOut()"
+              (click)="signOut()"
+            >
+              <i class="pi pi-sign-out" aria-hidden="true"></i>
+              Sign out
+            </button>
+          </div>
+        }
+      </div>
+    }
   </header>
 
   @if (signOutFailed()) {
