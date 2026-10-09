@@ -350,10 +350,10 @@ public class InvoiceHubReadTests(CompanySettingsDatabaseFixture database)
         Assert.Equal($"payments-{HubSeed.Day(0)}.csv", payments.Content.Headers.ContentDisposition?.FileName?.Trim('"'));
         Assert.Equal(
             [
-                "Payment,Date,Customer,Invoice,Method,Reference,Amount,Currency,Received by",
-                $"{comma2.Display},{HubSeed.Day(-2)},'=Danger Co,{overdue.Display},Bank transfer,\"A,B \"\"x\"\"\",10.00,USD,Rita Receiver",
-                $"{newer.Display},{HubSeed.Day(-2)},\"Smith, John\",{partial.Display},Check,'=1+1,50.00,USD,Rita Receiver",
-                $"{older.Display},{HubSeed.Day(-12)},Carla Customer,{paid.Display},Cash,,25.00,USD,Rita Receiver",
+                "Payment,Date,Customer,Invoice,Method,Reference,Amount,Currency,Received by,Status",
+                $"{comma2.Display},{HubSeed.Day(-2)},'=Danger Co,{overdue.Display},Bank transfer,\"A,B \"\"x\"\"\",10.00,USD,Rita Receiver,Succeeded",
+                $"{newer.Display},{HubSeed.Day(-2)},\"Smith, John\",{partial.Display},Check,'=1+1,50.00,USD,Rita Receiver,Succeeded",
+                $"{older.Display},{HubSeed.Day(-12)},Carla Customer,{paid.Display},Cash,,25.00,USD,Rita Receiver,Succeeded",
             ],
             paymentsCsv.Split("\r\n", StringSplitOptions.RemoveEmptyEntries));
         var onlyChecks = await (await host.SendAsync(HttpMethod.Get, "/invoices/payments/export?method=check", owner)).Content.ReadAsStringAsync();

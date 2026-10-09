@@ -57,8 +57,13 @@
                 <span class="table__chip table__chip--info">{{ item.method }}</span>
               </td>
               <td>{{ item.row.reference ?? '—' }}</td>
-              <td class="table__number">{{ item.amount }}</td>
-              <td class="table__end">{{ item.row.receivedByName }}</td>
+              <td class="table__number">
+                {{ item.amount }}
+                @if (item.statusLabel; as label) {
+                  <span class="table__chip table__chip--warning">{{ label }}</span>
+                }
+              </td>
+              <td class="table__end">{{ item.row.receivedByName ?? '—' }}</td>
             </tr>
           }
         </tbody>

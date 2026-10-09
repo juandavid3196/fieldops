@@ -1,4 +1,6 @@
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.OnlinePayments;
+using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Domain.Invoices;
@@ -11,34 +13,19 @@ namespace FieldOps.Infrastructure.Persistence;
 /// from the token row and every later query filters by them. Every read is no-tracking and writes nothing: no status
 /// change, no audit, no view tracking. Null is the one identical "unavailable" outcome.
 /// </summary>
-internal sealed class InvoiceLinkStore(FieldOpsDbContext dbContext, TimeProvider timeProvider) : IInvoiceLinkStore
+internal sealed partial class InvoiceLinkStore(
+    FieldOpsDbContext dbContext,
+    TimeProvider timeProvider,
+    IPaymentGateway gateway,
+    IBankDetailsEncryptor encryptor) : IInvoiceLinkStore
 {
     public async Task<PublicInvoice?> ViewAsync(string token, CancellationToken cancellationToken)
     {
         var loaded = await ResolveAsync(token, cancellationToken);
 
-        if (loaded is null)
-        {
-            return null;
-        }
-
-        var preview = loaded.Value.Loaded.Preview;
-
-        return new PublicInvoice(
-            preview.Number,
-            preview.IssueDate,
-            preview.DueDate,
-            preview.PaymentTerms,
-            preview.Currency,
-            preview.Timezone,
-            preview.Organization,
-            preview.BillTo,
-            preview.ServiceAddress,
-            preview.WorkOrderNumber,
-            preview.Lines,
-            preview.Totals,
-            preview.CompletionNote,
-            "sent");
+        return loaded is null
+            ? null
+            : await BuildPublicInvoiceAsync(loaded.Value.Invoice, loaded.Value.Loaded, cancellationToken);
     }
 
     public async Task<InvoicePdfSource?> GetPdfSourceAsync(string token, CancellationToken cancellationToken)
@@ -77,12 +64,15 @@ internal sealed class InvoiceLinkStore(FieldOpsDbContext dbContext, TimeProvider
     }
 
     // BR-19: the hash must match an unrevoked, unexpired token of an invoice that is neither draft nor void.
-    private async Task<Invoice?> ResolveInvoiceAsync(string token, CancellationToken cancellationToken)
+    private Task<Invoice?> ResolveInvoiceAsync(string token, CancellationToken cancellationToken) =>
+        ValidInvoices(dbContext, token, timeProvider.GetUtcNow()).SingleOrDefaultAsync(cancellationToken);
+
+    /// <summary>The invoice of a usable token (customer-invoice-payments BR-01), no-tracking; shared by every public flow.</summary>
+    internal static IQueryable<Invoice> ValidInvoices(FieldOpsDbContext dbContext, string token, DateTimeOffset now)
     {
         var hash = QuoteAccessTokens.Hash(token);
-        var now = timeProvider.GetUtcNow();
 
-        return await (
+        return
             from access in dbContext.InvoiceAccessTokens.AsNoTracking()
             join invoice in dbContext.Invoices.AsNoTracking()
                 on new { access.OrganizationId, Id = access.InvoiceId } equals new { invoice.OrganizationId, invoice.Id }
@@ -92,7 +82,6 @@ internal sealed class InvoiceLinkStore(FieldOpsDbContext dbContext, TimeProvider
                 && invoice.Status != InvoiceStatus.Draft
                 && invoice.Status != InvoiceStatus.Void
                 && invoice.CustomerSnapshot != null
-            select invoice)
-            .SingleOrDefaultAsync(cancellationToken);
+            select invoice;
     }
 }

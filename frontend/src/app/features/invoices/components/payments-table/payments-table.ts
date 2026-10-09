@@ -8,6 +8,7 @@ import {
   PAYMENTS_ERROR_MESSAGE,
   PAYMENTS_FILTERED_EMPTY_MESSAGE,
   PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_LABELS,
   Page,
   PaymentRow,
   Region,
@@ -37,7 +38,8 @@ export class PaymentsTable {
       row,
       date: formatCalendarDate(row.paidDate),
       method: PAYMENT_METHOD_LABELS[row.method],
-      amount: money(row.amount, row.currency),
+      amount: money(row.amount - row.refundedAmount, row.currency),
+      statusLabel: PAYMENT_STATUS_LABELS[row.status],
     })),
   );
   readonly emptyMessage = computed(() =>

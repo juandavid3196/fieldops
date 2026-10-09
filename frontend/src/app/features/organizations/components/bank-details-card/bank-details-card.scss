@@ -1,0 +1,101 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.bank-card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+  scroll-margin-block-start: calc(var(--fo-size-topbar) + 1rem);
+
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem;
+  }
+
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-text);
+  }
+
+  &__helper {
+    margin: 0 0 1rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__skeletons,
+  &__grid {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  &__grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(12.5rem, 100%), 1fr));
+    align-items: start;
+  }
+
+  &__load-error p,
+  &__message {
+    margin: 0;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__load-error {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__message {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    grid-column: 1 / -1;
+  }
+
+  &__masked {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      min-block-size: var(--fo-size-control);
+    }
+  }
+
+  &__mask {
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: var(--fo-color-text);
+  }
+
+  &__actions {
+    display: flex;
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+
+    button {
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  input {
+    min-block-size: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      min-block-size: var(--fo-size-control);
+    }
+  }
+}

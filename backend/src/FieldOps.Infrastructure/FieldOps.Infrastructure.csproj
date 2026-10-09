@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="10.*" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.*" />
     <PackageReference Include="PDFsharp-MigraDoc" Version="6.2.4" />
+    <PackageReference Include="Stripe.net" Version="53.0.0" />
   </ItemGroup>
 
   <!-- Inter Regular and Bold (SIL OFL 1.1) are embedded for the quote PDF only; no system font is ever used. -->

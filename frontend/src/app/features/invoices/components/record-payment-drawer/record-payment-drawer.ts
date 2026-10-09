@@ -35,10 +35,10 @@ import {
   PAYMENT_CONFLICT_MESSAGES,
   PAYMENT_FAILED_MESSAGE,
   PAYMENT_FORBIDDEN_MESSAGE,
-  PAYMENT_METHODS,
   PAYMENT_METHOD_LABELS,
   PAYMENT_UNAVAILABLE_MESSAGE,
   PaymentMethod,
+  RECORDABLE_METHODS,
   REFERENCE_REQUIRED_METHODS,
   RECEIPT_FAILED_MESSAGE,
   RECEIPT_SENT_MESSAGE,
@@ -119,7 +119,7 @@ export class RecordPaymentDrawer {
   readonly titleId = 'record-payment-title';
   readonly noteMax = NOTE_MAX_LENGTH;
   readonly noRecipientMessage = NO_RECIPIENT_MESSAGE;
-  readonly methodChoices = PAYMENT_METHODS.map((code) => ({
+  readonly methodChoices = RECORDABLE_METHODS.map((code) => ({
     code,
     label: PAYMENT_METHOD_LABELS[code],
   }));

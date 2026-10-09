@@ -1,0 +1,74 @@
+:host {
+  display: block;
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  box-sizing: border-box;
+  max-inline-size: 36rem;
+  margin: 2rem auto;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  &__art {
+    position: relative;
+    display: grid;
+    place-items: center;
+    inline-size: 6rem;
+    block-size: 6rem;
+    font-size: 2.5rem;
+    color: var(--fo-color-text-secondary);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__badge {
+    position: absolute;
+    inset-inline-end: 0.5rem;
+    inset-block-end: 0.5rem;
+    display: grid;
+    place-items: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    font-size: 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__detail {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__protect {
+    inline-size: 100%;
+    margin: 0.5rem 0 0;
+    padding-block-start: 1rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    border-block-start: 1px solid var(--fo-color-row-divider);
+
+    i {
+      margin-inline-end: 0.375rem;
+    }
+  }
+}

@@ -131,6 +131,10 @@
             />
           </div>
         }
+
+        @if (showForm() && canManage()) {
+          <app-bank-details-card (unauthorized)="onUnauthorized()" />
+        }
       </div>
     }
   </div>

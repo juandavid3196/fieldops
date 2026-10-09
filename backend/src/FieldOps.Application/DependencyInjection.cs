@@ -8,6 +8,7 @@ using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
@@ -183,6 +184,18 @@ public static class DependencyInjection
         services.AddScoped<ViewInvoiceLinkHandler>();
         services.AddScoped<DownloadInvoiceLinkPdfHandler>();
         services.AddScoped<GetInvoiceLinkLogoHandler>();
+        services.AddScoped<PaymentAttemptExpirer>();
+        services.AddScoped<CreateCardIntentHandler>();
+        services.AddScoped<GetPaymentStatusHandler>();
+        services.AddScoped<ReportBankTransferHandler>();
+        services.AddScoped<SubmitInvoiceReviewHandler>();
+        services.AddScoped<DownloadReceiptPdfHandler>();
+        services.AddScoped<DownloadCompletionReportHandler>();
+        services.AddScoped<ListInvoicePhotosHandler>();
+        services.AddScoped<GetInvoicePhotoHandler>();
+        services.AddScoped<ProcessPaymentWebhookHandler>();
+        services.AddScoped<GetBankDetailsHandler>();
+        services.AddScoped<UpdateBankDetailsHandler>();
 
         return services;
     }

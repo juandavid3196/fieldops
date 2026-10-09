@@ -1,0 +1,182 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.panel {
+  position: relative;
+  padding: 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__text {
+    margin: 0.25rem 0 1rem;
+    color: var(--fo-color-text-secondary);
+  }
+}
+
+.alert,
+.info {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin: 0 0 1rem;
+  padding: 0.75rem;
+  border-radius: var(--fo-radius-panel);
+
+  p {
+    margin: 0;
+  }
+}
+
+.alert {
+  color: var(--fo-color-danger-text);
+  background: var(--fo-color-danger-background);
+  border: 1px solid var(--fo-color-danger-border);
+}
+
+.info {
+  color: var(--fo-color-info-text);
+  background: var(--fo-color-info-background);
+}
+
+.methods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.method {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  align-items: center;
+  justify-content: center;
+  min-block-size: var(--fo-size-touch-target);
+  padding: 0.75rem 0.375rem;
+  font-size: 0.8125rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-panel);
+
+  input {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+
+  small {
+    display: block;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &:has(input:focus-visible) {
+    box-shadow: var(--fo-focus-ring);
+  }
+
+  &:has(input:disabled) {
+    color: var(--fo-color-disabled-text);
+    cursor: not-allowed;
+    background: var(--fo-color-disabled-background);
+  }
+
+  // Selected: thicker border plus a check mark, never colour alone.
+  &--on {
+    font-weight: 600;
+    border: 2px solid var(--fo-color-primary);
+  }
+
+  &__check {
+    position: absolute;
+    inset-block-start: 0.25rem;
+    inset-inline-end: 0.375rem;
+    display: none;
+    color: var(--fo-color-primary-strong);
+
+    .method--on & {
+      display: block;
+    }
+  }
+}
+
+.reason {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--fo-color-text-secondary);
+}
+
+.cash,
+app-public-card-form,
+app-public-bank-transfer {
+  display: block;
+  margin-block-start: 1rem;
+}
+
+.cash {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  p {
+    margin: 0;
+  }
+
+  a {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-link);
+  }
+}
+
+.question {
+  margin: 1rem 0 0;
+  padding-block-start: 0.5rem;
+  border-block-start: 1px solid var(--fo-color-row-divider);
+
+  a {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-link);
+  }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  text-align: center;
+  background: color-mix(in srgb, var(--fo-color-surface) 80%, transparent);
+  border-radius: var(--fo-radius-card);
+
+  i {
+    font-size: 2rem;
+    color: var(--fo-color-primary);
+  }
+
+  h3,
+  p {
+    margin: 0;
+  }
+}

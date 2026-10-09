@@ -141,6 +141,12 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<PaymentAllocation> PaymentAllocations => Set<PaymentAllocation>();
 
+    public DbSet<InvoicePaymentAttempt> InvoicePaymentAttempts => Set<InvoicePaymentAttempt>();
+
+    public DbSet<PaymentWebhookEvent> PaymentWebhookEvents => Set<PaymentWebhookEvent>();
+
+    public DbSet<InvoiceReview> InvoiceReviews => Set<InvoiceReview>();
+
     public DbSet<Notification> Notifications => Set<Notification>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -159,6 +165,8 @@ public sealed class FieldOpsDbContext(
         modelBuilder.HasPostgresEnum<VisitStatus>(name: "visit_status");
         modelBuilder.HasPostgresEnum<InvoiceStatus>(name: "invoice_status");
         modelBuilder.HasPostgresEnum<PaymentMethod>(name: "payment_method");
+        modelBuilder.HasPostgresEnum<PaymentStatus>(name: "payment_status");
+        modelBuilder.HasPostgresEnum<PaymentAttemptStatus>(name: "payment_attempt_status");
         modelBuilder.HasPostgresEnum<NotificationStatus>(name: "notification_status");
 
         modelBuilder.ApplyConfigurationsFromAssembly(

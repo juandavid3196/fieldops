@@ -103,7 +103,7 @@ describe('Invoice routes', () => {
     expect(TestBed.inject(Router).url).toBe('/invoices/view');
     expect(harness.fixture.nativeElement.querySelector('app-shell')).toBeNull();
     expect(harness.fixture.nativeElement.textContent).toContain(
-      "This invoice link isn't available.",
+      'This invoice is no longer available',
     );
   }, 20_000);
 });

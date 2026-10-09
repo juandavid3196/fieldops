@@ -100,6 +100,44 @@ public static class ApiRateLimitingExtensions
 
     private const string InvoiceLinkReadGlobalPartition = "invoice-link-read-global";
 
+    /// <summary>payments/status of the public invoice link (customer-invoice-payments BR-23): 60 per client per 5 minutes.</summary>
+    public const string InvoiceLinkStatusPolicy = "invoice-link-status";
+
+    /// <summary>payments/card-intent of the public invoice link: 5 per client per 5 minutes.</summary>
+    public const string InvoiceLinkCardIntentPolicy = "invoice-link-card-intent";
+
+    /// <summary>
+    /// bank-transfer-notice and review of the public invoice link: BR-23 sets no per-client number for them, so only the global
+    /// window and the per-invoice hourly limit (<c>IInvoiceActionThrottle</c>) apply.
+    /// </summary>
+    public const string InvoiceLinkActionPolicy = "invoice-link-action";
+
+    public const int InvoiceLinkStatusPerClientPermitLimit = 60;
+
+    public const int InvoiceLinkStatusGlobalPermitLimit = 600;
+
+    public const int InvoiceLinkCardIntentPerClientPermitLimit = 5;
+
+    public const int InvoiceLinkCardIntentGlobalPermitLimit = 100;
+
+    public const int InvoiceLinkActionGlobalPermitLimit = 100;
+
+    public static readonly TimeSpan InvoiceLinkStatusPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan InvoiceLinkStatusGlobalWindow = TimeSpan.FromMinutes(1);
+
+    public static readonly TimeSpan InvoiceLinkCardIntentPerClientWindow = TimeSpan.FromMinutes(5);
+
+    public static readonly TimeSpan InvoiceLinkCardIntentGlobalWindow = TimeSpan.FromMinutes(1);
+
+    public static readonly TimeSpan InvoiceLinkActionGlobalWindow = TimeSpan.FromMinutes(1);
+
+    private const string InvoiceLinkStatusGlobalPartition = "invoice-link-status-global";
+
+    private const string InvoiceLinkCardIntentGlobalPartition = "invoice-link-card-intent-global";
+
+    private const string InvoiceLinkActionGlobalPartition = "invoice-link-action-global";
+
     private const string InvoiceLinkPdfGlobalPartition = "invoice-link-pdf-global";
 
     /// <summary>Shared by validate, accept and accept-existing (invitation BR-12).</summary>
@@ -289,6 +327,29 @@ public static class ApiRateLimitingExtensions
                         QueueLimit = 0,
                     }));
 
+            options.AddPolicy(InvoiceLinkStatusPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, InvoiceLinkStatusPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = InvoiceLinkStatusPerClientPermitLimit,
+                        Window = InvoiceLinkStatusPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
+            options.AddPolicy(InvoiceLinkCardIntentPolicy, httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    GetClientPartitionKey(httpContext, InvoiceLinkCardIntentPolicy),
+                    _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = InvoiceLinkCardIntentPerClientPermitLimit,
+                        Window = InvoiceLinkCardIntentPerClientWindow,
+                        QueueLimit = 0,
+                    }));
+
+            // No per-client number (BR-23): only the global window below applies, plus the per-invoice hourly limit.
+            options.AddPolicy(InvoiceLinkActionPolicy, _ => RateLimitPartition.GetNoLimiter(InvoiceLinkActionPolicy));
+
             // Applies only to endpoints using one of the named policies above.
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                 GetEndpointPolicyName(httpContext) switch
@@ -380,6 +441,30 @@ public static class ApiRateLimitingExtensions
                         {
                             PermitLimit = InvoiceLinkPdfGlobalPermitLimit,
                             Window = InvoiceLinkPdfGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    InvoiceLinkStatusPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        InvoiceLinkStatusGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = InvoiceLinkStatusGlobalPermitLimit,
+                            Window = InvoiceLinkStatusGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    InvoiceLinkCardIntentPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        InvoiceLinkCardIntentGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = InvoiceLinkCardIntentGlobalPermitLimit,
+                            Window = InvoiceLinkCardIntentGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    InvoiceLinkActionPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        InvoiceLinkActionGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = InvoiceLinkActionGlobalPermitLimit,
+                            Window = InvoiceLinkActionGlobalWindow,
                             QueueLimit = 0,
                         }),
                     _ => RateLimitPartition.GetNoLimiter(string.Empty),

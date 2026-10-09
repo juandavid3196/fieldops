@@ -1,0 +1,60 @@
+<form class="form" novalidate (submit)="pay($event)">
+  <div class="field">
+    <label class="field__label" for="cardholder-name">
+      Cardholder name <span aria-hidden="true">*</span>
+    </label>
+    <input
+      #name
+      pInputText
+      id="cardholder-name"
+      type="text"
+      autocomplete="cc-name"
+      placeholder="Name on card"
+      aria-required="true"
+      [value]="flow.cardholderName()"
+      [disabled]="flow.locked()"
+      [invalid]="nameError() !== null"
+      [attr.aria-invalid]="nameError() !== null ? 'true' : null"
+      [attr.aria-describedby]="nameError() !== null ? 'cardholder-name-error' : null"
+      (input)="onName($event)"
+    />
+    @if (nameError(); as message) {
+      <p id="cardholder-name-error" class="field__error">{{ message }}</p>
+    }
+  </div>
+
+  <div #element class="element" [hidden]="mountFailed()"></div>
+  @if (mountFailed()) {
+    <p class="field__error" role="alert">
+      We couldn't load the secure card form. Reload the page and try again.
+    </p>
+  }
+
+  <div class="pay-bar">
+    <button
+      pButton
+      type="submit"
+      class="pay-bar__button"
+      [disabled]="!mounted() || flow.locked()"
+      [attr.aria-busy]="flow.overlay()"
+    >
+      @if (flow.overlay()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      } @else {
+        <i class="pi pi-lock" aria-hidden="true"></i>
+      }
+      {{ buttonLabel() }}
+    </button>
+    <p class="pay-bar__secure">
+      <i class="pi pi-lock" aria-hidden="true"></i>Secure encrypted payment
+    </p>
+  </div>
+  @if (invoice().receiptEmail) {
+    <p class="receipt">You will receive a receipt by email after payment.</p>
+  }
+  @if (flow.phase() === 'failed') {
+    <button type="button" class="another" (click)="chooseAnother.emit()">
+      Choose another payment method
+    </button>
+  }
+</form>

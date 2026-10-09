@@ -80,6 +80,22 @@ public sealed class Organization
 
     public bool IsActive { get; private set; }
 
+    /// <summary>SA-18: stored for future Stripe Connect use; not read by customer-invoice-payments (AS-03).</summary>
+    public string? StripeAccountId { get; private set; }
+
+    /// <summary>SA-18: bank transfer details (BR-24); the five bank columns are all null or all set. Written by the bank details store.</summary>
+    public string? BankName { get; private set; }
+
+    /// <summary>AES-256-GCM output laid out as nonce, tag and cipher text; the plaintext is never stored.</summary>
+    public byte[]? BankAccountNumberCiphertext { get; private set; }
+
+    public string? BankAccountLast4 { get; private set; }
+
+    public string? BankRoutingNumber { get; private set; }
+
+    /// <summary>The concurrency value of the bank details (BR-25); moves independently of <see cref="UpdatedAt"/>.</summary>
+    public DateTimeOffset? BankDetailsUpdatedAt { get; private set; }
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }

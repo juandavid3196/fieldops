@@ -1,0 +1,19 @@
+<section class="notice">
+  @if (kind() === 'unavailable') {
+    <span class="notice__art" aria-hidden="true">
+      <i class="pi pi-file"></i>
+      <i class="pi pi-link notice__badge"></i>
+    </span>
+    <h1 class="notice__title" tabindex="-1">{{ unavailableTitle }}</h1>
+    <p class="notice__detail">{{ unavailableDetail }}</p>
+    <p class="notice__protect">
+      <i class="pi pi-lock" aria-hidden="true"></i>
+      {{ protection }}
+    </p>
+  } @else {
+    <h1 class="notice__title" tabindex="-1">
+      {{ kind() === 'rate-limited' ? rateLimited : loadError }}
+    </h1>
+    <button pButton type="button" severity="secondary" (click)="retry.emit()">Retry</button>
+  }
+</section>

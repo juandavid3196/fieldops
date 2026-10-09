@@ -189,6 +189,33 @@ public sealed class Invoice
         Touch(now);
     }
 
+    /// <summary>
+    /// Applies a provider refund delta (customer-invoice-payments BR-15): the amount paid shrinks and the balance grows by
+    /// the delta, and a non-void invoice recomputes its status from the amounts (a paid invoice reopens).
+    /// </summary>
+    public void ApplyRefund(decimal delta, DateTimeOffset now)
+    {
+        if (delta <= 0 || delta > AmountPaid)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(delta),
+                delta,
+                "The refund must be greater than zero and not exceed the amount paid.");
+        }
+
+        AmountPaid -= delta;
+        BalanceDue += delta;
+
+        if (Status != InvoiceStatus.Void)
+        {
+            Status = AmountPaid == 0m
+                ? InvoiceStatus.Sent
+                : AmountPaid >= Total ? InvoiceStatus.Paid : InvoiceStatus.PartiallyPaid;
+        }
+
+        Touch(now);
+    }
+
     /// <summary>Sets a new concurrency value, truncated to microseconds (the PostgreSQL precision) and always greater than the previous one.</summary>
     public void Touch(DateTimeOffset now)
     {

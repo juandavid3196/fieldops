@@ -110,6 +110,14 @@ describe('Record payment drawer', () => {
     );
     expect(body().querySelector('#record-payment-paidDate')?.getAttribute('max')).toBe(TODAY);
     expect(drawer.method()).toBeNull();
+    // BR-31 c: "Online card" is a filter value only, never selectable here.
+    expect(drawer.methodChoices.map((choice) => choice.label)).toEqual([
+      'Cash',
+      'Bank transfer',
+      'External card payment',
+      'Check',
+      'Other',
+    ]);
     expect(drawer.receivedByUserId()).toBe('u-1');
     expect(drawer.sendReceipt()).toBe(true);
     expect(body().textContent).toContain('0/500');
@@ -242,6 +250,15 @@ describe('Record payment drawer', () => {
         409,
         { code: 'invoice_not_payable' },
         { summary: "This invoice can't receive payments." },
+        true,
+      ],
+      [
+        409,
+        { code: 'payment_in_progress' },
+        {
+          summary:
+            'An online card payment is in progress for this invoice. Try again in a few minutes.',
+        },
         true,
       ],
       [

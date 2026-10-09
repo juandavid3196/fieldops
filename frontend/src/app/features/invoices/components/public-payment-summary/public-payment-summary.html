@@ -1,0 +1,55 @@
+<section class="summary" aria-labelledby="payment-summary-title">
+  <h2 id="payment-summary-title" class="summary__title">Payment summary</h2>
+  <dl class="summary__rows">
+    @if (detailed()) {
+      <div>
+        <dt>Invoice</dt>
+        <dd>{{ invoice().number }}</dd>
+      </div>
+      <div>
+        <dt>Service</dt>
+        <dd>{{ invoice().service.title }}</dd>
+      </div>
+      <div>
+        <dt>Work order</dt>
+        <dd>{{ invoice().service.workOrderNumber }}</dd>
+      </div>
+      <div class="summary__rule">
+        <dt>Subtotal</dt>
+        <dd>{{ view().subtotal }}</dd>
+      </div>
+      @if (view().discount; as discount) {
+        <div>
+          <dt>Discount</dt>
+          <dd>−{{ discount }}</dd>
+        </div>
+      }
+      <div>
+        <dt>{{ invoice().totals.taxLabel }}</dt>
+        <dd>{{ view().tax }}</dd>
+      </div>
+    }
+    @for (payment of view().payments; track $index) {
+      <div [class.summary__rule]="$first && !detailed()">
+        <dt>{{ payment.label }}</dt>
+        <dd>{{ payment.amount }}</dd>
+      </div>
+      @if (payment.refunded; as refunded) {
+        <div>
+          <dt>
+            <span class="summary__tag">{{ payment.refundTag }}</span>
+          </dt>
+          <dd>−{{ refunded }}</dd>
+        </div>
+      }
+    }
+    <div class="summary__total">
+      <dt>Total paid</dt>
+      <dd>{{ view().paid }}</dd>
+    </div>
+    <div>
+      <dt>Balance</dt>
+      <dd>{{ view().balance }}</dd>
+    </div>
+  </dl>
+</section>

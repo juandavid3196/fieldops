@@ -1,0 +1,92 @@
+<p-dialog
+  [visible]="visible()"
+  (visibleChange)="visible.set($event)"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  header="Before &amp; after photos"
+  [style]="{ width: '44rem' }"
+  [breakpoints]="{ '575px': '95vw' }"
+  (keydown)="onKey($event)"
+>
+  @switch (listState()) {
+    @case ('loading') {
+      <p class="gallery__state" role="status">
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        Loading photos
+      </p>
+    }
+    @case ('error') {
+      <p class="gallery__state" role="alert">
+        We couldn't load the photos.
+        <button pButton type="button" size="small" severity="secondary" (click)="loadList()">
+          Retry
+        </button>
+      </p>
+    }
+    @default {
+      @if (current(); as item) {
+        <figure class="gallery__figure">
+          <div class="gallery__frame" [attr.aria-busy]="item.image.state === 'loading'">
+            @switch (item.image.state) {
+              @case ('loading') {
+                <svg data-p-icon="spinner" [spin]="true" aria-label="Loading photo"></svg>
+              }
+              @case ('error') {
+                <p class="gallery__state" role="alert">
+                  We couldn't load this photo.
+                  <button
+                    pButton
+                    type="button"
+                    size="small"
+                    severity="secondary"
+                    (click)="retryImage(item.photo)"
+                  >
+                    Retry
+                  </button>
+                </p>
+              }
+              @default {
+                <img
+                  class="gallery__image"
+                  [src]="item.image.url"
+                  [alt]="item.photo.caption ?? item.typeLabel + ' photo'"
+                />
+              }
+            }
+          </div>
+          <figcaption>
+            <span class="gallery__type">{{ item.typeLabel }}</span>
+            @if (item.photo.caption; as caption) {
+              <span>{{ caption }}</span>
+            }
+            <span class="gallery__date">{{ item.date }}</span>
+          </figcaption>
+        </figure>
+        <div class="gallery__nav">
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            aria-label="Previous photo"
+            (click)="move(-1)"
+          >
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <span aria-live="polite">Photo {{ index() + 1 }} of {{ photos().length }}</span>
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            aria-label="Next photo"
+            (click)="move(1)"
+          >
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+      }
+    }
+  }
+</p-dialog>

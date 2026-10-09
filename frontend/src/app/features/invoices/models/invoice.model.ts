@@ -72,8 +72,101 @@ export interface InvoiceDetail extends InvoicePreview {
   readonly updatedAt: string;
 }
 
+/** Contracts of specs/customer-invoice-payments/spec.md (Final), BR-03 to BR-05. */
+export interface PublicTimeline {
+  readonly serviceCompletedOn: string | null;
+  readonly sentOn: string | null;
+  readonly paidOn: string | null;
+  readonly receiptOn: string | null;
+}
+
+export interface PublicService {
+  readonly title: string;
+  readonly workOrderNumber: string;
+  readonly completionNote: string | null;
+  readonly technicianName: string | null;
+  readonly serviceDate: string | null;
+  readonly hasCompletionReport: boolean;
+  readonly photoCount: number;
+}
+
+export interface PublicBankTransfer {
+  readonly available: boolean;
+  readonly bankName?: string;
+  readonly accountNumber?: string;
+  readonly routingNumber?: string;
+  readonly reference?: string;
+  readonly amount?: number;
+}
+
+export interface PublicPaymentOptions {
+  readonly card: { readonly available: boolean; readonly publishableKey: string | null };
+  readonly bankTransfer: PublicBankTransfer;
+  readonly cash: { readonly phone: string | null; readonly email: string | null };
+}
+
+export interface PublicPayment {
+  readonly paymentId: string;
+  readonly number: string;
+  readonly receiptNumber: string | null;
+  readonly paidOn: string;
+  readonly method: string;
+  readonly methodLabel: string;
+  /** Gross amount; the page shows `amount − refundedAmount`. */
+  readonly amount: number;
+  readonly refundedAmount: number;
+  readonly status: 'succeeded' | 'partially_refunded' | 'refunded';
+}
+
 export interface PublicInvoice extends InvoicePreview {
-  readonly status: 'sent';
+  readonly status: 'sent' | 'partially_paid' | 'paid';
+  readonly overdue: boolean;
+  readonly daysOverdue: number | null;
+  readonly amountPaid: number;
+  readonly balanceDue: number;
+  readonly customerFirstName: string | null;
+  readonly timeline: PublicTimeline;
+  readonly service: PublicService;
+  readonly paymentOptions: PublicPaymentOptions | null;
+  readonly activeAttempt: { readonly attemptId: string; readonly status: 'pending' } | null;
+  readonly transferReportedOn: string | null;
+  readonly payments: readonly PublicPayment[];
+  readonly review: { readonly available: boolean; readonly submitted: boolean };
+  readonly receiptEmail: string | null;
+}
+
+export interface CardIntent {
+  readonly attemptId: string;
+  readonly clientSecret: string | null;
+  readonly amount: number;
+  readonly currency: string;
+  readonly status: AttemptStatus;
+}
+
+export type AttemptStatus = 'pending' | 'succeeded' | 'failed' | 'partially_refunded' | 'refunded';
+
+export interface AttemptState {
+  readonly attemptId: string;
+  readonly status: AttemptStatus;
+  readonly failureCategory: string | null;
+  readonly payment: PublicPayment | null;
+  readonly invoice: {
+    readonly status: PublicInvoice['status'];
+    readonly amountPaid: number;
+    readonly balanceDue: number;
+  };
+}
+
+export interface BankTransferNotice {
+  readonly changed: boolean;
+  readonly reportedOn: string;
+}
+
+export interface PublicPhoto {
+  readonly photoId: string;
+  readonly type: 'before' | 'after';
+  readonly caption: string | null;
+  readonly takenOn: string;
 }
 
 export type EmailStatus = 'sent' | 'failed' | 'not_sent';
@@ -144,9 +237,49 @@ export const CONFLICT_MESSAGES: Readonly<Record<string, string>> = {
   invoice_not_sent: 'Only sent invoices can be emailed again.',
 };
 
-export const PUBLIC_UNAVAILABLE_MESSAGE =
-  "This invoice link isn't available. It may have expired or been replaced. Please contact the company that sent it.";
+/** BR-34 neutral state. */
+export const PUBLIC_UNAVAILABLE_MESSAGE = 'This invoice is no longer available';
+export const PUBLIC_UNAVAILABLE_DETAIL =
+  'This link can no longer be used. Contact the company if you need a new invoice link.';
+export const PUBLIC_PROTECTION_MESSAGE = 'For your protection, invoice details are not shown.';
 export const PUBLIC_RATE_LIMITED_MESSAGE =
   'Too many attempts. Please wait a few minutes and try again.';
-export const PUBLIC_PDF_FAILED_MESSAGE = "We couldn't download the PDF. Please try again.";
-export const PUBLIC_PAYMENT_NOTE = 'Online payment will be available soon.';
+export const PUBLIC_DOWNLOAD_FAILED_MESSAGE = "We couldn't download the file. Please try again.";
+
+/** BR-29 card flow copy. */
+export const CARD_FAILURE_TITLE = "Payment wasn't completed";
+export const CARD_DECLINED_MESSAGE =
+  'Your card was declined. Check the details or try another payment method.';
+export const CARD_EXPIRED_MESSAGE = 'The payment session expired. Try again.';
+export const CARD_OTHER_FAILURE_MESSAGE =
+  "We couldn't process your payment. Try again or use another payment method.";
+export const CARD_STILL_CONFIRMING_MESSAGE =
+  "We're still confirming your payment. You can safely close this page; we'll email your receipt.";
+export const CARD_START_FAILED_MESSAGE = "We couldn't start the payment. Try again.";
+export const CARD_UNAVAILABLE_MESSAGE = "Card payments aren't available right now.";
+export const BANK_UNAVAILABLE_MESSAGE = "Bank transfer isn't available for this invoice.";
+export const BANK_NOTICE_FAILED_MESSAGE = "We couldn't send your notice. Try again.";
+export const REVIEW_FAILED_MESSAGE = "We couldn't send your review. Try again.";
+export const NAME_REQUIRED_MESSAGE = 'Enter the cardholder name.';
+export const NAME_TOO_LONG_MESSAGE = 'Use 120 characters or fewer.';
+export const NAME_MAX_LENGTH = 120;
+export const REVIEW_COMMENT_MAX_LENGTH = 500;
+
+const DECLINED_CATEGORIES: readonly string[] = [
+  'card_declined',
+  'insufficient_funds',
+  'incorrect_cvc',
+  'expired_card',
+  'authentication_failed',
+];
+
+/** BR-29 message for a failed attempt, keyed by `failureCategory`. */
+export function failureMessage(category: string | null): string {
+  if (category !== null && DECLINED_CATEGORIES.includes(category)) {
+    return CARD_DECLINED_MESSAGE;
+  }
+  if (category === 'expired' || category === 'canceled') {
+    return CARD_EXPIRED_MESSAGE;
+  }
+  return CARD_OTHER_FAILURE_MESSAGE;
+}

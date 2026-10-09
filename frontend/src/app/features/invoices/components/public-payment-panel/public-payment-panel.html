@@ -1,0 +1,125 @@
+<section class="panel" aria-labelledby="pay-title" [attr.aria-busy]="flow.overlay()">
+  @if (flow.failure(); as message) {
+    <div class="alert" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <div>
+        <strong>{{ failureTitle }}</strong>
+        <p>{{ message }}</p>
+      </div>
+    </div>
+  }
+  @if (flow.startError(); as message) {
+    <div class="alert" role="alert">
+      <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+      <p>{{ message }}</p>
+    </div>
+  }
+  @if (flow.phase() === 'long-pending') {
+    <p class="info" role="status">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>{{ stillConfirming }}
+    </p>
+  }
+
+  <div [attr.inert]="flow.locked() ? '' : null">
+    <h2 id="pay-title" class="panel__title">Pay invoice</h2>
+    <p class="panel__text">Pay securely online using your preferred payment method.</p>
+
+    <div class="methods" role="radiogroup" aria-labelledby="pay-title">
+      <label class="method" [class.method--on]="method() === 'card'">
+        <input
+          type="radio"
+          name="payment-method"
+          value="card"
+          [checked]="method() === 'card'"
+          [disabled]="!cardAvailable() || flow.locked()"
+          [attr.aria-describedby]="cardAvailable() ? null : 'method-card-reason'"
+          (change)="select('card')"
+        />
+        <i class="pi pi-check-circle method__check" aria-hidden="true"></i>
+        <i class="pi pi-credit-card" aria-hidden="true"></i>
+        <span>Credit or debit card</span>
+      </label>
+      <label class="method" [class.method--on]="method() === 'bank'">
+        <input
+          type="radio"
+          name="payment-method"
+          value="bank"
+          [checked]="method() === 'bank'"
+          [disabled]="!bankAvailable() || flow.locked()"
+          [attr.aria-describedby]="bankAvailable() ? null : 'method-bank-reason'"
+          (change)="select('bank')"
+        />
+        <i class="pi pi-check-circle method__check" aria-hidden="true"></i>
+        <i class="pi pi-building-columns" aria-hidden="true"></i>
+        <span>Bank transfer (ACH)</span>
+      </label>
+      <label class="method" [class.method--on]="method() === 'cash'">
+        <input
+          type="radio"
+          name="payment-method"
+          value="cash"
+          [checked]="method() === 'cash'"
+          [disabled]="flow.locked()"
+          (change)="select('cash')"
+        />
+        <i class="pi pi-check-circle method__check" aria-hidden="true"></i>
+        <i class="pi pi-money-bill" aria-hidden="true"></i>
+        <span>
+          Cash
+          <small>Arrange with {{ invoice().organization.name }}</small>
+        </span>
+      </label>
+    </div>
+    @if (!cardAvailable()) {
+      <p id="method-card-reason" class="reason">{{ cardReason }}</p>
+    }
+    @if (!bankAvailable()) {
+      <p id="method-bank-reason" class="reason">{{ bankReason }}</p>
+    }
+
+    @switch (method()) {
+      @case ('card') {
+        <app-public-card-form [invoice]="invoice()" (chooseAnother)="chooseAnother()" />
+      }
+      @case ('bank') {
+        <app-public-bank-transfer
+          [invoice]="invoice()"
+          (reload)="reload.emit()"
+          (unavailable)="unavailable.emit()"
+        />
+      }
+      @default {
+        <section class="cash" aria-label="Cash payment">
+          <p>Contact {{ invoice().organization.name }} to arrange a cash payment.</p>
+          @if (phoneHref(); as href) {
+            <a [href]="href"><i class="pi pi-phone" aria-hidden="true"></i>{{ cash().phone }}</a>
+          }
+          @if (cash().email; as email) {
+            <a [href]="'mailto:' + email">
+              <i class="pi pi-envelope" aria-hidden="true"></i>{{ email }}
+            </a>
+          }
+        </section>
+      }
+    }
+
+    @if (questionHref(); as href) {
+      <p class="question">
+        <a [href]="href"
+          ><i class="pi pi-question-circle" aria-hidden="true"></i>I have a question about this
+          invoice</a
+        >
+      </p>
+    }
+  </div>
+
+  <div aria-live="polite">
+    @if (flow.overlay()) {
+      <div class="overlay">
+        <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+        <h3>Processing your payment</h3>
+        <p>Please keep this page open. This may take a few moments.</p>
+      </div>
+    }
+  </div>
+</section>
