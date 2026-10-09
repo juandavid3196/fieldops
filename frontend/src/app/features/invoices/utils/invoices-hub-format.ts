@@ -71,10 +71,6 @@ export function showingText(page: number, pageSize: number, total: number, noun:
   return `Showing ${first} – ${last} of ${total} ${noun}`;
 }
 
-export function pageCount(total: number, pageSize: number): number {
-  return Math.max(1, Math.ceil(total / pageSize));
-}
-
 export type PaymentField =
   'amount' | 'paidDate' | 'method' | 'reference' | 'receivedByUserId' | 'note';
 export type PaymentErrors = Partial<Record<PaymentField, string>>;

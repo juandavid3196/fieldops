@@ -1,42 +1,24 @@
 import { Component, computed, input, output } from '@angular/core';
-import { ButtonDirective } from 'primeng/button';
+import { Paginator, PaginatorState } from 'primeng/paginator';
 
-import { pageCount, showingText } from '../../utils/invoices-hub-format';
+import { showingText } from '../../utils/invoices-hub-format';
 
-/** Footer of a hub list: "Showing <a> – <b> of <n> <noun>" and Previous/Next paging (BR-22). */
+/** Footer of a hub list: "Showing <a> – <b> of <n> <noun>" and the page controls on the right (BR-22). */
 @Component({
   selector: 'app-hub-pager',
-  imports: [ButtonDirective],
+  imports: [Paginator],
   template: `
     <div class="pager">
       <p class="pager__text">{{ text() }}</p>
-      @if (pages() > 1) {
-        <nav class="pager__nav" aria-label="Pagination">
-          <button
-            pButton
-            type="button"
-            severity="secondary"
-            [outlined]="true"
-            size="small"
-            [disabled]="page() <= 1"
-            (click)="pageChange.emit(page() - 1)"
-          >
-            Previous
-          </button>
-          <span>Page {{ page() }} of {{ pages() }}</span>
-          <button
-            pButton
-            type="button"
-            severity="secondary"
-            [outlined]="true"
-            size="small"
-            [disabled]="page() >= pages()"
-            (click)="pageChange.emit(page() + 1)"
-          >
-            Next
-          </button>
-        </nav>
-      }
+      <p-paginator
+        class="pager__nav"
+        [first]="(page() - 1) * pageSize()"
+        [rows]="pageSize()"
+        [totalRecords]="total()"
+        [pageLinkSize]="3"
+        [showFirstLastIcon]="false"
+        (onPageChange)="changePage($event)"
+      />
     </div>
   `,
   styles: `
@@ -59,9 +41,9 @@ import { pageCount, showingText } from '../../utils/invoices-hub-format';
     }
 
     .pager__nav {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
+      margin-inline-start: auto;
+      --p-paginator-padding: 0;
+      --p-paginator-background: transparent;
     }
   `,
 })
@@ -73,10 +55,16 @@ export class HubPager {
 
   readonly pageChange = output<number>();
 
-  readonly pages = computed(() => pageCount(this.total(), this.pageSize()));
   readonly text = computed(() =>
     this.total() === 0
       ? `Showing 0 of 0 ${this.noun()}`
       : showingText(this.page(), this.pageSize(), this.total(), this.noun()),
   );
+
+  changePage(event: PaginatorState): void {
+    const page = (event.page ?? 0) + 1;
+    if (page !== this.page()) {
+      this.pageChange.emit(page);
+    }
+  }
 }

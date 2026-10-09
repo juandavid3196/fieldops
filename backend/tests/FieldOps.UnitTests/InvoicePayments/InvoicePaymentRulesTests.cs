@@ -59,8 +59,17 @@ public class InvoicePaymentRulesTests
             new DateTimeOffset(2026, 10, 9, 7, 0, 0, TimeSpan.Zero),
             InvoiceHubRules.DayStartUtc(new DateOnly(2026, 10, 9), zone));
 
-        // America/Sao_Paulo skipped local midnight in 2018-11-04: the first valid instant still converts back to that date.
-        var brazil = TimeZoneInfo.FindSystemTimeZoneById("America/Sao_Paulo");
+        // A zone that skips local midnight on 2018-11-04 (like America/Sao_Paulo): the first valid instant still converts back to
+        // that date. Built explicitly so the result does not depend on the platform's tz data.
+        var dstStart = TimeZoneInfo.TransitionTime.CreateFixedDateRule(new DateTime(1, 1, 1, 0, 0, 0), 11, 4);
+        var dstEnd = TimeZoneInfo.TransitionTime.CreateFixedDateRule(new DateTime(1, 1, 1, 0, 0, 0), 12, 30);
+        var brazil = TimeZoneInfo.CreateCustomTimeZone(
+            "Test/MidnightGap",
+            TimeSpan.FromHours(-3),
+            "Test/MidnightGap",
+            "Test/MidnightGap",
+            "Test/MidnightGap DST",
+            [TimeZoneInfo.AdjustmentRule.CreateAdjustmentRule(new DateTime(2018, 11, 1), new DateTime(2018, 12, 31), TimeSpan.FromHours(1), dstStart, dstEnd)]);
         var gap = new DateOnly(2018, 11, 4);
 
         Assert.Equal(gap, OrganizationTime.LocalDate(InvoiceHubRules.DayStartUtc(gap, brazil), brazil));

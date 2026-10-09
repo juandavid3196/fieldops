@@ -4,9 +4,9 @@
 | -------- | ------------------------------- |
 | Feature  | `invoices-payments-management`  |
 | Type     | Full-stack                      |
-| Status   | APPROVED                        |
+| Status   | AUDITED                         |
 | Created  | 2026-10-08                      |
-| Updated  | 2026-10-08                      |
+| Updated  | 2026-10-09                      |
 | Approved | 2026-10-08                      |
 
 ## Context and objective

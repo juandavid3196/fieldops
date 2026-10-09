@@ -23,6 +23,7 @@
           <button
             pButton
             type="button"
+            class="hub__export"
             severity="secondary"
             [outlined]="true"
             aria-haspopup="menu"
@@ -160,8 +161,7 @@
                   pButton
                   type="button"
                   class="hub__clear"
-                  severity="secondary"
-                  [text]="true"
+                  [link]="true"
                   (click)="clearInvoiceFilters()"
                 >
                   Clear filters
@@ -233,8 +233,7 @@
                   pButton
                   type="button"
                   class="hub__clear"
-                  severity="secondary"
-                  [text]="true"
+                  [link]="true"
                   (click)="clearPaymentFilters()"
                 >
                   Clear filters

@@ -145,7 +145,8 @@
     }
 
     dd {
-      margin: 0.125rem 0 0;
+      margin: 0.25rem 0 0;
+      font-size: 1.375rem;
       font-weight: 700;
       color: var(--fo-color-heading);
       overflow-wrap: anywhere;
@@ -153,23 +154,33 @@
 
     &--success {
       border-inline-start-color: var(--fo-color-success-solid);
+      background: var(--fo-color-success-background);
     }
 
     &--warning {
       border-inline-start-color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
     }
 
     &--orange {
       border-inline-start-color: var(--fo-color-warning-border);
+      background: color-mix(
+        in srgb,
+        var(--fo-color-warning-background),
+        var(--fo-color-danger-background)
+      );
     }
 
     &--danger {
       border-inline-start-color: var(--fo-color-danger-solid);
+      background: var(--fo-color-danger-background);
     }
   }
 
   &__scroll {
     overflow-x: auto;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
   }
 
   &__table {

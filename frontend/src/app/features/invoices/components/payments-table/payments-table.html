@@ -39,7 +39,7 @@
             <th scope="col">Method</th>
             <th scope="col">Reference</th>
             <th scope="col" class="table__number">Amount</th>
-            <th scope="col">Received by</th>
+            <th scope="col" class="table__end">Received by</th>
           </tr>
         </thead>
         <tbody>
@@ -58,7 +58,7 @@
               </td>
               <td>{{ item.row.reference ?? '—' }}</td>
               <td class="table__number">{{ item.amount }}</td>
-              <td>{{ item.row.receivedByName }}</td>
+              <td class="table__end">{{ item.row.receivedByName }}</td>
             </tr>
           }
         </tbody>

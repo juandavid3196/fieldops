@@ -57,6 +57,8 @@ export class DrawerShell {
     '--p-drawer-shadow': 'var(--fo-shadow-drawer)',
     '--p-drawer-header-padding': '0',
     '--p-drawer-footer-padding': '0',
+    // Same body inset as the docked panel (Aura's default has no top padding).
+    '--p-drawer-content-padding': '1.25rem',
     ...(this.isBelowMd()
       ? {}
       : {

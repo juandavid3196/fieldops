@@ -42,13 +42,33 @@
   &__footnote {
     display: flex;
     gap: 0.5rem;
-    align-items: flex-start;
+    align-items: center;
     margin: 0;
     padding: 0.75rem;
     font-size: 0.8125rem;
-    color: var(--fo-color-info-text);
-    background: var(--fo-color-info-background);
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-action-blue-soft);
     border-radius: var(--fo-radius-control);
+  }
+
+  // Solid info badge (Design 24): white "i" on the action blue.
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--fo-color-surface);
+    background: var(--fo-color-action-blue);
+    border-radius: 50%;
+  }
+
+  &__cancel {
+    --p-button-outlined-secondary-color: var(--fo-color-action-blue);
+    --p-button-outlined-secondary-border-color: var(--fo-color-action-blue);
   }
 
   &__footnote {

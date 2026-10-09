@@ -31,6 +31,10 @@
   // Inline links to other records
   --fo-color-link: light-dark(#2349ec, #8fa2ff);
 
+  // Secondary actions and notices in billing (Design 24)
+  --fo-color-action-blue: light-dark(#0851cd, #7fb0ff);
+  --fo-color-action-blue-soft: light-dark(#eaf1fc, rgb(8 81 205 / 22%));
+
   // Disabled
   --fo-color-disabled-background: light-dark(#e9eef3, #24313e);
   --fo-color-disabled-text: light-dark(#9aa5b1, #6b7a89);

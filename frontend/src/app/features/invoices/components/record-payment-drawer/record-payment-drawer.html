@@ -22,7 +22,7 @@
   <ng-container ngProjectAs="[drawerBody]">
     @if (row(); as invoice) {
       <p class="record__info">
-        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        <span class="record__icon" aria-hidden="true">i</span>
         Use this form only for money already received outside FieldOps. No card will be charged.
       </p>
 
@@ -188,6 +188,7 @@
     <button
       pButton
       type="button"
+      class="record__cancel"
       severity="secondary"
       [outlined]="true"
       [disabled]="submitting()"
@@ -202,7 +203,7 @@
       Record external payment
     </button>
     <p class="record__footnote">
-      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      <span class="record__icon" aria-hidden="true">i</span>
       This creates a payment record and updates the invoice balance. It does not process, authorize,
       or capture a card.
     </p>
