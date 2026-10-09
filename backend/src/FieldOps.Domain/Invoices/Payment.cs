@@ -14,7 +14,9 @@ public sealed class Payment
         PaymentMethod method,
         decimal amount,
         string currency,
-        DateTimeOffset paidAt)
+        DateTimeOffset paidAt,
+        Guid receivedByUserId,
+        Guid idempotencyKey)
     {
         Id = id;
         OrganizationId = organizationId;
@@ -24,6 +26,8 @@ public sealed class Payment
         Amount = amount;
         Currency = currency;
         PaidAt = paidAt;
+        ReceivedByUserId = receivedByUserId;
+        IdempotencyKey = idempotencyKey;
         CreatedAt = DateTimeOffset.UtcNow;
     }
 
@@ -49,6 +53,12 @@ public sealed class Payment
 
     public Guid? RecordedByUserId { get; private set; }
 
+    /// <summary>SA-12: the member who received the money.</summary>
+    public Guid ReceivedByUserId { get; private set; }
+
+    /// <summary>SA-12: the client key of the record request, unique per organization.</summary>
+    public Guid IdempotencyKey { get; private set; }
+
     // Set when the payment was captured externally (e.g. PaymentMethod.CardExternal):
     // FieldOps records the result, it never processes the payment itself.
     public string? ReceiptStorageKey { get; private set; }
@@ -62,7 +72,12 @@ public sealed class Payment
         PaymentMethod method,
         decimal amount,
         string currency,
-        DateTimeOffset paidAt)
+        DateTimeOffset paidAt,
+        Guid receivedByUserId,
+        Guid idempotencyKey,
+        Guid? recordedByUserId = null,
+        string? externalReference = null,
+        string? notes = null)
     {
         if (organizationId == Guid.Empty)
         {
@@ -101,6 +116,20 @@ public sealed class Payment
                 nameof(currency));
         }
 
+        if (receivedByUserId == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Received by user id is required.",
+                nameof(receivedByUserId));
+        }
+
+        if (idempotencyKey == Guid.Empty)
+        {
+            throw new ArgumentException(
+                "Idempotency key is required.",
+                nameof(idempotencyKey));
+        }
+
         return new Payment(
             Guid.NewGuid(),
             organizationId,
@@ -109,6 +138,13 @@ public sealed class Payment
             method,
             amount,
             currency.Trim(),
-            paidAt);
+            paidAt,
+            receivedByUserId,
+            idempotencyKey)
+        {
+            RecordedByUserId = recordedByUserId,
+            ExternalReference = externalReference,
+            Notes = notes,
+        };
     }
 }

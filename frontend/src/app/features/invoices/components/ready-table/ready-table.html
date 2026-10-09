@@ -1,0 +1,64 @@
+<div class="table" [attr.aria-busy]="region().status === 'loading'">
+  @if (region().status === 'error') {
+    <p class="table__message" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+        Retry
+      </button>
+    </p>
+  } @else if (region().data === null) {
+    <div class="table__skeletons">
+      @for (n of [1, 2, 3, 4, 5]; track n) {
+        <p-skeleton height="2.5rem" />
+      }
+    </div>
+  } @else if (rows().length === 0) {
+    <p class="table__message">
+      {{ emptyMessage }}
+      <a class="table__link" routerLink="/invoices/review">Needs review</a>
+    </p>
+  } @else {
+    <div class="table__scroll" [class.table__scroll--loading]="region().status === 'loading'">
+      <table class="table__table table__table--ready">
+        <thead>
+          <tr>
+            <th scope="col">Work order</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Job</th>
+            <th scope="col">Completed</th>
+            <th scope="col" class="table__number">Approved total</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.item.workOrderId) {
+            <tr>
+              <td>{{ row.item.number }}</td>
+              <td>{{ row.item.customerName }}</td>
+              <td>{{ row.item.title }}</td>
+              <td>{{ row.completed }}</td>
+              <td class="table__number">{{ row.total }}</td>
+              <td>
+                <a
+                  pButton
+                  severity="secondary"
+                  size="small"
+                  routerLink="/invoices/review"
+                  [queryParams]="{ workOrderId: row.item.workOrderId }"
+                  >Review and invoice</a
+                >
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-hub-pager
+      noun="jobs"
+      [page]="page()"
+      [pageSize]="region().data?.pageSize ?? 20"
+      [total]="region().data?.total ?? 0"
+      (pageChange)="pageChange.emit($event)"
+    />
+  }
+</div>

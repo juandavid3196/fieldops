@@ -45,6 +45,12 @@ public sealed class Organization
 
     public long NextInvoiceNumber { get; private set; } = 1;
 
+    /// <summary>SA-11: prefix of the payment numbers (invoices-payments-management).</summary>
+    public string PaymentPrefix { get; private set; } = "PAY";
+
+    /// <summary>SA-11: the next payment number; it moves only inside the transaction that records the payment.</summary>
+    public long NextPaymentNumber { get; private set; } = 1;
+
     /// <summary>
     /// Immutable public identifier used in the anonymous request form URL
     /// (public service request BR-21). Set once at creation, never by

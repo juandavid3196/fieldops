@@ -215,7 +215,7 @@ internal sealed partial class InvoiceDeliveryStore
 
             return ChangedOutcome<T>();
         }
-        catch (DbUpdateException ex) when (ex.InnerException is PostgresException postgres)
+        catch (DbUpdateException ex) when (ex.InnerException is PostgresException postgres && !IsIdempotencyViolation(postgres))
         {
             dbContext.ChangeTracker.Clear();
 

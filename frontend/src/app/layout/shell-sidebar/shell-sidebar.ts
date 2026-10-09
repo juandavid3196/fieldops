@@ -63,6 +63,11 @@ export class ShellSidebar {
    */
   isActive(item: NavItem): boolean {
     const path = this.url().split(/[?#]/)[0];
+    if (item.queryParams !== undefined) {
+      return (
+        path === item.link && this.queryMatches(item, this.router.parseUrl(this.url()).queryParams)
+      );
+    }
     if (item.exact) {
       return path === item.link;
     }
@@ -71,5 +76,22 @@ export class ShellSidebar {
     }
     const prefix = item.activePrefix ?? item.link;
     return path === prefix || path.startsWith(`${prefix}/`);
+  }
+
+  /**
+   * The recognised query pairs of the URL (keys and values some item of the same link declares)
+   * equal the item's own: an unknown value falls back to the default item (`queryParams: {}`).
+   */
+  private queryMatches(item: NavItem, query: Readonly<Record<string, string>>): boolean {
+    const siblings = this.allItems().filter(
+      (other) => other.link === item.link && other.queryParams !== undefined,
+    );
+    const pairs = (source: Readonly<Record<string, string>>): string[] =>
+      Object.entries(source)
+        .map(([key, value]) => `${key}=${value}`)
+        .sort();
+    const known = new Set(siblings.flatMap((other) => pairs(other.queryParams ?? {})));
+    const present = pairs(query).filter((pair) => known.has(pair));
+    return present.join('&') === pairs(item.queryParams ?? {}).join('&');
   }
 }

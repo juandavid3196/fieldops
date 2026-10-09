@@ -1,0 +1,309 @@
+<p-toast />
+<app-discard-changes-dialog />
+<p-menu #exportMenuRef [popup]="true" appendTo="body" [model]="exportMenu" />
+<p-menu #rowMenuRef [popup]="true" appendTo="body" [model]="rowMenu()" />
+<p class="hub__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+<div class="hub">
+  <div class="hub__main">
+    <a class="hub__back" routerLink="/invoices">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      Billing
+    </a>
+
+    <header class="hub__header">
+      <div class="hub__heading">
+        <h1 class="hub__title">Invoices &amp; payments</h1>
+        <p class="hub__subtitle">
+          Track invoices, outstanding balances, due dates, and customer payments.
+        </p>
+      </div>
+      @if (!forbidden()) {
+        <div class="hub__actions">
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            aria-haspopup="menu"
+            [disabled]="exporting()"
+            [attr.aria-busy]="exporting()"
+            (click)="exportMenuRef.toggle($event)"
+          >
+            Export
+            <i class="pi pi-chevron-down" aria-hidden="true"></i>
+          </button>
+          <button pButton type="button" (click)="selectTab('ready')">
+            <i class="pi pi-plus" aria-hidden="true"></i>
+            New invoice
+          </button>
+        </div>
+      }
+    </header>
+
+    @if (forbidden()) {
+      <p class="hub__message" role="alert">{{ forbiddenMessage }}</p>
+    } @else {
+      <app-invoice-overview
+        part="metrics"
+        [region]="overview()"
+        [currency]="options().data?.currency ?? 'USD'"
+        (retry)="retryOverview()"
+      />
+
+      @if (options().status === 'error') {
+        <p class="hub__message" role="alert">
+          {{ optionsMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retryOptions()">
+            Retry
+          </button>
+        </p>
+      }
+
+      <section class="hub__card" aria-label="Invoices and payments">
+        <div class="hub__tabs" role="tablist" aria-label="Invoices and payments views">
+          @for (item of tabs; track item.code; let index = $index) {
+            <button
+              type="button"
+              role="tab"
+              class="hub__tab"
+              [id]="'hub-tab-' + item.code"
+              aria-controls="hub-panel"
+              [attr.aria-selected]="tab() === item.code"
+              [attr.tabindex]="tab() === item.code ? 0 : -1"
+              (click)="selectTab(item.code)"
+              (keydown)="onTabKeydown($event, index)"
+            >
+              {{ item.label }}
+              @if (item.code === 'ready' && readyCount() !== null) {
+                <span class="hub__badge">{{ readyCount() }}</span>
+              }
+            </button>
+          }
+        </div>
+
+        <div id="hub-panel" role="tabpanel" [attr.aria-labelledby]="'hub-tab-' + tab()">
+          @switch (tab()) {
+            @case ('invoices') {
+              <div class="hub__filters" role="search" aria-label="Filter invoices">
+                <div class="hub__field hub__field--search">
+                  <p-iconfield>
+                    <p-inputicon class="pi pi-search" />
+                    <input
+                      pInputText
+                      type="search"
+                      fluid
+                      autocomplete="off"
+                      aria-label="Search invoices"
+                      placeholder="Search invoices, customers, or work orders..."
+                      [ngModel]="invoiceSearchText()"
+                      (ngModelChange)="invoiceSearchChanged($event)"
+                    />
+                  </p-iconfield>
+                </div>
+                <div class="hub__field hub__field--dates">
+                  <input
+                    pInputText
+                    type="date"
+                    aria-label="Invoice date from"
+                    [max]="invoiceTo() || null"
+                    [ngModel]="invoiceFrom()"
+                    (ngModelChange)="changeInvoiceDates({ from: $event })"
+                  />
+                  <span aria-hidden="true">–</span>
+                  <input
+                    pInputText
+                    type="date"
+                    aria-label="Invoice date to"
+                    [min]="invoiceFrom() || null"
+                    [ngModel]="invoiceTo()"
+                    (ngModelChange)="changeInvoiceDates({ to: $event })"
+                  />
+                </div>
+                <div class="hub__field">
+                  <span id="hub-status-label" class="hub__label">Status</span>
+                  <p-select
+                    appendTo="body"
+                    fluid
+                    ariaLabelledBy="hub-status-label"
+                    optionLabel="label"
+                    optionValue="code"
+                    [options]="statusOptions"
+                    [ngModel]="status() ?? 'all'"
+                    (ngModelChange)="changeStatus($event)"
+                  />
+                </div>
+                <div class="hub__field">
+                  <span id="hub-customer-label" class="hub__label">Customer</span>
+                  <p-select
+                    appendTo="body"
+                    fluid
+                    ariaLabelledBy="hub-customer-label"
+                    optionLabel="label"
+                    optionValue="code"
+                    [filter]="true"
+                    filterBy="label"
+                    [resetFilterOnHide]="true"
+                    [emptyFilterMessage]="noCustomers"
+                    [loading]="customersLoading()"
+                    [options]="customerChoices()"
+                    [ngModel]="customerId() ?? 'all'"
+                    (onFilter)="searchCustomers($event.filter ?? '')"
+                    (ngModelChange)="changeCustomer($event)"
+                  />
+                  @if (customersFailed()) {
+                    <span class="hub__field-error" role="status">{{ customersMessage }}</span>
+                  }
+                </div>
+                <ng-container *ngTemplateOutlet="branchField" />
+                <button
+                  pButton
+                  type="button"
+                  class="hub__clear"
+                  severity="secondary"
+                  [text]="true"
+                  (click)="clearInvoiceFilters()"
+                >
+                  Clear filters
+                </button>
+              </div>
+              <app-invoices-table
+                [region]="invoices()"
+                [page]="invoicePage()"
+                [filtered]="invoicesFiltered()"
+                [pdfBusyId]="pdfBusyId()"
+                (pageChange)="invoicePage.set($event)"
+                (retry)="retryList()"
+                (clearFilters)="clearInvoiceFilters()"
+                (openReady)="selectTab('ready')"
+                (menuRequested)="openRowMenu($event.event, $event.row, rowMenuRef)"
+              />
+            }
+            @case ('payments') {
+              <div class="hub__filters" role="search" aria-label="Filter payments">
+                <div class="hub__field hub__field--search">
+                  <p-iconfield>
+                    <p-inputicon class="pi pi-search" />
+                    <input
+                      pInputText
+                      type="search"
+                      fluid
+                      autocomplete="off"
+                      aria-label="Search payments"
+                      placeholder="Search payments, invoices, customers, or references..."
+                      [ngModel]="paymentSearchText()"
+                      (ngModelChange)="paymentSearchChanged($event)"
+                    />
+                  </p-iconfield>
+                </div>
+                <div class="hub__field hub__field--dates">
+                  <input
+                    pInputText
+                    type="date"
+                    aria-label="Payment date from"
+                    [max]="paymentTo() || null"
+                    [ngModel]="paymentFrom()"
+                    (ngModelChange)="changePaymentDates({ from: $event })"
+                  />
+                  <span aria-hidden="true">–</span>
+                  <input
+                    pInputText
+                    type="date"
+                    aria-label="Payment date to"
+                    [min]="paymentFrom() || null"
+                    [ngModel]="paymentTo()"
+                    (ngModelChange)="changePaymentDates({ to: $event })"
+                  />
+                </div>
+                <div class="hub__field">
+                  <span id="hub-method-label" class="hub__label">Method</span>
+                  <p-select
+                    appendTo="body"
+                    fluid
+                    ariaLabelledBy="hub-method-label"
+                    optionLabel="label"
+                    optionValue="code"
+                    [options]="methodOptions"
+                    [ngModel]="paymentMethod() ?? 'all'"
+                    (ngModelChange)="changeMethod($event)"
+                  />
+                </div>
+                <ng-container *ngTemplateOutlet="branchField" />
+                <button
+                  pButton
+                  type="button"
+                  class="hub__clear"
+                  severity="secondary"
+                  [text]="true"
+                  (click)="clearPaymentFilters()"
+                >
+                  Clear filters
+                </button>
+              </div>
+              <app-payments-table
+                [region]="payments()"
+                [page]="paymentPage()"
+                [filtered]="paymentsFiltered()"
+                (pageChange)="paymentPage.set($event)"
+                (retry)="retryList()"
+                (clearFilters)="clearPaymentFilters()"
+              />
+            }
+            @default {
+              @if (canChooseBranch()) {
+                <div class="hub__filters">
+                  <ng-container *ngTemplateOutlet="branchField" />
+                </div>
+              }
+              <app-ready-table
+                [region]="ready()"
+                [page]="readyPage()"
+                [timezone]="timezone()"
+                (pageChange)="readyPage.set($event)"
+                (retry)="retryReady()"
+              />
+            }
+          }
+        </div>
+      </section>
+
+      <app-invoice-overview
+        part="summary"
+        [region]="overview()"
+        [currency]="options().data?.currency ?? 'USD'"
+        (retry)="retryOverview()"
+        (viewAll)="selectTab('payments')"
+      />
+    }
+  </div>
+
+  @if (!forbidden()) {
+    <app-record-payment-drawer
+      [open]="drawerOpen()"
+      [row]="drawerRow()"
+      [options]="options().data"
+      (closed)="closeDrawer()"
+      (settled)="drawerSettled()"
+      (notice)="notify($event)"
+      (unauthorized)="handleSessionExpired()"
+    />
+  }
+</div>
+
+<ng-template #branchField>
+  @if (canChooseBranch()) {
+    <div class="hub__field">
+      <span id="hub-branch-label" class="hub__label">Branch</span>
+      <p-select
+        appendTo="body"
+        fluid
+        ariaLabelledBy="hub-branch-label"
+        optionLabel="label"
+        optionValue="code"
+        [options]="branchChoices()"
+        [ngModel]="branchId() ?? 'all'"
+        (ngModelChange)="changeBranch($event)"
+      />
+    </div>
+  }
+</ng-template>

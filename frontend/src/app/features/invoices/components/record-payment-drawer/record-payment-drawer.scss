@@ -1,0 +1,92 @@
+:host {
+  display: contents;
+}
+
+.record {
+  &__title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__spacer {
+    flex: 1;
+  }
+
+  &__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    padding: 0;
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__info,
+  &__footnote {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin: 0;
+    padding: 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__footnote {
+    flex: 1 1 100%;
+  }
+
+  &__summary {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.375rem 1rem;
+    margin: 1rem 0;
+    padding-block-end: 1rem;
+    border-block-end: 1px solid var(--fo-color-border);
+
+    dt {
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  &__counter {
+    align-self: flex-end;
+    font-size: 0.75rem;
+    color: var(--fo-color-text-muted);
+  }
+}

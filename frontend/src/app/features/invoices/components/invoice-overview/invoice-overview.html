@@ -1,0 +1,106 @@
+@if (part() === 'metrics') {
+  @if (region().status === 'error') {
+    <p class="overview__message" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+        Retry
+      </button>
+    </p>
+  } @else if (region().data === null) {
+    <div class="overview__metrics" aria-busy="true">
+      @for (n of [1, 2, 3, 4, 5]; track n) {
+        <p-skeleton height="5rem" />
+      }
+    </div>
+  } @else {
+    <dl class="overview__metrics" aria-label="Billing metrics">
+      @for (metric of metrics(); track metric.label) {
+        <div class="overview__metric">
+          <span
+            class="overview__metric-icon overview__metric-icon--{{ metric.tone }}"
+            aria-hidden="true"
+            ><i class="pi" [class]="metric.icon"></i
+          ></span>
+          <div>
+            <dt>{{ metric.label }}</dt>
+            <dd>{{ metric.value }}</dd>
+          </div>
+        </div>
+      }
+    </dl>
+  }
+} @else if (region().status !== 'error') {
+  <div class="overview__summary">
+    <section class="overview__card" aria-labelledby="aging-title">
+      <h2 class="overview__title" id="aging-title">Aging summary</h2>
+      @if (region().data === null) {
+        <div class="overview__aging" aria-busy="true">
+          @for (n of [1, 2, 3, 4]; track n) {
+            <p-skeleton height="4.5rem" />
+          }
+        </div>
+      } @else {
+        <dl class="overview__aging">
+          @for (bucket of aging(); track bucket.label) {
+            <div class="overview__bucket overview__bucket--{{ bucket.tone }}">
+              <dt>{{ bucket.label }}</dt>
+              <dd>{{ bucket.value }}</dd>
+            </div>
+          }
+        </dl>
+      }
+    </section>
+
+    <section class="overview__card" aria-labelledby="recent-title">
+      <div class="overview__card-header">
+        <h2 class="overview__title" id="recent-title">Recent payments</h2>
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [text]="true"
+          size="small"
+          (click)="viewAll.emit()"
+        >
+          View all
+        </button>
+      </div>
+      @if (region().data === null) {
+        <p-skeleton height="8rem" />
+      } @else if (recent().length === 0) {
+        <p class="overview__empty">{{ emptyMessage }}</p>
+      } @else {
+        <div class="overview__scroll">
+          <table class="overview__table">
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Customer</th>
+                <th scope="col">Invoice #</th>
+                <th scope="col" class="overview__number">Amount</th>
+                <th scope="col">Method</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of recent(); track row.payment.paymentId) {
+                <tr>
+                  <td>{{ row.date }}</td>
+                  <td>{{ row.payment.customerName }}</td>
+                  <td>
+                    <a class="overview__link" [routerLink]="['/invoices', row.payment.invoiceId]">{{
+                      row.payment.invoiceNumber
+                    }}</a>
+                  </td>
+                  <td class="overview__number">{{ row.amount }}</td>
+                  <td>
+                    <span class="overview__method">{{ row.method }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+}

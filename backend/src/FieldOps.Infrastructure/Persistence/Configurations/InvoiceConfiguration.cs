@@ -179,6 +179,10 @@ internal sealed class InvoiceConfiguration : IEntityTypeConfiguration<Invoice>
         })
             .HasDatabaseName("ix_invoices_status_due");
 
+        // CREATE INDEX ix_invoices_org_issue_date ON invoices (organization_id, issue_date) (SA-13)
+        builder.HasIndex(invoice => new { invoice.OrganizationId, invoice.IssueDate })
+            .HasDatabaseName("ix_invoices_org_issue_date");
+
         builder.HasOne<Organization>()
             .WithMany()
             .HasForeignKey(invoice => invoice.OrganizationId)

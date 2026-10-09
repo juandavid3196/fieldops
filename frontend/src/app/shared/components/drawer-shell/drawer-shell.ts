@@ -41,13 +41,15 @@ export class DrawerShell {
   readonly titleId = input.required<string>();
   /** Panel inline size (any CSS length). */
   readonly size = input('var(--fo-size-drawer)');
+  /** `false`: never docked beside the page; overlay from md, full screen below. */
+  readonly dockable = input(true);
 
   readonly closeRequested = output<void>();
 
   readonly isDocked = signal(false);
   readonly isBelowMd = signal(false);
   readonly mode = computed<DrawerMode>(() =>
-    this.isDocked() ? 'docked' : this.isBelowMd() ? 'fullscreen' : 'overlay',
+    this.dockable() && this.isDocked() ? 'docked' : this.isBelowMd() ? 'fullscreen' : 'overlay',
   );
 
   /** Token variables (`--p-drawer-*`) plus, from md, the panel below the top bar. */

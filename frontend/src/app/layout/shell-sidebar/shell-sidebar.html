@@ -56,11 +56,12 @@
                   </button>
                   @if (isOpen(item)) {
                     <ul class="sidebar__list sidebar__sublist" [id]="groupId(item)">
-                      @for (child of item.children; track child.link) {
+                      @for (child of item.children; track child.label) {
                         <li>
                           <a
                             class="sidebar__link sidebar__link--child"
                             [routerLink]="child.link"
+                            [queryParams]="child.queryParams"
                             [class.sidebar__link--active]="isActive(child)"
                             [attr.aria-current]="isActive(child) ? 'page' : null"
                             (click)="navigated.emit()"

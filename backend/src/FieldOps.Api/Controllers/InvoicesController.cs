@@ -2,6 +2,7 @@ using FieldOps.Api.Authorization;
 using FieldOps.Api.Contracts;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.InvoicePayments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -20,6 +21,7 @@ public sealed class InvoicesController(
     SaveInvoiceDraftHandler saveHandler,
     SendInvoiceHandler sendHandler,
     ResendInvoiceEmailHandler resendHandler,
+    RecordInvoicePaymentHandler recordPaymentHandler,
     IAuthorizationService authorization) : WorkOrderControllerBase
 {
     [HttpGet("invoices/{invoiceId:guid}")]
@@ -123,6 +125,28 @@ public sealed class InvoicesController(
         var failure = Begin(out var ticket);
 
         return failure ?? Respond(await resendHandler.HandleAsync(Call(ticket), invoiceId, body.UpdatedAt, cancellationToken), value => Ok(value));
+    }
+
+    [HttpPost("invoices/{invoiceId:guid}/payments")]
+    [Authorize(Policy = BillingReviewPolicies.Act)]
+    [Consumes("application/json")]
+    [RequestSizeLimit(MaxJsonBodyBytes)]
+    [ProducesResponseType<PaymentRecordResponse>(StatusCodes.Status201Created)]
+    [ProducesResponseType<PaymentRecordResponse>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RecordPayment(
+        Guid invoiceId,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] RecordPaymentRequestBody body,
+        CancellationToken cancellationToken)
+    {
+        var failure = Begin(out var ticket);
+
+        return failure ?? Respond(
+            await recordPaymentHandler.HandleAsync(Call(ticket), invoiceId, body.ToText(), cancellationToken),
+            result => result.Changed ? Created($"/invoices/{invoiceId}", result) : Ok(result));
     }
 
     private IActionResult Respond<T>(BillingOutcome<T> outcome, Func<T, IActionResult> success) =>

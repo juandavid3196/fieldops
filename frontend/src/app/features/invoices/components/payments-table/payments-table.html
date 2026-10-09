@@ -1,0 +1,75 @@
+<div class="table" [attr.aria-busy]="region().status === 'loading'">
+  @if (region().status === 'error') {
+    <p class="table__message" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+        Retry
+      </button>
+    </p>
+  } @else if (region().data === null) {
+    <div class="table__skeletons">
+      @for (n of [1, 2, 3, 4, 5]; track n) {
+        <p-skeleton height="2.5rem" />
+      }
+    </div>
+  } @else if (rows().length === 0) {
+    <p class="table__message">
+      {{ emptyMessage() }}
+      @if (filtered()) {
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          size="small"
+          (click)="clearFilters.emit()"
+        >
+          Clear filters
+        </button>
+      }
+    </p>
+  } @else {
+    <div class="table__scroll" [class.table__scroll--loading]="region().status === 'loading'">
+      <table class="table__table table__table--payments">
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Payment #</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Invoice #</th>
+            <th scope="col">Method</th>
+            <th scope="col">Reference</th>
+            <th scope="col" class="table__number">Amount</th>
+            <th scope="col">Received by</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of rows(); track item.row.id) {
+            <tr>
+              <td>{{ item.date }}</td>
+              <td>{{ item.row.number }}</td>
+              <td>{{ item.row.customerName }}</td>
+              <td>
+                <a class="table__link" [routerLink]="['/invoices', item.row.invoiceId]">{{
+                  item.row.invoiceNumber
+                }}</a>
+              </td>
+              <td>
+                <span class="table__chip table__chip--info">{{ item.method }}</span>
+              </td>
+              <td>{{ item.row.reference ?? '—' }}</td>
+              <td class="table__number">{{ item.amount }}</td>
+              <td>{{ item.row.receivedByName }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-hub-pager
+      noun="payments"
+      [page]="page()"
+      [pageSize]="region().data?.pageSize ?? 20"
+      [total]="region().data?.total ?? 0"
+      (pageChange)="pageChange.emit($event)"
+    />
+  }
+</div>
