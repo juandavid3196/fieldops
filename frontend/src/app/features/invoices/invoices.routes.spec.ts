@@ -60,7 +60,7 @@ describe('Invoice routes', () => {
     expect(root.tagName).toBe('APP-SHELL');
     expect(root.querySelector('h1')?.textContent).toContain('Invoice INV-1048');
     expect(root.querySelector('nav[aria-label="Breadcrumb"] a')?.getAttribute('href')).toBe(
-      '/invoices/review',
+      '/invoices',
     );
     const group = root.querySelector('nav .sidebar__link--parent')!;
     expect(group.textContent?.trim()).toBe('Invoices');

@@ -76,6 +76,16 @@ internal sealed class OrganizationConfiguration
             .HasDefaultValue(1L)
             .IsRequired();
 
+        // SA-11 (invoices-payments-management)
+        builder.Property(organization => organization.PaymentPrefix)
+            .HasMaxLength(20)
+            .HasDefaultValue("PAY")
+            .IsRequired();
+
+        builder.Property(organization => organization.NextPaymentNumber)
+            .HasDefaultValue(1L)
+            .IsRequired();
+
         // public_slug varchar(60) NOT NULL (no default): written once at
         // registration; the migration adds it nullable, backfills, then sets NOT NULL.
         builder.Property(organization => organization.PublicSlug)

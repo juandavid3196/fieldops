@@ -8,6 +8,11 @@ export interface NavItem {
   readonly exact: boolean;
   /** Non-exact items are current under this path prefix instead of their own link. */
   readonly activePrefix?: string;
+  /**
+   * Query params of the link. An item that defines them (an empty object for the default view)
+   * is current only when its path equals the link and the query matches them exactly.
+   */
+  readonly queryParams?: Readonly<Record<string, string>>;
   /** Sub-items rendered as an expandable group under this item (sidebar only). */
   readonly children?: readonly NavItem[];
 }
@@ -73,15 +78,46 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       {
         label: 'Invoices',
         icon: 'pi-receipt',
-        link: '/invoices/review',
+        link: '/invoices',
         exact: false,
         activePrefix: '/invoices',
         children: [
+          {
+            label: 'All invoices',
+            icon: 'pi-receipt',
+            link: '/invoices',
+            exact: false,
+            queryParams: {},
+          },
           { label: 'Needs review', icon: 'pi-list-check', link: '/invoices/review', exact: false },
-          moduleItem('Drafts', 'pi-file-edit', 'invoice-drafts'),
-          moduleItem('Sent', 'pi-send', 'invoice-sent'),
-          moduleItem('Payments', 'pi-wallet', 'invoice-payments'),
-          moduleItem('Overdue', 'pi-clock', 'invoice-overdue'),
+          {
+            label: 'Drafts',
+            icon: 'pi-file-edit',
+            link: '/invoices',
+            exact: false,
+            queryParams: { status: 'draft' },
+          },
+          {
+            label: 'Sent',
+            icon: 'pi-send',
+            link: '/invoices',
+            exact: false,
+            queryParams: { status: 'sent' },
+          },
+          {
+            label: 'Payments',
+            icon: 'pi-wallet',
+            link: '/invoices',
+            exact: false,
+            queryParams: { tab: 'payments' },
+          },
+          {
+            label: 'Overdue',
+            icon: 'pi-clock',
+            link: '/invoices',
+            exact: false,
+            queryParams: { status: 'overdue' },
+          },
         ],
       },
       moduleItem('Reports', 'pi-chart-bar', 'reports'),

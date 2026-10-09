@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
@@ -157,6 +157,7 @@ export class BillingReview {
   private readonly api = inject(BillingReviewService);
   private readonly sessionService = inject(SessionService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly messages = inject(MessageService);
@@ -237,6 +238,8 @@ export class BillingReview {
   private readonly detailLoads = new Subject<string>();
   private readonly searches = new Subject<string>();
   private actionSubscription: Subscription | null = null;
+  /** BR-29: the work order preselected by `?workOrderId=`; wins over the automatic selection. */
+  private pinnedId: string | null = null;
 
   constructor() {
     this.queueLoads
@@ -277,10 +280,21 @@ export class BillingReview {
 
     const role = this.sessionService.session()?.role.code ?? '';
     if (READ_ROLES.includes(role)) {
+      this.preselect(this.route.snapshot.queryParamMap.get('workOrderId'));
       this.loadOptions();
     } else {
       this.settle('forbidden');
     }
+  }
+
+  /** BR-29: "All time", then the work order's detail directly, so a job off page 1 is selected. */
+  private preselect(workOrderId: string | null): void {
+    if (workOrderId === null || workOrderId.trim() === '') {
+      return;
+    }
+    this.pinnedId = workOrderId;
+    this.filters.update((filters) => ({ ...filters, completed: 'all' }));
+    this.openJob(workOrderId, true);
   }
 
   private settle(state: PageState): void {
@@ -349,6 +363,9 @@ export class BillingReview {
       return;
     }
     this.queue.set(queue);
+    if (prefer === null && this.pinnedId !== null) {
+      return;
+    }
     const ids = queue.items.map((item) => item.workOrderId);
     const keep = this.selectedId();
     const next =
@@ -375,6 +392,7 @@ export class BillingReview {
 
   /** Reloads and selects the item after `id` in the previous list, else the first. */
   private reloadAfter(id: string): void {
+    this.pinnedId = null;
     const ids = this.queue()?.items.map((item) => item.workOrderId) ?? [];
     const next = ids[ids.indexOf(id) + 1] ?? null;
     this.selectedId.set(null);
@@ -382,6 +400,7 @@ export class BillingReview {
   }
 
   changeFilters(change: Partial<QueueFilters>): void {
+    this.pinnedId = null;
     this.filters.update((filters) => ({ ...filters, ...change, page: change.page ?? 1 }));
     this.selectedId.set(null);
     this.reloadQueue();
@@ -400,6 +419,9 @@ export class BillingReview {
   // Selection and detail
 
   select(id: string): void {
+    if (id !== this.pinnedId) {
+      this.pinnedId = null;
+    }
     if (id === this.selectedId()) {
       this.detailOpen.set(true);
       return;
@@ -455,7 +477,9 @@ export class BillingReview {
       this.detail.set(null);
       this.detailState.set('gone');
       this.selectedId.set(null);
-      this.reloadQueue();
+      if (this.pinnedId === null) {
+        this.reloadQueue();
+      }
     } else {
       this.detail.set(null);
       this.detailState.set('error');

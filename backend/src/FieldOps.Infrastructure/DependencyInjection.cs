@@ -8,6 +8,7 @@ using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.InvoicePayments;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
@@ -105,6 +106,9 @@ public static class DependencyInjection
         services.AddScoped<IDispatchStore, DispatchStore>();
         services.AddScoped<IBillingReviewStore, BillingReviewStore>();
         services.AddScoped<IInvoiceDeliveryStore, InvoiceDeliveryStore>();
+        services.AddScoped<IInvoicePaymentStore>(provider => (InvoiceDeliveryStore)provider.GetRequiredService<IInvoiceDeliveryStore>());
+        services.AddScoped<IInvoiceHubStore, InvoiceHubStore>();
+        services.AddScoped<IPaymentReceiptNotifier, PaymentReceiptNotifier>();
         services.AddScoped<IInvoiceLinkStore, InvoiceLinkStore>();
         services.AddScoped<IInvoiceNotifier, InvoiceNotifier>();
         services.AddScoped<IVisitNotifier, VisitNotifier>();

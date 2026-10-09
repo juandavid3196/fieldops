@@ -37,6 +37,10 @@ internal sealed class PaymentAllocationConfiguration
         builder.HasIndex(allocation => new { allocation.PaymentId, allocation.InvoiceId })
             .IsUnique();
 
+        // CREATE INDEX ix_payment_allocations_invoice ON payment_allocations (invoice_id) (SA-13)
+        builder.HasIndex(allocation => allocation.InvoiceId)
+            .HasDatabaseName("ix_payment_allocations_invoice");
+
         builder.HasOne<Payment>()
             .WithMany()
             .HasForeignKey(allocation => allocation.PaymentId)

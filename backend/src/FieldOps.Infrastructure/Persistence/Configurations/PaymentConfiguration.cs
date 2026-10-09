@@ -60,6 +60,13 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 
         builder.Property(payment => payment.RecordedByUserId);
 
+        // SA-12 (invoices-payments-management): NOT NULL, no default.
+        builder.Property(payment => payment.ReceivedByUserId)
+            .IsRequired();
+
+        builder.Property(payment => payment.IdempotencyKey)
+            .IsRequired();
+
         builder.Property(payment => payment.ReceiptStorageKey)
             .HasColumnType("text");
 
@@ -82,6 +89,15 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasDatabaseName("ix_payments_customer_date")
             .IsDescending(false, false, true);
 
+        // UNIQUE (organization_id, idempotency_key): the backstop of a duplicate record request (SA-12).
+        builder.HasIndex(payment => new { payment.OrganizationId, payment.IdempotencyKey })
+            .IsUnique();
+
+        // CREATE INDEX ix_payments_org_paid_at ON payments (organization_id, paid_at DESC) (SA-13)
+        builder.HasIndex(payment => new { payment.OrganizationId, payment.PaidAt })
+            .HasDatabaseName("ix_payments_org_paid_at")
+            .IsDescending(false, true);
+
         builder.HasOne<Organization>()
             .WithMany()
             .HasForeignKey(payment => payment.OrganizationId)
@@ -97,6 +113,11 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.HasOne<User>()
             .WithMany()
             .HasForeignKey(payment => payment.RecordedByUserId)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne<User>()
+            .WithMany()
+            .HasForeignKey(payment => payment.ReceivedByUserId)
             .OnDelete(DeleteBehavior.NoAction);
     }
 }

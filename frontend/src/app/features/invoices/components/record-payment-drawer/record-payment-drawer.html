@@ -1,0 +1,211 @@
+<app-drawer-shell
+  size="26.25rem"
+  [dockable]="false"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="record__title" [id]="titleId" tabindex="-1">Record external payment</h2>
+    <span class="record__spacer"></span>
+    <button
+      type="button"
+      class="record__close"
+      aria-label="Close record payment drawer"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (row(); as invoice) {
+      <p class="record__info">
+        <span class="record__icon" aria-hidden="true">i</span>
+        Use this form only for money already received outside FieldOps. No card will be charged.
+      </p>
+
+      <dl class="record__summary">
+        <dt>Invoice</dt>
+        <dd>{{ invoice.number }}</dd>
+        <dt>Customer</dt>
+        <dd>{{ invoice.customerName }}</dd>
+        <dt>Outstanding balance</dt>
+        <dd>{{ balanceText() }}</dd>
+      </dl>
+
+      <form class="record__form" ngNoForm novalidate (submit)="$event.preventDefault(); save()">
+        <fieldset class="record__group" [disabled]="submitting()">
+          <app-form-field
+            label="Amount"
+            controlId="record-payment-amount"
+            [required]="true"
+            [error]="error('amount')"
+          >
+            <p-inputgroup>
+              <p-inputgroup-addon>{{ currencySymbol() }}</p-inputgroup-addon>
+              <input
+                pInputText
+                id="record-payment-amount"
+                type="text"
+                inputmode="decimal"
+                autocomplete="off"
+                name="amount"
+                [attr.aria-invalid]="error('amount') !== null ? 'true' : null"
+                [attr.aria-describedby]="describedBy('amount')"
+                [ngModel]="amount()"
+                (ngModelChange)="amount.set($event); clear('amount')"
+              />
+            </p-inputgroup>
+          </app-form-field>
+
+          <app-form-field
+            label="Payment date"
+            controlId="record-payment-paidDate"
+            [required]="true"
+            [error]="error('paidDate')"
+          >
+            <input
+              pInputText
+              id="record-payment-paidDate"
+              type="date"
+              name="paidDate"
+              fluid
+              [min]="invoice.issueDate"
+              [max]="today()"
+              [attr.aria-invalid]="error('paidDate') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('paidDate')"
+              [ngModel]="paidDate()"
+              (ngModelChange)="paidDate.set($event); clear('paidDate')"
+            />
+          </app-form-field>
+
+          <app-form-field
+            label="Payment method"
+            controlId="record-payment-method"
+            [required]="true"
+            [error]="error('method')"
+            helper="Select how the payment was received."
+          >
+            <p-select
+              inputId="record-payment-method"
+              appendTo="body"
+              fluid
+              placeholder="Select a method"
+              optionLabel="label"
+              optionValue="code"
+              [options]="methodChoices"
+              [ngModel]="method()"
+              [invalid]="error('method') !== null"
+              [attr.aria-describedby]="describedBy('method')"
+              (ngModelChange)="method.set($event); clear('method'); clear('reference')"
+            />
+          </app-form-field>
+
+          <app-form-field
+            label="Reference number"
+            controlId="record-payment-reference"
+            [required]="referenceRequired()"
+            [error]="error('reference')"
+            helper="Required for external card payments, bank transfers, and checks."
+          >
+            <input
+              pInputText
+              id="record-payment-reference"
+              type="text"
+              name="reference"
+              fluid
+              autocomplete="off"
+              [attr.aria-invalid]="error('reference') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('reference')"
+              [ngModel]="reference()"
+              (ngModelChange)="reference.set($event); clear('reference')"
+            />
+          </app-form-field>
+
+          <app-form-field
+            label="Received by"
+            controlId="record-payment-receivedByUserId"
+            [required]="true"
+            [error]="error('receivedByUserId')"
+            helper="Person who received the payment."
+          >
+            <p-select
+              inputId="record-payment-receivedByUserId"
+              appendTo="body"
+              fluid
+              placeholder="Select a person"
+              optionLabel="label"
+              optionValue="code"
+              [options]="memberChoices()"
+              [ngModel]="receivedByUserId()"
+              [invalid]="error('receivedByUserId') !== null"
+              [attr.aria-describedby]="describedBy('receivedByUserId')"
+              (ngModelChange)="receivedByUserId.set($event); clear('receivedByUserId')"
+            />
+          </app-form-field>
+
+          <app-form-field
+            label="Send receipt"
+            controlId="record-payment-sendReceipt"
+            [helper]="hasRecipient() ? 'Send a receipt to the customer.' : noRecipientMessage"
+          >
+            <p-toggleswitch
+              inputId="record-payment-sendReceipt"
+              [ngModel]="hasRecipient() && sendReceipt()"
+              [disabled]="!hasRecipient()"
+              (ngModelChange)="sendReceipt.set($event)"
+            />
+          </app-form-field>
+
+          <app-form-field
+            label="Internal note"
+            controlId="record-payment-note"
+            [error]="error('note')"
+            helper="Visible only to your team."
+          >
+            <textarea
+              pTextarea
+              id="record-payment-note"
+              rows="3"
+              fluid
+              name="note"
+              placeholder="Add an internal note (optional)..."
+              [attr.aria-invalid]="error('note') !== null ? 'true' : null"
+              [attr.aria-describedby]="describedBy('note')"
+              [ngModel]="note()"
+              (ngModelChange)="note.set($event); clear('note')"
+            ></textarea>
+            <span class="record__counter">{{ note().length }}/{{ noteMax }}</span>
+          </app-form-field>
+        </fieldset>
+      </form>
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <button
+      pButton
+      type="button"
+      class="record__cancel"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      Cancel
+    </button>
+    <button pButton type="button" [disabled]="submitting()" (click)="save()">
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Record external payment
+    </button>
+    <p class="record__footnote">
+      <span class="record__icon" aria-hidden="true">i</span>
+      This creates a payment record and updates the invoice balance. It does not process, authorize,
+      or capture a card.
+    </p>
+  </ng-container>
+</app-drawer-shell>

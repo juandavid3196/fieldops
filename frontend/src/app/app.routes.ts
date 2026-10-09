@@ -1,13 +1,14 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
-import {
-  billingReviewRoute,
-  invoicesRedirectRoute,
-} from './features/billing-review/billing-review.routes';
+import { billingReviewRoute } from './features/billing-review/billing-review.routes';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { customerDetailRoute, customersRoute } from './features/customers/customers.routes';
-import { invoiceDetailRoute, publicInvoiceRoute } from './features/invoices/invoices.routes';
+import {
+  invoiceDetailRoute,
+  invoicesHubRoute,
+  publicInvoiceRoute,
+} from './features/invoices/invoices.routes';
 import { jobDetailRoute, jobsRoute } from './features/jobs/jobs.routes';
 import {
   quoteEditRoute,
@@ -84,7 +85,7 @@ export const routes: Routes = [
       teamRoute,
       skillsAvailabilityRoute,
       scheduleRoute,
-      invoicesRedirectRoute,
+      invoicesHubRoute,
       billingReviewRoute,
       invoiceDetailRoute,
     ],

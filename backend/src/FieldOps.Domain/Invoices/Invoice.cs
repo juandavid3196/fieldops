@@ -164,6 +164,31 @@ public sealed class Invoice
         Touch(now);
     }
 
+    /// <summary>
+    /// Applies an external payment (invoices-payments-management BR-13, BR-15): a sent or partially paid invoice moves
+    /// to partially_paid, or to paid when the balance reaches zero. The amount never exceeds the balance.
+    /// </summary>
+    public void ApplyPayment(decimal amount, DateTimeOffset now)
+    {
+        if (Status is not (InvoiceStatus.Sent or InvoiceStatus.PartiallyPaid))
+        {
+            throw new InvalidOperationException("Only a sent or partially paid invoice can receive payments.");
+        }
+
+        if (amount <= 0 || amount > BalanceDue)
+        {
+            throw new ArgumentOutOfRangeException(
+                nameof(amount),
+                amount,
+                "Amount must be greater than zero and not exceed the balance due.");
+        }
+
+        AmountPaid += amount;
+        BalanceDue -= amount;
+        Status = BalanceDue == 0m ? InvoiceStatus.Paid : InvoiceStatus.PartiallyPaid;
+        Touch(now);
+    }
+
     /// <summary>Sets a new concurrency value, truncated to microseconds (the PostgreSQL precision) and always greater than the previous one.</summary>
     public void Touch(DateTimeOffset now)
     {

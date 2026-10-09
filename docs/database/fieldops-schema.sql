@@ -28,6 +28,8 @@ CREATE TABLE organizations (
   postal_code varchar(30), country_code char(2), prices_include_tax boolean NOT NULL DEFAULT false,
   public_slug varchar(60) NOT NULL CHECK (public_slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(public_slug) BETWEEN 1 AND 60),
   request_prefix varchar(20) NOT NULL DEFAULT 'REQ', next_request_number bigint NOT NULL DEFAULT 1,
+  -- SA-11 (invoices-payments-management): payment number prefix and counter.
+  payment_prefix varchar(20) NOT NULL DEFAULT 'PAY', next_payment_number bigint NOT NULL DEFAULT 1,
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
 );
 CREATE UNIQUE INDEX ux_organizations_public_slug ON organizations(public_slug);
@@ -305,7 +307,9 @@ CREATE TABLE invoices (
 CREATE TABLE invoice_lines (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), invoice_id uuid NOT NULL REFERENCES invoices(id) ON DELETE CASCADE, source_quote_line_id uuid REFERENCES quote_lines(id), source_visit_material_id uuid REFERENCES visit_materials(id), description text NOT NULL, quantity numeric(12,3) NOT NULL CHECK(quantity>0), unit varchar(40) NOT NULL, unit_price numeric(14,2) NOT NULL CHECK(unit_price>=0), tax_rate numeric(7,4) NOT NULL DEFAULT 0, line_subtotal numeric(14,2) NOT NULL, line_tax numeric(14,2) NOT NULL, line_total numeric(14,2) NOT NULL, sort_order integer NOT NULL DEFAULT 0);
 -- SA-10 (invoice-draft-delivery): hashed secret of the public invoice link; only the SHA-256 hex of the token is stored.
 CREATE TABLE invoice_access_tokens (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), invoice_id uuid NOT NULL, token_hash text NOT NULL UNIQUE, expires_at timestamptz NOT NULL, revoked_at timestamptz, created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,invoice_id) REFERENCES invoices(organization_id,id), CONSTRAINT ck_invoice_access_tokens_expires_after_created CHECK(expires_at>created_at));
-CREATE TABLE payments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL, payment_number bigint NOT NULL, method payment_method NOT NULL, amount numeric(14,2) NOT NULL CHECK(amount>0), currency char(3) NOT NULL, paid_at timestamptz NOT NULL, external_reference varchar(160), notes text, recorded_by_user_id uuid REFERENCES users(id), receipt_storage_key text, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,payment_number), UNIQUE(organization_id,id));
+-- SA-12 (invoices-payments-management): received_by_user_id (any active member of the organization) and the client
+-- idempotency_key, unique per organization. A migration over existing payments rows fails instead of inventing values.
+CREATE TABLE payments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL, payment_number bigint NOT NULL, method payment_method NOT NULL, amount numeric(14,2) NOT NULL CHECK(amount>0), currency char(3) NOT NULL, paid_at timestamptz NOT NULL, external_reference varchar(160), notes text, recorded_by_user_id uuid REFERENCES users(id), received_by_user_id uuid NOT NULL REFERENCES users(id), idempotency_key uuid NOT NULL, receipt_storage_key text, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,payment_number), UNIQUE(organization_id,id), UNIQUE(organization_id,idempotency_key));
 CREATE TABLE payment_allocations (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), payment_id uuid NOT NULL REFERENCES payments(id) ON DELETE CASCADE, invoice_id uuid NOT NULL REFERENCES invoices(id), amount numeric(14,2) NOT NULL CHECK(amount>0), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(payment_id,invoice_id));
 
 CREATE TABLE notifications (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), recipient_user_id uuid REFERENCES users(id), recipient_contact_id uuid REFERENCES customer_contacts(id), channel varchar(20) NOT NULL CHECK(channel IN ('email','sms','in_app')), template_code varchar(80) NOT NULL, subject varchar(240), payload jsonb NOT NULL DEFAULT '{}'::jsonb, status notification_status NOT NULL DEFAULT 'pending', scheduled_at timestamptz NOT NULL DEFAULT now(), sent_at timestamptz, failure_reason text, created_at timestamptz NOT NULL DEFAULT now());
@@ -347,6 +351,10 @@ CREATE INDEX ix_invoices_status_due ON invoices(organization_id,status,due_date)
 -- SA-04 (completed-jobs-review): at most one non-void invoice per work order.
 CREATE UNIQUE INDEX ux_invoices_work_order_active ON invoices(organization_id,work_order_id) WHERE status <> 'void';
 CREATE INDEX ix_payments_customer_date ON payments(organization_id,customer_id,paid_at DESC);
+-- SA-13 (invoices-payments-management): hub lists and aggregates.
+CREATE INDEX ix_payment_allocations_invoice ON payment_allocations(invoice_id);
+CREATE INDEX ix_payments_org_paid_at ON payments(organization_id,paid_at DESC);
+CREATE INDEX ix_invoices_org_issue_date ON invoices(organization_id,issue_date);
 CREATE INDEX ix_audit_entity ON audit_logs(organization_id,entity_type,entity_id,occurred_at DESC);
 CREATE INDEX ix_audit_actor ON audit_logs(organization_id,actor_user_id,occurred_at DESC);
 CREATE INDEX ix_quote_access_tokens_version ON quote_access_tokens(quote_version_id) WHERE revoked_at IS NULL;

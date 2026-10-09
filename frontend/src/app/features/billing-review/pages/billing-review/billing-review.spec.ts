@@ -6,7 +6,7 @@ import {
 } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 
 import { API_CONFIG } from '../../../../core/config/api.config';
@@ -193,11 +193,14 @@ describe('Billing review page', () => {
     }
   };
 
-  async function setup(roleCode = 'owner', init = true): Promise<void> {
+  async function setup(roleCode = 'owner', init = true, url: string | null = null): Promise<void> {
     TestBed.configureTestingModule({
       providers: [
         { provide: API_CONFIG, useValue: { baseUrl: 'http://api.test' } },
-        provideRouter([{ path: 'auth/sign-in', component: Stub }]),
+        provideRouter([
+          { path: 'auth/sign-in', component: Stub },
+          { path: 'review', component: Stub },
+        ]),
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
       ],
@@ -209,6 +212,9 @@ describe('Billing review page', () => {
       organization: { id: 'o-1', name: 'Acme' },
       role: { code: roleCode, name: roleCode },
     });
+    if (url !== null) {
+      await TestBed.inject(Router).navigateByUrl(url);
+    }
     fixture = TestBed.createComponent(BillingReview);
     page = fixture.componentInstance;
     host = fixture.nativeElement as HTMLElement;
@@ -636,5 +642,39 @@ describe('Billing review page', () => {
     call('GET', 'queue').flush(queueBody([ITEM_2], 1));
     call('GET', 'work-orders/wo-2').flush(detailBody('wo-2'));
     await settle();
+  });
+  it.each([
+    ['a job outside the default window is selected and loaded', 200],
+    ['a missing job shows the existing 404 state', 404],
+  ])('preselects ?workOrderId= with "All time": %s (BR-29, AC-20)', async (_name, status) => {
+    await setup('owner', false, '/review?workOrderId=wo-9');
+    // The detail loads directly, without waiting for the queue.
+    const detailRequest = call('GET', 'work-orders/wo-9');
+    call('GET', 'options').flush({
+      timezone: TZ,
+      currency: 'USD',
+      branches: [],
+      technicians: [],
+      canAct: true,
+    });
+    const queue = call('GET', 'queue');
+    expect(queue.request.params.get('completed')).toBe('all');
+    queue.flush(queueBody([ITEM_1, ITEM_2], 2));
+    if (status === 200) {
+      detailRequest.flush(detailBody('wo-9'));
+    } else {
+      detailRequest.flush(null, { status: 404, statusText: 'Not Found' });
+    }
+    await settle();
+    // The listed first job is never auto-selected over the preselection.
+    httpTesting.expectNone((r) => r.url === `${API}/work-orders/wo-1`);
+    expect(page.filters().completed).toBe('all');
+    expect(text()).toContain('All time');
+    if (status === 200) {
+      expect(page.selectedId()).toBe('wo-9');
+      expect(text()).toContain('Kitchen sink leak repair');
+    } else {
+      expect(text()).toContain('This job is no longer in the review queue.');
+    }
   });
 });

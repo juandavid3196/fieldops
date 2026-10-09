@@ -10,6 +10,9 @@ public class PaymentTests
         var organizationId = Guid.NewGuid();
         var customerId = Guid.NewGuid();
         var paidAt = DateTimeOffset.UtcNow;
+        var receivedBy = Guid.NewGuid();
+        var recordedBy = Guid.NewGuid();
+        var key = Guid.NewGuid();
 
         var payment = Payment.Create(
             organizationId,
@@ -18,7 +21,12 @@ public class PaymentTests
             PaymentMethod.BankTransfer,
             250m,
             " USD ",
-            paidAt);
+            paidAt,
+            receivedBy,
+            key,
+            recordedBy,
+            "CHK-1",
+            "note");
 
         Assert.NotEqual(Guid.Empty, payment.Id);
         Assert.Equal(organizationId, payment.OrganizationId);
@@ -28,7 +36,11 @@ public class PaymentTests
         Assert.Equal(250m, payment.Amount);
         Assert.Equal("USD", payment.Currency);
         Assert.Equal(paidAt, payment.PaidAt);
-        Assert.Null(payment.RecordedByUserId);
+        Assert.Equal(recordedBy, payment.RecordedByUserId);
+        Assert.Equal(receivedBy, payment.ReceivedByUserId);
+        Assert.Equal(key, payment.IdempotencyKey);
+        Assert.Equal("CHK-1", payment.ExternalReference);
+        Assert.Equal("note", payment.Notes);
         Assert.Null(payment.ReceiptStorageKey);
     }
 
@@ -43,7 +55,9 @@ public class PaymentTests
                 PaymentMethod.Cash,
                 0m,
                 "USD",
-                DateTimeOffset.UtcNow));
+                DateTimeOffset.UtcNow,
+                Guid.NewGuid(),
+                Guid.NewGuid()));
     }
 
     [Fact]
@@ -57,7 +71,9 @@ public class PaymentTests
                 PaymentMethod.Cash,
                 100m,
                 "USD",
-                DateTimeOffset.UtcNow));
+                DateTimeOffset.UtcNow,
+                Guid.NewGuid(),
+                Guid.NewGuid()));
     }
 
     [Fact]
@@ -71,6 +87,8 @@ public class PaymentTests
                 PaymentMethod.Cash,
                 100m,
                 "USD",
-                DateTimeOffset.UtcNow));
+                DateTimeOffset.UtcNow,
+                Guid.NewGuid(),
+                Guid.NewGuid()));
     }
 }

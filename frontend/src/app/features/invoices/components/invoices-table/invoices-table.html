@@ -1,0 +1,107 @@
+<div class="table" [attr.aria-busy]="region().status === 'loading'">
+  @if (region().status === 'error') {
+    <p class="table__message" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+        Retry
+      </button>
+    </p>
+  } @else if (region().data === null) {
+    <div class="table__skeletons">
+      @for (n of [1, 2, 3, 4, 5]; track n) {
+        <p-skeleton height="2.5rem" />
+      }
+    </div>
+  } @else if (rows().length === 0) {
+    <p class="table__message">
+      {{ emptyMessage() }}
+      @if (filtered()) {
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          size="small"
+          (click)="clearFilters.emit()"
+        >
+          Clear filters
+        </button>
+      } @else {
+        <button pButton type="button" severity="secondary" size="small" (click)="openReady.emit()">
+          Completed jobs
+        </button>
+      }
+    </p>
+  } @else {
+    <div class="table__scroll" [class.table__scroll--loading]="region().status === 'loading'">
+      <table class="table__table">
+        <thead>
+          <tr>
+            <th scope="col">Invoice #</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Work order</th>
+            <th scope="col">Invoice date</th>
+            <th scope="col">Due date</th>
+            <th scope="col" class="table__number">Amount</th>
+            <th scope="col" class="table__number">Balance</th>
+            <th scope="col">Status</th>
+            <th scope="col">Last activity</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of rows(); track item.row.id) {
+            <tr>
+              <td>
+                <a class="table__link" [routerLink]="['/invoices', item.row.id]">{{
+                  item.row.number
+                }}</a>
+              </td>
+              <td>{{ item.row.customerName }}</td>
+              <td>
+                <a class="table__link" [routerLink]="['/jobs', item.row.workOrderId]">{{
+                  item.row.workOrderNumber
+                }}</a>
+              </td>
+              <td>{{ item.issueDate }}</td>
+              <td>{{ item.dueDate }}</td>
+              <td class="table__number">{{ item.total }}</td>
+              <td class="table__number">{{ item.balance }}</td>
+              <td>
+                <span class="table__chip table__chip--{{ item.chip.tone }}">
+                  <i class="pi" [class]="item.chip.icon" aria-hidden="true"></i>
+                  {{ item.status }}
+                </span>
+              </td>
+              <td>{{ item.activity }}</td>
+              <td>
+                <button
+                  type="button"
+                  class="table__menu"
+                  aria-haspopup="menu"
+                  [attr.aria-label]="'Actions for ' + item.row.number"
+                  [attr.aria-busy]="pdfBusyId() === item.row.id"
+                  (click)="menuRequested.emit({ event: $event, row: item.row })"
+                >
+                  <i
+                    class="pi"
+                    [class.pi-ellipsis-v]="pdfBusyId() !== item.row.id"
+                    [class.pi-spin]="pdfBusyId() === item.row.id"
+                    [class.pi-spinner]="pdfBusyId() === item.row.id"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <app-hub-pager
+      noun="invoices"
+      [page]="page()"
+      [pageSize]="region().data?.pageSize ?? 20"
+      [total]="region().data?.total ?? 0"
+      (pageChange)="pageChange.emit($event)"
+    />
+  }
+</div>

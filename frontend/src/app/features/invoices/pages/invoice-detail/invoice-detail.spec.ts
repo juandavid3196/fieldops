@@ -163,7 +163,7 @@ describe('InvoiceDetailPage', () => {
       'Invoices',
       'INV-1048',
     ]);
-    expect(host.querySelector('nav a[href="/invoices/review"]')).not.toBeNull();
+    expect(host.querySelector('nav[aria-label="Breadcrumb"] a[href="/invoices"]')).not.toBeNull();
     expect(host.querySelector('.page__meta a[href="/jobs/wo-1"]')?.textContent).toBe('WO-1048');
     expect(text()).toContain('Issue date:Oct 6, 2026');
     expect(text()).toContain('Invoice created from completed job WO-1048 · Not yet sent');

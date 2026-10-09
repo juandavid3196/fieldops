@@ -998,6 +998,9 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_invoices_organization_id_invoice_number");
 
+                    b.HasIndex("OrganizationId", "IssueDate")
+                        .HasDatabaseName("ix_invoices_org_issue_date");
+
                     b.HasIndex("OrganizationId", "WorkOrderId")
                         .IsUnique()
                         .HasDatabaseName("ux_invoices_work_order_active")
@@ -1216,6 +1219,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(160)")
                         .HasColumnName("external_reference");
 
+                    b.Property<Guid>("IdempotencyKey")
+                        .HasColumnType("uuid")
+                        .HasColumnName("idempotency_key");
+
                     b.Property<PaymentMethod>("Method")
                         .HasColumnType("payment_method")
                         .HasColumnName("method");
@@ -1240,6 +1247,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("text")
                         .HasColumnName("receipt_storage_key");
 
+                    b.Property<Guid>("ReceivedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("received_by_user_id");
+
                     b.Property<Guid?>("RecordedByUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("recorded_by_user_id");
@@ -1250,8 +1261,19 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasAlternateKey("OrganizationId", "Id")
                         .HasName("ak_payments_organization_id_id");
 
+                    b.HasIndex("ReceivedByUserId")
+                        .HasDatabaseName("ix_payments_received_by_user_id");
+
                     b.HasIndex("RecordedByUserId")
                         .HasDatabaseName("ix_payments_recorded_by_user_id");
+
+                    b.HasIndex("OrganizationId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payments_organization_id_idempotency_key");
+
+                    b.HasIndex("OrganizationId", "PaidAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_payments_org_paid_at");
 
                     b.HasIndex("OrganizationId", "PaymentNumber")
                         .IsUnique()
@@ -1298,7 +1320,7 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasName("pk_payment_allocations");
 
                     b.HasIndex("InvoiceId")
-                        .HasDatabaseName("ix_payment_allocations_invoice_id");
+                        .HasDatabaseName("ix_payment_allocations_invoice");
 
                     b.HasIndex("PaymentId", "InvoiceId")
                         .IsUnique()
@@ -1579,6 +1601,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDefaultValue(1L)
                         .HasColumnName("next_invoice_number");
 
+                    b.Property<long>("NextPaymentNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(1L)
+                        .HasColumnName("next_payment_number");
+
                     b.Property<long>("NextQuoteNumber")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
@@ -1596,6 +1624,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasDefaultValue(1L)
                         .HasColumnName("next_work_order_number");
+
+                    b.Property<string>("PaymentPrefix")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("PAY")
+                        .HasColumnName("payment_prefix");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(40)
@@ -4922,6 +4958,13 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_payments_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("ReceivedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_payments_users_received_by_user_id");
 
                     b.HasOne("FieldOps.Domain.Users.User", null)
                         .WithMany()
