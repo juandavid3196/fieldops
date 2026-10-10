@@ -1,0 +1,311 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+// Panel beside the card from 1280px (BR-33); the shared `lg` breakpoint is 1024px.
+$side-by-side: 80rem;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  &__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.75rem;
+    color: var(--fo-color-heading);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__sub {
+    margin: 0.25rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__download {
+    min-block-size: var(--fo-size-touch-target);
+  }
+}
+
+// Design 13: white secondary actions with dark text and a stronger border.
+.action {
+  --p-button-outlined-secondary-color: var(--fo-color-heading);
+  --p-button-outlined-secondary-border-color: var(--fo-color-border-strong);
+  --p-button-outlined-secondary-hover-background: var(--fo-color-surface-muted);
+
+  background: var(--fo-color-surface);
+
+  .pi {
+    font-size: 1.125rem;
+  }
+
+  &--blue {
+    --p-button-outlined-secondary-color: var(--fo-color-action-blue);
+  }
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--fo-color-neutral-text);
+  background: var(--fo-color-neutral-background);
+  border-radius: var(--fo-radius-pill);
+
+  &--info {
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-action-blue-soft);
+  }
+
+  &--success {
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+  }
+
+  &--warning {
+    color: var(--fo-color-warning-text);
+    background: var(--fo-color-warning-background);
+  }
+
+  &--danger {
+    color: var(--fo-color-danger-text);
+    background: var(--fo-color-danger-background);
+  }
+}
+
+.error {
+  margin: 0.5rem 0 0;
+  color: var(--fo-color-danger-text);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  margin-block-start: 1rem;
+
+  @media (min-width: $side-by-side) {
+    grid-template-columns: minmax(0, 1fr) minmax(24rem, 32rem);
+    // Card and side panel share the row height.
+    align-items: stretch;
+
+    &--closed {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+}
+
+.card {
+  min-width: 0;
+  padding: 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  @include bp.up(md) {
+    padding: 1.5rem;
+  }
+
+  &__top {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    padding-block-end: 1rem;
+    border-block-end: 1px solid var(--fo-color-row-divider);
+  }
+}
+
+.due {
+  &__label {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__amount {
+    margin: 0.25rem 0;
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__date,
+  &__note {
+    margin: 0;
+  }
+
+  &__note {
+    color: var(--fo-color-text-secondary);
+
+    &--late {
+      font-weight: 600;
+      color: var(--fo-color-danger-text);
+    }
+  }
+}
+
+.org {
+  &__brand {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__logo {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-primary-strong);
+    object-fit: contain;
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__address {
+    display: flex;
+    flex-direction: column;
+    margin-block-start: 0.5rem;
+    font-style: normal;
+    color: var(--fo-color-text-secondary);
+  }
+}
+
+.scroll {
+  margin-block-start: 1rem;
+  overflow-x: auto;
+}
+
+.lines {
+  inline-size: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.5rem;
+    text-align: start;
+    vertical-align: top;
+  }
+
+  thead th {
+    background: var(--fo-color-neutral-background);
+  }
+
+  tbody th {
+    font-weight: 500;
+  }
+
+  &__detail {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  .num {
+    text-align: end;
+    white-space: nowrap;
+  }
+}
+
+.totals {
+  max-inline-size: 18rem;
+  margin: 0.5rem 0 1rem auto;
+
+  div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0.5rem;
+  }
+
+  dd {
+    margin: 0;
+  }
+
+  &__total {
+    font-weight: 700;
+    background: var(--fo-color-neutral-background);
+  }
+}
+
+.service {
+  padding-block-start: 1rem;
+  border-block-start: 1px solid var(--fo-color-row-divider);
+
+  &__title {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__rows {
+    margin: 0;
+
+    div {
+      display: flex;
+      gap: 1.5rem;
+      padding-block: 0.25rem;
+    }
+
+    dt {
+      flex: none;
+      min-inline-size: 7rem;
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+    }
+  }
+
+  &__work-order {
+    color: var(--fo-color-action-blue);
+  }
+
+  &__actions {
+    display: grid;
+    gap: 0.5rem;
+    margin-block-start: 0.75rem;
+
+    @include bp.up(md) {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    button {
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+}
+
+.accordion__title {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}

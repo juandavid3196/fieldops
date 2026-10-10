@@ -11,7 +11,10 @@ CREATE TYPE quote_status AS ENUM ('draft','sent','approved','rejected','clarific
 CREATE TYPE work_order_status AS ENUM ('draft','ready_to_schedule','scheduled','in_progress','completed','approved_for_billing','cancelled');
 CREATE TYPE visit_status AS ENUM ('unscheduled','scheduled','assigned','on_the_way','in_progress','paused','completed','needs_correction','approved','cancelled');
 CREATE TYPE invoice_status AS ENUM ('draft','sent','partially_paid','paid','overdue','void');
-CREATE TYPE payment_method AS ENUM ('cash','bank_transfer','card_external','check','other');
+-- SA-14 (customer-invoice-payments): 'card_online' is appended to payment_method; the new enum types follow it.
+CREATE TYPE payment_method AS ENUM ('cash','bank_transfer','card_external','check','other','card_online');
+CREATE TYPE payment_status AS ENUM ('succeeded','partially_refunded','refunded');
+CREATE TYPE payment_attempt_status AS ENUM ('pending','succeeded','failed','partially_refunded','refunded');
 CREATE TYPE message_visibility AS ENUM ('customer','internal');
 CREATE TYPE notification_status AS ENUM ('pending','sent','failed','read');
 
@@ -30,7 +33,13 @@ CREATE TABLE organizations (
   request_prefix varchar(20) NOT NULL DEFAULT 'REQ', next_request_number bigint NOT NULL DEFAULT 1,
   -- SA-11 (invoices-payments-management): payment number prefix and counter.
   payment_prefix varchar(20) NOT NULL DEFAULT 'PAY', next_payment_number bigint NOT NULL DEFAULT 1,
-  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now()
+  -- SA-18 (customer-invoice-payments): stripe_account_id is stored for future Connect use; the bank transfer details
+  -- are all null or all set, the account number only as AES-256-GCM ciphertext (nonce|tag|cipher) plus its last four digits.
+  stripe_account_id varchar(255), bank_name varchar(120), bank_account_number_ciphertext bytea,
+  bank_account_last4 varchar(4), bank_routing_number char(9), bank_details_updated_at timestamptz,
+  created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  CHECK ((bank_name IS NULL) = (bank_account_number_ciphertext IS NULL) AND (bank_name IS NULL) = (bank_account_last4 IS NULL)
+    AND (bank_name IS NULL) = (bank_routing_number IS NULL) AND (bank_name IS NULL) = (bank_details_updated_at IS NULL))
 );
 CREATE UNIQUE INDEX ux_organizations_public_slug ON organizations(public_slug);
 CREATE TABLE organization_logos (
@@ -309,8 +318,20 @@ CREATE TABLE invoice_lines (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), invoi
 CREATE TABLE invoice_access_tokens (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), invoice_id uuid NOT NULL, token_hash text NOT NULL UNIQUE, expires_at timestamptz NOT NULL, revoked_at timestamptz, created_by_user_id uuid NOT NULL REFERENCES users(id), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,invoice_id) REFERENCES invoices(organization_id,id), CONSTRAINT ck_invoice_access_tokens_expires_after_created CHECK(expires_at>created_at));
 -- SA-12 (invoices-payments-management): received_by_user_id (any active member of the organization) and the client
 -- idempotency_key, unique per organization. A migration over existing payments rows fails instead of inventing values.
-CREATE TABLE payments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL, payment_number bigint NOT NULL, method payment_method NOT NULL, amount numeric(14,2) NOT NULL CHECK(amount>0), currency char(3) NOT NULL, paid_at timestamptz NOT NULL, external_reference varchar(160), notes text, recorded_by_user_id uuid REFERENCES users(id), received_by_user_id uuid NOT NULL REFERENCES users(id), idempotency_key uuid NOT NULL, receipt_storage_key text, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,payment_number), UNIQUE(organization_id,id), UNIQUE(organization_id,idempotency_key));
+CREATE TABLE payments (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), customer_id uuid NOT NULL, payment_number bigint NOT NULL, method payment_method NOT NULL, amount numeric(14,2) NOT NULL CHECK(amount>0), currency char(3) NOT NULL, paid_at timestamptz NOT NULL, external_reference varchar(160), notes text, recorded_by_user_id uuid REFERENCES users(id), received_by_user_id uuid REFERENCES users(id), idempotency_key uuid NOT NULL, receipt_storage_key text, created_at timestamptz NOT NULL DEFAULT now(),
+  -- SA-15 (customer-invoice-payments): status and refunded amount, receipt number and delivery, card brand and last four digits
+  -- of online payments; received_by_user_id is null only for card_online. Existing rows keep succeeded, 0 and no receipt number.
+  status payment_status NOT NULL DEFAULT 'succeeded', refunded_amount numeric(14,2) NOT NULL DEFAULT 0, receipt_number varchar(60), receipt_sent_at timestamptz, card_brand varchar(20), card_last4 char(4),
+  FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,payment_number), UNIQUE(organization_id,id), UNIQUE(organization_id,idempotency_key), UNIQUE(organization_id,receipt_number),
+  CHECK(refunded_amount BETWEEN 0 AND amount), CHECK((status = 'succeeded') = (refunded_amount = 0)), CHECK((status = 'refunded') = (refunded_amount = amount)),
+  CHECK((method::text = 'card_online') = (received_by_user_id IS NULL)), CHECK((method::text = 'card_online') = (card_last4 IS NOT NULL)));
 CREATE TABLE payment_allocations (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), payment_id uuid NOT NULL REFERENCES payments(id) ON DELETE CASCADE, invoice_id uuid NOT NULL REFERENCES invoices(id), amount numeric(14,2) NOT NULL CHECK(amount>0), created_at timestamptz NOT NULL DEFAULT now(), UNIQUE(payment_id,invoice_id));
+-- SA-16 (customer-invoice-payments): card and bank transfer attempts of an invoice. At most one pending attempt per invoice and method.
+CREATE TABLE invoice_payment_attempts (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), invoice_id uuid NOT NULL, method payment_method NOT NULL CHECK (method::text IN ('card_online','bank_transfer')), status payment_attempt_status NOT NULL DEFAULT 'pending', amount numeric(14,2) NOT NULL CHECK (amount > 0), currency char(3) NOT NULL, idempotency_key uuid NOT NULL, provider_payment_intent_id varchar(255) UNIQUE, payment_id uuid, failure_category varchar(40), refunded_amount numeric(14,2) NOT NULL DEFAULT 0 CHECK (refunded_amount >= 0 AND refunded_amount <= amount), expires_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY (organization_id, invoice_id) REFERENCES invoices(organization_id, id), FOREIGN KEY (organization_id, payment_id) REFERENCES payments(organization_id, id), UNIQUE (organization_id, idempotency_key), CHECK ((status = 'succeeded' OR status = 'partially_refunded' OR status = 'refunded') = (payment_id IS NOT NULL)));
+-- SA-17 (customer-invoice-payments): processed provider events, for idempotency only; no event payload is stored.
+CREATE TABLE payment_webhook_events (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), provider varchar(20) NOT NULL DEFAULT 'stripe', provider_event_id varchar(255) NOT NULL, event_type varchar(100) NOT NULL, organization_id uuid REFERENCES organizations(id), attempt_id uuid REFERENCES invoice_payment_attempts(id), outcome varchar(40) NOT NULL CHECK (outcome IN ('applied','no_effect','ignored','needs_attention')), received_at timestamptz NOT NULL DEFAULT now(), UNIQUE (provider, provider_event_id));
+-- SA-18 (customer-invoice-payments): one immutable review per work order.
+CREATE TABLE invoice_reviews (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), work_order_id uuid NOT NULL, invoice_id uuid NOT NULL, technician_id uuid, rating smallint NOT NULL CHECK (rating BETWEEN 1 AND 5), comment varchar(500), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY (organization_id, work_order_id) REFERENCES work_orders(organization_id, id), FOREIGN KEY (organization_id, invoice_id) REFERENCES invoices(organization_id, id), FOREIGN KEY (organization_id, technician_id) REFERENCES technician_profiles(organization_id, id), UNIQUE (work_order_id));
 
 CREATE TABLE notifications (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), recipient_user_id uuid REFERENCES users(id), recipient_contact_id uuid REFERENCES customer_contacts(id), channel varchar(20) NOT NULL CHECK(channel IN ('email','sms','in_app')), template_code varchar(80) NOT NULL, subject varchar(240), payload jsonb NOT NULL DEFAULT '{}'::jsonb, status notification_status NOT NULL DEFAULT 'pending', scheduled_at timestamptz NOT NULL DEFAULT now(), sent_at timestamptz, failure_reason text, created_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE audit_logs (id bigserial PRIMARY KEY, organization_id uuid NOT NULL REFERENCES organizations(id), actor_user_id uuid REFERENCES users(id), action varchar(100) NOT NULL, entity_type varchar(100) NOT NULL, entity_id uuid, branch_id uuid REFERENCES branches(id), before_data jsonb, after_data jsonb, metadata jsonb NOT NULL DEFAULT '{}'::jsonb, ip_address inet, occurred_at timestamptz NOT NULL DEFAULT now());
@@ -354,6 +375,9 @@ CREATE INDEX ix_payments_customer_date ON payments(organization_id,customer_id,p
 -- SA-13 (invoices-payments-management): hub lists and aggregates.
 CREATE INDEX ix_payment_allocations_invoice ON payment_allocations(invoice_id);
 CREATE INDEX ix_payments_org_paid_at ON payments(organization_id,paid_at DESC);
+-- SA-16 (customer-invoice-payments)
+CREATE UNIQUE INDEX ux_invoice_payment_attempts_pending ON invoice_payment_attempts(invoice_id, method) WHERE status = 'pending';
+CREATE INDEX ix_invoice_payment_attempts_invoice ON invoice_payment_attempts(invoice_id, created_at DESC);
 CREATE INDEX ix_invoices_org_issue_date ON invoices(organization_id,issue_date);
 CREATE INDEX ix_audit_entity ON audit_logs(organization_id,entity_type,entity_id,occurred_at DESC);
 CREATE INDEX ix_audit_actor ON audit_logs(organization_id,actor_user_id,occurred_at DESC);

@@ -29,6 +29,24 @@ web UI on `http://127.0.0.1:8025`. Start it with
 `docker compose up -d mailpit`; invitations and password reset emails sent by the API appear in the UI.
 Integration tests never use it (they replace the delivery port).
 
+## Optional payment settings
+
+Customer invoice payments (`customer-invoice-payments`) read these settings. None is required to start the API; each
+feature is disabled while its keys are absent. A present but malformed value fails start, and errors name the key, never
+the value. Keys come from user-secrets or environment variables only and are never committed, logged or returned.
+
+| Key | Environment variable | Notes |
+| --- | --- | --- |
+| `Stripe:SecretKey` | `Stripe__SecretKey` | Must start with `sk_` or `rk_`. |
+| `Stripe:PublishableKey` | `Stripe__PublishableKey` | Must start with `pk_`; returned to the browser for the Payment Element. |
+| `Stripe:WebhookSecret` | `Stripe__WebhookSecret` | Must start with `whsec_`; verifies `POST /webhooks/stripe`. |
+| `BankDetails:EncryptionKey` | `BankDetails__EncryptionKey` | Base64 of exactly 32 bytes (AES-256-GCM key of the bank account number). |
+
+Card payments are available only when the three Stripe keys are set; otherwise `card.available` is `false` on the public
+invoice and `card-intent` answers `409 card_unavailable`. Without the bank details key, the bank details endpoints answer
+`503 bank_details_unavailable` and bank transfer is unavailable on the public invoice. The webhook endpoint
+(`POST /webhooks/stripe`) is anonymous, authorized only by the Stripe signature, body ≤ 64 KB and not rate limited.
+
 ## Local secrets
 
 The connection string is not stored in any `appsettings*.json` file. For local

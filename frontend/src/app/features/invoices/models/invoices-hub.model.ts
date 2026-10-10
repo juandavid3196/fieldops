@@ -11,8 +11,18 @@ export const PAYMENT_METHODS = [
   'card_external',
   'check',
   'other',
+  'card_online',
 ] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/** Methods an internal user can record (BR-31 c): `card_online` only arises from the public page. */
+export const RECORDABLE_METHODS: readonly PaymentMethod[] = [
+  'cash',
+  'bank_transfer',
+  'card_external',
+  'check',
+  'other',
+];
 
 /** Payment field rules: labels. */
 export const PAYMENT_METHOD_LABELS: Readonly<Record<PaymentMethod, string>> = {
@@ -21,6 +31,7 @@ export const PAYMENT_METHOD_LABELS: Readonly<Record<PaymentMethod, string>> = {
   card_external: 'External card payment',
   check: 'Check',
   other: 'Other',
+  card_online: 'Online card',
 };
 
 /** Payment field rules: methods whose reference is required. */
@@ -117,6 +128,15 @@ export interface InvoiceRow {
   readonly canRecordPayment: boolean;
 }
 
+export type PaymentStatus = 'succeeded' | 'partially_refunded' | 'refunded';
+
+/** Text tags for refunded payments (BR-31 b); `null` for a plain succeeded payment. */
+export const PAYMENT_STATUS_LABELS: Readonly<Record<PaymentStatus, string | null>> = {
+  succeeded: null,
+  partially_refunded: 'Partially refunded',
+  refunded: 'Refunded',
+};
+
 export interface PaymentRow {
   readonly id: string;
   readonly number: string;
@@ -126,9 +146,13 @@ export interface PaymentRow {
   readonly invoiceNumber: string;
   readonly method: PaymentMethod;
   readonly reference: string | null;
+  /** Gross amount; the list shows `amount − refundedAmount` (BR-31). */
   readonly amount: number;
   readonly currency: string;
-  readonly receivedByName: string;
+  readonly status: PaymentStatus;
+  readonly refundedAmount: number;
+  /** `null` for online payments, shown "—". */
+  readonly receivedByName: string | null;
 }
 
 export interface Page<T> {
@@ -207,6 +231,8 @@ export const RECEIPT_FAILED_MESSAGE = "Payment recorded, but we couldn't email t
 export const PAYMENT_CONFLICT_MESSAGES: Readonly<Record<string, string>> = {
   invoice_changed: 'This invoice changed. Refresh to see the latest.',
   invoice_not_payable: "This invoice can't receive payments.",
+  payment_in_progress:
+    'An online card payment is in progress for this invoice. Try again in a few minutes.',
 };
 export const NO_RECIPIENT_MESSAGE = 'This invoice has no recipient email.';
 export const NOTE_MAX_LENGTH = 500;

@@ -1,0 +1,201 @@
+<header class="head">
+  <div class="head__text">
+    <div class="head__title-row">
+      <h1 class="head__title" tabindex="-1">Invoice {{ invoice().number }}</h1>
+      <span class="chip chip--{{ view().chip.tone }}">{{ view().chip.label }}</span>
+    </div>
+    <p class="head__sub">{{ view().subtitle }}</p>
+  </div>
+  <button
+    pButton
+    type="button"
+    severity="secondary"
+    [outlined]="true"
+    class="head__download action"
+    [disabled]="busy() === 'invoice'"
+    [attr.aria-busy]="busy() === 'invoice'"
+    (click)="pdfRequested.emit()"
+  >
+    @if (busy() === 'invoice') {
+      <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+    } @else {
+      <i class="pi pi-download" aria-hidden="true"></i>
+    }
+    Download PDF
+  </button>
+</header>
+@if (downloadError(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}
+
+<app-public-invoice-timeline [steps]="view().steps" />
+
+<ng-template #amountDue>
+  <section class="due" aria-labelledby="amount-due-label">
+    <h2 id="amount-due-label" class="due__label">Amount due</h2>
+    <p class="due__amount">{{ view().balance }}</p>
+    <p class="due__date">Due date: {{ view().dueDate }}</p>
+    <p class="due__note" [class.due__note--late]="invoice().overdue">{{ view().due }}</p>
+  </section>
+</ng-template>
+
+<ng-template #org>
+  <div class="org">
+    <div class="org__brand">
+      @if (logoUrl(); as url) {
+        <img class="org__logo" [src]="url" alt="" />
+      } @else {
+        <span class="org__logo org__logo--initials" aria-hidden="true">{{ view().initials }}</span>
+      }
+      <span class="org__name">{{ invoice().organization.name }}</span>
+    </div>
+    <address class="org__address">
+      @for (line of invoice().organization.addressLines; track $index) {
+        <span>{{ line }}</span>
+      }
+      @if (invoice().organization.phone; as phone) {
+        <span>{{ phone }}</span>
+      }
+      @if (invoice().organization.email; as email) {
+        <span>{{ email }}</span>
+      }
+    </address>
+  </div>
+</ng-template>
+
+<ng-template #details>
+  <div class="scroll" role="region" aria-label="Invoice lines" tabindex="0">
+    <table class="lines">
+      <thead>
+        <tr>
+          <th scope="col">Description</th>
+          <th scope="col" class="num">Qty</th>
+          <th scope="col" class="num">Rate</th>
+          <th scope="col" class="num">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (line of view().lines; track $index) {
+          <tr>
+            <th scope="row">
+              {{ line.description }}
+              @if (line.detail) {
+                <span class="lines__detail">{{ line.detail }}</span>
+              }
+            </th>
+            <td class="num">{{ line.quantity }}</td>
+            <td class="num">{{ line.rate }}</td>
+            <td class="num">{{ line.amount }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <dl class="totals">
+    <div>
+      <dt>Subtotal</dt>
+      <dd>{{ view().subtotal }}</dd>
+    </div>
+    @if (view().discount; as discount) {
+      <div>
+        <dt>Discount</dt>
+        <dd>−{{ discount }}</dd>
+      </div>
+    }
+    <div>
+      <dt>{{ invoice().totals.taxLabel }}</dt>
+      <dd>{{ view().tax }}</dd>
+    </div>
+    <div class="totals__total">
+      <dt>Total</dt>
+      <dd>{{ view().total }}</dd>
+    </div>
+  </dl>
+  @if (invoice().payments.length > 0) {
+    <app-public-payment-summary [invoice]="invoice()" />
+  }
+  <section class="service" aria-labelledby="service-title">
+    <h2 id="service-title" class="service__title">
+      <i class="pi pi-wrench" aria-hidden="true"></i>Service details
+    </h2>
+    <dl class="service__rows">
+      <div>
+        <dt>Work order</dt>
+        <dd class="service__work-order">{{ invoice().service.workOrderNumber }}</dd>
+      </div>
+      @if (invoice().service.completionNote; as note) {
+        <div>
+          <dt>Completion note</dt>
+          <dd>{{ note }}</dd>
+        </div>
+      }
+    </dl>
+    @if (invoice().service.hasCompletionReport || invoice().service.photoCount > 0) {
+      <div class="service__actions">
+        @if (invoice().service.hasCompletionReport) {
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            class="action"
+            [disabled]="busy() === 'report'"
+            [attr.aria-busy]="busy() === 'report'"
+            (click)="reportRequested.emit()"
+          >
+            @if (busy() === 'report') {
+              <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+            } @else {
+              <i class="pi pi-file" aria-hidden="true"></i>
+            }
+            View completion report
+          </button>
+        }
+        @if (invoice().service.photoCount > 0) {
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            class="action action--blue"
+            (click)="photosRequested.emit()"
+          >
+            <i class="pi pi-image" aria-hidden="true"></i>View before &amp; after photos
+          </button>
+        }
+      </div>
+    }
+  </section>
+</ng-template>
+
+<div class="body" [class.body--closed]="!showCard()">
+  @if (showCard()) {
+    @if (wide()) {
+      <section class="card" aria-label="Invoice">
+        <div class="card__top">
+          <ng-container [ngTemplateOutlet]="amountDue" />
+          <ng-container [ngTemplateOutlet]="org" />
+        </div>
+        <ng-container [ngTemplateOutlet]="details" />
+      </section>
+    } @else {
+      <section class="card" aria-label="Amount due">
+        <ng-container [ngTemplateOutlet]="amountDue" />
+      </section>
+      <p-accordion class="accordion">
+        <p-accordion-panel value="summary">
+          <p-accordion-header>
+            <span class="accordion__title">
+              <i class="pi pi-file" aria-hidden="true"></i>Invoice summary
+            </span>
+          </p-accordion-header>
+          <p-accordion-content>
+            <ng-container [ngTemplateOutlet]="org" />
+            <ng-container [ngTemplateOutlet]="details" />
+          </p-accordion-content>
+        </p-accordion-panel>
+      </p-accordion>
+    }
+  }
+  <ng-content />
+</div>

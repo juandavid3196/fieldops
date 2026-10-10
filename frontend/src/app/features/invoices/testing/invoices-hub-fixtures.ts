@@ -103,6 +103,8 @@ export const paymentRow = (overrides: Partial<PaymentRow> = {}): PaymentRow => (
   reference: null,
   amount: 357.28,
   currency: 'USD',
+  status: 'succeeded',
+  refundedAmount: 0,
   receivedByName: 'Alex Morgan',
   ...overrides,
 });

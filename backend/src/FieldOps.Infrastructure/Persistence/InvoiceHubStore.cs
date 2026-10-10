@@ -1,6 +1,7 @@
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Invoices;
@@ -68,6 +69,10 @@ internal sealed class InvoiceHubStore(FieldOpsDbContext dbContext) : IInvoiceHub
         public string? Reference { get; init; }
 
         public decimal Amount { get; init; }
+
+        public decimal RefundedAmount { get; init; }
+
+        public PaymentStatus Status { get; init; }
 
         public string Currency { get; init; } = string.Empty;
 
@@ -202,7 +207,7 @@ internal sealed class InvoiceHubStore(FieldOpsDbContext dbContext) : IInvoiceHub
                 fact.CustomerName,
                 fact.InvoiceId,
                 InvoiceHubRules.DisplayNumber(org.InvoicePrefix, fact.InvoiceNumber),
-                QuoteCalculator.Money(fact.Amount),
+                QuoteCalculator.Money(fact.Amount - fact.RefundedAmount),
                 PaymentMethodCodes.Code(fact.Method)))
             .ToList();
 
@@ -232,13 +237,14 @@ internal sealed class InvoiceHubStore(FieldOpsDbContext dbContext) : IInvoiceHub
             .GroupBy(invoice => invoice.DueDate)
             .Select(group => new DueBalance(group.Key, group.Sum(invoice => invoice.BalanceDue)));
 
-    // Allocation amounts of payments whose paid_at falls in [from, to) on visible invoices (BR-04 paid this month).
+    // Net allocation amounts (allocation - refunded amount of the payment, customer-invoice-payments BR-31 a) of payments whose
+    // paid_at falls in [from, to) on visible invoices (BR-04 paid this month). A payment has one allocation of its full amount.
     private IQueryable<decimal> PaidBetween(Guid organizationId, IQueryable<Invoice> invoices, DateTimeOffset start, DateTimeOffset end) =>
         from allocation in dbContext.PaymentAllocations.AsNoTracking()
         join payment in dbContext.Payments.AsNoTracking() on allocation.PaymentId equals payment.Id
         join invoice in invoices on allocation.InvoiceId equals invoice.Id
         where payment.OrganizationId == organizationId && payment.PaidAt >= start && payment.PaidAt < end
-        select allocation.Amount;
+        select allocation.Amount - payment.RefundedAmount;
 
     // The latest payment instant of every paid invoice whose latest payment lies in [from, to) (BR-04 average time to pay).
     private IQueryable<PaidInvoice> LatestPaymentOfPaidInvoices(
@@ -247,7 +253,7 @@ internal sealed class InvoiceHubStore(FieldOpsDbContext dbContext) : IInvoiceHub
          join payment in dbContext.Payments.AsNoTracking() on allocation.PaymentId equals payment.Id
          join invoice in invoices.Where(candidate => candidate.Status == InvoiceStatus.Paid && candidate.IssueDate != null)
              on allocation.InvoiceId equals invoice.Id
-         where payment.OrganizationId == organizationId
+         where payment.OrganizationId == organizationId && payment.Status != PaymentStatus.Refunded
          group payment.PaidAt by new { invoice.Id, invoice.IssueDate })
         .Where(paid => paid.Max() >= start && paid.Max() < end)
         .Select(paid => new PaidInvoice(paid.Key.IssueDate, paid.Max()));
@@ -539,12 +545,14 @@ internal sealed class InvoiceHubStore(FieldOpsDbContext dbContext) : IInvoiceHub
                 Method = payment.Method,
                 Reference = payment.ExternalReference,
                 Amount = payment.Amount,
+                RefundedAmount = payment.RefundedAmount,
+                Status = payment.Status,
                 Currency = payment.Currency,
                 InvoiceId = invoice.Id,
                 InvoiceNumber = invoice.InvoiceNumber,
                 CustomerName = customer.DisplayName,
                 ReceivedByName = dbContext.Users
-                    .Where(user => user.Id == payment.ReceivedByUserId)
+                    .Where(user => payment.ReceivedByUserId != null && user.Id == payment.ReceivedByUserId)
                     .Select(user => user.FirstName + " " + user.LastName)
                     .FirstOrDefault(),
             };
@@ -604,7 +612,7 @@ internal sealed class InvoiceHubStore(FieldOpsDbContext dbContext) : IInvoiceHub
     private IQueryable<LatestPayment> LatestPaymentPerInvoice(Guid[] invoiceIds) =>
         from allocation in dbContext.PaymentAllocations.AsNoTracking()
         join payment in dbContext.Payments.AsNoTracking() on allocation.PaymentId equals payment.Id
-        where invoiceIds.Contains(allocation.InvoiceId)
+        where invoiceIds.Contains(allocation.InvoiceId) && payment.Status != PaymentStatus.Refunded
         group payment.PaidAt by allocation.InvoiceId into paid
         select new LatestPayment(paid.Key, paid.Max());
 
@@ -630,7 +638,9 @@ internal sealed class InvoiceHubStore(FieldOpsDbContext dbContext) : IInvoiceHub
             fact.Reference,
             QuoteCalculator.Money(fact.Amount),
             fact.Currency,
-            fact.ReceivedByName ?? string.Empty);
+            fact.ReceivedByName,
+            OnlinePaymentRules.PaymentStatusCode(fact.Status),
+            QuoteCalculator.Money(fact.RefundedAmount));
 
     /// <summary>Invoices of the organization inside the caller branch scope, never void (BR-02).</summary>
     private IQueryable<Invoice> VisibleInvoices(Guid organizationId, BranchScope scope)

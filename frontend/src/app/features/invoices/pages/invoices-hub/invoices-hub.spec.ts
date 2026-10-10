@@ -176,14 +176,39 @@ describe('Invoices hub page', () => {
       '1',
       'b-1',
     ]);
+    // BR-31: gross amount minus refunds, text tags for refunds, online card with no recorder.
+    const online = {
+      method: 'card_online',
+      amount: 357.28,
+      receivedByName: null,
+    } as const;
     payments.flush(
-      pageBody([paymentRow(), paymentRow({ id: 'pay-2', method: 'cash', reference: 'R-1' })]),
+      pageBody([
+        paymentRow(),
+        paymentRow({ id: 'pay-2', method: 'cash', reference: 'R-1' }),
+        paymentRow({
+          ...online,
+          id: 'pay-3',
+          status: 'partially_refunded',
+          refundedAmount: 100,
+        }),
+        paymentRow({ ...online, id: 'pay-4', status: 'refunded', refundedAmount: 357.28 }),
+      ]),
     );
     await settle();
     expect(host.querySelectorAll('.table__table thead th[scope="col"]')).toHaveLength(8);
     expect(text()).toContain('External card payment');
     expect(text()).toContain('R-1');
-    expect(text()).toContain('Showing 1 – 2 of 2 payments');
+    expect(text()).toContain('Showing 1 – 4 of 4 payments');
+    const paymentRows = Array.from(host.querySelectorAll('.table__table tbody tr'), (row) =>
+      row.textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(paymentRows[2]).toContain('Online card');
+    expect(paymentRows[2]).toContain('$257.28 Partially refunded');
+    expect(paymentRows[2]).toMatch(/—$/);
+    expect(paymentRows[3]).toContain('$0.00 Refunded');
+    expect(paymentRows[0]).not.toContain('refunded');
+    expect(page.methodOptions.map((option) => option.label)).toContain('Online card');
 
     // Ready tab: same ready response, no extra requests.
     await tab('Completed jobs ready to invoice')!.click();

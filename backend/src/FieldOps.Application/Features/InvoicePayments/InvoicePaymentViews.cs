@@ -26,6 +26,11 @@ public static class InvoicePaymentMessages
 
     public const string NotPayableTitle = "This invoice can't receive payments.";
 
+    /// <summary>customer-invoice-payments BR-31 f: a pending online card attempt holds the invoice.</summary>
+    public const string PaymentInProgressCode = "payment_in_progress";
+
+    public const string PaymentInProgressTitle = "An online card payment is in progress for this invoice. Try again in a few minutes.";
+
     public const string IdempotencyConflictCode = "idempotency_conflict";
 
     public const string IdempotencyConflictTitle = "This payment request was already used for different details.";
@@ -108,6 +113,7 @@ public static class PaymentMethodCodes
         PaymentMethod.BankTransfer => "bank_transfer",
         PaymentMethod.CardExternal => "card_external",
         PaymentMethod.Check => "check",
+        PaymentMethod.CardOnline => "card_online",
         _ => "other",
     };
 
@@ -117,6 +123,7 @@ public static class PaymentMethodCodes
         PaymentMethod.BankTransfer => "Bank transfer",
         PaymentMethod.CardExternal => "External card payment",
         PaymentMethod.Check => "Check",
+        PaymentMethod.CardOnline => "Online card",
         _ => "Other",
     };
 
@@ -183,6 +190,10 @@ public sealed record InvoiceRow(
 
 public sealed record InvoicePage(IReadOnlyList<InvoiceRow> Items, int Page, int PageSize, int Total);
 
+/// <summary>
+/// A payment of the hub. <c>Amount</c> is the gross amount and <c>RefundedAmount</c> what the provider refunded
+/// (customer-invoice-payments BR-31); <c>ReceivedByName</c> is null for online card payments.
+/// </summary>
 public sealed record PaymentRow(
     Guid Id,
     string Number,
@@ -194,7 +205,9 @@ public sealed record PaymentRow(
     string? Reference,
     decimal Amount,
     string Currency,
-    string ReceivedByName);
+    string? ReceivedByName,
+    string Status,
+    decimal RefundedAmount);
 
 public sealed record PaymentPage(IReadOnlyList<PaymentRow> Items, int Page, int PageSize, int Total);
 
@@ -254,7 +267,10 @@ public sealed record PaymentInput(
 
 public sealed record PaymentInvoiceSummary(Guid Id, string Status, decimal AmountPaid, decimal BalanceDue, DateTimeOffset UpdatedAt);
 
-/// <summary>The data of the receipt email (BR-17); it holds no reference, note, receiver or recorder.</summary>
+/// <summary>
+/// The data of the receipt email (BR-17); it holds no reference, note, receiver or recorder. A payment with a receipt number
+/// (customer-invoice-payments BR-12) uses the receipt layout and subject.
+/// </summary>
 public sealed record PaymentReceiptData(
     Guid PaymentId,
     string RecipientEmail,
@@ -266,7 +282,8 @@ public sealed record PaymentReceiptData(
     DateOnly PaidDate,
     string MethodLabel,
     string InvoiceNumber,
-    decimal RemainingBalance);
+    decimal RemainingBalance,
+    string? ReceiptNumber = null);
 
 public enum PaymentReceiptStatus
 {

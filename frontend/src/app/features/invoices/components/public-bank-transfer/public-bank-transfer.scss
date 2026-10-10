@@ -1,0 +1,114 @@
+:host {
+  display: block;
+}
+
+.bank {
+  padding: 1rem;
+  background: var(--fo-color-surface-muted);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-panel);
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__text {
+    margin: 0.5rem 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__rows {
+    margin: 0;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 8rem minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: center;
+    padding-inline: 0.75rem;
+    overflow-wrap: anywhere;
+
+    dt {
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 600;
+    }
+  }
+
+  &__copy {
+    display: grid;
+    place-items: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text-secondary);
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+  }
+
+  &__copied {
+    display: block;
+    min-block-size: 1.25rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-success-text);
+  }
+
+  &__send {
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    margin-block-start: 1rem;
+  }
+}
+
+.notice {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+  border-radius: var(--fo-radius-panel);
+
+  &--info {
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+  }
+
+  &--ok {
+    color: var(--fo-color-success-text);
+    background: var(--fo-color-success-background);
+  }
+
+  &--error {
+    color: var(--fo-color-danger-text);
+    background: var(--fo-color-danger-background);
+  }
+}
+
+.cash {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0.75rem 0 0;
+  padding: 0.75rem;
+  background: var(--fo-color-surface-muted);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-panel);
+
+  i {
+    font-size: 1.5rem;
+  }
+}

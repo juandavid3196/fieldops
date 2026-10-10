@@ -9,6 +9,7 @@ using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.PublicRequests;
@@ -30,6 +31,7 @@ using FieldOps.Domain.WorkOrders;
 using FieldOps.Infrastructure.Authentication;
 using FieldOps.Infrastructure.Email;
 using FieldOps.Infrastructure.PasswordResets;
+using FieldOps.Infrastructure.Payments;
 using FieldOps.Infrastructure.Pdf;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +74,8 @@ public static class DependencyInjection
                         .MapEnum<VisitStatus>("visit_status")
                         .MapEnum<InvoiceStatus>("invoice_status")
                         .MapEnum<PaymentMethod>("payment_method")
+                        .MapEnum<PaymentStatus>("payment_status")
+                        .MapEnum<PaymentAttemptStatus>("payment_attempt_status")
                         .MapEnum<NotificationStatus>("notification_status"))
                 .UseSnakeCaseNamingConvention());
 
@@ -110,6 +114,9 @@ public static class DependencyInjection
         services.AddScoped<IInvoiceHubStore, InvoiceHubStore>();
         services.AddScoped<IPaymentReceiptNotifier, PaymentReceiptNotifier>();
         services.AddScoped<IInvoiceLinkStore, InvoiceLinkStore>();
+        services.AddScoped<IOnlinePaymentStore, OnlinePaymentStore>();
+        services.AddScoped<IBankDetailsStore, BankDetailsStore>();
+        services.AddScoped<IBankTransferNotifier, BankTransferNotifier>();
         services.AddScoped<IInvoiceNotifier, InvoiceNotifier>();
         services.AddScoped<IVisitNotifier, VisitNotifier>();
         services.AddScoped<ITravelNotifier, TravelNotifier>();
@@ -117,7 +124,10 @@ public static class DependencyInjection
         services.AddScoped<IChecklistTemplateStore, ChecklistTemplateStore>();
         services.AddSingleton<IQuotePdfRenderer, MigraDocQuotePdfRenderer>();
         services.AddSingleton<IInvoicePdfRenderer, MigraDocInvoicePdfRenderer>();
+        services.AddSingleton<IReceiptPdfRenderer, MigraDocReceiptPdfRenderer>();
+        services.AddSingleton<ICompletionReportPdfRenderer, MigraDocCompletionReportPdfRenderer>();
         services.AddEmail(configuration);
+        services.AddOnlinePayments(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 
         // In memory and per process: counters reset on restart.

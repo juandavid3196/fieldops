@@ -1,0 +1,90 @@
+@if (visible()) {
+  <section class="review" aria-labelledby="review-title">
+    @if (thanks()) {
+      <h2 id="review-title" class="review__title" role="status">Thanks for your feedback!</h2>
+    } @else {
+      <h2 id="review-title" class="review__title">How was your service?</h2>
+      <dl class="review__facts">
+        @if (invoice().service.technicianName; as name) {
+          <div>
+            <dt>Technician</dt>
+            <dd>{{ name }}</dd>
+          </div>
+        }
+        @if (serviceDate(); as date) {
+          <div>
+            <dt>Service date</dt>
+            <dd>{{ date }}</dd>
+          </div>
+        }
+      </dl>
+      <p class="review__hint">Your feedback helps us improve.</p>
+
+      <fieldset
+        class="stars"
+        [disabled]="sending()"
+        [attr.aria-describedby]="ratingError() ? 'rating-error' : null"
+      >
+        <legend class="sr-only">Rating, required</legend>
+        @for (star of stars; track star) {
+          <label class="stars__star" [class.stars__star--on]="star <= rating()">
+            <input
+              type="radio"
+              name="rating"
+              class="stars__input"
+              [value]="star"
+              [checked]="rating() === star"
+              (change)="rating.set(star); ratingError.set(false)"
+            />
+            <i
+              class="pi"
+              [class.pi-star-fill]="star <= rating()"
+              [class.pi-star]="star > rating()"
+              aria-hidden="true"
+            ></i>
+            <span class="sr-only">{{ star }} {{ star === 1 ? 'star' : 'stars' }}</span>
+          </label>
+        }
+      </fieldset>
+      @if (ratingError()) {
+        <p id="rating-error" class="review__error" role="alert">Select a rating.</p>
+      }
+
+      <label class="sr-only" for="review-comment">Tell us about your experience (optional)</label>
+      <textarea
+        id="review-comment"
+        class="review__comment"
+        rows="3"
+        placeholder="Tell us about your experience (optional)"
+        [value]="comment()"
+        [disabled]="sending()"
+        [attr.aria-invalid]="commentError() ? 'true' : null"
+        (input)="onComment($event)"
+      ></textarea>
+      <p class="review__count" [class.review__count--over]="commentError()">
+        {{ comment().length }}/{{ max }}
+      </p>
+      @if (commentError()) {
+        <p class="review__error" role="alert">Use 500 characters or fewer.</p>
+      }
+      @if (failed()) {
+        <p class="review__error" role="alert">{{ failedMessage }}</p>
+      }
+
+      <button
+        pButton
+        type="button"
+        class="review__submit"
+        [disabled]="sending()"
+        [attr.aria-busy]="sending()"
+        (click)="submit()"
+      >
+        @if (sending()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        Submit review
+      </button>
+      <button type="button" class="review__later" (click)="dismissed.set(true)">Maybe later</button>
+    }
+  </section>
+}

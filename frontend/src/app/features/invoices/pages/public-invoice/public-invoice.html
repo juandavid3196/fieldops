@@ -17,56 +17,52 @@
       @case ('loading') {
         <div class="page__skeletons" aria-busy="true" aria-label="Loading invoice">
           <p-skeleton height="2.5rem" width="60%" />
-          <p-skeleton height="30rem" />
+          <p-skeleton height="4rem" />
+          <div class="page__skeleton-body">
+            <p-skeleton height="30rem" />
+            <p-skeleton height="24rem" />
+          </div>
         </div>
       }
       @case ('unavailable') {
-        <section class="notice">
-          <h1 #heading class="notice__title" tabindex="-1">{{ unavailableMessage }}</h1>
-        </section>
+        <app-public-neutral-state [kind]="'unavailable'" />
       }
       @case ('rate-limited') {
-        <section class="notice">
-          <h1 #heading class="notice__title" tabindex="-1">{{ rateLimitedMessage }}</h1>
-          <button pButton type="button" severity="secondary" (click)="retry()">Retry</button>
-        </section>
+        <app-public-neutral-state [kind]="'rate-limited'" (retry)="retry()" />
       }
       @case ('error') {
-        <section class="notice">
-          <h1 #heading class="notice__title" tabindex="-1">{{ loadErrorMessage }}</h1>
-          <button pButton type="button" severity="secondary" (click)="retry()">Retry</button>
-        </section>
+        <app-public-neutral-state [kind]="'error'" (retry)="retry()" />
       }
       @default {
         @if (invoice(); as invoice) {
-          <div class="doc">
-            <div class="doc__head">
-              <h1 #heading class="doc__title" tabindex="-1">Invoice {{ invoice.number }}</h1>
-              <button
-                pButton
-                type="button"
-                severity="secondary"
-                [outlined]="true"
-                [disabled]="pdfState() === 'downloading'"
-                [attr.aria-busy]="pdfState() === 'downloading'"
-                (click)="downloadPdf()"
+          <app-public-invoice-summary
+            [invoice]="invoice"
+            [logoUrl]="logoUrl()"
+            [showCard]="!closed()"
+            [busy]="busy()"
+            [downloadError]="downloadError()"
+            (pdfRequested)="download('invoice')"
+            (reportRequested)="download('report')"
+            (photosRequested)="galleryOpen.set(true)"
+          >
+            @if (closed()) {
+              <app-public-payment-success
+                [invoice]="invoice"
+                [busy]="busy()"
+                (receiptRequested)="download('receipt')"
+                (invoiceRequested)="download('invoice')"
               >
-                @if (pdfState() === 'downloading') {
-                  <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-                } @else {
-                  <i class="pi pi-download" aria-hidden="true"></i>
-                }
-                Download PDF
-              </button>
-            </div>
-            @if (pdfState() === 'failed') {
-              <p class="doc__error" role="alert">{{ pdfErrorMessage }}</p>
+                <app-public-review-card [invoice]="invoice" (unavailable)="unavailable()" />
+              </app-public-payment-success>
+            } @else if (invoice.paymentOptions) {
+              <app-public-payment-panel
+                [invoice]="invoice"
+                (reload)="reload()"
+                (unavailable)="unavailable()"
+              />
             }
-            <div class="doc__card">
-              <app-invoice-preview [preview]="invoice" [logoUrl]="logoUrl()" />
-            </div>
-            <p class="doc__payment">{{ paymentNote }}</p>
-          </div>
+          </app-public-invoice-summary>
+          <app-public-photo-gallery [(visible)]="galleryOpen" />
         }
       }
     }

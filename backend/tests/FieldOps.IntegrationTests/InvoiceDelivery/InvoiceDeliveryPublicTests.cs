@@ -88,11 +88,14 @@ public class InvoiceDeliveryPublicTests(CompanySettingsDatabaseFixture database)
             Assert.Null(publicJson[key]);
         }
 
-        foreach (var internalValue in new[] { Recipient, Note, "Sam Staff", "Renamed Corp", "Changed Rd", "Moved Ave", "Changed summary", "changed@example.com", "unitCost", "variance" })
+        foreach (var internalValue in new[] { Note, "Sam Staff", "Renamed Corp", "Changed Rd", "Moved Ave", "Changed summary", "changed@example.com", "unitCost", "variance" })
         {
             Assert.DoesNotContain(internalValue, text, StringComparison.OrdinalIgnoreCase);
         }
 
+        // customer-invoice-payments BR-03: the page shows where the receipt goes, and only that contact (never the delivery message).
+        Assert.Equal(Recipient, publicJson["receiptEmail"]!.GetValue<string>());
+        Assert.Equal(1, Regex.Count(text, Regex.Escape(Recipient)));
         Assert.False(Regex.IsMatch(text, "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"), "The public invoice must not contain any id.");
 
         var pdf = await InvoiceApi.PublicAsync(host.Client, "pdf", raw);

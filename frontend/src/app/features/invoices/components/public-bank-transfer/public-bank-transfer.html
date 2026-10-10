@@ -1,0 +1,65 @@
+<section class="bank" aria-labelledby="bank-title">
+  <h3 id="bank-title" class="bank__title">Bank transfer instructions</h3>
+  <p class="bank__text">
+    Send a payment using your bank's online bill pay or ACH transfer with the following details.
+  </p>
+  <dl class="bank__rows">
+    @for (row of rows(); track row.label) {
+      <div class="bank__row">
+        <dt>{{ row.label }}</dt>
+        <dd>{{ row.value }}</dd>
+        <button
+          type="button"
+          class="bank__copy"
+          [attr.aria-label]="'Copy ' + row.label"
+          (click)="copy(row.label, row.copy)"
+        >
+          <i class="pi pi-copy" aria-hidden="true"></i>
+        </button>
+      </div>
+    }
+  </dl>
+  <span class="bank__copied" aria-live="polite">
+    @if (copied(); as label) {
+      Copied {{ label }}
+    }
+  </span>
+  <p class="bank__text">Use the invoice number as the payment reference.</p>
+</section>
+
+@if (reportedText(); as date) {
+  <p class="notice notice--ok" role="status">
+    <i class="pi pi-check-circle" aria-hidden="true"></i>
+    Transfer reported on {{ date }}. We'll confirm it once it arrives.
+  </p>
+} @else {
+  <button
+    pButton
+    type="button"
+    class="bank__send"
+    [disabled]="sending()"
+    [attr.aria-busy]="sending()"
+    (click)="report()"
+  >
+    @if (sending()) {
+      <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+    } @else {
+      <i class="pi pi-send" aria-hidden="true"></i>
+    }
+    I sent the transfer
+  </button>
+  @if (failed()) {
+    <p class="notice notice--error" role="alert">{{ failureMessage }}</p>
+  }
+}
+<p class="notice notice--info">
+  <i class="pi pi-info-circle" aria-hidden="true"></i>
+  Bank transfers may take 1–3 business days to appear.
+</p>
+<p class="cash">
+  <i class="pi pi-money-bill" aria-hidden="true"></i>
+  <span>
+    <strong>Prefer cash?</strong>
+    Contact {{ invoice().organization.name }} to arrange payment.
+  </span>
+</p>

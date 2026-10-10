@@ -40,6 +40,8 @@ public class FieldOpsDbContextModelTests
                     .MapEnum<VisitStatus>("visit_status")
                     .MapEnum<InvoiceStatus>("invoice_status")
                     .MapEnum<PaymentMethod>("payment_method")
+                    .MapEnum<PaymentStatus>("payment_status")
+                    .MapEnum<PaymentAttemptStatus>("payment_attempt_status")
                     .MapEnum<NotificationStatus>("notification_status"))
             .UseSnakeCaseNamingConvention()
             .Options;
@@ -93,6 +95,9 @@ public class FieldOpsDbContextModelTests
     [InlineData(typeof(InvoiceAccessToken), "invoice_access_tokens")]
     [InlineData(typeof(Payment), "payments")]
     [InlineData(typeof(PaymentAllocation), "payment_allocations")]
+    [InlineData(typeof(InvoicePaymentAttempt), "invoice_payment_attempts")]
+    [InlineData(typeof(PaymentWebhookEvent), "payment_webhook_events")]
+    [InlineData(typeof(InvoiceReview), "invoice_reviews")]
     [InlineData(typeof(Notification), "notifications")]
     [InlineData(typeof(AuditLog), "audit_logs")]
     public void Model_MapsEntityToExpectedTable(Type entityType, string expectedTableName)
@@ -425,6 +430,57 @@ public class FieldOpsDbContextModelTests
             paymentAllocation.GetForeignKeys(),
             fk => fk.PrincipalEntityType.ClrType == typeof(Invoice));
         Assert.Equal(DeleteBehavior.NoAction, toInvoiceFk.DeleteBehavior);
+    }
+
+    // SA-14 to SA-18 (customer-invoice-payments): enums, composite tenant keys, the pending index and the constraints.
+    [Fact]
+    public void Model_ConfiguresCustomerInvoicePaymentsSchemaAmendments()
+    {
+        using var context = CreateContext();
+        var model = context.GetService<IDesignTimeModel>().Model;
+
+        // The three enums are mapped to their PostgreSQL types (labels follow the CLR declaration order of the schema).
+        Assert.Equal("payment_status", model.FindEntityType(typeof(Payment))!.FindProperty(nameof(Payment.Status))!.GetColumnType());
+        Assert.Equal("payment_attempt_status", model.FindEntityType(typeof(InvoicePaymentAttempt))!.FindProperty(nameof(InvoicePaymentAttempt.Status))!.GetColumnType());
+        Assert.Equal("payment_method", model.FindEntityType(typeof(InvoicePaymentAttempt))!.FindProperty(nameof(InvoicePaymentAttempt.Method))!.GetColumnType());
+        Assert.Equal(PaymentMethod.CardOnline, Enum.GetValues<PaymentMethod>()[^1]);
+        Assert.Equal(["Succeeded", "PartiallyRefunded", "Refunded"], Enum.GetNames<PaymentStatus>());
+        Assert.Equal(["Pending", "Succeeded", "Failed", "PartiallyRefunded", "Refunded"], Enum.GetNames<PaymentAttemptStatus>());
+
+        var attempt = model.FindEntityType(typeof(InvoicePaymentAttempt))!;
+        var pending = Assert.Single(attempt.GetIndexes(), index => index.GetDatabaseName() == "ux_invoice_payment_attempts_pending");
+        Assert.True(pending.IsUnique);
+        Assert.Equal("status = 'pending'", pending.GetFilter());
+        Assert.Equal(["InvoiceId", "Method"], pending.Properties.Select(p => p.Name).ToArray());
+        var listing = Assert.Single(attempt.GetIndexes(), index => index.GetDatabaseName() == "ix_invoice_payment_attempts_invoice");
+        Assert.Equal([false, true], listing.IsDescending!.ToArray());
+        Assert.Contains(attempt.GetIndexes(), index => index.IsUnique && index.Properties.Select(p => p.Name).SequenceEqual(["ProviderPaymentIntentId"]));
+        Assert.Contains(attempt.GetIndexes(), index => index.IsUnique && index.Properties.Select(p => p.Name).SequenceEqual(["OrganizationId", "IdempotencyKey"]));
+        Assert.Contains(
+            attempt.GetCheckConstraints().Select(check => check.Sql),
+            sql => sql == "method::text IN ('card_online','bank_transfer')");
+
+        // Tenant relationships follow the composite (organization_id, id) keys; the webhook event keeps simple keys.
+        Assert.All(
+            attempt.GetForeignKeys().Where(fk => fk.PrincipalEntityType.ClrType != typeof(FieldOps.Domain.Organizations.Organization)),
+            fk => Assert.Equal(2, fk.Properties.Count));
+        var review = model.FindEntityType(typeof(InvoiceReview))!;
+        Assert.Equal(3, review.GetForeignKeys().Count(fk => fk.Properties.Count == 2));
+        Assert.Contains(review.GetIndexes(), index => index.IsUnique && index.Properties.Select(p => p.Name).SequenceEqual(["WorkOrderId"]));
+        var webhookEvent = model.FindEntityType(typeof(PaymentWebhookEvent))!;
+        Assert.Contains(webhookEvent.GetIndexes(), index => index.IsUnique && index.Properties.Select(p => p.Name).SequenceEqual(["Provider", "ProviderEventId"]));
+
+        var payment = model.FindEntityType(typeof(Payment))!;
+        Assert.True(payment.FindProperty(nameof(Payment.ReceivedByUserId))!.IsNullable);
+        Assert.Contains(payment.GetIndexes(), index => index.IsUnique && index.Properties.Select(p => p.Name).SequenceEqual(["OrganizationId", "ReceiptNumber"]));
+        var paymentChecks = payment.GetCheckConstraints().Select(check => check.Sql).ToArray();
+        Assert.Contains("(method::text = 'card_online') = (received_by_user_id IS NULL)", paymentChecks);
+        Assert.Contains("(method::text = 'card_online') = (card_last4 IS NOT NULL)", paymentChecks);
+        Assert.Contains("refunded_amount BETWEEN 0 AND amount", paymentChecks);
+
+        var organization = model.FindEntityType(typeof(FieldOps.Domain.Organizations.Organization))!;
+        Assert.Contains(organization.GetCheckConstraints(), check => check.Name == "ck_organizations_bank_details_all_or_none");
+        Assert.Equal("bytea", organization.FindProperty("BankAccountNumberCiphertext")!.GetColumnType());
     }
 
     [Fact]

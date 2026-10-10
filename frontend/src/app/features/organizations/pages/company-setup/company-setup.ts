@@ -22,6 +22,7 @@ import { Observable, map } from 'rxjs';
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
 import { AdministrationNav } from '../../components/administration-nav/administration-nav';
+import { BankDetailsCard } from '../../components/bank-details-card/bank-details-card';
 import { BranchDrawer } from '../../components/branch-drawer/branch-drawer';
 import { BranchList } from '../../components/branch-list/branch-list';
 import { CompanyProfileCard } from '../../components/company-profile-card/company-profile-card';
@@ -101,6 +102,7 @@ export const CURRENCY_DIALOG_KEY = 'currency';
     CompanyProfileCard,
     TaxesCurrencyCard,
     DocumentNumberingCard,
+    BankDetailsCard,
     ErrorSummary,
     BranchList,
     BranchDrawer,
@@ -123,6 +125,7 @@ export class CompanySetup {
 
   private readonly drawer = viewChild(BranchDrawer);
   private readonly numbering = viewChild(DocumentNumberingCard);
+  private readonly bankCard = viewChild(BankDetailsCard);
 
   private submitAttempted = false;
 
@@ -205,7 +208,10 @@ export class CompanySetup {
     if (this.sessionExpired()) {
       return true;
     }
-    const dirty = this.formDirty() || (this.drawerOpen() && (this.drawer()?.isDirty() ?? false));
+    const dirty =
+      this.formDirty() ||
+      (this.bankCard()?.isDirty() ?? false) ||
+      (this.drawerOpen() && (this.drawer()?.isDirty() ?? false));
     if (!dirty) {
       return true;
     }

@@ -1,5 +1,6 @@
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Invoices;
@@ -121,6 +122,18 @@ internal sealed partial class InvoiceDeliveryStore : IInvoicePaymentStore
                         InvoicePaymentMessages.NotPayableCode, InvoicePaymentMessages.NotPayableTitle));
                 }
 
+                // Guard 2b (customer-invoice-payments BR-31 f): a pending online card attempt holds the invoice. The expiry
+                // evaluation of BR-14 ran before the invoice lock, so a pending attempt here is still unresolved.
+                if (await dbContext.InvoicePaymentAttempts.AsNoTracking().AnyAsync(
+                    attempt => attempt.InvoiceId == invoice.Id
+                        && attempt.Method == PaymentMethod.CardOnline
+                        && attempt.Status == PaymentAttemptStatus.Pending,
+                    cancellationToken))
+                {
+                    return Fail<PaymentRecorded>(Conflict<PaymentRecorded>(
+                        InvoicePaymentMessages.PaymentInProgressCode, InvoicePaymentMessages.PaymentInProgressTitle));
+                }
+
                 // Guard 3: the invoice moved since the client read it.
                 if (IsStale(invoice, input.UpdatedAt))
                 {
@@ -150,6 +163,9 @@ internal sealed partial class InvoiceDeliveryStore : IInvoicePaymentStore
                     .Where(organization => organization.Id == organizationId)
                     .ExecuteUpdateAsync(setters => setters.SetProperty(organization => organization.NextPaymentNumber, number + 1), cancellationToken);
 
+                // BR-11 b / BR-31 e: the receipt sequence is one more than the receipts the invoice already holds, read under
+                // the invoice lock, so it is gap-free and unique.
+                var receiptCount = await PublicPaymentMapper.ReceiptCountAsync(dbContext, organizationId, invoice.Id, cancellationToken);
                 var before = AuditState(invoice);
                 var payment = Payment.Create(
                     organizationId,
@@ -163,7 +179,8 @@ internal sealed partial class InvoiceDeliveryStore : IInvoicePaymentStore
                     input.IdempotencyKey,
                     actor.UserId,
                     input.Reference,
-                    input.Note);
+                    input.Note,
+                    OnlinePaymentRules.ReceiptNumber(invoice.InvoiceNumber, receiptCount + 1));
 
                 dbContext.Payments.Add(payment);
                 dbContext.PaymentAllocations.Add(PaymentAllocation.Create(payment.Id, invoice.Id, input.Amount));
@@ -251,10 +268,12 @@ internal sealed partial class InvoiceDeliveryStore : IInvoicePaymentStore
             .Where(customer => customer.OrganizationId == payment.OrganizationId && customer.Id == payment.CustomerId)
             .Select(customer => customer.DisplayName)
             .FirstOrDefaultAsync(cancellationToken);
-        var receivedBy = await dbContext.Users.AsNoTracking()
-            .Where(user => user.Id == payment.ReceivedByUserId)
-            .Select(user => user.FirstName + " " + user.LastName)
-            .FirstOrDefaultAsync(cancellationToken);
+        var receivedBy = payment.ReceivedByUserId is { } receiverId
+            ? await dbContext.Users.AsNoTracking()
+                .Where(user => user.Id == receiverId)
+                .Select(user => user.FirstName + " " + user.LastName)
+                .FirstOrDefaultAsync(cancellationToken)
+            : null;
 
         return new PaymentRow(
             payment.Id,
@@ -267,7 +286,9 @@ internal sealed partial class InvoiceDeliveryStore : IInvoicePaymentStore
             payment.ExternalReference,
             QuoteCalculator.Money(payment.Amount),
             payment.Currency,
-            receivedBy ?? string.Empty);
+            payment.ReceivedByUserId is null ? null : receivedBy ?? string.Empty,
+            OnlinePaymentRules.PaymentStatusCode(payment.Status),
+            QuoteCalculator.Money(payment.RefundedAmount));
     }
 
     private void AuditRow(

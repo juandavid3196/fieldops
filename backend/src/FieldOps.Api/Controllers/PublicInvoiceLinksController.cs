@@ -1,7 +1,9 @@
 using System.Diagnostics;
+using System.Globalization;
 using FieldOps.Api.Contracts;
 using FieldOps.Api.Extensions;
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.OnlinePayments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -16,14 +18,26 @@ namespace FieldOps.Api.Controllers;
 /// <remarks>
 /// Not an [ApiController], like <see cref="PublicQuoteLinksController"/>. Every response carries no-store, no-referrer and
 /// nosniff through <c>QuoteLinkPublicHeadersMiddleware</c> (binary responses use <c>private, no-store</c>). Nothing here
-/// logs the token or any invoice content, and nothing here writes.
+/// logs the token or any invoice content. The view, pdf and logo endpoints write nothing; the payment endpoints of
+/// customer-invoice-payments (card intent, status, bank transfer notice, receipt, completion report, photos and review) share
+/// the same token flow, reject unknown body keys with a 400 and write only what their business rules allow (the lazy expiry of
+/// a pending card attempt, the attempt, the notice and the review). Token validity and ownership (404) come before field
+/// validation (400).
 /// </remarks>
 [Route("public/invoice-links")]
 [AllowAnonymous]
 public sealed class PublicInvoiceLinksController(
     ViewInvoiceLinkHandler viewHandler,
     DownloadInvoiceLinkPdfHandler pdfHandler,
-    GetInvoiceLinkLogoHandler logoHandler) : ControllerBase
+    GetInvoiceLinkLogoHandler logoHandler,
+    CreateCardIntentHandler cardIntentHandler,
+    GetPaymentStatusHandler statusHandler,
+    ReportBankTransferHandler bankNoticeHandler,
+    SubmitInvoiceReviewHandler reviewHandler,
+    DownloadReceiptPdfHandler receiptHandler,
+    DownloadCompletionReportHandler reportHandler,
+    ListInvoicePhotosHandler photosHandler,
+    GetInvoicePhotoHandler photoHandler) : ControllerBase
 {
     public const int MaxRequestBodyBytes = 16 * 1024;
 
@@ -93,6 +107,201 @@ public sealed class PublicInvoiceLinksController(
         BinaryHeaders("inline");
 
         return File(logo.Content, logo.ContentType);
+    }
+
+    [HttpPost("payments/card-intent")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [EnableRateLimiting(ApiRateLimitingExtensions.InvoiceLinkCardIntentPolicy)]
+    [ProducesResponseType<CardIntentView>(StatusCodes.Status201Created)]
+    [ProducesResponseType<CardIntentView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status502BadGateway)]
+    public async Task<IActionResult> CardIntent(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] InvoiceLinkKeyRequest request,
+        CancellationToken cancellationToken) =>
+        !ModelState.IsValid
+            ? InvalidBody()
+            : Respond(await cardIntentHandler.HandleAsync(request.Token, request.IdempotencyKey, cancellationToken));
+
+    [HttpPost("payments/status")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [EnableRateLimiting(ApiRateLimitingExtensions.InvoiceLinkStatusPolicy)]
+    [ProducesResponseType<PaymentStatusView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> Status(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] PaymentStatusRequest request,
+        CancellationToken cancellationToken) =>
+        !ModelState.IsValid
+            ? InvalidBody()
+            : Respond(await statusHandler.HandleAsync(request.Token, request.AttemptId, cancellationToken));
+
+    [HttpPost("payments/bank-transfer-notice")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [EnableRateLimiting(ApiRateLimitingExtensions.InvoiceLinkActionPolicy)]
+    [ProducesResponseType<BankNoticeView>(StatusCodes.Status201Created)]
+    [ProducesResponseType<BankNoticeView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> BankTransferNotice(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] InvoiceLinkKeyRequest request,
+        CancellationToken cancellationToken) =>
+        !ModelState.IsValid
+            ? InvalidBody()
+            : Respond(await bankNoticeHandler.HandleAsync(request.Token, request.IdempotencyKey, cancellationToken));
+
+    [HttpPost("receipt")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [EnableRateLimiting(ApiRateLimitingExtensions.InvoiceLinkPdfPolicy)]
+    [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK, InvoiceDeliveryMessages.PdfContentType)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> Receipt(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] ReceiptRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return InvalidBody();
+        }
+
+        var outcome = await receiptHandler.HandleAsync(request.Token, request.PaymentId, cancellationToken);
+
+        return outcome is PublicOutcome<DocumentFile>.Ok { Value: var document } ? Pdf(document) : Respond(outcome);
+    }
+
+    [HttpPost("completion-report")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [EnableRateLimiting(ApiRateLimitingExtensions.InvoiceLinkPdfPolicy)]
+    [ProducesResponseType(typeof(byte[]), StatusCodes.Status200OK, InvoiceDeliveryMessages.PdfContentType)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> CompletionReport(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] StrictInvoiceLinkTokenRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return InvalidBody();
+        }
+
+        return await reportHandler.HandleAsync(request.Token, cancellationToken) is { } document ? Pdf(document) : Unavailable();
+    }
+
+    [HttpPost("photos")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [EnableRateLimiting(ApiRateLimitingExtensions.InvoiceLinkReadPolicy)]
+    [ProducesResponseType<IReadOnlyList<InvoicePhoto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> Photos(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] StrictInvoiceLinkTokenRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return InvalidBody();
+        }
+
+        return await photosHandler.HandleAsync(request.Token, cancellationToken) is { } photos ? Ok(photos) : Unavailable();
+    }
+
+    [HttpPost("photos/content")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [EnableRateLimiting(ApiRateLimitingExtensions.InvoiceLinkReadPolicy)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> PhotoContent(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] PhotoContentRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return InvalidBody();
+        }
+
+        var outcome = await photoHandler.HandleAsync(request.Token, request.PhotoId, cancellationToken);
+
+        if (outcome is not PublicOutcome<Application.Features.QuoteLinks.PublicBinary>.Ok { Value: var photo })
+        {
+            return Respond(outcome);
+        }
+
+        BinaryHeaders("inline");
+
+        return File(photo.Content, photo.ContentType);
+    }
+
+    [HttpPost("review")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [EnableRateLimiting(ApiRateLimitingExtensions.InvoiceLinkActionPolicy)]
+    [ProducesResponseType<ReviewSubmittedView>(StatusCodes.Status201Created)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> Review(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] InvoiceReviewRequest request,
+        CancellationToken cancellationToken) =>
+        !ModelState.IsValid
+            ? InvalidBody()
+            : Respond(await reviewHandler.HandleAsync(request.Token, request.Rating, request.Comment, cancellationToken));
+
+    private IActionResult Pdf(DocumentFile document)
+    {
+        BinaryHeaders($"attachment; filename=\"{document.FileName}\"");
+
+        return File(document.Content, document.ContentType);
+    }
+
+    // One mapping for the outcomes of the payment endpoints; a 404 is the same body as every unusable token (BR-01).
+    private IActionResult Respond<T>(PublicOutcome<T> outcome)
+    {
+        switch (outcome)
+        {
+            case PublicOutcome<T>.Ok { Created: true } created:
+                return StatusCode(StatusCodes.Status201Created, created.Value);
+            case PublicOutcome<T>.Ok ok:
+                return Ok(ok.Value);
+            case PublicOutcome<T>.Invalid invalid:
+                return new ObjectResult(new ValidationProblemDetails(new Dictionary<string, string[]>(invalid.Errors, StringComparer.Ordinal))
+                {
+                    Status = StatusCodes.Status400BadRequest,
+                    Title = "One or more validation errors occurred.",
+                })
+                {
+                    StatusCode = StatusCodes.Status400BadRequest,
+                };
+            case PublicOutcome<T>.Conflict conflict:
+                return CodedProblem(StatusCodes.Status409Conflict, conflict.Code, conflict.Title);
+            case PublicOutcome<T>.RateLimited limited:
+                Response.Headers.RetryAfter = Math.Max(1, (long)Math.Ceiling(limited.RetryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
+
+                return StatusCode(StatusCodes.Status429TooManyRequests);
+            case PublicOutcome<T>.ProviderUnavailable:
+                return CodedProblem(
+                    StatusCodes.Status502BadGateway, OnlinePaymentMessages.ProviderUnavailableCode, OnlinePaymentMessages.ProviderUnavailableTitle);
+            default:
+                return Unavailable();
+        }
+    }
+
+    private ObjectResult CodedProblem(int status, string code, string title)
+    {
+        var problem = new ProblemDetails { Status = status, Title = title };
+        problem.Extensions["code"] = code;
+        problem.Extensions["traceId"] = Activity.Current?.Id ?? HttpContext.TraceIdentifier;
+
+        return StatusCode(status, problem);
     }
 
     // Binary responses are never cached, not even by the browser; nosniff comes from the middleware.

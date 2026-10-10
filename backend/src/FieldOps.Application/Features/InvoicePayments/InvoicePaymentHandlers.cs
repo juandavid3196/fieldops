@@ -1,6 +1,7 @@
 using System.Globalization;
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.BillingReview;
+using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.ServiceRequests;
 
 namespace FieldOps.Application.Features.InvoicePayments;
@@ -156,7 +157,7 @@ public sealed class ExportHubInvoicesHandler(IInvoiceHubStore store, IBranchScop
 public sealed class ExportHubPaymentsHandler(IInvoiceHubStore store, IBranchScopeResolver scopes, TimeProvider timeProvider)
 {
     private static readonly string[] Header =
-        ["Payment", "Date", "Customer", "Invoice", "Method", "Reference", "Amount", "Currency", "Received by"];
+        ["Payment", "Date", "Customer", "Invoice", "Method", "Reference", "Amount", "Currency", "Received by", "Status"];
 
     public async Task<BillingOutcome<BillingCsvFile>> HandleAsync(
         MembershipCall call, PaymentQueryText text, CancellationToken cancellationToken)
@@ -174,6 +175,14 @@ public sealed class ExportHubPaymentsHandler(IInvoiceHubStore store, IBranchScop
         return HubHandlerSupport.Forward(export, Compose);
     }
 
+    // The CSV amount is the net amount (amount - refunded amount); the status column tells whether a refund applies (BR-31).
+    private static string StatusLabel(string status) => status switch
+    {
+        "partially_refunded" => "Partially refunded",
+        "refunded" => "Refunded",
+        _ => "Succeeded",
+    };
+
     private static BillingCsvFile Compose(PaymentExport export)
     {
         var rows = new List<string> { CsvCell.Row(Header) };
@@ -188,9 +197,10 @@ public sealed class ExportHubPaymentsHandler(IInvoiceHubStore store, IBranchScop
                 row.InvoiceNumber,
                 PaymentMethodCodes.TryParse(row.Method, out var method) ? PaymentMethodCodes.Label(method) : row.Method,
                 row.Reference,
-                ExportHubInvoicesHandler.Money(row.Amount),
+                ExportHubInvoicesHandler.Money(row.Amount - row.RefundedAmount),
                 row.Currency,
-                row.ReceivedByName,
+                row.ReceivedByName ?? string.Empty,
+                StatusLabel(row.Status),
             ]));
         }
 
@@ -207,6 +217,7 @@ public sealed class RecordInvoicePaymentHandler(
     IBillingReviewStore organizations,
     IBranchScopeResolver scopes,
     IPaymentReceiptNotifier notifier,
+    PaymentAttemptExpirer expirer,
     TimeProvider timeProvider)
 {
     public async Task<BillingOutcome<PaymentRecordResponse>> HandleAsync(
@@ -222,6 +233,9 @@ public sealed class RecordInvoicePaymentHandler(
         {
             return HubHandlerSupport.Forward<PaymentInput, PaymentRecordResponse>(validated, _ => throw new InvalidOperationException());
         }
+
+        // customer-invoice-payments BR-14: an expired pending card attempt is evaluated before the invoice lock is taken.
+        await expirer.EvaluateAsync(call.OrganizationId, invoiceId, cancellationToken);
 
         var recorded = await store.RecordAsync(actor, invoiceId, input.Value, now, cancellationToken);
 

@@ -1,0 +1,92 @@
+<section class="success" aria-labelledby="success-title">
+  <div class="success__lead">
+    <span class="success__badge" aria-hidden="true"><i class="pi pi-check"></i></span>
+    <div class="success__main">
+      <h2 id="success-title" class="success__title" tabindex="-1">Payment successful</h2>
+      <p class="success__thanks">{{ view().thanks }}</p>
+      <p class="success__amount">{{ view().amount }}</p>
+      @if (view().paidOn; as date) {
+        <p class="success__date">Paid on {{ date }}</p>
+      }
+    </div>
+  </div>
+  @if (view().payment; as payment) {
+    <dl class="success__rows">
+      @if (payment.receiptNumber; as receipt) {
+        <div>
+          <dt>Receipt number</dt>
+          <dd>{{ receipt }}</dd>
+        </div>
+      }
+      <div>
+        <dt>Transaction reference</dt>
+        <dd>{{ payment.number }}</dd>
+      </div>
+      <div>
+        <dt>Payment method</dt>
+        <dd>
+          {{ payment.methodLabel }}
+          @if (view().brand; as brand) {
+            <span class="success__brand">{{ brand }}</span>
+          }
+        </dd>
+      </div>
+      @if (invoice().receiptEmail; as email) {
+        <div>
+          <dt>Email confirmation</dt>
+          <dd>A receipt was sent to {{ email }}</dd>
+        </div>
+      }
+    </dl>
+  }
+  <div class="success__actions">
+    @if (view().payment?.receiptNumber) {
+      <button
+        pButton
+        type="button"
+        [disabled]="busy() === 'receipt'"
+        [attr.aria-busy]="busy() === 'receipt'"
+        (click)="receiptRequested.emit()"
+      >
+        @if (busy() === 'receipt') {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        } @else {
+          <i class="pi pi-download" aria-hidden="true"></i>
+        }
+        Download receipt
+      </button>
+    }
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      class="success__secondary"
+      [disabled]="busy() === 'invoice'"
+      [attr.aria-busy]="busy() === 'invoice'"
+      (click)="invoiceRequested.emit()"
+    >
+      @if (busy() === 'invoice') {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      } @else {
+        <i class="pi pi-download" aria-hidden="true"></i>
+      }
+      Download invoice
+    </button>
+  </div>
+</section>
+
+<div class="lower">
+  <section class="lower__summary">
+    <app-public-payment-summary [invoice]="invoice()" [detailed]="true" />
+  </section>
+  <ng-content />
+</div>
+
+<section class="next" aria-labelledby="next-title">
+  <span class="next__icon" aria-hidden="true"><i class="pi pi-info-circle"></i></span>
+  <div>
+    <h2 id="next-title" class="next__title">What happens next?</h2>
+    <p>This invoice is now closed. Your receipt is available anytime.</p>
+  </div>
+</section>

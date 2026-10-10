@@ -11,9 +11,17 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
     public void Configure(EntityTypeBuilder<Payment> builder)
     {
-        builder.ToTable("payments", table => table.HasCheckConstraint(
-            "ck_payments_amount",
-            "amount > 0"));
+        builder.ToTable("payments", table =>
+        {
+            table.HasCheckConstraint("ck_payments_amount", "amount > 0");
+
+            // SA-15 (customer-invoice-payments): the constraints compare method::text, never the new enum literal.
+            table.HasCheckConstraint("ck_payments_refunded_amount_range", "refunded_amount BETWEEN 0 AND amount");
+            table.HasCheckConstraint("ck_payments_status_succeeded_no_refund", "(status = 'succeeded') = (refunded_amount = 0)");
+            table.HasCheckConstraint("ck_payments_status_refunded_full", "(status = 'refunded') = (refunded_amount = amount)");
+            table.HasCheckConstraint("ck_payments_card_online_no_receiver", "(method::text = 'card_online') = (received_by_user_id IS NULL)");
+            table.HasCheckConstraint("ck_payments_card_online_last4", "(method::text = 'card_online') = (card_last4 IS NOT NULL)");
+        });
 
         builder.HasKey(payment => payment.Id);
 
@@ -60,9 +68,8 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 
         builder.Property(payment => payment.RecordedByUserId);
 
-        // SA-12 (invoices-payments-management): NOT NULL, no default.
-        builder.Property(payment => payment.ReceivedByUserId)
-            .IsRequired();
+        // SA-12 (invoices-payments-management): no default; SA-15 makes it nullable (null only for card_online).
+        builder.Property(payment => payment.ReceivedByUserId);
 
         builder.Property(payment => payment.IdempotencyKey)
             .IsRequired();
@@ -73,6 +80,35 @@ internal sealed class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(payment => payment.CreatedAt)
             .HasDefaultValueSql("now()")
             .IsRequired();
+
+        // SA-15: PostgreSQL enum payment_status, DEFAULT 'succeeded' (also the CLR default, so the database default and an
+        // explicit Succeeded are the same value).
+        builder.Property(payment => payment.Status)
+            .HasDefaultValue(PaymentStatus.Succeeded)
+            .IsRequired();
+
+        builder.Property(payment => payment.RefundedAmount)
+            .HasPrecision(14, 2)
+            .HasDefaultValue(0m)
+            .IsRequired();
+
+        builder.Property(payment => payment.ReceiptNumber)
+            .HasMaxLength(60);
+
+        builder.Property(payment => payment.ReceiptSentAt);
+
+        builder.Property(payment => payment.CardBrand)
+            .HasMaxLength(20);
+
+        builder.Property(payment => payment.CardLast4)
+            .HasMaxLength(4)
+            .IsFixedLength();
+
+        builder.Ignore(payment => payment.NetAmount);
+
+        // UNIQUE (organization_id, receipt_number): several null receipt numbers are allowed.
+        builder.HasIndex(payment => new { payment.OrganizationId, payment.ReceiptNumber })
+            .IsUnique();
 
         // UNIQUE (organization_id, payment_number)
         builder.HasIndex(payment => new { payment.OrganizationId, payment.PaymentNumber })

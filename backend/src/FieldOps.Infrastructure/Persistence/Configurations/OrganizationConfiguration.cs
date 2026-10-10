@@ -143,6 +143,25 @@ internal sealed class OrganizationConfiguration
             .HasDefaultValueSql("now()")
             .IsRequired();
 
+        // SA-18 (customer-invoice-payments)
+        builder.Property(organization => organization.StripeAccountId)
+            .HasMaxLength(255);
+
+        builder.Property(organization => organization.BankName)
+            .HasMaxLength(120);
+
+        builder.Property(organization => organization.BankAccountNumberCiphertext)
+            .HasColumnType("bytea");
+
+        builder.Property(organization => organization.BankAccountLast4)
+            .HasMaxLength(4);
+
+        builder.Property(organization => organization.BankRoutingNumber)
+            .HasMaxLength(9)
+            .IsFixedLength();
+
+        builder.Property(organization => organization.BankDetailsUpdatedAt);
+
         // Concurrency token (BR-07): every write sets it explicitly, and the
         // store compares the client's submitted value against it before
         // mutating, then relies on this token to catch a race between that
@@ -161,6 +180,12 @@ internal sealed class OrganizationConfiguration
             table.HasCheckConstraint(
                 "ck_organizations_public_slug",
                 "public_slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(public_slug) BETWEEN 1 AND 60");
+
+            // SA-18: the five bank columns are all null or all set.
+            table.HasCheckConstraint(
+                "ck_organizations_bank_details_all_or_none",
+                "(bank_name IS NULL) = (bank_account_number_ciphertext IS NULL) AND (bank_name IS NULL) = (bank_account_last4 IS NULL) "
+                + "AND (bank_name IS NULL) = (bank_routing_number IS NULL) AND (bank_name IS NULL) = (bank_details_updated_at IS NULL)");
         });
     }
 }

@@ -1,5 +1,6 @@
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.BillingReview;
+using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.ServiceRequests;
@@ -116,11 +117,21 @@ public sealed class ResendInvoiceEmailHandler(
     }
 }
 
-/// <summary>POST /public/invoice-links/view (BR-19, BR-20): a malformed token never reaches the store.</summary>
-public sealed class ViewInvoiceLinkHandler(IInvoiceLinkStore store)
+/// <summary>POST /public/invoice-links/view (BR-19, BR-20; customer-invoice-payments BR-03): a malformed token never reaches the store.</summary>
+public sealed class ViewInvoiceLinkHandler(IInvoiceLinkStore store, IOnlinePaymentStore payments, PaymentAttemptExpirer expirer)
 {
-    public Task<PublicInvoice?> HandleAsync(string? token, CancellationToken cancellationToken) =>
-        QuoteLinkTokens.IsWellFormed(token) ? store.ViewAsync(token!, cancellationToken) : Task.FromResult<PublicInvoice?>(null);
+    public async Task<PublicInvoice?> HandleAsync(string? token, CancellationToken cancellationToken)
+    {
+        if (!QuoteLinkTokens.IsWellFormed(token) || await payments.ResolveAsync(token!, cancellationToken) is not { } invoice)
+        {
+            return null;
+        }
+
+        // customer-invoice-payments BR-14: the only write of the view, evaluated before the read.
+        await expirer.EvaluateAsync(invoice.OrganizationId, invoice.InvoiceId, cancellationToken);
+
+        return await store.ViewAsync(token!, cancellationToken);
+    }
 }
 
 /// <summary>POST /public/invoice-links/pdf (BR-20): the PDF of the frozen invoice without the DRAFT mark.</summary>

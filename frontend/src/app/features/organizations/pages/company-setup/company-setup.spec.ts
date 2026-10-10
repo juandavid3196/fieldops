@@ -18,6 +18,7 @@ const API_BASE_URL = 'http://api.test';
 const SETTINGS_URL = `${API_BASE_URL}/organization-settings`;
 const LOGO_URL = `${SETTINGS_URL}/logo`;
 const BRANCHES_URL = `${API_BASE_URL}/branches`;
+const BANK_URL = `${SETTINGS_URL}/bank-details`;
 const SESSION_URL = `${API_BASE_URL}/sessions/current`;
 
 const SETTINGS_RESPONSE = {
@@ -120,6 +121,20 @@ describe('CompanySetup', () => {
 
   async function stable(): Promise<void> {
     await harness.fixture.whenStable();
+    // The Owner-only bank details card loads itself (BR-32); its own spec covers it.
+    const bank = httpTesting.match(BANK_URL);
+    for (const request of bank) {
+      request.flush({
+        configured: false,
+        bankName: null,
+        accountNumberMasked: null,
+        routingNumber: null,
+        updatedAt: null,
+      });
+    }
+    if (bank.length > 0) {
+      await harness.fixture.whenStable();
+    }
   }
 
   const page = () => harness.routeDebugElement!.componentInstance as CompanySetup;
@@ -618,6 +633,8 @@ describe('CompanySetup', () => {
     await stable();
 
     expect(host.querySelector('img')).not.toBeNull();
+    // The bank transfer section is Owner-only (BR-32, AC-24): hidden, and never requested.
+    expect(host.querySelector('app-bank-details-card')).toBeNull();
     for (const label of [
       'Change logo',
       'Remove logo',

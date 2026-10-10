@@ -1,0 +1,60 @@
+.gallery {
+  &__figure {
+    margin: 0;
+  }
+
+  &__frame {
+    display: grid;
+    place-items: center;
+    min-block-size: 14rem;
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__image {
+    max-inline-size: 100%;
+    max-block-size: 60vh;
+    object-fit: contain;
+  }
+
+  &__state {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+  }
+
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    margin-block-start: 0.5rem;
+  }
+
+  &__type {
+    padding: 0.125rem 0.625rem;
+    font-weight: 600;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__date {
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__nav {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    margin-block-start: 0.75rem;
+
+    button {
+      min-inline-size: var(--fo-size-touch-target);
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+}

@@ -1,4 +1,5 @@
 using FieldOps.Application.Features.BillingReview;
+using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.QuoteLinks;
 
 namespace FieldOps.Application.Features.InvoiceDelivery;
@@ -112,7 +113,11 @@ public sealed record InvoiceDetail(
     bool CanAct,
     DateTimeOffset UpdatedAt);
 
-/// <summary>The public invoice (BR-20): the preview and the status label, with no ids or internal data.</summary>
+/// <summary>
+/// The public invoice (invoice-draft-delivery BR-20 extended by customer-invoice-payments BR-03): the frozen preview plus
+/// the payment state, service details, payment options, the active attempt, the payments and the review flags. It holds
+/// only opaque attempt and payment ids, never organization, customer, invoice, line, work order, visit or user ids.
+/// </summary>
 public sealed record PublicInvoice(
     string Number,
     DateOnly? IssueDate,
@@ -127,7 +132,20 @@ public sealed record PublicInvoice(
     IReadOnlyList<InvoiceLineView> Lines,
     InvoiceTotalsView Totals,
     string? CompletionNote,
-    string Status);
+    string Status,
+    bool Overdue,
+    int? DaysOverdue,
+    decimal AmountPaid,
+    decimal BalanceDue,
+    string? CustomerFirstName,
+    PublicTimeline Timeline,
+    PublicService Service,
+    PublicPaymentOptions? PaymentOptions,
+    PublicActiveAttempt? ActiveAttempt,
+    DateOnly? TransferReportedOn,
+    IReadOnlyList<PublicPaymentItem> Payments,
+    PublicReviewState Review,
+    string? ReceiptEmail);
 
 /// <summary>What the PDF is composed from: the preview and whether the invoice is still a draft (BR-12).</summary>
 public sealed record InvoicePdfSource(InvoicePreview Preview, bool IsDraft, byte[]? Logo, string? LogoContentType);
@@ -201,6 +219,18 @@ public interface IInvoiceLinkStore
     Task<InvoicePdfSource?> GetPdfSourceAsync(string token, CancellationToken cancellationToken);
 
     Task<PublicBinary?> GetLogoAsync(string token, CancellationToken cancellationToken);
+
+    /// <summary>The stored data of one payment with a receipt number of the token invoice (customer-invoice-payments BR-19); null otherwise.</summary>
+    Task<ReceiptSource?> GetReceiptSourceAsync(string token, Guid paymentId, CancellationToken cancellationToken);
+
+    /// <summary>The completion report data of the token work order (BR-20); null when no visit was completed.</summary>
+    Task<CompletionReportSource?> GetCompletionReportSourceAsync(string token, CancellationToken cancellationToken);
+
+    /// <summary>The before and after photos of the completed visits (BR-21); null for an unusable token.</summary>
+    Task<IReadOnlyList<InvoicePhoto>?> ListPhotosAsync(string token, CancellationToken cancellationToken);
+
+    /// <summary>One photo of a visit of the token work order with its stored content type; null otherwise.</summary>
+    Task<PublicBinary?> GetPhotoAsync(string token, Guid photoId, CancellationToken cancellationToken);
 }
 
 public interface IInvoiceNotifier

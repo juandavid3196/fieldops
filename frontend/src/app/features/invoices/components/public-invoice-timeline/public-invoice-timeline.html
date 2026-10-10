@@ -1,0 +1,14 @@
+<ol class="timeline" aria-label="Invoice progress">
+  @for (step of steps(); track step.label) {
+    <li class="timeline__step timeline__step--{{ step.state }}">
+      <span class="timeline__dot" aria-hidden="true">
+        @if (step.state === 'complete') {
+          <i class="pi pi-check"></i>
+        }
+      </span>
+      <span class="timeline__label">{{ step.label }}</span>
+      <span class="timeline__date">{{ step.date }}</span>
+      <span class="sr-only">{{ step.stateText }}</span>
+    </li>
+  }
+</ol>

@@ -35,7 +35,9 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "invoice_status", new[] { "draft", "sent", "partially_paid", "paid", "overdue", "void" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "message_visibility", new[] { "customer", "internal" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "notification_status", new[] { "pending", "sent", "failed", "read" });
-            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_method", new[] { "cash", "bank_transfer", "card_external", "check", "other" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_attempt_status", new[] { "pending", "succeeded", "failed", "partially_refunded", "refunded" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_method", new[] { "cash", "bank_transfer", "card_external", "check", "other", "card_online" });
+            NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "payment_status", new[] { "succeeded", "partially_refunded", "refunded" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "quote_status", new[] { "draft", "sent", "approved", "rejected", "clarification_requested", "expired", "cancelled" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "request_status", new[] { "new", "needs_review", "assessment_scheduled", "ready_for_quote", "quoted", "converted", "cancelled" });
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "user_status", new[] { "pending", "active", "suspended", "disabled" });
@@ -1184,6 +1186,184 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.Invoices.InvoicePaymentAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasColumnName("amount");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("character(3)")
+                        .HasColumnName("currency")
+                        .IsFixedLength();
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<string>("FailureCategory")
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("failure_category");
+
+                    b.Property<Guid>("IdempotencyKey")
+                        .HasColumnType("uuid")
+                        .HasColumnName("idempotency_key");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<PaymentMethod>("Method")
+                        .HasColumnType("payment_method")
+                        .HasColumnName("method");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("payment_id");
+
+                    b.Property<string>("ProviderPaymentIntentId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("provider_payment_intent_id");
+
+                    b.Property<decimal>("RefundedAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("refunded_amount");
+
+                    b.Property<PaymentAttemptStatus>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("payment_attempt_status")
+                        .HasDefaultValue(PaymentAttemptStatus.Pending)
+                        .HasColumnName("status");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_invoice_payment_attempts");
+
+                    b.HasIndex("ProviderPaymentIntentId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_invoice_payment_attempts_provider_payment_intent_id");
+
+                    b.HasIndex("InvoiceId", "CreatedAt")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("ix_invoice_payment_attempts_invoice");
+
+                    b.HasIndex("InvoiceId", "Method")
+                        .IsUnique()
+                        .HasDatabaseName("ux_invoice_payment_attempts_pending")
+                        .HasFilter("status = 'pending'");
+
+                    b.HasIndex("OrganizationId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_invoice_payment_attempts_organization_id_idempotency_key");
+
+                    b.HasIndex("OrganizationId", "InvoiceId")
+                        .HasDatabaseName("ix_invoice_payment_attempts_organization_id_invoice_id");
+
+                    b.HasIndex("OrganizationId", "PaymentId")
+                        .HasDatabaseName("ix_invoice_payment_attempts_organization_id_payment_id");
+
+                    b.ToTable("invoice_payment_attempts", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_invoice_payment_attempts_amount", "amount > 0");
+
+                            t.HasCheckConstraint("ck_invoice_payment_attempts_method", "method::text IN ('card_online','bank_transfer')");
+
+                            t.HasCheckConstraint("ck_invoice_payment_attempts_payment_link", "(status = 'succeeded' OR status = 'partially_refunded' OR status = 'refunded') = (payment_id IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_invoice_payment_attempts_refunded_amount", "refunded_amount >= 0 AND refunded_amount <= amount");
+                        });
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Invoices.InvoiceReview", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("comment");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("InvoiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invoice_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<short>("Rating")
+                        .HasColumnType("smallint")
+                        .HasColumnName("rating");
+
+                    b.Property<Guid?>("TechnicianId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("technician_id");
+
+                    b.Property<Guid>("WorkOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_order_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_invoice_reviews");
+
+                    b.HasIndex("WorkOrderId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_invoice_reviews_work_order_id");
+
+                    b.HasIndex("OrganizationId", "InvoiceId")
+                        .HasDatabaseName("ix_invoice_reviews_organization_id_invoice_id");
+
+                    b.HasIndex("OrganizationId", "TechnicianId")
+                        .HasDatabaseName("ix_invoice_reviews_organization_id_technician_id");
+
+                    b.HasIndex("OrganizationId", "WorkOrderId")
+                        .HasDatabaseName("ix_invoice_reviews_organization_id_work_order_id");
+
+                    b.ToTable("invoice_reviews", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_invoice_reviews_rating", "rating BETWEEN 1 AND 5");
+                        });
+                });
+
             modelBuilder.Entity("FieldOps.Domain.Invoices.Payment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1196,6 +1376,17 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasPrecision(14, 2)
                         .HasColumnType("numeric(14,2)")
                         .HasColumnName("amount");
+
+                    b.Property<string>("CardBrand")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("card_brand");
+
+                    b.Property<string>("CardLast4")
+                        .HasMaxLength(4)
+                        .HasColumnType("character(4)")
+                        .HasColumnName("card_last4")
+                        .IsFixedLength();
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .ValueGeneratedOnAdd()
@@ -1243,17 +1434,39 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("bigint")
                         .HasColumnName("payment_number");
 
+                    b.Property<string>("ReceiptNumber")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)")
+                        .HasColumnName("receipt_number");
+
+                    b.Property<DateTimeOffset?>("ReceiptSentAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("receipt_sent_at");
+
                     b.Property<string>("ReceiptStorageKey")
                         .HasColumnType("text")
                         .HasColumnName("receipt_storage_key");
 
-                    b.Property<Guid>("ReceivedByUserId")
+                    b.Property<Guid?>("ReceivedByUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("received_by_user_id");
 
                     b.Property<Guid?>("RecordedByUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("recorded_by_user_id");
+
+                    b.Property<decimal>("RefundedAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(14, 2)
+                        .HasColumnType("numeric(14,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("refunded_amount");
+
+                    b.Property<PaymentStatus>("Status")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("payment_status")
+                        .HasDefaultValue(PaymentStatus.Succeeded)
+                        .HasColumnName("status");
 
                     b.HasKey("Id")
                         .HasName("pk_payments");
@@ -1279,6 +1492,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasDatabaseName("ix_payments_organization_id_payment_number");
 
+                    b.HasIndex("OrganizationId", "ReceiptNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payments_organization_id_receipt_number");
+
                     b.HasIndex("OrganizationId", "CustomerId", "PaidAt")
                         .IsDescending(false, false, true)
                         .HasDatabaseName("ix_payments_customer_date");
@@ -1286,6 +1503,16 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.ToTable("payments", null, t =>
                         {
                             t.HasCheckConstraint("ck_payments_amount", "amount > 0");
+
+                            t.HasCheckConstraint("ck_payments_card_online_last4", "(method::text = 'card_online') = (card_last4 IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_payments_card_online_no_receiver", "(method::text = 'card_online') = (received_by_user_id IS NULL)");
+
+                            t.HasCheckConstraint("ck_payments_refunded_amount_range", "refunded_amount BETWEEN 0 AND amount");
+
+                            t.HasCheckConstraint("ck_payments_status_refunded_full", "(status = 'refunded') = (refunded_amount = amount)");
+
+                            t.HasCheckConstraint("ck_payments_status_succeeded_no_refund", "(status = 'succeeded') = (refunded_amount = 0)");
                         });
                 });
 
@@ -1329,6 +1556,73 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.ToTable("payment_allocations", null, t =>
                         {
                             t.HasCheckConstraint("ck_payment_allocations_amount", "amount > 0");
+                        });
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Invoices.PaymentWebhookEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid?>("AttemptId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("attempt_id");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("event_type");
+
+                    b.Property<Guid?>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("outcome");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("stripe")
+                        .HasColumnName("provider");
+
+                    b.Property<string>("ProviderEventId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("provider_event_id");
+
+                    b.Property<DateTimeOffset>("ReceivedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("received_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("Id")
+                        .HasName("pk_payment_webhook_events");
+
+                    b.HasIndex("AttemptId")
+                        .HasDatabaseName("ix_payment_webhook_events_attempt_id");
+
+                    b.HasIndex("OrganizationId")
+                        .HasDatabaseName("ix_payment_webhook_events_organization_id");
+
+                    b.HasIndex("Provider", "ProviderEventId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_payment_webhook_events_provider_provider_event_id");
+
+                    b.ToTable("payment_webhook_events", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_payment_webhook_events_outcome", "outcome IN ('applied','no_effect','ignored','needs_attention')");
                         });
                 });
 
@@ -1532,6 +1826,30 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(180)")
                         .HasColumnName("address_line1");
 
+                    b.Property<string>("BankAccountLast4")
+                        .HasMaxLength(4)
+                        .HasColumnType("character varying(4)")
+                        .HasColumnName("bank_account_last4");
+
+                    b.Property<byte[]>("BankAccountNumberCiphertext")
+                        .HasColumnType("bytea")
+                        .HasColumnName("bank_account_number_ciphertext");
+
+                    b.Property<DateTimeOffset?>("BankDetailsUpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("bank_details_updated_at");
+
+                    b.Property<string>("BankName")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)")
+                        .HasColumnName("bank_name");
+
+                    b.Property<string>("BankRoutingNumber")
+                        .HasMaxLength(9)
+                        .HasColumnType("character(9)")
+                        .HasColumnName("bank_routing_number")
+                        .IsFixedLength();
+
                     b.Property<string>("City")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)")
@@ -1682,6 +2000,11 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(100)")
                         .HasColumnName("state_region");
 
+                    b.Property<string>("StripeAccountId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("stripe_account_id");
+
                     b.Property<string>("TaxId")
                         .HasMaxLength(60)
                         .HasColumnType("character varying(60)")
@@ -1724,6 +2047,8 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
 
                     b.ToTable("organizations", null, t =>
                         {
+                            t.HasCheckConstraint("ck_organizations_bank_details_all_or_none", "(bank_name IS NULL) = (bank_account_number_ciphertext IS NULL) AND (bank_name IS NULL) = (bank_account_last4 IS NULL) AND (bank_name IS NULL) = (bank_routing_number IS NULL) AND (bank_name IS NULL) = (bank_details_updated_at IS NULL)");
+
                             t.HasCheckConstraint("ck_organizations_default_tax_rate", "default_tax_rate BETWEEN 0 AND 100");
 
                             t.HasCheckConstraint("ck_organizations_public_slug", "public_slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$' AND length(public_slug) BETWEEN 1 AND 60");
@@ -4950,6 +5275,64 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasConstraintName("fk_invoice_lines_visit_materials_source_visit_material_id");
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.Invoices.InvoicePaymentAttempt", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_invoice_payment_attempts_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Invoices.Invoice", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "InvoiceId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_invoice_payment_attempts_invoices_organization_id_invoice_id");
+
+                    b.HasOne("FieldOps.Domain.Invoices.Payment", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "PaymentId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_invoice_payment_attempts_payments_organization_id_payment_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Invoices.InvoiceReview", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_invoice_reviews_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Invoices.Invoice", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "InvoiceId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_invoice_reviews_invoices_organization_id_invoice_id");
+
+                    b.HasOne("FieldOps.Domain.Technicians.TechnicianProfile", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "TechnicianId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_invoice_reviews_technician_profiles_organization_id_technic");
+
+                    b.HasOne("FieldOps.Domain.WorkOrders.WorkOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "WorkOrderId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_invoice_reviews_work_orders_organization_id_work_order_id");
+                });
+
             modelBuilder.Entity("FieldOps.Domain.Invoices.Payment", b =>
                 {
                     b.HasOne("FieldOps.Domain.Organizations.Organization", null)
@@ -4963,7 +5346,6 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ReceivedByUserId")
                         .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired()
                         .HasConstraintName("fk_payments_users_received_by_user_id");
 
                     b.HasOne("FieldOps.Domain.Users.User", null)
@@ -4996,6 +5378,21 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_payment_allocations_payments_payment_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Invoices.PaymentWebhookEvent", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Invoices.InvoicePaymentAttempt", null)
+                        .WithMany()
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_payment_webhook_events_invoice_payment_attempts_attempt_id");
+
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_payment_webhook_events_organizations_organization_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Notifications.AuditLog", b =>

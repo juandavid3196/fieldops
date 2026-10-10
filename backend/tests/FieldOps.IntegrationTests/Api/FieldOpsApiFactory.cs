@@ -18,6 +18,9 @@ public sealed class FieldOpsApiFactory(
 
     public const string AllowedOrigin = "https://app.fieldops.test";
 
+    /// <summary>Base64 of a fixed 32-byte AES-256 key; tests only, never a real secret.</summary>
+    public static readonly string TestBankKey = Convert.ToBase64String(Enumerable.Range(1, 32).Select(value => (byte)(value * 3)).ToArray());
+
     // Port 1 refuses connections immediately, so the check fails fast.
     public const string UnreachableConnectionString =
         "Host=127.0.0.1;Port=1;Database=fieldops;Username=fieldops;Password=not-a-secret;Timeout=3";
@@ -65,6 +68,13 @@ public sealed class FieldOpsApiFactory(
         builder.UseSetting("Email:Smtp:Host", "localhost");
         builder.UseSetting("Email:Smtp:Port", "1025");
         builder.UseSetting("Email:Smtp:EnableSsl", "false");
+
+        // customer-invoice-payments: placeholder Stripe keys (no test calls Stripe; the provider port is replaced) and a fixed
+        // 32-byte bank details key, so every host starts with card payments and bank transfer configured.
+        builder.UseSetting("Stripe:SecretKey", "sk_test_integration");
+        builder.UseSetting("Stripe:PublishableKey", "pk_test_integration");
+        builder.UseSetting("Stripe:WebhookSecret", "whsec_integration_test");
+        builder.UseSetting("BankDetails:EncryptionKey", TestBankKey);
 
         foreach (var (key, value) in settings)
         {

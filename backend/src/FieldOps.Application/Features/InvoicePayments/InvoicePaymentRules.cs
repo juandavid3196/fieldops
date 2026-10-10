@@ -291,7 +291,8 @@ public static class PaymentFieldRules
             errors["paidDate"] = [InvoicePaymentMessages.PaidDateFuture];
         }
 
-        var methodValid = PaymentMethodCodes.TryParse(body.Method, out var method);
+        // An online card payment is created only by the provider webhook (customer-invoice-payments BR-31 c).
+        var methodValid = PaymentMethodCodes.TryParse(body.Method, out var method) && method != PaymentMethod.CardOnline;
 
         if (!methodValid)
         {

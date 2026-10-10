@@ -1,0 +1,117 @@
+<section class="bank-card" id="bank-details" aria-labelledby="bank-details-heading">
+  <h2 id="bank-details-heading">Bank transfer details</h2>
+
+  @if (loading()) {
+    <div class="bank-card__skeletons" aria-busy="true">
+      <p-skeleton height="2.5rem" />
+      <p-skeleton height="2.5rem" />
+      <p-skeleton height="2.5rem" />
+    </div>
+  } @else if (loadError()) {
+    <div class="bank-card__load-error">
+      <p role="alert">{{ loadErrorMessage }}</p>
+      <button pButton type="button" severity="secondary" (click)="load()">Retry</button>
+    </div>
+  } @else {
+    <p class="bank-card__helper">{{ helper }}</p>
+
+    <form class="bank-card__grid" [formGroup]="form" novalidate (ngSubmit)="save()">
+      <app-form-field
+        label="Bank name"
+        controlId="bank-bankName"
+        [required]="true"
+        [error]="error('bankName')"
+      >
+        <input
+          pInputText
+          id="bank-bankName"
+          type="text"
+          formControlName="bankName"
+          autocomplete="off"
+          aria-required="true"
+          [invalid]="error('bankName') !== null"
+          [attr.aria-invalid]="error('bankName') !== null ? 'true' : null"
+          [attr.aria-describedby]="describedBy('bankName')"
+        />
+      </app-form-field>
+
+      <app-form-field
+        label="Account number"
+        controlId="bank-accountNumber"
+        [required]="!details()?.configured"
+        [error]="error('accountNumber')"
+      >
+        @if (replacing()) {
+          <input
+            #account
+            pInputText
+            id="bank-accountNumber"
+            type="text"
+            inputmode="numeric"
+            formControlName="accountNumber"
+            autocomplete="off"
+            [attr.aria-required]="!details()?.configured"
+            [invalid]="error('accountNumber') !== null"
+            [attr.aria-invalid]="error('accountNumber') !== null ? 'true' : null"
+            [attr.aria-describedby]="describedBy('accountNumber')"
+          />
+        } @else {
+          <div class="bank-card__masked">
+            <span id="bank-accountNumber" class="bank-card__mask">{{
+              details()?.accountNumberMasked
+            }}</span>
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              (click)="replace()"
+            >
+              Replace
+            </button>
+          </div>
+        }
+      </app-form-field>
+
+      <app-form-field
+        label="Routing number"
+        controlId="bank-routingNumber"
+        [required]="true"
+        [error]="error('routingNumber')"
+      >
+        <input
+          pInputText
+          id="bank-routingNumber"
+          type="text"
+          inputmode="numeric"
+          formControlName="routingNumber"
+          autocomplete="off"
+          aria-required="true"
+          [invalid]="error('routingNumber') !== null"
+          [attr.aria-invalid]="error('routingNumber') !== null ? 'true' : null"
+          [attr.aria-describedby]="describedBy('routingNumber')"
+        />
+      </app-form-field>
+
+      @if (formMessage(); as message) {
+        <p class="bank-card__message" role="alert">
+          {{ message }}
+          @if (stale()) {
+            <button pButton type="button" size="small" severity="secondary" (click)="load()">
+              Refresh
+            </button>
+          }
+        </p>
+      }
+
+      <div class="bank-card__actions">
+        <button pButton type="submit" [disabled]="saving()" [attr.aria-busy]="saving()">
+          @if (saving()) {
+            <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+          }
+          Save bank details
+        </button>
+      </div>
+    </form>
+  }
+</section>

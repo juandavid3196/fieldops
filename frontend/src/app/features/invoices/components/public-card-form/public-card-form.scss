@@ -1,0 +1,88 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  &__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  input {
+    min-block-size: var(--fo-size-touch-target);
+  }
+}
+
+.element {
+  min-block-size: 8rem;
+}
+
+// Mobile: the Pay button stays at the bottom of the viewport while the panel is in view (BR-33).
+.pay-bar {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
+  padding-block: 0.75rem;
+  background: var(--fo-color-surface);
+
+  @include bp.up(md) {
+    position: static;
+    padding-block: 0;
+  }
+
+  &__button {
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__secure {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+
+    i {
+      margin-inline-end: 0.375rem;
+    }
+  }
+}
+
+.receipt {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--fo-color-text-secondary);
+  text-align: center;
+}
+
+.another {
+  min-block-size: var(--fo-size-touch-target);
+  color: var(--fo-color-link);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
