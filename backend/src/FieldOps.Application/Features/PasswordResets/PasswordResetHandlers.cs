@@ -57,6 +57,54 @@ public sealed class RequestPasswordResetHandler(
     }
 }
 
+/// <summary>
+/// POST /portal/password-resets (customer portal BR-15): the rules of <see cref="RequestPasswordResetHandler"/> with the
+/// portal eligibility (at least one active link) and the portal reset link.
+/// </summary>
+public sealed class RequestPortalPasswordResetHandler(
+    IValidator<RequestPasswordResetCommand> validator,
+    IPasswordResetEmailThrottle throttle,
+    IPasswordResetStore store,
+    IPasswordResetEmailQueue queue,
+    PortalInvitations.IPortalLinkBuilder linkBuilder)
+{
+    public async Task<PasswordResetResult<NoValue>> HandleAsync(
+        RequestPasswordResetCommand command,
+        CancellationToken cancellationToken)
+    {
+        var validation = await validator.ValidateAsync(command, cancellationToken);
+
+        if (!validation.IsValid)
+        {
+            return PasswordResetResult<NoValue>.Invalid(InvitationHandlerSupport.GroupErrors(validation));
+        }
+
+        var normalizedEmail = EmailNormalizer.Normalize(command.Email);
+        var accepted = PasswordResetResult<NoValue>.Ok(default);
+
+        if (!throttle.TryAcquire(normalizedEmail))
+        {
+            return accepted;
+        }
+
+        var user = await store.FindEligiblePortalUserAsync(normalizedEmail, cancellationToken);
+
+        if (user is null)
+        {
+            return accepted;
+        }
+
+        var (rawToken, tokenHash) = InvitationTokens.Generate();
+
+        if (await store.ReplaceAsync(user.UserId, tokenHash, cancellationToken))
+        {
+            queue.TryEnqueue(new PasswordResetEmail(user.Email, user.FirstName, linkBuilder.BuildResetLink(rawToken)));
+        }
+
+        return accepted;
+    }
+}
+
 /// <summary>POST /password-resets/validate (BR-07, BR-08).</summary>
 public sealed class ValidatePasswordResetHandler(
     IValidator<ValidatePasswordResetCommand> validator,

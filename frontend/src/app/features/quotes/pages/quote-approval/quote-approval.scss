@@ -10,11 +10,20 @@
   background: var(--fo-color-app-background);
 }
 
+:host(.embedded) {
+  min-height: 0;
+  background: transparent;
+}
+
 .page {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   min-height: 100dvh;
+
+  &--embedded {
+    min-height: 0;
+  }
 
   &__header {
     display: flex;
@@ -27,6 +36,15 @@
     @include bp.up(md) {
       padding-inline: 1.5rem;
     }
+  }
+
+  &__portal {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    margin-inline-start: auto;
+    font-weight: 600;
+    color: var(--fo-color-link);
   }
 
   &__logo {

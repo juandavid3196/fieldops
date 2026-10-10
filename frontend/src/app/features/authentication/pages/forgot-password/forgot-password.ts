@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
@@ -45,6 +45,9 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
 })
 export class ForgotPassword {
   private readonly passwordResets = inject(PasswordResetService);
+  /** Route data `portal: true` serves the customer portal: its endpoint and sign-in link. */
+  private readonly portal = inject(ActivatedRoute).snapshot.data['portal'] === true;
+  protected readonly signInPath = this.portal ? '/portal/sign-in' : '/auth/sign-in';
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
@@ -92,7 +95,7 @@ export class ForgotPassword {
     const email = normalizeEmail(this.form.controls.email.value);
     this.submitting.set(true);
     this.passwordResets
-      .request(email)
+      .request(email, this.portal)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: () => {

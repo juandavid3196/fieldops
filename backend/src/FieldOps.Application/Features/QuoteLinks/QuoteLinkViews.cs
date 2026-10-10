@@ -1,4 +1,5 @@
 using System.Net;
+using FieldOps.Application.Features.PortalAccess;
 
 namespace FieldOps.Application.Features.QuoteLinks;
 
@@ -85,6 +86,9 @@ public abstract record QuoteLinkOutcome<T>
     public sealed record AlreadyAnswered : QuoteLinkOutcome<T>;
 
     public sealed record Invalid(IReadOnlyDictionary<string, string[]> Errors) : QuoteLinkOutcome<T>;
+
+    /// <summary>Portal only: the quote is shown read-only as expired and its actions are refused (customer portal BR-30).</summary>
+    public sealed record Expired : QuoteLinkOutcome<T>;
 }
 
 /// <summary>
@@ -93,23 +97,23 @@ public abstract record QuoteLinkOutcome<T>
 /// </summary>
 public interface IQuoteLinkStore
 {
-    Task<QuoteLinkOutcome<PublicQuote>> ViewAsync(string token, CancellationToken cancellationToken);
+    Task<QuoteLinkOutcome<PublicQuote>> ViewAsync(ResourceAccess access, CancellationToken cancellationToken);
 
     Task<QuoteLinkOutcome<PublicTotals>> CalculateAsync(
-        string token, IReadOnlyList<Guid> selectedOptionalLineIds, CancellationToken cancellationToken);
+        ResourceAccess access, IReadOnlyList<Guid> selectedOptionalLineIds, CancellationToken cancellationToken);
 
     Task<QuoteLinkOutcome<PublicQuote>> ApproveAsync(
-        string token, IReadOnlyList<Guid> selectedOptionalLineIds, QuoteLinkCaller caller, CancellationToken cancellationToken);
+        ResourceAccess access, IReadOnlyList<Guid> selectedOptionalLineIds, QuoteLinkCaller caller, CancellationToken cancellationToken);
 
     Task<QuoteLinkOutcome<PublicQuote>> DeclineAsync(
-        string token, string reason, QuoteLinkCaller caller, CancellationToken cancellationToken);
+        ResourceAccess access, string reason, QuoteLinkCaller caller, CancellationToken cancellationToken);
 
     Task<QuoteLinkOutcome<PublicQuote>> AskAsync(
-        string token, string message, QuoteLinkCaller caller, CancellationToken cancellationToken);
+        ResourceAccess access, string message, QuoteLinkCaller caller, CancellationToken cancellationToken);
 
-    Task<QuoteLinkOutcome<PublicBinary>> GetPhotoAsync(string token, Guid photoId, CancellationToken cancellationToken);
+    Task<QuoteLinkOutcome<PublicBinary>> GetPhotoAsync(ResourceAccess access, Guid photoId, CancellationToken cancellationToken);
 
-    Task<QuoteLinkOutcome<PublicBinary>> GetLogoAsync(string token, CancellationToken cancellationToken);
+    Task<QuoteLinkOutcome<PublicBinary>> GetLogoAsync(ResourceAccess access, CancellationToken cancellationToken);
 }
 
 /// <summary>Renders the PDF of a composed document (BR-19); the implementation lives in Infrastructure.</summary>

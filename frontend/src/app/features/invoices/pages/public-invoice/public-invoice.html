@@ -1,16 +1,21 @@
-<div class="page">
-  <header class="page__header">
-    @if (invoice(); as invoice) {
-      @if (logoUrl(); as url) {
-        <img class="page__logo" [src]="url" alt="" />
+<div class="page" [class.page--embedded]="embedded()">
+  @if (!embedded()) {
+    <header class="page__header">
+      @if (invoice(); as invoice) {
+        @if (logoUrl(); as url) {
+          <img class="page__logo" [src]="url" alt="" />
+        } @else {
+          <span class="page__logo page__logo--initials" aria-hidden="true">{{ initials() }}</span>
+        }
+        <span class="page__brand">{{ invoice.organization.name }}</span>
       } @else {
-        <span class="page__logo page__logo--initials" aria-hidden="true">{{ initials() }}</span>
+        <span class="page__brand">FieldOps</span>
       }
-      <span class="page__brand">{{ invoice.organization.name }}</span>
-    } @else {
-      <span class="page__brand">FieldOps</span>
-    }
-  </header>
+      <button type="button" role="link" class="page__portal" (click)="openPortal()">
+        Sign in to your portal
+      </button>
+    </header>
+  }
 
   <main class="page__main">
     @switch (state()) {
@@ -25,7 +30,9 @@
         </div>
       }
       @case ('unavailable') {
-        <app-public-neutral-state [kind]="'unavailable'" />
+        @if (!embedded()) {
+          <app-public-neutral-state [kind]="'unavailable'" />
+        }
       }
       @case ('rate-limited') {
         <app-public-neutral-state [kind]="'rate-limited'" (retry)="retry()" />
@@ -68,5 +75,7 @@
     }
   </main>
 
-  <footer class="page__footer">Powered by FieldOps</footer>
+  @if (!embedded()) {
+    <footer class="page__footer">Powered by FieldOps</footer>
+  }
 </div>

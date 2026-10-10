@@ -67,7 +67,17 @@ export interface CustomerTag {
   readonly name: string;
 }
 
-export interface CustomerContact {
+/** Portal access of the primary contact (customer-portal-dashboard BR-10). */
+export type PortalStatus = 'active' | 'invited' | 'not_invited';
+
+/** Body of `POST /customers/{id}/portal-invitation` and `DELETE /customers/{id}/portal-access`. */
+export interface PortalAccess {
+  readonly portalStatus: PortalStatus;
+  readonly portalLinkedOn: string | null;
+  readonly invitationExpiresOn: string | null;
+}
+
+export interface CustomerContact extends Partial<PortalAccess> {
   readonly firstName: string;
   readonly lastName: string;
   readonly title?: string | null;

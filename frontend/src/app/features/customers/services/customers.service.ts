@@ -21,6 +21,7 @@ import {
   ImportResult,
   NoteItem,
   NotesResponse,
+  PortalAccess,
   PropertiesResponse,
   PropertyItem,
   PropertyRequest,
@@ -89,6 +90,16 @@ export class CustomersService {
 
   reactivate(id: string): Observable<void> {
     return this.http.post<void>(this.url(`customers/${id}/reactivate`), null);
+  }
+
+  /** Invites, or re-invites, the primary contact to the customer portal (Manage). */
+  invitePortal(id: string): Observable<PortalAccess> {
+    return this.http.post<PortalAccess>(this.url(`customers/${id}/portal-invitation`), null);
+  }
+
+  /** Removes the primary contact's portal access (Manage); idempotent. */
+  removePortalAccess(id: string): Observable<PortalAccess> {
+    return this.http.delete<PortalAccess>(this.url(`customers/${id}/portal-access`));
   }
 
   overview(id: string): Observable<CustomerOverview> {

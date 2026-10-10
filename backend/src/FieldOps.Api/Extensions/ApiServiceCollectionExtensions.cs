@@ -2,6 +2,7 @@ using FieldOps.Api.Configuration;
 using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.PasswordResets;
+using FieldOps.Application.Features.PortalInvitations;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.Users;
 using Microsoft.AspNetCore.Cors.Infrastructure;
@@ -42,6 +43,7 @@ public static class ApiServiceCollectionExtensions
 
         services.AddSingleton<IInvitationLinkBuilder, CorsOriginInvitationLinkBuilder>();
         services.AddSingleton<IPasswordResetLinkBuilder, CorsOriginPasswordResetLinkBuilder>();
+        services.AddSingleton<IPortalLinkBuilder, CorsOriginPortalLinkBuilder>();
         services.AddSingleton<IQuoteLinkBuilder, CorsOriginQuoteLinkBuilder>();
         services.AddSingleton<IInvoiceLinkBuilder, CorsOriginInvoiceLinkBuilder>();
 

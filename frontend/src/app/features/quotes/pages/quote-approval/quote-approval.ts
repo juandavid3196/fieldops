@@ -5,13 +5,16 @@ import {
   ElementRef,
   Injector,
   afterNextRender,
+  OnInit,
   computed,
   inject,
+  input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { CheckIcon } from 'primeng/icons/check';
@@ -50,6 +53,7 @@ import {
   PublicQuote,
   PublicQuoteStatus,
   PublicTotals,
+  QUOTE_EXPIRED_NOTICE,
   RESPONSE_ERROR,
   SUPERSEDED_BODY,
   SUPERSEDED_TITLE,
@@ -57,7 +61,7 @@ import {
   UNAVAILABLE_TITLE,
 } from '../../models/public-quote.model';
 import { PublicQuoteTokenService } from '../../services/public-quote-token.service';
-import { PublicQuoteService } from '../../services/public-quote.service';
+import { QuoteLinkApi } from '../../services/quote-link-api';
 import { customerInitials, dateOnlyLabel } from '../../utils/quote-format';
 
 type PageState = 'loading' | 'ready' | 'unavailable' | 'superseded' | 'rate-limited' | 'error';
@@ -68,6 +72,7 @@ const CALCULATE_DEBOUNCE_MS = 250;
 
 const CHIPS: Readonly<Record<PublicQuoteStatus, { label: string; tone: ChipTone }>> = {
   sent: { label: 'Awaiting your approval', tone: 'warning' },
+  expired: { label: 'Expired', tone: 'neutral' },
   clarification_requested: { label: 'Question sent', tone: 'info' },
   approved: { label: 'Approved', tone: 'success' },
   rejected: { label: 'Declined', tone: 'neutral' },
@@ -98,6 +103,7 @@ interface DialogSubmission {
     SpinnerIcon,
     TimesCircleIcon,
     Toast,
+    RouterLink,
     PublicQuoteDetails,
     PublicQuoteDialog,
     PublicQuotePrice,
@@ -105,10 +111,11 @@ interface DialogSubmission {
     PublicQuoteSummary,
   ],
   providers: [MessageService],
+  host: { '[class.embedded]': 'embedded()' },
   templateUrl: './quote-approval.html',
   styleUrl: './quote-approval.scss',
 })
-export class QuoteApproval {
+export class QuoteApproval implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
   private readonly document = inject(DOCUMENT);
@@ -116,7 +123,12 @@ export class QuoteApproval {
   private readonly injector = inject(Injector);
   private readonly messages = inject(MessageService);
   private readonly tokens = inject(PublicQuoteTokenService);
-  private readonly service = inject(PublicQuoteService);
+  private readonly service = inject(QuoteLinkApi);
+
+  /** Rendered inside the portal shell: session-authorized, no token, header and footer hidden. */
+  readonly embedded = input(false);
+  /** Embedded only: the quote is not available (`404`); the portal page owns that state. */
+  readonly missing = output<void>();
 
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
   private readonly calculations = new Subject<readonly string[]>();
@@ -148,6 +160,9 @@ export class QuoteApproval {
   readonly pdfState = signal<PdfState>('idle');
   readonly logoUrl = signal<string | null>(null);
 
+  readonly expiredNotice = computed(() =>
+    QUOTE_EXPIRED_NOTICE(this.quote()?.organization.name ?? 'the company'),
+  );
   readonly editable = computed(() => {
     const status = this.quote()?.quote.status;
     return status === 'sent' || status === 'clarification_requested';
@@ -177,12 +192,16 @@ export class QuoteApproval {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((result) => this.applyCalculation(result));
+  }
 
-    // BR-01: capture first and replace the URL before any request; other fragments are ignored.
-    const snapshot = this.route.snapshot;
-    this.tokens.captureFromFragment(snapshot.fragment);
-    if (snapshot.fragment !== null || snapshot.queryParamMap.keys.length > 0) {
-      this.location.replaceState(PUBLIC_PATH);
+  ngOnInit(): void {
+    if (!this.embedded()) {
+      // BR-01: capture first and replace the URL before any request; other fragments are ignored.
+      const snapshot = this.route.snapshot;
+      this.tokens.captureFromFragment(snapshot.fragment);
+      if (snapshot.fragment !== null || snapshot.queryParamMap.keys.length > 0) {
+        this.location.replaceState(PUBLIC_PATH);
+      }
     }
     this.load();
   }
@@ -194,7 +213,7 @@ export class QuoteApproval {
   // Loading
 
   private load(): void {
-    if (this.tokens.read() === null) {
+    if (!this.embedded() && this.tokens.read() === null) {
       this.show('unavailable');
       return;
     }
@@ -237,7 +256,13 @@ export class QuoteApproval {
 
   private show(state: PageState): void {
     if (state === 'unavailable' || state === 'superseded') {
-      this.tokens.clear();
+      if (this.embedded()) {
+        if (state === 'unavailable') {
+          this.missing.emit();
+        }
+      } else {
+        this.tokens.clear();
+      }
       this.quote.set(null);
       this.dialog.set(null);
       this.releaseLogo();
@@ -374,9 +399,12 @@ export class QuoteApproval {
         this.show('superseded');
         return;
       case 409:
-        // BR-16: someone already answered; reload to the final state.
+        // BR-16: someone already answered; reload to the final state. An expired quote (portal)
+        // reloads to its read-only expired state without the answered notice.
         this.dialog.set(null);
-        this.messages.add({ severity: 'info', summary: ALREADY_ANSWERED });
+        if (apiError.code !== 'quote_expired') {
+          this.messages.add({ severity: 'info', summary: ALREADY_ANSWERED });
+        }
         this.load();
         return;
     }

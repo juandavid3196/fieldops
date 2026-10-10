@@ -1,0 +1,55 @@
+<section
+  class="pcard"
+  [class.pcard--warning]="payment() !== null"
+  aria-labelledby="payment-due-title"
+>
+  @if (payment(); as payment) {
+    <div class="pcard__split">
+      <div class="pcard__split-main">
+        <h2 class="pcard__title pcard__title--warning" id="payment-due-title">
+          <i class="pi pi-exclamation-circle pcard__icon" aria-hidden="true"></i>
+          Payment due
+        </h2>
+        <p class="pcard__lead">Invoice {{ payment.displayNumber }}</p>
+        <p class="pcard__meta">{{ payment.title }}</p>
+        <p class="pcard__amount">{{ balance() }}</p>
+        @if (due(); as date) {
+          <p class="pcard__meta" [class.pcard__overdue]="payment.isOverdue">
+            @if (payment.isOverdue) {
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              Overdue · Due {{ date }}
+            } @else {
+              Due {{ date }}
+            }
+          </p>
+        } @else if (payment.isOverdue) {
+          <p class="pcard__meta pcard__overdue">
+            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+            Overdue
+          </p>
+        }
+      </div>
+      <div class="pcard__split-actions">
+        <a
+          pButton
+          severity="secondary"
+          [outlined]="true"
+          [routerLink]="['/portal/invoices', payment.id]"
+        >
+          View invoice
+        </a>
+      </div>
+    </div>
+    @if (payment.moreCount > 0) {
+      <a class="pcard__link" routerLink="/portal/invoices"
+        >+{{ payment.moreCount }} more invoices</a
+      >
+    }
+  } @else {
+    <h2 class="pcard__title" id="payment-due-title">
+      <i class="pi pi-wallet pcard__icon" aria-hidden="true"></i>
+      Payment due
+    </h2>
+    <p class="pcard__empty">You're all paid up.</p>
+  }
+</section>

@@ -47,6 +47,12 @@ export const routes: Routes = [
   // never matched as an invoice id (invoice-draft-delivery BR-23).
   publicInvoiceRoute,
   {
+    // Customer portal: its own public pages and a guarded shell with the portal session. Declared
+    // before the pathless shells so `portal/...` never reaches them (customer-portal-dashboard).
+    path: 'portal',
+    loadChildren: () => import('./features/portal/portal.routes'),
+  },
+  {
     // Old emailed links: the redirect keeps the URL fragment (customer-quote-approval BR-02).
     path: 'quote-approval',
     pathMatch: 'full',

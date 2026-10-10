@@ -147,6 +147,10 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<InvoiceReview> InvoiceReviews => Set<InvoiceReview>();
 
+    public DbSet<CustomerPortalInvitation> CustomerPortalInvitations => Set<CustomerPortalInvitation>();
+
+    public DbSet<VisitRescheduleRequest> VisitRescheduleRequests => Set<VisitRescheduleRequest>();
+
     public DbSet<Notification> Notifications => Set<Notification>();
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();

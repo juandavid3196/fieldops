@@ -15,7 +15,7 @@ public sealed record CustomerOverview(
     Guid Id,
     string Type,
     string DisplayName,
-    CustomerDetailContact Contact,
+    CustomerOverviewContact Contact,
     string Lifecycle,
     string DisplayStatus,
     bool IsActive,
@@ -26,6 +26,19 @@ public sealed record CustomerOverview(
     CustomerLastInvoice? LastInvoice,
     IReadOnlyList<CustomerTagView> Tags,
     string? PinnedNote);
+
+/// <summary>The contact of the overview: the contact details plus the portal status of the primary contact (customer portal BR-10).</summary>
+public sealed record CustomerOverviewContact(
+    string FirstName,
+    string LastName,
+    string? Title,
+    string Email,
+    string? Phone,
+    bool PrefersEmail,
+    bool PrefersSms,
+    string PortalStatus,
+    DateOnly? PortalLinkedOn,
+    DateOnly? InvitationExpiresOn);
 
 /// <summary>Values the store derives for the overview; the handler adds the contact, tags and status.</summary>
 public sealed record CustomerOverviewData(

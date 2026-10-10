@@ -1,0 +1,40 @@
+<section class="pcard" aria-labelledby="property-title">
+  <header class="pcard__head">
+    <h2 class="pcard__title" id="property-title">
+      <i class="pi pi-home pcard__icon" aria-hidden="true"></i>
+      Your property
+    </h2>
+    @if (property()) {
+      <a
+        pButton
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        routerLink="/portal/properties"
+      >
+        Manage
+      </a>
+    }
+  </header>
+  @if (property(); as property) {
+    <p class="pcard__lead">
+      {{ property.name }}
+      @if (property.isPrimary) {
+        <span class="pcard__tag">Primary</span>
+      }
+    </p>
+    <p class="pcard__meta">{{ property.addressLine1 }}</p>
+    <p class="pcard__meta">{{ property.city }}, {{ property.state }} {{ property.postalCode }}</p>
+    @if (lastService(); as date) {
+      <p class="pcard__meta">Last service: {{ date }}</p>
+    }
+  } @else {
+    <p class="pcard__empty">No properties yet.</p>
+  }
+  <div class="pcard__actions">
+    <a pButton severity="secondary" [outlined]="true" routerLink="/portal/properties/new">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Add property
+    </a>
+  </div>
+</section>

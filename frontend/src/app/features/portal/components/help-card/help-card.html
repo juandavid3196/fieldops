@@ -1,0 +1,21 @@
+<section class="pcard" aria-labelledby="help-title">
+  <h2 class="pcard__title" id="help-title">
+    <i class="pi pi-headphones pcard__icon" aria-hidden="true"></i>
+    Need help?
+  </h2>
+  <p class="pcard__meta">We're here for you.</p>
+  <div class="pcard__actions">
+    @if (phone(); as phone) {
+      <a pButton severity="secondary" [outlined]="true" [href]="href(phone)">
+        <i class="pi pi-phone" aria-hidden="true"></i>
+        Call {{ phone }}
+      </a>
+    }
+    @if (canMessage()) {
+      <button pButton type="button" severity="secondary" [outlined]="true" (click)="message.emit()">
+        <i class="pi pi-comment" aria-hidden="true"></i>
+        Send a message
+      </button>
+    }
+  </div>
+</section>

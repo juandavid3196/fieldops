@@ -1,0 +1,56 @@
+<div class="pp">
+  <header class="pp__head">
+    <h1 class="pp__title">Properties</h1>
+    <a pButton routerLink="/portal/properties/new">
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Add property
+    </a>
+  </header>
+
+  <app-portal-state
+    [state]="resource.state()"
+    label="Loading properties"
+    emptyText="No properties yet."
+    errorText="We couldn't load your properties."
+    (retry)="load()"
+  >
+    <section class="pcard" aria-label="Properties">
+      <ul class="plist">
+        @for (row of rows(); track row.property.id) {
+          <li>
+            <div class="plist__main">
+              <p class="plist__title">
+                {{ row.property.name }}
+                @if (row.property.isPrimary) {
+                  <span class="pcard__tag">Primary</span>
+                }
+              </p>
+              <p class="plist__sub">
+                {{ row.property.addressLine1 }}
+                @if (row.property.addressLine2) {
+                  , {{ row.property.addressLine2 }}
+                }
+              </p>
+              <p class="plist__sub">
+                {{ row.property.city }}, {{ row.property.stateRegion }}
+                {{ row.property.postalCode }}
+              </p>
+              @if (row.lastService; as date) {
+                <p class="plist__sub">Last service: {{ date }}</p>
+              }
+            </div>
+            <a
+              pButton
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              [attr.aria-label]="'Edit ' + row.property.name"
+              [routerLink]="['/portal/properties', row.property.id, 'edit']"
+              >Edit</a
+            >
+          </li>
+        }
+      </ul>
+    </section>
+  </app-portal-state>
+</div>

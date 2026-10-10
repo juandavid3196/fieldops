@@ -76,7 +76,7 @@ describe('ServiceRequest page', () => {
     expect(host.querySelector('app-contact-step form')).not.toBeNull();
   });
 
-  it('header shows organization, a Sign in link and non-interactive labels (AC-25)', async () => {
+  it('header shows organization, a portal sign-in link and non-interactive labels (AC-25)', async () => {
     http.expectOne(FORM_URL).flush(CONFIG);
     await harness.fixture.whenStable();
 
@@ -84,7 +84,7 @@ describe('ServiceRequest page', () => {
     expect(host.querySelector('.topbar__phone')?.textContent).toBe('(512) 555-0199');
     const links = Array.from(host.querySelectorAll<HTMLAnchorElement>('.topbar a'));
     expect(links.map((a) => [a.textContent?.trim(), a.getAttribute('href')])).toEqual([
-      ['Sign in', '/auth/sign-in'],
+      ['Sign in to your portal', '/portal/sign-in'],
     ]);
     const labels = Array.from(host.querySelectorAll<HTMLElement>('.topbar__labels span'));
     expect(labels.map((l) => l.textContent)).toEqual(['Services', 'How it works', 'Help']);

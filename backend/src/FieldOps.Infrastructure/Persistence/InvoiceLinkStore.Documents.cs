@@ -1,5 +1,6 @@
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.InvoicePayments;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Quotes;
@@ -18,9 +19,9 @@ namespace FieldOps.Infrastructure.Persistence;
 /// </summary>
 internal sealed partial class InvoiceLinkStore
 {
-    public async Task<ReceiptSource?> GetReceiptSourceAsync(string token, Guid paymentId, CancellationToken cancellationToken)
+    public async Task<ReceiptSource?> GetReceiptSourceAsync(ResourceAccess access, Guid paymentId, CancellationToken cancellationToken)
     {
-        var invoice = await ResolveInvoiceAsync(token, cancellationToken);
+        var invoice = await ResolveInvoiceAsync(access, cancellationToken);
 
         if (invoice is null)
         {
@@ -69,9 +70,9 @@ internal sealed partial class InvoiceLinkStore
             invoice.BalanceDue);
     }
 
-    public async Task<CompletionReportSource?> GetCompletionReportSourceAsync(string token, CancellationToken cancellationToken)
+    public async Task<CompletionReportSource?> GetCompletionReportSourceAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var invoice = await ResolveInvoiceAsync(token, cancellationToken);
+        var invoice = await ResolveInvoiceAsync(access, cancellationToken);
 
         if (invoice is null || await LatestCompletedVisitAsync(invoice.OrganizationId, invoice.WorkOrderId, cancellationToken) is not { } visit)
         {
@@ -113,9 +114,9 @@ internal sealed partial class InvoiceLinkStore
             signoff is null ? null : OrganizationTime.LocalDate(signoff.SignedAt, zone));
     }
 
-    public async Task<IReadOnlyList<InvoicePhoto>?> ListPhotosAsync(string token, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<InvoicePhoto>?> ListPhotosAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var invoice = await ResolveInvoiceAsync(token, cancellationToken);
+        var invoice = await ResolveInvoiceAsync(access, cancellationToken);
 
         if (invoice is null)
         {
@@ -143,9 +144,9 @@ internal sealed partial class InvoiceLinkStore
             .ToList();
     }
 
-    public async Task<PublicBinary?> GetPhotoAsync(string token, Guid photoId, CancellationToken cancellationToken)
+    public async Task<PublicBinary?> GetPhotoAsync(ResourceAccess access, Guid photoId, CancellationToken cancellationToken)
     {
-        var invoice = await ResolveInvoiceAsync(token, cancellationToken);
+        var invoice = await ResolveInvoiceAsync(access, cancellationToken);
 
         if (invoice is null)
         {

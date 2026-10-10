@@ -3,6 +3,8 @@ using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
 using FieldOps.Api.Contracts;
 using FieldOps.Application.Features.Customers;
+using FieldOps.Application.Features.PortalAccess;
+using FieldOps.Application.Features.PortalInvitations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -26,7 +28,9 @@ public sealed class CustomerDetailController(
     GetCustomerUpcomingAppointmentsHandler upcomingHandler,
     ListCustomerNotesHandler listNotesHandler,
     AddCustomerNoteHandler addNoteHandler,
-    ListCustomerActivityHandler activityHandler) : ControllerBase
+    ListCustomerActivityHandler activityHandler,
+    InvitePortalContactHandler inviteHandler,
+    RemovePortalAccessHandler removeAccessHandler) : ControllerBase
 {
     [HttpGet("detail")]
     [Authorize(Policy = CustomerPolicies.View)]
@@ -260,6 +264,62 @@ public sealed class CustomerDetailController(
 
         return result.Kind == CustomerResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
     }
+
+    /// <summary>Invite or re-invite the primary contact to the customer portal (customer portal BR-11).</summary>
+    [HttpPost("portal-invitation")]
+    [Authorize(Policy = CustomerPolicies.Manage)]
+    [ProducesResponseType<PortalStatusView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> InvitePortal(Guid id, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        return MapPortal(await inviteHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, ticket.UserId, id, GetClientIpAddress(), cancellationToken));
+    }
+
+    /// <summary>Remove portal access of the primary contact (customer portal BR-14); idempotent.</summary>
+    [HttpDelete("portal-access")]
+    [Authorize(Policy = CustomerPolicies.Manage)]
+    [ProducesResponseType<PortalStatusView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RemovePortalAccess(Guid id, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        return MapPortal(await removeAccessHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, ticket.UserId, id, GetClientIpAddress(), cancellationToken));
+    }
+
+    private IActionResult MapPortal(PortalOutcome<PortalStatusView> outcome) =>
+        outcome switch
+        {
+            PortalOutcome<PortalStatusView>.Ok ok => Ok(ok.Value),
+            PortalOutcome<PortalStatusView>.Conflict conflict => StatusCode(
+                StatusCodes.Status409Conflict,
+                new ProblemDetails
+                {
+                    Status = StatusCodes.Status409Conflict,
+                    Title = conflict.Title,
+                    Extensions = { ["code"] = conflict.Code },
+                }),
+            _ => NotFound(),
+        };
 
     private async Task<IActionResult> ReadAsync<T>(Func<SessionTicket, Task<T?>> read)
         where T : class

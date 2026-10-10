@@ -1,0 +1,84 @@
+// Card variants of the portal dashboard (base vocabulary lives in portal.scss).
+.pcard {
+  &--warning {
+    background: var(--fo-color-warning-background);
+    border-color: var(--fo-color-warning-border);
+  }
+
+  &__title--warning {
+    color: var(--fo-color-warning-text);
+  }
+
+  &__split {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  &__split-main {
+    flex: 1 1 14rem;
+    min-inline-size: 0;
+  }
+
+  &__split-actions {
+    display: flex;
+    flex: 0 1 11rem;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-inline-size: 9rem;
+  }
+
+  &__sent {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    font-weight: 600;
+    color: var(--fo-color-success-text);
+  }
+
+  &__tag {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__dot {
+    flex: none;
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    background: var(--fo-color-action-blue);
+    border-radius: 50%;
+  }
+
+  &__amount {
+    margin: 0.5rem 0 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__overdue {
+    font-weight: 700;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__notice {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin: 0.75rem 0 0;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border: 1px solid var(--fo-color-info-border);
+    border-radius: var(--fo-radius-control);
+  }
+}

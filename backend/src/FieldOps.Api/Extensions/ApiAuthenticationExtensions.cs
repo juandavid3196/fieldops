@@ -35,11 +35,30 @@ public static class ApiAuthenticationExtensions
                 options.ExpireTimeSpan = SessionCookie.RememberMeIdleLifetime;
                 options.SlidingExpiration = true;
                 options.EventsType = typeof(SessionCookieEvents);
+            })
+            .AddCookie(PortalSessionCookie.Scheme, options =>
+            {
+                options.Cookie.Name = PortalSessionCookie.Name;
+                options.Cookie.HttpOnly = true;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                options.Cookie.SameSite = SameSiteMode.Strict;
+                options.Cookie.Path = "/";
+                options.Cookie.Domain = null;
+                options.Cookie.IsEssential = true;
+                options.ExpireTimeSpan = PortalSessionCookie.RememberMeIdleLifetime;
+                options.SlidingExpiration = true;
+                options.EventsType = typeof(PortalSessionCookieEvents);
             });
+
+        // Customer portal BR-01: the second cookie scheme above has the same options; the internal one stays the default.
+        services.AddScoped<PortalSessionCookieEvents>();
 
         // The ticket clock follows the registered TimeProvider.
         services
             .AddOptions<CookieAuthenticationOptions>(SessionCookie.Scheme)
+            .Configure<TimeProvider>((options, timeProvider) => options.TimeProvider = timeProvider);
+        services
+            .AddOptions<CookieAuthenticationOptions>(PortalSessionCookie.Scheme)
             .Configure<TimeProvider>((options, timeProvider) => options.TimeProvider = timeProvider);
 
         // BR-10: owner/viewer read the GET endpoints; owner only writes.

@@ -1,6 +1,7 @@
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.OnlinePayments;
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.ServiceRequests;
@@ -120,9 +121,14 @@ public sealed class ResendInvoiceEmailHandler(
 /// <summary>POST /public/invoice-links/view (BR-19, BR-20; customer-invoice-payments BR-03): a malformed token never reaches the store.</summary>
 public sealed class ViewInvoiceLinkHandler(IInvoiceLinkStore store, IOnlinePaymentStore payments, PaymentAttemptExpirer expirer)
 {
-    public async Task<PublicInvoice?> HandleAsync(string? token, CancellationToken cancellationToken)
+    public async Task<PublicInvoice?> HandleAsync(string? token, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? await HandleAsync(ResourceAccess.FromToken(token!), cancellationToken)
+            : null;
+
+    public async Task<PublicInvoice?> HandleAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        if (!QuoteLinkTokens.IsWellFormed(token) || await payments.ResolveAsync(token!, cancellationToken) is not { } invoice)
+        if (await payments.ResolveAsync(access, cancellationToken) is not { } invoice)
         {
             return null;
         }
@@ -130,21 +136,21 @@ public sealed class ViewInvoiceLinkHandler(IInvoiceLinkStore store, IOnlinePayme
         // customer-invoice-payments BR-14: the only write of the view, evaluated before the read.
         await expirer.EvaluateAsync(invoice.OrganizationId, invoice.InvoiceId, cancellationToken);
 
-        return await store.ViewAsync(token!, cancellationToken);
+        return await store.ViewAsync(access, cancellationToken);
     }
 }
 
 /// <summary>POST /public/invoice-links/pdf (BR-20): the PDF of the frozen invoice without the DRAFT mark.</summary>
 public sealed class DownloadInvoiceLinkPdfHandler(IInvoiceLinkStore store, IInvoicePdfRenderer renderer)
 {
-    public async Task<InvoicePdfFile?> HandleAsync(string? token, CancellationToken cancellationToken)
-    {
-        if (!QuoteLinkTokens.IsWellFormed(token))
-        {
-            return null;
-        }
+    public async Task<InvoicePdfFile?> HandleAsync(string? token, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? await HandleAsync(ResourceAccess.FromToken(token!), cancellationToken)
+            : null;
 
-        var source = await store.GetPdfSourceAsync(token!, cancellationToken);
+    public async Task<InvoicePdfFile?> HandleAsync(ResourceAccess access, CancellationToken cancellationToken)
+    {
+        var source = await store.GetPdfSourceAsync(access, cancellationToken);
 
         return source is null
             ? null
@@ -158,5 +164,7 @@ public sealed class DownloadInvoiceLinkPdfHandler(IInvoiceLinkStore store, IInvo
 public sealed class GetInvoiceLinkLogoHandler(IInvoiceLinkStore store)
 {
     public Task<PublicBinary?> HandleAsync(string? token, CancellationToken cancellationToken) =>
-        QuoteLinkTokens.IsWellFormed(token) ? store.GetLogoAsync(token!, cancellationToken) : Task.FromResult<PublicBinary?>(null);
+        QuoteLinkTokens.IsWellFormed(token)
+            ? store.GetLogoAsync(ResourceAccess.FromToken(token!), cancellationToken)
+            : Task.FromResult<PublicBinary?>(null);
 }

@@ -104,7 +104,10 @@ CREATE TABLE customer_contacts (
   is_primary boolean NOT NULL DEFAULT false, portal_user_id uuid REFERENCES users(id), is_active boolean NOT NULL DEFAULT true,
   prefers_email boolean NOT NULL DEFAULT true, prefers_sms boolean NOT NULL DEFAULT false,
   created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
+  -- SA-19 (customer-portal-dashboard): link time and the last time the contact opened the updates feed.
+  portal_linked_at timestamptz, portal_updates_seen_at timestamptz,
   CONSTRAINT ck_customer_contacts_preferred_channel CHECK (prefers_email OR prefers_sms),
+  CONSTRAINT ck_customer_contacts_portal_link CHECK ((portal_user_id IS NULL) = (portal_linked_at IS NULL)),
   FOREIGN KEY(organization_id,customer_id) REFERENCES customers(organization_id,id), UNIQUE(organization_id,id)
 );
 CREATE TABLE properties (
@@ -333,6 +336,12 @@ CREATE TABLE payment_webhook_events (id uuid PRIMARY KEY DEFAULT gen_random_uuid
 -- SA-18 (customer-invoice-payments): one immutable review per work order.
 CREATE TABLE invoice_reviews (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), work_order_id uuid NOT NULL, invoice_id uuid NOT NULL, technician_id uuid, rating smallint NOT NULL CHECK (rating BETWEEN 1 AND 5), comment varchar(500), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY (organization_id, work_order_id) REFERENCES work_orders(organization_id, id), FOREIGN KEY (organization_id, invoice_id) REFERENCES invoices(organization_id, id), FOREIGN KEY (organization_id, technician_id) REFERENCES technician_profiles(organization_id, id), UNIQUE (work_order_id));
 
+-- SA-21 (customer-portal-dashboard): portal invitations (only the SHA-256 hex of the token is stored) and reschedule requests.
+CREATE TABLE customer_portal_invitations (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), contact_id uuid NOT NULL, email varchar(254) NOT NULL, token_hash text NOT NULL UNIQUE, invited_by_user_id uuid NOT NULL REFERENCES users(id), expires_at timestamptz NOT NULL, accepted_at timestamptz, revoked_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY (organization_id, contact_id) REFERENCES customer_contacts(organization_id, id), CONSTRAINT ck_customer_portal_invitations_expires_after_created CHECK (expires_at > created_at));
+CREATE UNIQUE INDEX ux_customer_portal_invitations_open ON customer_portal_invitations(contact_id) WHERE accepted_at IS NULL AND revoked_at IS NULL;
+CREATE TABLE visit_reschedule_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), visit_id uuid NOT NULL, contact_id uuid NOT NULL, original_scheduled_start timestamptz NOT NULL, preferred_date date NOT NULL, time_window varchar(20) NOT NULL CHECK (time_window IN ('morning','afternoon','evening','any')), reason varchar(500) NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY (organization_id, visit_id) REFERENCES visits(organization_id, id), FOREIGN KEY (organization_id, contact_id) REFERENCES customer_contacts(organization_id, id));
+CREATE UNIQUE INDEX ux_visit_reschedule_requests_pending ON visit_reschedule_requests(visit_id, original_scheduled_start);
+
 CREATE TABLE notifications (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), recipient_user_id uuid REFERENCES users(id), recipient_contact_id uuid REFERENCES customer_contacts(id), channel varchar(20) NOT NULL CHECK(channel IN ('email','sms','in_app')), template_code varchar(80) NOT NULL, subject varchar(240), payload jsonb NOT NULL DEFAULT '{}'::jsonb, status notification_status NOT NULL DEFAULT 'pending', scheduled_at timestamptz NOT NULL DEFAULT now(), sent_at timestamptz, failure_reason text, created_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE audit_logs (id bigserial PRIMARY KEY, organization_id uuid NOT NULL REFERENCES organizations(id), actor_user_id uuid REFERENCES users(id), action varchar(100) NOT NULL, entity_type varchar(100) NOT NULL, entity_id uuid, branch_id uuid REFERENCES branches(id), before_data jsonb, after_data jsonb, metadata jsonb NOT NULL DEFAULT '{}'::jsonb, ip_address inet, occurred_at timestamptz NOT NULL DEFAULT now());
 
@@ -345,6 +354,8 @@ CREATE INDEX ix_customers_org_branch ON customers(organization_id,branch_id);
 CREATE INDEX ix_contacts_org_email ON customer_contacts(organization_id,email);
 CREATE INDEX ix_contacts_org_phone ON customer_contacts(organization_id,phone);
 CREATE UNIQUE INDEX ux_customer_contacts_primary ON customer_contacts(customer_id) WHERE is_primary;
+-- SA-20 (customer-portal-dashboard): a user has at most one portal link per organization.
+CREATE UNIQUE INDEX ux_customer_contacts_org_portal_user ON customer_contacts(organization_id, portal_user_id) WHERE portal_user_id IS NOT NULL;
 CREATE INDEX ix_customer_tag_assignments_org_tag ON customer_tag_assignments(organization_id,tag_id);
 CREATE INDEX ix_properties_customer ON properties(organization_id,customer_id);
 CREATE UNIQUE INDEX ux_properties_customer_primary ON properties(customer_id) WHERE is_primary;

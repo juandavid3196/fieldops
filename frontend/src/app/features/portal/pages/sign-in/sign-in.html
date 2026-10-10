@@ -1,0 +1,94 @@
+<main class="auth">
+  <p class="auth__brand">Field<span>Ops</span> · Customer portal</p>
+
+  <div class="auth__card">
+    <header>
+      <h1 class="auth__title">Sign in to your portal</h1>
+      <p class="auth__subtitle">Review quotes, pay invoices and follow your appointments.</p>
+    </header>
+
+    <div aria-live="polite">
+      @if (notice(); as text) {
+        <p-message severity="info" role="status">{{ text }}</p-message>
+      }
+      @if (pageMessage(); as text) {
+        <p-message severity="error" role="alert">{{ text }}</p-message>
+      }
+    </div>
+
+    <form class="auth__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
+      <div class="auth__field">
+        <label class="auth__label" for="portal-email">Email</label>
+        <input
+          pInputText
+          id="portal-email"
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          autocapitalize="none"
+          spellcheck="false"
+          required
+          fluid
+          [invalid]="fieldErrors().email !== undefined"
+          [readonly]="submitting()"
+          [attr.aria-invalid]="fieldErrors().email !== undefined ? 'true' : null"
+          [attr.aria-describedby]="fieldErrors().email !== undefined ? 'portal-email-error' : null"
+          (blur)="validateOnBlur('email')"
+        />
+        @if (fieldErrors().email; as error) {
+          <p class="auth__error" id="portal-email-error">{{ error }}</p>
+        }
+      </div>
+
+      <div class="auth__field">
+        <label class="auth__label" for="portal-password">Password</label>
+        <input
+          pInputPassword
+          id="portal-password"
+          formControlName="password"
+          autocomplete="current-password"
+          required
+          fluid
+          [(mask)]="passwordMasked"
+          [invalid]="fieldErrors().password !== undefined"
+          [readonly]="submitting()"
+          [attr.aria-invalid]="fieldErrors().password !== undefined ? 'true' : null"
+          [attr.aria-describedby]="
+            fieldErrors().password !== undefined ? 'portal-password-error' : null
+          "
+          (blur)="validateOnBlur('password')"
+        />
+        @if (fieldErrors().password; as error) {
+          <p class="auth__error" id="portal-password-error">{{ error }}</p>
+        }
+        <span class="auth__check">
+          <p-checkbox
+            inputId="portal-show-password"
+            [binary]="true"
+            [ngModel]="!passwordMasked()"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="passwordMasked.set(!$event)"
+          />
+          <label for="portal-show-password">Show password</label>
+        </span>
+      </div>
+
+      <div class="auth__row">
+        <span class="auth__check">
+          <p-checkbox inputId="portal-remember" formControlName="rememberMe" [binary]="true" />
+          <label for="portal-remember">Remember me</label>
+        </span>
+        <a class="auth__link" routerLink="/portal/forgot-password">Forgot password?</a>
+      </div>
+
+      <button pButton type="submit" size="large" fluid [disabled]="submitDisabled()">
+        @if (submitting()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+          Signing in…
+        } @else {
+          Sign in
+        }
+      </button>
+    </form>
+  </div>
+</main>

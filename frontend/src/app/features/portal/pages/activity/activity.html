@@ -1,0 +1,33 @@
+<div class="pp">
+  <header class="pp__head">
+    <h1 class="pp__title">Recent activity</h1>
+    @if (list.properties().length > 0) {
+      <app-portal-property-filter
+        [properties]="list.properties()"
+        [value]="list.propertyId()"
+        (changed)="list.filter($event)"
+      />
+    }
+  </header>
+
+  <app-portal-state
+    [state]="list.resource.state()"
+    label="Loading activity"
+    emptyText="No completed services yet."
+    errorText="We couldn't load your activity."
+    (retry)="list.reload()"
+  >
+    @if (list.resource.data(); as page) {
+      <div class="pcard">
+        <app-portal-activity-table [rows]="page.items" />
+        <app-hub-pager
+          [page]="page.page"
+          [pageSize]="page.pageSize"
+          [total]="page.total"
+          noun="services"
+          (pageChange)="list.goTo($event)"
+        />
+      </div>
+    }
+  </app-portal-state>
+</div>

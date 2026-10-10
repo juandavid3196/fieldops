@@ -21,11 +21,22 @@ internal sealed class PublicServiceRequestStore(FieldOpsDbContext dbContext) : I
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task<PublicServiceRequestForm?> FindAcceptingFormAsync(
-        string slug, CancellationToken cancellationToken)
+        string slug, CancellationToken cancellationToken) =>
+        await BuildFormAsync(
+            dbContext.Organizations.AsNoTracking().Where(candidate => candidate.PublicSlug == slug && candidate.IsActive),
+            cancellationToken);
+
+    // The same configuration for the organization of a portal session (customer portal BR-28).
+    public async Task<PublicServiceRequestForm?> FindAcceptingFormByOrganizationAsync(
+        Guid organizationId, CancellationToken cancellationToken) =>
+        await BuildFormAsync(
+            dbContext.Organizations.AsNoTracking().Where(candidate => candidate.Id == organizationId && candidate.IsActive),
+            cancellationToken);
+
+    private async Task<PublicServiceRequestForm?> BuildFormAsync(
+        IQueryable<FieldOps.Domain.Organizations.Organization> organizations, CancellationToken cancellationToken)
     {
-        var organization = await dbContext.Organizations
-            .AsNoTracking()
-            .Where(candidate => candidate.PublicSlug == slug && candidate.IsActive)
+        var organization = await organizations
             .Select(candidate => new
             {
                 candidate.Id,
@@ -138,22 +149,58 @@ internal sealed class PublicServiceRequestStore(FieldOpsDbContext dbContext) : I
             .Select(organization => organization.RequestPrefix)
             .SingleAsync(cancellationToken);
 
-        var (customerId, contactId, isPrimaryProperty) = await ResolveCustomerAsync(submission, cancellationToken);
+        var portal = submission.Portal;
+        Guid customerId;
+        Guid contactId;
+        Property property;
 
-        var property = Property.Create(
-            organizationId,
-            customerId,
-            submission.PropertyType == "business" ? "Business" : "Home",
-            submission.AddressLine1,
-            submission.City,
-            "US",
-            branchId: null,
-            stateRegion: submission.State,
-            postalCode: submission.PostalCode,
-            isPrimary: isPrimaryProperty,
-            addressLine2: submission.AddressLine2,
-            accessInstructions: submission.AccessInstructions);
-        dbContext.Properties.Add(property);
+        if (portal is null)
+        {
+            var (resolvedCustomerId, resolvedContactId, isPrimaryProperty) = await ResolveCustomerAsync(submission, cancellationToken);
+
+            customerId = resolvedCustomerId;
+            contactId = resolvedContactId;
+            property = NewProperty(submission, customerId, isPrimaryProperty);
+            dbContext.Properties.Add(property);
+        }
+        else
+        {
+            // Customer portal BR-28: the customer and contact come from the session; the property is the customer's own
+            // active one, or a new one that is primary only when the customer has no active primary property.
+            customerId = portal.CustomerId;
+            contactId = portal.ContactId;
+
+            if (portal.ExistingPropertyId is { } existingId)
+            {
+                var existing = await dbContext.Properties.AsNoTracking().SingleOrDefaultAsync(
+                    candidate => candidate.Id == existingId
+                        && candidate.OrganizationId == organizationId
+                        && candidate.CustomerId == customerId
+                        && candidate.IsActive,
+                    cancellationToken);
+
+                if (existing is null)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+
+                    return new PublicSubmissionOutcome.PropertyUnavailable();
+                }
+
+                property = existing;
+            }
+            else
+            {
+                var hasPrimary = await dbContext.Properties.AnyAsync(
+                    candidate => candidate.OrganizationId == organizationId
+                        && candidate.CustomerId == customerId
+                        && candidate.IsActive
+                        && candidate.IsPrimary,
+                    cancellationToken);
+
+                property = NewProperty(submission, customerId, isPrimary: !hasPrimary);
+                dbContext.Properties.Add(property);
+            }
+        }
 
         var guestName = GuestName(submission);
 
@@ -169,13 +216,16 @@ internal sealed class PublicServiceRequestStore(FieldOpsDbContext dbContext) : I
             submission.CategoryId,
             submission.ServiceId,
             guestName,
-            submission.Email,
-            submission.Phone,
-            ServiceAddressJson(submission),
+            NullWhenPortalEmpty(portal, submission.Email),
+            NullWhenPortalEmpty(portal, submission.Phone),
+            portal?.ExistingPropertyId is null
+                ? ServiceAddressJson(submission)
+                : ServiceAddressJson(property),
             submission.Urgency,
             submission.HasActiveDamage,
             submission.AvailabilityPreferencesJson,
-            submission.ConsentAt);
+            submission.ConsentAt,
+            source: portal is null ? "public_form" : "portal");
         dbContext.ServiceRequests.Add(request);
 
         foreach (var attachment in submission.Attachments)
@@ -194,6 +244,7 @@ internal sealed class PublicServiceRequestStore(FieldOpsDbContext dbContext) : I
             organizationId,
             CreatedAuditAction,
             AuditEntityType,
+            actorUserId: portal?.UserId,
             entityId: request.Id,
             afterData: JsonSerializer.Serialize(
                 new
@@ -318,6 +369,40 @@ internal sealed class PublicServiceRequestStore(FieldOpsDbContext dbContext) : I
 
         return name.Length <= GuestNameMaxLength ? name : name[..GuestNameMaxLength].TrimEnd();
     }
+
+    // Public BR-10: a new property from the submitted address; the portal passes the primary decision explicitly.
+    private static Property NewProperty(PublicSubmission submission, Guid customerId, bool isPrimary) =>
+        Property.Create(
+            submission.OrganizationId,
+            customerId,
+            submission.PropertyType == "business" ? "Business" : "Home",
+            submission.AddressLine1,
+            submission.City,
+            "US",
+            branchId: null,
+            stateRegion: submission.State,
+            postalCode: submission.PostalCode,
+            isPrimary: isPrimary,
+            addressLine2: submission.AddressLine2,
+            accessInstructions: submission.AccessInstructions);
+
+    // The contact snapshot of a portal request may lack an email or phone: stored as null, never as empty text.
+    private static string? NullWhenPortalEmpty(PortalSubmissionContext? portal, string value) =>
+        portal is not null && string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private static string ServiceAddressJson(Property property) =>
+        JsonSerializer.Serialize(
+            new
+            {
+                line1 = property.AddressLine1,
+                line2 = property.AddressLine2,
+                city = property.City,
+                state = property.StateRegion,
+                postalCode = property.PostalCode,
+                countryCode = property.CountryCode,
+                propertyType = "home",
+            },
+            JsonOptions);
 
     private static string ServiceAddressJson(PublicSubmission submission) =>
         JsonSerializer.Serialize(

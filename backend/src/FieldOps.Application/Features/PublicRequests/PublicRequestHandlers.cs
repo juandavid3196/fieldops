@@ -91,7 +91,7 @@ public sealed class SubmitPublicServiceRequestHandler(
     private static SubmitPublicServiceRequestResult Invalid(IReadOnlyDictionary<string, string[]> errors) =>
         new SubmitPublicServiceRequestResult.Invalid(errors);
 
-    private static PublicSubmission BuildSubmission(
+    internal static PublicSubmission BuildSubmission(
         SubmitPublicServiceRequestCommand command,
         PublicServiceRequestForm form,
         TimeZoneInfo timeZone,

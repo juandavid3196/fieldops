@@ -1,0 +1,57 @@
+<section
+  class="pcard"
+  [class.pcard--warning]="quote() !== null"
+  aria-labelledby="action-quote-title"
+>
+  @if (quote(); as quote) {
+    <div class="pcard__split">
+      <div class="pcard__split-main">
+        <h2 class="pcard__title pcard__title--warning" id="action-quote-title">
+          <i class="pi pi-exclamation-circle pcard__icon" aria-hidden="true"></i>
+          Action required
+        </h2>
+        <p class="pcard__lead">Quote ready</p>
+        <p class="pcard__meta">{{ quote.scope }}</p>
+        <p class="pcard__meta">
+          {{ quote.displayNumber }} · Total {{ total() }}
+          @if (expires(); as date) {
+            · Expires {{ date }}
+          }
+        </p>
+      </div>
+      <div class="pcard__split-actions">
+        <a pButton [routerLink]="['/portal/quotes', quote.id]">Review quote</a>
+        @if (quote.status === 'clarification_requested') {
+          <span class="pcard__sent" role="status">
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            Question sent
+          </span>
+        } @else {
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            (click)="asked.emit()"
+          >
+            Ask a question
+          </button>
+        }
+      </div>
+    </div>
+    <p class="pcard__notice">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      Approving this quote does not confirm an appointment. Our team will contact you to schedule
+      the work.
+    </p>
+    @if (quote.moreCount > 0) {
+      <a class="pcard__link" routerLink="/portal/quotes">+{{ quote.moreCount }} more quotes</a>
+    }
+  } @else {
+    <h2 class="pcard__title" id="action-quote-title">
+      <i class="pi pi-file-edit pcard__icon" aria-hidden="true"></i>
+      Action required
+    </h2>
+    <p class="pcard__empty">No quotes need your attention.</p>
+  }
+</section>

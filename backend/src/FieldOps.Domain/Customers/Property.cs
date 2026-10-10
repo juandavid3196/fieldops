@@ -252,6 +252,48 @@ public sealed class Property
         return changed;
     }
 
+    /// <summary>
+    /// Applies the only fields a portal contact may edit (customer portal BR-33): the name and the access instructions.
+    /// Returns the request names of the fields that changed (empty for a no-op, which leaves <see cref="UpdatedAt"/> untouched).
+    /// </summary>
+    public IReadOnlyList<string> EditFromPortal(
+        bool setName, string? name, bool setAccessInstructions, string? accessInstructions, DateTimeOffset now)
+    {
+        var changed = new List<string>();
+
+        if (setName)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentException("Property name is required.", nameof(name));
+            }
+
+            if (!string.Equals(Name, name.Trim(), StringComparison.Ordinal))
+            {
+                Name = name.Trim();
+                changed.Add("name");
+            }
+        }
+
+        if (setAccessInstructions)
+        {
+            var instructions = NullIfBlank(accessInstructions);
+
+            if (!string.Equals(AccessInstructions, instructions, StringComparison.Ordinal))
+            {
+                AccessInstructions = instructions;
+                changed.Add("accessInstructions");
+            }
+        }
+
+        if (changed.Count > 0)
+        {
+            UpdatedAt = now;
+        }
+
+        return changed;
+    }
+
     /// <summary>Makes an active, non-primary property primary (BR-07); any other state is reported, not changed.</summary>
     public PropertyTransition SetPrimary(DateTimeOffset now)
     {

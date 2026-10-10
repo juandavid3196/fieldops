@@ -379,7 +379,7 @@ internal sealed partial class OnlinePaymentStore
     // BR-11: nothing is applied; the event, an audit row and the log record the condition by attempt id and category.
     private WebhookResult NeedsAttention(Invoice invoice, InvoicePaymentAttempt attempt, string category)
     {
-        AuditAttempt(invoice, "invoice_payment_attempt.needs_attention", attempt.Id, new { attemptId = attempt.Id, category });
+        AuditAttempt(null, invoice, "invoice_payment_attempt.needs_attention", attempt.Id, new { attemptId = attempt.Id, category });
         logger.LogWarning("Online payment needs attention. AttemptId={AttemptId} Category={Category}", attempt.Id, category);
 
         return new WebhookResult(WebhookOutcome.NeedsAttention, null);

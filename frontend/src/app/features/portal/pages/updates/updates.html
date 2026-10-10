@@ -1,0 +1,33 @@
+<div class="pp">
+  <header class="pp__head">
+    <h1 class="pp__title">Updates</h1>
+  </header>
+
+  <app-portal-state
+    [state]="resource.state()"
+    label="Loading updates"
+    emptyText="No updates yet."
+    errorText="We couldn't load your updates."
+    (retry)="load()"
+  >
+    <section class="pcard" aria-label="Updates">
+      <ul class="plist">
+        @for (row of rows(); track $index) {
+          <li>
+            @if (row.update.isUnread) {
+              <span class="pcard__dot" aria-hidden="true"></span>
+            }
+            <a class="plist__main" [routerLink]="row.link">
+              @if (row.update.isUnread) {
+                <span class="sr">Unread: </span>
+              }
+              <span class="plist__title">{{ row.update.title }}</span>
+              <span class="plist__sub">{{ row.update.subtitle }}</span>
+            </a>
+            <span class="plist__sub">{{ row.time }}</span>
+          </li>
+        }
+      </ul>
+    </section>
+  </app-portal-state>
+</div>

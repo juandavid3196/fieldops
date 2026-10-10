@@ -1,3 +1,4 @@
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.Quotes;
 
 namespace FieldOps.Application.Features.QuoteLinks;
@@ -17,6 +18,11 @@ public static class QuoteLinkMessages
     public const string AlreadyAnsweredCode = "quote_already_answered";
 
     public const string AlreadyAnsweredTitle = "This quote has already been answered.";
+
+    /// <summary>Portal only (customer portal BR-30): the valid-until date passed.</summary>
+    public const string ExpiredCode = "quote_expired";
+
+    public const string ExpiredTitle = "This quote has expired.";
 
     public const string SelectionKey = "selectedOptionalLineIds";
 
@@ -66,25 +72,27 @@ public sealed class ViewQuoteLinkHandler(IQuoteLinkStore store)
 {
     public Task<QuoteLinkOutcome<PublicQuote>> HandleAsync(string? token, CancellationToken cancellationToken) =>
         QuoteLinkTokens.IsWellFormed(token)
-            ? store.ViewAsync(token!, cancellationToken)
+            ? HandleAsync(ResourceAccess.FromToken(token!), cancellationToken)
             : Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicQuote>());
+
+    public Task<QuoteLinkOutcome<PublicQuote>> HandleAsync(ResourceAccess access, CancellationToken cancellationToken) =>
+        store.ViewAsync(access, cancellationToken);
 }
 
 public sealed class CalculateQuoteLinkHandler(IQuoteLinkStore store)
 {
     public Task<QuoteLinkOutcome<PublicTotals>> HandleAsync(
-        string? token, IReadOnlyList<string?>? selectedOptionalLineIds, CancellationToken cancellationToken)
-    {
-        if (!QuoteLinkTokens.IsWellFormed(token))
-        {
-            return Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicTotals>());
-        }
+        string? token, IReadOnlyList<string?>? selectedOptionalLineIds, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), selectedOptionalLineIds, cancellationToken)
+            : Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicTotals>());
 
-        return QuoteLinkHandlerSupport.TryParseSelection(selectedOptionalLineIds, out var ids)
-            ? store.CalculateAsync(token!, ids, cancellationToken)
+    public Task<QuoteLinkOutcome<PublicTotals>> HandleAsync(
+        ResourceAccess access, IReadOnlyList<string?>? selectedOptionalLineIds, CancellationToken cancellationToken) =>
+        QuoteLinkHandlerSupport.TryParseSelection(selectedOptionalLineIds, out var ids)
+            ? store.CalculateAsync(access, ids, cancellationToken)
             : Task.FromResult(QuoteLinkHandlerSupport.Invalid<PublicTotals>(
                 QuoteLinkMessages.SelectionKey, QuoteLinkMessages.SelectionMessage));
-    }
 }
 
 public sealed class ApproveQuoteLinkHandler(IQuoteLinkStore store)
@@ -94,13 +102,18 @@ public sealed class ApproveQuoteLinkHandler(IQuoteLinkStore store)
         IReadOnlyList<string?>? selectedOptionalLineIds,
         bool? acceptTerms,
         QuoteLinkCaller caller,
+        CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), selectedOptionalLineIds, acceptTerms, caller, cancellationToken)
+            : Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicQuote>());
+
+    public Task<QuoteLinkOutcome<PublicQuote>> HandleAsync(
+        ResourceAccess access,
+        IReadOnlyList<string?>? selectedOptionalLineIds,
+        bool? acceptTerms,
+        QuoteLinkCaller caller,
         CancellationToken cancellationToken)
     {
-        if (!QuoteLinkTokens.IsWellFormed(token))
-        {
-            return Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicQuote>());
-        }
-
         if (acceptTerms != true)
         {
             return Task.FromResult(QuoteLinkHandlerSupport.Invalid<PublicQuote>(
@@ -108,7 +121,7 @@ public sealed class ApproveQuoteLinkHandler(IQuoteLinkStore store)
         }
 
         return QuoteLinkHandlerSupport.TryParseSelection(selectedOptionalLineIds, out var ids)
-            ? store.ApproveAsync(token!, ids, caller, cancellationToken)
+            ? store.ApproveAsync(access, ids, caller, cancellationToken)
             : Task.FromResult(QuoteLinkHandlerSupport.Invalid<PublicQuote>(
                 QuoteLinkMessages.SelectionKey, QuoteLinkMessages.SelectionMessage));
     }
@@ -117,13 +130,14 @@ public sealed class ApproveQuoteLinkHandler(IQuoteLinkStore store)
 public sealed class DeclineQuoteLinkHandler(IQuoteLinkStore store)
 {
     public Task<QuoteLinkOutcome<PublicQuote>> HandleAsync(
-        string? token, string? reason, QuoteLinkCaller caller, CancellationToken cancellationToken)
-    {
-        if (!QuoteLinkTokens.IsWellFormed(token))
-        {
-            return Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicQuote>());
-        }
+        string? token, string? reason, QuoteLinkCaller caller, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), reason, caller, cancellationToken)
+            : Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicQuote>());
 
+    public Task<QuoteLinkOutcome<PublicQuote>> HandleAsync(
+        ResourceAccess access, string? reason, QuoteLinkCaller caller, CancellationToken cancellationToken)
+    {
         var text = reason?.Trim() ?? string.Empty;
 
         if (text.Length == 0)
@@ -133,20 +147,21 @@ public sealed class DeclineQuoteLinkHandler(IQuoteLinkStore store)
 
         return text.Length > QuoteLinkMessages.TextMaxLength
             ? Task.FromResult(QuoteLinkHandlerSupport.Invalid<PublicQuote>("reason", QuoteLinkMessages.ReasonTooLongMessage))
-            : store.DeclineAsync(token!, text, caller, cancellationToken);
+            : store.DeclineAsync(access, text, caller, cancellationToken);
     }
 }
 
 public sealed class AskQuoteQuestionHandler(IQuoteLinkStore store)
 {
     public Task<QuoteLinkOutcome<PublicQuote>> HandleAsync(
-        string? token, string? message, QuoteLinkCaller caller, CancellationToken cancellationToken)
-    {
-        if (!QuoteLinkTokens.IsWellFormed(token))
-        {
-            return Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicQuote>());
-        }
+        string? token, string? message, QuoteLinkCaller caller, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), message, caller, cancellationToken)
+            : Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicQuote>());
 
+    public Task<QuoteLinkOutcome<PublicQuote>> HandleAsync(
+        ResourceAccess access, string? message, QuoteLinkCaller caller, CancellationToken cancellationToken)
+    {
         var text = message?.Trim() ?? string.Empty;
 
         if (text.Length == 0)
@@ -156,7 +171,7 @@ public sealed class AskQuoteQuestionHandler(IQuoteLinkStore store)
 
         return text.Length > QuoteLinkMessages.TextMaxLength
             ? Task.FromResult(QuoteLinkHandlerSupport.Invalid<PublicQuote>("message", QuoteLinkMessages.QuestionTooLongMessage))
-            : store.AskAsync(token!, text, caller, cancellationToken);
+            : store.AskAsync(access, text, caller, cancellationToken);
     }
 }
 
@@ -164,29 +179,32 @@ public sealed class GetQuoteLinkPhotoHandler(IQuoteLinkStore store)
 {
     public Task<QuoteLinkOutcome<PublicBinary>> HandleAsync(string? token, Guid photoId, CancellationToken cancellationToken) =>
         QuoteLinkTokens.IsWellFormed(token)
-            ? store.GetPhotoAsync(token!, photoId, cancellationToken)
+            ? HandleAsync(ResourceAccess.FromToken(token!), photoId, cancellationToken)
             : Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicBinary>());
+
+    public Task<QuoteLinkOutcome<PublicBinary>> HandleAsync(ResourceAccess access, Guid photoId, CancellationToken cancellationToken) =>
+        store.GetPhotoAsync(access, photoId, cancellationToken);
 }
 
 public sealed class GetQuoteLinkLogoHandler(IQuoteLinkStore store)
 {
     public Task<QuoteLinkOutcome<PublicBinary>> HandleAsync(string? token, CancellationToken cancellationToken) =>
         QuoteLinkTokens.IsWellFormed(token)
-            ? store.GetLogoAsync(token!, cancellationToken)
+            ? store.GetLogoAsync(ResourceAccess.FromToken(token!), cancellationToken)
             : Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicBinary>());
 }
 
 /// <summary>The PDF of the version and its response (BR-19), generated from stored data only.</summary>
 public sealed class DownloadQuoteLinkPdfHandler(IQuoteLinkStore store, IQuotePdfRenderer renderer, TimeProvider timeProvider)
 {
-    public async Task<QuoteLinkOutcome<PublicQuotePdf>> HandleAsync(string? token, CancellationToken cancellationToken)
-    {
-        if (!QuoteLinkTokens.IsWellFormed(token))
-        {
-            return QuoteLinkHandlerSupport.Unavailable<PublicQuotePdf>();
-        }
+    public Task<QuoteLinkOutcome<PublicQuotePdf>> HandleAsync(string? token, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), cancellationToken)
+            : Task.FromResult(QuoteLinkHandlerSupport.Unavailable<PublicQuotePdf>());
 
-        switch (await store.ViewAsync(token!, cancellationToken))
+    public async Task<QuoteLinkOutcome<PublicQuotePdf>> HandleAsync(ResourceAccess access, CancellationToken cancellationToken)
+    {
+        switch (await store.ViewAsync(access, cancellationToken))
         {
             case QuoteLinkOutcome<PublicQuote>.Succeeded succeeded:
                 var document = QuotePdfDocumentComposer.Compose(succeeded.Value, timeProvider.GetUtcNow().Year);

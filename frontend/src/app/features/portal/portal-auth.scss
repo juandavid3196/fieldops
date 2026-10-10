@@ -1,0 +1,118 @@
+@use '../../../styles/breakpoints' as bp;
+
+// Centered card shared by the portal sign-in and activation pages.
+:host {
+  display: block;
+  min-block-size: 100dvh;
+  background: var(--fo-color-app-background);
+}
+
+.auth {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  inline-size: 100%;
+  max-inline-size: 28rem;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 2rem;
+
+  @include bp.up(md) {
+    padding-block-start: 4rem;
+  }
+
+  &__brand {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__subtitle {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  &__label {
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__hint {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__check {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    font-weight: 600;
+    color: var(--fo-color-link);
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+.sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}

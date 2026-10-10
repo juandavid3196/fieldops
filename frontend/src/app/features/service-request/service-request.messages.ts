@@ -49,3 +49,6 @@ export const TIME_WINDOW_LABELS = {
 } as const;
 
 export const NOT_SURE_LABEL = "I'm not sure";
+
+/** Portal wizard (BR-28): a known property must be chosen. */
+export const PORTAL_PROPERTY_REQUIRED_MESSAGE = 'Select one of your properties.';

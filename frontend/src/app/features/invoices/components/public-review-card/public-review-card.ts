@@ -9,7 +9,7 @@ import {
   REVIEW_COMMENT_MAX_LENGTH,
   REVIEW_FAILED_MESSAGE,
 } from '../../models/invoice.model';
-import { PublicInvoiceService } from '../../services/public-invoice.service';
+import { InvoiceLinkApi } from '../../services/invoice-link-api';
 import { formatCalendarDate } from '../../utils/public-invoice-format';
 
 export const REVIEW_RATING_MESSAGE = 'Select a rating.';
@@ -23,7 +23,7 @@ export const REVIEW_COMMENT_MESSAGE = 'Use 500 characters or fewer.';
   styleUrl: './public-review-card.scss',
 })
 export class PublicReviewCard {
-  private readonly service = inject(PublicInvoiceService);
+  private readonly service = inject(InvoiceLinkApi);
   private readonly destroyRef = inject(DestroyRef);
 
   readonly invoice = input.required<PublicInvoice>();

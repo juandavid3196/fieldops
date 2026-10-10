@@ -10,11 +10,16 @@ import {
   PublicInvoice,
   PublicPhoto,
 } from '../models/invoice.model';
+import { InvoiceLinkApi } from './invoice-link-api';
 import { PublicInvoiceTokenService } from './public-invoice-token.service';
 
 /** Anonymous invoice link endpoints; the token travels only in JSON POST bodies (BR-28). */
 @Injectable({ providedIn: 'root' })
-export class PublicInvoiceService {
+export class PublicInvoiceService implements InvoiceLinkApi {
+  returnPath(): string {
+    return '/invoices/view';
+  }
+
   private readonly http = inject(HttpClient);
   private readonly config = inject(API_CONFIG);
   private readonly tokens = inject(PublicInvoiceTokenService);

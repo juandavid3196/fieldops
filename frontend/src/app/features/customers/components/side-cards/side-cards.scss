@@ -89,6 +89,18 @@
     }
   }
 
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-block-start: 0.75rem;
+  }
+
+  &__error {
+    margin: 0.5rem 0 0;
+    color: var(--fo-color-danger-text);
+  }
+
   &__button {
     display: flex;
     gap: 0.5rem;

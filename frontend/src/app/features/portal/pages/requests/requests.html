@@ -1,0 +1,79 @@
+<div class="pp">
+  <header class="pp__head">
+    <h1 class="pp__title">Requests</h1>
+    <div class="pp__actions">
+      @if (list.properties().length > 0) {
+        <app-portal-property-filter
+          [properties]="list.properties()"
+          [value]="list.propertyId()"
+          (changed)="list.filter($event)"
+        />
+      }
+      <a pButton routerLink="/portal/requests/new" [queryParams]="query()">
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        Request a service
+      </a>
+    </div>
+  </header>
+
+  <app-portal-state
+    [state]="list.resource.state()"
+    label="Loading requests"
+    emptyText="No requests yet."
+    errorText="We couldn't load your requests."
+    (retry)="list.reload()"
+  >
+    <a empty pButton routerLink="/portal/requests/new" [queryParams]="query()">Request a service</a>
+
+    @if (list.resource.data(); as page) {
+      <div class="pcard">
+        <table class="ptable">
+          <caption class="sr">
+            Requests
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Request</th>
+              <th scope="col">Title</th>
+              <th scope="col">Property</th>
+              <th scope="col">Status</th>
+              <th scope="col">Submitted</th>
+              <th scope="col"><span class="sr">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.request.id) {
+              <tr>
+                <td data-label="Request">{{ row.request.displayNumber }}</td>
+                <td data-label="Title">{{ row.request.title }}</td>
+                <td data-label="Property">{{ row.request.propertyName ?? '—' }}</td>
+                <td data-label="Status">
+                  <app-portal-status-chip [label]="row.chip.label" [tone]="row.chip.tone" />
+                </td>
+                <td data-label="Submitted">{{ row.submitted }}</td>
+                <td>
+                  <a
+                    pButton
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    [attr.aria-label]="'View request ' + row.request.displayNumber"
+                    [routerLink]="['/portal/requests', row.request.id]"
+                    >View</a
+                  >
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <app-hub-pager
+          [page]="page.page"
+          [pageSize]="page.pageSize"
+          [total]="page.total"
+          noun="requests"
+          (pageChange)="list.goTo($event)"
+        />
+      </div>
+    }
+  </app-portal-state>
+</div>

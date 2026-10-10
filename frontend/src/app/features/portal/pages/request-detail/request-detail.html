@@ -1,0 +1,75 @@
+<div class="pp">
+  <a class="pp__back" routerLink="/portal/requests">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    Back to Requests
+  </a>
+
+  <app-portal-state
+    [state]="resource.state()"
+    label="Loading request"
+    errorText="We couldn't load this request."
+    backLink="/portal/requests"
+    backLabel="Back to Requests"
+    (retry)="load()"
+  >
+    @if (view(); as v) {
+      <section class="pcard" aria-labelledby="request-title">
+        <header class="pcard__head">
+          <div>
+            <p class="pcard__meta">{{ v.request.displayNumber }}</p>
+            <h1 class="pp__title" id="request-title">{{ v.request.title }}</h1>
+          </div>
+          <app-portal-status-chip [label]="v.chip.label" [tone]="v.chip.tone" />
+        </header>
+        <dl class="pp__facts">
+          <div>
+            <dt>Category</dt>
+            <dd>{{ v.request.categoryName }}</dd>
+          </div>
+          <div>
+            <dt>Service</dt>
+            <dd>{{ v.request.serviceName ?? 'Not sure' }}</dd>
+          </div>
+          <div>
+            <dt>Urgency</dt>
+            <dd>{{ v.urgency }}</dd>
+          </div>
+          <div>
+            <dt>Active damage</dt>
+            <dd>{{ v.request.hasActiveDamage ? 'Yes' : 'No' }}</dd>
+          </div>
+          <div>
+            <dt>Property</dt>
+            <dd>{{ v.property }}</dd>
+          </div>
+          <div>
+            <dt>Preferred availability</dt>
+            <dd>{{ v.availability }}</dd>
+          </div>
+          <div>
+            <dt>Submitted</dt>
+            <dd>{{ v.submitted }}</dd>
+          </div>
+          <div>
+            <dt>Description</dt>
+            <dd>{{ v.request.description }}</dd>
+          </div>
+        </dl>
+      </section>
+
+      @if (v.request.quote; as quote) {
+        <section class="pcard" aria-labelledby="request-quote-title">
+          <h2 class="pcard__title" id="request-quote-title">Quote</h2>
+          <p class="plist__main">
+            <a class="pcard__link" [routerLink]="['/portal/quotes', quote.id]">{{
+              quote.displayNumber
+            }}</a>
+            @if (v.quoteChip; as chip) {
+              <app-portal-status-chip [label]="chip.label" [tone]="chip.tone" />
+            }
+          </p>
+        </section>
+      }
+    }
+  </app-portal-state>
+</div>

@@ -1,18 +1,21 @@
 <p-toast />
 
-<div class="page">
-  <header class="page__header">
-    @if (quote(); as quote) {
-      @if (logoUrl(); as url) {
-        <img class="page__logo" [src]="url" alt="" />
+<div class="page" [class.page--embedded]="embedded()">
+  @if (!embedded()) {
+    <header class="page__header">
+      @if (quote(); as quote) {
+        @if (logoUrl(); as url) {
+          <img class="page__logo" [src]="url" alt="" />
+        } @else {
+          <span class="page__logo page__logo--initials" aria-hidden="true">{{ initials() }}</span>
+        }
+        <span class="page__brand">{{ quote.organization.name }}</span>
       } @else {
-        <span class="page__logo page__logo--initials" aria-hidden="true">{{ initials() }}</span>
+        <span class="page__brand">FieldOps</span>
       }
-      <span class="page__brand">{{ quote.organization.name }}</span>
-    } @else {
-      <span class="page__brand">FieldOps</span>
-    }
-  </header>
+      <a class="page__portal" routerLink="/portal/sign-in">Sign in to your portal</a>
+    </header>
+  }
 
   <main class="page__main">
     @switch (state()) {
@@ -25,10 +28,12 @@
         </div>
       }
       @case ('unavailable') {
-        <section class="notice">
-          <h1 #heading class="notice__title" tabindex="-1">{{ unavailableTitle }}</h1>
-          <p class="notice__text">{{ unavailableBody }}</p>
-        </section>
+        @if (!embedded()) {
+          <section class="notice">
+            <h1 #heading class="notice__title" tabindex="-1">{{ unavailableTitle }}</h1>
+            <p class="notice__text">{{ unavailableBody }}</p>
+          </section>
+        }
       }
       @case ('superseded') {
         <section class="notice">
@@ -229,9 +234,11 @@
   </main>
 
   @if (quote(); as quote) {
-    <footer class="page__footer">
-      <span>© {{ year }} {{ quote.organization.name }}. All rights reserved.</span>
-      <span>Powered by FieldOps</span>
-    </footer>
+    @if (!embedded()) {
+      <footer class="page__footer">
+        <span>© {{ year }} {{ quote.organization.name }}. All rights reserved.</span>
+        <span>Powered by FieldOps</span>
+      </footer>
+    }
   }
 </div>

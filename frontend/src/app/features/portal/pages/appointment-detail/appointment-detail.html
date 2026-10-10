@@ -1,0 +1,102 @@
+<div class="pp">
+  <a class="pp__back" routerLink="/portal/appointments">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    Back to Appointments
+  </a>
+
+  <app-portal-state
+    [state]="resource.state()"
+    label="Loading appointment"
+    errorText="We couldn't load this appointment."
+    backLink="/portal/appointments"
+    backLabel="Back to Appointments"
+    (retry)="load()"
+  >
+    @if (view(); as v) {
+      <section class="pcard" aria-labelledby="appointment-detail-title">
+        <header class="pcard__head">
+          <div>
+            <p class="pcard__meta">Work order {{ v.visit.workOrderNumber }}</p>
+            <h1 class="pp__title" id="appointment-detail-title">{{ v.visit.title }}</h1>
+          </div>
+          <app-portal-status-chip [label]="v.chip.label" [tone]="v.chip.tone" />
+        </header>
+
+        <dl class="pp__facts">
+          <div>
+            <dt>Date</dt>
+            <dd>{{ v.date }}</dd>
+          </div>
+          <div>
+            <dt>{{ v.isWindow ? 'Arrival window' : 'Time' }}</dt>
+            <dd>{{ v.time }}</dd>
+          </div>
+          <div>
+            <dt>Technician</dt>
+            <dd>
+              @if (v.visit.technician; as technician) {
+                {{ technician.fullName }} <span class="pcard__tag">Assigned</span>
+              } @else {
+                Technician to be assigned
+              }
+            </dd>
+          </div>
+          <div>
+            <dt>Property</dt>
+            <dd>{{ v.visit.property.name }}, {{ v.visit.property.addressLine1 }}</dd>
+          </div>
+        </dl>
+
+        @if (v.visit.status !== 'cancelled') {
+          <app-portal-progress-stepper [step]="v.visit.progressStep" />
+          @if (v.open) {
+            <p class="pcard__notice" role="status">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              {{ v.notice }}
+            </p>
+          }
+        }
+
+        <div class="pcard__actions">
+          @if (v.requestedOn; as date) {
+            <span class="pcard__sent" role="status">
+              <i class="pi pi-check-circle" aria-hidden="true"></i>
+              Reschedule requested · {{ date }}
+            </span>
+          } @else if (v.visit.canRequestReschedule) {
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              (click)="rescheduleOpen.set(true)"
+            >
+              Request reschedule
+            </button>
+          }
+          @if (v.visit.reportAvailable) {
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              [disabled]="reportBusy()"
+              (click)="report()"
+            >
+              View report
+            </button>
+          }
+        </div>
+        @if (reportError(); as message) {
+          <p class="pp__error" role="alert">{{ message }}</p>
+        }
+      </section>
+
+      <app-portal-reschedule-dialog
+        [appointment]="rescheduleOpen() ? v.visit : null"
+        (dismissed)="rescheduleOpen.set(false)"
+        (requested)="rescheduled($event)"
+      />
+    }
+  </app-portal-state>
+</div>

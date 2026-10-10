@@ -1,0 +1,70 @@
+<table class="ptable">
+  <caption class="sr">
+    Recent activity
+  </caption>
+  <thead>
+    <tr>
+      <th scope="col">Service / Description</th>
+      <th scope="col">Date</th>
+      <th scope="col">Reference</th>
+      <th scope="col">Amount</th>
+      <th scope="col">Status</th>
+      <th scope="col">Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (item of view(); track item.key) {
+      <tr>
+        <td data-label="Service">{{ item.row.title }}</td>
+        <td data-label="Date">{{ item.date }}</td>
+        <td data-label="Reference">{{ item.row.reference }}</td>
+        <td data-label="Amount">{{ item.amount }}</td>
+        <td data-label="Status">
+          <app-portal-status-chip [label]="item.chip.label" [tone]="item.chip.tone" />
+        </td>
+        <td data-label="Actions">
+          <div class="ptable__actions">
+            @if (item.row.status === 'invoice_due' && item.row.invoiceId !== null) {
+              <a
+                pButton
+                severity="secondary"
+                [outlined]="true"
+                size="small"
+                [routerLink]="['/portal/invoices', item.row.invoiceId]"
+                >View invoice</a
+              >
+            } @else {
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                [outlined]="true"
+                size="small"
+                [disabled]="busy() !== null"
+                (click)="report(item.row)"
+              >
+                View report
+              </button>
+              @if (item.row.status === 'paid' && item.row.receiptPaymentId !== null) {
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  [outlined]="true"
+                  size="small"
+                  [disabled]="busy() !== null"
+                  (click)="receipt(item.row)"
+                >
+                  Receipt
+                </button>
+              }
+            }
+          </div>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>
+@if (error(); as message) {
+  <p class="pp__error" role="alert">{{ message }}</p>
+}

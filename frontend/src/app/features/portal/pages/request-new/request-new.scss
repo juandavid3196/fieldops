@@ -1,0 +1,73 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-inline-size: 0;
+}
+
+.rn {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-inline-size: 0;
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+
+    @include bp.up(md) {
+      font-size: 2rem;
+    }
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__state {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  &__layout {
+    display: grid;
+    gap: 1.25rem;
+
+    // The summary panel stacks below the step card under the large breakpoint.
+    @include bp.up(lg) {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+
+  &__card {
+    min-inline-size: 0;
+    padding: 1.25rem;
+    background: var(--p-content-background);
+    border: 1px solid var(--p-content-border-color);
+    border-radius: var(--fo-radius-card);
+
+    @include bp.up(md) {
+      padding: 1.75rem;
+    }
+  }
+
+  &__done {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 0.5rem;
+    color: var(--fo-color-success-text);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}

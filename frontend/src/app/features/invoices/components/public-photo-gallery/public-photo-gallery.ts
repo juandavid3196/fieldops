@@ -13,7 +13,7 @@ import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 
 import { PublicPhoto } from '../../models/invoice.model';
-import { PublicInvoiceService } from '../../services/public-invoice.service';
+import { InvoiceLinkApi } from '../../services/invoice-link-api';
 import { formatCalendarDate } from '../../utils/public-invoice-format';
 
 interface PhotoImage {
@@ -32,7 +32,7 @@ interface PhotoImage {
   styleUrl: './public-photo-gallery.scss',
 })
 export class PublicPhotoGallery {
-  private readonly service = inject(PublicInvoiceService);
+  private readonly service = inject(InvoiceLinkApi);
 
   readonly visible = model(false);
 

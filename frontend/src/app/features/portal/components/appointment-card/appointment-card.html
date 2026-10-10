@@ -1,0 +1,82 @@
+<section class="pcard" aria-labelledby="appointment-title">
+  <header class="pcard__head">
+    <h2 class="pcard__title" id="appointment-title">
+      <i class="pi pi-calendar pcard__icon" aria-hidden="true"></i>
+      Upcoming appointment
+    </h2>
+    @if (appointment(); as visit) {
+      <div class="pcard__actions">
+        <a
+          pButton
+          severity="secondary"
+          [outlined]="true"
+          size="small"
+          [routerLink]="['/portal/appointments', visit.visitId]"
+        >
+          View details
+        </a>
+        @if (view()?.requestedOn; as date) {
+          <span class="pcard__sent" role="status">
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            Reschedule requested · {{ date }}
+          </span>
+        } @else if (visit.canRequestReschedule) {
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            (click)="reschedule.emit(visit)"
+          >
+            Request reschedule
+          </button>
+        }
+      </div>
+    }
+  </header>
+
+  @if (appointment(); as visit) {
+    @if (view(); as view) {
+      <div class="pcard__split">
+        <div class="pcard__split-main">
+          <p class="pcard__lead">{{ visit.title }}</p>
+          <p class="pcard__meta">Work order {{ visit.workOrderNumber }}</p>
+          <p class="pcard__meta">
+            <i class="pi pi-calendar" aria-hidden="true"></i> {{ view.date }}
+          </p>
+          <p class="pcard__meta">
+            <i class="pi pi-clock" aria-hidden="true"></i> {{ view.time }}
+            @if (view.isWindow) {
+              <span class="pcard__meta">(Arrival window)</span>
+            }
+          </p>
+          <p class="pcard__meta">
+            <i class="pi pi-user" aria-hidden="true"></i>
+            @if (visit.technician; as technician) {
+              {{ technician.fullName }} <span class="pcard__tag">Assigned</span>
+            } @else {
+              Technician to be assigned
+            }
+          </p>
+          <p class="pcard__meta">
+            <i class="pi pi-map-marker" aria-hidden="true"></i>
+            {{ visit.property.name }}, {{ visit.property.addressLine1 }}
+          </p>
+        </div>
+        <div class="pcard__split-main">
+          <app-portal-progress-stepper [step]="visit.progressStep" />
+          <p class="pcard__notice" role="status">
+            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            {{ view.notice }}
+          </p>
+        </div>
+      </div>
+    }
+  } @else {
+    <p class="pcard__empty">No upcoming appointments.</p>
+    <div class="pcard__actions">
+      <a pButton routerLink="/portal/requests/new">Request a service</a>
+    </div>
+  }
+</section>

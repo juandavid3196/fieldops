@@ -1,7 +1,9 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using FieldOps.Application.Features.InvoicePayments;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Organizations;
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Invoices;
@@ -15,7 +17,7 @@ namespace FieldOps.Infrastructure.Persistence;
 /// <summary>
 /// Persistence of the customer payment flow (customer-invoice-payments). Public calls start from the token row: the
 /// organization and invoice never come from the client. Locking rules: the invoice of a public mutation is locked through
-/// the token (see <see cref="LockInvoiceByTokenAsync"/>); the webhook locks attempt, invoice, organization in that order; an
+/// the token (see <see cref="LockInvoiceAsync"/>); the webhook locks attempt, invoice, organization in that order; an
 /// attempt row is never locked while the same transaction holds the invoice lock, so the lazy expiry
 /// (<see cref="MarkFailedIfPendingAsync"/>) runs before any invoice lock and takes only the attempt row.
 /// </summary>
@@ -32,9 +34,9 @@ internal sealed partial class OnlinePaymentStore(
 
     private const string InvoiceEntityType = "invoice";
 
-    public async Task<InvoiceRef?> ResolveAsync(string token, CancellationToken cancellationToken)
+    public async Task<InvoiceRef?> ResolveAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var invoice = await InvoiceLinkStore.ValidInvoices(dbContext, token, Now())
+        var invoice = await InvoiceLinkStore.ValidInvoices(dbContext, access, Now())
             .Select(candidate => new InvoiceRef(candidate.OrganizationId, candidate.Id))
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -87,27 +89,27 @@ internal sealed partial class OnlinePaymentStore(
     }
 
     public async Task<CardIntentPrepared> PrepareCardIntentAsync(
-        string token, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken)
+        ResourceAccess access, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken)
     {
         try
         {
-            return await PrepareCardIntentOnceAsync(token, idempotencyKey, now, cancellationToken);
+            return await PrepareCardIntentOnceAsync(access, idempotencyKey, now, cancellationToken);
         }
         catch (DbUpdateException exception) when (IsAttemptUniqueViolation(exception))
         {
             // A concurrent request won the pending index or the key: run once more, so the guards decide.
             dbContext.ChangeTracker.Clear();
 
-            return await PrepareCardIntentOnceAsync(token, idempotencyKey, now, cancellationToken);
+            return await PrepareCardIntentOnceAsync(access, idempotencyKey, now, cancellationToken);
         }
     }
 
     private async Task<CardIntentPrepared> PrepareCardIntentOnceAsync(
-        string token, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken)
+        ResourceAccess access, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        if (await LockInvoiceByTokenAsync(token, now, cancellationToken) is not { } invoiceId)
+        if (await LockInvoiceAsync(access, now, cancellationToken) is not { } invoiceId)
         {
             return new CardIntentPrepared.Unavailable();
         }
@@ -153,7 +155,7 @@ internal sealed partial class OnlinePaymentStore(
         var created = InvoicePaymentAttempt.CreateCard(invoice.OrganizationId, invoice.Id, invoice.BalanceDue, invoice.Currency, idempotencyKey, now);
 
         dbContext.InvoicePaymentAttempts.Add(created);
-        AuditAttempt(invoice, "invoice_payment_attempt.created", created.Id, new
+        AuditAttempt(access, invoice, "invoice_payment_attempt.created", created.Id, new
         {
             attemptId = created.Id,
             method = PaymentMethodCodes.Code(created.Method),
@@ -174,9 +176,9 @@ internal sealed partial class OnlinePaymentStore(
                     .SetProperty(attempt => attempt.UpdatedAt, now),
                 cancellationToken);
 
-    public async Task<PaymentStatusView?> GetStatusAsync(string token, Guid attemptId, CancellationToken cancellationToken)
+    public async Task<PaymentStatusView?> GetStatusAsync(ResourceAccess access, Guid attemptId, CancellationToken cancellationToken)
     {
-        var invoice = await InvoiceLinkStore.ValidInvoices(dbContext, token, Now()).SingleOrDefaultAsync(cancellationToken);
+        var invoice = await InvoiceLinkStore.ValidInvoices(dbContext, access, Now()).SingleOrDefaultAsync(cancellationToken);
 
         if (invoice is null)
         {
@@ -222,26 +224,26 @@ internal sealed partial class OnlinePaymentStore(
     }
 
     public async Task<BankNoticeResult> ReportBankTransferAsync(
-        string token, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken)
+        ResourceAccess access, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken)
     {
         try
         {
-            return await ReportBankTransferOnceAsync(token, idempotencyKey, now, cancellationToken);
+            return await ReportBankTransferOnceAsync(access, idempotencyKey, now, cancellationToken);
         }
         catch (DbUpdateException exception) when (IsAttemptUniqueViolation(exception))
         {
             dbContext.ChangeTracker.Clear();
 
-            return await ReportBankTransferOnceAsync(token, idempotencyKey, now, cancellationToken);
+            return await ReportBankTransferOnceAsync(access, idempotencyKey, now, cancellationToken);
         }
     }
 
     private async Task<BankNoticeResult> ReportBankTransferOnceAsync(
-        string token, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken)
+        ResourceAccess access, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        if (await LockInvoiceByTokenAsync(token, now, cancellationToken) is not { } invoiceId)
+        if (await LockInvoiceAsync(access, now, cancellationToken) is not { } invoiceId)
         {
             return new BankNoticeResult.Unavailable();
         }
@@ -297,7 +299,7 @@ internal sealed partial class OnlinePaymentStore(
             invoice.OrganizationId, invoice.Id, invoice.BalanceDue, invoice.Currency, idempotencyKey, now);
 
         dbContext.InvoicePaymentAttempts.Add(created);
-        AuditInvoice(invoice, "invoice.bank_transfer_reported", new { amount = QuoteCalculator.Money(created.Amount) });
+        AuditInvoice(access, invoice, "invoice.bank_transfer_reported", new { amount = QuoteCalculator.Money(created.Amount) });
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -316,11 +318,11 @@ internal sealed partial class OnlinePaymentStore(
     }
 
     public async Task<ReviewResult> SubmitReviewAsync(
-        string token, int rating, string? comment, DateTimeOffset now, CancellationToken cancellationToken)
+        ResourceAccess access, int rating, string? comment, DateTimeOffset now, CancellationToken cancellationToken)
     {
         try
         {
-            return await SubmitReviewOnceAsync(token, rating, comment, now, cancellationToken);
+            return await SubmitReviewOnceAsync(access, rating, comment, now, cancellationToken);
         }
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException
         {
@@ -336,11 +338,11 @@ internal sealed partial class OnlinePaymentStore(
     }
 
     private async Task<ReviewResult> SubmitReviewOnceAsync(
-        string token, int rating, string? comment, DateTimeOffset now, CancellationToken cancellationToken)
+        ResourceAccess access, int rating, string? comment, DateTimeOffset now, CancellationToken cancellationToken)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
-        if (await LockInvoiceByTokenAsync(token, now, cancellationToken) is not { } invoiceId)
+        if (await LockInvoiceAsync(access, now, cancellationToken) is not { } invoiceId)
         {
             return new ReviewResult.Unavailable();
         }
@@ -377,7 +379,7 @@ internal sealed partial class OnlinePaymentStore(
                 .FirstOrDefaultAsync(cancellationToken);
 
         dbContext.InvoiceReviews.Add(InvoiceReview.Create(invoice.OrganizationId, invoice.WorkOrderId, invoice.Id, technicianId, rating, comment, now));
-        AuditInvoice(invoice, "invoice.review_submitted", new { rating });
+        AuditInvoice(access, invoice, "invoice.review_submitted", new { rating });
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
@@ -400,20 +402,43 @@ internal sealed partial class OnlinePaymentStore(
         }
     }
 
-    // The invoice row of the token, locked and validated by the same statement (BR-01); null for an unusable token.
-    private async Task<Guid?> LockInvoiceByTokenAsync(string token, DateTimeOffset now, CancellationToken cancellationToken)
+    // The invoice row of the token (or of the portal session and id), locked and validated by the same statement
+    // (BR-01; customer portal BR-31); null for an unusable token or a resource that is not the customer's.
+    private async Task<Guid?> LockInvoiceAsync(ResourceAccess access, DateTimeOffset now, CancellationToken cancellationToken)
     {
-        var hash = Application.Features.Quotes.QuoteAccessTokens.Hash(token);
-        var locked = await dbContext.Database
-            .SqlQuery<Guid>(
-                $"""
-                SELECT i.id AS "Value" FROM invoices i
-                JOIN invoice_access_tokens t ON t.organization_id = i.organization_id AND t.invoice_id = i.id
-                WHERE t.token_hash = {hash} AND t.revoked_at IS NULL AND t.expires_at > {now}
-                  AND i.status NOT IN ('draft', 'void') AND i.customer_snapshot IS NOT NULL
-                FOR UPDATE OF i
-                """)
-            .ToListAsync(cancellationToken);
+        List<Guid> locked;
+
+        if (access is ResourceAccess.Portal portal)
+        {
+            var organizationId = portal.Scope.OrganizationId;
+            var customerId = portal.Scope.CustomerId;
+            var invoiceId = portal.ResourceId;
+
+            locked = await dbContext.Database
+                .SqlQuery<Guid>(
+                    $"""
+                    SELECT i.id AS "Value" FROM invoices i
+                    WHERE i.id = {invoiceId} AND i.organization_id = {organizationId} AND i.customer_id = {customerId}
+                      AND i.status NOT IN ('draft', 'void') AND i.customer_snapshot IS NOT NULL
+                    FOR UPDATE OF i
+                    """)
+                .ToListAsync(cancellationToken);
+        }
+        else
+        {
+            var hash = Application.Features.Quotes.QuoteAccessTokens.Hash(((ResourceAccess.Token)access).Raw);
+
+            locked = await dbContext.Database
+                .SqlQuery<Guid>(
+                    $"""
+                    SELECT i.id AS "Value" FROM invoices i
+                    JOIN invoice_access_tokens t ON t.organization_id = i.organization_id AND t.invoice_id = i.id
+                    WHERE t.token_hash = {hash} AND t.revoked_at IS NULL AND t.expires_at > {now}
+                      AND i.status NOT IN ('draft', 'void') AND i.customer_snapshot IS NOT NULL
+                    FOR UPDATE OF i
+                    """)
+                .ToListAsync(cancellationToken);
+        }
 
         return locked.Count == 1 ? locked[0] : null;
     }
@@ -445,12 +470,13 @@ internal sealed partial class OnlinePaymentStore(
 
     private DateTimeOffset Now() => timeProvider.GetUtcNow();
 
-    // BR-26: ids, codes, numbers and amounts only; no actor, token, secret, provider id, card data or contact data.
-    private void AuditAttempt(Invoice invoice, string action, Guid attemptId, object metadata) =>
-        AddAudit(invoice.OrganizationId, invoice.BranchId, action, AttemptEntityType, attemptId, null, null, metadata);
+    // BR-26: ids, codes, numbers and amounts only; no token, secret, provider id, card data or contact data. A portal
+    // action records the portal user as the actor and the channel (customer portal BR-31).
+    private void AuditAttempt(ResourceAccess? access, Invoice invoice, string action, Guid attemptId, object metadata) =>
+        AddAudit(invoice.OrganizationId, invoice.BranchId, action, AttemptEntityType, attemptId, null, null, metadata, access);
 
-    private void AuditInvoice(Invoice invoice, string action, object metadata) =>
-        AddAudit(invoice.OrganizationId, invoice.BranchId, action, InvoiceEntityType, invoice.Id, null, null, metadata);
+    private void AuditInvoice(ResourceAccess? access, Invoice invoice, string action, object metadata) =>
+        AddAudit(invoice.OrganizationId, invoice.BranchId, action, InvoiceEntityType, invoice.Id, null, null, metadata, access);
 
     private void AuditFailed(Guid organizationId, Guid branchId, Guid attemptId, string category) =>
         AddAudit(
@@ -464,16 +490,35 @@ internal sealed partial class OnlinePaymentStore(
             new { attemptId, failureCategory = category });
 
     private void AddAudit(
-        Guid organizationId, Guid branchId, string action, string entityType, Guid entityId, object? before, object? after, object? metadata) =>
+        Guid organizationId,
+        Guid branchId,
+        string action,
+        string entityType,
+        Guid entityId,
+        object? before,
+        object? after,
+        object? metadata,
+        ResourceAccess? access = null)
+    {
+        var portal = access as ResourceAccess.Portal;
+        var details = metadata is null ? null : JsonSerializer.SerializeToNode(metadata, JsonOptions)?.AsObject();
+
+        if (portal is not null)
+        {
+            details ??= [];
+            details["channel"] = "portal";
+        }
+
         dbContext.AuditLogs.Add(AuditLog.Create(
             organizationId,
             action,
             entityType,
-            null,
+            portal?.Scope.UserId,
             entityId,
             branchId,
             null,
             before is null ? null : JsonSerializer.Serialize(before, JsonOptions),
             after is null ? null : JsonSerializer.Serialize(after, JsonOptions),
-            metadata is null ? null : JsonSerializer.Serialize(metadata, JsonOptions)));
+            details?.ToJsonString(JsonOptions)));
+    }
 }

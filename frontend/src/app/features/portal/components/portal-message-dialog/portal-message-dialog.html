@@ -1,0 +1,67 @@
+<p-dialog
+  header="Send a message"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!submitting()"
+  [closeOnEscape]="!submitting()"
+  [visible]="visible()"
+  (visibleChange)="$event ? null : close()"
+  [style]="{ width: '30rem', maxWidth: '94vw' }"
+>
+  @if (sent()) {
+    <p class="dialog__sent" role="status">
+      <i class="pi pi-check-circle" aria-hidden="true"></i>
+      {{ sentText() }}
+    </p>
+  } @else {
+    <form class="dialog" ngNoForm novalidate (submit)="$event.preventDefault(); submit()">
+      <p class="dialog__text">{{ organizationName() }} will reply by email or phone.</p>
+      <app-form-field
+        label="Message"
+        controlId="portal-message-text"
+        [required]="true"
+        [error]="error()"
+      >
+        <textarea
+          pTextarea
+          id="portal-message-text"
+          rows="5"
+          fluid
+          name="message"
+          [attr.aria-invalid]="error() ? 'true' : null"
+          [attr.aria-describedby]="error() ? 'portal-message-text-error' : null"
+          [ngModel]="message()"
+          (ngModelChange)="message.set($event)"
+        ></textarea>
+      </app-form-field>
+      <p class="dialog__count">{{ message().length }}/{{ limit }}</p>
+      @if (failure(); as text) {
+        <p class="dialog__failure" role="alert">{{ text }}</p>
+      }
+    </form>
+  }
+
+  <ng-template #footer>
+    @if (sent()) {
+      <button pButton type="button" (click)="close()">Close</button>
+    } @else {
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="submitting()"
+        (click)="close()"
+      >
+        Cancel
+      </button>
+      <button pButton type="button" [disabled]="submitting()" (click)="submit()">
+        @if (submitting()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        }
+        Send message
+      </button>
+    }
+  </ng-template>
+</p-dialog>

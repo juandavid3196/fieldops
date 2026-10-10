@@ -18,6 +18,22 @@ internal sealed class PasswordResetStore(FieldOpsDbContext dbContext, TimeProvid
             .Select(user => new PasswordResetEligibleUser(user.Id, user.Email, user.FirstName))
             .SingleOrDefaultAsync(cancellationToken);
 
+    // Customer portal BR-15: the same eligibility plus at least one active portal link (BR-02).
+    public Task<PasswordResetEligibleUser?> FindEligiblePortalUserAsync(
+        string normalizedEmail, CancellationToken cancellationToken) =>
+        (
+            from user in dbContext.Users.AsNoTracking()
+            where user.Email == normalizedEmail && user.Status == UserStatus.Active
+            where (
+                from contact in dbContext.CustomerContacts
+                join customer in dbContext.Customers
+                    on new { contact.OrganizationId, Id = contact.CustomerId } equals new { customer.OrganizationId, customer.Id }
+                join organization in dbContext.Organizations on contact.OrganizationId equals organization.Id
+                where contact.PortalUserId == user.Id && contact.IsActive && customer.IsActive && organization.IsActive
+                select contact.Id).Any()
+            select new PasswordResetEligibleUser(user.Id, user.Email, user.FirstName))
+            .SingleOrDefaultAsync(cancellationToken);
+
     // BR-03: lock the users row, delete the user's unused tokens, insert the new one.
     public async Task<bool> ReplaceAsync(Guid userId, string tokenHash, CancellationToken cancellationToken)
     {

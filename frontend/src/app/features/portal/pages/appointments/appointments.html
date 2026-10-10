@@ -1,0 +1,100 @@
+<div class="pp">
+  <header class="pp__head">
+    <h1 class="pp__title">Appointments</h1>
+    @if (list.properties().length > 0) {
+      <app-portal-property-filter
+        [properties]="list.properties()"
+        [value]="list.propertyId()"
+        (changed)="list.filter($event)"
+      />
+    }
+  </header>
+
+  <div class="pp__actions" role="tablist" aria-label="Appointments">
+    @for (tab of tabs; track tab.scope) {
+      <button
+        pButton
+        type="button"
+        role="tab"
+        aria-controls="portal-appointments-panel"
+        [severity]="scope() === tab.scope ? undefined : 'secondary'"
+        [outlined]="scope() !== tab.scope"
+        [attr.aria-selected]="scope() === tab.scope"
+        (click)="select(tab.scope)"
+      >
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <div id="portal-appointments-panel" role="tabpanel">
+    <app-portal-state
+      [state]="list.resource.state()"
+      label="Loading appointments"
+      [emptyText]="scope() === 'upcoming' ? 'No upcoming appointments.' : 'No past appointments.'"
+      errorText="We couldn't load your appointments."
+      (retry)="list.reload()"
+    >
+      <a empty pButton routerLink="/portal/requests/new" [queryParams]="query()"
+        >Request a service</a
+      >
+
+      @if (list.resource.data(); as page) {
+        <div class="pcard">
+          <table class="ptable">
+            <caption class="sr">
+              Appointments
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Date</th>
+                <th scope="col">Time</th>
+                <th scope="col">Service</th>
+                <th scope="col">Work order</th>
+                <th scope="col">Technician</th>
+                <th scope="col">Property</th>
+                <th scope="col">Status</th>
+                <th scope="col"><span class="sr">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of rows(); track row.appointment.visitId) {
+                <tr>
+                  <td data-label="Date">{{ row.date }}</td>
+                  <td data-label="Time">{{ row.time }}</td>
+                  <td data-label="Service">{{ row.appointment.title }}</td>
+                  <td data-label="Work order">{{ row.appointment.workOrderNumber }}</td>
+                  <td data-label="Technician">
+                    {{ row.appointment.technician?.fullName ?? 'To be assigned' }}
+                  </td>
+                  <td data-label="Property">{{ row.appointment.property.name }}</td>
+                  <td data-label="Status">
+                    <app-portal-status-chip [label]="row.chip.label" [tone]="row.chip.tone" />
+                  </td>
+                  <td>
+                    <a
+                      pButton
+                      severity="secondary"
+                      [outlined]="true"
+                      size="small"
+                      [attr.aria-label]="'View appointment ' + row.appointment.workOrderNumber"
+                      [routerLink]="['/portal/appointments', row.appointment.visitId]"
+                      >View</a
+                    >
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <app-hub-pager
+            [page]="page.page"
+            [pageSize]="page.pageSize"
+            [total]="page.total"
+            noun="appointments"
+            (pageChange)="list.goTo($event)"
+          />
+        </div>
+      }
+    </app-portal-state>
+  </div>
+</div>

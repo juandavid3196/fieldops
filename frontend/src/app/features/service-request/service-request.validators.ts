@@ -51,6 +51,7 @@ export const STEP_FIELDS: Readonly<Record<WizardStep, readonly string[]>> = {
     'contact.prefersEmail',
   ],
   property: [
+    'property.propertyId',
     'property.addressLine1',
     'property.addressLine2',
     'property.city',

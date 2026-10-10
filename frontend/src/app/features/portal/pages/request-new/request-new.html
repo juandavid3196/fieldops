@@ -1,0 +1,74 @@
+<div class="rn">
+  <header class="rn__head">
+    <h1 class="rn__title">Request a service</h1>
+    <p class="rn__subtitle">
+      Tell us what you need. Our team will review your request and contact you with the next steps.
+    </p>
+  </header>
+
+  @switch (state()) {
+    @case ('loading') {
+      <section aria-busy="true" role="status" aria-live="polite" aria-label="Loading request form">
+        <p-skeleton width="100%" height="2rem" />
+        <p-skeleton width="100%" height="20rem" />
+      </section>
+    }
+    @case ('unavailable') {
+      <section class="rn__state" role="alert">
+        <p-message severity="info">{{ unavailable() }}</p-message>
+        <a pButton severity="secondary" routerLink="/portal">Back to home</a>
+      </section>
+    }
+    @case ('error') {
+      <section class="rn__state" role="alert">
+        <p-message severity="error">{{ loadError }}</p-message>
+        <button pButton type="button" severity="secondary" (click)="retry()">Try again</button>
+      </section>
+    }
+    @case ('ready') {
+      <app-request-stepper [complete]="store.result() !== null" />
+
+      @if (store.result(); as result) {
+        <section class="rn__card" aria-labelledby="rn-done-title">
+          <h2 class="rn__done" id="rn-done-title" tabindex="-1" data-sr-heading>
+            <i class="pi pi-check-circle" aria-hidden="true"></i>
+            Request received
+          </h2>
+          <p role="status">
+            Your request number is <strong>{{ result.requestNumber }}</strong
+            >. We'll review it and contact you with the next steps.
+          </p>
+          <div class="rn__actions">
+            @if (result.requestId; as requestId) {
+              <a pButton [routerLink]="['/portal/requests', requestId]">View request</a>
+            }
+            <a pButton severity="secondary" [outlined]="true" routerLink="/portal">
+              Back to home
+            </a>
+          </div>
+        </section>
+      } @else {
+        <div class="rn__layout">
+          <section class="rn__card">
+            @switch (store.step()) {
+              @case ('property') {
+                <app-property-step />
+              }
+              @case ('service') {
+                <app-service-details-step />
+              }
+              @case ('availability') {
+                <app-availability-step />
+              }
+              @case ('review') {
+                <app-review-step />
+              }
+            }
+          </section>
+
+          <app-request-summary-panel />
+        </div>
+      }
+    }
+  }
+</div>

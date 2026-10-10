@@ -5,10 +5,11 @@ import { Observable } from 'rxjs';
 import { API_CONFIG, buildApiUrl } from '../../../core/config/api.config';
 import { PublicQuote, PublicTotals } from '../models/public-quote.model';
 import { PublicQuoteTokenService } from './public-quote-token.service';
+import { QuoteLinkApi } from './quote-link-api';
 
 /** Anonymous quote link endpoints; the token travels only in JSON POST bodies (BR-01). */
 @Injectable({ providedIn: 'root' })
-export class PublicQuoteService {
+export class PublicQuoteService implements QuoteLinkApi {
   private readonly http = inject(HttpClient);
   private readonly config = inject(API_CONFIG);
   private readonly tokens = inject(PublicQuoteTokenService);

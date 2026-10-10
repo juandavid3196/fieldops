@@ -1,4 +1,6 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
@@ -34,9 +36,9 @@ internal sealed class QuoteLinkStore(
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
-    public async Task<QuoteLinkOutcome<PublicQuote>> ViewAsync(string token, CancellationToken cancellationToken)
+    public async Task<QuoteLinkOutcome<PublicQuote>> ViewAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var (link, failure) = await ResolveAsync(token, cancellationToken);
+        var (link, failure) = await ResolveAsync(access, cancellationToken);
 
         return link is null
             ? Fail<PublicQuote>(failure)
@@ -44,9 +46,9 @@ internal sealed class QuoteLinkStore(
     }
 
     public async Task<QuoteLinkOutcome<PublicTotals>> CalculateAsync(
-        string token, IReadOnlyList<Guid> selectedOptionalLineIds, CancellationToken cancellationToken)
+        ResourceAccess access, IReadOnlyList<Guid> selectedOptionalLineIds, CancellationToken cancellationToken)
     {
-        var (link, failure) = await ResolveAsync(token, cancellationToken);
+        var (link, failure) = await ResolveAsync(access, cancellationToken);
 
         if (link is null)
         {
@@ -61,9 +63,9 @@ internal sealed class QuoteLinkStore(
     }
 
     public Task<QuoteLinkOutcome<PublicQuote>> ApproveAsync(
-        string token, IReadOnlyList<Guid> selectedOptionalLineIds, QuoteLinkCaller caller, CancellationToken cancellationToken) =>
+        ResourceAccess access, IReadOnlyList<Guid> selectedOptionalLineIds, QuoteLinkCaller caller, CancellationToken cancellationToken) =>
         RunAsync<PublicQuote>(
-            token,
+            access,
             async locked =>
             {
                 var existing = await FinalResponseAsync(locked.Link, cancellationToken);
@@ -81,7 +83,7 @@ internal sealed class QuoteLinkStore(
                 }
 
                 var now = timeProvider.GetUtcNow();
-                var (name, contactId) = await ResponderAsync(locked.Quote, cancellationToken);
+                var (name, contactId) = await ResponderAsync(locked.Quote, locked.Access, cancellationToken);
                 var organizationId = locked.Quote.OrganizationId;
                 var version = locked.Link.Version;
                 var response = QuoteResponse.Approve(
@@ -118,16 +120,17 @@ internal sealed class QuoteLinkStore(
                         selectedOptionalLineIds,
                         termsAccepted = true,
                         userAgent = caller.UserAgent,
-                    });
+                    },
+                    access: locked.Access);
 
                 return Done(locked, "approved");
             },
             cancellationToken);
 
     public Task<QuoteLinkOutcome<PublicQuote>> DeclineAsync(
-        string token, string reason, QuoteLinkCaller caller, CancellationToken cancellationToken) =>
+        ResourceAccess access, string reason, QuoteLinkCaller caller, CancellationToken cancellationToken) =>
         RunAsync<PublicQuote>(
-            token,
+            access,
             async locked =>
             {
                 var existing = await FinalResponseAsync(locked.Link, cancellationToken);
@@ -138,7 +141,7 @@ internal sealed class QuoteLinkStore(
                 }
 
                 var now = timeProvider.GetUtcNow();
-                var (name, contactId) = await ResponderAsync(locked.Quote, cancellationToken);
+                var (name, contactId) = await ResponderAsync(locked.Quote, locked.Access, cancellationToken);
                 var version = locked.Link.Version;
 
                 dbContext.QuoteResponses.Add(QuoteResponse.Reject(
@@ -146,16 +149,16 @@ internal sealed class QuoteLinkStore(
 
                 var before = locked.Quote.Status;
                 locked.Quote.Reject(now);
-                Audit(locked.Quote, "quote.rejected", caller, before, new { versionNo = version.VersionNo, userAgent = caller.UserAgent });
+                Audit(locked.Quote, "quote.rejected", caller, before, new { versionNo = version.VersionNo, userAgent = caller.UserAgent }, access: locked.Access);
 
                 return Done(locked, "rejected");
             },
             cancellationToken);
 
     public Task<QuoteLinkOutcome<PublicQuote>> AskAsync(
-        string token, string message, QuoteLinkCaller caller, CancellationToken cancellationToken) =>
+        ResourceAccess access, string message, QuoteLinkCaller caller, CancellationToken cancellationToken) =>
         RunAsync<PublicQuote>(
-            token,
+            access,
             async locked =>
             {
                 if (await FinalResponseAsync(locked.Link, cancellationToken) is not null)
@@ -176,22 +179,22 @@ internal sealed class QuoteLinkStore(
                 }
 
                 var now = timeProvider.GetUtcNow();
-                var (name, contactId) = await ResponderAsync(locked.Quote, cancellationToken);
+                var (name, contactId) = await ResponderAsync(locked.Quote, locked.Access, cancellationToken);
 
                 dbContext.QuoteResponses.Add(QuoteResponse.Ask(
                     locked.Quote.OrganizationId, version.Id, name, contactId, caller.IpAddress, now, message));
 
                 var before = locked.Quote.Status;
                 locked.Quote.RequestClarification(now);
-                Audit(locked.Quote, "quote.clarification_requested", caller, before, new { versionNo = version.VersionNo, userAgent = caller.UserAgent });
+                Audit(locked.Quote, "quote.clarification_requested", caller, before, new { versionNo = version.VersionNo, userAgent = caller.UserAgent }, access: locked.Access);
 
                 return Done(locked, "clarification requested");
             },
             cancellationToken);
 
-    public async Task<QuoteLinkOutcome<PublicBinary>> GetPhotoAsync(string token, Guid photoId, CancellationToken cancellationToken)
+    public async Task<QuoteLinkOutcome<PublicBinary>> GetPhotoAsync(ResourceAccess access, Guid photoId, CancellationToken cancellationToken)
     {
-        var (link, failure) = await ResolveAsync(token, cancellationToken);
+        var (link, failure) = await ResolveAsync(access, cancellationToken);
 
         if (link is null)
         {
@@ -207,7 +210,7 @@ internal sealed class QuoteLinkStore(
         }
 
         var photo = await dbContext.AssessmentAttachments.AsNoTracking()
-            .Where(candidate => candidate.Id == photoId && candidate.OrganizationId == link.Token.OrganizationId && candidate.Content != null)
+            .Where(candidate => candidate.Id == photoId && candidate.OrganizationId == link.Quote.OrganizationId && candidate.Content != null)
             .Select(candidate => new { candidate.MimeType, candidate.Content })
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -216,9 +219,9 @@ internal sealed class QuoteLinkStore(
             : new QuoteLinkOutcome<PublicBinary>.Succeeded(new PublicBinary(photo.MimeType, photo.Content!));
     }
 
-    public async Task<QuoteLinkOutcome<PublicBinary>> GetLogoAsync(string token, CancellationToken cancellationToken)
+    public async Task<QuoteLinkOutcome<PublicBinary>> GetLogoAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var (link, failure) = await ResolveAsync(token, cancellationToken);
+        var (link, failure) = await ResolveAsync(access, cancellationToken);
 
         if (link is null)
         {
@@ -226,7 +229,7 @@ internal sealed class QuoteLinkStore(
         }
 
         var logo = await dbContext.OrganizationLogos.AsNoTracking()
-            .Where(candidate => candidate.OrganizationId == link.Token.OrganizationId)
+            .Where(candidate => candidate.OrganizationId == link.Quote.OrganizationId)
             .Select(candidate => new { candidate.ContentType, candidate.Content })
             .SingleOrDefaultAsync(cancellationToken);
 
@@ -245,8 +248,14 @@ internal sealed class QuoteLinkStore(
         });
 
     // Resolution (BR-03, BR-04, BR-18): superseded first, then revoked, cancelled or expired quotes, then the expiry date.
+    // A portal link (customer portal BR-30) has no token: the statuses, the current sent version and the read-only expiry apply.
     private static Decision Decide(Link link, DateTimeOffset now)
     {
+        if (link.Token is null)
+        {
+            return DecidePortal(link, now);
+        }
+
         if (link.Version.VersionNo < link.Quote.CurrentVersionNo)
         {
             return Decision.Superseded;
@@ -266,8 +275,44 @@ internal sealed class QuoteLinkStore(
         return Decision.Valid;
     }
 
-    private async Task<Link?> LoadLinkAsync(string hash, CancellationToken cancellationToken)
+    private static Decision DecidePortal(Link link, DateTimeOffset now)
     {
+        var status = link.Quote.Status;
+
+        if (status is not (QuoteStatus.Sent or QuoteStatus.ClarificationRequested or QuoteStatus.Approved or QuoteStatus.Rejected or QuoteStatus.Expired))
+        {
+            return Decision.Unavailable;
+        }
+
+        if (status == QuoteStatus.Expired)
+        {
+            return Decision.ExpiredReadOnly;
+        }
+
+        // valid_until is the end of that day in the organization time zone; the portal never writes the expired status.
+        if (status is QuoteStatus.Sent or QuoteStatus.ClarificationRequested
+            && link.Version.ValidUntil is { } validUntil
+            && now >= OrganizationTime.StartOfDayUtc(validUntil.AddDays(1), link.Zone ?? TimeZoneInfo.Utc))
+        {
+            return Decision.ExpiredReadOnly;
+        }
+
+        return Decision.Valid;
+    }
+
+    private async Task<Link?> LoadLinkAsync(ResourceAccess access, CancellationToken cancellationToken)
+    {
+        if (access is ResourceAccess.Portal portal)
+        {
+            return await LoadPortalLinkAsync(portal, cancellationToken);
+        }
+
+        if (access is not ResourceAccess.Token tokenAccess)
+        {
+            return null;
+        }
+
+        var hash = QuoteAccessTokens.Hash(tokenAccess.Raw);
         var row = await (
                 from token in dbContext.QuoteAccessTokens.AsNoTracking()
                 where token.TokenHash == hash
@@ -281,16 +326,53 @@ internal sealed class QuoteLinkStore(
         return row is null ? null : new Link(row.token, row.version, row.quote);
     }
 
-    /// <summary>The link of a valid token; a token that expired on a sent quote moves the quote to expired first (BR-18).</summary>
-    private async Task<(Link? Link, Failure Failure)> ResolveAsync(string rawToken, CancellationToken cancellationToken)
+    // The quote by id, organization and customer of the session; its current sent version (the approved one once approved).
+    private async Task<Link?> LoadPortalLinkAsync(ResourceAccess.Portal portal, CancellationToken cancellationToken)
     {
-        if (!QuoteLinkTokens.IsWellFormed(rawToken))
+        var scope = portal.Scope;
+        var quoteId = portal.ResourceId;
+        var quote = await dbContext.Quotes.AsNoTracking()
+            .SingleOrDefaultAsync(
+                candidate => candidate.Id == quoteId
+                    && candidate.OrganizationId == scope.OrganizationId
+                    && candidate.CustomerId == scope.CustomerId,
+                cancellationToken);
+
+        if (quote is null)
+        {
+            return null;
+        }
+
+        var versions = dbContext.QuoteVersions.AsNoTracking()
+            .Where(candidate => candidate.OrganizationId == scope.OrganizationId
+                && candidate.QuoteId == quoteId
+                && candidate.SentAt != null);
+        var version = quote.ApprovedVersionId is { } approvedId
+            ? await versions.SingleOrDefaultAsync(candidate => candidate.Id == approvedId, cancellationToken)
+            : await versions.SingleOrDefaultAsync(candidate => candidate.VersionNo == quote.CurrentVersionNo, cancellationToken);
+
+        if (version is null)
+        {
+            return null;
+        }
+
+        var timezone = await dbContext.Organizations.AsNoTracking()
+            .Where(candidate => candidate.Id == scope.OrganizationId)
+            .Select(candidate => candidate.Timezone)
+            .SingleAsync(cancellationToken);
+
+        return new Link(null, version, quote, OrganizationTime.FindZone(timezone));
+    }
+
+    /// <summary>The link of a valid token; a token that expired on a sent quote moves the quote to expired first (BR-18).</summary>
+    private async Task<(Link? Link, Failure Failure)> ResolveAsync(ResourceAccess access, CancellationToken cancellationToken)
+    {
+        if (access is ResourceAccess.Token { Raw: var raw } && !QuoteLinkTokens.IsWellFormed(raw))
         {
             return (null, Failure.Unavailable);
         }
 
-        var hash = QuoteAccessTokens.Hash(rawToken);
-        var link = await LoadLinkAsync(hash, cancellationToken);
+        var link = await LoadLinkAsync(access, cancellationToken);
 
         if (link is null)
         {
@@ -301,10 +383,12 @@ internal sealed class QuoteLinkStore(
         {
             case Decision.Valid:
                 return (link, Failure.None);
+            case Decision.ExpiredReadOnly:
+                return (link with { IsExpired = true }, Failure.None);
             case Decision.Superseded:
                 return (null, Failure.Superseded);
             case Decision.Expired:
-                await ExpireAsync(hash, link, cancellationToken);
+                await ExpireAsync(access, link, cancellationToken);
 
                 return (null, Failure.Unavailable);
             default:
@@ -313,12 +397,12 @@ internal sealed class QuoteLinkStore(
     }
 
     // Lazy expiry in its own transaction, idempotent under the quote lock (BR-18); the caller then answers 404.
-    private async Task ExpireAsync(string hash, Link link, CancellationToken cancellationToken)
+    private async Task ExpireAsync(ResourceAccess access, Link link, CancellationToken cancellationToken)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         await LockQuoteAsync(link.Quote, cancellationToken);
 
-        if (await LoadLinkAsync(hash, cancellationToken) is { } fresh && Decide(fresh, timeProvider.GetUtcNow()) == Decision.Expired)
+        if (await LoadLinkAsync(access, cancellationToken) is { } fresh && Decide(fresh, timeProvider.GetUtcNow()) == Decision.Expired)
         {
             await ExpireLockedAsync(link.Quote.OrganizationId, link.Quote.Id, fresh.Version.VersionNo, cancellationToken);
         }
@@ -356,9 +440,9 @@ internal sealed class QuoteLinkStore(
     // Runs one response under the quote lock; a unique violation of a partial index is resolved by repeating the read
     // and decision once in a new transaction (BR-17).
     private async Task<QuoteLinkOutcome<T>> RunAsync<T>(
-        string rawToken, Func<Locked, Task<Step<T>>> apply, CancellationToken cancellationToken)
+        ResourceAccess access, Func<Locked, Task<Step<T>>> apply, CancellationToken cancellationToken)
     {
-        if (!QuoteLinkTokens.IsWellFormed(rawToken))
+        if (access is ResourceAccess.Token { Raw: var raw } && !QuoteLinkTokens.IsWellFormed(raw))
         {
             return new QuoteLinkOutcome<T>.Unavailable();
         }
@@ -367,7 +451,7 @@ internal sealed class QuoteLinkStore(
         {
             try
             {
-                return await RunOnceAsync(QuoteAccessTokens.Hash(rawToken), apply, cancellationToken);
+                return await RunOnceAsync(access, apply, cancellationToken);
             }
             catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: UniqueViolation } postgres
                 && postgres.ConstraintName is FinalIndex or ClarificationIndex
@@ -387,9 +471,9 @@ internal sealed class QuoteLinkStore(
     }
 
     private async Task<QuoteLinkOutcome<T>> RunOnceAsync<T>(
-        string hash, Func<Locked, Task<Step<T>>> apply, CancellationToken cancellationToken)
+        ResourceAccess access, Func<Locked, Task<Step<T>>> apply, CancellationToken cancellationToken)
     {
-        var link = await LoadLinkAsync(hash, cancellationToken);
+        var link = await LoadLinkAsync(access, cancellationToken);
 
         if (link is null)
         {
@@ -400,9 +484,14 @@ internal sealed class QuoteLinkStore(
 
         if (first == Decision.Expired)
         {
-            await ExpireAsync(hash, link, cancellationToken);
+            await ExpireAsync(access, link, cancellationToken);
 
             return new QuoteLinkOutcome<T>.Unavailable();
+        }
+
+        if (first == Decision.ExpiredReadOnly)
+        {
+            return new QuoteLinkOutcome<T>.Expired();
         }
 
         if (first != Decision.Valid)
@@ -414,7 +503,7 @@ internal sealed class QuoteLinkStore(
         await LockQuoteAsync(link.Quote, cancellationToken);
 
         // The state, the token and the expiry are read again under the lock (BR-17, BR-18).
-        var fresh = await LoadLinkAsync(hash, cancellationToken);
+        var fresh = await LoadLinkAsync(access, cancellationToken);
         var decision = fresh is null ? Decision.Unavailable : Decide(fresh, timeProvider.GetUtcNow());
 
         if (decision == Decision.Expired)
@@ -425,6 +514,11 @@ internal sealed class QuoteLinkStore(
             return new QuoteLinkOutcome<T>.Unavailable();
         }
 
+        if (decision == Decision.ExpiredReadOnly)
+        {
+            return new QuoteLinkOutcome<T>.Expired();
+        }
+
         if (decision != Decision.Valid)
         {
             return Fail<T>(decision == Decision.Superseded ? Failure.Superseded : Failure.Unavailable);
@@ -432,7 +526,7 @@ internal sealed class QuoteLinkStore(
 
         var quote = await dbContext.Quotes.SingleAsync(
             candidate => candidate.Id == fresh!.Quote.Id && candidate.OrganizationId == fresh.Quote.OrganizationId, cancellationToken);
-        var step = await apply(new Locked(fresh!, quote));
+        var step = await apply(new Locked(fresh!, quote, access));
 
         if (step.Failure is not null)
         {
@@ -456,7 +550,7 @@ internal sealed class QuoteLinkStore(
                 logger.LogInformation("Quote {QuoteId} answered: {Outcome}", locked.Quote.Id, answered);
             }
 
-            var link = await LoadLinkAsync(locked.Link.Token.TokenHash, CancellationToken.None)
+            var link = await LoadLinkAsync(locked.Access, CancellationToken.None)
                 ?? throw new InvalidOperationException("The quote link is no longer available.");
 
             return new QuoteLinkOutcome<PublicQuote>.Succeeded(await BuildPublicQuoteAsync(link, CancellationToken.None));
@@ -472,9 +566,26 @@ internal sealed class QuoteLinkStore(
             cancellationToken);
 
     // BR-13: the linked active contact, else the guest name, else the customer name; the contact id only for the first.
-    private async Task<(string Name, Guid? ContactId)> ResponderAsync(Quote quote, CancellationToken cancellationToken)
+    private async Task<(string Name, Guid? ContactId)> ResponderAsync(
+        Quote quote, ResourceAccess access, CancellationToken cancellationToken)
     {
         var organizationId = quote.OrganizationId;
+
+        // Customer portal BR-30: the responder is the contact of the session.
+        if (access is ResourceAccess.Portal portal)
+        {
+            var sessionContactId = portal.Scope.ContactId;
+            var sessionContact = await dbContext.CustomerContacts.AsNoTracking()
+                .Where(candidate => candidate.Id == sessionContactId && candidate.OrganizationId == organizationId)
+                .Select(candidate => new { candidate.Id, candidate.FirstName, candidate.LastName })
+                .SingleAsync(cancellationToken);
+            var full = string.Join(
+                ' ',
+                new[] { sessionContact.FirstName, sessionContact.LastName }.Where(part => !string.IsNullOrWhiteSpace(part))).Trim();
+
+            return (full.Length > MaxResponderNameLength ? full[..MaxResponderNameLength] : full, sessionContact.Id);
+        }
+
         var request = await dbContext.ServiceRequests.AsNoTracking()
             .Where(candidate => candidate.Id == quote.RequestId && candidate.OrganizationId == organizationId)
             .Select(candidate => new { candidate.ContactId, candidate.GuestName, candidate.CustomerId })
@@ -681,7 +792,7 @@ internal sealed class QuoteLinkStore(
             new PublicQuoteInfo(
                 RequestCardRules.DisplayNumber(organization.QuotePrefix, quote.QuoteNumber),
                 version.VersionNo,
-                QuoteStatusCodes.Code(quote.Status),
+                link.IsExpired ? "expired" : QuoteStatusCodes.Code(quote.Status),
                 sentOn,
                 version.ValidUntil ?? sentOn,
                 version.Scope,
@@ -709,18 +820,36 @@ internal sealed class QuoteLinkStore(
     }
 
     // BR-22: the version, codes and totals only; never reasons, questions, names, contact data or tokens.
-    private void Audit(Quote quote, string action, QuoteLinkCaller? caller, QuoteStatus before, object metadata, QuoteStatus? after = null) =>
+    // A portal action records the portal user as the actor and the channel (customer portal BR-30).
+    private void Audit(
+        Quote quote,
+        string action,
+        QuoteLinkCaller? caller,
+        QuoteStatus before,
+        object metadata,
+        QuoteStatus? after = null,
+        ResourceAccess? access = null)
+    {
+        var portal = access as ResourceAccess.Portal;
+        var details = JsonSerializer.SerializeToNode(metadata, JsonOptions)?.AsObject() ?? [];
+
+        if (portal is not null)
+        {
+            details["channel"] = "portal";
+        }
+
         dbContext.AuditLogs.Add(AuditLog.Create(
             quote.OrganizationId,
             action,
             "quote",
-            null,
+            portal?.Scope.UserId,
             quote.Id,
             quote.BranchId,
             caller?.IpAddress,
             Serialize(new Dictionary<string, object?> { ["status"] = QuoteStatusCodes.Code(before) }),
             Serialize(new Dictionary<string, object?> { ["status"] = QuoteStatusCodes.Code(after ?? quote.Status) }),
-            Serialize(metadata)));
+            details.ToJsonString(JsonOptions)));
+    }
 
     private static string Serialize(object value) => JsonSerializer.Serialize(value, JsonOptions);
 
@@ -729,6 +858,7 @@ internal sealed class QuoteLinkStore(
         Unavailable,
         Superseded,
         Expired,
+        ExpiredReadOnly,
         Valid,
     }
 
@@ -739,9 +869,9 @@ internal sealed class QuoteLinkStore(
         Superseded,
     }
 
-    private sealed record Link(QuoteAccessToken Token, QuoteVersion Version, Quote Quote);
+    private sealed record Link(QuoteAccessToken? Token, QuoteVersion Version, Quote Quote, TimeZoneInfo? Zone = null, bool IsExpired = false);
 
-    private sealed record Locked(Link Link, Quote Quote);
+    private sealed record Locked(Link Link, Quote Quote, ResourceAccess Access);
 
     private readonly record struct Step<T>(QuoteLinkOutcome<T>? Failure, Func<Task<QuoteLinkOutcome<T>>>? Build);
 }

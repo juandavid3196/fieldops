@@ -171,8 +171,12 @@
                   <app-side-cards
                     [overview]="customer"
                     [canMutate]="canMutate()"
+                    [portalBusy]="portalBusy()"
+                    [portalError]="portalError()"
                     (editContact)="openEditCustomer()"
                     (editTags)="openEditCustomer()"
+                    (invitePortal)="invitePortal()"
+                    (removePortal)="confirmRemovePortal()"
                   />
                   <app-notes-card
                     [pinnedNote]="customer.pinnedNote ?? null"

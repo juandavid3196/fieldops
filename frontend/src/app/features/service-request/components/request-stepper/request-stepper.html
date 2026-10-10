@@ -1,5 +1,5 @@
 <ol class="stepper" aria-label="Progress">
-  @for (step of steps; track step.id; let index = $index) {
+  @for (step of steps(); track step.id; let index = $index) {
     <li
       class="stepper__item"
       [class.stepper__item--done]="isDone(step.id)"

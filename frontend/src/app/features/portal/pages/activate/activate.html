@@ -1,0 +1,139 @@
+<main class="auth">
+  <p class="auth__brand">Field<span>Ops</span> · Customer portal</p>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="auth__card" role="status" aria-live="polite" aria-busy="true">
+        <span class="sr">Checking your invitation</span>
+        <div class="auth__skeletons" aria-hidden="true">
+          <p-skeleton width="60%" height="2rem" />
+          <p-skeleton height="3rem" />
+          <p-skeleton height="3rem" />
+        </div>
+      </div>
+    }
+    @case ('unavailable') {
+      <div class="auth__card" role="alert">
+        <h1 class="auth__title">Invitation unavailable</h1>
+        <p class="auth__subtitle">{{ unavailableMessage }}</p>
+        <a class="auth__link" routerLink="/portal/sign-in" (click)="leave()">Go to sign in</a>
+      </div>
+    }
+    @case ('load-error') {
+      <div class="auth__card" role="alert">
+        <p-message severity="error">{{ loadErrorMessage }}</p-message>
+        <button pButton type="button" severity="secondary" (click)="retry()">Try again</button>
+      </div>
+    }
+    @default {
+      @if (detail(); as invitation) {
+        <div class="auth__card">
+          <header>
+            <h1 class="auth__title">Welcome, {{ invitation.firstName }}</h1>
+            <p class="auth__subtitle">
+              @if (existing()) {
+                {{ invitation.organizationName }} invited {{ invitation.email }} to the customer
+                portal. Enter your current password to link your account.
+              } @else {
+                {{ invitation.organizationName }} invited {{ invitation.email }} to the customer
+                portal. Create a password to activate your access.
+              }
+            </p>
+          </header>
+
+          <div aria-live="polite">
+            @if (pageMessage(); as text) {
+              <p-message severity="error" role="alert">{{ text }}</p-message>
+            }
+          </div>
+
+          <form class="auth__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
+            @if (lastNameRequired()) {
+              <div class="auth__field">
+                <label class="auth__label" for="portal-last-name">Last name</label>
+                <input
+                  pInputText
+                  id="portal-last-name"
+                  formControlName="lastName"
+                  autocomplete="family-name"
+                  required
+                  fluid
+                  [invalid]="fieldErrors().lastName !== undefined"
+                  [readonly]="submitting()"
+                  [attr.aria-invalid]="fieldErrors().lastName !== undefined ? 'true' : null"
+                  [attr.aria-describedby]="
+                    fieldErrors().lastName !== undefined ? 'portal-last-name-error' : null
+                  "
+                />
+                @if (fieldErrors().lastName; as error) {
+                  <p class="auth__error" id="portal-last-name-error">{{ error }}</p>
+                }
+              </div>
+            }
+
+            <div class="auth__field">
+              <label class="auth__label" for="portal-activate-password">
+                {{ existing() ? 'Current password' : 'Password' }}
+              </label>
+              <input
+                pInputPassword
+                id="portal-activate-password"
+                formControlName="password"
+                required
+                fluid
+                [attr.autocomplete]="existing() ? 'current-password' : 'new-password'"
+                [invalid]="fieldErrors().password !== undefined"
+                [readonly]="submitting()"
+                [attr.aria-invalid]="fieldErrors().password !== undefined ? 'true' : null"
+                [attr.aria-describedby]="
+                  fieldErrors().password !== undefined ? 'portal-activate-password-error' : null
+                "
+              />
+              @if (fieldErrors().password; as error) {
+                <p class="auth__error" id="portal-activate-password-error">{{ error }}</p>
+              } @else if (!existing()) {
+                <p class="auth__hint">Use 12 to 128 characters that differ from your email.</p>
+              }
+            </div>
+
+            @if (!existing()) {
+              <div class="auth__field">
+                <label class="auth__label" for="portal-activate-confirm">Confirm password</label>
+                <input
+                  pInputPassword
+                  id="portal-activate-confirm"
+                  formControlName="confirmPassword"
+                  autocomplete="new-password"
+                  required
+                  fluid
+                  [invalid]="fieldErrors().confirmPassword !== undefined"
+                  [readonly]="submitting()"
+                  [attr.aria-invalid]="fieldErrors().confirmPassword !== undefined ? 'true' : null"
+                  [attr.aria-describedby]="
+                    fieldErrors().confirmPassword !== undefined
+                      ? 'portal-activate-confirm-error'
+                      : null
+                  "
+                />
+                @if (fieldErrors().confirmPassword; as error) {
+                  <p class="auth__error" id="portal-activate-confirm-error">{{ error }}</p>
+                }
+              </div>
+            }
+
+            <button pButton type="submit" size="large" fluid [disabled]="submitDisabled()">
+              @if (submitting()) {
+                <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                Activating…
+              } @else if (existing()) {
+                Link my account
+              } @else {
+                Activate access
+              }
+            </button>
+          </form>
+        </div>
+      }
+    }
+  }
+</main>

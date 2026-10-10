@@ -1,0 +1,129 @@
+<div class="home">
+  <header class="home__head">
+    <div class="home__greeting">
+      <h1 class="home__title">{{ greeting() }}</h1>
+      <p class="home__subtitle">Here's what's happening with your services.</p>
+    </div>
+    @if (knownProperties().length > 0) {
+      <app-portal-property-filter
+        class="home__selector"
+        label="Property"
+        [properties]="knownProperties()"
+        [value]="selected()"
+        [showAll]="showAll()"
+        (changed)="select($event)"
+      />
+    }
+    <a
+      pButton
+      class="home__request"
+      routerLink="/portal/requests/new"
+      [queryParams]="requestQuery()"
+    >
+      <i class="pi pi-plus" aria-hidden="true"></i>
+      Request a service
+    </a>
+  </header>
+
+  <p class="sr" role="status" aria-live="polite">
+    @if (loading()) {
+      Loading your dashboard
+    }
+  </p>
+
+  @if (failed()) {
+    <div class="home__error" role="alert">
+      <p-message severity="error">{{ errorMessage }}</p-message>
+      <button pButton type="button" severity="secondary" (click)="reload()">Try again</button>
+    </div>
+  } @else {
+    <div class="home__grid">
+      @let dashboard = data();
+      <div class="home__quote">
+        @if (loading() || dashboard === null) {
+          <app-portal-card-skeleton height="6rem" />
+        } @else {
+          <app-action-quote-card [quote]="dashboard.actionQuote" (asked)="openAsk()" />
+        }
+      </div>
+      <div class="home__payment">
+        @if (loading() || dashboard === null) {
+          <app-portal-card-skeleton height="6rem" />
+        } @else {
+          <app-payment-due-card [payment]="dashboard.paymentDue" />
+        }
+      </div>
+      <div class="home__property">
+        @if (loading() || dashboard === null) {
+          <app-portal-card-skeleton height="6rem" />
+        } @else {
+          <app-property-card [property]="selectedProperty()" />
+        }
+      </div>
+      <div class="home__appointment">
+        @if (loading() || dashboard === null) {
+          <app-portal-card-skeleton height="8rem" />
+        } @else {
+          <app-appointment-card
+            [appointment]="dashboard.upcomingAppointment"
+            (reschedule)="openReschedule($event)"
+          />
+        }
+      </div>
+      <div class="home__requests">
+        @if (loading() || dashboard === null) {
+          <app-portal-card-skeleton height="8rem" />
+        } @else {
+          <app-active-requests-card [requests]="dashboard.activeRequests" />
+        }
+      </div>
+      <div class="home__updates">
+        @if (loading() || dashboard === null) {
+          <app-portal-card-skeleton height="8rem" />
+        } @else {
+          <app-updates-card [updates]="dashboard.updates.items" />
+        }
+      </div>
+      <div class="home__activity">
+        @if (loading() || dashboard === null) {
+          <app-portal-card-skeleton height="8rem" />
+        } @else {
+          <app-activity-card [rows]="dashboard.recentActivity" />
+        }
+      </div>
+      <div class="home__help">
+        @if (loading() || dashboard === null) {
+          <app-portal-card-skeleton height="5rem" />
+        } @else {
+          <app-help-card
+            [phone]="dashboard.organization.phone"
+            [canMessage]="dashboard.organization.canReceiveMessages"
+            (message)="openMessage()"
+          />
+        }
+      </div>
+    </div>
+  }
+
+  <app-public-quote-dialog
+    [kind]="dialogKind()"
+    [organizationName]="data()?.organization?.name ?? 'The company'"
+    [submitting]="askSubmitting()"
+    [serverError]="askFieldError()"
+    [failure]="askFailure()"
+    (dismissed)="closeAsk()"
+    (submitted)="submitAsk($event)"
+  />
+  <app-portal-reschedule-dialog
+    [appointment]="rescheduleTarget()"
+    [phone]="data()?.organization?.phone ?? null"
+    (dismissed)="closeReschedule()"
+    (requested)="rescheduled($event)"
+  />
+  <app-portal-message-dialog
+    [visible]="messageOpen()"
+    [organizationName]="data()?.organization?.name ?? 'The company'"
+    (dismissed)="closeMessage()"
+    (unavailable)="messagingUnavailable()"
+  />
+</div>

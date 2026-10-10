@@ -1,0 +1,96 @@
+<p-dialog
+  header="Request a reschedule"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!submitting()"
+  [closeOnEscape]="!submitting()"
+  [visible]="open()"
+  (visibleChange)="$event ? null : close()"
+  [style]="{ width: '30rem', maxWidth: '94vw' }"
+>
+  <form class="dialog" ngNoForm novalidate (submit)="$event.preventDefault(); submit()">
+    <p class="dialog__text">
+      Tell us when would suit you better. We'll review it and contact you; your appointment doesn't
+      change until we confirm.
+    </p>
+
+    <app-form-field
+      label="Preferred date"
+      controlId="portal-reschedule-date"
+      [required]="true"
+      [error]="errors().preferredDate ?? null"
+    >
+      <input
+        #dateField
+        id="portal-reschedule-date"
+        type="date"
+        class="p-inputtext"
+        name="preferredDate"
+        [min]="range().min"
+        [max]="range().max"
+        [attr.aria-invalid]="errors().preferredDate ? 'true' : null"
+        [attr.aria-describedby]="errors().preferredDate ? 'portal-reschedule-date-error' : null"
+        [ngModel]="preferredDate()"
+        (ngModelChange)="preferredDate.set($event)"
+      />
+    </app-form-field>
+
+    <app-form-field label="Time window" controlId="portal-reschedule-window" [required]="true">
+      <p-select
+        inputId="portal-reschedule-window"
+        appendTo="body"
+        fluid
+        optionLabel="label"
+        optionValue="value"
+        name="timeWindow"
+        [options]="windows"
+        [ngModel]="timeWindow()"
+        (ngModelChange)="timeWindow.set($event)"
+      />
+    </app-form-field>
+
+    <app-form-field
+      label="Reason"
+      controlId="portal-reschedule-reason"
+      [required]="true"
+      [error]="errors().reason ?? null"
+    >
+      <textarea
+        pTextarea
+        id="portal-reschedule-reason"
+        rows="4"
+        fluid
+        name="reason"
+        [attr.aria-invalid]="errors().reason ? 'true' : null"
+        [attr.aria-describedby]="errors().reason ? 'portal-reschedule-reason-error' : null"
+        [ngModel]="reason()"
+        (ngModelChange)="reason.set($event)"
+      ></textarea>
+    </app-form-field>
+    <p class="dialog__count">{{ reason().length }}/{{ limit }}</p>
+
+    @if (failure(); as message) {
+      <p class="dialog__failure" role="alert">{{ message }}</p>
+    }
+  </form>
+
+  <ng-template #footer>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="close()"
+    >
+      Cancel
+    </button>
+    <button pButton type="button" [disabled]="submitting()" (click)="submit()">
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Send request
+    </button>
+  </ng-template>
+</p-dialog>

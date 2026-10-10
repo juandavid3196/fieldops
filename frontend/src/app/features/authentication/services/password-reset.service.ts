@@ -11,9 +11,15 @@ export class PasswordResetService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(API_CONFIG);
 
-  /** Always `202` with an empty body when accepted (BR-06). */
-  request(email: string): Observable<void> {
-    return this.http.post<void>(buildApiUrl(this.config, 'password-resets'), { email });
+  /**
+   * Always `202` with an empty body when accepted (BR-06). `portal` targets the portal endpoint,
+   * whose emailed link opens the portal reset page.
+   */
+  request(email: string, portal = false): Observable<void> {
+    return this.http.post<void>(
+      buildApiUrl(this.config, portal ? 'portal/password-resets' : 'password-resets'),
+      { email },
+    );
   }
 
   validate(token: string): Observable<PasswordResetDetails> {

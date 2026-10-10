@@ -1,4 +1,5 @@
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.QuoteLinks;
@@ -19,27 +20,27 @@ internal sealed partial class InvoiceLinkStore(
     IPaymentGateway gateway,
     IBankDetailsEncryptor encryptor) : IInvoiceLinkStore
 {
-    public async Task<PublicInvoice?> ViewAsync(string token, CancellationToken cancellationToken)
+    public async Task<PublicInvoice?> ViewAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var loaded = await ResolveAsync(token, cancellationToken);
+        var loaded = await ResolveAsync(access, cancellationToken);
 
         return loaded is null
             ? null
             : await BuildPublicInvoiceAsync(loaded.Value.Invoice, loaded.Value.Loaded, cancellationToken);
     }
 
-    public async Task<InvoicePdfSource?> GetPdfSourceAsync(string token, CancellationToken cancellationToken)
+    public async Task<InvoicePdfSource?> GetPdfSourceAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var loaded = await ResolveAsync(token, cancellationToken);
+        var loaded = await ResolveAsync(access, cancellationToken);
 
         return loaded is null
             ? null
             : await new InvoicePreviewReader(dbContext).ReadPdfSourceAsync(loaded.Value.Invoice, cancellationToken);
     }
 
-    public async Task<PublicBinary?> GetLogoAsync(string token, CancellationToken cancellationToken)
+    public async Task<PublicBinary?> GetLogoAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var invoice = await ResolveInvoiceAsync(token, cancellationToken);
+        var invoice = await ResolveInvoiceAsync(access, cancellationToken);
 
         if (invoice is null)
         {
@@ -54,9 +55,9 @@ internal sealed partial class InvoiceLinkStore(
         return logo is null ? null : new PublicBinary(logo.ContentType, logo.Content);
     }
 
-    private async Task<(Invoice Invoice, InvoicePreviewReader.Loaded Loaded)?> ResolveAsync(string token, CancellationToken cancellationToken)
+    private async Task<(Invoice Invoice, InvoicePreviewReader.Loaded Loaded)?> ResolveAsync(ResourceAccess access, CancellationToken cancellationToken)
     {
-        var invoice = await ResolveInvoiceAsync(token, cancellationToken);
+        var invoice = await ResolveInvoiceAsync(access, cancellationToken);
 
         return invoice is null
             ? null
@@ -64,21 +65,36 @@ internal sealed partial class InvoiceLinkStore(
     }
 
     // BR-19: the hash must match an unrevoked, unexpired token of an invoice that is neither draft nor void.
-    private Task<Invoice?> ResolveInvoiceAsync(string token, CancellationToken cancellationToken) =>
-        ValidInvoices(dbContext, token, timeProvider.GetUtcNow()).SingleOrDefaultAsync(cancellationToken);
+    private Task<Invoice?> ResolveInvoiceAsync(ResourceAccess access, CancellationToken cancellationToken) =>
+        ValidInvoices(dbContext, access, timeProvider.GetUtcNow()).SingleOrDefaultAsync(cancellationToken);
 
-    /// <summary>The invoice of a usable token (customer-invoice-payments BR-01), no-tracking; shared by every public flow.</summary>
-    internal static IQueryable<Invoice> ValidInvoices(FieldOpsDbContext dbContext, string token, DateTimeOffset now)
+    /// <summary>The invoice of a usable token (customer-invoice-payments BR-01) or of a portal session and id (customer portal BR-31), no-tracking; shared by every public flow.</summary>
+    internal static IQueryable<Invoice> ValidInvoices(FieldOpsDbContext dbContext, ResourceAccess access, DateTimeOffset now)
     {
-        var hash = QuoteAccessTokens.Hash(token);
+        if (access is ResourceAccess.Portal portal)
+        {
+            var organizationId = portal.Scope.OrganizationId;
+            var customerId = portal.Scope.CustomerId;
+            var invoiceId = portal.ResourceId;
+
+            return dbContext.Invoices.AsNoTracking()
+                .Where(invoice => invoice.Id == invoiceId
+                    && invoice.OrganizationId == organizationId
+                    && invoice.CustomerId == customerId
+                    && invoice.Status != InvoiceStatus.Draft
+                    && invoice.Status != InvoiceStatus.Void
+                    && invoice.CustomerSnapshot != null);
+        }
+
+        var hash = QuoteAccessTokens.Hash(((ResourceAccess.Token)access).Raw);
 
         return
-            from access in dbContext.InvoiceAccessTokens.AsNoTracking()
+            from grant in dbContext.InvoiceAccessTokens.AsNoTracking()
             join invoice in dbContext.Invoices.AsNoTracking()
-                on new { access.OrganizationId, Id = access.InvoiceId } equals new { invoice.OrganizationId, invoice.Id }
-            where access.TokenHash == hash
-                && access.RevokedAt == null
-                && access.ExpiresAt > now
+                on new { grant.OrganizationId, Id = grant.InvoiceId } equals new { invoice.OrganizationId, invoice.Id }
+            where grant.TokenHash == hash
+                && grant.RevokedAt == null
+                && grant.ExpiresAt > now
                 && invoice.Status != InvoiceStatus.Draft
                 && invoice.Status != InvoiceStatus.Void
                 && invoice.CustomerSnapshot != null

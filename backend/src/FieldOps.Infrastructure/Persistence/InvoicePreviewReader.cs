@@ -195,7 +195,7 @@ internal sealed class InvoicePreviewReader(FieldOpsDbContext dbContext)
     private static string? Clean(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
     /// <summary>"address_line1" and "&lt;city&gt;, &lt;state_region&gt; &lt;postal_code&gt;", each hidden when empty (BR-04).</summary>
-    private static IReadOnlyList<string> OrganizationAddressLines(string? line1, string? city, string? state, string? postalCode)
+    internal static IReadOnlyList<string> OrganizationAddressLines(string? line1, string? city, string? state, string? postalCode)
     {
         var lines = new List<string>();
 

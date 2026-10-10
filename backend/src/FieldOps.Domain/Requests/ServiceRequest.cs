@@ -96,10 +96,10 @@ public sealed class ServiceRequest
         string source = "public_form",
         Guid? branchId = null)
     {
-        if (source is not ("public_form" or "internal"))
+        if (source is not ("public_form" or "internal" or "portal"))
         {
             throw new ArgumentException(
-                "Source must be public_form or internal.",
+                "Source must be public_form, internal or portal.",
                 nameof(source));
         }
 
