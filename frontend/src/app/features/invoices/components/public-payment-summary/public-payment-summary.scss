@@ -42,10 +42,53 @@
     padding-inline: 0.5rem;
     margin-block: 0.5rem;
     font-weight: 700;
-    background: var(--fo-color-surface-muted);
+    background: var(--fo-color-neutral-background);
 
     dt,
     dd {
+      color: var(--fo-color-heading);
+    }
+  }
+
+  // Paid view (design 14): plain values in a second column and a larger total row.
+  &--detailed &__title {
+    font-size: 1.5rem;
+  }
+
+  &--detailed &__rows {
+    > div {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    dt,
+    dd {
+      color: var(--fo-color-text);
+    }
+
+    dd {
+      font-weight: 400;
+      text-align: start;
+    }
+
+    .summary__work-order {
+      color: var(--fo-color-action-blue);
+    }
+  }
+
+  &--detailed &__rule {
+    padding-block-start: 1rem;
+    margin-block-start: 0.75rem;
+  }
+
+  &--detailed &__total {
+    padding: 0.625rem 0.5rem;
+    margin-inline: -0.5rem;
+    font-size: 1.25rem;
+
+    dt,
+    dd {
+      font-weight: 700;
       color: var(--fo-color-heading);
     }
   }

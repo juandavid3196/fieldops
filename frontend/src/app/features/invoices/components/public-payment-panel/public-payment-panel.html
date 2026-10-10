@@ -20,7 +20,7 @@
     </p>
   }
 
-  <div [attr.inert]="flow.locked() ? '' : null">
+  <div class="panel__body" [attr.inert]="flow.locked() ? '' : null">
     <h2 id="pay-title" class="panel__title">Pay invoice</h2>
     <p class="panel__text">Pay securely online using your preferred payment method.</p>
 
@@ -35,8 +35,7 @@
           [attr.aria-describedby]="cardAvailable() ? null : 'method-card-reason'"
           (change)="select('card')"
         />
-        <i class="pi pi-check-circle method__check" aria-hidden="true"></i>
-        <i class="pi pi-credit-card" aria-hidden="true"></i>
+        <i class="pi pi-credit-card method__icon" aria-hidden="true"></i>
         <span>Credit or debit card</span>
       </label>
       <label class="method" [class.method--on]="method() === 'bank'">
@@ -49,8 +48,7 @@
           [attr.aria-describedby]="bankAvailable() ? null : 'method-bank-reason'"
           (change)="select('bank')"
         />
-        <i class="pi pi-check-circle method__check" aria-hidden="true"></i>
-        <i class="pi pi-building-columns" aria-hidden="true"></i>
+        <i class="pi pi-building-columns method__icon" aria-hidden="true"></i>
         <span>Bank transfer (ACH)</span>
       </label>
       <label class="method" [class.method--on]="method() === 'cash'">
@@ -62,8 +60,7 @@
           [disabled]="flow.locked()"
           (change)="select('cash')"
         />
-        <i class="pi pi-check-circle method__check" aria-hidden="true"></i>
-        <i class="pi pi-money-bill" aria-hidden="true"></i>
+        <i class="pi pi-money-bill method__icon" aria-hidden="true"></i>
         <span>
           Cash
           <small>Arrange with {{ invoice().organization.name }}</small>

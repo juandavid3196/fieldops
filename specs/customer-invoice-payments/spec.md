@@ -4,7 +4,7 @@
 | -------- | --------------------------- |
 | Feature  | `customer-invoice-payments` |
 | Type     | Full-stack                  |
-| Status   | APPROVED                    |
+| Status   | AUDITED                     |
 | Created  | 2026-10-09                  |
 | Updated  | 2026-10-09                  |
 | Approved | 2026-10-09                  |
@@ -485,3 +485,4 @@ automation.
 | 2026-10-09 | — → DRAFT     | Created from the invoice payment designs with decisions OD-01–OD-16 resolved by the user |
 | 2026-10-09 | DRAFT → DRAFT | Revised after validation: Stripe return parameters stripped before any call (BR-29, AC-22); `card-intent` replay shape with nullable `clientSecret` (BR-06, contract); `takenOn` defined (BR-21); composite technician FK in `invoice_reviews` (SA-18) |
 | 2026-10-09 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-09 | APPROVED → AUDITED | User override: final-audit returned AUDIT FAIL and the user asked to mark the spec audited and review the finding later. Open Important finding: `GET /invoices/payments` regressed from ~60 ms on `main` to 21–43 s with 5,001 payments (no single SQL command over 100 ms), so `InvoiceHubReadTests.Exports_WriteTheApprovedColumnsEscapeCellsAndRefuseMoreThanFiveThousandRows` fails under the full integration suite. User visual QA PASS. |

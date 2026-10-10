@@ -1,4 +1,8 @@
-<section class="summary" aria-labelledby="payment-summary-title">
+<section
+  class="summary"
+  [class.summary--detailed]="detailed()"
+  aria-labelledby="payment-summary-title"
+>
   <h2 id="payment-summary-title" class="summary__title">Payment summary</h2>
   <dl class="summary__rows">
     @if (detailed()) {
@@ -12,7 +16,7 @@
       </div>
       <div>
         <dt>Work order</dt>
-        <dd>{{ invoice().service.workOrderNumber }}</dd>
+        <dd class="summary__work-order">{{ invoice().service.workOrderNumber }}</dd>
       </div>
       <div class="summary__rule">
         <dt>Subtotal</dt>
@@ -30,10 +34,13 @@
       </div>
     }
     @for (payment of view().payments; track $index) {
-      <div [class.summary__rule]="$first && !detailed()">
-        <dt>{{ payment.label }}</dt>
-        <dd>{{ payment.amount }}</dd>
-      </div>
+      <!-- BR-30: the paid view lists only refunded payments; the payable layout lists them all. -->
+      @if (!detailed() || payment.refunded) {
+        <div [class.summary__rule]="$first && !detailed()">
+          <dt>{{ payment.label }}</dt>
+          <dd>{{ payment.amount }}</dd>
+        </div>
+      }
       @if (payment.refunded; as refunded) {
         <div>
           <dt>

@@ -22,6 +22,13 @@ server) and selects the `Smtp` provider at `localhost:1025` without SSL (Mailpit
 `appsettings.json` ships with an empty origin list and only `Email:SenderName`, so
 every other environment must provide them explicitly.
 
+### Local email capture (Mailpit)
+
+`docker-compose.yml` runs `mailpit` (pinned image): SMTP on `127.0.0.1:1025`,
+web UI on `http://127.0.0.1:8025`. Start it with
+`docker compose up -d mailpit`; invitations and password reset emails sent by the API appear in the UI.
+Integration tests never use it (they replace the delivery port).
+
 ## Optional payment settings
 
 Customer invoice payments (`customer-invoice-payments`) read these settings. None is required to start the API; each
@@ -39,13 +46,6 @@ Card payments are available only when the three Stripe keys are set; otherwise `
 invoice and `card-intent` answers `409 card_unavailable`. Without the bank details key, the bank details endpoints answer
 `503 bank_details_unavailable` and bank transfer is unavailable on the public invoice. The webhook endpoint
 (`POST /webhooks/stripe`) is anonymous, authorized only by the Stripe signature, body ≤ 64 KB and not rate limited.
-
-### Local email capture (Mailpit)
-
-`docker-compose.yml` runs `mailpit` (pinned image): SMTP on `127.0.0.1:1025`,
-web UI on `http://127.0.0.1:8025`. Start it with
-`docker compose up -d mailpit`; invitations and password reset emails sent by the API appear in the UI.
-Integration tests never use it (they replace the delivery port).
 
 ## Local secrets
 

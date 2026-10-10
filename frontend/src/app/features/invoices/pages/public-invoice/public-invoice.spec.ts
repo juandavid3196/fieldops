@@ -334,8 +334,9 @@ describe('PublicInvoicePage', () => {
       Array.from(document.body.querySelectorAll('a'), (anchor) => anchor.getAttribute('href')),
     ).toEqual(['tel:5125550199', 'mailto:cash@northstar.example']);
     teardown();
+  });
 
-    // Neutral states show no organization or invoice data and a retry only where it helps.
+  it('shows neutral states without organization or invoice data and a retry only where it helps (FR-15, AC-20)', async () => {
     for (const [url, status, expected] of [
       ['/invoices/view', 0, 'This invoice is no longer available'],
       [`/invoices/view#token=${TOKEN}`, 404, 'This invoice is no longer available'],
@@ -447,10 +448,8 @@ describe('PublicInvoicePage', () => {
     expect(document.activeElement?.id).toBe('success-title');
   });
 
-  it('covers failure categories with a new key per retry, the 60 s cap, start errors, replay without client secret, a pending attempt on load and the resume after the Stripe redirect (FR-15, AC-22)', async () => {
+  it('shows each failure category, retries with a new key and lets the customer choose another method (FR-15, AC-22)', async () => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
-
-    // Failure categories, "Try payment again" with a new key and "Choose another payment method".
     await load(publicInvoiceBody());
     const keys: string[] = [await pay(INTENT)];
     for (const [category, message] of [
@@ -479,9 +478,10 @@ describe('PublicInvoicePage', () => {
     await click('Choose another payment method');
     expect(text()).not.toContain("Payment wasn't completed");
     expect(document.activeElement).toBe(input('input[name="payment-method"]:checked'));
-    teardown();
+  });
 
-    // 60 s without a final status: still confirming, no retry, polling stops.
+  it('stops polling after 60 s without a final status and keeps the still-confirming notice (FR-15, AC-22)', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     await load(publicInvoiceBody());
     await pay(INTENT);
     for (let elapsed = 0; elapsed < 60_000; elapsed += 2000) {
@@ -501,9 +501,10 @@ describe('PublicInvoicePage', () => {
     expect(document.body.querySelector('.overlay')).toBeNull();
     await tick(6000);
     httpTesting.expectNone(`${BASE}/payments/status`);
-    teardown();
+  });
 
-    // Start errors and conflicts.
+  it('handles start errors, conflicts, a paid-in-the-meantime invoice and a replay without client secret (FR-15, AC-22)', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     for (const [status, code, message, newKey] of [
       [502, 'payment_provider_unavailable', CARD_START_FAILED_MESSAGE, true],
       [429, undefined, PUBLIC_RATE_LIMITED_MESSAGE, false],
@@ -542,7 +543,10 @@ describe('PublicInvoicePage', () => {
     await tick(0);
     await respond(request('payments/status'), attemptState('failed', 'card_declined'));
     expect(text()).toContain(CARD_DECLINED_MESSAGE);
-    teardown();
+  });
+
+  it('resumes a pending attempt on load and after the Stripe redirect, and clears a stored attempt of a paid invoice (FR-15, AC-22)', async () => {
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
 
     // A pending attempt reported by the view is polled at once, with no new card-intent.
     await load(publicInvoiceBody({ activeAttempt: { attemptId: 'att-9', status: 'pending' } }));

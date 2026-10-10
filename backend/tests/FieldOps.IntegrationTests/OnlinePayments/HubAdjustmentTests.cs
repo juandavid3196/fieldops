@@ -77,13 +77,13 @@ public class HubAdjustmentTests(CompanySettingsDatabaseFixture database)
 
         // The payments list: gross amount plus the refunded amount and status, no receiver for online payments, filterable by the new method.
         var all = await BillingSeed.ReadAsync(await host.SendAsync(HttpMethod.Get, "/invoices/payments", owner));
-        var rows = PaymentApi.Items(all).ToDictionary(row => row!["invoiceId"]!.GetValue<Guid>() + "|" + row["amount"]!.GetValue<decimal>(), row => row!);
-        var partialRow = rows[$"{partial.Id}|357.28"];
-        var refundedRow = rows[$"{refunded.Id}|357.28"];
+        var rows = PaymentApi.Items(all).ToDictionary(row => (row!["invoiceId"]!.GetValue<Guid>(), row["amount"]!.GetValue<decimal>()), row => row!);
+        var partialRow = rows[(partial.Id, 357.28m)];
+        var refundedRow = rows[(refunded.Id, 357.28m)];
 
         Assert.Equal(("card_online", "partially_refunded", 100m, null), (partialRow["method"]!.GetValue<string>(), partialRow["status"]!.GetValue<string>(), partialRow["refundedAmount"]!.GetValue<decimal>(), partialRow["receivedByName"]?.GetValue<string>()));
         Assert.Equal(("refunded", 357.28m, null), (refundedRow["status"]!.GetValue<string>(), refundedRow["refundedAmount"]!.GetValue<decimal>(), refundedRow["receivedByName"]?.GetValue<string>()));
-        var cashRow = rows[$"{cash.Id}|40.00"];
+        var cashRow = rows[(cash.Id, 40m)];
         Assert.Equal(("cash", "succeeded", 0m, "Rita Receiver"), (cashRow["method"]!.GetValue<string>(), cashRow["status"]!.GetValue<string>(), cashRow["refundedAmount"]!.GetValue<decimal>(), cashRow["receivedByName"]!.GetValue<string>()));
         Assert.Equal(
             2,

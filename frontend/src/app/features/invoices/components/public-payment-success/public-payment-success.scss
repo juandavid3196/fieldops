@@ -1,5 +1,8 @@
 @use '../../../../../styles/breakpoints' as bp;
 
+// Three columns from 1280px like the desktop design (BR-33).
+$side-by-side: 80rem;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -12,32 +15,51 @@
   background: var(--fo-color-surface);
   border: 1px solid var(--fo-color-border);
   border-radius: var(--fo-radius-card);
+
+  @include bp.up(md) {
+    padding: 1.5rem;
+  }
 }
 
 .success {
   @extend %card;
 
   display: grid;
-  gap: 1rem;
-  align-items: center;
+  gap: 1.25rem;
 
-  @include bp.up(md) {
-    grid-template-columns: auto minmax(0, 1fr);
+  @media (min-width: $side-by-side) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 14rem;
+    gap: 0;
+    align-items: center;
+
+    > * + * {
+      align-self: stretch;
+      padding-inline-start: 1.5rem;
+      margin-inline-start: 1.5rem;
+      border-inline-start: 1px solid var(--fo-color-border);
+    }
+  }
+
+  &__lead {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
   }
 
   &__badge {
     display: grid;
+    flex: none;
     place-items: center;
-    inline-size: 4.5rem;
-    block-size: 4.5rem;
-    font-size: 2rem;
-    color: var(--fo-color-success-text);
-    background: var(--fo-color-success-background);
+    inline-size: 5rem;
+    block-size: 5rem;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
     border-radius: var(--fo-radius-pill);
-  }
 
-  &__main p {
-    margin: 0.25rem 0;
+    i {
+      font-size: 2.25rem;
+      font-weight: 700;
+    }
   }
 
   &__title {
@@ -51,33 +73,46 @@
     }
   }
 
+  &__thanks {
+    margin: 0.25rem 0 0;
+    font-size: 1.0625rem;
+    color: var(--fo-color-text);
+  }
+
   &__amount {
-    font-size: 2rem;
+    margin: 0.5rem 0 0.25rem;
+    font-size: 2.25rem;
     font-weight: 700;
+    line-height: 1.1;
     color: var(--fo-color-heading);
   }
 
-  &__rows {
+  &__date {
     margin: 0;
+    font-size: 1.0625rem;
+    color: var(--fo-color-heading);
+  }
 
-    @include bp.up(md) {
-      grid-column: 2;
-    }
+  // Label and value columns stay aligned whatever the label length.
+  &__rows {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 0.625rem 2rem;
+    align-content: center;
+    margin: 0;
+    font-size: 0.9375rem;
 
     div {
-      display: flex;
-      gap: 1rem;
-      padding-block: 0.25rem;
+      display: contents;
     }
 
     dt {
-      flex: none;
-      min-inline-size: 9rem;
       color: var(--fo-color-text-secondary);
     }
 
     dd {
       margin: 0;
+      color: var(--fo-color-text);
       overflow-wrap: anywhere;
     }
   }
@@ -91,23 +126,36 @@
   &__actions {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    justify-content: center;
 
     @include bp.up(md) {
       flex-direction: row;
-      grid-column: 2;
+    }
+
+    @media (min-width: $side-by-side) {
+      flex-direction: column;
     }
 
     button {
       min-block-size: var(--fo-size-touch-target);
+      font-weight: 600;
     }
+  }
+
+  // Design 14: white secondary action with dark text.
+  &__secondary {
+    --p-button-outlined-secondary-color: var(--fo-color-heading);
+    --p-button-outlined-secondary-border-color: var(--fo-color-border-strong);
+    --p-button-outlined-secondary-hover-background: var(--fo-color-surface-muted);
+
+    background: var(--fo-color-surface);
   }
 }
 
 .lower {
   display: grid;
   gap: 1rem;
-  align-items: start;
 
   @include bp.up(md) {
     grid-template-columns: 1fr 1fr;
@@ -125,18 +173,30 @@
   gap: 1rem;
   align-items: center;
 
-  i {
-    font-size: 1.5rem;
-    color: var(--fo-color-info-text);
+  &__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-action-blue-soft);
+    border-radius: var(--fo-radius-pill);
+
+    .pi {
+      font-size: 1.5rem;
+    }
   }
 
   &__title {
     margin: 0;
     font-size: 1rem;
+    color: var(--fo-color-heading);
   }
 
   p {
     margin: 0;
+    font-size: 0.875rem;
     color: var(--fo-color-text-secondary);
   }
 }

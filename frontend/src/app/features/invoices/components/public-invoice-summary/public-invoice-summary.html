@@ -2,9 +2,7 @@
   <div class="head__text">
     <div class="head__title-row">
       <h1 class="head__title" tabindex="-1">Invoice {{ invoice().number }}</h1>
-      <span class="chip chip--{{ view().chip.tone }}">
-        <i class="pi {{ view().chip.icon }}" aria-hidden="true"></i>{{ view().chip.label }}
-      </span>
+      <span class="chip chip--{{ view().chip.tone }}">{{ view().chip.label }}</span>
     </div>
     <p class="head__sub">{{ view().subtitle }}</p>
   </div>
@@ -13,7 +11,7 @@
     type="button"
     severity="secondary"
     [outlined]="true"
-    class="head__download"
+    class="head__download action"
     [disabled]="busy() === 'invoice'"
     [attr.aria-busy]="busy() === 'invoice'"
     (click)="pdfRequested.emit()"
@@ -123,7 +121,7 @@
     <dl class="service__rows">
       <div>
         <dt>Work order</dt>
-        <dd>{{ invoice().service.workOrderNumber }}</dd>
+        <dd class="service__work-order">{{ invoice().service.workOrderNumber }}</dd>
       </div>
       @if (invoice().service.completionNote; as note) {
         <div>
@@ -140,6 +138,7 @@
             type="button"
             severity="secondary"
             [outlined]="true"
+            class="action"
             [disabled]="busy() === 'report'"
             [attr.aria-busy]="busy() === 'report'"
             (click)="reportRequested.emit()"
@@ -158,6 +157,7 @@
             type="button"
             severity="secondary"
             [outlined]="true"
+            class="action action--blue"
             (click)="photosRequested.emit()"
           >
             <i class="pi pi-image" aria-hidden="true"></i>View before &amp; after photos
