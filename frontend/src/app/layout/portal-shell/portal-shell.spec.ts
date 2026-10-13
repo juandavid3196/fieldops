@@ -13,7 +13,11 @@ import { bellCountText } from './portal-shell.nav';
 
 const API = 'http://api.test';
 
-const ACCOUNT_1 = { contactId: 'c-1', customerName: 'Sofia Martinez', organizationName: 'Northstar' };
+const ACCOUNT_1 = {
+  contactId: 'c-1',
+  customerName: 'Sofia Martinez',
+  organizationName: 'Northstar',
+};
 const ACCOUNT_2 = { contactId: 'c-2', customerName: 'Sofia Martinez', organizationName: 'Acme' };
 
 const session = (accounts: PortalSession['accounts']): PortalSession => ({
@@ -57,13 +61,16 @@ describe('PortalShell', () => {
     [3, '3', 'Updates, 3 unread'],
     [9, '9', 'Updates, 9 unread'],
     [12, '9+', 'Updates, 12 unread'],
-  ])('the bell with %i unread shows %s and labels it for assistive technology', async (count, badge, label) => {
-    expect(bellCountText(count)).toBe(badge);
-    await render(session([ACCOUNT_1]), count);
-    expect(host.querySelector('.pshell__bell')?.getAttribute('aria-label')).toBe(label);
-    expect(host.querySelector('.pshell__bell')?.getAttribute('href')).toBe('/portal/updates');
-    expect(text('.pshell__badge')).toBe(badge ?? '');
-  });
+  ])(
+    'the bell with %i unread shows %s and labels it for assistive technology',
+    async (count, badge, label) => {
+      expect(bellCountText(count)).toBe(badge);
+      await render(session([ACCOUNT_1]), count);
+      expect(host.querySelector('.pshell__bell')?.getAttribute('aria-label')).toBe(label);
+      expect(host.querySelector('.pshell__bell')?.getAttribute('href')).toBe('/portal/updates');
+      expect(text('.pshell__badge')).toBe(badge ?? '');
+    },
+  );
 
   it('shows Switch account only with two or more accounts, switches and signs out', async () => {
     const single = await render(session([ACCOUNT_1]), 0);
@@ -97,7 +104,9 @@ describe('PortalShell', () => {
     Array.from(host.querySelectorAll<HTMLButtonElement>('.pshell__menu-item'))
       .find((item) => item.textContent?.includes('Sign out'))
       ?.click();
-    httpTesting.expectOne(`${API}/portal/sessions/current`).flush(null, { status: 204, statusText: 'No Content' });
+    httpTesting
+      .expectOne(`${API}/portal/sessions/current`)
+      .flush(null, { status: 204, statusText: 'No Content' });
     await many.whenStable();
     expect(navigate).toHaveBeenCalledWith('/portal/sign-in', { replaceUrl: true });
     expect(TestBed.inject(PortalSessionService).session()).toBeNull();

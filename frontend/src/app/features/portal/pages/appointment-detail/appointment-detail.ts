@@ -35,7 +35,12 @@ const OPEN_STATUSES: readonly string[] = [
     RouterLink,
   ],
   templateUrl: './appointment-detail.html',
-  styleUrls: ['../../portal.scss', '../../portal-card.scss', '../../portal-facts.scss'],
+  styleUrls: [
+    '../../portal.scss',
+    '../../portal-card.scss',
+    '../../portal-facts.scss',
+    './appointment-detail.scss',
+  ],
 })
 export class PortalAppointmentDetail {
   private readonly appointments = inject(PortalAppointmentsService);

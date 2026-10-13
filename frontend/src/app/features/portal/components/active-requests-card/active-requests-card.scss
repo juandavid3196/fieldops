@@ -1,0 +1,62 @@
+// Active requests card (Design 28): number/title, chip, submitted date and View on one row when it fits.
+.requests {
+  container-type: inline-size;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__row {
+    display: grid;
+    grid-template-areas:
+      'main chip'
+      'submitted view';
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+    padding-block: 0.875rem;
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__main {
+    grid-area: main;
+    min-inline-size: 0;
+  }
+
+  &__number {
+    margin: 0;
+    font-weight: 700;
+    color: var(--fo-color-navy);
+  }
+
+  &__title {
+    margin: 0.125rem 0 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text);
+    overflow-wrap: anywhere;
+  }
+
+  &__chip {
+    grid-area: chip;
+    justify-self: end;
+  }
+
+  &__submitted {
+    grid-area: submitted;
+    margin: 0;
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__view {
+    grid-area: view;
+    justify-self: end;
+  }
+}
+
+@container (inline-size >= 21rem) {
+  .requests__row {
+    grid-template-areas: 'main chip submitted view';
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+  }
+}

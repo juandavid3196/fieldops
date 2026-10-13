@@ -1,0 +1,49 @@
+// Need help card (Design 28): large headset beside the title, full-width actions with a leading icon.
+.help {
+  &__head {
+    display: flex;
+    gap: 0.875rem;
+    align-items: flex-start;
+    margin-block-end: 1rem;
+  }
+
+  &__icon {
+    font-size: 2rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__sub {
+    margin: 0.125rem 0 0;
+    color: var(--fo-color-text);
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__action {
+    position: relative;
+    inline-size: 100%;
+    min-block-size: 3rem;
+    font-weight: 600;
+  }
+
+  &__action-icon {
+    position: absolute;
+    inset-inline-start: 1.25rem;
+    font-size: 1.25rem;
+  }
+
+  &__action-label {
+    padding-inline: 2.5rem;
+  }
+}

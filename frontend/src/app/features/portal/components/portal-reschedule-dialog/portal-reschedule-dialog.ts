@@ -18,6 +18,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { InputText } from 'primeng/inputtext';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
@@ -32,7 +33,7 @@ import {
   TimeWindow,
 } from '../../models/portal.model';
 import { PortalAppointmentsService } from '../../services/portal-appointments.service';
-import { rescheduleRange, toDateOnly } from '../../utils/portal-format';
+import { longDateLabel, rescheduleRange, timeRange, toDateOnly } from '../../utils/portal-format';
 
 export const REASON_LIMIT = 500;
 export const RESCHEDULE_DATE_REQUIRED = 'Choose a preferred date.';
@@ -53,7 +54,16 @@ type Field = 'preferredDate' | 'reason';
 /** Reschedule dialog (BR-32): collects, validates and submits once; the parent patches its card. */
 @Component({
   selector: 'app-portal-reschedule-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, FormField, Select, SpinnerIcon, Textarea],
+  imports: [
+    FormsModule,
+    ButtonDirective,
+    Dialog,
+    FormField,
+    InputText,
+    Select,
+    SpinnerIcon,
+    Textarea,
+  ],
   templateUrl: './portal-reschedule-dialog.html',
   styles: `
     :host {
@@ -67,10 +77,82 @@ type Field = 'preferredDate' | 'reason';
       min-inline-size: 0;
     }
 
-    .dialog__text,
     .dialog__count {
       margin: 0;
       color: var(--fo-color-text-secondary);
+    }
+
+    .dialog__current {
+      display: flex;
+      gap: 0.875rem;
+      align-items: center;
+      padding: 0.875rem 1rem;
+      background: var(--fo-color-surface-muted);
+      border: 1px solid var(--fo-color-border);
+      border-radius: var(--fo-radius-control);
+    }
+
+    .dialog__current-icon {
+      display: grid;
+      flex: none;
+      place-items: center;
+      inline-size: 2.5rem;
+      block-size: 2.5rem;
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-action-blue-soft);
+      border-radius: 50%;
+    }
+
+    .dialog__current p {
+      margin: 0;
+    }
+
+    .dialog__current-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--fo-color-text-secondary);
+    }
+
+    .dialog__current-title {
+      font-weight: 700;
+      color: var(--fo-color-heading);
+    }
+
+    .dialog__current-when {
+      font-size: 0.875rem;
+      color: var(--fo-color-heading);
+    }
+
+    .dialog__note {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      margin: 0;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      color: var(--fo-color-heading);
+      background: var(--fo-color-action-blue-soft);
+      border-radius: var(--fo-radius-control);
+    }
+
+    .dialog__info {
+      display: grid;
+      flex: none;
+      place-items: center;
+      inline-size: 1.5rem;
+      block-size: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--fo-color-on-primary);
+      background: var(--fo-color-action-blue);
+      border-radius: 50%;
+    }
+
+    .p-button.dialog__cancel {
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-surface);
+      border-color: var(--fo-color-action-blue);
     }
 
     .dialog__count {
@@ -102,6 +184,23 @@ export class PortalRescheduleDialog {
   readonly requested = output<{ readonly visitId: string; readonly requestedOn: string }>();
 
   readonly open = computed(() => this.appointment() !== null);
+  /** The visit being rescheduled, as shown at the top of the dialog. */
+  readonly current = computed(() => {
+    const visit = this.appointment();
+    if (visit === null) {
+      return null;
+    }
+    const window = visit.arrivalWindow;
+    return {
+      title: visit.title,
+      workOrder: visit.workOrderNumber,
+      date: longDateLabel(visit.date),
+      time:
+        window === null
+          ? timeRange(visit.startTime, visit.endTime)
+          : timeRange(window.start, window.end),
+    };
+  });
   readonly preferredDate = signal('');
   readonly timeWindow = signal<TimeWindow>('any');
   readonly reason = signal('');

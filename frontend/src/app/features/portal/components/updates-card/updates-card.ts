@@ -20,7 +20,7 @@ export function updateLink(update: PortalUpdate): string[] {
   selector: 'app-updates-card',
   imports: [RouterLink],
   templateUrl: './updates-card.html',
-  styleUrls: ['../../portal.scss', '../../portal-card.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-card.scss', './updates-card.scss'],
 })
 export class UpdatesCard {
   readonly updates = input.required<readonly PortalUpdate[]>();

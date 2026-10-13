@@ -84,9 +84,10 @@ public sealed class ValidatePortalInvitationHandler(IPortalInvitationStore store
     public async Task<PortalOutcome<PortalInvitationDetails>> HandleAsync(
         ValidatePortalInvitationCommand command, CancellationToken cancellationToken)
     {
+        // Every unusable token, a malformed one included, is the same gone outcome (customer portal BR-12).
         if (!InvitationTokenRules.IsWellFormed(command.Token))
         {
-            return PortalOutcome<PortalInvitationDetails>.Failure(InvitationTokenRules.TokenKey, InvitationTokenRules.TokenInvalidMessage);
+            return new PortalOutcome<PortalInvitationDetails>.Gone();
         }
 
         return await store.FindUsableAsync(InvitationTokens.Hash(command.Token!), cancellationToken) is { } usable
@@ -114,7 +115,7 @@ public sealed class AcceptPortalInvitationHandler(
 
         if (!InvitationTokenRules.IsWellFormed(command.Token))
         {
-            errors[InvitationTokenRules.TokenKey] = [InvitationTokenRules.TokenInvalidMessage];
+            return new PortalOutcome<PortalAcceptedInvitation>.Gone();
         }
 
         var password = command.Password ?? string.Empty;
@@ -202,7 +203,7 @@ public sealed class AcceptExistingPortalInvitationHandler(
 
         if (!InvitationTokenRules.IsWellFormed(command.Token))
         {
-            errors[InvitationTokenRules.TokenKey] = [InvitationTokenRules.TokenInvalidMessage];
+            return new PortalOutcome<PortalAcceptedInvitation>.Gone();
         }
 
         var password = command.Password ?? string.Empty;

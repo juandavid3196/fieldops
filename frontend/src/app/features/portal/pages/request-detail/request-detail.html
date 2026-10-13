@@ -1,7 +1,7 @@
 <div class="pp">
   <a class="pp__back" routerLink="/portal/requests">
     <i class="pi pi-arrow-left" aria-hidden="true"></i>
-    Back to Requests
+    <span>Back to Requests</span>
   </a>
 
   <app-portal-state
@@ -13,10 +13,10 @@
     (retry)="load()"
   >
     @if (view(); as v) {
-      <section class="pcard" aria-labelledby="request-title">
-        <header class="pcard__head">
+      <section class="pcard rd" aria-labelledby="request-title">
+        <header class="rd__head">
           <div>
-            <p class="pcard__meta">{{ v.request.displayNumber }}</p>
+            <p class="rd__number">{{ v.request.displayNumber }}</p>
             <h1 class="pp__title" id="request-title">{{ v.request.title }}</h1>
           </div>
           <app-portal-status-chip [label]="v.chip.label" [tone]="v.chip.tone" />

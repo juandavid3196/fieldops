@@ -204,7 +204,7 @@ describe('portal quote and invoice pages', () => {
       const request = httpTesting.expectOne(`${API}/${path}`);
       expect(request.request.method).toBe(method);
       expect(request.request.body).toEqual(body);
-      request.flush(method === 'POST' || path.endsWith('/photos') ? [] : new Blob());
+      request.flush(request.request.responseType === 'blob' ? new Blob() : []);
     }
     TestBed.resetTestingModule();
 

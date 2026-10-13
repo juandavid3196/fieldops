@@ -12,7 +12,7 @@ import { PortalProgressStepper } from '../portal-progress-stepper/portal-progres
   selector: 'app-appointment-card',
   imports: [ButtonDirective, PortalProgressStepper, RouterLink],
   templateUrl: './appointment-card.html',
-  styleUrls: ['../../portal.scss', '../../portal-card.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-card.scss', './appointment-card.scss'],
 })
 export class AppointmentCard {
   readonly appointment = input<PortalAppointment | null>(null);

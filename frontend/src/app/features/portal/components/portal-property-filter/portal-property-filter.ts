@@ -34,6 +34,7 @@ const ALL = 'all';
       optionValue="value"
       appendTo="body"
       fluid
+      [size]="large() ? 'large' : undefined"
       [ngModel]="value() ?? allValue"
       [ariaLabel]="label()"
       (onChange)="changed.emit($event.value === allValue ? null : $event.value)"
@@ -61,8 +62,13 @@ const ALL = 'all';
 
     .filter__selected {
       display: inline-flex;
-      gap: 0.5rem;
+      gap: 0.625rem;
       align-items: center;
+      color: var(--fo-color-heading);
+    }
+
+    .filter__selected .pi {
+      font-size: 1.125rem;
     }
   `,
 })
@@ -72,6 +78,8 @@ export class PortalPropertyFilter {
   readonly value = input<string | null>(null);
   readonly showAll = input(true);
   readonly label = input('Property');
+  /** Home header size (Design 28); module lists keep the default size. */
+  readonly large = input(false);
   readonly inputId = `portal-property-${Math.random().toString(36).slice(2, 8)}`;
 
   readonly changed = output<string | null>();

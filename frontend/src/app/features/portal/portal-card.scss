@@ -44,8 +44,8 @@
     padding: 0.125rem 0.5rem;
     font-size: 0.75rem;
     font-weight: 600;
-    color: var(--fo-color-primary-strong);
-    background: var(--fo-color-primary-soft);
+    color: var(--fo-color-success-text);
+    background: var(--fo-color-success-background);
     border-radius: var(--fo-radius-pill);
   }
 
@@ -76,9 +76,9 @@
     margin: 0.75rem 0 0;
     padding: 0.625rem 0.75rem;
     font-size: 0.875rem;
-    color: var(--fo-color-info-text);
-    background: var(--fo-color-info-background);
-    border: 1px solid var(--fo-color-info-border);
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-action-blue-soft);
+    border: 1px solid var(--fo-color-action-blue-soft);
     border-radius: var(--fo-radius-control);
   }
 }

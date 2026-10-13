@@ -71,7 +71,7 @@
     margin: 0 0 1.5rem;
     padding: 1rem 1.25rem;
     border-radius: var(--fo-radius-control);
-    background: var(--fo-color-info-background);
+    background: var(--fo-color-action-blue-soft);
     color: var(--fo-color-text);
 
     strong {
@@ -121,7 +121,7 @@
         inline-size: 2rem;
         block-size: 2rem;
         border-radius: var(--fo-radius-pill);
-        background: var(--fo-color-primary-soft);
+        background: color-mix(in srgb, var(--fo-color-action-blue) 16%, var(--fo-color-surface));
         font-weight: 700;
         color: var(--fo-color-heading);
       }

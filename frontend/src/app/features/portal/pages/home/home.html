@@ -4,25 +4,28 @@
       <h1 class="home__title">{{ greeting() }}</h1>
       <p class="home__subtitle">Here's what's happening with your services.</p>
     </div>
-    @if (knownProperties().length > 0) {
-      <app-portal-property-filter
-        class="home__selector"
-        label="Property"
-        [properties]="knownProperties()"
-        [value]="selected()"
-        [showAll]="showAll()"
-        (changed)="select($event)"
-      />
-    }
-    <a
-      pButton
-      class="home__request"
-      routerLink="/portal/requests/new"
-      [queryParams]="requestQuery()"
-    >
-      <i class="pi pi-plus" aria-hidden="true"></i>
-      Request a service
-    </a>
+    <div class="home__controls">
+      @if (knownProperties().length > 0) {
+        <app-portal-property-filter
+          class="home__selector"
+          label="Property"
+          [properties]="knownProperties()"
+          [value]="selected()"
+          [showAll]="showAll()"
+          [large]="true"
+          (changed)="select($event)"
+        />
+      }
+      <a
+        pButton
+        class="home__request"
+        routerLink="/portal/requests/new"
+        [queryParams]="requestQuery()"
+      >
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        Request a service
+      </a>
+    </div>
   </header>
 
   <p class="sr" role="status" aria-live="polite">
@@ -98,7 +101,7 @@
           <app-help-card
             [phone]="dashboard.organization.phone"
             [canMessage]="dashboard.organization.canReceiveMessages"
-            (message)="openMessage()"
+            (composeMessage)="openMessage()"
           />
         }
       </div>

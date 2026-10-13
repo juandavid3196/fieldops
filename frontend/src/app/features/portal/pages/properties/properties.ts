@@ -13,7 +13,7 @@ import { PortalResource } from '../../utils/portal-resource';
   selector: 'app-portal-properties',
   imports: [ButtonDirective, PortalState, RouterLink],
   templateUrl: './properties.html',
-  styleUrls: ['../../portal.scss', '../../portal-card.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-card.scss', './properties.scss'],
 })
 export class PortalProperties {
   private readonly properties = inject(PortalPropertiesService);
@@ -24,6 +24,11 @@ export class PortalProperties {
   readonly rows = computed(() =>
     (this.resource.data() ?? []).map((property) => ({
       property,
+      street: [property.addressLine1, property.addressLine2]
+        .map((part) => part?.trim() ?? '')
+        .filter((part) => part !== '')
+        .join(', '),
+      place: `${property.city}, ${property.stateRegion} ${property.postalCode}`,
       lastService: property.lastServiceOn === null ? null : dateLabel(property.lastServiceOn),
     })),
   );

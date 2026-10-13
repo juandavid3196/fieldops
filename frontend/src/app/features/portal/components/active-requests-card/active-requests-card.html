@@ -9,17 +9,26 @@
   @if (rows().length === 0) {
     <p class="pcard__empty">No active requests.</p>
   } @else {
-    <ul class="plist">
+    <ul class="requests">
       @for (row of rows(); track row.request.id) {
-        <li>
-          <div class="plist__main">
-            <p class="plist__title">{{ row.request.displayNumber }}</p>
-            <p class="plist__sub">{{ row.request.title }}</p>
+        <li class="requests__row">
+          <div class="requests__main">
+            <p class="requests__number">{{ row.request.displayNumber }}</p>
+            <p class="requests__title">{{ row.request.title }}</p>
           </div>
-          <app-portal-status-chip [label]="row.chip.label" [tone]="row.chip.tone" />
-          <span class="plist__sub">Submitted {{ row.submitted }}</span>
+          <app-portal-status-chip
+            class="requests__chip"
+            [label]="row.chip.label"
+            [tone]="row.chip.tone"
+            variant="tag"
+          />
+          <p class="requests__submitted">
+            Submitted<br />
+            {{ row.submitted }}
+          </p>
           <a
             pButton
+            class="requests__view"
             severity="secondary"
             [outlined]="true"
             size="small"

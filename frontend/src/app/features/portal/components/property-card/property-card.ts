@@ -10,7 +10,7 @@ import { dateLabel } from '../../utils/portal-format';
   selector: 'app-property-card',
   imports: [ButtonDirective, RouterLink],
   templateUrl: './property-card.html',
-  styleUrls: ['../../portal.scss', '../../portal-card.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-card.scss', './property-card.scss'],
 })
 export class PropertyCard {
   readonly property = input<DashboardProperty | null>(null);

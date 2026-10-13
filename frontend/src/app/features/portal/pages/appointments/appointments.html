@@ -1,6 +1,9 @@
 <div class="pp">
   <header class="pp__head">
-    <h1 class="pp__title">Appointments</h1>
+    <div>
+      <h1 class="pp__title">Appointments</h1>
+      <p class="appts__intro">Your scheduled visits and service history.</p>
+    </div>
     @if (list.properties().length > 0) {
       <app-portal-property-filter
         [properties]="list.properties()"
@@ -10,15 +13,14 @@
     }
   </header>
 
-  <div class="pp__actions" role="tablist" aria-label="Appointments">
+  <div class="appts__tabs" role="tablist" aria-label="Appointments">
     @for (tab of tabs; track tab.scope) {
       <button
-        pButton
         type="button"
         role="tab"
+        class="appts__tab"
         aria-controls="portal-appointments-panel"
-        [severity]="scope() === tab.scope ? undefined : 'secondary'"
-        [outlined]="scope() !== tab.scope"
+        [class.appts__tab--active]="scope() === tab.scope"
         [attr.aria-selected]="scope() === tab.scope"
         (click)="select(tab.scope)"
       >
@@ -33,6 +35,7 @@
       label="Loading appointments"
       [emptyText]="scope() === 'upcoming' ? 'No upcoming appointments.' : 'No past appointments.'"
       errorText="We couldn't load your appointments."
+      emptyIcon="pi-calendar"
       (retry)="list.reload()"
     >
       <a empty pButton routerLink="/portal/requests/new" [queryParams]="query()"
@@ -60,7 +63,15 @@
             <tbody>
               @for (row of rows(); track row.appointment.visitId) {
                 <tr>
-                  <td data-label="Date">{{ row.date }}</td>
+                  <td data-label="Date">
+                    <span class="appts__date">
+                      <span class="appts__badge" aria-hidden="true">
+                        <span>{{ row.month }}</span>
+                        <strong>{{ row.day }}</strong>
+                      </span>
+                      {{ row.date }}
+                    </span>
+                  </td>
                   <td data-label="Time">{{ row.time }}</td>
                   <td data-label="Service">{{ row.appointment.title }}</td>
                   <td data-label="Work order">{{ row.appointment.workOrderNumber }}</td>

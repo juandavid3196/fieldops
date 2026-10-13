@@ -12,7 +12,7 @@
 <form novalidate (submit)="$event.preventDefault(); store.next()">
   @if (store.portal(); as portal) {
     <fieldset class="sr-field">
-      <legend class="sr-subtitle">Which property needs service?</legend>
+      <legend class="sr-label">Which property needs service?</legend>
       <div class="sr-tiles">
         @for (known of portal.properties; track known.id) {
           <label class="sr-tile">
@@ -49,7 +49,7 @@
 
   @if (store.portal() === null || store.newPropertyChosen()) {
     <fieldset class="sr-field">
-      <legend class="sr-subtitle">Where do you need service?</legend>
+      <legend class="sr-label">Where do you need service?</legend>
       <div class="sr-tiles sr-tiles--2">
         @for (type of types; track type.value) {
           <label class="sr-tile">
@@ -218,7 +218,7 @@
 
   <div class="sr-actions">
     @if (store.stepIndex() > 0) {
-      <button pButton type="button" variant="outlined" (click)="store.back()">
+      <button pButton type="button" variant="outlined" class="sr-back" (click)="store.back()">
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
         Back
       </button>

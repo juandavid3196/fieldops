@@ -1,0 +1,217 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+// Updates feed (Design 28 visual system): date groups, typed icon tiles and a per-event action.
+.feed {
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  &__intro {
+    margin: 0;
+    color: var(--fo-color-heading);
+  }
+
+  &__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem 1rem;
+    align-items: center;
+    margin-block-end: 0.75rem;
+  }
+
+  &__search {
+    flex: 1 1 16rem;
+  }
+
+  &__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    overflow: hidden;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__tab {
+    min-block-size: var(--fo-size-touch-target);
+    padding-inline: 1rem;
+    font: inherit;
+    font-size: 0.875rem;
+    color: var(--fo-color-heading);
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 0;
+    border-inline-start: 1px solid var(--fo-color-border);
+
+    &:first-child {
+      border-inline-start: 0;
+    }
+
+    &--active {
+      font-weight: 600;
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-action-blue-soft);
+    }
+  }
+
+  &__toggle {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    margin-inline-start: auto;
+    color: var(--fo-color-heading);
+    cursor: pointer;
+  }
+
+  &__none {
+    margin: 1rem 0 0;
+    text-align: center;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__count {
+    margin: 0 0 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__unread {
+    color: var(--fo-color-action-blue);
+  }
+
+  &__group {
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-areas:
+      'dot icon text'
+      'dot icon time'
+      '. . action';
+    grid-template-columns: 0.625rem 2.5rem minmax(0, 1fr);
+    gap: 0.25rem 0.75rem;
+    align-items: center;
+    padding: 0.75rem;
+    border-block-end: 1px solid var(--fo-color-row-divider);
+
+    @include bp.up(md) {
+      grid-template-areas: 'dot icon text time action';
+      grid-template-columns: 0.625rem 2.5rem minmax(0, 1fr) 7rem 10rem;
+    }
+  }
+
+  &__dot {
+    grid-area: dot;
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    border-radius: 50%;
+
+    &--unread {
+      background: var(--fo-color-action-blue);
+    }
+  }
+
+  &__icon {
+    display: inline-flex;
+    grid-area: icon;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    font-size: 1.125rem;
+    border-radius: var(--fo-radius-control);
+
+    .pi {
+      font-size: inherit;
+    }
+
+    &[data-tone='success'] {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+    }
+
+    &[data-tone='info'] {
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-action-blue-soft);
+    }
+
+    &[data-tone='blue'] {
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-action-blue-soft);
+    }
+
+    &[data-tone='amber'] {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+  }
+
+  &__text {
+    grid-area: text;
+    min-inline-size: 0;
+  }
+
+  &__title {
+    margin: 0;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+    overflow-wrap: anywhere;
+  }
+
+  &__sub {
+    margin: 0.125rem 0 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+    overflow-wrap: anywhere;
+  }
+
+  &__time {
+    grid-area: time;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    white-space: nowrap;
+  }
+
+  &__action {
+    grid-area: action;
+    justify-self: start;
+
+    @include bp.up(md) {
+      justify-self: stretch;
+    }
+  }
+
+  &__done {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: center;
+    margin: 1rem 0 0;
+    padding: 1rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+    background: var(--fo-color-success-background);
+    border: 1px solid var(--fo-color-success-solid);
+    border-radius: var(--fo-radius-control);
+
+    .pi {
+      font-size: 1.5rem;
+      color: var(--fo-color-success-text);
+    }
+  }
+}

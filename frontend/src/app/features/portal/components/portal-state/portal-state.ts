@@ -25,7 +25,10 @@ import { ResourceState } from '../../utils/portal-resource';
         </div>
       }
       @case ('empty') {
-        <div class="state" role="status" aria-live="polite">
+        <div class="state state--empty" role="status" aria-live="polite">
+          <span class="state__icon" aria-hidden="true"
+            ><i class="pi" [class]="emptyIcon()"></i
+          ></span>
           <p class="state__text">{{ emptyText() }}</p>
           <ng-content select="[empty]" />
         </div>
@@ -68,6 +71,32 @@ import { ResourceState } from '../../utils/portal-resource';
       border-radius: var(--fo-radius-card);
     }
 
+    .state--empty {
+      align-items: center;
+      padding: 2.5rem 1rem;
+      text-align: center;
+    }
+
+    .state__icon {
+      display: grid;
+      place-items: center;
+      inline-size: 3.5rem;
+      block-size: 3.5rem;
+      font-size: 1.5rem;
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-action-blue-soft);
+      border-radius: 50%;
+    }
+
+    .state__icon .pi {
+      font-size: inherit;
+    }
+
+    .state--empty .state__text {
+      font-size: 1rem;
+      color: var(--fo-color-heading);
+    }
+
     .state p-skeleton {
       inline-size: 100%;
     }
@@ -97,6 +126,8 @@ export class PortalState {
   /** Accessible loading label, e.g. "Loading requests". */
   readonly label = input('Loading');
   readonly emptyText = input('Nothing here yet.');
+  /** PrimeIcons class of the empty-state tile. */
+  readonly emptyIcon = input('pi-inbox');
   readonly errorText = input("We couldn't load this. Try again.");
   /** Route of the "Back to <module>" link of the not-found state. */
   readonly backLink = input<string | null>(null);

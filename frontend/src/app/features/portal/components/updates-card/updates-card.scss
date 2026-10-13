@@ -1,0 +1,60 @@
+// Messages & updates card (Design 28): bullet, stacked title/subtitle and right-aligned time.
+.updates {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding-block: 0.75rem;
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  // Unread (BR-25) is blue; read events keep a neutral bullet so the list reads as in Design 28.
+  &__dot {
+    flex: none;
+    inline-size: 0.625rem;
+    block-size: 0.625rem;
+    margin-block-start: 0.375rem;
+    background: var(--fo-color-border-strong);
+    border-radius: 50%;
+
+    &--unread {
+      background: var(--fo-color-action-blue);
+    }
+  }
+
+  &__main {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+    min-block-size: var(--fo-size-touch-target);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+
+    &:hover .updates__title {
+      text-decoration: underline;
+    }
+  }
+
+  &__title {
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__sub {
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__time {
+    flex: none;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    white-space: nowrap;
+  }
+}

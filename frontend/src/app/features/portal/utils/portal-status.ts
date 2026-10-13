@@ -6,6 +6,7 @@ import {
   REQUEST_STATUS_LABELS,
   RequestStatus,
   VISIT_STEPS,
+  progressIndex,
 } from '../models/portal.model';
 
 export type ChipTone = 'info' | 'warning' | 'success' | 'danger' | 'neutral';
@@ -62,8 +63,8 @@ export function visitChip(visit: Pick<PortalAppointment, 'status' | 'progressSte
   if (visit.status === 'cancelled') {
     return { label: 'Cancelled', tone: 'neutral' };
   }
-  const label = VISIT_STEPS[visit.progressStep] ?? visit.status;
-  return { label, tone: visit.progressStep >= 3 ? 'success' : 'info' };
+  const index = progressIndex(visit.progressStep);
+  return { label: VISIT_STEPS[index], tone: index >= 3 ? 'success' : 'info' };
 }
 
 const ACTIVITY_CHIPS: Readonly<Record<ActivityRow['status'], ChipView>> = {

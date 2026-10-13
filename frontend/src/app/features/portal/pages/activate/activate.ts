@@ -26,8 +26,12 @@ import {
 import { PortalInvitationTokenService } from '../../services/portal-invitation-token.service';
 
 export const ACTIVATE_PATH = '/portal/activate';
-export const UNAVAILABLE_MESSAGE =
-  "This invitation isn't available. Ask the company to send a new one.";
+
+/** BR-12 copy: names the organization only when a previous validation made it known. */
+export function unavailableMessage(organizationName: string | null): string {
+  return `This invitation isn't available. Ask ${organizationName ?? 'the company'} to send a new one.`;
+}
+
 export const WRONG_PASSWORD_MESSAGE = 'The password is incorrect.';
 export const INELIGIBLE_MESSAGE = "This account can't be linked. Contact the company.";
 export const ACTIVATE_ERROR_MESSAGE = "We couldn't activate your access. Try again.";
@@ -95,7 +99,8 @@ export class PortalActivate {
     () => !this.existing() && this.detail()?.lastNameRequired === true,
   );
 
-  readonly unavailableMessage = UNAVAILABLE_MESSAGE;
+  private readonly knownOrganization = signal<string | null>(null);
+  readonly unavailableMessage = computed(() => unavailableMessage(this.knownOrganization()));
   readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
 
   constructor() {
@@ -169,6 +174,7 @@ export class PortalActivate {
       .subscribe({
         next: (detail) => {
           this.detail.set(detail);
+          this.knownOrganization.set(detail.organizationName);
           this.state.set('ready');
         },
         error: (error: unknown) => {

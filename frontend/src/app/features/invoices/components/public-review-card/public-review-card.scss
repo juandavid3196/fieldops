@@ -7,6 +7,11 @@
   min-width: 0;
 }
 
+// Not offered: take no grid cell so the payment summary spans the row.
+:host:empty {
+  display: none;
+}
+
 .sr-only {
   position: absolute;
   inline-size: 1px;

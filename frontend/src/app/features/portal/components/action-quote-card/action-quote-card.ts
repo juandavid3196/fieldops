@@ -10,7 +10,7 @@ import { dateLabel, money } from '../../utils/portal-format';
   selector: 'app-action-quote-card',
   imports: [ButtonDirective, RouterLink],
   templateUrl: './action-quote-card.html',
-  styleUrls: ['../../portal.scss', '../../portal-card.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-card.scss', './action-quote-card.scss'],
 })
 export class ActionQuoteCard {
   readonly quote = input<ActionQuote | null>(null);

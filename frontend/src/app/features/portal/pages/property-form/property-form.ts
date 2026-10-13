@@ -20,6 +20,7 @@ import {
   maxLengthMessage,
 } from '../../../service-request/service-request.messages';
 import { US_STATES } from '../../../service-request/service-request.validators';
+import { PortalMapIllustration } from '../../components/portal-map-illustration/portal-map-illustration';
 import { PortalState } from '../../components/portal-state/portal-state';
 import {
   GENERIC_ERROR_MESSAGE,
@@ -107,6 +108,7 @@ export function validateProperty(
     FormsModule,
     InputText,
     Message,
+    PortalMapIllustration,
     PortalState,
     ReactiveFormsModule,
     RouterLink,
@@ -115,7 +117,7 @@ export function validateProperty(
     Textarea,
   ],
   templateUrl: './property-form.html',
-  styleUrls: ['../../portal.scss', '../../portal-form.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-form.scss', './property-form.scss'],
 })
 export class PortalPropertyForm {
   private readonly properties = inject(PortalPropertiesService);
@@ -138,6 +140,16 @@ export class PortalPropertyForm {
     accessInstructions: new FormControl('', { nonNullable: true }),
   });
   readonly makePrimary = signal(false);
+
+  /** Typed address for the decorative preview caption; null until line 1 or the city is entered. */
+  previewAddress(): string | null {
+    const { addressLine1, city, stateRegion, postalCode } = this.form.getRawValue();
+    const place = [city.trim(), [stateRegion, postalCode.trim()].filter(Boolean).join(' ')]
+      .filter(Boolean)
+      .join(', ');
+    const text = [addressLine1.trim(), place].filter(Boolean).join(' · ');
+    return text === '' ? null : text;
+  }
 
   readonly errors = signal<FieldErrors>({});
   readonly failure = signal<string | null>(null);

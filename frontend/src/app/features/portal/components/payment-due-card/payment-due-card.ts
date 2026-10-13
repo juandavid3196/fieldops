@@ -10,7 +10,7 @@ import { dateLabel, money } from '../../utils/portal-format';
   selector: 'app-payment-due-card',
   imports: [ButtonDirective, RouterLink],
   templateUrl: './payment-due-card.html',
-  styleUrls: ['../../portal.scss', '../../portal-card.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-card.scss', './payment-due-card.scss'],
 })
 export class PaymentDueCard {
   readonly payment = input<PaymentDue | null>(null);

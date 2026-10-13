@@ -23,7 +23,9 @@ const FORM: ServiceRequestForm = {
   website: null,
   requestPrefix: 'REQ',
   timezone: 'America/Chicago',
-  categories: [{ id: 'cat-1', name: 'Plumbing', services: [{ id: 'srv-1', name: 'Faucet repair' }] }],
+  categories: [
+    { id: 'cat-1', name: 'Plumbing', services: [{ id: 'srv-1', name: 'Faucet repair' }] },
+  ],
 };
 
 const property = (id: string, name: string) => ({
@@ -112,9 +114,12 @@ describe('PortalRequestNew', () => {
     expect(payload['consent']).toBe(true);
     expect(payload['website']).toBe('');
 
-    request.flush({ requestId: 'r-77', requestNumber: 'REQ-1077' }, { status: 201, statusText: 'Created' });
+    request.flush(
+      { requestId: 'r-77', requestNumber: 'REQ-1077' },
+      { status: 201, statusText: 'Created' },
+    );
     await settle();
-    expect(text()).toContain('Request received');
+    expect(text()).toContain('Your request is on its way');
     expect(text()).toContain('REQ-1077');
     const view = Array.from(harness.fixture.nativeElement.querySelectorAll('a')).find(
       (anchor) => (anchor as HTMLElement).textContent?.trim() === 'View request',

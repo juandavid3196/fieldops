@@ -10,13 +10,20 @@
   [style]="{ width: '30rem', maxWidth: '94vw' }"
 >
   @if (sent()) {
-    <p class="dialog__sent" role="status">
-      <i class="pi pi-check-circle" aria-hidden="true"></i>
-      {{ sentText() }}
-    </p>
+    <div class="dialog__sent" role="status">
+      <span class="dialog__sent-icon" aria-hidden="true"><i class="pi pi-check"></i></span>
+      <p>{{ sentText() }}</p>
+    </div>
   } @else {
     <form class="dialog" ngNoForm novalidate (submit)="$event.preventDefault(); submit()">
-      <p class="dialog__text">{{ organizationName() }} will reply by email or phone.</p>
+      <div class="dialog__to">
+        <span class="dialog__to-icon" aria-hidden="true"><i class="pi pi-building"></i></span>
+        <div>
+          <p class="dialog__to-label">To</p>
+          <p class="dialog__to-name">{{ organizationName() }}</p>
+          <p class="dialog__to-hint">Replies by email or phone</p>
+        </div>
+      </div>
       <app-form-field
         label="Message"
         controlId="portal-message-text"
@@ -28,6 +35,7 @@
           id="portal-message-text"
           rows="5"
           fluid
+          placeholder="How can we help? Include any details about your service, property or schedule."
           name="message"
           [attr.aria-invalid]="error() ? 'true' : null"
           [attr.aria-describedby]="error() ? 'portal-message-text-error' : null"
@@ -36,6 +44,10 @@
         ></textarea>
       </app-form-field>
       <p class="dialog__count">{{ message().length }}/{{ limit }}</p>
+      <p class="dialog__note">
+        <span class="dialog__info" aria-hidden="true"><i class="pi pi-info"></i></span>
+        Your name, email and phone are included so they can reply.
+      </p>
       @if (failure(); as text) {
         <p class="dialog__failure" role="alert">{{ text }}</p>
       }
@@ -51,6 +63,7 @@
         type="button"
         severity="secondary"
         [outlined]="true"
+        class="dialog__cancel"
         [disabled]="submitting()"
         (click)="close()"
       >
@@ -61,6 +74,7 @@
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
         Send message
+        <i class="pi pi-send" aria-hidden="true"></i>
       </button>
     }
   </ng-template>

@@ -6,7 +6,7 @@
     @for (section of store.summary(); track section.step) {
       <li class="sr-review__section">
         <span class="sr-review__icon" aria-hidden="true">
-          <i class="pi" [class]="icons[section.step]"></i>
+          <app-sr-step-icon [step]="section.step" />
         </span>
         <div class="sr-review__body">
           <h3 class="sr-review__title">{{ section.title }}</h3>
@@ -99,7 +99,7 @@
   }
 
   <div class="sr-actions">
-    <button pButton type="button" variant="outlined" (click)="store.back()">
+    <button pButton type="button" variant="outlined" class="sr-back" (click)="store.back()">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
       Back
     </button>

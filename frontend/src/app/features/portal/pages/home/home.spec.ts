@@ -55,7 +55,7 @@ const APPOINTMENT: PortalAppointment = {
   technician: { fullName: 'Carlos Rivera', firstName: 'Carlos' },
   property: { name: 'Home', addressLine1: '742 Maple Ave' },
   status: 'assigned',
-  progressStep: 0,
+  progressStep: 'scheduled',
   canRequestReschedule: true,
   rescheduleRequestedOn: null,
   reportAvailable: false,
@@ -158,7 +158,9 @@ describe('PortalHome', () => {
         organizationName: 'Northstar',
         hasLogo: false,
       },
-      accounts: [{ contactId: 'c-1', customerName: 'Sofia Martinez', organizationName: 'Northstar' }],
+      accounts: [
+        { contactId: 'c-1', customerName: 'Sofia Martinez', organizationName: 'Northstar' },
+      ],
     });
     httpTesting = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(PortalHome);
@@ -228,7 +230,8 @@ describe('PortalHome', () => {
     await respond(dashboardRequest('p-1'), { ...FULL, selectedPropertyId: 'p-1' });
     for (const expected of [
       'Quote ready',
-      'Q-1052 · Total $289.40',
+      'Q-1052',
+      'Total $289.40',
       'Approving this quote does not confirm an appointment.',
       '+1 more quotes',
       'Invoice INV-1051',

@@ -58,7 +58,6 @@ export function messageError(value: string): string | null {
       min-inline-size: 0;
     }
 
-    .dialog__text,
     .dialog__count {
       margin: 0;
       color: var(--fo-color-text-secondary);
@@ -75,10 +74,92 @@ export function messageError(value: string): string | null {
       color: var(--fo-color-danger-text);
     }
 
+    .dialog__to,
     .dialog__sent {
+      display: flex;
+      gap: 0.875rem;
+      align-items: center;
+      padding: 0.875rem 1rem;
+      background: var(--fo-color-surface-muted);
+      border: 1px solid var(--fo-color-border);
+      border-radius: var(--fo-radius-control);
+    }
+
+    .dialog__to p,
+    .dialog__sent p {
       margin: 0;
-      color: var(--fo-color-success-text);
       overflow-wrap: anywhere;
+    }
+
+    .dialog__to-icon,
+    .dialog__sent-icon {
+      display: grid;
+      flex: none;
+      place-items: center;
+      inline-size: 2.5rem;
+      block-size: 2.5rem;
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-action-blue-soft);
+      border-radius: 50%;
+    }
+
+    .dialog__to-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--fo-color-text-secondary);
+    }
+
+    .dialog__to-name {
+      font-weight: 700;
+      color: var(--fo-color-heading);
+    }
+
+    .dialog__to-hint {
+      font-size: 0.875rem;
+      color: var(--fo-color-text-secondary);
+    }
+
+    .dialog__note {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      margin: 0;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      color: var(--fo-color-heading);
+      background: var(--fo-color-action-blue-soft);
+      border-radius: var(--fo-radius-control);
+    }
+
+    .dialog__info {
+      display: grid;
+      flex: none;
+      place-items: center;
+      inline-size: 1.5rem;
+      block-size: 1.5rem;
+      font-size: 0.75rem;
+      color: var(--fo-color-on-primary);
+      background: var(--fo-color-action-blue);
+      border-radius: 50%;
+    }
+
+    .dialog__sent {
+      color: var(--fo-color-heading);
+      background: var(--fo-color-success-background);
+      border-color: transparent;
+    }
+
+    .dialog__sent-icon {
+      color: var(--fo-color-on-primary);
+      background: var(--fo-color-success-solid);
+    }
+
+    .p-button.dialog__cancel {
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-surface);
+      border-color: var(--fo-color-action-blue);
     }
   `,
 })

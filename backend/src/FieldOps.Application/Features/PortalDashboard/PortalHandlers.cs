@@ -13,7 +13,7 @@ namespace FieldOps.Application.Features.PortalDashboard;
 
 internal static class PortalQuery
 {
-    /// <summary>The optional <c>propertyId</c> filter: absent is "All" (no scoping); a value that is not an id is a field error.</summary>
+    /// <summary>The optional <c>propertyId</c> filter: absent is "All" (no scoping); a value that is not an id matches no property (404).</summary>
     public static bool TryParseProperty(string? value, out Guid? propertyId, Dictionary<string, string[]> errors)
     {
         propertyId = null;
@@ -30,9 +30,10 @@ internal static class PortalQuery
             return true;
         }
 
-        errors["propertyId"] = ["Select one of your properties."];
+        // Not an id: it matches no property of the customer, so the caller answers the one identical 404 (BR-18, BR-37).
+        propertyId = Guid.Empty;
 
-        return false;
+        return true;
     }
 }
 

@@ -1,0 +1,35 @@
+<aside class="brand" aria-labelledby="portal-brand-heading">
+  <p class="brand__logo">Field<span>Ops</span></p>
+  <p class="brand__eyebrow">Customer portal</p>
+
+  <h2 class="brand__heading" id="portal-brand-heading">Your service,<br />all in one place.</h2>
+  <p class="brand__lead">Review quotes, pay invoices and follow your appointments.</p>
+
+  <div class="brand__stage" aria-hidden="true">
+    <span class="brand__frame brand__frame--a"></span>
+    <span class="brand__frame brand__frame--b"></span>
+    <span class="brand__frame brand__frame--c"></span>
+    <span class="brand__dots brand__dots--a"></span>
+    <span class="brand__dots brand__dots--b"></span>
+    @for (card of cards; track card.name; let index = $index) {
+      <div class="brand__card brand__card--{{ index }}">
+        <span class="brand__card-icon brand__card-icon--{{ card.tone }}">
+          <i class="pi {{ card.icon }}"></i>
+        </span>
+        <div class="brand__card-body">
+          <p class="brand__card-name">{{ card.name }}</p>
+          <span class="brand__bar brand__bar--{{ card.tone }}"></span>
+          <span class="brand__line"></span>
+        </div>
+        <i class="pi pi-angle-right brand__card-chevron"></i>
+        <span class="brand__line brand__line--wide"></span>
+      </div>
+    }
+  </div>
+
+  <ul class="brand__modules">
+    <li><i class="pi pi-file" aria-hidden="true"></i>Quotes</li>
+    <li><i class="pi pi-calendar" aria-hidden="true"></i>Appointments</li>
+    <li><i class="pi pi-credit-card" aria-hidden="true"></i>Invoices</li>
+  </ul>
+</aside>

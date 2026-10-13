@@ -8,13 +8,13 @@ import { telHref } from '../../utils/portal-format';
   selector: 'app-help-card',
   imports: [ButtonDirective],
   templateUrl: './help-card.html',
-  styleUrl: '../../portal.scss',
+  styleUrls: ['../../portal.scss', './help-card.scss'],
   host: { id: 'help', tabindex: '-1' },
 })
 export class HelpCard {
   readonly phone = input<string | null>(null);
   readonly canMessage = input(false);
-  readonly message = output<void>();
+  readonly composeMessage = output<void>();
 
   protected readonly href = telHref;
 }

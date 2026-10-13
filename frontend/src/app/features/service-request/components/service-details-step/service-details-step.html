@@ -9,7 +9,7 @@
 
 <form novalidate (submit)="$event.preventDefault(); store.next()">
   <fieldset class="sr-field" [attr.aria-describedby]="store.errorId('service.categoryId')">
-    <legend class="sr-subtitle">
+    <legend class="sr-label">
       What type of service do you need? <span class="sr-required" aria-hidden="true">*</span>
     </legend>
     <div class="sr-tiles">
@@ -122,7 +122,7 @@
         </label>
       }
       <p class="sr-hint sr-hint--emergency">
-        <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+        <span class="sr-alert-dot" aria-hidden="true">!</span>
         For immediate danger, shut off utilities if safe and contact emergency services.
       </p>
     </div>
@@ -146,7 +146,7 @@
   </label>
 
   <div class="sr-actions">
-    <button pButton type="button" variant="outlined" (click)="store.back()">
+    <button pButton type="button" variant="outlined" class="sr-back" (click)="store.back()">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
       Back
     </button>

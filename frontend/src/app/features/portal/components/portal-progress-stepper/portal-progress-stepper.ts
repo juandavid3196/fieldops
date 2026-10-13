@@ -1,6 +1,6 @@
-import { Component, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
-import { VISIT_STEPS } from '../../models/portal.model';
+import { ProgressStep, VISIT_STEPS, progressIndex } from '../../models/portal.model';
 
 /** Visit progress (BR-38): past steps complete, the current step marked, text and icon not color. */
 @Component({
@@ -106,7 +106,10 @@ import { VISIT_STEPS } from '../../models/portal.model';
   `,
 })
 export class PortalProgressStepper {
-  /** Zero-based current step (the appointment `progressStep`). */
-  readonly step = input.required<number>();
+  /** The appointment `progressStep`; a completed visit shows every step done. */
+  readonly progress = input.required<ProgressStep>();
+  protected readonly step = computed(() =>
+    this.progress() === 'completed' ? VISIT_STEPS.length : progressIndex(this.progress()),
+  );
   protected readonly steps = VISIT_STEPS;
 }

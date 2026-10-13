@@ -4,7 +4,9 @@ import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angul
 import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
+import { IconField } from 'primeng/iconfield';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { InputIcon } from 'primeng/inputicon';
 import { InputPassword } from 'primeng/inputpassword';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
@@ -22,6 +24,7 @@ import {
   validateEmail,
   validatePassword,
 } from '../../../authentication/pages/sign-in/sign-in.validators';
+import { PortalAuthBrand } from '../../components/portal-auth-brand/portal-auth-brand';
 import { SESSION_ENDED_MESSAGE } from '../../models/portal.model';
 
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
@@ -30,6 +33,9 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
 @Component({
   selector: 'app-portal-sign-in',
   imports: [
+    IconField,
+    InputIcon,
+    PortalAuthBrand,
     FormsModule,
     ReactiveFormsModule,
     ButtonDirective,
@@ -41,7 +47,7 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
     SpinnerIcon,
   ],
   templateUrl: './sign-in.html',
-  styleUrl: '../../portal-auth.scss',
+  styleUrls: ['../../portal-auth.scss', './sign-in.scss'],
 })
 export class PortalSignIn {
   private readonly sessions = inject(PortalSessionService);
@@ -61,6 +67,7 @@ export class PortalSignIn {
   readonly notice = signal<string | null>(null);
   readonly submitting = signal(false);
   readonly passwordMasked = signal(true);
+  protected readonly year = new Date().getFullYear();
   readonly retryLocked = signal(false);
   readonly submitDisabled = computed(() => this.submitting() || this.retryLocked());
 

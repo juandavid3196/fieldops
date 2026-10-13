@@ -15,7 +15,7 @@
     @case ('unavailable') {
       <div class="auth__card" role="alert">
         <h1 class="auth__title">Invitation unavailable</h1>
-        <p class="auth__subtitle">{{ unavailableMessage }}</p>
+        <p class="auth__subtitle">{{ unavailableMessage() }}</p>
         <a class="auth__link" routerLink="/portal/sign-in" (click)="leave()">Go to sign in</a>
       </div>
     }

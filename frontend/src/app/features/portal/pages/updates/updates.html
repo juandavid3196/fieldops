@@ -1,6 +1,9 @@
 <div class="pp">
-  <header class="pp__head">
-    <h1 class="pp__title">Updates</h1>
+  <header class="feed__head">
+    <h1 class="pp__title">Messages &amp; updates</h1>
+    <p class="feed__intro">
+      Stay up to date with your services, appointments, quotes, and invoices.
+    </p>
   </header>
 
   <app-portal-state
@@ -10,24 +13,99 @@
     errorText="We couldn't load your updates."
     (retry)="load()"
   >
-    <section class="pcard" aria-label="Updates">
-      <ul class="plist">
-        @for (row of rows(); track $index) {
-          <li>
-            @if (row.update.isUnread) {
-              <span class="pcard__dot" aria-hidden="true"></span>
-            }
-            <a class="plist__main" [routerLink]="row.link">
-              @if (row.update.isUnread) {
-                <span class="sr">Unread: </span>
-              }
-              <span class="plist__title">{{ row.update.title }}</span>
-              <span class="plist__sub">{{ row.update.subtitle }}</span>
-            </a>
-            <span class="plist__sub">{{ row.time }}</span>
-          </li>
+    <section class="pcard feed" aria-label="Updates">
+      <div class="feed__tools">
+        <p-iconfield class="feed__search">
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="search"
+            placeholder="Search updates"
+            aria-label="Search updates"
+            maxlength="100"
+            fluid
+            [ngModel]="search()"
+            (ngModelChange)="search.set($event)"
+          />
+        </p-iconfield>
+        <div class="feed__tabs" role="group" aria-label="Filter updates">
+          @for (option of filters; track option.id) {
+            <button
+              type="button"
+              class="feed__tab"
+              [class.feed__tab--active]="filter() === option.id"
+              [attr.aria-pressed]="filter() === option.id"
+              (click)="filter.set(option.id)"
+            >
+              {{ option.label }}
+            </button>
+          }
+        </div>
+        <div class="feed__toggle">
+          <p-toggleswitch
+            inputId="updates-unread-only"
+            [ngModel]="unreadOnly()"
+            (ngModelChange)="unreadOnly.set($event)"
+          />
+          <label for="updates-unread-only">Unread only</label>
+        </div>
+      </div>
+
+      <p class="feed__count" aria-live="polite">
+        {{ total() }} {{ total() === 1 ? 'update' : 'updates' }}
+        @if (unread() > 0) {
+          · <strong class="feed__unread">{{ unread() }} unread</strong>
         }
-      </ul>
+      </p>
+
+      @for (group of groups(); track group.label) {
+        <h2 class="feed__group">{{ group.label }}</h2>
+        <ul class="feed__list">
+          @for (row of group.rows; track $index) {
+            <li class="feed__row">
+              <span
+                class="feed__dot"
+                [class.feed__dot--unread]="row.update.isUnread"
+                aria-hidden="true"
+              ></span>
+              <span class="feed__icon" [attr.data-tone]="row.style.tone" aria-hidden="true">
+                <i class="pi" [class]="row.style.icon"></i>
+              </span>
+              <div class="feed__text">
+                <p class="feed__title">
+                  @if (row.update.isUnread) {
+                    <span class="sr">Unread: </span>
+                  }
+                  {{ row.update.title }}
+                </p>
+                <p class="feed__sub">{{ row.update.subtitle }}</p>
+              </div>
+              <span class="feed__time">{{ row.time }}</span>
+              <a
+                pButton
+                class="feed__action"
+                severity="secondary"
+                [outlined]="true"
+                size="small"
+                [attr.aria-label]="row.style.action + ': ' + row.update.title"
+                [routerLink]="row.link"
+                >{{ row.style.action }}</a
+              >
+            </li>
+          }
+        </ul>
+      }
+
+      @if (groups().length === 0 && filtered()) {
+        <p class="feed__none">No updates match these filters.</p>
+      }
+
+      @if (unread() === 0) {
+        <p class="feed__done">
+          <i class="pi pi-check-circle" aria-hidden="true"></i>
+          You're all caught up.
+        </p>
+      }
     </section>
   </app-portal-state>
 </div>

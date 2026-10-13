@@ -5,6 +5,7 @@ import {
   Injector,
   afterNextRender,
   effect,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -15,6 +16,8 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Subscription, forkJoin } from 'rxjs';
 
+import { PortalSessionService } from '../../../../core/services/portal-session.service';
+import { RequestReceived } from '../../components/request-received/request-received';
 import { isApiError } from '../../../../core/models/api-error.model';
 import { AvailabilityStep } from '../../../service-request/components/availability-step/availability-step';
 import { PropertyStep } from '../../../service-request/components/property-step/property-step';
@@ -52,6 +55,7 @@ export function hasRequestableService(form: ServiceRequestForm): boolean {
     ButtonDirective,
     Message,
     PropertyStep,
+    RequestReceived,
     RequestStepper,
     RequestSummaryPanel,
     ReviewStep,
@@ -73,6 +77,10 @@ export class PortalRequestNew {
   private loading: Subscription | undefined;
 
   protected readonly store = inject(ServiceRequestWizardStore);
+  private readonly sessions = inject(PortalSessionService);
+  protected readonly organizationName = computed(
+    () => this.sessions.session()?.account.organizationName ?? null,
+  );
   protected readonly state = signal<LoadState>('loading');
   protected readonly unavailable = signal(unavailableText(null));
   protected readonly loadError = "We couldn't load the request form.";

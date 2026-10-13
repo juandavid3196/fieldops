@@ -108,7 +108,8 @@ export interface PortalAppointment {
   readonly property: { readonly name: string; readonly addressLine1: string };
   readonly status: VisitStatus;
   /** 0 Scheduled, 1 On the way, 2 In progress, 3 Completed (BR-38). */
-  readonly progressStep: number;
+  /** BR-38 stepper position as sent by the API. */
+  readonly progressStep: ProgressStep;
   readonly canRequestReschedule: boolean;
   readonly rescheduleRequestedOn: string | null;
   readonly reportAvailable: boolean;
@@ -255,9 +256,24 @@ export const REQUEST_STATUS_LABELS: Readonly<Record<RequestStatus, string>> = {
   cancelled: 'Cancelled',
 };
 
+export type ProgressStep = 'scheduled' | 'on_the_way' | 'in_progress' | 'completed';
+
+/** BR-38 steps in order; the index is the stepper position. */
+export const PROGRESS_STEPS: readonly ProgressStep[] = [
+  'scheduled',
+  'on_the_way',
+  'in_progress',
+  'completed',
+];
+
 export const VISIT_STEPS: readonly string[] = [
   'Scheduled',
   'On the way',
   'In progress',
   'Completed',
 ];
+
+/** Zero-based stepper position of a BR-38 step (unknown values read as Scheduled). */
+export function progressIndex(step: ProgressStep): number {
+  return Math.max(PROGRESS_STEPS.indexOf(step), 0);
+}

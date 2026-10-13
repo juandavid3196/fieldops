@@ -170,8 +170,10 @@ describe('SignIn', () => {
       const routed = Array.from(host.querySelectorAll('a')).filter(
         (a) => a.getAttribute('href') !== '#',
       );
-      // Only the company-registration and forgot-password links are routed (AC-18).
-      expect(routed).toHaveLength(2);
+      // Routed: company registration, forgot password and the customer portal sign-in
+      // (customer-portal-dashboard, requested by the user 2026-10-13).
+      expect(routed).toHaveLength(3);
+      expect(routed.some((anchor) => anchor.getAttribute('href') === '/portal/sign-in')).toBe(true);
       expect(query<HTMLAnchorElement>('.sign-in__forgot')?.getAttribute('href')).toBe(
         '/auth/forgot-password',
       );

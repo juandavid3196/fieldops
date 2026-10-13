@@ -1,0 +1,261 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+// Portal request confirmation (Design 28 visual system): summary card beside "What happens next?".
+:host {
+  display: block;
+  min-inline-size: 0;
+}
+
+.received {
+  display: grid;
+  gap: 1.25rem;
+
+  @include bp.up(lg) {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  &__card {
+    min-inline-size: 0;
+    padding: 1.25rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    @include bp.up(md) {
+      padding: 1.5rem;
+    }
+  }
+
+  &__hero {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    align-items: center;
+
+    > div {
+      flex: 1 1 16rem;
+      min-inline-size: 0;
+    }
+  }
+
+  &__art {
+    flex: none;
+    inline-size: 7rem;
+    block-size: 7rem;
+  }
+
+  &__art-bg {
+    fill: var(--fo-color-primary-soft);
+  }
+
+  &__art-doc {
+    fill: var(--fo-color-surface);
+  }
+
+  &__art-line {
+    fill: color-mix(in srgb, var(--fo-color-action-blue) 22%, var(--fo-color-surface));
+  }
+
+  &__art-check {
+    fill: var(--fo-color-primary-strong);
+  }
+
+  &__art-tick {
+    fill: none;
+    stroke: var(--fo-color-on-primary);
+    stroke-width: 4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  &__eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--fo-color-primary-strong);
+  }
+
+  &__title {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+
+    &:focus {
+      outline: none;
+    }
+
+    @include bp.up(md) {
+      font-size: 1.875rem;
+    }
+  }
+
+  &__lead {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+
+    strong {
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__facts {
+    margin: 1.25rem 0 0;
+    padding: 0 1rem;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+
+    > div {
+      display: grid;
+      grid-template-columns: minmax(7rem, 2fr) 3fr;
+      gap: 1rem;
+      align-items: center;
+      min-block-size: 2.75rem;
+      border-block-end: 1px solid var(--fo-color-row-divider);
+
+      &:last-child {
+        border-block-end: 0;
+      }
+    }
+
+    dt {
+      font-size: 0.875rem;
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin: 0;
+      font-weight: 600;
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__copy {
+    display: inline-grid;
+    place-items: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    margin-block: -0.5rem;
+    color: var(--fo-color-text-secondary);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+
+    &:hover {
+      color: var(--fo-color-action-blue);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: stretch;
+    margin-block-start: 1.25rem;
+
+    // Both actions share one height (Design 28).
+    a {
+      box-sizing: border-box;
+      min-block-size: var(--fo-size-touch-target);
+      text-decoration: none;
+    }
+  }
+
+  .p-button.received__home {
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-surface);
+    border-color: var(--fo-color-action-blue);
+  }
+
+  &__side-title {
+    margin: 0 0 1.25rem;
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__steps {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: next;
+
+    li {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0 0 1.5rem 3rem;
+      counter-increment: next;
+
+      &::before {
+        position: absolute;
+        inset-block-start: -0.25rem;
+        inset-inline-start: 0;
+        display: grid;
+        place-items: center;
+        inline-size: 2rem;
+        block-size: 2rem;
+        font-weight: 700;
+        color: var(--fo-color-primary-strong);
+        content: counter(next);
+        background: var(--fo-color-surface);
+        border: 1.5px solid var(--fo-color-primary-strong);
+        border-radius: 50%;
+      }
+
+      // Dashed connector between the numbered circles.
+      &:not(:last-child)::after {
+        position: absolute;
+        inset-block: 2rem 0;
+        inset-inline-start: 1rem;
+        content: '';
+        border-inline-start: 1.5px dashed var(--fo-color-border-strong);
+      }
+    }
+
+    strong {
+      color: var(--fo-color-heading);
+    }
+
+    span {
+      font-size: 0.875rem;
+      color: var(--fo-color-text-secondary);
+    }
+  }
+
+  &__notice {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-control);
+
+    .pi {
+      flex: none;
+      padding-inline-end: 1rem;
+      font-size: 1.25rem;
+      color: var(--fo-color-primary-strong);
+      border-inline-end: 1px solid var(--fo-color-border-strong);
+    }
+
+    p {
+      margin: 0 0 0.25rem;
+      font-size: 0.875rem;
+      color: var(--fo-color-heading);
+    }
+
+    a {
+      font-size: 0.875rem;
+      color: var(--fo-color-action-blue);
+    }
+  }
+}

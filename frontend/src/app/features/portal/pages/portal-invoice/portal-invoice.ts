@@ -17,7 +17,7 @@ import { PortalInvoiceService } from '../../services/portal-invoice.service';
   template: `
     <a class="back" routerLink="/portal/invoices">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      Back to Invoices
+      <span>Back to Invoices</span>
     </a>
     @if (missing()) {
       <app-portal-state
@@ -38,9 +38,17 @@ import { PortalInvoiceService } from '../../services/portal-invoice.service';
     }
 
     .back {
+      display: inline-flex;
+      gap: 0.375rem;
+      align-items: center;
       align-self: flex-start;
       font-weight: 600;
-      color: var(--fo-color-link);
+      color: var(--fo-color-action-blue);
+      text-decoration: none;
+    }
+
+    .back span {
+      text-decoration: underline;
     }
   `,
 })

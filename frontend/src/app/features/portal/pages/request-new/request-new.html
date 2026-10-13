@@ -29,24 +29,12 @@
       <app-request-stepper [complete]="store.result() !== null" />
 
       @if (store.result(); as result) {
-        <section class="rn__card" aria-labelledby="rn-done-title">
-          <h2 class="rn__done" id="rn-done-title" tabindex="-1" data-sr-heading>
-            <i class="pi pi-check-circle" aria-hidden="true"></i>
-            Request received
-          </h2>
-          <p role="status">
-            Your request number is <strong>{{ result.requestNumber }}</strong
-            >. We'll review it and contact you with the next steps.
-          </p>
-          <div class="rn__actions">
-            @if (result.requestId; as requestId) {
-              <a pButton [routerLink]="['/portal/requests', requestId]">View request</a>
-            }
-            <a pButton severity="secondary" [outlined]="true" routerLink="/portal">
-              Back to home
-            </a>
-          </div>
-        </section>
+        <app-request-received
+          [requestNumber]="result.requestNumber"
+          [requestId]="result.requestId"
+          [propertyName]="result.submitted.property[0] ?? null"
+          [organizationName]="organizationName()"
+        />
       } @else {
         <div class="rn__layout">
           <section class="rn__card">

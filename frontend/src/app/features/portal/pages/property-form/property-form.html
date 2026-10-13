@@ -1,9 +1,20 @@
 <div class="pp">
-  <a class="pp__back" routerLink="/portal/properties">
-    <i class="pi pi-arrow-left" aria-hidden="true"></i>
-    Back to Properties
-  </a>
-  <h1 class="pp__title">{{ editing ? 'Edit property' : 'Add property' }}</h1>
+  <header class="pf__head">
+    <nav aria-label="Breadcrumb">
+      <ol class="pf__crumbs">
+        <li><a routerLink="/portal/properties">Properties</a></li>
+        <li aria-current="page">{{ editing ? 'Edit property' : 'Add property' }}</li>
+      </ol>
+    </nav>
+    <h1 class="pp__title">{{ editing ? 'Edit property' : 'Add property' }}</h1>
+    <p class="pf__intro">
+      {{
+        editing
+          ? 'Update the details of this service location.'
+          : 'Add a service location to your account.'
+      }}
+    </p>
+  </header>
 
   <app-portal-state
     [state]="editing ? resource.state() : 'ready'"
@@ -13,212 +24,325 @@
     backLabel="Back to Properties"
     (retry)="load()"
   >
-    <form class="pp__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
-      <div class="pp__field">
-        <label class="pp__label" for="portal-property-name">Property name</label>
-        <input
-          pInputText
-          id="portal-property-name"
-          formControlName="name"
-          autocomplete="off"
-          required
-          fluid
-          [invalid]="errors().name !== undefined"
-          [attr.aria-invalid]="errors().name !== undefined ? 'true' : null"
-          [attr.aria-describedby]="
-            errors().name !== undefined ? 'portal-property-name-error' : null
-          "
-        />
-        @if (errors().name; as error) {
-          <p class="pp__error" id="portal-property-name-error">{{ error }}</p>
-        }
-      </div>
-
-      @if (editing) {
-        <section class="pcard" aria-labelledby="portal-property-address">
-          <h2 class="pcard__title" id="portal-property-address">Address</h2>
-          @if (resource.data(); as property) {
-            <p class="pcard__meta">
-              {{ property.addressLine1 }}
-              @if (property.addressLine2) {
-                , {{ property.addressLine2 }}
-              }
-            </p>
-            <p class="pcard__meta">
-              {{ property.city }}, {{ property.stateRegion }} {{ property.postalCode }}
-            </p>
-          }
-          <p class="pp__hint">To change this address, contact {{ organizationName() }}.</p>
-        </section>
-      } @else {
-        <div class="pp__field">
-          <label class="pp__label" for="portal-property-addressLine1">Address line 1</label>
-          <input
-            pInputText
-            id="portal-property-addressLine1"
-            formControlName="addressLine1"
-            autocomplete="address-line1"
-            required
-            fluid
-            [invalid]="errors().addressLine1 !== undefined"
-            [attr.aria-invalid]="errors().addressLine1 !== undefined ? 'true' : null"
-            [attr.aria-describedby]="
-              errors().addressLine1 !== undefined ? 'portal-property-addressLine1-error' : null
-            "
-          />
-          @if (errors().addressLine1; as error) {
-            <p class="pp__error" id="portal-property-addressLine1-error">{{ error }}</p>
-          }
+    <div class="pf">
+      <form class="pcard pp__form pf__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
+        <div class="pf__card-head">
+          <span class="pf__badge" aria-hidden="true">
+            <svg class="pf__pin" viewBox="0 0 24 24" focusable="false">
+              <path
+                d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"
+              />
+            </svg>
+          </span>
+          <div>
+            <h2 class="pf__section-title">Property details</h2>
+            <p class="pp__hint">Tell us where service will be provided.</p>
+          </div>
         </div>
 
         <div class="pp__field">
-          <label class="pp__label" for="portal-property-addressLine2">
-            Address line 2 (optional)
+          <label class="pp__label" for="portal-property-name">
+            Property name <span class="pf__req" aria-hidden="true">*</span>
           </label>
           <input
             pInputText
-            id="portal-property-addressLine2"
-            formControlName="addressLine2"
-            autocomplete="address-line2"
-            fluid
-            [invalid]="errors().addressLine2 !== undefined"
-            [attr.aria-invalid]="errors().addressLine2 !== undefined ? 'true' : null"
-            [attr.aria-describedby]="
-              errors().addressLine2 !== undefined ? 'portal-property-addressLine2-error' : null
-            "
-          />
-          @if (errors().addressLine2; as error) {
-            <p class="pp__error" id="portal-property-addressLine2-error">{{ error }}</p>
-          }
-        </div>
-
-        <div class="pp__grid">
-          <div class="pp__field">
-            <label class="pp__label" for="portal-property-city">City</label>
-            <input
-              pInputText
-              id="portal-property-city"
-              formControlName="city"
-              autocomplete="address-level2"
-              required
-              fluid
-              [invalid]="errors().city !== undefined"
-              [attr.aria-invalid]="errors().city !== undefined ? 'true' : null"
-              [attr.aria-describedby]="
-                errors().city !== undefined ? 'portal-property-city-error' : null
-              "
-            />
-            @if (errors().city; as error) {
-              <p class="pp__error" id="portal-property-city-error">{{ error }}</p>
-            }
-          </div>
-
-          <div class="pp__field">
-            <label class="pp__label" for="portal-property-stateRegion">State</label>
-            <p-select
-              inputId="portal-property-stateRegion"
-              formControlName="stateRegion"
-              ariaLabel="State"
-              placeholder="Select"
-              appendTo="body"
-              fluid
-              [options]="states"
-              [invalid]="errors().stateRegion !== undefined"
-              [attr.aria-describedby]="
-                errors().stateRegion !== undefined ? 'portal-property-stateRegion-error' : null
-              "
-            />
-            @if (errors().stateRegion; as error) {
-              <p class="pp__error" id="portal-property-stateRegion-error">{{ error }}</p>
-            }
-          </div>
-        </div>
-
-        <div class="pp__field">
-          <label class="pp__label" for="portal-property-postalCode">ZIP code</label>
-          <input
-            pInputText
-            id="portal-property-postalCode"
-            formControlName="postalCode"
-            inputmode="numeric"
-            autocomplete="postal-code"
+            id="portal-property-name"
+            formControlName="name"
+            autocomplete="off"
+            placeholder="e.g. Home, Rental property, Downtown office"
             required
             fluid
-            [invalid]="errors().postalCode !== undefined"
-            [attr.aria-invalid]="errors().postalCode !== undefined ? 'true' : null"
+            [invalid]="errors().name !== undefined"
+            [attr.aria-invalid]="errors().name !== undefined ? 'true' : null"
             [attr.aria-describedby]="
-              errors().postalCode !== undefined ? 'portal-property-postalCode-error' : null
+              errors().name !== undefined ? 'portal-property-name-error' : null
             "
           />
-          @if (errors().postalCode; as error) {
-            <p class="pp__error" id="portal-property-postalCode-error">{{ error }}</p>
+          @if (errors().name; as error) {
+            <p class="pp__error" id="portal-property-name-error">{{ error }}</p>
+          } @else {
+            <p class="pp__hint">Use a name you'll recognize.</p>
           }
         </div>
-      }
 
-      <div class="pp__field">
-        <label class="pp__label" for="portal-property-accessInstructions">
-          Access instructions (optional)
-        </label>
-        <textarea
-          pTextarea
-          id="portal-property-accessInstructions"
-          formControlName="accessInstructions"
-          rows="3"
-          maxlength="1000"
-          fluid
-          [invalid]="errors().accessInstructions !== undefined"
-          [attr.aria-invalid]="errors().accessInstructions !== undefined ? 'true' : null"
-          [attr.aria-describedby]="
-            errors().accessInstructions !== undefined
-              ? 'portal-property-accessInstructions-error'
-              : null
-          "
-        ></textarea>
-        @if (errors().accessInstructions; as error) {
-          <p class="pp__error" id="portal-property-accessInstructions-error">{{ error }}</p>
-        }
-      </div>
+        <h3 class="pf__group">Service address</h3>
 
-      @if (editing) {
-        <div class="pp__field">
-          <span class="pp__actions">
-            <p-checkbox
-              inputId="portal-property-primary"
-              [binary]="true"
-              [disabled]="alreadyPrimary()"
-              [ngModel]="makePrimary()"
-              [ngModelOptions]="{ standalone: true }"
-              (ngModelChange)="makePrimary.set($event)"
+        @if (editing) {
+          <section class="pf__address" aria-label="Service address">
+            @if (resource.data(); as property) {
+              <p class="pcard__meta">
+                {{ property.addressLine1 }}
+                @if (property.addressLine2) {
+                  , {{ property.addressLine2 }}
+                }
+              </p>
+              <p class="pcard__meta">
+                {{ property.city }}, {{ property.stateRegion }} {{ property.postalCode }}
+              </p>
+            }
+            <p class="pp__hint">To change this address, contact {{ organizationName() }}.</p>
+          </section>
+        } @else {
+          <div class="pp__field">
+            <label class="pp__label" for="portal-property-addressLine1">
+              Address line 1 <span class="pf__req" aria-hidden="true">*</span>
+            </label>
+            <input
+              pInputText
+              id="portal-property-addressLine1"
+              formControlName="addressLine1"
+              autocomplete="address-line1"
+              placeholder="Street address"
+              required
+              fluid
+              [invalid]="errors().addressLine1 !== undefined"
+              [attr.aria-invalid]="errors().addressLine1 !== undefined ? 'true' : null"
+              [attr.aria-describedby]="
+                errors().addressLine1 !== undefined ? 'portal-property-addressLine1-error' : null
+              "
             />
-            <label for="portal-property-primary">Make this my primary property</label>
-          </span>
-          @if (alreadyPrimary()) {
-            <p class="pp__hint">This is your primary property.</p>
+            @if (errors().addressLine1; as error) {
+              <p class="pp__error" id="portal-property-addressLine1-error">{{ error }}</p>
+            }
+          </div>
+
+          <div class="pp__field">
+            <label class="pp__label" for="portal-property-addressLine2">
+              Address line 2 (optional)
+            </label>
+            <input
+              pInputText
+              id="portal-property-addressLine2"
+              formControlName="addressLine2"
+              autocomplete="address-line2"
+              placeholder="Apartment, suite, unit, building"
+              fluid
+              [invalid]="errors().addressLine2 !== undefined"
+              [attr.aria-invalid]="errors().addressLine2 !== undefined ? 'true' : null"
+              [attr.aria-describedby]="
+                errors().addressLine2 !== undefined ? 'portal-property-addressLine2-error' : null
+              "
+            />
+            @if (errors().addressLine2; as error) {
+              <p class="pp__error" id="portal-property-addressLine2-error">{{ error }}</p>
+            }
+          </div>
+
+          <div class="pp__grid">
+            <div class="pp__field">
+              <label class="pp__label" for="portal-property-city">
+                City <span class="pf__req" aria-hidden="true">*</span>
+              </label>
+              <input
+                pInputText
+                id="portal-property-city"
+                formControlName="city"
+                autocomplete="address-level2"
+                placeholder="City"
+                required
+                fluid
+                [invalid]="errors().city !== undefined"
+                [attr.aria-invalid]="errors().city !== undefined ? 'true' : null"
+                [attr.aria-describedby]="
+                  errors().city !== undefined ? 'portal-property-city-error' : null
+                "
+              />
+              @if (errors().city; as error) {
+                <p class="pp__error" id="portal-property-city-error">{{ error }}</p>
+              }
+            </div>
+
+            <div class="pp__field">
+              <label class="pp__label" for="portal-property-stateRegion">
+                State <span class="pf__req" aria-hidden="true">*</span>
+              </label>
+              <p-select
+                inputId="portal-property-stateRegion"
+                formControlName="stateRegion"
+                ariaLabel="State"
+                placeholder="Select"
+                appendTo="body"
+                fluid
+                [options]="states"
+                [invalid]="errors().stateRegion !== undefined"
+                [attr.aria-describedby]="
+                  errors().stateRegion !== undefined ? 'portal-property-stateRegion-error' : null
+                "
+              />
+              @if (errors().stateRegion; as error) {
+                <p class="pp__error" id="portal-property-stateRegion-error">{{ error }}</p>
+              }
+            </div>
+          </div>
+
+          <div class="pp__grid">
+            <div class="pp__field">
+              <label class="pp__label" for="portal-property-postalCode">
+                ZIP code <span class="pf__req" aria-hidden="true">*</span>
+              </label>
+              <input
+                pInputText
+                id="portal-property-postalCode"
+                formControlName="postalCode"
+                inputmode="numeric"
+                autocomplete="postal-code"
+                placeholder="ZIP code"
+                required
+                fluid
+                [invalid]="errors().postalCode !== undefined"
+                [attr.aria-invalid]="errors().postalCode !== undefined ? 'true' : null"
+                [attr.aria-describedby]="
+                  errors().postalCode !== undefined ? 'portal-property-postalCode-error' : null
+                "
+              />
+              @if (errors().postalCode; as error) {
+                <p class="pp__error" id="portal-property-postalCode-error">{{ error }}</p>
+              }
+            </div>
+
+            <div class="pp__field">
+              <label class="pp__label" for="portal-property-country">Country</label>
+              <input
+                pInputText
+                id="portal-property-country"
+                class="pf__country"
+                value="United States"
+                readonly
+                fluid
+              />
+            </div>
+          </div>
+        }
+
+        <h3 class="pf__group">Access instructions</h3>
+
+        <div class="pp__field">
+          <label class="pp__label" for="portal-property-accessInstructions">
+            Access instructions (optional)
+          </label>
+          <textarea
+            pTextarea
+            id="portal-property-accessInstructions"
+            formControlName="accessInstructions"
+            rows="3"
+            maxlength="1000"
+            placeholder="Gate codes, parking instructions, pets, or anything your technician should know"
+            fluid
+            [invalid]="errors().accessInstructions !== undefined"
+            [attr.aria-invalid]="errors().accessInstructions !== undefined ? 'true' : null"
+            [attr.aria-describedby]="
+              errors().accessInstructions !== undefined
+                ? 'portal-property-accessInstructions-error'
+                : null
+            "
+          ></textarea>
+          @if (errors().accessInstructions; as error) {
+            <p class="pp__error" id="portal-property-accessInstructions-error">{{ error }}</p>
+          }
+          <p class="pf__counter" aria-hidden="true">
+            {{ form.controls.accessInstructions.value.length }} / 1000
+          </p>
+        </div>
+
+        @if (editing) {
+          <div class="pp__field">
+            <span class="pp__actions">
+              <p-checkbox
+                inputId="portal-property-primary"
+                [binary]="true"
+                [disabled]="alreadyPrimary()"
+                [ngModel]="makePrimary()"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="makePrimary.set($event)"
+              />
+              <label for="portal-property-primary">Make this my primary property</label>
+            </span>
+            @if (alreadyPrimary()) {
+              <p class="pp__hint">This is your primary property.</p>
+            }
+          </div>
+        }
+
+        <div aria-live="polite">
+          @if (failure(); as message) {
+            <p-message severity="error" role="alert">{{ message }}</p-message>
           }
         </div>
-      }
 
-      <div aria-live="polite">
-        @if (failure(); as message) {
-          <p-message severity="error" role="alert">{{ message }}</p-message>
-        }
-      </div>
-
-      <div class="pp__actions">
-        <button pButton type="submit" [disabled]="submitting()">
-          @if (submitting()) {
-            <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        <div class="pf__actions">
+          <a pButton severity="secondary" [outlined]="true" routerLink="/portal/properties"
+            >Cancel</a
+          >
+          @if (conflict()) {
+            <button pButton type="button" severity="secondary" [outlined]="true" (click)="load()">
+              Reload
+            </button>
           }
-          {{ editing ? 'Save changes' : 'Add property' }}
-        </button>
-        @if (conflict()) {
-          <button pButton type="button" severity="secondary" [outlined]="true" (click)="load()">
-            Reload
+          <button pButton type="submit" class="pf__submit" [disabled]="submitting()">
+            @if (submitting()) {
+              <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+            }
+            {{ editing ? 'Save changes' : 'Add property' }}
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
           </button>
-        }
-        <a pButton severity="secondary" [outlined]="true" routerLink="/portal/properties">Cancel</a>
-      </div>
-    </form>
+        </div>
+        <p class="pp__hint pf__privacy">
+          <i class="pi pi-lock" aria-hidden="true"></i>
+          Your address is only shared with your service team.
+        </p>
+      </form>
+
+      @if (!editing) {
+        <div class="pf__side">
+          <section class="pcard pf__preview" aria-labelledby="portal-property-preview">
+            <h2 class="pf__section-title pf__tips-title" id="portal-property-preview">
+              <span class="pf__mini" aria-hidden="true"><i class="pi pi-map"></i></span>
+              Property preview
+            </h2>
+            <app-portal-map-illustration />
+            <p class="pp__hint pf__caption" aria-live="polite">
+              {{ previewAddress() ?? 'Your address preview will appear here.' }}
+            </p>
+          </section>
+          <aside class="pcard pf__tips" aria-labelledby="portal-property-tips">
+            <h2 class="pf__section-title pf__tips-title" id="portal-property-tips">
+              <span class="pf__info" aria-hidden="true"><i class="pi pi-info"></i></span>
+              Before you add a property
+            </h2>
+            <ul class="pf__tip-list">
+              <li>
+                <span class="pf__tip-icon" aria-hidden="true"><i class="pi pi-home"></i></span>
+                <div>
+                  <p class="pf__tip-title">Use the exact service address</p>
+                  <p class="pp__hint">This helps us send the right technician and avoid delays.</p>
+                </div>
+              </li>
+              <li>
+                <span class="pf__tip-icon" aria-hidden="true"><i class="pi pi-file"></i></span>
+                <div>
+                  <p class="pf__tip-title">Add access details for smoother visits</p>
+                  <p class="pp__hint">
+                    Gate codes, parking instructions, pets, or other helpful information.
+                  </p>
+                </div>
+              </li>
+              <li>
+                <span class="pf__tip-icon" aria-hidden="true"><i class="pi pi-pencil"></i></span>
+                <div>
+                  <p class="pf__tip-title">You can update these details later</p>
+                  <p class="pp__hint">
+                    Need to make a change? You can edit this property at any time.
+                  </p>
+                </div>
+              </li>
+            </ul>
+            <p class="pf__help">
+              <i class="pi pi-question-circle" aria-hidden="true"></i>
+              Need help? <a routerLink="/portal" fragment="help">Contact support</a>
+            </p>
+          </aside>
+        </div>
+      }
+    </div>
   </app-portal-state>
 </div>

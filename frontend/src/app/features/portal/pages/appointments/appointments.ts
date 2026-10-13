@@ -12,6 +12,14 @@ import { dateLabel, timeRange } from '../../utils/portal-format';
 import { PortalList } from '../../utils/portal-list';
 import { visitChip } from '../../utils/portal-status';
 
+/** "Oct" of a `YYYY-MM-DD` date, read as a calendar date (no time-zone shift). */
+function monthShort(date: string): string {
+  const [year, month] = date.split('-').map(Number);
+  return new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(
+    new Date(Date.UTC(year, month - 1, 1)),
+  );
+}
+
 /** Appointments list (BR-29): Upcoming and Past tabs, property-filterable, 20 per page. */
 @Component({
   selector: 'app-portal-appointments',
@@ -24,7 +32,7 @@ import { visitChip } from '../../utils/portal-status';
     RouterLink,
   ],
   templateUrl: './appointments.html',
-  styleUrls: ['../../portal.scss', '../../portal-table.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-table.scss', './appointments.scss'],
 })
 export class PortalAppointments {
   private readonly appointments = inject(PortalAppointmentsService);
@@ -44,6 +52,8 @@ export class PortalAppointments {
     (this.list.resource.data()?.items ?? []).map((appointment) => ({
       appointment,
       date: dateLabel(appointment.date),
+      month: monthShort(appointment.date),
+      day: Number(appointment.date.slice(8, 10)),
       time: timeRange(appointment.startTime, appointment.endTime),
       chip: visitChip(appointment),
     })),

@@ -17,7 +17,7 @@ import { PortalQuoteService } from '../../services/portal-quote.service';
   template: `
     <a class="back" routerLink="/portal/quotes">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      Back to Quotes
+      <span>Back to Quotes</span>
     </a>
     @if (missing()) {
       <app-portal-state state="not-found" backLink="/portal/quotes" backLabel="Back to Quotes" />
@@ -34,9 +34,17 @@ import { PortalQuoteService } from '../../services/portal-quote.service';
     }
 
     .back {
+      display: inline-flex;
+      gap: 0.375rem;
+      align-items: center;
       align-self: flex-start;
       font-weight: 600;
-      color: var(--fo-color-link);
+      color: var(--fo-color-action-blue);
+      text-decoration: none;
+    }
+
+    .back span {
+      text-decoration: underline;
     }
   `,
 })

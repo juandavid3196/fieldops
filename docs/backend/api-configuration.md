@@ -90,6 +90,14 @@ variables.
 | `POST /public/quote-links/photos/{photoId}` | All | Body `{ token }`. `200` image of the quote's latest completed assessment (up to 6); otherwise the generic `404`. |
 | `POST /public/quote-links/logo` | All | Body `{ token }`. `200` organization logo, or the generic `404` when there is none. |
 | `POST /public/quote-links/pdf` | All | Body `{ token }`. `200 application/pdf` attachment `<Q-n>-v<versionNo>.pdf`. |
+| `POST /portal/sessions` | All | Portal sign-in (anonymous). `application/json` only, body ≤ 4 KB, same limits and failure counters as `POST /sessions`. `200 PortalSession` + `Set-Cookie: fieldops_portal_session`; every credential failure is the same `401`. |
+| `GET /portal/sessions/current`, `DELETE /portal/sessions/current`, `POST /portal/sessions/current/account` | All | Current portal session (`401` without a valid portal session), sign out (`204`, deletes only the portal cookie) and Switch account (`{ contactId }`; `404` `portal_account_unavailable`; reissues the cookie keeping the sign-in time). |
+| `POST /portal/invitations/validate`, `/accept`, `/accept-existing` | All | Portal activation (anonymous, token in the body, ≤ 4 KB, one rate-limit partition). One identical `410` `portal_invitation_unavailable` for every unusable or malformed token; `409` `portal_invitation_ineligible`; `401` for a wrong existing-account password. `accept` and `accept-existing` answer `200 PortalSession` + the portal cookie after commit. |
+| `POST /portal/password-resets` | All | Portal reset request (anonymous): the `/password-resets` rules, an active link required, link `{first CORS origin}/portal/reset-password#token={token}`. |
+| `GET /portal/dashboard`, `/requests`, `/appointments`, `/quotes`, `/invoices`, `/activity`, `/updates`, `/properties` and their detail routes | All | Portal reads (portal scheme only). Every id, `propertyId` included, is checked against the session organization and customer; any other id answers the identical `404` `portal_resource_unavailable`. |
+| `POST /portal/service-requests`, `/portal/appointments/{visitId}/reschedule-requests`, `/portal/properties`, `PATCH /portal/properties/{propertyId}`, `/portal/messages`, `/portal/updates/seen` | All | Portal writes. Per-user limits below; `409` codes `reschedule_not_available`, `reschedule_already_requested`, `property_changed`, `messaging_unavailable`. |
+| `/portal/quotes/{quoteId}/…`, `/portal/invoices/{invoiceId}/…`, `GET /portal/work-orders/{id}/completion-report`, `GET /portal/organization/logo` | All | The quote approval and invoice payment use cases reached by id through `ResourceAccess.Portal` instead of a public token (no token row is created, read or revoked). A quote past its `valid_until` is read-only `expired` and its actions answer `409` `quote_expired`. Rate-limit groups are the public ones, keyed by user and resource. |
+| `POST /customers/{id}/portal-invitation`, `DELETE /customers/{id}/portal-access` | All | Staff (`CustomerPolicies.Manage`, branch scope, cross-organization `404`). `200 { portalStatus, portalLinkedOn, invitationExpiresOn }`; `409` `portal_invite_unavailable`. `GET /customers/{id}/detail` adds the same fields to `contact`. |
 
 Public quote-link endpoints (customer-quote-approval): anonymous, the raw token in
 the JSON body is the only credential and the organization, quote and version come
@@ -143,6 +151,15 @@ re-checks token, user status and password versus email, writes `used_at`,
 revalidation rejects any session whose `signed_in_at` precedes the user's
 `password_changed_at` (`401`, cookie cleared); `password_changed_at` is stored
 truncated to milliseconds to match the cookie claim.
+
+Customer portal (`customer-portal-dashboard`): every response under `/portal` is `Cache-Control: no-store`
+(`PortalNoStoreMiddleware`, also for `401`, `429` and `415`); binary responses use `private, no-store`. Controllers derive from
+`PortalControllerBase`, which authorizes only the portal scheme, so the internal cookie never authenticates a portal endpoint and the
+portal cookie never an internal one (`401`, no redirect). The organization, customer, contact and user come from the revalidated
+session (`PortalScope`); no portal body or header carries them. Resource ids travel in the path; a foreign or unknown id (a malformed
+`propertyId` too) is the identical `404` `portal_resource_unavailable`. Logs and audit rows hold ids and categories only: never
+emails, passwords, tokens, messages, reasons or addresses. `PortalSession` body:
+`{ user: { firstName, lastName, email }, account: { contactId, customerName, organizationName, hasLogo }, accounts: [{ contactId, customerName, organizationName }] }`.
 
 Session body: `{ user: { id, firstName, lastName, email }, organization: { id, name }, role: { code, name } }`.
 
@@ -219,6 +236,12 @@ session store.
 - A successful sign-in updates `users.last_login_at`/`updated_at` and inserts
   the `auth.signed_in` audit row in one `SaveChangesAsync` (one transaction).
   If it fails the response is `500` and no cookie is set.
+- Customer portal session: a second cookie scheme (`PortalSession`, cookie `fieldops_portal_session`) with the same flags and lifetimes.
+  Ticket: user, contact, customer and organization ids, sign-in time, Remember me. `PortalSessionCookieEvents` revalidates every request
+  (user `active`, `password_changed_at` not after the sign-in, the contact an active link: contact, customer and organization active and
+  `customer_contacts.portal_user_id` = user) and answers `401` plus cookie deletion otherwise (`InvalidSessionCookieMiddleware` cleans it
+  only under `/portal`). Sign-in picks the active link with the oldest `portal_linked_at`; Switch account reissues the cookie for another
+  link of the caller. A password reset ends the internal and the portal sessions issued before it.
 - Data Protection keys use the default store; losing them signs every user
   out. No global fallback authorization policy: endpoints opt in with
   `[Authorize]`.
@@ -240,6 +263,7 @@ Every request counts, whatever its outcome.
 | Public quote link, read (`quote-link-read`) | `RemoteIpAddress` | `view`, `calculate`, `photos`, `logo`: 60 per 5-minute fixed window; global 600 per minute. |
 | Public quote link, actions (`quote-link-action`) | `RemoteIpAddress` | `approve`, `decline`, `clarification`: 10 per 15-minute fixed window; global 100 per minute. |
 | Public quote link, PDF (`quote-link-pdf`) | `RemoteIpAddress` | `pdf`: 10 per 5-minute fixed window; global 100 per minute. |
+| Portal writes, per user (`IPortalActionThrottle`, in memory, 15-minute sliding window) | Portal user id | `POST /portal/service-requests` 5, `POST /portal/properties` 10, `POST /portal/messages` 5, reschedule requests 5; every attempt counts. Global: service requests 100 per hour, the other three 300 per minute. Quote and invoice actions keep the public groups, keyed by user and resource. Portal sign-in and invitations reuse the sign-in and invitation limits (per client and per email). |
 | Password reset, per email | SHA-256 of the normalized email | 3 requests per 60 minutes (`IPasswordResetEmailThrottle`, bounded in memory), counted for every well-formed email. Not a `429`: the request returns the neutral `202` with no token or email. |
 | Per email | SHA-256 of the normalized email | After 5 failed (`401`) attempts in a sliding 15 minutes, `429` before password verification until the oldest failure leaves the window. Unknown emails count. Success clears it; `400`, `413`, `415` and `429` do not count. |
 
@@ -251,7 +275,7 @@ Every request counts, whatever its outcome.
 ## Pipeline and CORS
 
 Middleware order: `RequestLoggingMiddleware`, `UseExceptionHandler`,
-`UseStatusCodePages`, `InvitationNoStoreMiddleware`, `PasswordResetNoStoreMiddleware`, `QuoteLinkPublicHeadersMiddleware`, (Development: OpenAPI, Swagger UI),
+`UseStatusCodePages`, `InvitationNoStoreMiddleware`, `PasswordResetNoStoreMiddleware`, `PortalNoStoreMiddleware`, `QuoteLinkPublicHeadersMiddleware`, (Development: OpenAPI, Swagger UI),
 `UseHttpsRedirection`, `UseCors`, `UseRateLimiter`, `UseAuthentication`,
 `InvalidSessionCookieMiddleware`, `UseAuthorization`, endpoints.
 

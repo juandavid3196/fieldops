@@ -10,7 +10,6 @@
           pButton
           severity="secondary"
           [outlined]="true"
-          size="small"
           [routerLink]="['/portal/appointments', visit.visitId]"
         >
           View details
@@ -26,7 +25,6 @@
             type="button"
             severity="secondary"
             [outlined]="true"
-            size="small"
             (click)="reschedule.emit(visit)"
           >
             Request reschedule
@@ -38,36 +36,44 @@
 
   @if (appointment(); as visit) {
     @if (view(); as view) {
-      <div class="pcard__split">
-        <div class="pcard__split-main">
-          <p class="pcard__lead">{{ visit.title }}</p>
-          <p class="pcard__meta">Work order {{ visit.workOrderNumber }}</p>
-          <p class="pcard__meta">
-            <i class="pi pi-calendar" aria-hidden="true"></i> {{ view.date }}
-          </p>
-          <p class="pcard__meta">
-            <i class="pi pi-clock" aria-hidden="true"></i> {{ view.time }}
-            @if (view.isWindow) {
-              <span class="pcard__meta">(Arrival window)</span>
-            }
-          </p>
-          <p class="pcard__meta">
-            <i class="pi pi-user" aria-hidden="true"></i>
-            @if (visit.technician; as technician) {
-              {{ technician.fullName }} <span class="pcard__tag">Assigned</span>
-            } @else {
-              Technician to be assigned
-            }
-          </p>
-          <p class="pcard__meta">
-            <i class="pi pi-map-marker" aria-hidden="true"></i>
-            {{ visit.property.name }}, {{ visit.property.addressLine1 }}
-          </p>
+      <div class="ap">
+        <div class="ap__details">
+          <p class="ap__title">{{ visit.title }}</p>
+          <p class="ap__wo">Work order {{ visit.workOrderNumber }}</p>
+          <ul class="ap__facts">
+            <li>
+              <i class="pi pi-calendar" aria-hidden="true"></i>
+              <span>{{ view.date }}</span>
+            </li>
+            <li>
+              <i class="pi pi-clock" aria-hidden="true"></i>
+              <span>
+                {{ view.time }}
+                @if (view.isWindow) {
+                  <small>Arrival window</small>
+                }
+              </span>
+            </li>
+            <li>
+              <i class="pi pi-user" aria-hidden="true"></i>
+              <span>
+                @if (visit.technician; as technician) {
+                  {{ technician.fullName }} <span class="ap__tag">Assigned</span>
+                } @else {
+                  Technician to be assigned
+                }
+              </span>
+            </li>
+            <li>
+              <i class="pi pi-map-marker" aria-hidden="true"></i>
+              <span>{{ visit.property.name }}, {{ visit.property.addressLine1 }}</span>
+            </li>
+          </ul>
         </div>
-        <div class="pcard__split-main">
-          <app-portal-progress-stepper [step]="visit.progressStep" />
-          <p class="pcard__notice" role="status">
-            <i class="pi pi-info-circle" aria-hidden="true"></i>
+        <div class="ap__progress">
+          <app-portal-progress-stepper [progress]="visit.progressStep" />
+          <p class="ap__notice" role="status">
+            <span class="ap__info" aria-hidden="true"><i class="pi pi-info"></i></span>
             {{ view.notice }}
           </p>
         </div>

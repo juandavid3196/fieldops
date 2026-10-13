@@ -35,7 +35,7 @@ export function availabilityText(availability: RequestAvailability | null): stri
   selector: 'app-portal-request-detail',
   imports: [PortalState, PortalStatusChip, RouterLink],
   templateUrl: './request-detail.html',
-  styleUrls: ['../../portal.scss', '../../portal-facts.scss'],
+  styleUrls: ['../../portal.scss', '../../portal-facts.scss', './request-detail.scss'],
 })
 export class PortalRequestDetail {
   private readonly requests = inject(PortalRequestsService);
