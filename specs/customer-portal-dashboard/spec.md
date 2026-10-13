@@ -4,7 +4,7 @@
 | -------- | --------------------------- |
 | Feature  | `customer-portal-dashboard` |
 | Type     | Full-stack                  |
-| Status   | APPROVED                    |
+| Status   | AUDITED                     |
 | Created  | 2026-10-10                  |
 | Updated  | 2026-10-13                  |
 | Approved | 2026-10-13                  |
@@ -562,3 +562,5 @@ family and module.
 | 2026-10-10 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-13 | APPROVED → DRAFT | Revised after the first implementation and user visual QA: OD-16 records the UI changes the user requested (BR-23, BR-24, BR-28, BR-33, BR-36, BR-38, sign-in layout, AC-14/15/17/18/24/26, testing note, dependency on `sign-in`) |
 | 2026-10-13 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-13 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-13 | IMPLEMENTED → AUDITED | final-audit returned AUDIT FAIL on validation only (full frontend suite not green: Vitest 5000 ms timeouts in unrelated files, passing on rerun; no Critical/Important code, security or spec finding; backend full integration 494/494). Closed as AUDITED by explicit user (admin) order; Minor findings M1 (concurrent portal new-property primary race), M2 (bundle budget), M3 (`sign-in` spec revision), M5 (singular "1 update") remain open |
