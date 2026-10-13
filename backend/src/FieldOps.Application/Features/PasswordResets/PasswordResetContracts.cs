@@ -57,6 +57,9 @@ public interface IPasswordResetStore
     /// <summary>Active user with this normalized email, read without a lock (BR-04).</summary>
     Task<PasswordResetEligibleUser?> FindEligibleUserAsync(string normalizedEmail, CancellationToken cancellationToken);
 
+    /// <summary>Like <see cref="FindEligibleUserAsync"/>, and the user also needs at least one active portal link (customer portal BR-15).</summary>
+    Task<PasswordResetEligibleUser?> FindEligiblePortalUserAsync(string normalizedEmail, CancellationToken cancellationToken);
+
     /// <summary>
     /// Replaces the user's unused tokens with one new token. Returns false
     /// when nothing was created (the user stopped being active or a

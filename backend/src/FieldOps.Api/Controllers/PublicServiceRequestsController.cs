@@ -91,7 +91,7 @@ public sealed class PublicServiceRequestsController(
         {
             var form = await Request.ReadFormAsync(cancellationToken);
 
-            body = await ReadBodyAsync(form, cancellationToken);
+            body = await ReadBodyAsync<PublicServiceRequestBody>(form, cancellationToken);
             attachments = await ReadAttachmentsAsync(form, cancellationToken);
         }
         catch (InvalidDataException)
@@ -141,8 +141,9 @@ public sealed class PublicServiceRequestsController(
     }
 
     // The request part is a form value, or a file part when the client sent it as a Blob.
-    private static async Task<PublicServiceRequestBody?> ReadBodyAsync(
+    internal static async Task<T?> ReadBodyAsync<T>(
         IFormCollection form, CancellationToken cancellationToken)
+        where T : class
     {
         string? json = form[RequestPartName].FirstOrDefault();
 
@@ -159,10 +160,10 @@ public sealed class PublicServiceRequestsController(
 
         return json is null
             ? null
-            : JsonSerializer.Deserialize<PublicServiceRequestBody>(json, JsonOptions);
+            : JsonSerializer.Deserialize<T>(json, JsonOptions);
     }
 
-    private static async Task<List<PublicAttachmentInput>> ReadAttachmentsAsync(
+    internal static async Task<List<PublicAttachmentInput>> ReadAttachmentsAsync(
         IFormCollection form, CancellationToken cancellationToken)
     {
         var files = form.Files.GetFiles(AttachmentsPartName);

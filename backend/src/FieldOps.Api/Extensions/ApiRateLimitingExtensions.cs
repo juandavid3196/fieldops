@@ -140,6 +140,34 @@ public static class ApiRateLimitingExtensions
 
     private const string InvoiceLinkPdfGlobalPartition = "invoice-link-pdf-global";
 
+    /// <summary>POST /portal/service-requests (customer portal BR-28): 100 per hour globally; the 5 per user per 15 minutes is enforced by <c>IPortalActionThrottle</c> (the limiter runs before authentication).</summary>
+    public const string PortalServiceRequestPolicy = "portal-service-request";
+
+    /// <summary>POST /portal/properties (customer portal BR-33); the per-user limit is <c>IPortalActionThrottle</c>.</summary>
+    public const string PortalPropertyCreatePolicy = "portal-property-create";
+
+    /// <summary>POST /portal/messages (customer portal BR-35); the per-user limit is <c>IPortalActionThrottle</c>.</summary>
+    public const string PortalMessagePolicy = "portal-message";
+
+    /// <summary>POST /portal/appointments/{visitId}/reschedule-requests (customer portal BR-32); the per-user limit is <c>IPortalActionThrottle</c>.</summary>
+    public const string PortalReschedulePolicy = "portal-reschedule";
+
+    public const int PortalServiceRequestGlobalPermitLimit = 100;
+
+    public const int PortalWriteGlobalPermitLimit = 300;
+
+    public static readonly TimeSpan PortalServiceRequestGlobalWindow = TimeSpan.FromHours(1);
+
+    public static readonly TimeSpan PortalWriteGlobalWindow = TimeSpan.FromMinutes(1);
+
+    private const string PortalServiceRequestGlobalPartition = "portal-service-request-global";
+
+    private const string PortalPropertyCreateGlobalPartition = "portal-property-create-global";
+
+    private const string PortalMessageGlobalPartition = "portal-message-global";
+
+    private const string PortalRescheduleGlobalPartition = "portal-reschedule-global";
+
     /// <summary>Shared by validate, accept and accept-existing (invitation BR-12).</summary>
     public const string InvitationPolicy = "invitation";
 
@@ -350,6 +378,12 @@ public static class ApiRateLimitingExtensions
             // No per-client number (BR-23): only the global window below applies, plus the per-invoice hourly limit.
             options.AddPolicy(InvoiceLinkActionPolicy, _ => RateLimitPartition.GetNoLimiter(InvoiceLinkActionPolicy));
 
+            // Portal writes: no per-IP number here (the user is only known after authentication); only the global windows below.
+            options.AddPolicy(PortalServiceRequestPolicy, _ => RateLimitPartition.GetNoLimiter(PortalServiceRequestPolicy));
+            options.AddPolicy(PortalPropertyCreatePolicy, _ => RateLimitPartition.GetNoLimiter(PortalPropertyCreatePolicy));
+            options.AddPolicy(PortalMessagePolicy, _ => RateLimitPartition.GetNoLimiter(PortalMessagePolicy));
+            options.AddPolicy(PortalReschedulePolicy, _ => RateLimitPartition.GetNoLimiter(PortalReschedulePolicy));
+
             // Applies only to endpoints using one of the named policies above.
             options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
                 GetEndpointPolicyName(httpContext) switch
@@ -467,6 +501,17 @@ public static class ApiRateLimitingExtensions
                             Window = InvoiceLinkActionGlobalWindow,
                             QueueLimit = 0,
                         }),
+                    PortalServiceRequestPolicy => RateLimitPartition.GetFixedWindowLimiter(
+                        PortalServiceRequestGlobalPartition,
+                        _ => new FixedWindowRateLimiterOptions
+                        {
+                            PermitLimit = PortalServiceRequestGlobalPermitLimit,
+                            Window = PortalServiceRequestGlobalWindow,
+                            QueueLimit = 0,
+                        }),
+                    PortalPropertyCreatePolicy => PortalWriteGlobal(PortalPropertyCreateGlobalPartition),
+                    PortalMessagePolicy => PortalWriteGlobal(PortalMessageGlobalPartition),
+                    PortalReschedulePolicy => PortalWriteGlobal(PortalRescheduleGlobalPartition),
                     _ => RateLimitPartition.GetNoLimiter(string.Empty),
                 });
 
@@ -486,6 +531,16 @@ public static class ApiRateLimitingExtensions
 
         return services;
     }
+
+    private static RateLimitPartition<string> PortalWriteGlobal(string partition) =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partition,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = PortalWriteGlobalPermitLimit,
+                Window = PortalWriteGlobalWindow,
+                QueueLimit = 0,
+            });
 
     private static string? GetEndpointPolicyName(HttpContext httpContext) =>
         httpContext.GetEndpoint()?.Metadata.GetMetadata<EnableRateLimitingAttribute>()?.PolicyName;

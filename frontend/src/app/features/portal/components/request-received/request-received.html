@@ -1,0 +1,93 @@
+<div class="received">
+  <section class="received__card" aria-labelledby="rn-done-title">
+    <div class="received__hero">
+      <svg class="received__art" viewBox="0 0 120 120" aria-hidden="true" focusable="false">
+        <circle class="received__art-bg" cx="60" cy="60" r="58" />
+        <rect class="received__art-doc" x="26" y="24" width="50" height="62" rx="6" />
+        <rect class="received__art-line" x="35" y="36" width="30" height="5" rx="2.5" />
+        <rect class="received__art-line" x="35" y="48" width="22" height="5" rx="2.5" />
+        <rect class="received__art-line" x="35" y="60" width="26" height="5" rx="2.5" />
+        <circle class="received__art-check" cx="78" cy="78" r="20" />
+        <path class="received__art-tick" d="M69 78l6 6 12-12" />
+      </svg>
+      <div>
+        <p class="received__eyebrow">Request submitted</p>
+        <h2 class="received__title" id="rn-done-title" tabindex="-1" data-sr-heading>
+          Your request is on its way
+        </h2>
+        <p class="received__lead" role="status">
+          We've received request <strong>{{ requestNumber() }}</strong
+          >. {{ team() }} will review the details and contact you with the next steps.
+        </p>
+      </div>
+    </div>
+
+    <dl class="received__facts">
+      <div>
+        <dt>Request number</dt>
+        <dd>
+          {{ requestNumber() }}
+          <button
+            type="button"
+            class="received__copy"
+            [attr.aria-label]="copied() ? 'Request number copied' : 'Copy request number'"
+            (click)="copy()"
+          >
+            <i class="pi" [class]="copied() ? 'pi-check' : 'pi-copy'" aria-hidden="true"></i>
+          </button>
+        </dd>
+      </div>
+      <div>
+        <dt>Status</dt>
+        <dd><app-portal-status-chip label="Submitted" tone="success" variant="tag" /></dd>
+      </div>
+      <div>
+        <dt>Submitted</dt>
+        <dd>Just now</dd>
+      </div>
+      @if (propertyName(); as name) {
+        <div>
+          <dt>Property</dt>
+          <dd>{{ name }}</dd>
+        </div>
+      }
+    </dl>
+
+    <div class="received__actions">
+      @if (requestId(); as id) {
+        <a pButton [routerLink]="['/portal/requests', id]">
+          View request
+          <i class="pi pi-angle-right" aria-hidden="true"></i>
+        </a>
+      }
+      <a pButton class="received__home" severity="secondary" [outlined]="true" routerLink="/portal">
+        Back to home
+      </a>
+    </div>
+  </section>
+
+  <aside class="received__card" aria-labelledby="rn-next-title">
+    <h2 class="received__side-title" id="rn-next-title">What happens next?</h2>
+    <ol class="received__steps">
+      <li>
+        <strong>We review your request</strong>
+        <span>We'll confirm the service details and availability.</span>
+      </li>
+      <li>
+        <strong>We contact you</strong>
+        <span>Watch your email and portal updates for next steps.</span>
+      </li>
+      <li>
+        <strong>Assessment or quote</strong>
+        <span>We'll schedule an assessment or prepare your quote.</span>
+      </li>
+    </ol>
+    <div class="received__notice">
+      <i class="pi pi-bell" aria-hidden="true"></i>
+      <div>
+        <p>Changes to this request appear in your portal updates.</p>
+        <a routerLink="/portal" fragment="help">Need help? Contact support</a>
+      </div>
+    </div>
+  </aside>
+</div>

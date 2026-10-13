@@ -1,10 +1,14 @@
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable } from 'rxjs';
 
 import { isApiError } from '../../../core/models/api-error.model';
 import {
   AvailabilityData,
   ContactData,
+  NEW_PROPERTY_CHOICE,
+  PortalServiceRequestPayload,
+  PortalWizardConfig,
   PropertyData,
   ServiceData,
   ServiceRequestForm,
@@ -16,6 +20,7 @@ import {
 import {
   ATTACHMENT_SIZE_MESSAGE,
   NOT_SURE_LABEL,
+  PORTAL_PROPERTY_REQUIRED_MESSAGE,
   RATE_LIMITED_MESSAGE,
   SERVER_ATTACHMENTS_MESSAGE,
   SERVER_FIELD_MESSAGE,
@@ -52,6 +57,8 @@ export interface FocusRequest {
 
 export interface SubmissionResult {
   readonly requestNumber: string;
+  /** Portal only: the created request, for the View request link. */
+  readonly requestId?: string;
   readonly firstName: string;
   readonly email: string;
   /** Snapshot taken before the wizard data is cleared, shown on the confirmation page. */
@@ -115,6 +122,10 @@ export class ServiceRequestWizardStore {
   private focusSeq = 0;
 
   readonly config = signal<ServiceRequestForm | null>(null);
+  /** Portal mode (signed-in customer): no Contact step, known or new property. */
+  readonly portal = signal<PortalWizardConfig | null>(null);
+  /** Portal property choice: a property id, 'new' for a new property, or '' (not chosen). */
+  readonly propertyChoice = signal('');
   readonly step = signal<WizardStep>('contact');
   readonly data = signal<WizardData>(initialData());
   readonly files = signal<readonly File[]>([]);
@@ -129,7 +140,18 @@ export class ServiceRequestWizardStore {
   readonly result = signal<SubmissionResult | null>(null);
   readonly focusRequest = signal<FocusRequest | null>(null);
 
-  readonly stepIndex = computed(() => STEP_ORDER.indexOf(this.step()));
+  /** Steps in order; the portal skips Contact. */
+  readonly order = computed<readonly WizardStep[]>(() =>
+    this.portal() === null ? STEP_ORDER : STEP_ORDER.filter((step) => step !== 'contact'),
+  );
+  readonly stepIndex = computed(() => this.order().indexOf(this.step()));
+  /** The chosen known property of the portal wizard, or null (none chosen or a new one). */
+  readonly chosenProperty = computed(
+    () => this.portal()?.properties.find((p) => p.id === this.propertyChoice()) ?? null,
+  );
+  readonly newPropertyChosen = computed(
+    () => this.portal() !== null && this.propertyChoice() === NEW_PROPERTY_CHOICE,
+  );
   readonly categoryServices = computed(() => [
     ...(this.config()?.categories.find((c) => c.id === this.data().service.categoryId)?.services ??
       []),
@@ -153,6 +175,7 @@ export class ServiceRequestWizardStore {
           ? "I'm flexible"
           : availability.preferredDate;
 
+    const known = this.chosenProperty();
     const sections: readonly SummarySection[] = [
       {
         step: 'contact',
@@ -162,11 +185,20 @@ export class ServiceRequestWizardStore {
       {
         step: 'property',
         title: 'Property',
-        lines: [
-          property.propertyType === 'home' ? 'Home' : 'Business',
-          [property.addressLine1.trim(), property.addressLine2.trim()].filter(Boolean).join(', '),
-          `${property.city.trim()}, ${property.state} ${property.postalCode.trim()}`,
-        ],
+        lines:
+          known !== null
+            ? [
+                known.name,
+                known.addressLine1,
+                `${known.city}, ${known.stateRegion} ${known.postalCode}`,
+              ]
+            : [
+                property.propertyType === 'home' ? 'Home' : 'Business',
+                [property.addressLine1.trim(), property.addressLine2.trim()]
+                  .filter(Boolean)
+                  .join(', '),
+                `${property.city.trim()}, ${property.state} ${property.postalCode.trim()}`,
+              ],
       },
       {
         step: 'service',
@@ -182,7 +214,9 @@ export class ServiceRequestWizardStore {
         lines: [when, TIME_WINDOW_LABELS[availability.timeWindow]],
       },
     ];
-    return sections.map((s) => (done.has(s.step) ? s : { ...s, lines: [] }));
+    return sections
+      .filter((s) => this.portal() === null || s.step !== 'contact')
+      .map((s) => (done.has(s.step) ? s : { ...s, lines: [] }));
   });
 
   /** Organization website as an absolute URL, or `null` when none is set. */
@@ -204,6 +238,35 @@ export class ServiceRequestWizardStore {
   configure(slug: string, config: ServiceRequestForm): void {
     this.slug = slug;
     this.config.set(config);
+  }
+
+  /**
+   * Portal mode: the signed-in customer's wizard. Starts at Property; the preselected property
+   * (BR-18) or the only property is chosen, and a customer without properties adds a new one.
+   */
+  configurePortal(
+    config: ServiceRequestForm,
+    portal: PortalWizardConfig,
+    preselectedId: string | null,
+  ): void {
+    this.slug = '';
+    this.portal.set(portal);
+    this.config.set(config);
+    this.step.set('property');
+    const known = portal.properties;
+    const preselected = known.find((p) => p.id === preselectedId);
+    let choice = preselected?.id ?? '';
+    if (choice === '' && known.length === 1) {
+      choice = known[0].id;
+    } else if (known.length === 0) {
+      choice = NEW_PROPERTY_CHOICE;
+    }
+    this.propertyChoice.set(choice);
+  }
+
+  choosePropertyOption(choice: string): void {
+    this.propertyChoice.set(choice);
+    this.clearError('property.propertyId');
   }
 
   /** Organization-local today (`YYYY-MM-DD`), used for the date limits. */
@@ -293,7 +356,7 @@ export class ServiceRequestWizardStore {
     }
 
     this.completed.update((done) => new Set(done).add(step));
-    const target = STEP_ORDER[this.stepIndex() + 1];
+    const target = this.order()[this.stepIndex() + 1];
     if (target !== undefined) {
       this.goTo(target);
     }
@@ -301,7 +364,7 @@ export class ServiceRequestWizardStore {
   }
 
   back(): void {
-    const target = STEP_ORDER[this.stepIndex() - 1];
+    const target = this.order()[this.stepIndex() - 1];
     if (target !== undefined) {
       this.goTo(target);
     }
@@ -319,7 +382,7 @@ export class ServiceRequestWizardStore {
     if (this.submitting()) return;
     this.submitError.set(null);
 
-    for (const step of STEP_ORDER) {
+    for (const step of this.order()) {
       const errors = this.validate(step);
       const first = firstInvalidField(step, errors);
       if (first !== null) {
@@ -334,25 +397,28 @@ export class ServiceRequestWizardStore {
     }
 
     this.submitting.set(true);
-    this.api
-      .submit(this.slug, this.buildPayload(), this.files())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (created) => {
-          const { firstName, email } = this.data().contact;
-          const submitted = this.snapshot();
-          this.result.set({
-            requestNumber: created.requestNumber,
-            firstName: firstName.trim(),
-            email: email.trim(),
-            submitted,
-          });
-          this.submitting.set(false);
-          this.clearData();
-          this.requestFocus('heading');
-        },
-        error: (failure: unknown) => this.handleError(failure),
-      });
+    const portal = this.portal();
+    const request$: Observable<{ requestNumber: string; requestId?: string }> =
+      portal === null
+        ? this.api.submit(this.slug, this.buildPayload(), this.files())
+        : portal.submit(this.buildPortalPayload(), this.files());
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (created) => {
+        const { firstName, email } = this.data().contact;
+        const submitted = this.snapshot();
+        this.result.set({
+          requestNumber: created.requestNumber,
+          requestId: created.requestId,
+          firstName: firstName.trim(),
+          email: email.trim(),
+          submitted,
+        });
+        this.submitting.set(false);
+        this.clearData();
+        this.requestFocus('heading');
+      },
+      error: (failure: unknown) => this.handleError(failure),
+    });
   }
 
   /** "Submit another request": empty wizard at step 1. */
@@ -360,7 +426,7 @@ export class ServiceRequestWizardStore {
     this.clearData();
     this.result.set(null);
     this.submitError.set(null);
-    this.step.set('contact');
+    this.step.set(this.order()[0]);
     this.requestFocus('heading');
   }
 
@@ -396,6 +462,11 @@ export class ServiceRequestWizardStore {
   }
 
   private validate(step: WizardStep): StepErrors {
+    if (this.portal() !== null && step === 'property' && !this.newPropertyChosen()) {
+      return this.chosenProperty() === null
+        ? { 'property.propertyId': PORTAL_PROPERTY_REQUIRED_MESSAGE }
+        : {};
+    }
     return validateStep(step, this.data(), {
       files: this.files(),
       today: this.today(),
@@ -454,7 +525,8 @@ export class ServiceRequestWizardStore {
     for (const key of Object.keys(fieldErrors)) {
       const step = stepOfField(key);
       if (step === null) continue;
-      const lower = key.toLowerCase();
+      // Portal 'property.newProperty.city' reads as the form's 'property.city'.
+      const lower = key.toLowerCase().replace('property.newproperty.', 'property.');
       const isAttachment = lower.startsWith('attachments');
       const path = isAttachment
         ? 'attachments'
@@ -462,10 +534,14 @@ export class ServiceRequestWizardStore {
           (lower === 'contact.prefersemail' || lower === 'contact.preferssms'
             ? 'contact.prefersEmail'
             : STEP_FIELDS[step][0]));
-      mapped[path] = isAttachment ? SERVER_ATTACHMENTS_MESSAGE : SERVER_FIELD_MESSAGE;
+      mapped[path] = isAttachment
+        ? SERVER_ATTACHMENTS_MESSAGE
+        : path === 'property.propertyId'
+          ? PORTAL_PROPERTY_REQUIRED_MESSAGE
+          : SERVER_FIELD_MESSAGE;
     }
 
-    const steps = STEP_ORDER.filter((s) => Object.keys(mapped).some((p) => stepOfField(p) === s));
+    const steps = this.order().filter((s) => Object.keys(mapped).some((p) => stepOfField(p) === s));
     const target = steps[0];
     if (target === undefined) return false;
 
@@ -474,6 +550,38 @@ export class ServiceRequestWizardStore {
     this.step.set(target);
     this.requestFocus(firstInvalidField(target, mapped) ?? 'heading');
     return true;
+  }
+
+  private buildPortalPayload(): PortalServiceRequestPayload {
+    const { property, service, availability } = this.data();
+    const { serviceId, ...serviceRest } = service;
+    const { preferredDate, ...availabilityRest } = availability;
+    return {
+      property: this.newPropertyChosen()
+        ? {
+            newProperty: {
+              ...property,
+              addressLine1: property.addressLine1.trim(),
+              addressLine2: property.addressLine2.trim(),
+              city: property.city.trim(),
+              postalCode: property.postalCode.trim(),
+              accessInstructions: property.accessInstructions.trim(),
+            },
+          }
+        : { propertyId: this.propertyChoice() },
+      service: {
+        ...serviceRest,
+        description: service.description.trim(),
+        ...(service.notSure ? {} : { serviceId }),
+      },
+      availability: {
+        ...availabilityRest,
+        schedulingNotes: availability.schedulingNotes.trim(),
+        ...(availability.dateMode === 'date' ? { preferredDate } : {}),
+      },
+      consent: this.consent(),
+      website: this.website(),
+    };
   }
 
   private buildPayload(): ServiceRequestPayload {

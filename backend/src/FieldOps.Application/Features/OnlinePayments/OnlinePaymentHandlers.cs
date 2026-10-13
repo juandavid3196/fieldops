@@ -1,5 +1,6 @@
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Domain.Invoices;
 
@@ -7,9 +8,9 @@ namespace FieldOps.Application.Features.OnlinePayments;
 
 internal static class PublicPaymentSupport
 {
-    /// <summary>BR-01: a malformed token never reaches the store; an unknown, revoked, expired, draft or void token is the same null.</summary>
-    public static async Task<InvoiceRef?> ResolveAsync(IOnlinePaymentStore store, string? token, CancellationToken cancellationToken) =>
-        QuoteLinkTokens.IsWellFormed(token) ? await store.ResolveAsync(token!, cancellationToken) : null;
+    /// <summary>BR-01: a malformed token never reaches the store (the handler wrappers check the shape); an unknown, revoked, expired, draft or void resource is the same null.</summary>
+    public static Task<InvoiceRef?> ResolveAsync(IOnlinePaymentStore store, ResourceAccess access, CancellationToken cancellationToken) =>
+        store.ResolveAsync(access, cancellationToken);
 
     public static PublicOutcome<T> Invalid<T>(string field, string message) =>
         new PublicOutcome<T>.Invalid(new Dictionary<string, string[]>(StringComparer.Ordinal) { [field] = [message] });
@@ -27,9 +28,14 @@ public sealed class CreateCardIntentHandler(
     IInvoiceActionThrottle throttle,
     TimeProvider timeProvider)
 {
-    public async Task<PublicOutcome<CardIntentView>> HandleAsync(string? token, string? idempotencyKey, CancellationToken cancellationToken)
+    public Task<PublicOutcome<CardIntentView>> HandleAsync(string? token, string? idempotencyKey, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), idempotencyKey, cancellationToken)
+            : Task.FromResult<PublicOutcome<CardIntentView>>(new PublicOutcome<CardIntentView>.NotFound());
+
+    public async Task<PublicOutcome<CardIntentView>> HandleAsync(ResourceAccess access, string? idempotencyKey, CancellationToken cancellationToken)
     {
-        if (await PublicPaymentSupport.ResolveAsync(store, token, cancellationToken) is not { } invoice)
+        if (await PublicPaymentSupport.ResolveAsync(store, access, cancellationToken) is not { } invoice)
         {
             return new PublicOutcome<CardIntentView>.NotFound();
         }
@@ -39,7 +45,7 @@ public sealed class CreateCardIntentHandler(
             return PublicPaymentSupport.Invalid<CardIntentView>("idempotencyKey", OnlinePaymentMessages.KeyInvalid);
         }
 
-        if (throttle.TryAcquire(InvoiceAction.CardIntent, invoice.InvoiceId) is { } retryAfter)
+        if (throttle.TryAcquire(InvoiceAction.CardIntent, access.ThrottleKey(invoice.InvoiceId)) is { } retryAfter)
         {
             return new PublicOutcome<CardIntentView>.RateLimited(retryAfter);
         }
@@ -47,7 +53,7 @@ public sealed class CreateCardIntentHandler(
         // BR-14: evaluated before the invoice lock of phase A, never inside it.
         await expirer.EvaluateAsync(invoice.OrganizationId, invoice.InvoiceId, cancellationToken);
 
-        var prepared = await store.PrepareCardIntentAsync(token!, key, timeProvider.GetUtcNow(), cancellationToken);
+        var prepared = await store.PrepareCardIntentAsync(access, key, timeProvider.GetUtcNow(), cancellationToken);
 
         switch (prepared)
         {
@@ -111,9 +117,14 @@ public sealed class CreateCardIntentHandler(
 /// <summary>POST /public/invoice-links/payments/status (BR-16): writes only through the BR-14 expiry evaluation.</summary>
 public sealed class GetPaymentStatusHandler(IOnlinePaymentStore store, PaymentAttemptExpirer expirer)
 {
-    public async Task<PublicOutcome<PaymentStatusView>> HandleAsync(string? token, string? attemptId, CancellationToken cancellationToken)
+    public Task<PublicOutcome<PaymentStatusView>> HandleAsync(string? token, string? attemptId, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), attemptId, cancellationToken)
+            : Task.FromResult<PublicOutcome<PaymentStatusView>>(new PublicOutcome<PaymentStatusView>.NotFound());
+
+    public async Task<PublicOutcome<PaymentStatusView>> HandleAsync(ResourceAccess access, string? attemptId, CancellationToken cancellationToken)
     {
-        if (await PublicPaymentSupport.ResolveAsync(store, token, cancellationToken) is not { } invoice)
+        if (await PublicPaymentSupport.ResolveAsync(store, access, cancellationToken) is not { } invoice)
         {
             return new PublicOutcome<PaymentStatusView>.NotFound();
         }
@@ -125,7 +136,7 @@ public sealed class GetPaymentStatusHandler(IOnlinePaymentStore store, PaymentAt
 
         await expirer.EvaluateAsync(invoice.OrganizationId, invoice.InvoiceId, cancellationToken);
 
-        return await store.GetStatusAsync(token!, id, cancellationToken) is { } status
+        return await store.GetStatusAsync(access, id, cancellationToken) is { } status
             ? new PublicOutcome<PaymentStatusView>.Ok(status)
             : new PublicOutcome<PaymentStatusView>.NotFound();
     }
@@ -138,9 +149,14 @@ public sealed class ReportBankTransferHandler(
     IBankTransferNotifier notifier,
     TimeProvider timeProvider)
 {
-    public async Task<PublicOutcome<BankNoticeView>> HandleAsync(string? token, string? idempotencyKey, CancellationToken cancellationToken)
+    public Task<PublicOutcome<BankNoticeView>> HandleAsync(string? token, string? idempotencyKey, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), idempotencyKey, cancellationToken)
+            : Task.FromResult<PublicOutcome<BankNoticeView>>(new PublicOutcome<BankNoticeView>.NotFound());
+
+    public async Task<PublicOutcome<BankNoticeView>> HandleAsync(ResourceAccess access, string? idempotencyKey, CancellationToken cancellationToken)
     {
-        if (await PublicPaymentSupport.ResolveAsync(store, token, cancellationToken) is not { } invoice)
+        if (await PublicPaymentSupport.ResolveAsync(store, access, cancellationToken) is not { } invoice)
         {
             return new PublicOutcome<BankNoticeView>.NotFound();
         }
@@ -150,12 +166,12 @@ public sealed class ReportBankTransferHandler(
             return PublicPaymentSupport.Invalid<BankNoticeView>("idempotencyKey", OnlinePaymentMessages.KeyInvalid);
         }
 
-        if (throttle.TryAcquire(InvoiceAction.BankTransferNotice, invoice.InvoiceId) is { } retryAfter)
+        if (throttle.TryAcquire(InvoiceAction.BankTransferNotice, access.ThrottleKey(invoice.InvoiceId)) is { } retryAfter)
         {
             return new PublicOutcome<BankNoticeView>.RateLimited(retryAfter);
         }
 
-        switch (await store.ReportBankTransferAsync(token!, key, timeProvider.GetUtcNow(), cancellationToken))
+        switch (await store.ReportBankTransferAsync(access, key, timeProvider.GetUtcNow(), cancellationToken))
         {
             case BankNoticeResult.Rejected rejected:
                 return new PublicOutcome<BankNoticeView>.Conflict(rejected.Code, rejected.Title);
@@ -175,10 +191,16 @@ public sealed class ReportBankTransferHandler(
 /// <summary>POST /public/invoice-links/review (BR-22).</summary>
 public sealed class SubmitInvoiceReviewHandler(IOnlinePaymentStore store, IInvoiceActionThrottle throttle, TimeProvider timeProvider)
 {
+    public Task<PublicOutcome<ReviewSubmittedView>> HandleAsync(
+        string? token, decimal? rating, string? comment, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), rating, comment, cancellationToken)
+            : Task.FromResult<PublicOutcome<ReviewSubmittedView>>(new PublicOutcome<ReviewSubmittedView>.NotFound());
+
     public async Task<PublicOutcome<ReviewSubmittedView>> HandleAsync(
-        string? token, decimal? rating, string? comment, CancellationToken cancellationToken)
+        ResourceAccess access, decimal? rating, string? comment, CancellationToken cancellationToken)
     {
-        if (await PublicPaymentSupport.ResolveAsync(store, token, cancellationToken) is not { } invoice)
+        if (await PublicPaymentSupport.ResolveAsync(store, access, cancellationToken) is not { } invoice)
         {
             return new PublicOutcome<ReviewSubmittedView>.NotFound();
         }
@@ -190,12 +212,12 @@ public sealed class SubmitInvoiceReviewHandler(IOnlinePaymentStore store, IInvoi
             return new PublicOutcome<ReviewSubmittedView>.Invalid(errors);
         }
 
-        if (throttle.TryAcquire(InvoiceAction.Review, invoice.InvoiceId) is { } retryAfter)
+        if (throttle.TryAcquire(InvoiceAction.Review, access.ThrottleKey(invoice.InvoiceId)) is { } retryAfter)
         {
             return new PublicOutcome<ReviewSubmittedView>.RateLimited(retryAfter);
         }
 
-        return await store.SubmitReviewAsync(token!, review.Rating, review.Comment, timeProvider.GetUtcNow(), cancellationToken) switch
+        return await store.SubmitReviewAsync(access, review.Rating, review.Comment, timeProvider.GetUtcNow(), cancellationToken) switch
         {
             ReviewResult.Created => new PublicOutcome<ReviewSubmittedView>.Ok(new ReviewSubmittedView(true), Created: true),
             ReviewResult.NotAvailable => new PublicOutcome<ReviewSubmittedView>.Conflict(
@@ -210,9 +232,14 @@ public sealed class SubmitInvoiceReviewHandler(IOnlinePaymentStore store, IInvoi
 /// <summary>POST /public/invoice-links/receipt (BR-19): generated on demand from stored data.</summary>
 public sealed class DownloadReceiptPdfHandler(IOnlinePaymentStore store, IInvoiceLinkStore documents, IReceiptPdfRenderer renderer)
 {
-    public async Task<PublicOutcome<DocumentFile>> HandleAsync(string? token, string? paymentId, CancellationToken cancellationToken)
+    public Task<PublicOutcome<DocumentFile>> HandleAsync(string? token, string? paymentId, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), paymentId, cancellationToken)
+            : Task.FromResult<PublicOutcome<DocumentFile>>(new PublicOutcome<DocumentFile>.NotFound());
+
+    public async Task<PublicOutcome<DocumentFile>> HandleAsync(ResourceAccess access, string? paymentId, CancellationToken cancellationToken)
     {
-        if (!QuoteLinkTokens.IsWellFormed(token) || await store.ResolveAsync(token!, cancellationToken) is null)
+        if (await store.ResolveAsync(access, cancellationToken) is null)
         {
             return new PublicOutcome<DocumentFile>.NotFound();
         }
@@ -222,7 +249,7 @@ public sealed class DownloadReceiptPdfHandler(IOnlinePaymentStore store, IInvoic
             return PublicPaymentSupport.Invalid<DocumentFile>("paymentId", OnlinePaymentMessages.IdInvalid);
         }
 
-        return await documents.GetReceiptSourceAsync(token!, id, cancellationToken) is { } source
+        return await documents.GetReceiptSourceAsync(access, id, cancellationToken) is { } source
             ? new PublicOutcome<DocumentFile>.Ok(new DocumentFile(
                 ReceiptPdfDocumentComposer.FileName(source),
                 OnlinePaymentMessages.ReceiptContentType,
@@ -234,14 +261,14 @@ public sealed class DownloadReceiptPdfHandler(IOnlinePaymentStore store, IInvoic
 /// <summary>POST /public/invoice-links/completion-report (BR-20).</summary>
 public sealed class DownloadCompletionReportHandler(IInvoiceLinkStore documents, ICompletionReportPdfRenderer renderer)
 {
-    public async Task<DocumentFile?> HandleAsync(string? token, CancellationToken cancellationToken)
-    {
-        if (!QuoteLinkTokens.IsWellFormed(token))
-        {
-            return null;
-        }
+    public async Task<DocumentFile?> HandleAsync(string? token, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? await HandleAsync(ResourceAccess.FromToken(token!), cancellationToken)
+            : null;
 
-        return await documents.GetCompletionReportSourceAsync(token!, cancellationToken) is { } source
+    public async Task<DocumentFile?> HandleAsync(ResourceAccess access, CancellationToken cancellationToken)
+    {
+        return await documents.GetCompletionReportSourceAsync(access, cancellationToken) is { } source
             ? new DocumentFile(
                 CompletionReportPdfDocumentComposer.FileName(source),
                 OnlinePaymentMessages.ReceiptContentType,
@@ -255,16 +282,24 @@ public sealed class ListInvoicePhotosHandler(IInvoiceLinkStore documents)
 {
     public Task<IReadOnlyList<InvoicePhoto>?> HandleAsync(string? token, CancellationToken cancellationToken) =>
         QuoteLinkTokens.IsWellFormed(token)
-            ? documents.ListPhotosAsync(token!, cancellationToken)
+            ? HandleAsync(ResourceAccess.FromToken(token!), cancellationToken)
             : Task.FromResult<IReadOnlyList<InvoicePhoto>?>(null);
+
+    public Task<IReadOnlyList<InvoicePhoto>?> HandleAsync(ResourceAccess access, CancellationToken cancellationToken) =>
+        documents.ListPhotosAsync(access, cancellationToken);
 }
 
 /// <summary>POST /public/invoice-links/photos/content (BR-21): the photo must belong to a visit of the token work order.</summary>
 public sealed class GetInvoicePhotoHandler(IOnlinePaymentStore store, IInvoiceLinkStore documents)
 {
-    public async Task<PublicOutcome<PublicBinary>> HandleAsync(string? token, string? photoId, CancellationToken cancellationToken)
+    public Task<PublicOutcome<PublicBinary>> HandleAsync(string? token, string? photoId, CancellationToken cancellationToken) =>
+        QuoteLinkTokens.IsWellFormed(token)
+            ? HandleAsync(ResourceAccess.FromToken(token!), photoId, cancellationToken)
+            : Task.FromResult<PublicOutcome<PublicBinary>>(new PublicOutcome<PublicBinary>.NotFound());
+
+    public async Task<PublicOutcome<PublicBinary>> HandleAsync(ResourceAccess access, string? photoId, CancellationToken cancellationToken)
     {
-        if (!QuoteLinkTokens.IsWellFormed(token) || await store.ResolveAsync(token!, cancellationToken) is null)
+        if (await store.ResolveAsync(access, cancellationToken) is null)
         {
             return new PublicOutcome<PublicBinary>.NotFound();
         }
@@ -274,7 +309,7 @@ public sealed class GetInvoicePhotoHandler(IOnlinePaymentStore store, IInvoiceLi
             return PublicPaymentSupport.Invalid<PublicBinary>("photoId", OnlinePaymentMessages.IdInvalid);
         }
 
-        return await documents.GetPhotoAsync(token!, id, cancellationToken) is { } photo
+        return await documents.GetPhotoAsync(access, id, cancellationToken) is { } photo
             ? new PublicOutcome<PublicBinary>.Ok(photo)
             : new PublicOutcome<PublicBinary>.NotFound();
     }

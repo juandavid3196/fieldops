@@ -1,5 +1,6 @@
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.OnlinePayments;
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.QuoteLinks;
 
 namespace FieldOps.Application.Features.InvoiceDelivery;
@@ -214,23 +215,23 @@ public interface IInvoiceDeliveryStore
 /// </summary>
 public interface IInvoiceLinkStore
 {
-    Task<PublicInvoice?> ViewAsync(string token, CancellationToken cancellationToken);
+    Task<PublicInvoice?> ViewAsync(ResourceAccess access, CancellationToken cancellationToken);
 
-    Task<InvoicePdfSource?> GetPdfSourceAsync(string token, CancellationToken cancellationToken);
+    Task<InvoicePdfSource?> GetPdfSourceAsync(ResourceAccess access, CancellationToken cancellationToken);
 
-    Task<PublicBinary?> GetLogoAsync(string token, CancellationToken cancellationToken);
+    Task<PublicBinary?> GetLogoAsync(ResourceAccess access, CancellationToken cancellationToken);
 
     /// <summary>The stored data of one payment with a receipt number of the token invoice (customer-invoice-payments BR-19); null otherwise.</summary>
-    Task<ReceiptSource?> GetReceiptSourceAsync(string token, Guid paymentId, CancellationToken cancellationToken);
+    Task<ReceiptSource?> GetReceiptSourceAsync(ResourceAccess access, Guid paymentId, CancellationToken cancellationToken);
 
     /// <summary>The completion report data of the token work order (BR-20); null when no visit was completed.</summary>
-    Task<CompletionReportSource?> GetCompletionReportSourceAsync(string token, CancellationToken cancellationToken);
+    Task<CompletionReportSource?> GetCompletionReportSourceAsync(ResourceAccess access, CancellationToken cancellationToken);
 
     /// <summary>The before and after photos of the completed visits (BR-21); null for an unusable token.</summary>
-    Task<IReadOnlyList<InvoicePhoto>?> ListPhotosAsync(string token, CancellationToken cancellationToken);
+    Task<IReadOnlyList<InvoicePhoto>?> ListPhotosAsync(ResourceAccess access, CancellationToken cancellationToken);
 
     /// <summary>One photo of a visit of the token work order with its stored content type; null otherwise.</summary>
-    Task<PublicBinary?> GetPhotoAsync(string token, Guid photoId, CancellationToken cancellationToken);
+    Task<PublicBinary?> GetPhotoAsync(ResourceAccess access, Guid photoId, CancellationToken cancellationToken);
 }
 
 public interface IInvoiceNotifier

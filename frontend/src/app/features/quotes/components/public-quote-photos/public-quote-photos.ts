@@ -6,7 +6,7 @@ import { ChevronRightIcon } from 'primeng/icons/chevronright';
 import { SearchIcon } from 'primeng/icons/search';
 import { Skeleton } from 'primeng/skeleton';
 
-import { PublicQuoteService } from '../../services/public-quote.service';
+import { QuoteLinkApi } from '../../services/quote-link-api';
 
 type PhotoState = 'loading' | 'ready' | 'failed';
 
@@ -27,7 +27,7 @@ interface PhotoItem {
   styleUrl: './public-quote-photos.scss',
 })
 export class PublicQuotePhotos {
-  private readonly service = inject(PublicQuoteService);
+  private readonly service = inject(QuoteLinkApi);
   private readonly urls: string[] = [];
 
   readonly photos = input.required<readonly { readonly id: string }[]>();

@@ -5,7 +5,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 
-import { PropertyType } from '../../models/service-request.model';
+import { NEW_PROPERTY_CHOICE, PropertyType } from '../../models/service-request.model';
 import { ServiceRequestWizardStore } from '../../services/service-request-wizard.store';
 import { US_STATES } from '../../service-request.validators';
 
@@ -19,6 +19,7 @@ export class PropertyStep {
   protected readonly store = inject(ServiceRequestWizardStore);
   protected readonly property = () => this.store.data().property;
   protected readonly states = [...US_STATES];
+  protected readonly newChoice = NEW_PROPERTY_CHOICE;
   // The select sits inside a <form>; without `standalone` ngModel throws NG01352 while the
   // step renders, leaving the whole step half-rendered until the next change detection.
   protected readonly standalone = { standalone: true };

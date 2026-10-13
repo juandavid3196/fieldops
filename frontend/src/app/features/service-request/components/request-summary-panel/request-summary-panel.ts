@@ -3,10 +3,11 @@ import { ButtonDirective } from 'primeng/button';
 
 import { WizardStep } from '../../models/service-request.model';
 import { ServiceRequestWizardStore } from '../../services/service-request-wizard.store';
+import { StepIcon } from '../step-icon/step-icon';
 
 @Component({
   selector: 'app-request-summary-panel',
-  imports: [ButtonDirective],
+  imports: [ButtonDirective, StepIcon],
   templateUrl: './request-summary-panel.html',
   styleUrl: './request-summary-panel.scss',
 })

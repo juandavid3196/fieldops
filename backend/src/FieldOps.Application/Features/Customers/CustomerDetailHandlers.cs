@@ -67,7 +67,10 @@ internal static class CustomerDetailChecks
 
 /// <summary>GET /customers/{id}/detail (FR-02, BR-03, BR-11, BR-12). A hidden customer is null.</summary>
 public sealed class GetCustomerOverviewHandler(
-    ICustomerStore customerStore, ICustomerDetailStore detailStore, IBranchScopeResolver scopeResolver)
+    ICustomerStore customerStore,
+    ICustomerDetailStore detailStore,
+    IBranchScopeResolver scopeResolver,
+    PortalInvitations.IPortalInvitationStore portalStore)
 {
     public async Task<CustomerOverview?> HandleAsync(
         Guid organizationId, Guid membershipId, Guid customerId, CancellationToken cancellationToken)
@@ -85,12 +88,25 @@ public sealed class GetCustomerOverviewHandler(
         }
 
         var context = await CustomerDetailChecks.ContextAsync(customerStore, organizationId, cancellationToken);
+        var portal = await portalStore.GetStatusAsync(organizationId, customerId, context.Timezone, cancellationToken)
+            ?? new PortalInvitations.PortalStatusView(PortalInvitations.PortalStatusCodes.NotInvited, null, null);
+        var contact = detail.Contact;
 
         return new CustomerOverview(
             customerId,
             detail.Type,
             data.DisplayName,
-            detail.Contact,
+            new CustomerOverviewContact(
+                contact.FirstName,
+                contact.LastName,
+                contact.Title,
+                contact.Email,
+                contact.Phone,
+                contact.PrefersEmail,
+                contact.PrefersSms,
+                portal.PortalStatus,
+                portal.PortalLinkedOn,
+                portal.InvitationExpiresOn),
             detail.Lifecycle,
             detail.DisplayStatus,
             detail.IsActive,

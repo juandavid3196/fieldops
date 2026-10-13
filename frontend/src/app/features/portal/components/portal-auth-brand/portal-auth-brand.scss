@@ -1,0 +1,236 @@
+// Portal sign-in brand panel (users-portal-log-in design): navy panel with floating module cards.
+:host {
+  display: block;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  min-block-size: 100%;
+  padding: 3.5rem 4rem 2.5rem;
+  color: var(--fo-color-on-navy);
+  background: var(--fo-color-navy);
+
+  &__logo {
+    margin: 0;
+    font-size: 2.75rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+
+    span {
+      color: var(--p-primary-300);
+    }
+  }
+
+  &__eyebrow {
+    margin: 0.75rem 0 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--fo-color-navy-text);
+  }
+
+  &__heading {
+    margin: 2.5rem 0 0;
+    font-size: clamp(2.25rem, 3.4vw, 3.25rem);
+    font-weight: 800;
+    line-height: 1.12;
+  }
+
+  &__lead {
+    max-inline-size: 30rem;
+    margin: 1rem 0 0;
+    font-size: 1.25rem;
+    color: var(--fo-color-navy-text);
+  }
+
+  &__stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-block-size: 22rem;
+    margin-block: 2rem;
+  }
+
+  &__frame {
+    position: absolute;
+    border: 1px solid rgb(95 211 207 / 35%);
+    border-radius: 0.875rem;
+
+    &--a {
+      inset: 0 auto auto 18rem;
+      inline-size: 13rem;
+      block-size: 6rem;
+    }
+
+    &--b {
+      inset: 4.5rem auto auto 0;
+      inline-size: 8rem;
+      block-size: 12rem;
+    }
+
+    &--c {
+      inset: 11rem auto auto 26rem;
+      inline-size: 9rem;
+      block-size: 6.75rem;
+    }
+  }
+
+  &__dots {
+    position: absolute;
+    inline-size: 4.5rem;
+    block-size: 3.5rem;
+    background-image: radial-gradient(rgb(95 211 207 / 55%) 1.5px, transparent 2px);
+    background-size: 1rem 1rem;
+
+    &--a {
+      inset: 4.25rem auto auto 34rem;
+    }
+
+    &--b {
+      inset: 11.5rem auto auto 1.5rem;
+    }
+  }
+
+  &__card {
+    position: absolute;
+    display: grid;
+    grid-template-areas:
+      'icon body chevron'
+      'line line line';
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.875rem 1rem;
+    align-items: center;
+    box-sizing: border-box;
+    inline-size: 20rem;
+    padding: 1.25rem;
+    color: var(--fo-color-heading);
+    background: #fff;
+    border: 1px solid rgb(255 255 255 / 70%);
+    border-radius: 1rem;
+    box-shadow:
+      0 0 0 6px rgb(255 255 255 / 6%),
+      0 18px 40px rgb(0 0 0 / 35%),
+      0 0 40px rgb(255 255 255 / 12%);
+
+    &--0 {
+      inset: 1.5rem auto auto 3.25rem;
+      z-index: 1;
+    }
+
+    &--1 {
+      inset: 6.75rem auto auto 18rem;
+      z-index: 2;
+    }
+
+    &--2 {
+      inset: 12.75rem auto auto 7.25rem;
+      z-index: 3;
+    }
+  }
+
+  &__card-icon {
+    display: grid;
+    grid-area: icon;
+    place-items: center;
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    font-size: 1.5rem;
+    border-radius: 50%;
+
+    &--teal {
+      color: var(--fo-color-primary-strong);
+      background: #dcf5f1;
+    }
+
+    &--blue {
+      color: #0b4fc9;
+      background: #e3eefc;
+    }
+
+    .pi {
+      font-size: inherit;
+      font-weight: 700;
+    }
+  }
+
+  &__card-body {
+    display: flex;
+    grid-area: body;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__card-name {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+  }
+
+  &__card-chevron {
+    grid-area: chevron;
+    color: #8a99ab;
+  }
+
+  &__bar,
+  &__line {
+    display: block;
+    block-size: 0.5rem;
+    border-radius: 999px;
+  }
+
+  &__bar {
+    inline-size: 55%;
+
+    &--teal {
+      background: #19b8a7;
+    }
+
+    &--blue {
+      background: #2f80ed;
+    }
+  }
+
+  &__line {
+    inline-size: 85%;
+    background: #dfe6ee;
+
+    &--wide {
+      grid-area: line;
+      inline-size: 70%;
+    }
+  }
+
+  &__modules {
+    display: flex;
+    margin: 0;
+    padding: 1.75rem 0 0;
+    list-style: none;
+    border-block-start: 1px solid var(--fo-color-navy-divider);
+
+    li {
+      display: flex;
+      flex: 1;
+      gap: 0.75rem;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.0625rem;
+      color: var(--fo-color-navy-text);
+
+      + li {
+        border-inline-start: 1px solid rgb(255 255 255 / 14%);
+      }
+
+      &:first-child {
+        justify-content: flex-start;
+      }
+    }
+
+    .pi {
+      font-size: 1.5rem;
+      color: var(--p-primary-300);
+    }
+  }
+}

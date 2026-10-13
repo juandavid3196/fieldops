@@ -1,0 +1,54 @@
+// Your property card (Design 28): house avatar, name with Primary tag, address and full-width Add property.
+.property {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+
+  &__avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 4rem;
+    block-size: 4rem;
+    font-size: 1.75rem;
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-action-blue-soft);
+    border-radius: 50%;
+
+    .pi {
+      font-size: inherit;
+    }
+  }
+
+  &__body {
+    min-inline-size: 0;
+  }
+
+  &__name {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 0.25rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+    overflow-wrap: anywhere;
+  }
+
+  &__line {
+    margin: 0.125rem 0 0;
+    color: var(--fo-color-text);
+    overflow-wrap: anywhere;
+  }
+
+  &__label {
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__add {
+    inline-size: 100%;
+    margin-block-start: 1rem;
+  }
+}

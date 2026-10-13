@@ -1,0 +1,32 @@
+<section class="pcard" aria-labelledby="updates-title">
+  <header class="pcard__head">
+    <h2 class="pcard__title" id="updates-title">
+      <i class="pi pi-comments pcard__icon" aria-hidden="true"></i>
+      Messages &amp; updates
+    </h2>
+    <a class="pcard__link" routerLink="/portal/updates">View all</a>
+  </header>
+  @if (rows().length === 0) {
+    <p class="pcard__empty">No updates yet.</p>
+  } @else {
+    <ul class="updates">
+      @for (row of rows(); track $index) {
+        <li class="updates__row">
+          <span
+            class="updates__dot"
+            [class.updates__dot--unread]="row.update.isUnread"
+            aria-hidden="true"
+          ></span>
+          <a class="updates__main" [routerLink]="row.link">
+            @if (row.update.isUnread) {
+              <span class="sr">Unread: </span>
+            }
+            <span class="updates__title">{{ row.update.title }}</span>
+            <span class="updates__sub">{{ row.update.subtitle }}</span>
+          </a>
+          <span class="updates__time">{{ row.time }}</span>
+        </li>
+      }
+    </ul>
+  }
+</section>

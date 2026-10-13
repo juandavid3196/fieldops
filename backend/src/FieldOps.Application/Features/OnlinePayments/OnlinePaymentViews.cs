@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.QuoteLinks;
 
 namespace FieldOps.Application.Features.OnlinePayments;
@@ -254,7 +255,7 @@ public sealed record WebhookResult(WebhookOutcome Outcome, PaymentReceiptData? R
 public interface IOnlinePaymentStore
 {
     /// <summary>The organization and invoice of a valid token (BR-01), or null.</summary>
-    Task<InvoiceRef?> ResolveAsync(string token, CancellationToken cancellationToken);
+    Task<InvoiceRef?> ResolveAsync(ResourceAccess access, CancellationToken cancellationToken);
 
     /// <summary>Pending card attempts of the invoice that passed <c>expires_at</c>; read without locks.</summary>
     Task<IReadOnlyList<ExpiredAttempt>> FindExpiredAsync(Guid organizationId, Guid invoiceId, DateTimeOffset now, CancellationToken cancellationToken);
@@ -263,16 +264,16 @@ public interface IOnlinePaymentStore
     Task<bool> MarkFailedIfPendingAsync(Guid attemptId, string category, DateTimeOffset now, CancellationToken cancellationToken);
 
     /// <summary>Phase A of the card intent (BR-06 steps 1 to 5): one transaction under the invoice lock.</summary>
-    Task<CardIntentPrepared> PrepareCardIntentAsync(string token, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken);
+    Task<CardIntentPrepared> PrepareCardIntentAsync(ResourceAccess access, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken);
 
     /// <summary>Phase C: stores the provider intent id only while the attempt has none.</summary>
     Task StoreIntentAsync(Guid attemptId, string intentId, DateTimeOffset now, CancellationToken cancellationToken);
 
-    Task<PaymentStatusView?> GetStatusAsync(string token, Guid attemptId, CancellationToken cancellationToken);
+    Task<PaymentStatusView?> GetStatusAsync(ResourceAccess access, Guid attemptId, CancellationToken cancellationToken);
 
-    Task<BankNoticeResult> ReportBankTransferAsync(string token, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken);
+    Task<BankNoticeResult> ReportBankTransferAsync(ResourceAccess access, Guid idempotencyKey, DateTimeOffset now, CancellationToken cancellationToken);
 
-    Task<ReviewResult> SubmitReviewAsync(string token, int rating, string? comment, DateTimeOffset now, CancellationToken cancellationToken);
+    Task<ReviewResult> SubmitReviewAsync(ResourceAccess access, int rating, string? comment, DateTimeOffset now, CancellationToken cancellationToken);
 
     /// <summary>The attempt an event refers to (intent id, then matching metadata), read without locks.</summary>
     Task<WebhookAttemptLookup?> FindAttemptAsync(GatewayEvent gatewayEvent, CancellationToken cancellationToken);

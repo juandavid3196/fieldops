@@ -5,7 +5,7 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { BANK_NOTICE_FAILED_MESSAGE, PublicInvoice } from '../../models/invoice.model';
-import { PublicInvoiceService } from '../../services/public-invoice.service';
+import { InvoiceLinkApi } from '../../services/invoice-link-api';
 import { formatCalendarDate, money } from '../../utils/public-invoice-format';
 
 /** Bank transfer instructions and the "I sent the transfer" notice (BR-28, BR-29). */
@@ -16,7 +16,7 @@ import { formatCalendarDate, money } from '../../utils/public-invoice-format';
   styleUrl: './public-bank-transfer.scss',
 })
 export class PublicBankTransfer {
-  private readonly service = inject(PublicInvoiceService);
+  private readonly service = inject(InvoiceLinkApi);
   private readonly destroyRef = inject(DestroyRef);
   /** Own idempotency key: a retry after a failure is the same notice. */
   private readonly key = crypto.randomUUID();

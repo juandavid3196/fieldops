@@ -1,0 +1,73 @@
+<div class="pp">
+  <header class="pp__head">
+    <h1 class="pp__title">Quotes</h1>
+    @if (list.properties().length > 0) {
+      <app-portal-property-filter
+        [properties]="list.properties()"
+        [value]="list.propertyId()"
+        (changed)="list.filter($event)"
+      />
+    }
+  </header>
+
+  <app-portal-state
+    [state]="list.resource.state()"
+    label="Loading quotes"
+    emptyText="No quotes yet."
+    errorText="We couldn't load your quotes."
+    (retry)="list.reload()"
+  >
+    @if (list.resource.data(); as page) {
+      <div class="pcard">
+        <table class="ptable">
+          <caption class="sr">
+            Quotes
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Quote</th>
+              <th scope="col">Scope</th>
+              <th scope="col">Property</th>
+              <th scope="col">Total</th>
+              <th scope="col">Status</th>
+              <th scope="col">Valid until</th>
+              <th scope="col"><span class="sr">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.quote.id) {
+              <tr>
+                <td data-label="Quote">{{ row.quote.displayNumber }}</td>
+                <td data-label="Scope">{{ row.quote.scope }}</td>
+                <td data-label="Property">{{ row.quote.propertyName ?? '—' }}</td>
+                <td data-label="Total">{{ row.total }}</td>
+                <td data-label="Status">
+                  <app-portal-status-chip [label]="row.chip.label" [tone]="row.chip.tone" />
+                </td>
+                <td data-label="Valid until">{{ row.validUntil }}</td>
+                <td>
+                  <a
+                    pButton
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    [attr.aria-label]="'Review quote ' + row.quote.displayNumber"
+                    [routerLink]="['/portal/quotes', row.quote.id]"
+                    >Review</a
+                  >
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <app-hub-pager
+          [page]="page.page"
+          [pageSize]="page.pageSize"
+          [total]="page.total"
+          noun="quotes"
+          (pageChange)="list.goTo($event)"
+        />
+      </div>
+    }
+  </app-portal-state>
+</div>

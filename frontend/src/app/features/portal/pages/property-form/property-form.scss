@@ -1,0 +1,221 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+// Add / edit property (Design 28 visual system): form card beside a tips column on wide screens.
+.pf {
+  display: grid;
+  gap: 1.25rem;
+  align-items: start;
+  inline-size: 100%;
+  max-inline-size: 75rem;
+  margin-inline: auto;
+
+  @include bp.up(lg) {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    inline-size: 100%;
+    max-inline-size: 75rem;
+    margin-inline: auto;
+  }
+
+  &__pin {
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
+    fill: var(--fo-color-primary-strong);
+  }
+
+  &__country {
+    color: var(--fo-color-text-secondary);
+    background: var(--fo-color-disabled-background);
+  }
+
+  &__crumbs {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+    list-style: none;
+
+    li + li::before {
+      margin-inline-end: 0.5rem;
+      content: '/';
+    }
+
+    a {
+      color: var(--fo-color-action-blue);
+      text-decoration: none;
+    }
+  }
+
+  &__intro {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__form {
+    max-inline-size: none;
+  }
+
+  &__card-head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__badge,
+  &__tip-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    font-size: 1.25rem;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: 50%;
+
+    .pi {
+      font-size: inherit;
+    }
+  }
+
+  &__section-title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__group {
+    margin: 0.5rem 0 0;
+    padding-block-start: 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__req {
+    color: var(--fo-color-danger-text);
+  }
+
+  &__counter {
+    margin: 0;
+    font-size: 0.75rem;
+    text-align: end;
+    color: var(--fo-color-text-muted);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    padding-block-start: 1rem;
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__submit {
+    margin-inline-start: auto;
+  }
+
+  &__privacy {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__side {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__caption {
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+
+  &__mini,
+  &__info {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.75rem;
+    block-size: 1.75rem;
+    font-size: 0.875rem;
+    border-radius: var(--fo-radius-control);
+
+    .pi {
+      font-size: inherit;
+    }
+  }
+
+  &__mini {
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+  }
+
+  &__info {
+    color: var(--fo-color-on-primary);
+    background: var(--fo-color-action-blue);
+    border-radius: 50%;
+  }
+
+  &__tips-title {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+  }
+
+  &__tip-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+  }
+
+  &__tip-title {
+    margin: 0 0 0.125rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__help {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+    padding-block-start: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-heading);
+    border-block-start: 1px solid var(--fo-color-row-divider);
+
+    a {
+      color: var(--fo-color-action-blue);
+    }
+  }
+}

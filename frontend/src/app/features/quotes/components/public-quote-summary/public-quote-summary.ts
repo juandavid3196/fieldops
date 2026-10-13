@@ -5,7 +5,12 @@ import { Checkbox } from 'primeng/checkbox';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 
 import { formatMoney } from '../../../customers/utils/customer-detail-format';
-import { APPROVE_HINT, PublicQuote, PublicTotals } from '../../models/public-quote.model';
+import {
+  APPROVE_HINT,
+  PublicQuote,
+  PublicTotals,
+  QUOTE_EXPIRED_NOTICE,
+} from '../../models/public-quote.model';
 import { dateOnlyLabel } from '../../utils/quote-format';
 
 export type PdfState = 'idle' | 'downloading' | 'failed';
@@ -28,6 +33,7 @@ export class PublicQuoteSummary {
   readonly acceptTerms = model(false);
 
   readonly approved = output<void>();
+  readonly expiredNotice = computed(() => QUOTE_EXPIRED_NOTICE(this.quote().organization.name));
   readonly asked = output<void>();
   readonly declined = output<void>();
   readonly pdfRequested = output<void>();

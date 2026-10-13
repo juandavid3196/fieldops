@@ -11,6 +11,7 @@ import {
   sinceLabel,
 } from '../../utils/customer-detail-format';
 import { formatDate, formatPhone } from '../../utils/customer-format';
+import { dateOnlyLabel } from '../../../quotes/utils/quote-format';
 
 export const INVOICES_LINK = '/coming-soon/invoices';
 
@@ -28,10 +29,36 @@ export class SideCards {
   readonly overview = input.required<CustomerOverview>();
   readonly canMutate = input(false);
 
+  /** A portal access change is running (the buttons are disabled). */
+  readonly portalBusy = input(false);
+  readonly portalError = input<string | null>(null);
+
   readonly editContact = output<void>();
   readonly editTags = output<void>();
+  readonly invitePortal = output<void>();
+  readonly removePortal = output<void>();
 
   readonly invoicesLink = INVOICES_LINK;
+
+  /** "Portal access" line (BR-10), or `null` while the contract does not send the status. */
+  readonly portal = computed(() => {
+    const contact = this.overview().contact;
+    const date = (value: string | null | undefined): string =>
+      value ? dateOnlyLabel(value.slice(0, 10)) : '';
+    switch (contact.portalStatus) {
+      case 'active':
+        return { status: 'active', text: `Active since ${date(contact.portalLinkedOn)}` };
+      case 'invited':
+        return {
+          status: 'invited',
+          text: `Invitation sent · expires ${date(contact.invitationExpiresOn)}`,
+        };
+      case 'not_invited':
+        return { status: 'not_invited', text: 'Not invited' };
+      default:
+        return null;
+    }
+  });
 
   readonly view = computed(() => {
     const o = this.overview();

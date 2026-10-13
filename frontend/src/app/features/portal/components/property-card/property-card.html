@@ -1,0 +1,55 @@
+<section class="pcard" aria-labelledby="property-title">
+  <header class="pcard__head">
+    <h2 class="pcard__title" id="property-title">
+      <i class="pi pi-clipboard pcard__icon" aria-hidden="true"></i>
+      Your property
+    </h2>
+    @if (property()) {
+      <a
+        pButton
+        severity="secondary"
+        [outlined]="true"
+        size="small"
+        routerLink="/portal/properties"
+      >
+        Manage
+      </a>
+    }
+  </header>
+  @if (property(); as property) {
+    <div class="property">
+      <span class="property__avatar" aria-hidden="true">
+        <i class="pi pi-home"></i>
+      </span>
+      <div class="property__body">
+        <p class="property__name">
+          {{ property.name }}
+          @if (property.isPrimary) {
+            <span class="pcard__tag">Primary</span>
+          }
+        </p>
+        <p class="property__line">{{ property.addressLine1 }}</p>
+        <p class="property__line">
+          {{ property.city }}, {{ property.state }} {{ property.postalCode }}
+        </p>
+        @if (lastService(); as date) {
+          <p class="property__line">
+            <span class="property__label">Last service:</span> {{ date }}
+          </p>
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="pcard__empty">No properties yet.</p>
+  }
+  <a
+    pButton
+    class="property__add"
+    severity="secondary"
+    [outlined]="true"
+    routerLink="/portal/properties/new"
+  >
+    <i class="pi pi-plus" aria-hidden="true"></i>
+    Add property
+  </a>
+</section>

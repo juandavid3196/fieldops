@@ -1,0 +1,141 @@
+<div class="pshell">
+  <header class="pshell__bar">
+    @if (isDrawer()) {
+      <button
+        #menuButton
+        type="button"
+        class="pshell__icon-button"
+        aria-haspopup="dialog"
+        (click)="openDrawer()"
+      >
+        <i class="pi pi-bars" aria-hidden="true"></i>
+        <span class="pshell__sr">Open navigation</span>
+      </button>
+    }
+
+    <a class="pshell__brand" routerLink="/portal" [attr.aria-label]="organizationName() + ', Home'">
+      @if (logoUrl(); as url) {
+        <img class="pshell__logo" [src]="url" alt="" />
+      } @else {
+        <span class="pshell__logo pshell__logo--initials" aria-hidden="true">{{
+          organizationInitials()
+        }}</span>
+      }
+      <span class="pshell__org" aria-hidden="true">{{ organizationName() }}</span>
+    </a>
+
+    @if (!isDrawer()) {
+      <nav class="pshell__nav" aria-label="Primary">
+        @for (item of nav; track item.label) {
+          <a
+            class="pshell__link"
+            routerLinkActive="pshell__link--current"
+            ariaCurrentWhenActive="page"
+            [routerLink]="item.link"
+            [routerLinkActiveOptions]="{ exact: item.exact }"
+            >{{ item.label }}</a
+          >
+        }
+      </nav>
+    }
+
+    <span class="pshell__spacer"></span>
+
+    <a class="pshell__icon-button pshell__help" routerLink="/portal" [fragment]="helpFragment">
+      <i class="pi pi-question-circle" aria-hidden="true"></i>
+      <span class="pshell__help-text">Help</span>
+    </a>
+
+    <a
+      class="pshell__icon-button pshell__bell"
+      [routerLink]="updatesLink"
+      [attr.aria-label]="bellLabel()"
+    >
+      <i class="pi pi-bell" aria-hidden="true"></i>
+      @if (bellText(); as count) {
+        <span class="pshell__badge" aria-hidden="true">{{ count }}</span>
+      }
+    </a>
+
+    <div class="pshell__user" data-portal-menu>
+      <button
+        type="button"
+        class="pshell__user-button"
+        aria-haspopup="menu"
+        aria-controls="portal-user-menu"
+        [attr.aria-expanded]="menuOpen()"
+        [attr.aria-label]="'Account menu, ' + fullName()"
+        (click)="toggleMenu()"
+      >
+        <span class="pshell__initials" aria-hidden="true">{{ initials() }}</span>
+        <span class="pshell__name" aria-hidden="true">{{ fullName() }}</span>
+        <i class="pi pi-chevron-down pshell__chevron" aria-hidden="true"></i>
+      </button>
+
+      @if (menuOpen()) {
+        <div class="pshell__menu" id="portal-user-menu" role="menu" aria-label="Account">
+          <p class="pshell__menu-name">{{ fullName() }}</p>
+          @if (canSwitch()) {
+            <p class="pshell__menu-label" id="portal-switch-label">Switch account</p>
+            @for (account of otherAccounts(); track account.contactId) {
+              <button
+                type="button"
+                role="menuitem"
+                class="pshell__menu-item"
+                aria-describedby="portal-switch-label"
+                [disabled]="busy()"
+                (click)="switchAccount(account.contactId)"
+              >
+                <i class="pi pi-building" aria-hidden="true"></i>
+                {{ account.customerName }} · {{ account.organizationName }}
+              </button>
+            }
+          }
+          <button
+            type="button"
+            role="menuitem"
+            class="pshell__menu-item"
+            [disabled]="busy()"
+            (click)="signOut()"
+          >
+            <i class="pi pi-sign-out" aria-hidden="true"></i>
+            Sign out
+          </button>
+        </div>
+      }
+    </div>
+  </header>
+
+  @if (errorMessage(); as message) {
+    <p-message class="pshell__alert" severity="error" role="alert">{{ message }}</p-message>
+  }
+
+  <main class="pshell__main" id="portal-main">
+    <router-outlet />
+  </main>
+
+  @if (isDrawer()) {
+    <p-drawer
+      position="left"
+      [visible]="drawerOpen()"
+      (visibleChange)="drawerOpen.set($event)"
+      (onHide)="onDrawerHide()"
+      [modal]="true"
+      header="Menu"
+    >
+      <nav class="pshell__drawer-nav" aria-label="Primary">
+        @for (item of nav; track item.label) {
+          <a
+            class="pshell__link pshell__link--drawer"
+            routerLinkActive="pshell__link--current"
+            ariaCurrentWhenActive="page"
+            [routerLink]="item.link"
+            [routerLinkActiveOptions]="{ exact: item.exact }"
+            (click)="closeDrawer()"
+            >{{ item.label }}</a
+          >
+        }
+      </nav>
+    </p-drawer>
+  }
+</div>

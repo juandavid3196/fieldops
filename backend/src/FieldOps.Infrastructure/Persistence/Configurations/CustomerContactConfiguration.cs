@@ -11,9 +11,17 @@ internal sealed class CustomerContactConfiguration
 {
     public void Configure(EntityTypeBuilder<CustomerContact> builder)
     {
-        builder.ToTable("customer_contacts", table => table.HasCheckConstraint(
-            "ck_customer_contacts_preferred_channel",
-            "prefers_email OR prefers_sms"));
+        builder.ToTable("customer_contacts", table =>
+        {
+            table.HasCheckConstraint(
+                "ck_customer_contacts_preferred_channel",
+                "prefers_email OR prefers_sms");
+
+            // SA-19: the link user and the link time are set together.
+            table.HasCheckConstraint(
+                "ck_customer_contacts_portal_link",
+                "(portal_user_id IS NULL) = (portal_linked_at IS NULL)");
+        });
 
         builder.HasKey(contact => contact.Id);
 
@@ -65,6 +73,16 @@ internal sealed class CustomerContactConfiguration
             .IsRequired();
 
         builder.Property(contact => contact.PortalUserId);
+
+        builder.Property(contact => contact.PortalLinkedAt);
+
+        builder.Property(contact => contact.PortalUpdatesSeenAt);
+
+        // CREATE UNIQUE INDEX ux_customer_contacts_org_portal_user ON customer_contacts (organization_id, portal_user_id) WHERE portal_user_id IS NOT NULL
+        builder.HasIndex(contact => new { contact.OrganizationId, contact.PortalUserId })
+            .IsUnique()
+            .HasFilter("portal_user_id IS NOT NULL")
+            .HasDatabaseName("ux_customer_contacts_org_portal_user");
 
         // The sentinel keeps an explicit false from being replaced by the
         // database default (true) on insert.

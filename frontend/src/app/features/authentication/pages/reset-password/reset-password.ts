@@ -49,7 +49,6 @@ type ResetFieldErrors = Partial<Record<ResetField, string>>;
 
 /** Retry lock after a `429` without a usable `Retry-After` (BR-19). */
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
-const RESET_PATH = '/auth/reset-password';
 const FIELD_IDS: Readonly<Record<ResetField, string>> = {
   password: 'password',
   confirmPassword: 'confirm-password',
@@ -101,6 +100,11 @@ export class ResetPassword {
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly passwordResets = inject(PasswordResetService);
+  /** Route data `portal: true` serves the customer portal: its paths and sign-in link. */
+  private readonly portal = this.route.snapshot.data['portal'] === true;
+  private readonly resetPath = this.portal ? '/portal/reset-password' : '/auth/reset-password';
+  protected readonly signInPath = this.portal ? '/portal/sign-in' : '/auth/sign-in';
+  protected readonly forgotPath = this.portal ? '/portal/forgot-password' : '/auth/forgot-password';
   private readonly tokens = inject(PasswordResetTokenService);
 
   private submitAttempted = false;
@@ -138,7 +142,7 @@ export class ResetPassword {
     const snapshot = this.route.snapshot;
     this.tokens.captureFromFragment(snapshot.fragment);
     if (snapshot.fragment !== null || snapshot.queryParamMap.keys.length > 0) {
-      this.location.replaceState(RESET_PATH);
+      this.location.replaceState(this.resetPath);
     }
 
     this.load();
@@ -156,7 +160,7 @@ export class ResetPassword {
   }
 
   continueToSignIn(): void {
-    void this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true });
+    void this.router.navigateByUrl(this.signInPath, { replaceUrl: true });
   }
 
   togglePassword(event: CheckboxChangeEvent): void {

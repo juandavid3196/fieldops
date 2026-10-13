@@ -46,6 +46,12 @@ public sealed class CustomerContact
 
     public Guid? PortalUserId { get; private set; }
 
+    /// <summary>When the portal user was linked; set exactly when <see cref="PortalUserId"/> is (SA-19).</summary>
+    public DateTimeOffset? PortalLinkedAt { get; private set; }
+
+    /// <summary>The last time the contact opened the portal updates feed (customer portal BR-25).</summary>
+    public DateTimeOffset? PortalUpdatesSeenAt { get; private set; }
+
     public bool IsActive { get; private set; }
 
     public DateTimeOffset CreatedAt { get; private set; }
@@ -110,6 +116,46 @@ public sealed class CustomerContact
         contact.PrefersSms = prefersSms;
 
         return contact;
+    }
+
+    /// <summary>Links the portal user (customer portal BR-13); the link time and the user are set together.</summary>
+    public void LinkPortal(Guid userId, DateTimeOffset now)
+    {
+        if (userId == Guid.Empty)
+        {
+            throw new ArgumentException("User id is required.", nameof(userId));
+        }
+
+        PortalUserId = userId;
+        PortalLinkedAt = now;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Removes the portal link (customer portal BR-14); returns false when there was none.</summary>
+    public bool UnlinkPortal(DateTimeOffset now)
+    {
+        if (PortalUserId is null)
+        {
+            return false;
+        }
+
+        PortalUserId = null;
+        PortalLinkedAt = null;
+        UpdatedAt = now;
+
+        return true;
+    }
+
+    public void MarkUpdatesSeen(DateTimeOffset now) => PortalUpdatesSeenAt = now;
+
+    /// <summary>Stores the last name given at portal activation when the contact had none (customer portal BR-13).</summary>
+    public void SetLastNameIfMissing(string lastName, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(LastName) && !string.IsNullOrWhiteSpace(lastName))
+        {
+            LastName = lastName.Trim();
+            UpdatedAt = now;
+        }
     }
 
     /// <summary>Applies the editable fields. Returns true, and stamps <paramref name="now"/>, only when a value changed.</summary>

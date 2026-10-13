@@ -66,6 +66,12 @@ internal sealed class SmtpEmailSender(
         };
 
         mail.To.Add(new MailAddress(message.To));
+
+        if (!string.IsNullOrWhiteSpace(message.ReplyTo))
+        {
+            mail.ReplyToList.Add(new MailAddress(message.ReplyTo));
+        }
+
         mail.AlternateViews.Add(
             AlternateView.CreateAlternateViewFromString(message.HtmlBody, Encoding.UTF8, MediaTypeNames.Text.Html));
 

@@ -1,5 +1,11 @@
 /** Customer-facing quote of a token (customer-quote-approval API contracts); never internal data. */
-export type PublicQuoteStatus = 'sent' | 'clarification_requested' | 'approved' | 'rejected';
+export type PublicQuoteStatus =
+  | 'sent'
+  | 'clarification_requested'
+  | 'approved'
+  | 'rejected'
+  /** Portal only: the valid-until date passed; read-only, never written by the portal. */
+  | 'expired';
 
 export interface PublicTotals {
   readonly subtotal: number;
@@ -72,3 +78,5 @@ export const APPROVE_HINT = 'Check the box to approve.';
 export const OPTIONAL_SELECTION_ERROR = "One or more optional items aren't available.";
 export const ACCEPT_TERMS_ERROR =
   'Confirm that you approve the scope of work and agree to the terms.';
+export const QUOTE_EXPIRED_NOTICE = (organizationName: string): string =>
+  `This quote has expired. Contact ${organizationName} for an updated quote.`;

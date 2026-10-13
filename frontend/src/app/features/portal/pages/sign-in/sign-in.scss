@@ -1,0 +1,121 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+// Portal sign-in (users-portal-log-in design): navy brand panel beside the form on large screens.
+:host {
+  background: var(--fo-color-surface-muted);
+}
+
+.login {
+  display: grid;
+  min-block-size: 100dvh;
+
+  @include bp.up(lg) {
+    grid-template-columns: minmax(0, 47fr) minmax(0, 53fr);
+  }
+
+  &__brand {
+    display: none;
+
+    @include bp.up(lg) {
+      display: block;
+    }
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    padding: 1.5rem 1rem;
+
+    @include bp.up(lg) {
+      padding: 3rem 2rem 1.5rem;
+    }
+  }
+
+  &__mobile-brand {
+    align-self: stretch;
+    max-inline-size: 30rem;
+    margin-inline: auto;
+
+    @include bp.up(lg) {
+      display: none;
+    }
+  }
+
+  &__card {
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: 30rem;
+    margin-block: auto;
+    padding: 2rem;
+    box-shadow: 0 1px 2px rgb(16 42 67 / 4%);
+
+    .auth__title {
+      font-size: 1.875rem;
+      font-weight: 700;
+    }
+
+    .auth__subtitle {
+      margin-block-start: 0.375rem;
+      font-size: 1.0625rem;
+    }
+  }
+
+  &__password {
+    position: relative;
+
+    input {
+      padding-inline-end: 3rem;
+    }
+  }
+
+  &__eye {
+    position: absolute;
+    inset-block: 0.25rem;
+    inset-inline-end: 0.25rem;
+    display: grid;
+    place-items: center;
+    inline-size: 2.5rem;
+    color: var(--fo-color-text-secondary);
+    cursor: pointer;
+    background: var(--fo-color-surface-muted);
+    border: 0;
+    border-radius: var(--fo-radius-control);
+
+    &:hover {
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__secure {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__footer {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__sep {
+    color: var(--fo-color-border-strong);
+  }
+
+  &__privacy {
+    color: var(--fo-color-action-blue);
+  }
+}
+
+.auth__link {
+  color: var(--fo-color-action-blue);
+}

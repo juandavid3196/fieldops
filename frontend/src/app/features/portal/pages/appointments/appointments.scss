@@ -1,0 +1,66 @@
+// Appointments (Design 28 visual system): intro, segmented Upcoming/Past tabs and date badges.
+.appts {
+  &__intro {
+    margin: 0.25rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__tabs {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 0.25rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__tab {
+    min-block-size: var(--fo-size-touch-target);
+    padding-inline: 1.25rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-text-secondary);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: calc(var(--fo-radius-control) - 2px);
+
+    &--active {
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-action-blue-soft);
+    }
+
+    &:focus-visible {
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__date {
+    display: inline-flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    line-height: 1.1;
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-action-blue-soft);
+    border-radius: var(--fo-radius-control);
+
+    span {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    strong {
+      font-size: 1.0625rem;
+    }
+  }
+}

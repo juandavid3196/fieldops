@@ -1,0 +1,75 @@
+<div class="pp">
+  <header class="pp__head">
+    <h1 class="pp__title">Invoices</h1>
+    @if (list.properties().length > 0) {
+      <app-portal-property-filter
+        [properties]="list.properties()"
+        [value]="list.propertyId()"
+        (changed)="list.filter($event)"
+      />
+    }
+  </header>
+
+  <app-portal-state
+    [state]="list.resource.state()"
+    label="Loading invoices"
+    emptyText="No invoices yet."
+    errorText="We couldn't load your invoices."
+    (retry)="list.reload()"
+  >
+    @if (list.resource.data(); as page) {
+      <div class="pcard">
+        <table class="ptable">
+          <caption class="sr">
+            Invoices
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Invoice</th>
+              <th scope="col">Service</th>
+              <th scope="col">Issued</th>
+              <th scope="col">Due</th>
+              <th scope="col">Total</th>
+              <th scope="col">Balance due</th>
+              <th scope="col">Status</th>
+              <th scope="col"><span class="sr">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.invoice.id) {
+              <tr>
+                <td data-label="Invoice">{{ row.invoice.displayNumber }}</td>
+                <td data-label="Service">{{ row.invoice.title }}</td>
+                <td data-label="Issued">{{ row.issued }}</td>
+                <td data-label="Due">{{ row.due }}</td>
+                <td data-label="Total">{{ row.total }}</td>
+                <td data-label="Balance due">{{ row.balance }}</td>
+                <td data-label="Status">
+                  <app-portal-status-chip [label]="row.chip.label" [tone]="row.chip.tone" />
+                </td>
+                <td>
+                  <a
+                    pButton
+                    severity="secondary"
+                    [outlined]="true"
+                    size="small"
+                    [attr.aria-label]="'View invoice ' + row.invoice.displayNumber"
+                    [routerLink]="['/portal/invoices', row.invoice.id]"
+                    >View</a
+                  >
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+        <app-hub-pager
+          [page]="page.page"
+          [pageSize]="page.pageSize"
+          [total]="page.total"
+          noun="invoices"
+          (pageChange)="list.goTo($event)"
+        />
+      </div>
+    }
+  </app-portal-state>
+</div>

@@ -12,6 +12,11 @@ using FieldOps.Application.Features.InvoicePayments;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
+using FieldOps.Application.Features.PortalAccess;
+using FieldOps.Application.Features.PortalAuth;
+using FieldOps.Application.Features.PortalDashboard;
+using FieldOps.Application.Features.PortalInvitations;
+using FieldOps.Application.Features.PortalRequests;
 using FieldOps.Application.Features.PublicRequests;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
@@ -34,6 +39,7 @@ using FieldOps.Infrastructure.PasswordResets;
 using FieldOps.Infrastructure.Payments;
 using FieldOps.Infrastructure.Pdf;
 using FieldOps.Infrastructure.Persistence;
+using FieldOps.Infrastructure.Persistence.Portal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -129,6 +135,21 @@ public static class DependencyInjection
         services.AddEmail(configuration);
         services.AddOnlinePayments(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
+
+        // Customer portal: stores, emails and the per-user write limits.
+        services.AddScoped<IPortalAuthenticationStore, PortalAuthenticationStore>();
+        services.AddScoped<IPortalInvitationStore, PortalInvitationStore>();
+        services.AddScoped<IPortalDashboardStore, PortalDashboardStore>();
+        services.AddScoped<IPortalCatalogStore, PortalCatalogStore>();
+        services.AddScoped<IPortalAppointmentStore, PortalAppointmentStore>();
+        services.AddScoped<IPortalPropertyStore, PortalPropertyStore>();
+        services.AddScoped<PortalMessageStore>();
+        services.AddScoped<IPortalMessageStore>(provider => provider.GetRequiredService<PortalMessageStore>());
+        services.AddScoped<IPortalRequestStore>(provider => provider.GetRequiredService<PortalMessageStore>());
+        services.AddScoped<PortalNotifier>();
+        services.AddScoped<IPortalInvitationNotifier>(provider => provider.GetRequiredService<PortalNotifier>());
+        services.AddScoped<IPortalNotifier>(provider => provider.GetRequiredService<PortalNotifier>());
+        services.AddSingleton<IPortalActionThrottle, InMemoryPortalActionThrottle>();
 
         // In memory and per process: counters reset on restart.
         services.AddSingleton<ISignInThrottle, InMemorySignInThrottle>();

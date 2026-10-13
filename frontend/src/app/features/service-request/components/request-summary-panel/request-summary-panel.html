@@ -8,7 +8,7 @@
     @for (section of store.summary(); track section.step) {
       <li class="panel__section">
         <span class="panel__icon" aria-hidden="true">
-          <i class="pi" [class]="icons[section.step]"></i>
+          <app-sr-step-icon [step]="section.step" />
         </span>
         <div class="panel__body">
           <h3 class="panel__name">{{ section.title }}</h3>
@@ -26,6 +26,7 @@
             type="button"
             variant="text"
             size="small"
+            class="panel__edit"
             [attr.aria-label]="'Edit ' + section.title"
             (click)="store.edit(section.step)"
           >

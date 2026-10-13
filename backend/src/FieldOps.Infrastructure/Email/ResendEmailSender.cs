@@ -31,7 +31,8 @@ internal sealed class ResendEmailSender(
                 [message.To],
                 message.Subject,
                 message.TextBody,
-                message.HtmlBody)),
+                message.HtmlBody,
+                message.ReplyTo)),
         };
 
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", settings.Resend.ApiKey);
@@ -77,5 +78,6 @@ internal sealed class ResendEmailSender(
         [property: JsonPropertyName("to")] string[] To,
         [property: JsonPropertyName("subject")] string Subject,
         [property: JsonPropertyName("text")] string Text,
-        [property: JsonPropertyName("html")] string Html);
+        [property: JsonPropertyName("html")] string Html,
+        [property: JsonPropertyName("reply_to"), JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? ReplyTo = null);
 }

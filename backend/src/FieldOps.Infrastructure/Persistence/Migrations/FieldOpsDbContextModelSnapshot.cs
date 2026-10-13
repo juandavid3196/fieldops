@@ -542,6 +542,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(40)")
                         .HasColumnName("phone");
 
+                    b.Property<DateTimeOffset?>("PortalLinkedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("portal_linked_at");
+
+                    b.Property<DateTimeOffset?>("PortalUpdatesSeenAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("portal_updates_seen_at");
+
                     b.Property<Guid?>("PortalUserId")
                         .HasColumnType("uuid")
                         .HasColumnName("portal_user_id");
@@ -592,8 +600,15 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasIndex("OrganizationId", "Phone")
                         .HasDatabaseName("ix_contacts_org_phone");
 
+                    b.HasIndex("OrganizationId", "PortalUserId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_customer_contacts_org_portal_user")
+                        .HasFilter("portal_user_id IS NOT NULL");
+
                     b.ToTable("customer_contacts", null, t =>
                         {
+                            t.HasCheckConstraint("ck_customer_contacts_portal_link", "(portal_user_id IS NULL) = (portal_linked_at IS NULL)");
+
                             t.HasCheckConstraint("ck_customer_contacts_preferred_channel", "prefers_email OR prefers_sms");
                         });
                 });
@@ -640,6 +655,79 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("ix_customer_notes_customer");
 
                     b.ToTable("customer_notes", (string)null);
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Customers.CustomerPortalInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<DateTimeOffset?>("AcceptedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("accepted_at");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("character varying(254)")
+                        .HasColumnName("email");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("expires_at");
+
+                    b.Property<Guid>("InvitedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("invited_by_user_id");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("revoked_at");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token_hash");
+
+                    b.HasKey("Id")
+                        .HasName("pk_customer_portal_invitations");
+
+                    b.HasIndex("ContactId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_customer_portal_invitations_open")
+                        .HasFilter("accepted_at IS NULL AND revoked_at IS NULL");
+
+                    b.HasIndex("InvitedByUserId")
+                        .HasDatabaseName("ix_customer_portal_invitations_invited_by_user_id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("ix_customer_portal_invitations_token_hash");
+
+                    b.HasIndex("OrganizationId", "ContactId")
+                        .HasDatabaseName("ix_customer_portal_invitations_organization_id_contact_id");
+
+                    b.ToTable("customer_portal_invitations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_customer_portal_invitations_expires_after_created", "expires_at > created_at");
+                        });
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Customers.CustomerTag", b =>
@@ -4560,6 +4648,71 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.WorkOrders.VisitRescheduleRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("ContactId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("contact_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<DateTimeOffset>("OriginalScheduledStart")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("original_scheduled_start");
+
+                    b.Property<DateOnly>("PreferredDate")
+                        .HasColumnType("date")
+                        .HasColumnName("preferred_date");
+
+                    b.Property<string>("Reason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasColumnName("reason");
+
+                    b.Property<string>("TimeWindow")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("time_window");
+
+                    b.Property<Guid>("VisitId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("visit_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_visit_reschedule_requests");
+
+                    b.HasIndex("OrganizationId", "ContactId")
+                        .HasDatabaseName("ix_visit_reschedule_requests_organization_id_contact_id");
+
+                    b.HasIndex("OrganizationId", "VisitId")
+                        .HasDatabaseName("ix_visit_reschedule_requests_organization_id_visit_id");
+
+                    b.HasIndex("VisitId", "OriginalScheduledStart")
+                        .IsUnique()
+                        .HasDatabaseName("ux_visit_reschedule_requests_pending");
+
+                    b.ToTable("visit_reschedule_requests", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_visit_reschedule_requests_time_window", "time_window IN ('morning','afternoon','evening','any')");
+                        });
+                });
+
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.VisitStatusHistory", b =>
                 {
                     b.Property<Guid>("Id")
@@ -5120,6 +5273,31 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired()
                         .HasConstraintName("fk_customer_notes_customers_organization_id_customer_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Customers.CustomerPortalInvitation", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("InvitedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_portal_invitations_users_invited_by_user_id");
+
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_portal_invitations_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Customers.CustomerContact", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContactId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_customer_portal_invitations_customer_contacts_organization_");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Customers.CustomerTag", b =>
@@ -6209,6 +6387,32 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_visit_materials_visits_visit_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.WorkOrders.VisitRescheduleRequest", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_reschedule_requests_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Customers.CustomerContact", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ContactId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_reschedule_requests_customer_contacts_organization_id");
+
+                    b.HasOne("FieldOps.Domain.WorkOrders.Visit", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "VisitId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_visit_reschedule_requests_visits_organization_id_visit_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.VisitStatusHistory", b =>

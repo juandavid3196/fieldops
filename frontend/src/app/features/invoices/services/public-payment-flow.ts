@@ -25,7 +25,7 @@ import {
   failureMessage,
 } from '../models/invoice.model';
 import { PublicInvoiceTokenService } from './public-invoice-token.service';
-import { PublicInvoiceService } from './public-invoice.service';
+import { InvoiceLinkApi } from './invoice-link-api';
 import { StripeCardHandle } from './stripe-payment.adapter';
 
 export type CardPhase =
@@ -48,7 +48,7 @@ type PollResult =
  */
 @Injectable()
 export class PublicPaymentFlow {
-  private readonly api = inject(PublicInvoiceService);
+  private readonly api = inject(InvoiceLinkApi);
   private readonly tokens = inject(PublicInvoiceTokenService);
   private readonly document = inject(DOCUMENT);
 
@@ -170,7 +170,7 @@ export class PublicPaymentFlow {
         await handle.confirm({
           clientSecret: intent.clientSecret,
           billingName: name.trim(),
-          returnUrl: `${this.document.location.origin}/invoices/view`,
+          returnUrl: `${this.document.location.origin}${this.api.returnPath()}`,
         });
       } catch {
         // The server status decides.

@@ -55,6 +55,7 @@ import {
   NOTES_PAGE_SIZE,
   NoteItem,
   PropertiesResponse,
+  PortalAccess,
   PropertyItem,
   RecentWorkResponse,
   RegionState,
@@ -81,6 +82,8 @@ export const NOT_FOUND_MESSAGE = "This customer doesn't exist or you don't have 
 export const DETAIL_ERROR_MESSAGE = "We couldn't load this customer.";
 export const PROPERTY_UPDATE_FAILED_MESSAGE = "We couldn't update the property. Try again.";
 export const NOTE_FAILED_MESSAGE = "We couldn't add the note. Try again.";
+export const PORTAL_FAILED_MESSAGE = "We couldn't update portal access. Try again.";
+export const PORTAL_INVITE_UNAVAILABLE_MESSAGE = "Portal access can't be sent for this contact.";
 const MUTATE_ROLES: readonly string[] = ['owner', 'dispatcher'];
 const READ_ROLES: readonly string[] = ['operations_manager', 'accounting', 'viewer'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -183,6 +186,8 @@ export class CustomerDetail {
   readonly tab = signal<DetailTab>('overview');
 
   readonly overview = signal<RegionState<CustomerOverview>>(IDLE_REGION);
+  readonly portalBusy = signal(false);
+  readonly portalError = signal<string | null>(null);
   readonly properties = signal<RegionState<PropertiesResponse>>(IDLE_REGION);
   readonly recentWork = signal<RegionState<RecentWorkResponse>>(IDLE_REGION);
   readonly appointments = signal<RegionState<AppointmentsResponse>>(IDLE_REGION);
@@ -682,6 +687,62 @@ export class CustomerDetail {
 
   onUnauthorized(): void {
     handleUnauthorized(this.router, this.sessionExpired);
+  }
+
+  // Portal access (customer-portal-dashboard BR-10, BR-11, BR-14)
+
+  invitePortal(): void {
+    const id = this.customerId();
+    if (id !== null) {
+      this.changePortalAccess(this.customers.invitePortal(id));
+    }
+  }
+
+  confirmRemovePortal(): void {
+    const customer = this.overview().data;
+    if (customer === null) {
+      return;
+    }
+    this.confirmationService.confirm({
+      header: 'Remove portal access?',
+      message: `${customer.displayName} will be signed out of the portal.`,
+      defaultFocus: 'reject',
+      acceptButtonProps: { label: 'Remove portal access', severity: 'danger' },
+      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      accept: () => this.changePortalAccess(this.customers.removePortalAccess(customer.id)),
+    });
+  }
+
+  private changePortalAccess(request$: Observable<PortalAccess>): void {
+    if (this.portalBusy()) {
+      return;
+    }
+    this.portalBusy.set(true);
+    this.portalError.set(null);
+    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (access) => {
+        this.portalBusy.set(false);
+        this.overview.update((region) =>
+          region.data === null
+            ? region
+            : {
+                ...region,
+                data: { ...region.data, contact: { ...region.data.contact, ...access } },
+              },
+        );
+      },
+      error: (error: unknown) => {
+        this.portalBusy.set(false);
+        const apiError = isApiError(error) ? error : null;
+        if (apiError?.kind === 'unauthorized') {
+          this.onUnauthorized();
+        } else if (apiError?.status === 409 && apiError.code === 'portal_invite_unavailable') {
+          this.portalError.set(PORTAL_INVITE_UNAVAILABLE_MESSAGE);
+        } else {
+          this.portalError.set(PORTAL_FAILED_MESSAGE);
+        }
+      },
+    });
   }
 
   // Customer archive / reactivate (BR-10)

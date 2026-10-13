@@ -1,3 +1,5 @@
+import { Observable } from 'rxjs';
+
 export interface ServiceRequestFormService {
   readonly id: string;
   readonly name: string;
@@ -87,3 +89,42 @@ export interface ServiceRequestCreated {
 
 /** Field errors keyed by the spec field paths (`contact.email`, `attachments`, `consent`). */
 export type StepErrors = Readonly<Record<string, string>>;
+
+/** A property of the signed-in customer offered by the portal wizard (BR-28). */
+export interface PortalWizardProperty {
+  readonly id: string;
+  readonly name: string;
+  readonly addressLine1: string;
+  readonly city: string;
+  readonly stateRegion: string;
+  readonly postalCode: string;
+}
+
+/** Portal body of the multipart request part: no contact; the property is chosen or new. */
+export interface PortalServiceRequestPayload {
+  readonly property: { readonly propertyId: string } | { readonly newProperty: PropertyData };
+  readonly service: ServiceRequestPayload['service'];
+  readonly availability: ServiceRequestPayload['availability'];
+  readonly consent: boolean;
+  readonly website: string;
+}
+
+export interface PortalRequestResult {
+  readonly requestId: string;
+  readonly requestNumber: string;
+}
+
+/**
+ * Portal mode of the wizard (customer-portal-dashboard BR-28): no Contact step, the Property step
+ * offers the customer's properties, and the page supplies the submission.
+ */
+export interface PortalWizardConfig {
+  readonly properties: readonly PortalWizardProperty[];
+  readonly submit: (
+    payload: PortalServiceRequestPayload,
+    files: readonly File[],
+  ) => Observable<PortalRequestResult>;
+}
+
+/** Value of the property choice that means "Add a new property". */
+export const NEW_PROPERTY_CHOICE = 'new';

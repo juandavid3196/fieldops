@@ -1,7 +1,7 @@
 namespace FieldOps.Application.Features.Email;
 
 /// <summary>One outgoing message: recipient, subject and both bodies.</summary>
-public sealed record EmailMessage(string To, string Subject, string TextBody, string HtmlBody);
+public sealed record EmailMessage(string To, string Subject, string TextBody, string HtmlBody, string? ReplyTo = null);
 
 /// <summary>
 /// Sends one email through the configured provider (SMTP or Resend). A send

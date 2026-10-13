@@ -109,6 +109,8 @@
     @if (pdfState() === 'failed') {
       <p class="summary__error" role="alert">We couldn't download the PDF. Please try again.</p>
     }
+  } @else if (quote().quote.status === 'expired') {
+    <p class="summary__final" role="status">{{ expiredNotice() }}</p>
   } @else {
     <p class="summary__final">Declined on {{ respondedOn() }}</p>
     <p class="summary__muted">Your decision was sent to {{ quote().organization.name }}.</p>

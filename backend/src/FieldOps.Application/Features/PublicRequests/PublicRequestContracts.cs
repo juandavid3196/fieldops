@@ -96,7 +96,14 @@ public sealed record PublicSubmission(
     DateTimeOffset? PreferredStart,
     DateTimeOffset? PreferredEnd,
     DateTimeOffset ConsentAt,
-    IReadOnlyList<PublicSubmissionAttachment> Attachments);
+    IReadOnlyList<PublicSubmissionAttachment> Attachments,
+    PortalSubmissionContext? Portal = null);
+
+/// <summary>
+/// Set when the request comes from the customer portal (customer portal BR-28): the customer, contact and user come from the
+/// session and the property is one of the customer's (<paramref name="ExistingPropertyId"/>) or a new one built from the submission.
+/// </summary>
+public sealed record PortalSubmissionContext(Guid CustomerId, Guid ContactId, Guid UserId, Guid? ExistingPropertyId);
 
 public abstract record PublicSubmissionOutcome
 {
@@ -108,6 +115,9 @@ public abstract record PublicSubmissionOutcome
 
     /// <summary>The category or service stopped being valid between validation and the transaction.</summary>
     public sealed record CatalogChanged : PublicSubmissionOutcome;
+
+    /// <summary>Portal only: the chosen property stopped being an active property of the customer.</summary>
+    public sealed record PropertyUnavailable : PublicSubmissionOutcome;
 }
 
 public abstract record SubmitPublicServiceRequestResult
@@ -147,6 +157,9 @@ public interface IPublicServiceRequestStore
 {
     /// <summary>The form configuration when the slug (lowercase) accepts public requests, otherwise null (BR-01).</summary>
     Task<PublicServiceRequestForm?> FindAcceptingFormAsync(string slug, CancellationToken cancellationToken);
+
+    /// <summary>The same form configuration for the organization of a portal session (customer portal BR-28).</summary>
+    Task<PublicServiceRequestForm?> FindAcceptingFormByOrganizationAsync(Guid organizationId, CancellationToken cancellationToken);
 
     /// <summary>
     /// One transaction: lock the organization, resolve contact/customer

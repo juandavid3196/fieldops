@@ -1,0 +1,43 @@
+<section class="pcard" aria-labelledby="active-requests-title">
+  <header class="pcard__head">
+    <h2 class="pcard__title" id="active-requests-title">
+      <i class="pi pi-file pcard__icon" aria-hidden="true"></i>
+      Active requests
+    </h2>
+    <a class="pcard__link" routerLink="/portal/requests">View all</a>
+  </header>
+  @if (rows().length === 0) {
+    <p class="pcard__empty">No active requests.</p>
+  } @else {
+    <ul class="requests">
+      @for (row of rows(); track row.request.id) {
+        <li class="requests__row">
+          <div class="requests__main">
+            <p class="requests__number">{{ row.request.displayNumber }}</p>
+            <p class="requests__title">{{ row.request.title }}</p>
+          </div>
+          <app-portal-status-chip
+            class="requests__chip"
+            [label]="row.chip.label"
+            [tone]="row.chip.tone"
+            variant="tag"
+          />
+          <p class="requests__submitted">
+            Submitted<br />
+            {{ row.submitted }}
+          </p>
+          <a
+            pButton
+            class="requests__view"
+            severity="secondary"
+            [outlined]="true"
+            size="small"
+            [attr.aria-label]="'View request ' + row.request.displayNumber"
+            [routerLink]="['/portal/requests', row.request.id]"
+            >View</a
+          >
+        </li>
+      }
+    </ul>
+  }
+</section>

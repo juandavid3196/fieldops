@@ -106,6 +106,28 @@ Detalle: [`specs/password-recovery/spec.md`](../specs/password-recovery/spec.md)
   minuto globales entre los tres; 3 por email cada 60 min (silencioso: sigue
   el `202` neutro sin token ni correo).
 
+## Portal del cliente
+
+El portal usa una **segunda cookie independiente** (`fieldops_portal_session`, mismas banderas y duración) y el
+mismo `users`. Los endpoints `/portal/*` solo aceptan esa cookie; los internos la ignoran, y la cookie interna
+nunca autentica el portal (`401`). Pueden convivir en un navegador.
+
+| Método | Ruta | Para qué |
+| ------ | ---- | -------- |
+| POST | `/portal/sessions` | Iniciar sesión (mismos límites y mismo `401` genérico; elige el vínculo activo más antiguo) |
+| GET / DELETE | `/portal/sessions/current` | Sesión actual / cerrar sesión (solo borra la cookie del portal) |
+| POST | `/portal/sessions/current/account` | Cambiar de cuenta entre los vínculos activos del usuario |
+| POST | `/portal/invitations/validate`, `/accept`, `/accept-existing` | Activar el acceso con el token de invitación (`410` idéntico si no es usable) |
+| POST | `/portal/password-resets` | Recuperar la contraseña con enlace `/portal/reset-password#token=…` |
+
+- Un vínculo está activo si `customer_contacts.portal_user_id` es el usuario y el contacto, su cliente y su
+  organización están activos. En cada petición se revalida; si falla (cliente archivado, contacto inactivo, acceso
+  retirado por el personal, usuario deshabilitado, organización inactiva o contraseña cambiada después de iniciar
+  sesión) la respuesta es `401` y se borra la cookie. Cambiar la contraseña invalida también la sesión interna.
+- Organización, cliente y contacto salen siempre de la cookie validada. Un id ajeno (otro cliente u otra
+  organización) responde el mismo `404` `portal_resource_unavailable`.
+- Límites por usuario (en memoria): solicitudes 5, propiedades 10, mensajes 5 y reprogramaciones 5 cada 15 min.
+
 ## Reglas importantes
 
 | Regla | Detalle |

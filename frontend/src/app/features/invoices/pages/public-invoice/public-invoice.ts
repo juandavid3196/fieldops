@@ -4,13 +4,16 @@ import {
   DestroyRef,
   ElementRef,
   Injector,
+  OnInit,
   afterNextRender,
   computed,
   inject,
+  input,
+  output,
   signal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Skeleton } from 'primeng/skeleton';
 import { Observable } from 'rxjs';
 
@@ -23,7 +26,7 @@ import { PublicPhotoGallery } from '../../components/public-photo-gallery/public
 import { PublicReviewCard } from '../../components/public-review-card/public-review-card';
 import { PUBLIC_DOWNLOAD_FAILED_MESSAGE, PublicInvoice } from '../../models/invoice.model';
 import { PublicInvoiceTokenService } from '../../services/public-invoice-token.service';
-import { PublicInvoiceService } from '../../services/public-invoice.service';
+import { InvoiceLinkApi } from '../../services/invoice-link-api';
 import { PublicPaymentFlow } from '../../services/public-payment-flow';
 import { downloadBlob, openBlob } from '../../utils/blob-download';
 import { organizationInitials } from '../../utils/invoice-format';
@@ -51,21 +54,28 @@ const PUBLIC_PATH = '/invoices/view';
     Skeleton,
   ],
   providers: [PublicPaymentFlow],
+  host: { '[class.embedded]': 'embedded()' },
   templateUrl: './public-invoice.html',
   styleUrl: './public-invoice.scss',
 })
-export class PublicInvoicePage {
+export class PublicInvoicePage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly location = inject(Location);
+  private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
   private readonly tokens = inject(PublicInvoiceTokenService);
-  private readonly service = inject(PublicInvoiceService);
+  private readonly service = inject(InvoiceLinkApi);
   private readonly flow = inject(PublicPaymentFlow);
 
   private logoObjectUrl: string | null = null;
+
+  /** Rendered inside the portal shell: session-authorized, no token, header and footer hidden. */
+  readonly embedded = input(false);
+  /** Embedded only: the invoice is not available (`404`); the portal page owns that state. */
+  readonly missing = output<void>();
 
   readonly state = signal<PageState>('loading');
   readonly invoice = signal<PublicInvoice | null>(null);
@@ -79,13 +89,6 @@ export class PublicInvoicePage {
 
   constructor() {
     this.destroyRef.onDestroy(() => this.releaseLogo());
-    // BR-27/BR-29: capture first and replace the URL before any request. Replacing it also drops
-    // every query parameter Stripe adds on return; none is read, sent, stored or logged.
-    const snapshot = this.route.snapshot;
-    this.tokens.captureFromFragment(snapshot.fragment);
-    if (snapshot.fragment !== null || snapshot.queryParamMap.keys.length > 0) {
-      this.location.replaceState(PUBLIC_PATH);
-    }
     this.flow.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((event) => {
       if (event === 'unavailable') {
         this.show('unavailable');
@@ -93,7 +96,29 @@ export class PublicInvoicePage {
         this.load(false);
       }
     });
+  }
+
+  ngOnInit(): void {
+    const snapshot = this.route.snapshot;
+    if (this.embedded()) {
+      // Portal: the Stripe return parameters are dropped from the address bar, never read.
+      if (snapshot.queryParamMap.keys.length > 0) {
+        this.location.replaceState(this.location.path().split(/[?#]/)[0]);
+      }
+    } else {
+      // BR-27/BR-29: capture first and replace the URL before any request. Replacing it also drops
+      // every query parameter Stripe adds on return; none is read, sent, stored or logged.
+      this.tokens.captureFromFragment(snapshot.fragment);
+      if (snapshot.fragment !== null || snapshot.queryParamMap.keys.length > 0) {
+        this.location.replaceState(PUBLIC_PATH);
+      }
+    }
     this.load(true);
+  }
+
+  /** BR-36: a plain navigation; the link token never becomes a session. */
+  openPortal(): void {
+    void this.router.navigateByUrl('/portal/sign-in');
   }
 
   retry(): void {
@@ -110,7 +135,7 @@ export class PublicInvoicePage {
   }
 
   private load(initial: boolean): void {
-    if (this.tokens.read() === null) {
+    if (!this.embedded() && this.tokens.read() === null) {
       this.show('unavailable');
       return;
     }
@@ -147,7 +172,11 @@ export class PublicInvoicePage {
 
   private show(state: PageState, focus = 'h1'): void {
     if (state === 'unavailable') {
-      this.tokens.clear();
+      if (this.embedded()) {
+        this.missing.emit();
+      } else {
+        this.tokens.clear();
+      }
       this.invoice.set(null);
       this.releaseLogo();
     }
