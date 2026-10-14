@@ -1,9 +1,11 @@
 :host {
-  display: block;
+  display: flex;
+  flex-direction: column;
   min-width: 0;
 }
 
 .card {
+  flex: 1;
   min-width: 0;
   padding: 1rem;
   background: var(--fo-color-surface);
@@ -68,7 +70,7 @@
 
   th,
   td {
-    padding: 0.5rem 0.5rem;
+    padding: 0.75rem;
     text-align: start;
     vertical-align: middle;
     border-block-end: 1px solid var(--fo-color-row-divider);
@@ -76,8 +78,9 @@
 
   th {
     font-weight: 600;
-    color: var(--fo-color-text-secondary);
+    color: var(--fo-color-heading);
     white-space: nowrap;
+    background: var(--fo-color-surface-muted);
   }
 
   &__nowrap {
@@ -134,11 +137,10 @@
   }
 
   &__actions {
-    display: flex;
+    display: inline-flex;
     gap: 0.25rem;
     align-items: center;
     white-space: nowrap;
-    border-block-end: 0;
   }
 }
 
@@ -146,8 +148,9 @@
   display: inline-flex;
   gap: 0.25rem;
   align-items: center;
-  padding: 0.125rem 0.5rem;
+  padding: 0.25rem 0.75rem;
   font-size: 0.8125rem;
+  font-weight: 500;
   white-space: nowrap;
   color: var(--fo-color-neutral-text);
   background: var(--fo-color-neutral-background);
@@ -200,6 +203,7 @@
 
   &--icon {
     padding: 0;
+    background: transparent;
     border-color: transparent;
     min-inline-size: 2rem;
   }

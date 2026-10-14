@@ -18,6 +18,7 @@ import {
   percentOf,
   plural,
   varianceText,
+  varianceTone,
 } from '../../utils/dashboard-view';
 import { LoadStatus } from '../../services/dashboard-page.store';
 
@@ -62,9 +63,11 @@ export class DashboardAnalytics {
       name: c.name,
       estimated: durationText(c.estimatedMinutes),
       actual: durationText(c.actualMinutes),
-      estimatedWidth: (c.estimatedMinutes / max) * 100,
-      actualWidth: (c.actualMinutes / max) * 100,
+      // Bars use 80% of the track so the duration label fits after the longest one.
+      estimatedWidth: (c.estimatedMinutes / max) * 80,
+      actualWidth: (c.actualMinutes / max) * 80,
       variance: varianceText(c.estimatedMinutes, c.actualMinutes),
+      varianceTone: varianceTone(c.estimatedMinutes, c.actualMinutes),
     }));
   });
 

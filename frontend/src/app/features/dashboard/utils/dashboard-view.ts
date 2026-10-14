@@ -50,6 +50,15 @@ export function varianceText(estimated: number, actual: number): string {
   return diff > 0 ? `+${diff} min` : `${MINUS}${-diff} min`;
 }
 
+/** Variance colour: on or under estimate is good, up to 15% over a warning, beyond that a problem. */
+export function varianceTone(estimated: number, actual: number): 'good' | 'warning' | 'bad' {
+  const diff = actual - estimated;
+  if (diff <= 0) {
+    return 'good';
+  }
+  return diff / Math.max(1, estimated) >= 0.15 ? 'bad' : 'warning';
+}
+
 export function percentOf(part: number, total: number): number | null {
   return total > 0 ? Math.round((part / total) * 100) : null;
 }
@@ -250,12 +259,12 @@ export function attentionView(
 
 // BR-12 technicians
 
-const STATUS_VIEW: Record<TechnicianStatus, { label: string; icon: string }> = {
-  time_off: { label: 'Time off', icon: 'pi-calendar-times' },
-  off: { label: 'Off', icon: 'pi-moon' },
-  break: { label: 'Break', icon: 'pi-pause-circle' },
-  on_job: { label: 'On job', icon: 'pi-briefcase' },
-  available: { label: 'Available', icon: 'pi-check-circle' },
+const STATUS_VIEW: Record<TechnicianStatus, { label: string; tone: string }> = {
+  time_off: { label: 'Time off', tone: 'neutral' },
+  off: { label: 'Off', tone: 'neutral' },
+  break: { label: 'Break', tone: 'warning' },
+  on_job: { label: 'On job', tone: 'info' },
+  available: { label: 'Available', tone: 'success' },
 };
 
 export interface TechnicianRow {
@@ -264,7 +273,7 @@ export interface TechnicianRow {
   readonly initials: string;
   readonly color: string | null;
   readonly skills: string;
-  readonly status: { readonly label: string; readonly icon: string } | null;
+  readonly status: { readonly label: string; readonly tone: string } | null;
   readonly workload: { readonly text: string; readonly bar: number; readonly over: boolean } | null;
   readonly next: string;
 }
@@ -313,14 +322,23 @@ export function technicianRow(
 const ACTIVITY_ICONS: Record<ActivityEvent['type'], string> = {
   on_the_way: 'pi-send',
   started: 'pi-play',
-  completed: 'pi-check-circle',
+  completed: 'pi-check',
   assigned: 'pi-user-plus',
   reassigned: 'pi-sync',
+};
+
+const ACTIVITY_TONES: Record<ActivityEvent['type'], 'success' | 'info' | 'primary' | 'neutral'> = {
+  on_the_way: 'primary',
+  started: 'success',
+  completed: 'success',
+  assigned: 'neutral',
+  reassigned: 'info',
 };
 
 export interface ActivityView {
   readonly key: string;
   readonly icon: string;
+  readonly tone: 'success' | 'info' | 'primary' | 'neutral';
   readonly time: string;
   readonly title: string;
   readonly subtitle: string;
@@ -341,6 +359,7 @@ export function activityView(event: ActivityEvent, index: number, timezone: stri
   return {
     key: `${event.type}-${event.visitId}-${index}`,
     icon: ACTIVITY_ICONS[event.type],
+    tone: ACTIVITY_TONES[event.type],
     time: formatInstant(event.at, timezone),
     title,
     subtitle,

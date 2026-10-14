@@ -17,14 +17,19 @@
         <li class="dur__row">
           <span class="dur__name">{{ row.name }}</span>
           <span class="dur__bars" aria-hidden="true">
-            <span class="dur__bar" [style.inline-size.%]="row.estimatedWidth"></span>
-            <span class="dur__bar dur__bar--actual" [style.inline-size.%]="row.actualWidth"></span>
+            <span class="dur__line">
+              <span class="dur__bar" [style.inline-size.%]="row.estimatedWidth"></span>
+              <span class="dur__value">{{ row.estimated }}</span>
+            </span>
+            <span class="dur__line">
+              <span
+                class="dur__bar dur__bar--actual"
+                [style.inline-size.%]="row.actualWidth"
+              ></span>
+              <span class="dur__value">{{ row.actual }}</span>
+            </span>
           </span>
-          <span class="dur__values" aria-hidden="true">
-            <span>{{ row.estimated }}</span>
-            <span>{{ row.actual }}</span>
-          </span>
-          <span class="dur__variance">{{ row.variance }}</span>
+          <span class="dur__variance" [attr.data-tone]="row.varianceTone">{{ row.variance }}</span>
         </li>
       }
     </ul>
@@ -115,6 +120,7 @@
                 [attr.stroke-dasharray]="(s.fixPercent ?? 0) + ' 100'"
               />
             </svg>
+            <span class="ring__text">{{ s.fixPercent === null ? '—' : s.fixPercent + '%' }}</span>
           </span>
         </div>
       </div>
@@ -123,9 +129,10 @@
         <div class="perf__figure">
           <span class="perf__value">{{ s.rating ?? '—' }}</span>
           @if (s.rating !== null) {
-            <span class="perf__rating"
-              ><i class="pi pi-star-fill" aria-hidden="true"></i> {{ s.rating }}/5</span
-            >
+            <span class="perf__rating">
+              <span class="perf__star" aria-hidden="true"><i class="pi pi-star-fill"></i></span>
+              {{ s.rating }}/5
+            </span>
           }
         </div>
         <p class="perf__note">{{ s.reviews }}</p>
@@ -139,7 +146,7 @@
       <polygon class="chart__area" [attr.points]="s.chart.area" />
       <polyline class="chart__line" [attr.points]="s.chart.line" />
       @for (point of s.chart.points; track point.date) {
-        <circle class="chart__dot" [attr.cx]="point.x" [attr.cy]="point.y" r="2.5" />
+        <circle class="chart__dot" [attr.cx]="point.x" [attr.cy]="point.y" r="2" />
       }
       @for (label of s.chart.labels; track label.x) {
         <text class="chart__axis chart__axis--x" [attr.x]="label.x" y="116">{{ label.text }}</text>
@@ -182,7 +189,9 @@
     <ul class="act">
       @for (event of events(); track event.key) {
         <li class="act__item">
-          <i class="pi act__icon" [class]="event.icon" aria-hidden="true"></i>
+          <span class="act__icon" [attr.data-tone]="event.tone" aria-hidden="true"
+            ><i class="pi" [class]="event.icon"></i
+          ></span>
           <span class="act__time">{{ event.time }}</span>
           <a class="act__link" [routerLink]="event.link.path">
             <span class="act__title">{{ event.title }}</span>

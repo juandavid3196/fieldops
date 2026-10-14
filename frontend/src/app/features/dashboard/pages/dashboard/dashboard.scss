@@ -22,7 +22,7 @@
   }
 
   &__subtitle {
-    margin: 0.125rem 0 0;
+    margin: 0.5rem 0 0;
     color: var(--fo-color-text-secondary);
   }
 
@@ -46,8 +46,15 @@
   &__heading-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 0.75rem;
+    gap: 0.75rem;
     align-items: center;
+
+    // On phones the title takes its own line; the timestamp and refresh sit together below it.
+    .dash__title {
+      @media (max-width: 47.99rem) {
+        flex: 1 0 100%;
+      }
+    }
   }
 
   &__updated {
@@ -87,10 +94,19 @@
   }
 
   &__filters {
+    align-items: flex-end;
     padding: 0.75rem;
     background: var(--fo-color-surface);
     border: 1px solid var(--fo-color-border);
     border-radius: var(--fo-radius-card);
+
+    // On phones every filter is a full-width row, the clear action included.
+    .dash__control,
+    .dash__btn {
+      @media (max-width: 47.99rem) {
+        flex: 1 0 100%;
+      }
+    }
   }
 
   &__control {
@@ -153,6 +169,15 @@
       cursor: not-allowed;
     }
 
+    &--link {
+      color: var(--fo-color-link);
+      border-color: var(--fo-color-link);
+
+      &:hover:not(:disabled) {
+        background: var(--fo-color-surface-muted);
+      }
+    }
+
     &--primary {
       color: var(--fo-color-on-primary);
       background: var(--fo-color-primary);
@@ -182,6 +207,19 @@
     color: var(--fo-color-on-primary);
     background: var(--fo-color-primary);
     border-radius: var(--fo-radius-pill);
+  }
+
+  &__chevron {
+    font-size: 0.75rem;
+    transition: transform 150ms ease;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      transition: none;
+    }
   }
 
   &__inline {
@@ -216,7 +254,7 @@
 
     @media (min-width: 80rem) {
       grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-      align-items: start;
+      align-items: stretch;
     }
   }
 

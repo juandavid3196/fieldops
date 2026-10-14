@@ -59,7 +59,7 @@
 
   th,
   td {
-    padding: 0.4375rem 0.5rem;
+    padding: 0.625rem 0.75rem;
     text-align: start;
     vertical-align: middle;
     border-block-end: 1px solid var(--fo-color-row-divider);
@@ -67,8 +67,13 @@
 
   th {
     font-weight: 600;
-    color: var(--fo-color-text-secondary);
+    color: var(--fo-color-heading);
     white-space: nowrap;
+    background: var(--fo-color-surface-muted);
+  }
+
+  tbody tr:last-child td {
+    border-block-end: 0;
   }
 
   &__nowrap {
@@ -87,13 +92,12 @@
     flex: none;
     align-items: center;
     justify-content: center;
-    inline-size: 1.75rem;
-    block-size: 1.75rem;
-    font-size: 0.6875rem;
-    font-weight: 700;
+    inline-size: 2rem;
+    block-size: 2rem;
+    font-size: 0.75rem;
+    font-weight: 600;
     color: var(--fo-color-heading);
-    background: color-mix(in srgb, var(--avatar, var(--fo-color-primary)) 22%, transparent);
-    border: 1px solid var(--avatar, var(--fo-color-primary));
+    background: color-mix(in srgb, var(--avatar, var(--fo-color-primary)) 30%, transparent);
     border-radius: var(--fo-radius-pill);
   }
 
@@ -101,7 +105,32 @@
     display: inline-flex;
     gap: 0.375rem;
     align-items: center;
+    font-weight: 600;
     white-space: nowrap;
+
+    &[data-tone='info'] {
+      color: var(--fo-color-info-text);
+    }
+
+    &[data-tone='success'] {
+      color: var(--fo-color-success-text);
+    }
+
+    &[data-tone='warning'] {
+      color: var(--fo-color-warning-text);
+    }
+
+    &[data-tone='neutral'] {
+      color: var(--fo-color-neutral-text);
+    }
+  }
+
+  &__dot {
+    flex: none;
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    background: currentcolor;
+    border-radius: var(--fo-radius-pill);
   }
 
   &__load {
@@ -111,7 +140,6 @@
     white-space: nowrap;
 
     &--over {
-      font-weight: 700;
       color: var(--fo-color-danger-text);
 
       .tech__fill {
@@ -122,7 +150,7 @@
 
   &__bar {
     display: inline-block;
-    inline-size: 5rem;
+    inline-size: 5.5rem;
     block-size: 0.5rem;
     overflow: hidden;
     background: var(--fo-color-neutral-background);

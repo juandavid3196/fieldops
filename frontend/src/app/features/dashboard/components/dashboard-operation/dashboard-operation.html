@@ -48,7 +48,6 @@
             <tr>
               <td>
                 <span class="chip" [attr.data-tone]="row.chip.tone">
-                  <i class="pi" [class]="row.chip.icon" aria-hidden="true"></i>
                   {{ row.chip.label }}
                 </span>
               </td>
@@ -73,26 +72,28 @@
                   </span>
                 }
               </td>
-              <td class="op__actions">
-                @if (row.action.href !== null) {
-                  <a class="btn" [href]="row.action.href">{{ row.action.label }}</a>
-                } @else if (row.action.link !== null) {
-                  <a
-                    class="btn"
-                    [routerLink]="row.action.link.path"
-                    [queryParams]="row.action.link.queryParams"
-                    >{{ row.action.label }}</a
+              <td>
+                <span class="op__actions">
+                  @if (row.action.href !== null) {
+                    <a class="btn" [href]="row.action.href">{{ row.action.label }}</a>
+                  } @else if (row.action.link !== null) {
+                    <a
+                      class="btn"
+                      [routerLink]="row.action.link.path"
+                      [queryParams]="row.action.link.queryParams"
+                      >{{ row.action.label }}</a
+                    >
+                  }
+                  <button
+                    type="button"
+                    class="btn btn--icon"
+                    aria-haspopup="menu"
+                    [attr.aria-label]="'More actions for ' + row.visit.displayNumber"
+                    (click)="openMenu($event, row.visit)"
                   >
-                }
-                <button
-                  type="button"
-                  class="btn btn--icon"
-                  aria-haspopup="menu"
-                  [attr.aria-label]="'More actions for ' + row.visit.displayNumber"
-                  (click)="openMenu($event, row.visit)"
-                >
-                  <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
-                </button>
+                    <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+                  </button>
+                </span>
               </td>
             </tr>
           }

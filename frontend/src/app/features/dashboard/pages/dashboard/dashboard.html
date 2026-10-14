@@ -33,6 +33,7 @@
             optionValue="id"
             inputId="dash-branch"
             ariaLabel="Branch"
+            [fluid]="true"
             appendTo="body"
             [disabled]="!ready()"
             [ngModel]="branchValue()"
@@ -70,6 +71,11 @@
               >{{ filterCount() }}<span class="dash__sr"> active</span></span
             >
           }
+          <i
+            class="pi pi-chevron-down dash__chevron"
+            [class.dash__chevron--open]="filtersOpen()"
+            aria-hidden="true"
+          ></i>
         </button>
         <a
           class="dash__btn dash__btn--primary"
@@ -91,6 +97,7 @@
             optionLabel="name"
             optionValue="id"
             inputId="dash-technician"
+            [fluid]="true"
             ariaLabel="Technician"
             placeholder="All"
             [showClear]="true"
@@ -106,6 +113,7 @@
             optionLabel="name"
             optionValue="id"
             inputId="dash-category"
+            [fluid]="true"
             ariaLabel="Service category"
             placeholder="All"
             [showClear]="true"
@@ -114,7 +122,9 @@
             (onChange)="onCategory($event.value ?? null)"
           />
         </div>
-        <button type="button" class="dash__btn" (click)="onClearFilters()">Clear filters</button>
+        <button type="button" class="dash__btn dash__btn--link" (click)="onClearFilters()">
+          Clear filters
+        </button>
       </div>
     }
 

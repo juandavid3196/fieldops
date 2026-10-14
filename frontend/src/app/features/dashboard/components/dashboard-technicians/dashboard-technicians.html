@@ -37,8 +37,8 @@
               <td>{{ row.skills }}</td>
               <td>
                 @if (row.status; as status) {
-                  <span class="tech__status">
-                    <i class="pi" [class]="status.icon" aria-hidden="true"></i>
+                  <span class="tech__status" [attr.data-tone]="status.tone">
+                    <span class="tech__dot" aria-hidden="true"></span>
                     {{ status.label }}
                   </span>
                 } @else {

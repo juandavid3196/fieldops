@@ -11,7 +11,6 @@
 
   &__head {
     display: flex;
-    flex-wrap: wrap;
     gap: 0.5rem 0.75rem;
     align-items: center;
     justify-content: space-between;
@@ -52,9 +51,11 @@
 
 .sr {
   position: absolute;
+  display: block;
   inline-size: 1px;
   block-size: 1px;
   overflow: hidden;
+  white-space: nowrap;
   clip-path: inset(50%);
 }
 
@@ -77,6 +78,7 @@
 
 .legend {
   display: inline-flex;
+  flex: none;
   gap: 0.75rem;
   font-size: 0.8125rem;
   color: var(--fo-color-text-secondary);
@@ -109,21 +111,33 @@
 
   &__row {
     display: grid;
-    grid-template-columns: 5rem minmax(0, 1fr) 3.5rem 4.5rem;
-    gap: 0.5rem;
+    grid-template-columns: 5rem minmax(0, 1fr) 4.5rem;
+    gap: 0.75rem;
     align-items: center;
     font-size: 0.875rem;
+  }
+
+  &__name {
+    font-weight: 500;
+    color: var(--fo-color-heading);
   }
 
   &__bars {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: 0;
+  }
+
+  &__line {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
   }
 
   &__bar {
     display: block;
-    block-size: 0.5rem;
+    flex: none;
+    block-size: 0.625rem;
     background: var(--fo-color-border-strong);
     border-radius: var(--fo-radius-pill);
 
@@ -132,16 +146,28 @@
     }
   }
 
-  &__values {
-    display: flex;
-    flex-direction: column;
+  &__value {
     font-size: 0.75rem;
     color: var(--fo-color-text-secondary);
+    white-space: nowrap;
   }
 
   &__variance {
-    font-weight: 600;
+    font-weight: 700;
     text-align: end;
+    white-space: nowrap;
+
+    &[data-tone='good'] {
+      color: var(--fo-color-success-text);
+    }
+
+    &[data-tone='warning'] {
+      color: light-dark(#d9480f, #ff9a52);
+    }
+
+    &[data-tone='bad'] {
+      color: var(--fo-color-danger-text);
+    }
   }
 }
 
@@ -152,7 +178,7 @@
 
   &__tile {
     min-width: 0;
-    padding: 0.5rem;
+    padding: 0.625rem;
     border: 1px solid var(--fo-color-border);
     border-radius: var(--fo-radius-control);
   }
@@ -179,12 +205,24 @@
   }
 
   &__rating {
-    font-size: 0.8125rem;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    align-items: center;
+    font-size: 0.75rem;
     color: var(--fo-color-text-secondary);
+  }
 
-    i {
-      color: var(--fo-color-warning-text);
-    }
+  &__star {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    font-size: 1rem;
+    color: var(--fo-color-on-primary);
+    background: var(--fo-color-warning-solid, #e8a317);
+    border-radius: var(--fo-radius-pill);
   }
 
   &__chart-title {
@@ -238,7 +276,7 @@
   &__line {
     fill: none;
     stroke: var(--fo-color-primary);
-    stroke-width: 2;
+    stroke-width: 1.5;
   }
 
   &__area {
@@ -251,7 +289,7 @@
   }
 
   &__axis {
-    font-size: 8px;
+    font-size: 6.5px;
     fill: var(--fo-color-text-secondary);
 
     &--x {
@@ -263,21 +301,79 @@
 .act {
   display: flex;
   flex-direction: column;
-  gap: 0.625rem;
   padding: 0;
   margin: 0;
   list-style: none;
 
   &__item {
+    position: relative;
     display: grid;
-    grid-template-columns: auto 4.5rem minmax(0, 1fr);
-    gap: 0.5rem;
-    align-items: start;
+    grid-template-columns: 1.5rem 4.5rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding-block: 0.75rem;
     font-size: 0.875rem;
+
+    // Connector through the icon column: joins this circle with the previous and next ones.
+    &::before {
+      position: absolute;
+      inset-block: 0;
+      inset-inline-start: 0.75rem;
+      inline-size: 1px;
+      content: '';
+      background: var(--fo-color-border-strong);
+    }
+
+    &:first-child::before {
+      inset-block-start: 50%;
+    }
+
+    &:last-child::before {
+      inset-block-end: 50%;
+    }
+
+    // Row divider: starts under the time, not under the icon.
+    &:not(:last-child)::after {
+      position: absolute;
+      inset-block-end: 0;
+      inset-inline: 2.25rem 0;
+      block-size: 1px;
+      content: '';
+      background: var(--fo-color-row-divider);
+    }
   }
 
   &__icon {
-    color: var(--fo-color-primary-strong);
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    color: var(--fo-color-on-primary);
+    border-radius: var(--fo-radius-pill);
+
+    i.pi {
+      display: block;
+      font-size: 0.75rem;
+      line-height: 1;
+    }
+
+    &[data-tone='success'] {
+      background: var(--fo-color-success-solid);
+    }
+
+    &[data-tone='info'] {
+      background: var(--fo-color-link);
+    }
+
+    &[data-tone='primary'] {
+      background: var(--fo-color-primary);
+    }
+
+    &[data-tone='neutral'] {
+      background: var(--fo-color-neutral-text);
+    }
   }
 
   &__time {
@@ -288,6 +384,7 @@
   &__link {
     display: flex;
     flex-direction: column;
+    justify-content: center;
     min-width: 0;
     color: inherit;
     text-decoration: none;
