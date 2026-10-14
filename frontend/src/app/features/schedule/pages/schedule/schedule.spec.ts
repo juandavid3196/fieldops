@@ -283,4 +283,40 @@ describe('Schedule page', () => {
     expect(page['store'].selectedVisitId()).toBeNull();
     expect(page.canLeave()).toBe(true);
   });
+
+  it('opens the drawer once for the visit parameter and removes it on close or 404 (AC-21)', async () => {
+    await setup('owner', '/schedule?branch=b-1&view=week&date=2026-09-23&visit=v-1');
+    call('GET', 'options').flush(OPTIONS);
+    await settle();
+    call('GET', 'calendar').flush(CALENDAR);
+    call('GET', 'unscheduled').flush(UNSCHEDULED);
+    await settle();
+    call('GET', 'visits/v-1').flush(detail('v-1'));
+    await settle();
+    const router = TestBed.inject(Router);
+    expect(page['store'].selectedVisitId()).toBe('v-1');
+
+    // Other URL changes keep the parameter while open and never reopen a closed drawer.
+    call('GET', 'calendar', { date: '2026-12-01' }).flush(CALENDAR);
+    await settle();
+    expect(router.url).toContain('visit=v-1');
+    page.onDrawerCloseRequested();
+    await settle();
+    expect(page['store'].selectedVisitId()).toBeNull();
+    expect(router.url).not.toContain('visit=');
+
+    // An unknown visit shows the existing toast and drops the parameter.
+    await harness.navigateByUrl('/schedule?branch=b-1&view=week&date=2026-12-01&visit=v-404');
+    await settle();
+    call('GET', 'visits/v-404').flush(null, { status: 404, statusText: 'Not Found' });
+    await settle();
+    call('GET', 'calendar').flush(CALENDAR);
+    call('GET', 'unscheduled').flush(UNSCHEDULED);
+    await settle();
+    expect(text()).toContain("This visit isn't available.");
+    expect(page['store'].selectedVisitId()).toBeNull();
+    expect(router.url).not.toContain('visit=');
+    // The drawer's evaluation of the first visit is not under test here.
+    httpTesting.match((r) => r.url.endsWith('/evaluation'));
+  });
 });

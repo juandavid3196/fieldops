@@ -1,0 +1,195 @@
+<section class="card" aria-labelledby="dur-title">
+  <header class="card__head">
+    <h2 class="card__title" id="dur-title">Estimated vs actual duration</h2>
+    <span class="legend" aria-hidden="true">
+      <span class="legend__item"><span class="legend__swatch"></span>Estimated</span>
+      <span class="legend__item"
+        ><span class="legend__swatch legend__swatch--actual"></span>Actual</span
+      >
+    </span>
+  </header>
+  <p class="card__caption">{{ durationCaption() }}</p>
+  @if (durationRows().length === 0) {
+    <p class="card__empty">No completed visits with estimates in the last 7 days.</p>
+  } @else {
+    <ul class="dur">
+      @for (row of durationRows(); track row.id) {
+        <li class="dur__row">
+          <span class="dur__name">{{ row.name }}</span>
+          <span class="dur__bars" aria-hidden="true">
+            <span class="dur__bar" [style.inline-size.%]="row.estimatedWidth"></span>
+            <span class="dur__bar dur__bar--actual" [style.inline-size.%]="row.actualWidth"></span>
+          </span>
+          <span class="dur__values" aria-hidden="true">
+            <span>{{ row.estimated }}</span>
+            <span>{{ row.actual }}</span>
+          </span>
+          <span class="dur__variance">{{ row.variance }}</span>
+        </li>
+      }
+    </ul>
+    <table class="sr">
+      <caption>
+        Estimated vs actual duration by service category
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Category</th>
+          <th scope="col">Estimated</th>
+          <th scope="col">Actual</th>
+          <th scope="col">Variance</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of durationRows(); track row.id) {
+          <tr>
+            <th scope="row">{{ row.name }}</th>
+            <td>{{ row.estimated }}</td>
+            <td>{{ row.actual }}</td>
+            <td>{{ row.variance }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<section class="card" aria-labelledby="perf-title">
+  <header class="card__head">
+    <h2 class="card__title" id="perf-title">Service performance</h2>
+    <p-select
+      [options]="periods"
+      optionLabel="label"
+      optionValue="code"
+      ariaLabel="Performance period"
+      appendTo="body"
+      [ngModel]="period()"
+      (onChange)="periodChange.emit($event.value)"
+    />
+  </header>
+  @if (performanceStatus() === 'loading') {
+    <div aria-busy="true">
+      <p-skeleton height="4.5rem" />
+      <p-skeleton height="7rem" />
+    </div>
+  } @else if (performanceStatus() === 'error') {
+    <div class="card__error" role="alert">
+      <p>{{ performanceError }}</p>
+      <button type="button" class="btn" (click)="retryPerformance.emit()">Try again</button>
+    </div>
+  } @else if (stats(); as s) {
+    <div class="perf">
+      <div class="perf__tile">
+        <h3 class="perf__label">Jobs completed</h3>
+        <div class="perf__figure">
+          <span class="perf__value">{{ s.jobsText }}</span>
+          <span class="ring">
+            <svg viewBox="0 0 36 36" aria-hidden="true">
+              <circle class="ring__track" cx="18" cy="18" r="15.9155" />
+              <circle
+                class="ring__value"
+                cx="18"
+                cy="18"
+                r="15.9155"
+                transform="rotate(-90 18 18)"
+                [attr.stroke-dasharray]="(s.jobsPercent ?? 0) + ' 100'"
+              />
+            </svg>
+            <span class="ring__text">{{ s.jobsPercent === null ? '—' : s.jobsPercent + '%' }}</span>
+          </span>
+        </div>
+      </div>
+      <div class="perf__tile">
+        <h3 class="perf__label">First-time fix rate</h3>
+        <div class="perf__figure">
+          <span class="perf__value">{{ s.fixPercent === null ? '—' : s.fixPercent + '%' }}</span>
+          <span class="ring">
+            <svg viewBox="0 0 36 36" aria-hidden="true">
+              <circle class="ring__track" cx="18" cy="18" r="15.9155" />
+              <circle
+                class="ring__value"
+                cx="18"
+                cy="18"
+                r="15.9155"
+                transform="rotate(-90 18 18)"
+                [attr.stroke-dasharray]="(s.fixPercent ?? 0) + ' 100'"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div class="perf__tile">
+        <h3 class="perf__label">Customer rating</h3>
+        <div class="perf__figure">
+          <span class="perf__value">{{ s.rating ?? '—' }}</span>
+          @if (s.rating !== null) {
+            <span class="perf__rating"
+              ><i class="pi pi-star-fill" aria-hidden="true"></i> {{ s.rating }}/5</span
+            >
+          }
+        </div>
+        <p class="perf__note">{{ s.reviews }}</p>
+      </div>
+    </div>
+
+    <h3 class="perf__chart-title">{{ chartTitle() }}</h3>
+    <svg class="chart" viewBox="0 0 300 120" aria-hidden="true">
+      <text class="chart__axis" x="0" y="10">{{ s.chart.max }}</text>
+      <text class="chart__axis" x="0" y="94">0</text>
+      <polygon class="chart__area" [attr.points]="s.chart.area" />
+      <polyline class="chart__line" [attr.points]="s.chart.line" />
+      @for (point of s.chart.points; track point.date) {
+        <circle class="chart__dot" [attr.cx]="point.x" [attr.cy]="point.y" r="2.5" />
+      }
+      @for (label of s.chart.labels; track label.x) {
+        <text class="chart__axis chart__axis--x" [attr.x]="label.x" y="116">{{ label.text }}</text>
+      }
+    </svg>
+    <table class="sr">
+      <caption>
+        {{
+          chartTitle()
+        }}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Jobs completed</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (point of s.chart.points; track point.date) {
+          <tr>
+            <th scope="row">{{ point.date }}</th>
+            <td>{{ point.completed }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>
+
+<section class="card" aria-labelledby="act-title">
+  <header class="card__head">
+    <h2 class="card__title" id="act-title">Live operational activity</h2>
+    <a class="card__link" [routerLink]="jobsLink.path">
+      View all <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </a>
+  </header>
+  @if (events().length === 0) {
+    <p class="card__empty">No activity for this day.</p>
+  } @else {
+    <ul class="act">
+      @for (event of events(); track event.key) {
+        <li class="act__item">
+          <i class="pi act__icon" [class]="event.icon" aria-hidden="true"></i>
+          <span class="act__time">{{ event.time }}</span>
+          <a class="act__link" [routerLink]="event.link.path">
+            <span class="act__title">{{ event.title }}</span>
+            <span class="act__sub">{{ event.subtitle }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  }
+</section>

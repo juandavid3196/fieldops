@@ -28,6 +28,10 @@ export interface NavGroup {
   readonly adminOnly?: boolean;
   /** BR-16: shown only to `technician` (UX only; the backend decides). */
   readonly technicianOnly?: boolean;
+  /** operations-dashboard BR-01: shown only to the Manage roles (UX only). */
+  readonly manageOnly?: boolean;
+  /** operations-dashboard BR-01: hidden for the Manage roles, who get the Dashboard instead. */
+  readonly hiddenForManage?: boolean;
 }
 
 function moduleItem(label: string, icon: string, slug: string): NavItem {
@@ -37,8 +41,15 @@ function moduleItem(label: string, icon: string, slug: string): NavItem {
 /** BR-01: sidebar structure, order and icons. */
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
+    id: 'dashboard',
+    heading: null,
+    manageOnly: true,
+    items: [{ label: 'Dashboard', icon: 'pi-th-large', link: '/dashboard', exact: true }],
+  },
+  {
     id: 'overview',
     heading: null,
+    hiddenForManage: true,
     items: [{ label: 'Overview', icon: 'pi-th-large', link: '/overview', exact: true }],
   },
   {

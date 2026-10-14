@@ -16,7 +16,7 @@ const SESSION_URL = `${API_BASE_URL}/sessions/current`;
 const SESSION: Session = {
   user: { id: 'u-1', firstName: 'Sofia', lastName: 'Martinez', email: 'sofia@example.com' },
   organization: { id: 'o-1', name: 'Acme Services' },
-  role: { code: 'owner', name: 'Owner' },
+  role: { code: 'viewer', name: 'Viewer' },
 };
 
 describe('app routes', () => {

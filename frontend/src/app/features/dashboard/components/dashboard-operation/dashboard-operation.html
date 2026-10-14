@@ -1,0 +1,113 @@
+<section class="card" aria-labelledby="op-title">
+  <p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+  <header class="card__head">
+    <h2 class="card__title" id="op-title">{{ title() }}</h2>
+    <a class="card__link" [routerLink]="jobsLink.path">
+      View all jobs <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  @if (visits().length === 0) {
+    <div class="card__empty">
+      <p>No jobs scheduled for this day.</p>
+      <a class="card__link" [routerLink]="boardLink().path" [queryParams]="boardLink().queryParams">
+        Open dispatch board
+      </a>
+    </div>
+  } @else {
+    <div class="card__scroll">
+      <table class="op">
+        <caption class="sr">
+          {{
+            title()
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Status</th>
+            <th scope="col" [attr.aria-sort]="descending() ? 'descending' : 'ascending'">
+              <button type="button" class="op__sort" (click)="toggleSort()">
+                Time
+                <i
+                  class="pi"
+                  [class.pi-arrow-up]="!descending()"
+                  [class.pi-arrow-down]="descending()"
+                  aria-hidden="true"
+                ></i>
+              </button>
+            </th>
+            <th scope="col">Job</th>
+            <th scope="col">Customer</th>
+            <th scope="col">Technician</th>
+            <th scope="col">Timing</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.visit.visitId) {
+            <tr>
+              <td>
+                <span class="chip" [attr.data-tone]="row.chip.tone">
+                  <i class="pi" [class]="row.chip.icon" aria-hidden="true"></i>
+                  {{ row.chip.label }}
+                </span>
+              </td>
+              <td class="op__nowrap">{{ row.time }}</td>
+              <td>
+                <a class="op__job" [routerLink]="row.job.path">{{ row.visit.displayNumber }}</a>
+                <span class="op__sub">{{ row.visit.title }}</span>
+              </td>
+              <td>{{ row.visit.customerName }}</td>
+              <td [class.op__muted]="row.visit.technician === null">{{ row.technician }}</td>
+              <td>
+                <span class="op__nowrap">{{ row.timing.label }}</span>
+                @if (row.timing.note; as note) {
+                  <span class="op__note" [class.op__note--late]="note.late">
+                    <i
+                      class="pi"
+                      [class.pi-exclamation-circle]="note.late"
+                      [class.pi-check]="!note.late"
+                      aria-hidden="true"
+                    ></i>
+                    {{ note.text }}
+                  </span>
+                }
+              </td>
+              <td class="op__actions">
+                @if (row.action.href !== null) {
+                  <a class="btn" [href]="row.action.href">{{ row.action.label }}</a>
+                } @else if (row.action.link !== null) {
+                  <a
+                    class="btn"
+                    [routerLink]="row.action.link.path"
+                    [queryParams]="row.action.link.queryParams"
+                    >{{ row.action.label }}</a
+                  >
+                }
+                <button
+                  type="button"
+                  class="btn btn--icon"
+                  aria-haspopup="menu"
+                  [attr.aria-label]="'More actions for ' + row.visit.displayNumber"
+                  (click)="openMenu($event, row.visit)"
+                >
+                  <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (visits().length > pageSize) {
+      <p-paginator
+        [first]="first()"
+        [rows]="pageSize"
+        [totalRecords]="visits().length"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Showing {first}–{last} of {totalRecords} jobs"
+        (onPageChange)="onPage($event)"
+      />
+    }
+  }
+</section>

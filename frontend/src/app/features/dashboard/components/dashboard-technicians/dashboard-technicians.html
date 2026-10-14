@@ -1,0 +1,67 @@
+<section class="card" aria-labelledby="tech-title">
+  <header class="card__head">
+    <h2 class="card__title" id="tech-title">Technician availability</h2>
+    <a class="card__link" [routerLink]="teamLink.path">
+      View team <i class="pi pi-arrow-right" aria-hidden="true"></i>
+    </a>
+  </header>
+
+  @if (rows().length === 0) {
+    <div class="card__empty">
+      <p>No active technicians in this branch.</p>
+      <a class="card__link" [routerLink]="teamLink.path">Go to Team</a>
+    </div>
+  } @else {
+    <div class="card__scroll">
+      <table class="tech">
+        <thead>
+          <tr>
+            <th scope="col">Technician</th>
+            <th scope="col">Skills</th>
+            <th scope="col">Current status</th>
+            <th scope="col">Workload</th>
+            <th scope="col">Next available</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <td>
+                <span class="tech__person">
+                  <span class="tech__avatar" aria-hidden="true" [style.--avatar]="row.color">{{
+                    row.initials
+                  }}</span>
+                  {{ row.fullName }}
+                </span>
+              </td>
+              <td>{{ row.skills }}</td>
+              <td>
+                @if (row.status; as status) {
+                  <span class="tech__status">
+                    <i class="pi" [class]="status.icon" aria-hidden="true"></i>
+                    {{ status.label }}
+                  </span>
+                } @else {
+                  —
+                }
+              </td>
+              <td>
+                @if (row.workload; as load) {
+                  <span class="tech__load" [class.tech__load--over]="load.over">
+                    <span class="tech__bar" aria-hidden="true"
+                      ><span class="tech__fill" [style.inline-size.%]="load.bar"></span
+                    ></span>
+                    <span>{{ load.text }}</span>
+                  </span>
+                } @else {
+                  —
+                }
+              </td>
+              <td class="tech__nowrap">{{ row.next }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
