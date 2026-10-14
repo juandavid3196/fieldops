@@ -19,6 +19,8 @@ public sealed class WorkOrdersController(
     SaveWorkOrderDraftHandler draftHandler,
     CreateWorkOrderHandler createHandler,
     ListWorkOrdersHandler listHandler,
+    GetJobsSummaryHandler summaryHandler,
+    GetJobsOptionsHandler optionsHandler,
     GetWorkOrderHandler getHandler,
     IAuthorizationService authorization) : WorkOrderControllerBase
 {
@@ -110,14 +112,63 @@ public sealed class WorkOrdersController(
 
     [HttpGet("work-orders")]
     [Authorize(Policy = WorkOrderPolicies.Read)]
-    [ProducesResponseType<WorkOrderPage>(StatusCodes.Status200OK)]
+    [ProducesResponseType<JobsPage>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> List(int? page, int? pageSize, CancellationToken cancellationToken)
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> List(
+        string? tab,
+        string? q,
+        string? branchId,
+        string? status,
+        string? priority,
+        string? sort,
+        int? page,
+        int? pageSize,
+        CancellationToken cancellationToken)
     {
         var failure = Begin(out var ticket);
 
-        return failure ?? Map(await listHandler.HandleAsync(Call(ticket), page, pageSize, cancellationToken));
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        var canManage = (await authorization.AuthorizeAsync(User, WorkOrderPolicies.Manage)).Succeeded;
+        var request = new JobsListRequest(tab, q, branchId, status, priority, sort, page, pageSize);
+
+        return Map(await listHandler.HandleAsync(Call(ticket), canManage, request, cancellationToken));
+    }
+
+    [HttpGet("work-orders/summary")]
+    [Authorize(Policy = WorkOrderPolicies.Read)]
+    [ProducesResponseType<JobsSummary>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Summary(string? branchId, CancellationToken cancellationToken)
+    {
+        var failure = Begin(out var ticket);
+
+        return failure ?? Map(await summaryHandler.HandleAsync(Call(ticket), branchId, cancellationToken));
+    }
+
+    [HttpGet("work-orders/options")]
+    [Authorize(Policy = WorkOrderPolicies.Read)]
+    [ProducesResponseType<JobsOptions>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Options(CancellationToken cancellationToken)
+    {
+        var failure = Begin(out var ticket);
+
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        var canManage = (await authorization.AuthorizeAsync(User, WorkOrderPolicies.Manage)).Succeeded;
+
+        return Ok(await optionsHandler.HandleAsync(Call(ticket), canManage, cancellationToken));
     }
 
     [HttpGet("work-orders/{id:guid}")]

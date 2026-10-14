@@ -4,7 +4,7 @@
 | -------- | ------------------ |
 | Feature  | `jobs-management`  |
 | Type     | Full-stack         |
-| Status   | APPROVED           |
+| Status   | AUDITED            |
 | Created  | 2026-10-14         |
 | Updated  | 2026-10-14         |
 | Approved | 2026-10-14         |
@@ -287,3 +287,5 @@ holds the requested page. The previous `WorkOrderPage` shape is replaced.
 | 2026-10-14 | — → DRAFT     | Created |
 | 2026-10-14 | DRAFT → DRAFT | Validation findings: options loading/error state (UI table, error behavior, AC-19); scope columns in data impact; API vs UI page size clarified; AS-03 without code constant |
 | 2026-10-14 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-14 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-14 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

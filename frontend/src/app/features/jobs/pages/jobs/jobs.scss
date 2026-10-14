@@ -1,9 +1,17 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+// BR-19 wide layout (1280 px) has no shared breakpoint.
+$wide: 80rem;
+
 :host {
   display: block;
   min-width: 0;
 }
 
 .jobs {
+  --jobs-purple: light-dark(#6d3fd1, #b9a2f2);
+  --jobs-purple-soft: light-dark(#f1ecfd, rgb(109 63 209 / 22%));
+
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -12,11 +20,223 @@
   padding: 1.25rem 1rem 2.5rem;
   overflow-wrap: anywhere;
 
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem 2.5rem;
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__crumbs {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--fo-color-text-secondary);
+
+    li + li::before {
+      margin-inline-end: 0.5rem;
+      content: '/';
+    }
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
   &__title {
     margin: 0;
     font-size: 1.75rem;
     font-weight: 700;
     color: var(--fo-color-heading);
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    inline-size: 100%;
+
+    @include bp.up(md) {
+      flex-direction: row;
+      inline-size: auto;
+    }
+
+    > * {
+      justify-content: center;
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  &__open,
+  &__clear {
+    --p-button-outlined-primary-color: var(--fo-color-primary-strong);
+    --p-button-outlined-primary-border-color: var(--fo-color-primary);
+
+    text-decoration: none;
+  }
+
+  &__badge,
+  &__count {
+    min-inline-size: 1.25rem;
+    padding: 0 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+    text-align: center;
+    border-radius: 999px;
+  }
+
+  &__badge {
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-on-primary);
+  }
+
+  &__count {
+    color: var(--fo-color-neutral-text);
+    background: var(--fo-color-neutral-background);
+  }
+
+  &__message {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0;
+    padding: 1rem;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__metrics {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+
+    @include bp.up(md) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (min-width: $wide) {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
+  &__metrics-error {
+    grid-column: 1 / -1;
+  }
+
+  &__metric {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-width: 0;
+    padding: 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    dl {
+      margin: 0;
+    }
+
+    dt {
+      font-weight: 600;
+      color: var(--fo-color-heading);
+    }
+
+    dd {
+      margin: 0;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
+    }
+
+    .jobs__caption {
+      font-size: 0.875rem;
+      font-weight: 400;
+      color: var(--fo-color-text-secondary);
+    }
+  }
+
+  &__metric-icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 3rem;
+    block-size: 3rem;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-control);
+
+    .pi {
+      font-size: 1.5rem;
+    }
+
+    &--danger {
+      color: var(--fo-color-danger-text);
+      background: var(--fo-color-danger-background);
+    }
+  }
+
+  &__card {
+    min-width: 0;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding-inline: 0.5rem;
+    overflow: auto hidden;
+    scrollbar-width: none;
+    border-block-end: 1px solid var(--fo-color-border);
+  }
+
+  &__tab {
+    display: inline-flex;
+    flex: none;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0 1rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    cursor: pointer;
+
+    @include bp.up(md) {
+      min-block-size: 3.5rem;
+    }
+
+    &[aria-selected='true'] {
+      color: var(--fo-color-primary-strong);
+      border-block-end-color: var(--fo-color-primary);
+    }
 
     &:focus-visible {
       outline: none;
@@ -24,31 +244,58 @@
     }
   }
 
-  &__skeletons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  &__message {
-    margin: 0;
-    padding: 1rem;
-    background: var(--fo-color-surface-muted);
-    border-radius: var(--p-content-border-radius);
-  }
-
-  &__row {
+  &__filters {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
+    padding: 1rem;
+  }
+
+  &__field {
+    flex: 1 1 100%;
+    min-width: 0;
+
+    @include bp.up(md) {
+      flex: 1 1 10rem;
+    }
+
+    &--search {
+      @include bp.up(md) {
+        flex: 2 1 16rem;
+      }
+    }
+  }
+
+  &__select-value {
+    display: inline-flex;
+    gap: 0.625rem;
+    align-items: center;
+
+    .pi {
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__clear {
+    justify-content: center;
+    min-block-size: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      flex: none;
+      min-block-size: auto;
+    }
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
   }
 
   &__scroll {
     overflow-x: auto;
-    background: var(--fo-color-surface);
-    border: 1px solid var(--fo-color-border);
-    border-radius: var(--fo-radius-card);
 
     &:focus-visible {
       outline: none;
@@ -58,29 +305,22 @@
 
   &__table {
     inline-size: 100%;
-    min-inline-size: 42rem;
-    font-size: 0.9375rem;
+    min-inline-size: 64rem;
     border-collapse: collapse;
 
     th,
     td {
       padding: 0.75rem;
       text-align: start;
-      vertical-align: top;
+      vertical-align: middle;
       border-block-end: 1px solid var(--fo-color-row-divider);
     }
 
     th {
+      font-size: 0.875rem;
       font-weight: 600;
       color: var(--fo-color-heading);
-    }
-  }
-
-  &__row-link {
-    cursor: pointer;
-
-    &:hover {
-      background: var(--fo-color-surface-hover);
+      background: var(--fo-color-neutral-background);
     }
   }
 
@@ -95,25 +335,151 @@
     color: var(--fo-color-text-secondary);
   }
 
-  &__chip {
-    display: inline-block;
-    padding: 0.125rem 0.5rem;
-    font-size: 0.75rem;
+  &__strong {
+    display: block;
     font-weight: 600;
-    color: var(--fo-color-warning-text);
-    background: var(--fo-color-warning-background);
-    border-radius: var(--fo-radius-pill);
+    color: var(--fo-color-heading);
+  }
 
-    &--draft {
-      color: var(--fo-color-neutral-text);
-      background: var(--fo-color-neutral-background);
+  &__nowrap {
+    white-space: nowrap;
+  }
+
+  &__muted-text {
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__emphasis {
+    font-weight: 700;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__tech {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    white-space: nowrap;
+  }
+
+  &__avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+    background: var(--fo-color-neutral-background);
+    border-radius: 50%;
+
+    &--colored {
+      background: color-mix(in srgb, var(--jobs-avatar) 28%, var(--fo-color-surface));
     }
   }
 
-  &__pager {
+  &__chip {
+    display: inline-flex;
+    gap: 0.375rem;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-neutral-text);
+    white-space: nowrap;
+    background: var(--fo-color-neutral-background);
+    border-radius: 999px;
+
+    &--info {
+      color: var(--fo-color-info-text);
+      background: var(--fo-color-info-background);
+    }
+
+    &--purple {
+      color: var(--jobs-purple);
+      background: var(--jobs-purple-soft);
+    }
+
+    &--warning {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+
+    &--success {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+    }
+
+    &--danger {
+      color: var(--fo-color-danger-text);
+      background: var(--fo-color-danger-background);
+    }
+  }
+
+  &__dot {
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    background: currentcolor;
+    border-radius: 50%;
+  }
+
+  &__menu {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    @include bp.up(md) {
+      inline-size: 2.25rem;
+      block-size: 2.25rem;
+    }
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__footer {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.75rem;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__range {
+    margin: 0;
+  }
+
+  &__paging {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__size {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__pager {
+    --p-paginator-padding: 0;
+    --p-paginator-background: transparent;
   }
 }

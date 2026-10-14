@@ -177,21 +177,21 @@ public class WorkOrderTemplatesAndSecurityTests(CompanySettingsDatabaseFixture d
 
         Assert.Equal(HttpStatusCode.NotFound, (await host.SendAsync(HttpMethod.Get, $"/work-orders/{orderB}", dispatcherA)).StatusCode);
 
-        // The list: every branch for the Owner and Viewer, newest first; scoped for Dispatchers; empty for another organization.
+        // The list: every branch for the Owner and Viewer, newest first, never drafts; scoped for Dispatchers; empty for another organization.
         foreach (var cookie in new[] { owner, viewer })
         {
             var page = await WorkOrdersApi.ReadOkAsync(await host.SendAsync(HttpMethod.Get, "/work-orders", cookie));
-            Assert.Equal(3, page["total"]!.GetValue<int>());
+            Assert.Equal(2, page["total"]!.GetValue<int>());
             Assert.Equal(
                 [orderB.ToString(), orderA.ToString()],
                 page["items"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()).Where(id => id == orderA.ToString() || id == orderB.ToString()).ToArray());
-            Assert.Equal("draft", page["items"]!.AsArray().Single(item => item!["status"]!.GetValue<string>() == "draft")!["status"]!.GetValue<string>());
+            Assert.DoesNotContain(page["items"]!.AsArray(), item => item!["status"]!.GetValue<string>() == "draft");
         }
 
         var scoped = await WorkOrdersApi.ReadOkAsync(await host.SendAsync(HttpMethod.Get, "/work-orders", dispatcherB));
         Assert.Equal([orderB.ToString()], scoped["items"]!.AsArray().Select(item => item!["id"]!.GetValue<string>()).ToArray());
         var item = scoped["items"]![0]!;
-        Assert.Equal(("Carla Customer", "Bravo Branch", "normal", "ready_to_schedule"), (item["customerName"]!.GetValue<string>(), item["branchName"]!.GetValue<string>(), item["priority"]!.GetValue<string>(), item["status"]!.GetValue<string>()));
+        Assert.Equal(("Carla Customer", "Bravo Branch", "normal", "ready_to_schedule"), (item["customerName"]!.GetValue<string>(), item["branch"]!["name"]!.GetValue<string>(), item["priority"]!.GetValue<string>(), item["status"]!.GetValue<string>()));
         Assert.Equal(0, (await WorkOrdersApi.ReadOkAsync(await host.SendAsync(HttpMethod.Get, "/work-orders", foreignOwner)))["total"]!.GetValue<int>());
         Assert.Equal(
             [HttpStatusCode.BadRequest, HttpStatusCode.BadRequest, HttpStatusCode.BadRequest, HttpStatusCode.OK],

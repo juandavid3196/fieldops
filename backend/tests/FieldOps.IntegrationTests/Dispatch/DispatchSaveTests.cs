@@ -117,10 +117,10 @@ public class DispatchSaveTests(CompanySettingsDatabaseFixture database)
         Assert.Contains("\"status\":\"scheduled\"", statusAudit, StringComparison.Ordinal);
         Assert.Contains($"\"visitId\":\"{visit}\"", statusAudit, StringComparison.Ordinal);
 
-        // The jobs list and detail show the status and the visit status (BR-16).
+        // The jobs list shows the operational status (jobs-management BR-05): a scheduled order with an assigned visit is "assigned".
         var jobs = await DispatchSeed.ReadAsync(await host.SendAsync(HttpMethod.Get, "/work-orders?page=1&pageSize=100", owner));
         Assert.Equal(
-            "scheduled",
+            "assigned",
             jobs["items"]!.AsArray().Single(item => item!["id"]!.GetValue<Guid>() == order.Order)!["status"]!.GetValue<string>());
         Assert.Equal("assigned", await database.ScalarAsync<string>("SELECT status::text FROM visits WHERE id = @v", ("v", visit)));
 

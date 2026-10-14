@@ -24,8 +24,6 @@ export const WO_CHANGED_MESSAGE =
 export const WO_REQUEST_CHANGED_MESSAGE = 'The request changed. Reload and try again.';
 export const WO_SAVE_FAILED_MESSAGE = "We couldn't save the work order. Try again.";
 export const WO_ALREADY_CREATED_MESSAGE = 'This work order has already been created.';
-export const JOBS_LOAD_ERROR_MESSAGE = "We couldn't load jobs. Try again.";
-export const JOBS_EMPTY_MESSAGE = 'No jobs yet. Jobs are created from approved quotes.';
 export const MAX_TASKS = 50;
 export const TASK_LIMIT_MESSAGE = 'A work order can have up to 50 tasks.';
 
@@ -110,22 +108,6 @@ export interface WorkOrderEditor {
 export interface WorkOrderCreated {
   readonly id: string;
   readonly displayNumber: string;
-}
-
-export interface WorkOrderListItem {
-  readonly id: string;
-  readonly displayNumber: string;
-  readonly title: string;
-  readonly customerName: string;
-  readonly branchName: string;
-  readonly priority: Priority;
-  readonly status: WorkOrderStatus;
-  readonly createdAt: string;
-}
-
-export interface WorkOrderList {
-  readonly items: readonly WorkOrderListItem[];
-  readonly total: number;
 }
 
 export interface WorkOrderDetail {

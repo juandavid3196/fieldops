@@ -1,100 +1,391 @@
-<div class="jobs">
-  <header class="jobs__header">
-    <h1 #heading class="jobs__title" tabindex="-1">Jobs</h1>
-  </header>
+<p-menu #rowMenuRef [popup]="true" appendTo="body" [model]="rowMenu()" />
+<p class="jobs__sr" role="status" aria-live="polite">{{ announcement() }}</p>
 
-  @switch (state()) {
-    @case ('loading') {
-      <div class="jobs__skeletons" aria-busy="true">
-        <p-skeleton height="2.5rem" />
-        <p-skeleton height="2.5rem" />
-        <p-skeleton height="2.5rem" />
+<div class="jobs">
+  <nav aria-label="Breadcrumb">
+    <ol class="jobs__crumbs">
+      <li>Operations</li>
+      <li aria-current="page">Jobs</li>
+    </ol>
+  </nav>
+
+  <header class="jobs__header">
+    <div>
+      <h1 class="jobs__title">Jobs</h1>
+      <p class="jobs__subtitle">Track work orders from creation through completion.</p>
+    </div>
+    @if (!forbidden() && options().status === 'ready' && !noBranches()) {
+      <div class="jobs__actions">
+        <a
+          pButton
+          class="jobs__open"
+          [outlined]="true"
+          routerLink="/schedule"
+          [queryParams]="scheduleParams()"
+        >
+          <i class="pi pi-calendar" aria-hidden="true"></i>
+          Open schedule
+        </a>
+        <button pButton type="button" (click)="readyToSchedule()">
+          <i class="pi pi-calendar-plus" aria-hidden="true"></i>
+          Ready to schedule
+          @if (readyBadge() > 0) {
+            <span class="jobs__badge">{{ readyBadge() }}</span>
+          }
+        </button>
       </div>
     }
-    @case ('forbidden') {
-      <p class="jobs__message" role="alert">{{ forbiddenMessage }}</p>
-    }
-    @case ('error') {
-      <p-message severity="error" [closable]="false">
-        <span class="jobs__row">
-          {{ errorMessage }}
-          <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+  </header>
+
+  @if (forbidden()) {
+    <p class="jobs__message" role="alert">{{ forbiddenMessage }}</p>
+  } @else if (options().status === 'error') {
+    <p class="jobs__message" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retryOptions()">
+        Retry
+      </button>
+    </p>
+  } @else if (noBranches()) {
+    <p class="jobs__message">{{ noBranchesMessage }}</p>
+  } @else {
+    <section
+      class="jobs__metrics"
+      aria-label="Job metrics"
+      [attr.aria-busy]="summary().status === 'loading'"
+    >
+      @if (summary().status === 'error') {
+        <p class="jobs__message jobs__metrics-error" role="alert">
+          {{ metricsErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retrySummary()">
             Retry
           </button>
-        </span>
-      </p-message>
-    }
-    @default {
-      @if (items().length === 0) {
-        <p class="jobs__message">{{ emptyMessage }}</p>
-      } @else {
-        <div class="jobs__scroll" tabindex="0" role="region" aria-label="Jobs">
-          <table class="jobs__table">
-            <thead>
-              <tr>
-                <th scope="col">Job</th>
-                <th scope="col">Customer</th>
-                <th scope="col">Branch</th>
-                <th scope="col">Priority</th>
-                <th scope="col">Status</th>
-                <th scope="col">Created</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of items(); track item.id) {
-                <tr class="jobs__row-link" (click)="open(item)">
-                  <td>
-                    <a
-                      class="jobs__link"
-                      [routerLink]="['/jobs', item.id]"
-                      (click)="$event.stopPropagation()"
-                    >
-                      #{{ item.displayNumber }}
-                    </a>
-                    <span class="jobs__muted">{{ item.title }}</span>
-                  </td>
-                  <td>{{ item.customerName }}</td>
-                  <td>{{ item.branchName }}</td>
-                  <td>{{ priorityLabels[item.priority] }}</td>
-                  <td>
-                    <span class="jobs__chip" [class.jobs__chip--draft]="item.status === 'draft'">
-                      {{ statusLabels[item.status] }}
-                    </span>
-                  </td>
-                  <td>{{ created(item) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        @if (pageCount() > 1) {
-          <nav class="jobs__pager" aria-label="Pagination">
-            <button
-              pButton
-              type="button"
-              severity="secondary"
-              [outlined]="true"
-              size="small"
-              [disabled]="page() <= 1"
-              (click)="go(page() - 1)"
-            >
-              Previous
-            </button>
-            <span>Page {{ page() }} of {{ pageCount() }}</span>
-            <button
-              pButton
-              type="button"
-              severity="secondary"
-              [outlined]="true"
-              size="small"
-              [disabled]="page() >= pageCount()"
-              (click)="go(page() + 1)"
-            >
-              Next
-            </button>
-          </nav>
+        </p>
+      } @else if (summary().data === null) {
+        @for (n of [1, 2, 3, 4]; track n) {
+          <p-skeleton height="5rem" />
         }
+      } @else {
+        @let metrics = summary().data!;
+        <div class="jobs__metric">
+          <span class="jobs__metric-icon" aria-hidden="true"><i class="pi pi-file"></i></span>
+          <dl>
+            <dt>Active jobs</dt>
+            <dd>{{ metrics.activeJobs.total }}</dd>
+            <dd class="jobs__caption">{{ metrics.activeJobs.inProgress }} in progress</dd>
+          </dl>
+        </div>
+        <div class="jobs__metric">
+          <span class="jobs__metric-icon" aria-hidden="true"><i class="pi pi-calendar"></i></span>
+          <dl>
+            <dt>Ready to schedule</dt>
+            <dd>{{ metrics.readyToSchedule }}</dd>
+            <dd class="jobs__caption">Needs a visit</dd>
+          </dl>
+        </div>
+        <div class="jobs__metric">
+          <span class="jobs__metric-icon" aria-hidden="true"><i class="pi pi-calendar"></i></span>
+          <dl>
+            <dt>Today</dt>
+            <dd>{{ metrics.today.total }}</dd>
+            <dd class="jobs__caption">
+              {{ metrics.today.assigned }} assigned · {{ metrics.today.completed }} completed
+            </dd>
+          </dl>
+        </div>
+        <div class="jobs__metric">
+          <span class="jobs__metric-icon jobs__metric-icon--danger" aria-hidden="true">
+            <i class="pi pi-exclamation-triangle"></i>
+          </span>
+          <dl>
+            <dt>Needs attention</dt>
+            <dd>{{ metrics.needsAttention }}</dd>
+            <dd class="jobs__caption">Delayed or unassigned</dd>
+          </dl>
+        </div>
       }
-    }
+    </section>
+
+    <section class="jobs__card" aria-label="Jobs list">
+      <div class="jobs__tabs" role="tablist" aria-label="Job groups">
+        @for (item of tabs; track item.code; let index = $index) {
+          <button
+            type="button"
+            role="tab"
+            class="jobs__tab"
+            [id]="'jobs-tab-' + item.code"
+            aria-controls="jobs-panel"
+            [attr.aria-selected]="view().tab === item.code"
+            [attr.tabindex]="view().tab === item.code ? 0 : -1"
+            [disabled]="controlsDisabled()"
+            (click)="selectTab(item.code)"
+            (keydown)="onTabKeydown($event, index)"
+          >
+            {{ item.label }}
+            @if (counted(); as counts) {
+              <span class="jobs__count">{{ counts[item.code] }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <div id="jobs-panel" role="tabpanel" [attr.aria-labelledby]="'jobs-tab-' + view().tab">
+        <div class="jobs__filters" role="search" aria-label="Filter jobs">
+          <div class="jobs__field jobs__field--search">
+            <p-iconfield>
+              <p-inputicon class="pi pi-search" />
+              <input
+                pInputText
+                type="search"
+                fluid
+                autocomplete="off"
+                maxlength="100"
+                aria-label="Search jobs"
+                placeholder="Search job, customer or address"
+                [disabled]="controlsDisabled()"
+                [ngModel]="searchText()"
+                (ngModelChange)="searchChanged($event)"
+              />
+            </p-iconfield>
+          </div>
+          <div class="jobs__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Branch"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="branchChoices()"
+              [ngModel]="branchValue()"
+              (ngModelChange)="changeBranch($event)"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="jobs__select-value">
+                  <i class="pi pi-building" aria-hidden="true"></i>{{ selected.label }}
+                </span>
+              </ng-template>
+            </p-select>
+          </div>
+          <div class="jobs__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Status"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="statusChoices()"
+              [ngModel]="view().status ?? 'all'"
+              (ngModelChange)="changeStatus($event)"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="jobs__select-value">
+                  <i class="pi pi-check-circle" aria-hidden="true"></i>{{ selected.label }}
+                </span>
+              </ng-template>
+            </p-select>
+          </div>
+          <div class="jobs__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Priority"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="priorityOptions"
+              [ngModel]="view().priority ?? 'all'"
+              (ngModelChange)="changePriority($event)"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="jobs__select-value">
+                  <i class="pi pi-flag" aria-hidden="true"></i>{{ selected.label }}
+                </span>
+              </ng-template>
+            </p-select>
+          </div>
+          <div class="jobs__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Sort by"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="sortOptions"
+              [ngModel]="view().sort"
+              (ngModelChange)="changeSort($event)"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="jobs__select-value">
+                  <i class="pi pi-sort-alt" aria-hidden="true"></i>{{ selected.label }}
+                </span>
+              </ng-template>
+            </p-select>
+          </div>
+          <button
+            pButton
+            type="button"
+            class="jobs__clear"
+            [outlined]="true"
+            [disabled]="filterCount() === 0"
+            (click)="clearFilters()"
+          >
+            <i class="pi pi-sliders-h" aria-hidden="true"></i>
+            Clear filters
+            @if (filterCount() > 0) {
+              <span class="jobs__count">{{ filterCount() }}</span>
+            }
+          </button>
+        </div>
+
+        <div [attr.aria-busy]="list().status === 'loading' || list().status === 'idle'">
+          @if (list().status === 'error') {
+            <p class="jobs__message" role="alert">
+              {{ errorMessage }}
+              <button pButton type="button" severity="secondary" size="small" (click)="retryList()">
+                Retry
+              </button>
+            </p>
+          } @else if (list().status === 'idle' || list().status === 'loading') {
+            <div class="jobs__skeletons">
+              @for (n of skeletonRows; track n) {
+                <p-skeleton height="2.5rem" />
+              }
+            </div>
+          } @else if (rows().length === 0) {
+            <p class="jobs__message">
+              {{ emptyMessage() }}
+              @if (showClearInEmpty() && filterCount() > 0) {
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  (click)="clearFilters()"
+                >
+                  Clear filters
+                </button>
+              }
+            </p>
+          } @else {
+            <div class="jobs__scroll" tabindex="0" role="region" aria-label="Jobs table">
+              <table class="jobs__table">
+                <thead>
+                  <tr>
+                    <th scope="col">Job</th>
+                    <th scope="col">Customer &amp; property</th>
+                    <th scope="col">Schedule</th>
+                    <th scope="col">Technician</th>
+                    <th scope="col">Priority</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Updated</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of rows(); track item.row.id) {
+                    <tr>
+                      <td>
+                        <a class="jobs__link" [routerLink]="['/jobs', item.row.id]"
+                          >#{{ item.row.displayNumber }}</a
+                        >
+                        <span class="jobs__muted">{{ item.row.title }}</span>
+                      </td>
+                      <td>
+                        <span class="jobs__strong">{{ item.row.customerName }}</span>
+                        <span class="jobs__muted">
+                          {{ item.row.property.name }}
+                          @if (item.location !== '') {
+                            · {{ item.location }}
+                          }
+                        </span>
+                      </td>
+                      <td>
+                        <span class="jobs__nowrap" [class.jobs__muted-text]="!item.scheduled">
+                          <i class="pi pi-calendar" aria-hidden="true"></i>
+                          {{ item.schedule }}
+                        </span>
+                      </td>
+                      <td>
+                        <span class="jobs__tech">
+                          @if (item.row.technician; as technician) {
+                            <span
+                              class="jobs__avatar"
+                              aria-hidden="true"
+                              [class.jobs__avatar--colored]="item.color !== null"
+                              [style.--jobs-avatar]="item.color"
+                              >{{ technician.initials }}</span
+                            >
+                            {{ technician.fullName }}
+                          } @else {
+                            <span class="jobs__avatar" aria-hidden="true">—</span>
+                            Unassigned
+                          }
+                        </span>
+                      </td>
+                      <td>
+                        <span [class.jobs__emphasis]="item.emphasized">{{ item.priority }}</span>
+                      </td>
+                      <td>
+                        <span class="jobs__chip jobs__chip--{{ item.chip.tone }}">
+                          <span class="jobs__dot" aria-hidden="true"></span>
+                          {{ item.chip.label }}
+                        </span>
+                      </td>
+                      <td>
+                        <time
+                          class="jobs__nowrap"
+                          [attr.datetime]="item.row.updatedAt"
+                          [attr.title]="item.updatedFull"
+                          [attr.aria-label]="item.updatedFull"
+                          >{{ item.updated }}</time
+                        >
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          class="jobs__menu"
+                          aria-haspopup="menu"
+                          [attr.aria-label]="'Actions for #' + item.row.displayNumber"
+                          (click)="openRowMenu($event, item.row, rowMenuRef)"
+                        >
+                          <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <div class="jobs__footer">
+              <p class="jobs__range">{{ footer() }}</p>
+              <div class="jobs__paging">
+                <div class="jobs__size">
+                  <span id="jobs-size-label">Rows per page</span>
+                  <p-select
+                    appendTo="body"
+                    ariaLabelledBy="jobs-size-label"
+                    [options]="pageSizeOptions"
+                    [ngModel]="view().pageSize"
+                    (ngModelChange)="changePageSize($event)"
+                  />
+                </div>
+                <p-paginator
+                  class="jobs__pager"
+                  [first]="(view().page - 1) * view().pageSize"
+                  [rows]="view().pageSize"
+                  [totalRecords]="total()"
+                  [pageLinkSize]="3"
+                  [showFirstLastIcon]="false"
+                  (onPageChange)="changePage($event)"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
   }
 </div>
