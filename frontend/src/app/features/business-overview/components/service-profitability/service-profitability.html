@@ -1,0 +1,41 @@
+<section class="card" aria-labelledby="service-title">
+  <h2 class="card__title" id="service-title">Service profitability estimates</h2>
+  @if (rows().length === 0) {
+    <p class="card__empty">{{ emptyText }}</p>
+  } @else {
+    <div class="scroll" tabindex="0" role="region" aria-labelledby="service-title">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Service</th>
+            <th scope="col" class="num">Revenue</th>
+            <th scope="col" class="num">Estimated margin <app-info-hint [text]="hint" /></th>
+            <th scope="col" class="num">Avg job value</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <th scope="row">{{ row.name }}</th>
+              <td class="num">{{ row.revenue }}</td>
+              <td class="num">
+                <span class="margin" [class.margin--below]="row.below">
+                  {{ row.margin }}
+                  @if (row.below) {
+                    <i
+                      class="pi pi-exclamation-triangle"
+                      aria-hidden="true"
+                      [title]="warningText"
+                    ></i>
+                    <span class="margin__text">{{ warningText }}</span>
+                  }
+                </span>
+              </td>
+              <td class="num">{{ row.average }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

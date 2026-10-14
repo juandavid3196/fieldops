@@ -5,6 +5,7 @@ using FieldOps.Application.Features.Catalog;
 using FieldOps.Application.Features.ChecklistTemplates;
 using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.BillingReview;
+using FieldOps.Application.Features.BusinessOverview;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.OperationsDashboard;
 using FieldOps.Application.Features.Invitations;
@@ -117,6 +118,7 @@ public static class DependencyInjection
         services.AddScoped<IDispatchStore, DispatchStore>();
         services.AddScoped<IOperationsDashboardStore, OperationsDashboardStore>();
         services.AddScoped<IBillingReviewStore, BillingReviewStore>();
+        services.AddScoped<IBusinessOverviewStore, BusinessOverviewStore>();
         services.AddScoped<IInvoiceDeliveryStore, InvoiceDeliveryStore>();
         services.AddScoped<IInvoicePaymentStore>(provider => (InvoiceDeliveryStore)provider.GetRequiredService<IInvoiceDeliveryStore>());
         services.AddScoped<IInvoiceHubStore, InvoiceHubStore>();

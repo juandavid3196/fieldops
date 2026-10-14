@@ -1,0 +1,50 @@
+<div class="layout">
+  <section class="card" aria-labelledby="attention-title">
+    <header class="card__head">
+      <h2 class="card__title" id="attention-title">Owner attention</h2>
+      @if (canExpand()) {
+        <button
+          type="button"
+          class="card__toggle"
+          aria-controls="attention-list"
+          [attr.aria-expanded]="expanded()"
+          (click)="expanded.set(!expanded())"
+        >
+          {{ expanded() ? 'Show less' : 'View all (' + items().length + ')' }}
+        </button>
+      }
+    </header>
+    @if (items().length === 0) {
+      <p class="card__empty">{{ emptyText }}</p>
+    } @else {
+      <ul class="list" id="attention-list">
+        @for (item of visible(); track item.key) {
+          <li>
+            <a
+              class="item"
+              [attr.data-severity]="item.severity"
+              [routerLink]="item.path"
+              [queryParams]="item.queryParams"
+            >
+              <span class="item__icon" aria-hidden="true"></span>
+              <span class="item__text">
+                <span class="item__title"
+                  ><span class="sr">{{
+                    item.severity === 'critical' ? 'Critical: ' : 'Warning: '
+                  }}</span
+                  >{{ item.title }}</span
+                >
+                <span class="item__detail">{{ item.detail }}</span>
+              </span>
+              <i class="pi pi-angle-right" aria-hidden="true"></i>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+  <aside class="note" aria-label="Estimates disclaimer">
+    <span class="note__icon" aria-hidden="true"></span>
+    <p class="note__text">{{ disclaimer }}</p>
+  </aside>
+</div>

@@ -9,6 +9,7 @@ using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
 using FieldOps.Application.Features.OnlinePayments;
+using FieldOps.Application.Features.BusinessOverview;
 using FieldOps.Application.Features.OperationsDashboard;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
@@ -185,6 +186,9 @@ public static class DependencyInjection
         services.AddScoped<GetVisitDispatchHandler>();
         services.AddScoped<EvaluateVisitHandler>();
         services.AddScoped<DispatchVisitHandler>();
+        services.AddScoped<GetBusinessOptionsHandler>();
+        services.AddScoped<GetBusinessOverviewHandler>();
+        services.AddScoped<ExportBusinessOverviewHandler>();
         services.AddScoped<GetOperationsOptionsHandler>();
         services.AddScoped<GetOperationsDashboardHandler>();
         services.AddScoped<GetServicePerformanceHandler>();

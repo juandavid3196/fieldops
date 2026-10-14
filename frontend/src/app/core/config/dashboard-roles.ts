@@ -11,3 +11,8 @@ export const DASHBOARD_ROLE_CODES: readonly string[] = [
 export function canSeeDashboard(roleCode: string | null | undefined): boolean {
   return DASHBOARD_ROLE_CODES.includes(roleCode ?? '');
 }
+
+/** business-overview BR-01: only the Owner sees the Business view (UX only; the backend decides). */
+export function canSeeBusinessOverview(roleCode: string | null | undefined): boolean {
+  return roleCode === 'owner';
+}

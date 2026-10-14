@@ -1,0 +1,69 @@
+<section class="card" aria-labelledby="branch-title">
+  <h2 class="card__title" id="branch-title">Branch performance</h2>
+  @if (rows().length === 0) {
+    <p class="card__empty">No branch activity in this period.</p>
+  } @else {
+    <div class="scroll" tabindex="0" role="region" aria-labelledby="branch-title">
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Branch</th>
+            <th scope="col" class="num">Revenue</th>
+            <th scope="col" class="num">Estimated margin <app-info-hint [text]="hint" /></th>
+            <th scope="col" class="num">Jobs</th>
+            <th scope="col" class="num">On-time %</th>
+            <th scope="col" class="num">Rating</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.id) {
+            <tr>
+              <th scope="row">{{ row.name }}</th>
+              <td class="num">{{ row.revenue }}</td>
+              <td class="num">
+                <span class="margin" [class.margin--below]="row.below">
+                  {{ row.margin }}
+                  @if (row.below) {
+                    <i
+                      class="pi pi-exclamation-triangle"
+                      aria-hidden="true"
+                      [title]="warningText"
+                    ></i>
+                    <span class="margin__text">{{ warningText }}</span>
+                  }
+                </span>
+              </td>
+              <td class="num">{{ row.jobs }}</td>
+              <td class="num">{{ row.onTime }}</td>
+              <td class="num">{{ row.rating }}</td>
+            </tr>
+          }
+        </tbody>
+        @if (total(); as total) {
+          <tfoot>
+            <tr>
+              <th scope="row">Total</th>
+              <td class="num">{{ total.revenue }}</td>
+              <td class="num">
+                <span class="margin" [class.margin--below]="total.below">
+                  {{ total.margin }}
+                  @if (total.below) {
+                    <i
+                      class="pi pi-exclamation-triangle"
+                      aria-hidden="true"
+                      [title]="warningText"
+                    ></i>
+                    <span class="margin__text">{{ warningText }}</span>
+                  }
+                </span>
+              </td>
+              <td class="num">{{ total.jobs }}</td>
+              <td class="num">{{ total.onTime }}</td>
+              <td class="num">—</td>
+            </tr>
+          </tfoot>
+        }
+      </table>
+    </div>
+  }
+</section>

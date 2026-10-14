@@ -1,0 +1,190 @@
+<p-toast />
+<div class="bo">
+  @if (forbidden()) {
+    <h1 class="bo__title">Dashboard</h1>
+    <p class="bo__muted">{{ forbiddenMessage }}</p>
+  } @else {
+    <header class="bo__header">
+      <div class="bo__heading">
+        <div class="bo__heading-row">
+          <h1 class="bo__title">Business Overview</h1>
+          <span class="bo__updated" aria-live="polite">{{ agoLabel() }}</span>
+          <button
+            type="button"
+            class="bo__refresh"
+            aria-label="Refresh business overview"
+            [disabled]="!ready() || noBranches() || store.loading() || store.refreshing()"
+            (click)="store.refresh()"
+          >
+            <i class="pi pi-refresh" [class.pi-spin]="store.refreshing()" aria-hidden="true"></i>
+          </button>
+        </div>
+        <p class="bo__subtitle">{{ subtitle() }}</p>
+      </div>
+
+      <div class="bo__controls">
+        <app-dashboard-view-switch view="business" />
+        <div class="bo__control">
+          <label class="bo__sr" for="bo-branch">Branch</label>
+          <p-select
+            [options]="branchChoices()"
+            optionLabel="name"
+            optionValue="id"
+            inputId="bo-branch"
+            ariaLabel="Branch"
+            [fluid]="true"
+            appendTo="body"
+            [disabled]="!ready()"
+            [ngModel]="branchValue()"
+            (onChange)="onBranch($event.value)"
+          />
+        </div>
+        <div class="bo__control">
+          <label class="bo__sr" for="bo-range">Date range</label>
+          <p-select
+            [options]="rangeChoices"
+            optionLabel="name"
+            optionValue="id"
+            inputId="bo-range"
+            ariaLabel="Date range"
+            [fluid]="true"
+            appendTo="body"
+            [disabled]="!ready() || noBranches()"
+            [ngModel]="selection()?.range ?? 'this_month'"
+            (onChange)="onRange($event.value)"
+          />
+        </div>
+        @if (selection(); as value) {
+          @if (value.range === 'custom') {
+            <div class="bo__dates">
+              <label class="bo__date">
+                <span class="bo__sr">From</span>
+                <input
+                  type="date"
+                  class="bo__input"
+                  aria-label="From"
+                  [max]="value.to"
+                  [value]="value.from"
+                  (change)="onCustomDate('from', $any($event.target).value)"
+                />
+              </label>
+              <label class="bo__date">
+                <span class="bo__sr">To</span>
+                <input
+                  type="date"
+                  class="bo__input"
+                  aria-label="To"
+                  [max]="today()"
+                  [value]="value.to"
+                  (change)="onCustomDate('to', $any($event.target).value)"
+                />
+              </label>
+            </div>
+          }
+        }
+        <div class="bo__compare">
+          <p-toggleswitch
+            inputId="bo-compare"
+            ariaLabel="Compare to previous period"
+            [disabled]="!ready() || noBranches()"
+            [ngModel]="compare()"
+            (onChange)="onCompare($event.checked)"
+          />
+          <label for="bo-compare">Compare to previous period</label>
+        </div>
+        <button
+          type="button"
+          class="bo__btn"
+          [disabled]="!ready() || noBranches() || exporting()"
+          [attr.aria-busy]="exporting()"
+          (click)="onExport()"
+        >
+          <i
+            class="pi"
+            [class.pi-download]="!exporting()"
+            [class.pi-spin]="exporting()"
+            [class.pi-refresh]="exporting()"
+            aria-hidden="true"
+          ></i>
+          Export report
+        </button>
+      </div>
+    </header>
+
+    @if (noBranches()) {
+      <p class="bo__muted">{{ noBranchesMessage }}</p>
+    } @else {
+      @if (store.refreshFailed()) {
+        <p-message severity="warn" [closable]="false">
+          <span class="bo__inline">
+            {{ refreshErrorMessage }}
+            <button type="button" class="bo__btn" (click)="store.refresh()">Try again</button>
+          </span>
+        </p-message>
+      }
+
+      @if (store.optionsStatus() === 'error' || store.status() === 'error') {
+        <p-message severity="error" [closable]="false">
+          <span class="bo__inline">
+            {{ loadErrorMessage }}
+            <button type="button" class="bo__btn" (click)="store.retry()">Try again</button>
+          </span>
+        </p-message>
+      } @else if (store.data(); as data) {
+        <app-business-kpis [kpis]="data.kpis" [currency]="data.currency" [compare]="compare()" />
+        <div class="bo__row bo__row--main">
+          <app-revenue-chart
+            class="bo__card bo__chart"
+            [series]="data.series"
+            [granularity]="data.granularity"
+            [currency]="data.currency"
+            [compare]="compare()"
+          />
+          <app-cash-flow class="bo__card" [cashFlow]="data.cashFlow" [currency]="data.currency" />
+          <app-sales-pipeline class="bo__card" [pipeline]="data.pipeline" />
+        </div>
+        <div class="bo__row bo__row--tables">
+          <app-branch-performance
+            class="bo__card"
+            [branches]="data.branches"
+            [totals]="data.branchTotals"
+            [currency]="data.currency"
+            [target]="data.marginTarget"
+          />
+          <app-service-profitability
+            class="bo__card"
+            [services]="data.services"
+            [currency]="data.currency"
+            [target]="data.marginTarget"
+          />
+          <app-team-capacity class="bo__card" [team]="data.team" [compare]="compare()" />
+        </div>
+        <app-owner-attention
+          [alerts]="data.alerts"
+          [currency]="data.currency"
+          [target]="data.marginTarget"
+          [keptQuery]="keptQuery()"
+        />
+      } @else {
+        <div class="bo__skeletons" aria-busy="true">
+          <div class="bo__skeleton-kpis">
+            @for (item of kpiSkeletons; track item) {
+              <p-skeleton height="6rem" />
+            }
+          </div>
+          <div class="bo__row bo__row--main">
+            <p-skeleton class="bo__chart" height="20rem" />
+            <p-skeleton height="20rem" />
+            <p-skeleton height="20rem" />
+          </div>
+          <div class="bo__row bo__row--tables">
+            <p-skeleton height="14rem" />
+            <p-skeleton height="14rem" />
+            <p-skeleton height="14rem" />
+          </div>
+          <p-skeleton height="7rem" />
+        </div>
+      }
+    }
+  }
+</div>

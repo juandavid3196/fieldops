@@ -4,6 +4,9 @@
     <p class="dash__muted">{{ forbiddenMessage }}</p>
   } @else if (noBranches()) {
     <h1 class="dash__title">Operations Dashboard</h1>
+    @if (isOwner()) {
+      <app-dashboard-view-switch view="operations" />
+    }
     <p class="dash__muted">{{ noBranchesMessage }}</p>
   } @else {
     <header class="dash__header">
@@ -25,6 +28,9 @@
       </div>
 
       <div class="dash__controls">
+        @if (isOwner()) {
+          <app-dashboard-view-switch view="operations" />
+        }
         <div class="dash__control">
           <label class="dash__sr" for="dash-branch">Branch</label>
           <p-select
