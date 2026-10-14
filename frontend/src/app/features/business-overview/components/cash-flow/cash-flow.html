@@ -1,0 +1,32 @@
+<section class="card section" aria-labelledby="cash-title">
+  <h2 class="card__title" id="cash-title">Cash flow snapshot</h2>
+  <dl class="totals">
+    @for (item of totals(); track item.id) {
+      <div class="totals__item">
+        <dt>{{ item.label }}</dt>
+        <dd [class.totals__warn]="item.warn">{{ item.text }}</dd>
+      </div>
+    }
+  </dl>
+  <div class="card__row">
+    <h3 class="card__sub">Accounts receivable aging</h3>
+    <a class="card__link" routerLink="/invoices"
+      >View receivables <i class="pi pi-arrow-right" aria-hidden="true"></i
+    ></a>
+  </div>
+  <ul class="aging">
+    @for (bucket of aging(); track bucket.id) {
+      <li class="aging__row">
+        <span class="aging__label">{{ bucket.label }}</span>
+        <span class="aging__track" aria-hidden="true"
+          ><span
+            class="aging__bar"
+            [style.inline-size.%]="bucket.width"
+            [style.min-inline-size.rem]="bucket.width > 0 ? 0.5 : 0"
+          ></span
+        ></span>
+        <span class="aging__amount">{{ bucket.text }}</span>
+      </li>
+    }
+  </ul>
+</section>

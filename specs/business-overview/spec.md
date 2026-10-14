@@ -4,7 +4,7 @@
 | -------- | ------------------- |
 | Feature  | `business-overview` |
 | Type     | Full-stack          |
-| Status   | APPROVED            |
+| Status   | AUDITED             |
 | Created  | 2026-10-14          |
 | Updated  | 2026-10-14          |
 | Approved | 2026-10-14          |
@@ -316,3 +316,5 @@ Statuses verified 2026-10-14 from each spec's metadata.
 | 2026-10-14 | — → DRAFT | Created |
 | 2026-10-14 | DRAFT → DRAFT | Revised after validation: branch margin alerts only for active branches (inactive `branchId` is `404`); invalid `compare` URL value handling; refund attribution to the original payment period; FR-13 cites BR-10 |
 | 2026-10-14 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-14 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-14 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

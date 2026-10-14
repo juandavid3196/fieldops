@@ -1,0 +1,242 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.bo {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem 2.5rem;
+
+  @media (min-width: 48rem) {
+    padding: 1.25rem 1.5rem 2.5rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 2rem;
+    line-height: 1.2;
+    color: var(--fo-color-heading);
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    font-size: 1.125rem;
+    color: var(--fo-color-text);
+  }
+
+  &__muted {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    @media (min-width: 80rem) {
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+  }
+
+  &__heading-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+
+    .bo__title {
+      @media (max-width: 47.99rem) {
+        flex: 1 0 100%;
+      }
+    }
+  }
+
+  &__updated {
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__refresh {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-control);
+    block-size: var(--fo-size-control);
+    color: var(--fo-color-text);
+    cursor: pointer;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+
+    &:disabled {
+      color: var(--fo-color-disabled-text);
+      cursor: not-allowed;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    @media (max-width: 47.99rem) {
+      inline-size: var(--fo-size-touch-target);
+      block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  &__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+  }
+
+  &__control {
+    flex: 1 1 12rem;
+    min-width: 0;
+
+    @media (min-width: 48rem) {
+      flex: 0 0 11rem;
+    }
+  }
+
+  &__dates {
+    display: inline-flex;
+    gap: 0.5rem;
+  }
+
+  &__compare {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-control);
+    color: var(--fo-color-text);
+
+    @media (max-width: 47.99rem) {
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__input,
+  &__btn {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-block-size: var(--fo-size-control);
+    padding: 0 0.875rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border-strong);
+    border-radius: var(--fo-radius-control);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    @media (max-width: 47.99rem) {
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  &__btn {
+    color: var(--fo-color-link);
+    cursor: pointer;
+    border-color: var(--fo-color-link);
+
+    &:disabled {
+      color: var(--fo-color-disabled-text);
+      cursor: not-allowed;
+      border-color: var(--fo-color-border-strong);
+    }
+  }
+
+  &__input {
+    font-weight: 400;
+  }
+
+  &__inline {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  &__skeleton-kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+
+    @media (min-width: 48rem) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (min-width: 80rem) {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+
+  // BR-22: one column, two columns from 768 px, the Design 16 rows from 1280 px.
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+
+    @media (min-width: 48rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    &--main {
+      @media (min-width: 80rem) {
+        grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.15fr) minmax(0, 0.85fr);
+      }
+    }
+
+    &--tables {
+      @media (min-width: 80rem) {
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) minmax(0, 0.9fr);
+      }
+    }
+  }
+
+  &__chart {
+    @media (min-width: 48rem) and (max-width: 79.99rem) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__card {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+}

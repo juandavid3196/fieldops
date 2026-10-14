@@ -8,5 +8,5 @@ export const dashboardRoute: Route = {
   path: 'dashboard',
   pathMatch: 'full',
   title: 'Dashboard · FieldOps',
-  loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.DashboardPage),
+  loadComponent: () => import('./pages/dashboard-host/dashboard-host').then((m) => m.DashboardHost),
 };

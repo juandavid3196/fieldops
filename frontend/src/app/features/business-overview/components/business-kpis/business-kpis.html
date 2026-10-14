@@ -1,0 +1,91 @@
+<ul class="kpis" aria-label="Key figures">
+  @for (card of cards(); track card.id) {
+    <li class="kpi">
+      <div class="kpi__body">
+        <h2 class="kpi__label">
+          {{ card.label }}
+          @if (card.hint; as hint) {
+            <app-info-hint [text]="hint" />
+          }
+        </h2>
+        <p class="kpi__value">{{ card.value }}</p>
+        @if (card.delta; as change) {
+          <app-delta-badge [delta]="change" />
+        }
+        @if (card.caption; as caption) {
+          <p class="kpi__caption" [class.kpi__caption--warn]="card.warning">
+            @if (card.warning) {
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+            }
+            {{ caption }}
+          </p>
+        }
+      </div>
+      <span class="kpi__icon" [attr.data-tone]="card.tone" aria-hidden="true">
+        <svg class="kpi__svg" viewBox="0 0 40 40" focusable="false">
+          @switch (card.id) {
+            @case ('revenue') {
+              <rect x="5" y="22" width="8" height="14" rx="1.5" fill="currentColor" />
+              <rect x="16" y="14" width="8" height="22" rx="1.5" fill="currentColor" />
+              <rect x="27" y="5" width="8" height="31" rx="1.5" fill="currentColor" />
+            }
+            @case ('profit') {
+              <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round">
+                <ellipse cx="14" cy="28" rx="9" ry="4" />
+                <path d="M5 28v5c0 2.2 4 4 9 4s9-1.8 9-4v-5" />
+                <ellipse cx="26" cy="12" rx="9" ry="4" />
+                <path d="M17 12v5c0 2.2 4 4 9 4s9-1.8 9-4v-5M23 21.5v2" />
+              </g>
+            }
+            @case ('margin') {
+              <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                <circle cx="20" cy="20" r="16" />
+                <path d="M26 13 14 27" />
+                <circle cx="14.5" cy="14.5" r="2.5" />
+                <circle cx="25.5" cy="25.5" r="2.5" />
+              </g>
+            }
+            @case ('conversion') {
+              <g
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M10 4h16l6 6v26H10z" />
+                <path d="M26 4v6h6M15 17h12M15 23h12M15 29h8" />
+              </g>
+            }
+            @case ('outstanding') {
+              <g
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M10 4h16l6 6v26H10z" />
+                <path
+                  d="M26 4v6h6M24 17c-1-1.5-6-1.5-6 1.5s6 2 6 5-5 3-6 1.5M21 14.5v2M21 25.5v2"
+                />
+              </g>
+            }
+            @case ('jobs') {
+              <g
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <circle cx="20" cy="20" r="16" />
+                <path d="m12 20.5 5.5 5.5L28 14.5" />
+              </g>
+            }
+          }
+        </svg>
+      </span>
+    </li>
+  }
+</ul>

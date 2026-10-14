@@ -1,0 +1,65 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.card__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.125rem;
+  color: var(--fo-color-heading);
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+
+  &__arrow {
+    padding-inline-start: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.625rem 0.75rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    font-size: 1.125rem;
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-action-blue-soft);
+    border-radius: var(--fo-radius-pill);
+
+    &--done {
+      color: var(--fo-color-on-primary);
+      background: var(--fo-color-success-solid);
+    }
+  }
+
+  &__label {
+    flex: 1;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__count {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+}

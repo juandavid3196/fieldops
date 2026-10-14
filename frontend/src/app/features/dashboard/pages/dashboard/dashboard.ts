@@ -16,7 +16,7 @@ import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 
-import { canSeeDashboard } from '../../../../core/config/dashboard-roles';
+import { canSeeBusinessOverview, canSeeDashboard } from '../../../../core/config/dashboard-roles';
 import { SessionService } from '../../../../core/services/session.service';
 import { handleUnauthorized } from '../../../organizations/utils/handle-unauthorized';
 import { addDays, todayInZone } from '../../../schedule/utils/schedule-range';
@@ -24,6 +24,7 @@ import { DashboardAnalytics } from '../../components/dashboard-analytics/dashboa
 import { DashboardAttention } from '../../components/dashboard-attention/dashboard-attention';
 import { DashboardKpisRow } from '../../components/dashboard-kpis/dashboard-kpis';
 import { DashboardOperation } from '../../components/dashboard-operation/dashboard-operation';
+import { DashboardViewSwitch } from '../../components/dashboard-view-switch/dashboard-view-switch';
 import { DashboardTechnicians } from '../../components/dashboard-technicians/dashboard-technicians';
 import { DashboardPeriod } from '../../models/dashboard.model';
 import { DashboardPageStore } from '../../services/dashboard-page.store';
@@ -57,6 +58,7 @@ const TICK_MS = 1000;
     DashboardKpisRow,
     DashboardOperation,
     DashboardTechnicians,
+    DashboardViewSwitch,
     FormsModule,
     Message,
     RouterLink,
@@ -84,6 +86,10 @@ export class DashboardPage {
 
   private readonly canRead = computed(() =>
     canSeeDashboard(this.sessionService.session()?.role.code),
+  );
+  /** business-overview BR-01: only the Owner switches between the Business and Operations views. */
+  readonly isOwner = computed(() =>
+    canSeeBusinessOverview(this.sessionService.session()?.role.code),
   );
   readonly forbidden = computed(() => !this.canRead() || this.store.access() === 'forbidden');
   private readonly sessionExpired = signal(false);

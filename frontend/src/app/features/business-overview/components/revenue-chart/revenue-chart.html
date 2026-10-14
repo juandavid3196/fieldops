@@ -1,0 +1,99 @@
+<section class="card" aria-labelledby="chart-title">
+  <header class="card__head">
+    <h2 class="card__title" id="chart-title">Revenue &amp; estimated profit</h2>
+    <app-info-hint [text]="hint" [filled]="true" />
+  </header>
+  <p class="card__caption">
+    <span class="card__dot" aria-hidden="true"></span>
+    {{ hint }}
+  </p>
+  <div class="tabs" role="group" aria-label="Chart series">
+    @for (item of tabs; track item.id) {
+      <button
+        type="button"
+        class="tabs__btn"
+        [attr.aria-pressed]="tab() === item.id"
+        (click)="tab.set(item.id)"
+      >
+        {{ item.name }}
+      </button>
+    }
+  </div>
+  @if (chart().empty) {
+    <p class="card__empty">{{ emptyText }}</p>
+  } @else {
+    <svg
+      class="plot"
+      [attr.viewBox]="viewBox"
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+    >
+      @for (tick of chart().ticks; track tick.y) {
+        <line
+          class="plot__grid"
+          x1="56"
+          [attr.x2]="width - 16"
+          [attr.y1]="tick.y"
+          [attr.y2]="tick.y"
+        />
+        <text class="plot__tick" x="50" [attr.y]="tick.y + 4" text-anchor="end">
+          {{ tick.label }}
+        </text>
+      }
+      @for (label of chart().xLabels; track label.x) {
+        <text class="plot__tick" [attr.x]="label.x" y="254" text-anchor="middle">
+          {{ label.text }}
+        </text>
+      }
+      @for (line of chart().lines; track line.id) {
+        <polyline
+          class="plot__line"
+          [attr.data-tone]="line.tone"
+          [class.plot__line--dashed]="line.dashed"
+          [attr.points]="line.points"
+        />
+      }
+    </svg>
+    <ul class="legend">
+      @for (line of chart().lines; track line.id) {
+        <li class="legend__item">
+          <svg class="legend__swatch" viewBox="0 0 24 4" aria-hidden="true">
+            <line
+              class="plot__line"
+              [attr.data-tone]="line.tone"
+              [class.plot__line--dashed]="line.dashed"
+              x1="0"
+              y1="2"
+              x2="24"
+              y2="2"
+            />
+          </svg>
+          {{ line.label }}
+        </li>
+      }
+    </ul>
+    <table class="sr">
+      <caption>
+        Revenue and estimated profit by period
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Period</th>
+          @for (line of chart().lines; track line.id) {
+            <th scope="col">{{ line.label }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.label) {
+          <tr>
+            <th scope="row">{{ row.label }}</th>
+            @for (value of row.values; track $index) {
+              <td>{{ value }}</td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

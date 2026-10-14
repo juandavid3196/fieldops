@@ -1,0 +1,20 @@
+<section class="card" aria-labelledby="pipeline-title">
+  <h2 class="card__title" id="pipeline-title">Sales pipeline</h2>
+  <ol class="steps">
+    @for (step of steps(); track step.id) {
+      @if (!$first) {
+        <li class="steps__arrow" aria-hidden="true"><i class="pi pi-arrow-down"></i></li>
+      }
+      <li class="steps__item">
+        <span
+          class="steps__icon"
+          [class.steps__icon--done]="step.id === 'accepted'"
+          aria-hidden="true"
+          ><i class="pi" [class]="step.icon"></i
+        ></span>
+        <span class="steps__label">{{ step.label }}</span>
+        <span class="steps__count">{{ step.count }}</span>
+      </li>
+    }
+  </ol>
+</section>

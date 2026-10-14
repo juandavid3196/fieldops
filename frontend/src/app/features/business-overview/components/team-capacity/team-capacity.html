@@ -1,0 +1,16 @@
+<section class="card" aria-labelledby="team-title">
+  <h2 class="card__title" id="team-title">Team &amp; capacity</h2>
+  <dl class="rows">
+    @for (row of rows(); track row.id) {
+      <div class="rows__item">
+        <dt><i class="pi" [class]="row.icon" aria-hidden="true"></i> {{ row.label }}</dt>
+        <dd>
+          {{ row.value }}
+          @if (row.id === 'overtime' && overtimeDelta(); as change) {
+            <app-delta-badge [delta]="change" [badWhenUp]="true" />
+          }
+        </dd>
+      </div>
+    }
+  </dl>
+</section>
