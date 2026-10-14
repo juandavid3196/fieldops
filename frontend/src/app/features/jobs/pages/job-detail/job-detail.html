@@ -27,9 +27,17 @@
         }
       </div>
       @if (detail(); as detail) {
-        @if (detail.status === 'draft' && detail.canManage) {
-          <a pButton [routerLink]="['/quotes', detail.quote.id, 'work-order']">Continue editing</a>
-        }
+        <div class="job__actions">
+          @if (detail.status === 'draft' && detail.canManage) {
+            <a pButton [routerLink]="['/quotes', detail.quote.id, 'work-order']"
+              >Continue editing</a
+            >
+          }
+          <a pButton class="job__back" [outlined]="true" severity="secondary" routerLink="/jobs">
+            <i class="pi pi-arrow-left" aria-hidden="true"></i>
+            Back to jobs
+          </a>
+        </div>
       }
     </div>
   </header>
@@ -62,126 +70,222 @@
     }
     @default {
       @if (detail(); as detail) {
-        <div class="job__grid">
-          <section class="job__card" aria-labelledby="job-customer-heading">
-            <h2 class="job__card-title" id="job-customer-heading">Customer and property</h2>
-            <p class="job__strong">{{ detail.customer.name }}</p>
-            <p>{{ detail.propertyAddress || 'No property address.' }}</p>
-            <h3 class="job__label">Access note</h3>
-            <p>{{ detail.accessNote || 'No access note.' }}</p>
-          </section>
-
-          <section class="job__card" aria-labelledby="job-quote-heading">
-            <h2 class="job__card-title" id="job-quote-heading">Linked quote</h2>
-            <p class="job__strong">#{{ detail.quote.displayNumber }}</p>
-            <p>Approved total {{ approvedTotal() }}</p>
-            <a class="job__link" [routerLink]="['/quotes', detail.quote.id]">View approved quote</a>
-          </section>
-
-          <section class="job__card" aria-labelledby="job-details-heading">
-            <h2 class="job__card-title" id="job-details-heading">Job details</h2>
-            <dl class="job__list">
-              <dt>Job type</dt>
-              <dd>{{ jobTypeLabels[detail.jobType] }}</dd>
-              <dt>Service category</dt>
-              <dd>{{ detail.category.name }}</dd>
+        <dl class="job__summary" aria-label="Job summary">
+          <div>
+            <span class="job__icon" aria-hidden="true"><i class="pi pi-user"></i></span>
+            <span>
+              <dt>Customer</dt>
+              <dd>{{ detail.customer.name }}</dd>
+            </span>
+          </div>
+          <div>
+            <span class="job__icon" aria-hidden="true"><i class="pi pi-building"></i></span>
+            <span>
               <dt>Branch</dt>
               <dd>{{ detail.branch.name }}</dd>
-              <dt>Estimated duration</dt>
-              <dd>{{ durationLabel(detail.estimatedDurationMinutes) }}</dd>
-              <dt>Skills</dt>
-              <dd>{{ detail.skills.length > 0 ? skillNames() : '—' }}</dd>
-              <dt>Recurrence</dt>
-              <dd>
-                @if (detail.recurrence; as recurrence) {
-                  {{ frequencyLabels[recurrence.frequency] }} × {{ recurrence.count }}
-                } @else {
-                  Does not repeat
+            </span>
+          </div>
+          <div>
+            <span class="job__icon" aria-hidden="true"><i class="pi pi-calendar"></i></span>
+            <span>
+              <dt>Preferred</dt>
+              <dd>{{ preferred() }}</dd>
+            </span>
+          </div>
+          <div>
+            <span class="job__icon" aria-hidden="true"><i class="pi pi-dollar"></i></span>
+            <span>
+              <dt>Approved total</dt>
+              <dd>{{ approvedTotal() }}</dd>
+            </span>
+          </div>
+        </dl>
+        <div class="job__layout">
+          <div class="job__main">
+            <section class="job__card" aria-labelledby="job-details-heading">
+              <h2 class="job__card-title" id="job-details-heading">
+                <i class="pi pi-file" aria-hidden="true"></i>
+                Job details
+              </h2>
+              <dl class="job__list">
+                <dt>Job type</dt>
+                <dd>{{ jobTypeLabels[detail.jobType] }}</dd>
+                <dt>Service category</dt>
+                <dd>{{ detail.category.name }}</dd>
+                <dt>Branch</dt>
+                <dd>{{ detail.branch.name }}</dd>
+                <dt>Estimated duration</dt>
+                <dd>{{ durationLabel(detail.estimatedDurationMinutes) }}</dd>
+                <dt>Skills</dt>
+                <dd>{{ detail.skills.length > 0 ? skillNames() : '—' }}</dd>
+                <dt>Recurrence</dt>
+                <dd>
+                  @if (detail.recurrence; as recurrence) {
+                    {{ frequencyLabels[recurrence.frequency] }} × {{ recurrence.count }}
+                  } @else {
+                    Does not repeat
+                  }
+                </dd>
+              </dl>
+            </section>
+            <section class="job__card" aria-labelledby="job-tasks-heading">
+              <h2 class="job__card-title" id="job-tasks-heading">
+                <i class="pi pi-list-check" aria-hidden="true"></i>
+                Tasks &amp; checklist
+                <span class="job__count">{{ detail.tasks.length }} total</span>
+              </h2>
+              <ol class="job__tasks">
+                @for (task of detail.tasks; track $index) {
+                  <li>
+                    <i class="pi pi-circle" aria-hidden="true"></i>
+                    {{ $index + 1 }}. {{ task.label }}
+                  </li>
                 }
-              </dd>
-            </dl>
-          </section>
-
-          <section class="job__card" aria-labelledby="job-scheduling-heading">
-            <h2 class="job__card-title" id="job-scheduling-heading">Scheduling requirements</h2>
-            <p>{{ preferred() }}</p>
-            <h3 class="job__label">Customer communication</h3>
-            <ul class="job__bullets">
-              <li>
-                Notify customer when scheduled:
-                {{ detail.communication.notifyCustomerWhenScheduled ? 'Yes' : 'No' }}
-              </li>
-              <li>
-                Send technician details:
-                {{ detail.communication.sendTechnicianDetails ? 'Yes' : 'No' }}
-              </li>
-              <li>
-                Send arrival reminder 2 hours before:
-                {{ detail.communication.sendArrivalReminder ? 'Yes' : 'No' }}
-              </li>
-            </ul>
-          </section>
-
-          <section class="job__card job__card--wide" aria-labelledby="job-tasks-heading">
-            <h2 class="job__card-title" id="job-tasks-heading">Tasks &amp; checklist</h2>
-            <ol class="job__bullets">
-              @for (task of detail.tasks; track $index) {
-                <li>{{ task.label }}</li>
-              }
-            </ol>
-          </section>
-
-          <section class="job__card job__card--wide" aria-labelledby="job-materials-heading">
-            <h2 class="job__card-title" id="job-materials-heading">Required materials</h2>
-            @if (detail.materials.length > 0) {
-              <div
-                class="job__scroll"
-                tabindex="0"
-                role="region"
-                aria-labelledby="job-materials-heading"
-              >
-                <table class="job__table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Material</th>
-                      <th scope="col">Planned qty</th>
-                      <th scope="col">Source</th>
-                      <th scope="col">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (material of detail.materials; track $index) {
+              </ol>
+            </section>
+            <section class="job__card" aria-labelledby="job-materials-heading">
+              <h2 class="job__card-title" id="job-materials-heading">
+                <i class="pi pi-box" aria-hidden="true"></i>
+                Required materials
+              </h2>
+              @if (detail.materials.length > 0) {
+                <div
+                  class="job__scroll"
+                  tabindex="0"
+                  role="region"
+                  aria-labelledby="job-materials-heading"
+                >
+                  <table class="job__table">
+                    <thead>
                       <tr>
-                        <td>{{ material.description }}</td>
-                        <td>{{ material.quantity }} {{ material.unit }}</td>
-                        <td>{{ sourceLabels[material.source] }}</td>
-                        <td>Planned</td>
+                        <th scope="col">Material</th>
+                        <th scope="col">Planned qty</th>
+                        <th scope="col">Source</th>
+                        <th scope="col">Status</th>
                       </tr>
-                    }
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      @for (material of detail.materials; track $index) {
+                        <tr>
+                          <td>{{ material.description }}</td>
+                          <td>{{ material.quantity }} {{ material.unit }}</td>
+                          <td>{{ sourceLabels[material.source] }}</td>
+                          <td>Planned</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              } @else {
+                <p class="job__empty">
+                  <i class="pi pi-box" aria-hidden="true"></i>
+                  No materials planned.
+                </p>
+              }
+            </section>
+            <section class="job__card" aria-labelledby="job-instructions-heading">
+              <h2 class="job__card-title" id="job-instructions-heading">
+                <i class="pi pi-file-edit" aria-hidden="true"></i>
+                Instructions
+              </h2>
+              @if (detail.instructions) {
+                <p class="job__text">{{ detail.instructions }}</p>
+              } @else {
+                <p class="job__empty">
+                  <i class="pi pi-file" aria-hidden="true"></i>
+                  No instructions.
+                </p>
+              }
+            </section>
+            <section class="job__card" aria-labelledby="job-visits-heading">
+              <h2 class="job__card-title" id="job-visits-heading">
+                <i class="pi pi-map-marker" aria-hidden="true"></i>
+                Visits
+              </h2>
+              <ul class="job__visits">
+                @for (visit of detail.visits; track visit.visitNumber) {
+                  <li>
+                    Visit #{{ visit.visitNumber }} ·
+                    {{ visitLabel(visit.status) }}
+                  </li>
+                } @empty {
+                  <li class="job__visits-empty">{{ noVisits }}</li>
+                }
+              </ul>
+            </section>
+          </div>
+          <aside class="job__aside">
+            <section class="job__card" aria-labelledby="job-customer-heading">
+              <h2 class="job__card-title" id="job-customer-heading">
+                <i class="pi pi-user" aria-hidden="true"></i>
+                Customer and property
+              </h2>
+              <div class="job__item">
+                <i class="pi pi-users" aria-hidden="true"></i>
+                <div>
+                  <p class="job__strong">{{ detail.customer.name }}</p>
+                  <p class="job__muted">
+                    <i class="pi pi-map-marker" aria-hidden="true"></i>
+                    {{ detail.propertyAddress || 'No property address.' }}
+                  </p>
+                </div>
               </div>
-            } @else {
-              <p>No materials planned.</p>
-            }
-          </section>
-
-          <section class="job__card job__card--wide" aria-labelledby="job-instructions-heading">
-            <h2 class="job__card-title" id="job-instructions-heading">Instructions</h2>
-            <p>{{ detail.instructions || 'No instructions.' }}</p>
-          </section>
-
-          <section class="job__card job__card--wide" aria-labelledby="job-visits-heading">
-            <h2 class="job__card-title" id="job-visits-heading">Visits</h2>
-            @for (visit of detail.visits; track visit.visitNumber) {
-              <p>
-                Visit #{{ visit.visitNumber }} ·
-                {{ visitLabel(visit.status) }}
+              <div class="job__item job__item--divided">
+                <i class="pi pi-file" aria-hidden="true"></i>
+                <div>
+                  <h3 class="job__label">Access note</h3>
+                  <p class="job__muted">{{ detail.accessNote || 'No access note.' }}</p>
+                </div>
+              </div>
+            </section>
+            <section class="job__card" aria-labelledby="job-quote-heading">
+              <h2 class="job__card-title" id="job-quote-heading">
+                <i class="pi pi-file" aria-hidden="true"></i>
+                Linked quote
+              </h2>
+              <p class="job__strong job__quote">#{{ detail.quote.displayNumber }}</p>
+              <p>Approved total {{ approvedTotal() }}</p>
+              <a class="job__link" [routerLink]="['/quotes', detail.quote.id]"
+                >View approved quote</a
+              >
+            </section>
+            <section class="job__card" aria-labelledby="job-scheduling-heading">
+              <h2 class="job__card-title" id="job-scheduling-heading">
+                <i class="pi pi-calendar" aria-hidden="true"></i>
+                Scheduling requirements
+              </h2>
+              <p class="job__item job__item--inline">
+                <i class="pi pi-calendar" aria-hidden="true"></i>
+                {{ preferred() }}
               </p>
-            } @empty {
-              <p>{{ noVisits }}</p>
-            }
-          </section>
+              <h3 class="job__label">Customer communication</h3>
+              <ul class="job__comms">
+                <li>
+                  <i class="pi pi-bell" aria-hidden="true"></i>
+                  <span>
+                    Notify customer when scheduled:
+                    <strong>{{
+                      detail.communication.notifyCustomerWhenScheduled ? 'Yes' : 'No'
+                    }}</strong>
+                  </span>
+                </li>
+                <li>
+                  <i class="pi pi-envelope" aria-hidden="true"></i>
+                  <span>
+                    Send technician details:
+                    <strong>{{ detail.communication.sendTechnicianDetails ? 'Yes' : 'No' }}</strong>
+                  </span>
+                </li>
+                <li>
+                  <i class="pi pi-comment" aria-hidden="true"></i>
+                  <span>
+                    Send arrival reminder 2 hours before:
+                    <strong>{{ detail.communication.sendArrivalReminder ? 'Yes' : 'No' }}</strong>
+                  </span>
+                </li>
+              </ul>
+            </section>
+          </aside>
         </div>
       }
     }

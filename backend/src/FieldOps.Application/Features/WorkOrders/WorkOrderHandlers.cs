@@ -111,41 +111,6 @@ public sealed class CreateWorkOrderHandler(IWorkOrderStore store, IBranchScopeRe
     }
 }
 
-public sealed class ListWorkOrdersHandler(IWorkOrderStore store, IBranchScopeResolver scopes)
-{
-    public const int DefaultPageSize = 25;
-
-    public const int MaxPageSize = 100;
-
-    public async Task<ServiceRequestResult<WorkOrderPage>> HandleAsync(
-        MembershipCall call, int? page, int? pageSize, CancellationToken cancellationToken)
-    {
-        var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
-        var pageNumber = page ?? 1;
-        var size = pageSize ?? DefaultPageSize;
-
-        if (pageNumber < 1)
-        {
-            errors["page"] = ["Page must be 1 or greater."];
-        }
-
-        if (size is < 1 or > MaxPageSize)
-        {
-            errors["pageSize"] = ["Page size must be between 1 and 100."];
-        }
-
-        if (errors.Count > 0)
-        {
-            return ServiceRequestResult<WorkOrderPage>.Invalid(errors);
-        }
-
-        var scope = await scopes.ResolveAsync(call.OrganizationId, call.MembershipId, cancellationToken);
-
-        return ServiceRequestResult<WorkOrderPage>.Ok(
-            await store.ListAsync(call.OrganizationId, scope, pageNumber, size, cancellationToken));
-    }
-}
-
 public sealed class GetWorkOrderHandler(IWorkOrderStore store, IBranchScopeResolver scopes)
 {
     public async Task<WorkOrderDetail?> HandleAsync(

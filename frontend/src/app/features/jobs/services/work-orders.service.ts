@@ -10,10 +10,8 @@ import {
   WorkOrderCreated,
   WorkOrderDetail,
   WorkOrderEditor,
-  WorkOrderList,
 } from '../models/work-order.model';
-
-export const JOBS_PAGE_SIZE = 25;
+import { JobsOptions, JobsPage, JobsRequest, JobsSummary } from '../models/jobs.model';
 
 /** Work order endpoints (Final contract: specs/create-work-order/spec.md). Organization scope is server-side only. */
 @Injectable({ providedIn: 'root' })
@@ -51,9 +49,36 @@ export class WorkOrdersService {
     return this.http.post<WorkOrderCreated>(this.editorUrl(quoteId), { ...body, updatedAt });
   }
 
-  list(page: number): Observable<WorkOrderList> {
-    const params = new HttpParams().set('page', page).set('pageSize', JOBS_PAGE_SIZE);
-    return this.http.get<WorkOrderList>(buildApiUrl(this.config, 'work-orders'), { params });
+  /** Jobs workspace (specs/jobs-management/spec.md, Final contract). */
+  jobsOptions(): Observable<JobsOptions> {
+    return this.http.get<JobsOptions>(buildApiUrl(this.config, 'work-orders/options'));
+  }
+
+  jobsSummary(branchId: string | null): Observable<JobsSummary> {
+    let params = new HttpParams();
+    if (branchId !== null) {
+      params = params.set('branchId', branchId);
+    }
+    return this.http.get<JobsSummary>(buildApiUrl(this.config, 'work-orders/summary'), { params });
+  }
+
+  list(query: JobsRequest): Observable<JobsPage> {
+    let params = new HttpParams()
+      .set('tab', query.tab)
+      .set('sort', query.sort)
+      .set('page', query.page)
+      .set('pageSize', query.pageSize);
+    for (const [key, value] of [
+      ['q', query.q],
+      ['branchId', query.branchId],
+      ['status', query.status],
+      ['priority', query.priority],
+    ] as const) {
+      if (value !== null && value !== '') {
+        params = params.set(key, value);
+      }
+    }
+    return this.http.get<JobsPage>(buildApiUrl(this.config, 'work-orders'), { params });
   }
 
   detail(id: string): Observable<WorkOrderDetail> {

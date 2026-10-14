@@ -177,6 +177,8 @@ public static class DependencyInjection
         services.AddScoped<SaveWorkOrderDraftHandler>();
         services.AddScoped<CreateWorkOrderHandler>();
         services.AddScoped<ListWorkOrdersHandler>();
+        services.AddScoped<GetJobsSummaryHandler>();
+        services.AddScoped<GetJobsOptionsHandler>();
         services.AddScoped<GetWorkOrderHandler>();
         services.AddScoped<ListChecklistTemplatesHandler>();
         services.AddScoped<CreateChecklistTemplateHandler>();

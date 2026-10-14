@@ -214,18 +214,6 @@ public sealed record WorkOrderRef(Guid Id, string DisplayNumber);
 
 public sealed record WorkOrderCreated(WorkOrderRef Order, bool Created);
 
-public sealed record WorkOrderListItem(
-    Guid Id,
-    string DisplayNumber,
-    string Title,
-    string CustomerName,
-    string BranchName,
-    string Priority,
-    string Status,
-    DateTimeOffset CreatedAt);
-
-public sealed record WorkOrderPage(IReadOnlyList<WorkOrderListItem> Items, int Total);
-
 public sealed record JobQuote(Guid Id, string DisplayNumber, decimal ApprovedTotal, string Currency);
 
 public sealed record JobCustomer(Guid Id, string Name);
@@ -294,9 +282,6 @@ public interface IWorkOrderStore
 
     Task<WorkOrderOutcome<WorkOrderCreated>> CreateAsync(
         QuoteActor actor, Guid quoteId, DateTimeOffset? updatedAt, WorkOrderInput input, CancellationToken cancellationToken);
-
-    Task<WorkOrderPage> ListAsync(
-        Guid organizationId, BranchScope scope, int page, int pageSize, CancellationToken cancellationToken);
 
     Task<WorkOrderDetail?> GetAsync(
         Guid organizationId, BranchScope scope, Guid workOrderId, bool canManage, CancellationToken cancellationToken);

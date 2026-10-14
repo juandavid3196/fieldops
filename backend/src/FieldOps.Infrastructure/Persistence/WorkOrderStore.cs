@@ -67,51 +67,6 @@ internal sealed partial class WorkOrderStore(FieldOpsDbContext dbContext, TimePr
             : await BuildEditorAsync(organizationId, scope, quote, cancellationToken);
     }
 
-    public async Task<WorkOrderPage> ListAsync(
-        Guid organizationId, BranchScope scope, int page, int pageSize, CancellationToken cancellationToken)
-    {
-        var query = VisibleOrders(organizationId, scope);
-        var total = await query.CountAsync(cancellationToken);
-        var prefix = await ReadWorkOrderPrefixAsync(organizationId, cancellationToken);
-
-        var rows = await query
-            .OrderByDescending(order => order.CreatedAt)
-            .ThenBy(order => order.Id)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .Select(order => new
-            {
-                order.Id,
-                order.WorkOrderNumber,
-                order.Title,
-                order.Priority,
-                order.Status,
-                order.CreatedAt,
-                CustomerName = dbContext.Customers
-                    .Where(customer => customer.OrganizationId == organizationId && customer.Id == order.CustomerId)
-                    .Select(customer => customer.DisplayName)
-                    .FirstOrDefault(),
-                BranchName = dbContext.Branches
-                    .Where(branch => branch.OrganizationId == organizationId && branch.Id == order.BranchId)
-                    .Select(branch => branch.Name)
-                    .FirstOrDefault(),
-            })
-            .ToListAsync(cancellationToken);
-
-        return new WorkOrderPage(
-            rows.Select(row => new WorkOrderListItem(
-                    row.Id,
-                    RequestCardRules.DisplayNumber(prefix, row.WorkOrderNumber),
-                    row.Title,
-                    row.CustomerName ?? string.Empty,
-                    row.BranchName ?? string.Empty,
-                    WorkOrderCodes.PriorityCode(row.Priority),
-                    WorkOrderCodes.StatusCode(row.Status),
-                    row.CreatedAt))
-                .ToList(),
-            total);
-    }
-
     public async Task<WorkOrderDetail?> GetAsync(
         Guid organizationId, BranchScope scope, Guid workOrderId, bool canManage, CancellationToken cancellationToken)
     {

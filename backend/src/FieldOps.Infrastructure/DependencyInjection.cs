@@ -115,6 +115,7 @@ public static class DependencyInjection
         services.AddScoped<IQuoteNotifier, QuoteNotifier>();
         services.AddScoped<IQuoteLinkStore, QuoteLinkStore>();
         services.AddScoped<IWorkOrderStore, WorkOrderStore>();
+        services.AddScoped<IJobsStore, JobsStore>();
         services.AddScoped<IDispatchStore, DispatchStore>();
         services.AddScoped<IOperationsDashboardStore, OperationsDashboardStore>();
         services.AddScoped<IBillingReviewStore, BillingReviewStore>();
