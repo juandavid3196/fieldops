@@ -66,6 +66,7 @@ describe('AppShell', () => {
             component: AppShell,
             children: [
               { path: 'overview', component: PageStub },
+              { path: 'dashboard', component: PageStub },
               { path: 'admin/company', component: PageStub },
               { path: 'admin/products-services', component: PageStub },
               { path: 'coming-soon/:module', component: PageStub },
@@ -85,7 +86,9 @@ describe('AppShell', () => {
     load(session);
 
     harness = await RouterTestingHarness.create();
-    await harness.navigateByUrl('/overview');
+    await harness.navigateByUrl(
+      MANAGE_ROLES.includes(session.role.code) ? '/dashboard' : '/overview',
+    );
     await settle();
     host = harness.routeNativeElement as HTMLElement;
   }
@@ -103,6 +106,8 @@ describe('AppShell', () => {
   const userButton = () => host.querySelector<HTMLButtonElement>('.shell__user-button')!;
   const orgButton = () => host.querySelector<HTMLButtonElement>('.shell__org-button');
   const menuItem = () => host.querySelector<HTMLButtonElement>('[role="menuitem"]')!;
+  // operations-dashboard BR-01: Manage roles see Dashboard where other roles see Overview.
+  const MANAGE_ROLES = ['owner', 'operations_manager', 'dispatcher'];
   const MODULE_LABELS = [
     'Overview',
     'Requests',
@@ -149,10 +154,11 @@ describe('AppShell', () => {
     async (code, canSeeAdministration) => {
       await setup({ ...SESSION, role: { code, name: 'Some role' } });
 
+      const first = MANAGE_ROLES.includes(code) ? 'Dashboard' : 'Overview';
       const expected =
         code === 'technician'
-          ? ['Overview', "Today's jobs", ...MODULE_LABELS.slice(1)]
-          : MODULE_LABELS;
+          ? [first, "Today's jobs", ...MODULE_LABELS.slice(1)]
+          : [first, ...MODULE_LABELS.slice(1)];
       expect(linkLabels()).toEqual(
         canSeeAdministration ? [...expected, 'Administration'] : expected,
       );
@@ -163,7 +169,7 @@ describe('AppShell', () => {
       expect(host.querySelectorAll('header')).toHaveLength(1);
       expect(host.querySelectorAll('main')).toHaveLength(1);
       expect(host.querySelector('nav')?.getAttribute('aria-label')).toBe('Main navigation');
-      expect(host.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('Overview');
+      expect(host.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe(first);
 
       await router.navigateByUrl('/jobs/job-1');
       await settle();
@@ -210,7 +216,7 @@ describe('AppShell', () => {
     menuItem().click();
     await settle();
     expect(host.querySelector('[role="menu"]')).toBeNull();
-    expect(router.url).toBe('/overview');
+    expect(router.url).toBe('/dashboard');
 
     const search = host.querySelector<HTMLInputElement>('#shell-search')!;
     search.form!.dispatchEvent(new Event('submit', { cancelable: true }));
@@ -235,7 +241,7 @@ describe('AppShell', () => {
       expect(sidebar().classList.contains('sidebar--rail')).toBe(!startsRail);
       if (!startsRail) {
         expect(host.querySelector('.sidebar__group-label')).toBeNull();
-        expect(host.querySelector('nav a')?.getAttribute('aria-label')).toBe('Overview');
+        expect(host.querySelector('nav a')?.getAttribute('aria-label')).toBe('Dashboard');
       }
 
       collapse().click();
@@ -306,7 +312,7 @@ describe('AppShell', () => {
     const alert = host.querySelector('p-message');
     expect(alert?.textContent?.trim()).toBe(SIGN_OUT_ERROR_MESSAGE);
     expect(alert?.getAttribute('role')).toBe('alert');
-    expect(router.url).toBe('/overview');
+    expect(router.url).toBe('/dashboard');
     expect(sessionService.session()).toEqual(SESSION);
     expect(host.querySelector('[role="menu"]')).toBeNull();
     expect(document.activeElement).toBe(userButton());
@@ -372,7 +378,7 @@ describe('AppShell', () => {
     expect(dialog?.getAttribute('aria-modal')).toBe('true');
     expect(dialog?.getAttribute('aria-labelledby')).toBe('shell-drawer-title');
     expect(dialog?.querySelector('nav')?.getAttribute('aria-label')).toBe('Main navigation');
-    expect(dialog?.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('Overview');
+    expect(dialog?.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('Dashboard');
     expect(dialog?.textContent).toContain('Close navigation');
     await expectAxeClean();
 

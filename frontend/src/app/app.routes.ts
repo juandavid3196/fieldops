@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { billingReviewRoute } from './features/billing-review/billing-review.routes';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
+import { dashboardRoute } from './features/dashboard/dashboard.routes';
 import { customerDetailRoute, customersRoute } from './features/customers/customers.routes';
 import {
   invoiceDetailRoute,
@@ -75,6 +76,7 @@ export const routes: Routes = [
         path: 'overview',
         loadChildren: () => import('./features/overview/overview.routes'),
       },
+      dashboardRoute,
       comingSoonRoute,
       companyAdminRoute,
       usersAdminRoute,

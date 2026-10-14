@@ -21,6 +21,7 @@ import { Message } from 'primeng/message';
 
 import { ADMIN_QUERY, MD_QUERY, watchMedia } from '../../core/config/breakpoints';
 import { comingSoonPath } from '../../core/config/coming-soon-modules';
+import { canSeeDashboard } from '../../core/config/dashboard-roles';
 import { SessionService } from '../../core/services/session.service';
 import { ShellSidebar } from '../shell-sidebar/shell-sidebar';
 import { ADMINISTRATION_ROLE_CODES, NAV_GROUPS } from './app-shell.nav';
@@ -101,7 +102,10 @@ export class AppShell {
   readonly groups = computed(() =>
     NAV_GROUPS.filter((group) => {
       const role = this.session()?.role.code ?? '';
+      const manage = canSeeDashboard(role);
       return (
+        (!group.manageOnly || manage) &&
+        (!group.hiddenForManage || !manage) &&
         (!group.adminOnly || ADMINISTRATION_ROLE_CODES.includes(role)) &&
         (!group.technicianOnly || role === 'technician')
       );

@@ -114,6 +114,7 @@ export class SchedulePage {
   readonly skills = computed(() => this.store.options()?.skills ?? []);
 
   private lastProposedDate: string | null = null;
+  private lastVisitParam: string | null = null;
 
   constructor() {
     const desktop = watchMedia(DESKTOP_QUERY, () => this.updateLayout(), true);
@@ -137,7 +138,16 @@ export class SchedulePage {
       if (this.forbidden() || this.store.optionsStatus() !== 'ready') {
         return;
       }
-      untracked(() => this.syncRoute(params.get('branch'), params.get('view'), params.get('date')));
+      untracked(() => {
+        const resolved = this.syncRoute(
+          params.get('branch'),
+          params.get('view'),
+          params.get('date'),
+        );
+        if (resolved) {
+          this.syncVisit(params.get('visit'));
+        }
+      });
     });
 
     effect(() => {
@@ -182,14 +192,15 @@ export class SchedulePage {
     this.layout.set(isDesktop ? 'desktop' : isMd ? 'tablet' : 'mobile');
   }
 
+  /** Applies the route state; false when the URL had to be rewritten first or no branch exists. */
   private syncRoute(
     requestedBranch: string | null,
     viewParam: string | null,
     dateParam: string | null,
-  ): void {
+  ): boolean {
     const branchId = this.store.resolveBranchId(requestedBranch);
     if (branchId === null) {
-      return;
+      return false;
     }
     const timezone = this.branches().find((branch) => branch.id === branchId)?.timezone ?? 'UTC';
     const view: ScheduleView =
@@ -197,9 +208,24 @@ export class SchedulePage {
     const date = isValidDate(dateParam) ? dateParam : todayInZone(timezone);
     if (requestedBranch !== branchId || viewParam !== view || dateParam !== date) {
       this.go({ branch: branchId, view, date }, true);
-      return;
+      return false;
     }
     this.store.applyRoute({ branchId, view, date });
+    return true;
+  }
+
+  /**
+   * operations-dashboard BR-18: a new `visit` parameter opens the dispatch drawer once the route
+   * state is resolved. Later URL changes with the same value never reopen a closed drawer.
+   */
+  private syncVisit(visitParam: string | null): void {
+    if (visitParam === this.lastVisitParam) {
+      return;
+    }
+    this.lastVisitParam = visitParam;
+    if (visitParam !== null) {
+      this.openVisit(visitParam);
+    }
   }
 
   private fallbackBranch(): void {
@@ -210,10 +236,12 @@ export class SchedulePage {
     }
   }
 
-  private go(params: Record<string, string>, replaceUrl = false): void {
+  private go(params: Record<string, string | null>, replaceUrl = false): void {
+    // A `visit` left in the URL by a closed drawer is dropped with the next navigation.
+    const stale = this.queryParams().get('visit') !== null && this.store.selectedVisitId() === null;
     void this.router.navigate([], {
       relativeTo: this.route,
-      queryParams: params,
+      queryParams: stale ? { visit: null, ...params } : params,
       queryParamsHandling: 'merge',
       replaceUrl,
     });
@@ -294,6 +322,10 @@ export class SchedulePage {
     this.store.selectedVisitId.set(null);
     this.store.proposed.set(null);
     this.store.drawerDirty.set(false);
+    // BR-18: closing the drawer removes `visit` from the URL.
+    if (this.queryParams().get('visit') !== null) {
+      this.go({}, true);
+    }
   }
 
   // Unsaved-changes handling (shared discard dialog)

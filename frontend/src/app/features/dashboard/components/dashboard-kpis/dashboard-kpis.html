@@ -1,0 +1,67 @@
+<ul class="kpis" aria-label="Key figures">
+  <li class="kpi">
+    <span class="kpi__icon kpi__icon--teal" aria-hidden="true"
+      ><i class="pi pi-clipboard"></i
+    ></span>
+    <div class="kpi__body">
+      <h2 class="kpi__label">{{ jobsLabel() }}</h2>
+      <p class="kpi__value">{{ kpis().jobs.total }}</p>
+      <p class="kpi__caption">{{ jobsCaption() }}</p>
+    </div>
+  </li>
+  <li class="kpi">
+    <span class="kpi__icon kpi__icon--amber" aria-hidden="true"
+      ><i class="pi pi-exclamation-triangle"></i
+    ></span>
+    <div class="kpi__body">
+      <h2 class="kpi__label">Unassigned</h2>
+      <p class="kpi__value">{{ kpis().unassigned }}</p>
+      <a class="kpi__link" [routerLink]="boardLink().path" [queryParams]="boardLink().queryParams">
+        Assign now <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      </a>
+    </div>
+  </li>
+  <li class="kpi">
+    <span class="kpi__icon kpi__icon--red" aria-hidden="true"
+      ><i class="pi pi-exclamation-circle"></i
+    ></span>
+    <div class="kpi__body">
+      <h2 class="kpi__label">At risk / delayed</h2>
+      <p class="kpi__value">{{ kpis().atRiskOrDelayed }}</p>
+      <button type="button" class="kpi__link" (click)="reviewRequested.emit()">
+        Review <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      </button>
+    </div>
+  </li>
+  <li class="kpi">
+    <span class="kpi__icon kpi__icon--teal" aria-hidden="true"><i class="pi pi-users"></i></span>
+    <div class="kpi__body">
+      <h2 class="kpi__label">Technician utilization</h2>
+      <p class="kpi__value">{{ utilization().value }}</p>
+      <p class="kpi__caption">{{ utilization().caption }}</p>
+    </div>
+  </li>
+  <li class="kpi">
+    <span class="kpi__icon kpi__icon--teal" aria-hidden="true"><i class="pi pi-clock"></i></span>
+    <div class="kpi__body">
+      <h2 class="kpi__label">On-time arrival</h2>
+      <p class="kpi__value">{{ onTime().value }}</p>
+      @if (onTime().empty) {
+        <p class="kpi__caption">No arrivals yet</p>
+      }
+      @if (onTime().trend; as trend) {
+        <p class="kpi__caption kpi__trend" [attr.data-direction]="trend.direction">
+          @if (trend.direction !== 'same') {
+            <i
+              class="pi"
+              [class.pi-arrow-up-right]="trend.direction === 'up'"
+              [class.pi-arrow-down-right]="trend.direction === 'down'"
+              aria-hidden="true"
+            ></i>
+          }
+          {{ trend.text }}
+        </p>
+      }
+    </div>
+  </li>
+</ul>

@@ -1,0 +1,56 @@
+<section #section class="card" tabindex="-1" aria-labelledby="att-title">
+  <p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
+  <header class="card__head">
+    <h2 class="card__title" id="att-title">Needs attention</h2>
+    @if (canExpand()) {
+      <button
+        type="button"
+        class="card__link"
+        [attr.aria-expanded]="expanded()"
+        (click)="expanded.set(!expanded())"
+      >
+        @if (expanded()) {
+          Show less
+        } @else {
+          View all ({{ total() }}) <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        }
+      </button>
+    }
+  </header>
+
+  @if (total() === 0) {
+    <p class="card__empty">{{ empty }}</p>
+  } @else {
+    <ul class="att">
+      @for (item of shown(); track item.key) {
+        <li class="att__item" [attr.data-severity]="item.severity">
+          <i class="pi att__icon" [class]="item.icon" aria-hidden="true"></i>
+          <div class="att__text">
+            <p class="att__title">
+              <span class="sr">{{ item.severity }}: </span>{{ item.title }}
+            </p>
+            <p class="att__sub">{{ item.subtitle }}</p>
+          </div>
+          @if (item.time !== null) {
+            <span class="att__time">{{ item.time }}</span>
+          }
+          <a
+            class="btn"
+            [routerLink]="item.action.link.path"
+            [queryParams]="item.action.link.queryParams"
+            >{{ item.action.label }}</a
+          >
+          <button
+            type="button"
+            class="btn btn--icon"
+            aria-haspopup="menu"
+            [attr.aria-label]="'More actions for ' + item.title"
+            (click)="openMenu($event, item)"
+          >
+            <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</section>

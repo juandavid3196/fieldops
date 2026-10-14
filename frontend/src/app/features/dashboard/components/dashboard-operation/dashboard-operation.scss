@@ -1,0 +1,215 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.card {
+  flex: 1;
+  min-width: 0;
+  padding: 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  &__head {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-block-end: 0.75rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    color: var(--fo-color-heading);
+  }
+
+  &__link {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--fo-color-link);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
+    color: var(--fo-color-text-secondary);
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__scroll {
+    overflow-x: auto;
+  }
+}
+
+.sr {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.op {
+  inline-size: 100%;
+  font-size: 0.875rem;
+  text-align: start;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: 0.75rem;
+    text-align: start;
+    vertical-align: middle;
+    border-block-end: 1px solid var(--fo-color-row-divider);
+  }
+
+  th {
+    font-weight: 600;
+    color: var(--fo-color-heading);
+    white-space: nowrap;
+    background: var(--fo-color-surface-muted);
+  }
+
+  &__nowrap {
+    white-space: nowrap;
+  }
+
+  &__muted {
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__sub {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__job {
+    font-weight: 600;
+    color: var(--fo-color-heading);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__sort {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    padding: 0;
+    font: inherit;
+    font-weight: 600;
+    color: inherit;
+    cursor: pointer;
+    background: none;
+    border: 0;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__note {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--fo-color-success-text);
+
+    &--late {
+      font-weight: 600;
+      color: var(--fo-color-danger-text);
+    }
+  }
+
+  &__actions {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    white-space: nowrap;
+  }
+}
+
+.chip {
+  display: inline-flex;
+  gap: 0.25rem;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--fo-color-neutral-text);
+  background: var(--fo-color-neutral-background);
+  border-radius: var(--fo-radius-pill);
+
+  &[data-tone='danger'] {
+    color: var(--fo-color-danger-text);
+    background: var(--fo-color-danger-background);
+  }
+
+  &[data-tone='info'] {
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+  }
+
+  &[data-tone='warning'] {
+    color: var(--fo-color-warning-text);
+    background: var(--fo-color-warning-background);
+  }
+
+  &[data-tone='success'] {
+    color: var(--fo-color-success-text);
+    background: var(--fo-color-success-background);
+  }
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-block-size: 2rem;
+  padding: 0 0.875rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fo-color-text);
+  text-decoration: none;
+  cursor: pointer;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border-strong);
+  border-radius: var(--fo-radius-control);
+
+  &:hover {
+    background: var(--fo-color-surface-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--fo-focus-ring);
+  }
+
+  &--icon {
+    padding: 0;
+    background: transparent;
+    border-color: transparent;
+    min-inline-size: 2rem;
+  }
+
+  @media (max-width: 47.99rem) {
+    min-block-size: var(--fo-size-touch-target);
+    min-inline-size: var(--fo-size-touch-target);
+  }
+}
