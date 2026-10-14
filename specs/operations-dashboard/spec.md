@@ -4,9 +4,9 @@
 | -------- | ---------------------- |
 | Feature  | `operations-dashboard` |
 | Type     | Full-stack             |
-| Status   | APPROVED               |
+| Status   | AUDITED                |
 | Created  | 2026-10-13             |
-| Updated  | 2026-10-13             |
+| Updated  | 2026-10-14             |
 | Approved | 2026-10-13             |
 
 ## Context and objective
@@ -314,3 +314,4 @@ Statuses verified 2026-10-13 from each spec's metadata.
 | 2026-10-13 | — → DRAFT | Created |
 | 2026-10-13 | DRAFT → DRAFT | Revised after validation: Today's operation title for other dates, nullable branch `timezone` with fallback, verified dependency statuses, removed `nextAvailableNow` |
 | 2026-10-13 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-14 | APPROVED → AUDITED | User override: final-audit returned AUDIT FAIL and the user asked to mark the spec audited. Full validation passed (frontend 71 files / 630 tests, build, lint, format; backend format, build, unit, integration). Open findings, all frontend visual polish: (Important) the Today's operation status chip renders no icon, against BR-10/BR-17/AC-20 "text plus icon"; (Minor) technician current status uses a colored dot plus text instead of an icon (BR-12); (Minor) the over-estimate variance colour uses an unspecified 15 % threshold. User visual QA PASS (verbal, frontend fingerprint 4bc449621cc57fd948651c7338690b9cde2555db). |
