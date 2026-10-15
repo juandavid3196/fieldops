@@ -4,10 +4,10 @@
 | -------- | ---------------------- |
 | Feature  | `notifications-center` |
 | Type     | Full-stack             |
-| Status   | DRAFT                  |
+| Status   | APPROVED               |
 | Created  | 2026-10-15             |
 | Updated  | 2026-10-15             |
-| Approved | —                      |
+| Approved | 2026-10-15             |
 
 ## Context and objective
 
@@ -270,3 +270,4 @@ security risks and justify the upper end.
 | 2026-10-15 | APPROVED → DRAFT | Revised via /spec revise: summary polling every 30 s, tab-visibility pause and new-activity notice (BR-16, BR-25, AC-20, AC-25, OD-09). The contracts are unchanged |
 | 2026-10-15 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-15 | APPROVED → DRAFT | Revised via /spec revise: notification popover on the bell (BR-26, AC-26, OD-11, Design 33); BR-16, FR-07, AC-19, AC-21, AC-22, AC-23 updated. Polling (BR-16) and the page notice (BR-25) unchanged; contracts unchanged |
+| 2026-10-15 | DRAFT → APPROVED | Approved by user via /spec approve |
