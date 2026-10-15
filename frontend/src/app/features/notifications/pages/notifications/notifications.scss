@@ -303,8 +303,7 @@ $wide: 80rem;
     display: grid;
     grid-template-areas:
       'main menu'
-      'entity entity'
-      'time time';
+      'entity time';
     grid-template-columns: minmax(0, 1fr) auto;
     column-gap: 0.5rem;
     align-items: center;
@@ -411,14 +410,14 @@ $wide: 80rem;
     grid-area: entity;
     flex-direction: column;
     min-width: 0;
-    padding-inline-start: 0.25rem;
+    padding: 0 0 0.5rem 1.5rem;
 
     @include bp.up(md) {
       padding-inline-start: 4.25rem;
     }
 
     @media (min-width: $wide) {
-      padding-inline-start: 0;
+      padding: 0;
     }
   }
 
@@ -435,7 +434,7 @@ $wide: 80rem;
 
   &__time {
     grid-area: time;
-    padding-inline-start: 0.25rem;
+    align-self: end;
     font-size: 0.875rem;
     color: var(--fo-color-text-secondary);
     white-space: nowrap;
@@ -445,6 +444,7 @@ $wide: 80rem;
     }
 
     @media (min-width: $wide) {
+      align-self: center;
       padding-inline-start: 0;
     }
   }
@@ -452,6 +452,7 @@ $wide: 80rem;
   &__menu {
     display: inline-flex;
     grid-area: menu;
+    grid-row: 1 / -1;
     align-items: center;
     justify-content: center;
     inline-size: var(--fo-size-touch-target);

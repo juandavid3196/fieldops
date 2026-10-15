@@ -46,6 +46,9 @@ const POPOVER_REQUEST: NotificationsRequest = {
   pageSize: 5,
 };
 
+const NARROW_VIEWPORT = 480;
+const ARROW_LEFT_VAR = '--p-popover-arrow-left';
+
 /** Panel size through the popover's own `style` input (the panel is appended to `body`). */
 const PANEL_STYLE = {
   'inline-size': 'min(26rem, calc(100vw - 1rem))',
@@ -178,7 +181,30 @@ export class NotificationPopover {
 
   onShow(): void {
     this.shown = true;
+    this.centerOnNarrowScreens();
     this.focusInitial();
+  }
+
+  /** Below 480 px the panel is centered in the viewport and its arrow keeps pointing at the bell. */
+  private centerOnNarrowScreens(): void {
+    if (window.innerWidth >= NARROW_VIEWPORT) {
+      return;
+    }
+    // PrimeNG positions the panel after `onShow`, so center it on the next frame.
+    requestAnimationFrame(() => {
+      const panel = document.querySelector<HTMLElement>('.notif-pop');
+      if (!panel) {
+        return;
+      }
+      // `offsetLeft` ignores the enter animation's scale transform, unlike the bounding rect.
+      const target = (document.documentElement.clientWidth - panel.offsetWidth) / 2;
+      const shift = panel.offsetLeft - target;
+      const arrow = parseFloat(panel.style.getPropertyValue(ARROW_LEFT_VAR));
+      panel.style.left = `${target}px`;
+      if (!Number.isNaN(arrow)) {
+        panel.style.setProperty(ARROW_LEFT_VAR, `${arrow + shift}px`);
+      }
+    });
   }
 
   onHide(): void {
