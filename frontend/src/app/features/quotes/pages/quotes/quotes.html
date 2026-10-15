@@ -1,0 +1,372 @@
+<p-toast />
+<p-menu #rowMenuRef [popup]="true" appendTo="body" [model]="rowMenu()" />
+<p class="quotes__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+<div class="quotes">
+  <nav aria-label="Breadcrumb">
+    <ol class="quotes__crumbs">
+      <li>Operations</li>
+      <li aria-current="page">Quotes</li>
+    </ol>
+  </nav>
+
+  <header class="quotes__header">
+    <div>
+      <h1 class="quotes__title">Quotes</h1>
+      <p class="quotes__subtitle">Create, send and track customer estimates.</p>
+    </div>
+    @if (!forbidden() && options().status === 'ready' && !noBranches()) {
+      <div class="quotes__actions">
+        <a pButton routerLink="/requests" [queryParams]="readyParams">
+          <i class="pi pi-inbox" aria-hidden="true"></i>
+          View ready requests
+          @if (readyCount() > 0) {
+            <span class="quotes__badge">{{ readyCount() }}</span>
+          }
+        </a>
+      </div>
+    }
+  </header>
+
+  @if (forbidden()) {
+    <p class="quotes__message" role="alert">{{ forbiddenMessage }}</p>
+  } @else if (options().status === 'error') {
+    <p class="quotes__message" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retryOptions()">
+        Retry
+      </button>
+    </p>
+  } @else if (noBranches()) {
+    <p class="quotes__message">{{ noBranchesMessage }}</p>
+  } @else {
+    @if (showNotice()) {
+      <div class="quotes__notice" role="status">
+        <i class="pi pi-inbox" aria-hidden="true"></i>
+        <span class="quotes__notice-text">{{ noticeText() }}</span>
+        <a class="quotes__link" routerLink="/requests" [queryParams]="readyParams"
+          >Review requests</a
+        >
+        <button type="button" class="quotes__dismiss" (click)="dismissNotice()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+          <span class="quotes__sr">Dismiss</span>
+        </button>
+      </div>
+    }
+
+    <section
+      class="quotes__metrics"
+      aria-label="Quote metrics"
+      [attr.aria-busy]="summary().status === 'loading'"
+    >
+      @if (summary().status === 'error') {
+        <p class="quotes__message quotes__metrics-error" role="alert">
+          {{ metricsErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retrySummary()">
+            Retry
+          </button>
+        </p>
+      } @else if (metrics(); as cards) {
+        @for (card of cards; track card.label) {
+          <div class="quotes__metric">
+            <span
+              class="quotes__metric-icon quotes__metric-icon--{{ card.tone }}"
+              aria-hidden="true"
+            >
+              <i class="pi {{ card.icon }}"></i>
+            </span>
+            <dl>
+              <dt>{{ card.label }}</dt>
+              <dd>{{ card.value }}</dd>
+              <dd class="quotes__caption">{{ card.caption }}</dd>
+            </dl>
+          </div>
+        }
+      } @else {
+        @for (n of [1, 2, 3, 4]; track n) {
+          <p-skeleton height="5rem" />
+        }
+      }
+    </section>
+
+    <section class="quotes__card" aria-label="Quotes list">
+      <div class="quotes__tabs" role="tablist" aria-label="Quote groups">
+        @for (item of tabs; track item.code; let index = $index) {
+          <button
+            type="button"
+            role="tab"
+            class="quotes__tab"
+            [id]="'quotes-tab-' + item.code"
+            aria-controls="quotes-panel"
+            [attr.aria-selected]="view().tab === item.code"
+            [attr.tabindex]="view().tab === item.code ? 0 : -1"
+            [disabled]="controlsDisabled()"
+            (click)="selectTab(item.code)"
+            (keydown)="onTabKeydown($event, index)"
+          >
+            {{ item.label }}
+            @if (counted(); as counts) {
+              <span class="quotes__count">{{ counts[item.code] }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <div id="quotes-panel" role="tabpanel" [attr.aria-labelledby]="'quotes-tab-' + view().tab">
+        <div class="quotes__filters" role="search" aria-label="Filter quotes">
+          <div class="quotes__field quotes__field--search">
+            <p-iconfield>
+              <p-inputicon class="pi pi-search" />
+              <input
+                pInputText
+                type="search"
+                fluid
+                autocomplete="off"
+                maxlength="100"
+                aria-label="Search quotes"
+                placeholder="Search quote, customer or request"
+                [disabled]="controlsDisabled()"
+                [ngModel]="searchText()"
+                (ngModelChange)="searchChanged($event)"
+              />
+            </p-iconfield>
+          </div>
+          <div class="quotes__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Branch"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="branchChoices()"
+              [ngModel]="branchValue()"
+              (ngModelChange)="changeBranch($event)"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="quotes__select-value">
+                  <i class="pi pi-building" aria-hidden="true"></i>{{ selected.label }}
+                </span>
+              </ng-template>
+            </p-select>
+          </div>
+          <div class="quotes__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Status"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="statusChoices()"
+              [ngModel]="view().status ?? 'all'"
+              (ngModelChange)="changeStatus($event)"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="quotes__select-value">
+                  <i class="pi pi-check-circle" aria-hidden="true"></i>{{ selected.label }}
+                </span>
+              </ng-template>
+            </p-select>
+          </div>
+          <div class="quotes__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Date"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="dateOptions"
+              [ngModel]="view().date"
+              (ngModelChange)="changeDate($event)"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="quotes__select-value">
+                  <i class="pi pi-calendar" aria-hidden="true"></i>{{ selected.label }}
+                </span>
+              </ng-template>
+            </p-select>
+          </div>
+          <div class="quotes__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Sort by"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="sortOptions"
+              [ngModel]="view().sort"
+              (ngModelChange)="changeSort($event)"
+            >
+              <ng-template #selectedItem let-selected>
+                <span class="quotes__select-value">
+                  <i class="pi pi-sort-alt" aria-hidden="true"></i>{{ selected.label }}
+                </span>
+              </ng-template>
+            </p-select>
+          </div>
+          <button
+            pButton
+            type="button"
+            class="quotes__clear"
+            [outlined]="true"
+            [disabled]="filterCount() === 0"
+            (click)="clearFilters()"
+          >
+            <i class="pi pi-sliders-h" aria-hidden="true"></i>
+            Clear filters
+            @if (filterCount() > 0) {
+              <span class="quotes__count">{{ filterCount() }}</span>
+            }
+          </button>
+        </div>
+
+        <div [attr.aria-busy]="list().status === 'loading' || list().status === 'idle'">
+          @if (list().status === 'error') {
+            <p class="quotes__message" role="alert">
+              {{ errorMessage }}
+              <button pButton type="button" severity="secondary" size="small" (click)="retryList()">
+                Retry
+              </button>
+            </p>
+          } @else if (list().status === 'idle' || list().status === 'loading') {
+            <div class="quotes__skeletons">
+              @for (n of skeletonRows; track n) {
+                <p-skeleton height="2.5rem" />
+              }
+            </div>
+          } @else if (rows().length === 0) {
+            <p class="quotes__message">
+              {{ emptyMessage() }}
+              @if (showClearInEmpty() && filterCount() > 0) {
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  (click)="clearFilters()"
+                >
+                  Clear filters
+                </button>
+              }
+            </p>
+          } @else {
+            <div class="quotes__scroll" tabindex="0" role="region" aria-label="Quotes table">
+              <table class="quotes__table">
+                <thead>
+                  <tr>
+                    <th scope="col">Quote</th>
+                    <th scope="col">Customer &amp; property</th>
+                    <th scope="col">Request</th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Sent / valid until</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Updated</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of rows(); track item.row.id) {
+                    <tr>
+                      <td>
+                        <a class="quotes__link" [routerLink]="['/quotes', item.row.id]">{{
+                          item.row.displayNumber
+                        }}</a>
+                        <span class="quotes__muted">Revision {{ item.row.revisionNo }}</span>
+                        @if (item.row.revisionInProgress) {
+                          <span class="quotes__muted"
+                            >Revision {{ item.row.revisionNo + 1 }} in progress</span
+                          >
+                        }
+                      </td>
+                      <td>
+                        <span class="quotes__strong">{{ item.row.customerName }}</span>
+                        <span class="quotes__muted">{{ item.property }}</span>
+                      </td>
+                      <td>
+                        <a
+                          class="quotes__link"
+                          routerLink="/requests"
+                          [queryParams]="{ request: item.row.request.id }"
+                          >{{ item.row.request.displayNumber }}</a
+                        >
+                        <span class="quotes__muted">{{ item.row.request.title }}</span>
+                      </td>
+                      <td>
+                        <span class="quotes__strong quotes__nowrap">{{ item.total }}</span>
+                      </td>
+                      <td>{{ item.sent }}</td>
+                      <td>
+                        <span class="quotes__chip quotes__chip--{{ item.chip.tone }}">
+                          <span class="quotes__dot" aria-hidden="true"></span>
+                          {{ item.chip.label }}
+                        </span>
+                      </td>
+                      <td>
+                        <time
+                          class="quotes__nowrap"
+                          [attr.datetime]="item.row.updatedAt"
+                          [attr.title]="item.updatedFull"
+                          [attr.aria-label]="item.updatedFull"
+                          >{{ item.updated }}</time
+                        >
+                      </td>
+                      <td>
+                        <span class="quotes__row-actions">
+                          <a
+                            pButton
+                            size="small"
+                            severity="secondary"
+                            [outlined]="true"
+                            [routerLink]="item.inline.commands"
+                            [attr.aria-label]="item.inline.label + ' ' + item.row.displayNumber"
+                            >{{ item.inline.label }}</a
+                          >
+                          <button
+                            type="button"
+                            class="quotes__menu"
+                            aria-haspopup="menu"
+                            [attr.aria-label]="'More actions for ' + item.row.displayNumber"
+                            (click)="openRowMenu($event, item.row, rowMenuRef)"
+                          >
+                            <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
+                          </button>
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <div class="quotes__footer">
+              <p class="quotes__range">{{ footer() }}</p>
+              <div class="quotes__paging">
+                <div class="quotes__size">
+                  <span id="quotes-size-label">Rows per page</span>
+                  <p-select
+                    appendTo="body"
+                    ariaLabelledBy="quotes-size-label"
+                    [options]="pageSizeOptions"
+                    [ngModel]="view().pageSize"
+                    (ngModelChange)="changePageSize($event)"
+                  />
+                </div>
+                <p-paginator
+                  class="quotes__pager"
+                  [first]="(view().page - 1) * view().pageSize"
+                  [rows]="view().pageSize"
+                  [totalRecords]="total()"
+                  [pageLinkSize]="3"
+                  [showFirstLastIcon]="false"
+                  (onPageChange)="changePage($event)"
+                />
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+</div>

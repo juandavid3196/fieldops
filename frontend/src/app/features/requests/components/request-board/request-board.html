@@ -2,7 +2,7 @@
   @if (refreshing()) {
     <div class="board__progress" role="status" aria-label="Updating requests"></div>
   }
-  @for (status of statuses; track status) {
+  @for (status of statuses(); track status) {
     @let column = columns()[status];
     <section class="board__column" [attr.aria-labelledby]="'board-heading-' + status">
       <header class="board__column-head">

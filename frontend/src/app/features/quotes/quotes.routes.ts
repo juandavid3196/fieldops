@@ -35,3 +35,14 @@ export const quoteViewRoute: Route = {
   title: 'Quote · FieldOps',
   loadComponent: () => import('./pages/quote-view/quote-view').then((m) => m.QuoteView),
 };
+
+/**
+ * Quotes workspace (`/quotes`, Design 31); mounted inside the app shell, which owns the auth guard.
+ * Not role-guarded: roles without Read get the forbidden state inside the page.
+ */
+export const quotesRoute: Route = {
+  path: 'quotes',
+  pathMatch: 'full',
+  title: 'Quotes · FieldOps',
+  loadComponent: () => import('./pages/quotes/quotes').then((m) => m.Quotes),
+};

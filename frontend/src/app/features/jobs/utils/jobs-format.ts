@@ -141,7 +141,7 @@ const dayKey = (date: Date, timeZone: string): string =>
 const dayNumber = (key: string): number => Date.parse(`${key}T00:00:00Z`) / 86_400_000;
 
 /** "MMM d", with ", yyyy" when the year differs from the reference year. */
-function monthDay(date: Date, timeZone: string, now: Date): string {
+export function monthDay(date: Date, timeZone: string, now: Date): string {
   const sameYear = dayKey(date, timeZone).slice(0, 4) === dayKey(now, timeZone).slice(0, 4);
   return new Intl.DateTimeFormat('en-US', {
     timeZone,

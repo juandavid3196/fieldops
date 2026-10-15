@@ -33,11 +33,12 @@ export class RequestBoard {
   readonly refreshing = input(false);
   readonly selectedId = input<string | null>(null);
   readonly timezone = input('UTC');
+  /** Columns shown (BR-17 narrows them to Ready for quote). */
+  readonly statuses = input<readonly BoardStatus[]>(BOARD_STATUSES);
 
   readonly cardOpened = output<string>();
   readonly loadMore = output<BoardStatus>();
 
-  readonly statuses = BOARD_STATUSES;
   readonly skeletonCards = SKELETON_CARDS;
   readonly columnLabels = COLUMN_LABELS;
 

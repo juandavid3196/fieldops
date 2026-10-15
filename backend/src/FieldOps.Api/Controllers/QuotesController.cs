@@ -30,6 +30,9 @@ public sealed class QuotesController(
     ReviseQuoteHandler reviseHandler,
     DiscardQuoteDraftHandler discardHandler,
     ResendQuoteEmailHandler resendHandler,
+    ListQuotesHandler listHandler,
+    GetQuotesSummaryHandler summaryHandler,
+    GetQuotesOptionsHandler optionsHandler,
     IAuthorizationService authorization) : ControllerBase
 {
     public const int MaxJsonBodyBytes = 64 * 1024;
@@ -65,6 +68,66 @@ public sealed class QuotesController(
         return result.Value!.Created
             ? Created($"/quotes/{result.Value.Detail.Id}", result.Value.Detail)
             : Ok(result.Value.Detail);
+    }
+
+    /// <summary>quotes-management: the list. The literal routes below never collide with <c>{id:guid}</c>.</summary>
+    [HttpGet]
+    [Authorize(Policy = ServiceRequestPolicies.View)]
+    [ProducesResponseType<QuotesPage>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> List(
+        string? tab,
+        string? q,
+        string? branchId,
+        string? status,
+        string? date,
+        string? sort,
+        int? page,
+        int? pageSize,
+        CancellationToken cancellationToken)
+    {
+        var failure = BeginMutation(out var ticket);
+
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        var permissions = await PermissionsAsync();
+        var request = new QuotesListRequest(tab, q, branchId, status, date, sort, page, pageSize);
+
+        return Map(await listHandler.HandleAsync(Call(ticket), permissions, request, cancellationToken));
+    }
+
+    [HttpGet("summary")]
+    [Authorize(Policy = ServiceRequestPolicies.View)]
+    [ProducesResponseType<QuotesSummary>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Summary(string? branchId, CancellationToken cancellationToken)
+    {
+        var failure = BeginMutation(out var ticket);
+
+        return failure ?? Map(await summaryHandler.HandleAsync(Call(ticket), branchId, cancellationToken));
+    }
+
+    [HttpGet("options")]
+    [Authorize(Policy = ServiceRequestPolicies.View)]
+    [ProducesResponseType<QuotesOptions>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Options(CancellationToken cancellationToken)
+    {
+        var failure = BeginMutation(out var ticket);
+
+        if (failure is not null)
+        {
+            return failure;
+        }
+
+        return Ok(await optionsHandler.HandleAsync(Call(ticket), await PermissionsAsync(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
@@ -234,6 +297,12 @@ public sealed class QuotesController(
 
         return SessionClaims.TryRead(User, out ticket) ? null : Unauthorized();
     }
+
+    private async Task<QuotesPermissions> PermissionsAsync() =>
+        new(
+            (await authorization.AuthorizeAsync(User, ServiceRequestPolicies.Manage)).Succeeded,
+            (await authorization.AuthorizeAsync(User, WorkOrderPolicies.Manage)).Succeeded,
+            (await authorization.AuthorizeAsync(User, WorkOrderPolicies.Read)).Succeeded);
 
     private MembershipCall Call(SessionTicket ticket) =>
         new(ticket.OrganizationId, ticket.MembershipId, ticket.UserId, GetClientIpAddress());
