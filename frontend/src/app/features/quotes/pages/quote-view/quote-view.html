@@ -12,37 +12,51 @@
 
 <div class="view">
   <header class="view__header">
-    @if (detail(); as detail) {
-      <nav class="view__breadcrumb" aria-label="Breadcrumb">
-        <ol>
-          <li><a routerLink="/requests">Requests</a></li>
-          <li>
-            <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
-              detail.request.displayNumber
-            }}</a>
-          </li>
-          <li aria-current="page">Quote</li>
-        </ol>
-      </nav>
-    }
-    <div class="view__title-row">
-      <h1 #heading class="view__title" tabindex="-1">
-        Quote
-        @if (detail(); as detail) {
-          #{{ detail.displayNumber }}
-        }
-      </h1>
+    <div class="view__heading">
       @if (detail(); as detail) {
-        <span class="view__chip">Status: {{ statusLabel() }}</span>
+        <nav class="view__breadcrumb" aria-label="Breadcrumb">
+          <ol>
+            <li><a routerLink="/requests">Requests</a></li>
+            <li>
+              <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
+                detail.request.displayNumber
+              }}</a>
+            </li>
+            <li aria-current="page">Quote</li>
+          </ol>
+        </nav>
+      }
+      <div class="view__title-row">
+        <h1 #heading class="view__title" tabindex="-1">
+          Quote
+          @if (detail(); as detail) {
+            #{{ detail.displayNumber }}
+          }
+        </h1>
+        @if (detail(); as detail) {
+          <span class="view__chip view__chip--{{ statusTone() }}">
+            <i class="pi {{ statusIcon() }}" aria-hidden="true"></i>
+            <span class="view__sr">Status: </span>{{ statusLabel() }}
+          </span>
+        }
+      </div>
+      @if (detail(); as detail) {
+        <p class="view__meta">
+          <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
+            detail.request.title
+          }}</a>
+          · {{ detail.customer.name }}
+        </p>
       }
     </div>
-    @if (detail(); as detail) {
-      <p class="view__meta">
-        <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
-          detail.request.title
-        }}</a>
-        · {{ detail.customer.name }}
-      </p>
+    @if (workOrderAction(); as action) {
+      <a
+        pButton
+        class="view__header-action"
+        [outlined]="!action.primary"
+        [routerLink]="action.link"
+        >{{ action.label }}</a
+      >
     }
   </header>
 
@@ -78,14 +92,6 @@
           <p-message severity="info" [closable]="false">
             <span class="view__error">Version {{ revision }} is being revised.</span>
           </p-message>
-        }
-
-        @if (workOrderAction(); as action) {
-          <div class="view__actions">
-            <a pButton [outlined]="!action.primary" [routerLink]="action.link">{{
-              action.label
-            }}</a>
-          </div>
         }
 
         @if (canManage()) {
@@ -177,11 +183,13 @@
               @default {
                 @if (view(); as view) {
                   <app-quote-customer-view [view]="view" />
-                  <section class="view__internal-card" aria-labelledby="quote-response-heading">
-                    <h2 class="view__subtitle" id="quote-response-heading">Customer response</h2>
+                  <section class="view__response-card" aria-labelledby="quote-response-heading">
+                    <h2 class="view__subtitle view__subtitle--success" id="quote-response-heading">
+                      Customer response
+                    </h2>
                     @for (response of versionResponses(); track $index) {
                       <div class="view__response">
-                        <p class="view__label">
+                        <p class="view__response-title">
                           {{ responseLabels[response.type] }} · {{ response.responderName }} ·
                           {{ responseDate(response) }}
                         </p>
@@ -208,10 +216,10 @@
                       Internal <span class="view__internal">Internal</span>
                     </h2>
                     @if (version()?.internalNote; as note) {
-                      <p class="view__label">Internal note</p>
+                      <p class="view__response-title">Internal note</p>
                       <p class="view__note">{{ note }}</p>
                     }
-                    <p class="view__label">Estimated margin</p>
+                    <p class="view__response-title">Estimated margin</p>
                     <p class="view__note">{{ margin() }}</p>
                   </section>
                 }

@@ -14,6 +14,7 @@ import { jobDetailRoute, jobsRoute } from './features/jobs/jobs.routes';
 import {
   quoteEditRoute,
   quoteViewRoute,
+  quotesRoute,
   workOrderEditorRoute,
 } from './features/quotes/quotes.routes';
 import { companyAdminRoute } from './features/organizations/organizations.routes';
@@ -85,6 +86,7 @@ export const routes: Routes = [
       customerDetailRoute,
       requestsRoute,
       assessmentRoute,
+      quotesRoute,
       quoteEditRoute,
       quoteViewRoute,
       workOrderEditorRoute,

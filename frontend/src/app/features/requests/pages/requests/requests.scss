@@ -66,6 +66,30 @@
     gap: 0.75rem;
   }
 
+  &__chip {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0 0.875rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border: 0;
+    border-radius: var(--fo-radius-pill);
+    cursor: pointer;
+
+    @include bp.up(md) {
+      min-block-size: 2rem;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
   &__empty {
     display: flex;
     flex-direction: column;

@@ -44,6 +44,7 @@ import {
   QuoteDetail,
   QuoteResponse,
   QuoteResponseType,
+  QuoteStatus,
   QuoteVersion,
   SendResult,
   VIEW_FORBIDDEN_MESSAGE,
@@ -58,6 +59,25 @@ import {
   versionView,
 } from '../../utils/quote-format';
 import { formatDate } from '../../../customers/utils/customer-format';
+
+const STATUS_TONES: Readonly<Record<QuoteStatus, string>> = {
+  draft: 'neutral',
+  sent: 'info',
+  clarification_requested: 'warning',
+  approved: 'success',
+  rejected: 'danger',
+  expired: 'neutral',
+  cancelled: 'neutral',
+};
+const STATUS_ICONS: Readonly<Record<QuoteStatus, string>> = {
+  draft: 'pi-pencil',
+  sent: 'pi-send',
+  clarification_requested: 'pi-question-circle',
+  approved: 'pi-check-circle',
+  rejected: 'pi-times-circle',
+  expired: 'pi-clock',
+  cancelled: 'pi-ban',
+};
 
 export const NOT_SENT_MESSAGE = "This quote hasn't been sent yet.";
 export const NO_RESPONSE_MESSAGE = 'No response from the customer yet.';
@@ -139,6 +159,8 @@ export class QuoteView {
   readonly resendOpen = signal(false);
   readonly resendError = signal<string | null>(null);
 
+  readonly statusTone = computed(() => STATUS_TONES[this.detail()?.displayStatus ?? 'draft']);
+  readonly statusIcon = computed(() => STATUS_ICONS[this.detail()?.displayStatus ?? 'draft']);
   readonly statusLabel = computed(() => {
     const status = this.detail()?.displayStatus;
     return status === undefined ? '' : STATUS_LABELS[status];

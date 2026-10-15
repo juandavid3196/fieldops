@@ -200,6 +200,7 @@ export class Requests {
     () =>
       this.boardLoaded() &&
       !this.boardError() &&
+      !this.readyForQuoteOnly() &&
       BOARD_STATUSES.every((status) => this.columns()[status].total === 0),
   );
 
@@ -215,6 +216,11 @@ export class Requests {
     initialValue: this.route.snapshot.queryParamMap,
   });
   readonly selectedId = computed(() => this.query().get('request'));
+  /** BR-17: `status=ready_for_quote` narrows the board to that column. */
+  readonly readyForQuoteOnly = computed(() => this.query().get('status') === 'ready_for_quote');
+  readonly visibleStatuses = computed<readonly BoardStatus[]>(() =>
+    this.readyForQuoteOnly() ? ['ready_for_quote'] : BOARD_STATUSES,
+  );
   readonly detail = signal<RequestDetail | null>(null);
   private readonly detailState = signal<DetailState>('loading');
   readonly newOpen = signal(false);
@@ -328,6 +334,14 @@ export class Requests {
           this.restoreFocus(previous);
         }
       });
+    });
+
+    // BR-17: any other `status` value is removed from the URL.
+    effect(() => {
+      const status = this.query().get('status');
+      if (status !== null && status !== 'ready_for_quote') {
+        untracked(() => this.removeStatusFilter(true));
+      }
     });
 
     if (!this.forbidden()) {
@@ -516,6 +530,15 @@ export class Requests {
       relativeTo: this.route,
       queryParams: { request: id },
       queryParamsHandling: 'merge',
+    });
+  }
+
+  removeStatusFilter(replaceUrl = false): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { status: null },
+      queryParamsHandling: 'merge',
+      replaceUrl,
     });
   }
 

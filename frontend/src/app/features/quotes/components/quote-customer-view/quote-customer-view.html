@@ -4,7 +4,7 @@
       <p class="view__org">{{ view().organizationName }}</p>
       <h3 class="view__title">Quote {{ view().number }} · Version {{ view().versionNo }}</h3>
     </div>
-    <p class="view__muted">{{ view().date }}</p>
+    <p class="view__date">{{ view().date }}</p>
   </header>
 
   <p class="view__customer">
@@ -66,27 +66,30 @@
     <p class="view__muted">Not included in the total</p>
   }
 
-  <dl class="view__totals">
-    <div>
-      <dt>Subtotal</dt>
-      <dd>{{ money(view().subtotal) }}</dd>
+  <div class="view__foot">
+    <div class="view__terms-block">
+      <p class="view__terms">{{ view().terms }}</p>
+      <p class="view__muted">Valid until {{ view().validUntil }}</p>
     </div>
-    @if (view().discountTotal > 0) {
+    <dl class="view__totals">
       <div>
-        <dt>Discount</dt>
-        <dd>−{{ money(view().discountTotal) }}</dd>
+        <dt>Subtotal</dt>
+        <dd>{{ money(view().subtotal) }}</dd>
       </div>
-    }
-    <div>
-      <dt>{{ view().taxLabel }}</dt>
-      <dd>{{ money(view().taxTotal) }}</dd>
-    </div>
-    <div class="view__total">
-      <dt>Total</dt>
-      <dd>{{ money(view().total) }}</dd>
-    </div>
-  </dl>
-
-  <p class="view__terms">{{ view().terms }}</p>
-  <p class="view__muted">Valid until {{ view().validUntil }}</p>
+      @if (view().discountTotal > 0) {
+        <div>
+          <dt>Discount</dt>
+          <dd>−{{ money(view().discountTotal) }}</dd>
+        </div>
+      }
+      <div>
+        <dt>{{ view().taxLabel }}</dt>
+        <dd>{{ money(view().taxTotal) }}</dd>
+      </div>
+      <div class="view__total">
+        <dt>Total</dt>
+        <dd>{{ money(view().total) }}</dd>
+      </div>
+    </dl>
+  </div>
 </article>

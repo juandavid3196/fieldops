@@ -4,7 +4,7 @@
 | -------- | ------------------- |
 | Feature  | `quotes-management` |
 | Type     | Full-stack          |
-| Status   | APPROVED            |
+| Status   | AUDITED             |
 | Created  | 2026-10-14          |
 | Updated  | 2026-10-14          |
 | Approved | 2026-10-14          |
@@ -300,3 +300,5 @@ with `GET /quotes/{id}` (guid constraint).
 | ---------- | ------------- | ------ |
 | 2026-10-14 | — → DRAFT     | Created |
 | 2026-10-14 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-14 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-14 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS. |

@@ -53,6 +53,20 @@
           (newRequest)="openNewRequest()"
         />
 
+        @if (readyForQuoteOnly()) {
+          <div class="requests__active-filter">
+            <button
+              type="button"
+              class="requests__chip"
+              aria-label="Remove filter: Ready for quote"
+              (click)="removeStatusFilter()"
+            >
+              Ready for quote
+              <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
+          </div>
+        }
+
         @if (boardError()) {
           <p-message severity="error" [closable]="false">
             <span class="requests__error">
@@ -83,6 +97,7 @@
         } @else {
           <app-request-board
             [columns]="columns()"
+            [statuses]="visibleStatuses()"
             [loading]="!boardLoaded()"
             [refreshing]="boardRefreshing()"
             [selectedId]="selectedId()"

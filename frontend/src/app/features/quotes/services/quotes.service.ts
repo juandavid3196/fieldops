@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -11,6 +11,12 @@ import {
   QuoteVersion,
   SendResult,
 } from '../models/quote.model';
+import {
+  QuotesOptions,
+  QuotesPage,
+  QuotesRequest,
+  QuotesSummary,
+} from '../models/quotes-list.model';
 
 /** `/quotes` endpoints (Final contract: specs/quote-builder/spec.md). Organization scope is server-side only. */
 @Injectable({ providedIn: 'root' })
@@ -24,6 +30,36 @@ export class QuotesService {
 
   private item(id: string, path = ''): string {
     return this.url(`/${encodeURIComponent(id)}${path}`);
+  }
+
+  /** Quotes workspace (specs/quotes-management/spec.md, Final contract). */
+  listOptions(): Observable<QuotesOptions> {
+    return this.http.get<QuotesOptions>(this.url('/options'));
+  }
+
+  listSummary(branchId: string | null): Observable<QuotesSummary> {
+    const params =
+      branchId === null ? new HttpParams() : new HttpParams().set('branchId', branchId);
+    return this.http.get<QuotesSummary>(this.url('/summary'), { params });
+  }
+
+  list(query: QuotesRequest): Observable<QuotesPage> {
+    let params = new HttpParams()
+      .set('tab', query.tab)
+      .set('date', query.date)
+      .set('sort', query.sort)
+      .set('page', query.page)
+      .set('pageSize', query.pageSize);
+    for (const [key, value] of [
+      ['q', query.q],
+      ['branchId', query.branchId],
+      ['status', query.status],
+    ] as const) {
+      if (value !== null && value !== '') {
+        params = params.set(key, value);
+      }
+    }
+    return this.http.get<QuotesPage>(this.url(), { params });
   }
 
   /** `201` for a new draft, `200` for the request's existing unsent quote. */

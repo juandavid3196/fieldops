@@ -578,6 +578,44 @@ describe('Requests page', () => {
     await vi.waitFor(() => expect(TestBed.inject(Router).url).toBe(`/quotes/${QUOTE_ID}`));
   });
 
+  it('narrows the board to Ready for quote with a removable chip, drops other status values and keeps ?request= and the page filters (quotes-management FR-08, BR-17, AC-20)', async () => {
+    const ready = columns({ ready_for_quote: [CARD_A], new: [CARD_B] });
+    await setup('owner', { url: '/requests?status=ready_for_quote&request=' + ID_A, flush: false });
+    call('GET', '/pipeline').flush(ready);
+    call('GET', '/metrics').flush(METRICS);
+    call('GET', '/options').flush(OPTIONS);
+    call('GET', `/${ID_A}`).flush(detail({ status: 'ready_for_quote' }));
+    await settle();
+    const router = TestBed.inject(Router);
+    const headings = (): string[] =>
+      Array.from(root().querySelectorAll('.board__column-title'), (h) => h.textContent!.trim());
+
+    expect(headings()).toEqual(['Ready for quote']);
+    expect(button('Ready for quote')).toBeDefined();
+    expect(router.url).toContain('request=' + ID_A);
+    expect(document.body.querySelector('#request-detail-title')).not.toBeNull();
+
+    // The existing page filters keep applying to the column.
+    page.onFilterChange({ source: 'public_form' });
+    const latest = pipelines();
+    expect(latest[latest.length - 1].request.params.get('source')).toBe('public_form');
+    latest[latest.length - 1].flush(ready);
+    await settle();
+    expect(headings()).toEqual(['Ready for quote']);
+
+    // Removing the chip drops the parameter and every column returns.
+    button('Ready for quote')!.click();
+    await vi.waitFor(() => expect(router.url).toBe('/requests?request=' + ID_A));
+    await settle();
+    expect(headings()).toHaveLength(4);
+
+    // Any other status value is removed with replaceUrl.
+    await harness.navigateByUrl('/requests?status=bogus');
+    await settle();
+    await vi.waitFor(() => expect(router.url).toBe('/requests'));
+    expect(headings()).toHaveLength(4);
+  });
+
   it('read roles see board and panel with no New request, footer, menu, note input or Add file (AC-05)', async () => {
     await setup('viewer', { url: `/requests?request=${ID_A}` });
     call('GET', `/${ID_A}`).flush(detail());
