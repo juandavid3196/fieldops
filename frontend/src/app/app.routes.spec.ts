@@ -38,7 +38,13 @@ describe('app routes', () => {
     router = TestBed.inject(Router);
   });
 
-  afterEach(() => httpTesting.verify());
+  afterEach(() => {
+    // The shell loads the bell count (notifications-center BR-16); it is irrelevant to these routes.
+    httpTesting
+      .match({ method: 'GET', url: `${API_BASE_URL}/notifications/summary` })
+      .forEach((request) => request.flush({ unread: 0, today: 0 }));
+    httpTesting.verify();
+  });
 
   /** Answers the next `GET /sessions/current` once the lazy route has issued it. */
   async function answerSessionRequest(ok: boolean | Session): Promise<void> {
@@ -131,6 +137,7 @@ describe('app routes', () => {
 
   it.each([
     ['quotes', 'Quotes'],
+    ['notifications', 'Notifications'],
     ['business-hours', 'Business hours'],
     ['tax-rates', 'Tax rates'],
   ])(

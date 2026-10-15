@@ -35,6 +35,30 @@ public class NotificationTests
             () => Notification.Create(Guid.Empty, NotificationChannel.Sms, "template"));
     }
 
+    [Fact]
+    public void CreateInApp_ThenReadAndUnread_FollowsOnlyTheBr19Transitions()
+    {
+        var at = new DateTimeOffset(2026, 10, 15, 12, 0, 0, TimeSpan.Zero);
+        var notification = Notification.CreateInApp(
+            Guid.NewGuid(), Guid.NewGuid(), "quote.approved", " Quote Q-1 was approved ", "{\"type\":\"quote\"}", at);
+
+        Assert.Equal(
+            (NotificationChannel.InApp, NotificationStatus.Sent, "Quote Q-1 was approved", at, at, at),
+            (notification.Channel, notification.Status, notification.Subject, notification.ScheduledAt, notification.SentAt, notification.CreatedAt));
+        Assert.Null(notification.RecipientContactId);
+
+        notification.MarkUnread();
+        Assert.Equal(NotificationStatus.Sent, notification.Status);
+
+        notification.MarkRead();
+        notification.MarkRead();
+        Assert.Equal(NotificationStatus.Read, notification.Status);
+
+        notification.MarkUnread();
+        notification.MarkUnread();
+        Assert.Equal(NotificationStatus.Sent, notification.Status);
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData("   ")]

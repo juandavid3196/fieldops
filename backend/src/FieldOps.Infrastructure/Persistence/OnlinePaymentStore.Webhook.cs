@@ -1,4 +1,5 @@
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
@@ -267,6 +268,20 @@ internal sealed partial class OnlinePaymentStore
             before,
             AuditState(invoice),
             new { paymentId = payment.Id });
+
+        // notifications-center BR-05: first application only; a replay returned NoEffect above. The payer is a customer.
+        await notifications.AddAsync(
+            new NotificationEvent(
+                NotificationEventCodes.PaymentReceived,
+                attempt.OrganizationId,
+                invoice.BranchId,
+                null,
+                now,
+                invoice.Id,
+                NotificationCopy.PaymentReceived(
+                    InvoiceHubRules.DisplayNumber(org.InvoicePrefix, invoice.InvoiceNumber),
+                    NotificationCopy.Money(payment.Amount, payment.Currency))),
+            cancellationToken);
 
         var receipt = string.IsNullOrWhiteSpace(invoice.RecipientEmail)
             ? null

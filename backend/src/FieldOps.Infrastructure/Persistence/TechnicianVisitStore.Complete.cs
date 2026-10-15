@@ -1,3 +1,4 @@
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.TechnicianVisits;
 using FieldOps.Application.Features.WorkOrders;
 using FieldOps.Domain.Notifications;
@@ -154,6 +155,17 @@ internal sealed partial class TechnicianVisitStore
                 Serialize(new Dictionary<string, object?> { ["status"] = WorkOrderCodes.StatusCode(orderBefore) }),
                 Serialize(new Dictionary<string, object?> { ["status"] = WorkOrderCodes.StatusCode(order.Status) }),
                 Serialize(new Dictionary<string, object?> { ["visitId"] = visit.Id })));
+
+            await AddNotificationAsync(
+                actor.OrganizationId,
+                actor.UserId,
+                actor.TechnicianId,
+                NotificationEventCodes.JobCompleted,
+                visit,
+                order,
+                now,
+                (orderNumber, _, technician) => NotificationCopy.JobCompleted(orderNumber, technician),
+                cancellationToken);
         }
 
         return Step.Done;

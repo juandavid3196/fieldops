@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { Drawer } from 'primeng/drawer';
 import { FocusTrap } from 'primeng/focustrap';
 import { IconField } from 'primeng/iconfield';
@@ -18,11 +18,14 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { filter } from 'rxjs';
 
 import { ADMIN_QUERY, MD_QUERY, watchMedia } from '../../core/config/breakpoints';
 import { comingSoonPath } from '../../core/config/coming-soon-modules';
 import { canSeeDashboard } from '../../core/config/dashboard-roles';
+import { NotificationUnreadService } from '../../core/services/notification-unread.service';
 import { SessionService } from '../../core/services/session.service';
+import { NotificationPopover } from '../../features/notifications/components/notification-popover/notification-popover';
 import { ShellSidebar } from '../shell-sidebar/shell-sidebar';
 import { ADMINISTRATION_ROLE_CODES, NAV_GROUPS } from './app-shell.nav';
 
@@ -45,6 +48,7 @@ type MenuKind = 'org' | 'user';
     InputIcon,
     InputText,
     Message,
+    NotificationPopover,
     ShellSidebar,
     SpinnerIcon,
   ],
@@ -54,6 +58,7 @@ type MenuKind = 'org' | 'user';
 })
 export class AppShell {
   private readonly sessionService = inject(SessionService);
+  private readonly unread = inject(NotificationUnreadService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
@@ -66,7 +71,7 @@ export class AppShell {
   readonly signOutErrorMessage = SIGN_OUT_ERROR_MESSAGE;
   readonly searchPlaceholder = SEARCH_PLACEHOLDER;
   readonly helpLink = comingSoonPath('help');
-  readonly notificationsLink = comingSoonPath('notifications');
+  readonly comingSoonNotificationsLink = comingSoonPath('notifications');
   readonly drawerPt = {
     root: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'shell-drawer-title' },
   };
@@ -107,12 +112,25 @@ export class AppShell {
         (!group.manageOnly || manage) &&
         (!group.hiddenForManage || !manage) &&
         (!group.adminOnly || ADMINISTRATION_ROLE_CODES.includes(role)) &&
-        (!group.technicianOnly || role === 'technician')
+        (!group.technicianOnly || role === 'technician') &&
+        (!group.internalOnly || role !== 'technician')
       );
     }),
   );
   readonly showAdministration = computed(() =>
     this.groups().some((group) => group.adminOnly === true),
+  );
+  /** notifications-center BR-16/BR-17: the technician keeps the Coming soon bell, with no badge. */
+  readonly internalRole = computed(() => this.session()?.role.code !== 'technician');
+  readonly notificationsLink = computed(() =>
+    this.internalRole() ? '/notifications' : this.comingSoonNotificationsLink,
+  );
+  readonly unreadCount = computed(() => (this.internalRole() ? (this.unread.count() ?? 0) : 0));
+  readonly unreadBadge = computed(() =>
+    this.unreadCount() > 99 ? '99+' : String(this.unreadCount()),
+  );
+  readonly notificationsLabel = computed(() =>
+    this.unreadCount() > 0 ? `Notifications, ${this.unreadCount()} unread` : 'Notifications',
   );
   readonly fullName = computed(() => {
     const user = this.session()?.user;
@@ -161,6 +179,24 @@ export class AppShell {
       md.stop();
       admin.stop();
     });
+
+    // BR-16: the count loads when the shell renders and on navigation (30 s reuse in the service),
+    // then polls every 30 s while the tab is visible (internal roles only).
+    if (this.internalRole()) {
+      this.unread.reset();
+      this.unread.refresh();
+      this.unread.startPolling();
+      this.router.events
+        .pipe(
+          filter((event) => event instanceof NavigationEnd),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe(() => {
+          if (this.internalRole()) {
+            this.unread.refresh();
+          }
+        });
+    }
   }
 
   openDrawer(): void {
@@ -257,6 +293,7 @@ export class AppShell {
   }
 
   private handleSignedOut(): void {
+    this.unread.reset();
     this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true }).then(
       (navigated) => {
         if (!navigated) {

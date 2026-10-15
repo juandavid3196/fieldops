@@ -1,3 +1,4 @@
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.TechnicianVisits;
@@ -13,8 +14,52 @@ namespace FieldOps.Infrastructure.Persistence;
 /// The signed-in technician's own visits. Reads never track or write (technician-todays-jobs, mobile-job-details
 /// BR-03 to BR-06); the travel transaction lives in <c>TechnicianVisitStore.Travel.cs</c>.
 /// </summary>
-internal sealed partial class TechnicianVisitStore(FieldOpsDbContext dbContext) : ITechnicianVisitStore
+internal sealed partial class TechnicianVisitStore(
+    FieldOpsDbContext dbContext,
+    INotificationEventWriter notifications) : ITechnicianVisitStore
 {
+    /// <summary>
+    /// notifications-center BR-05: adds the notification of a visit or job event the technician just caused, inside the
+    /// caller's transaction, after the state change and its audit row and before the save. Only changed paths call it.
+    /// </summary>
+    private async Task AddNotificationAsync(
+        Guid organizationId,
+        Guid actorUserId,
+        Guid technicianId,
+        string code,
+        Visit visit,
+        WorkOrder order,
+        DateTimeOffset now,
+        Func<string, int, string, NotificationContent> content,
+        CancellationToken cancellationToken)
+    {
+        var prefix = await dbContext.Organizations.AsNoTracking()
+            .Where(candidate => candidate.Id == organizationId)
+            .Select(candidate => candidate.WorkOrderPrefix)
+            .SingleAsync(cancellationToken);
+        var technician = await dbContext.TechnicianProfiles.AsNoTracking()
+            .Where(candidate => candidate.OrganizationId == organizationId && candidate.Id == technicianId)
+            .Select(candidate => new { candidate.FirstName, candidate.LastName })
+            .SingleAsync(cancellationToken);
+
+        var entityId = code == NotificationEventCodes.JobCompleted ? order.Id : visit.Id;
+
+        await notifications.AddAsync(
+            new NotificationEvent(
+                code,
+                organizationId,
+                order.BranchId,
+                actorUserId,
+                now,
+                entityId,
+                content(
+                    RequestCardRules.DisplayNumber(prefix, order.WorkOrderNumber),
+                    visit.VisitNumber,
+                    string.Join(' ', new[] { technician.FirstName, technician.LastName }.Where(part => !string.IsNullOrWhiteSpace(part)))
+                        .Trim())),
+            cancellationToken);
+    }
+
     public async Task<TechnicianVisitProfile?> GetProfileAsync(
         Guid organizationId, Guid membershipId, CancellationToken cancellationToken)
     {

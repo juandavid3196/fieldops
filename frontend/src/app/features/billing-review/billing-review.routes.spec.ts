@@ -35,7 +35,13 @@ describe('Invoices navigation and route', () => {
     httpTesting = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => httpTesting.verify());
+  afterEach(() => {
+    // The shell loads the bell count for non-technician roles (notifications-center BR-16).
+    httpTesting
+      .match({ method: 'GET', url: `${API}/notifications/summary` })
+      .forEach((request) => request.flush({ unread: 0, today: 0 }));
+    httpTesting.verify();
+  });
 
   async function open(url: string, role: string): Promise<void> {
     const navigation = harness.navigateByUrl(url);

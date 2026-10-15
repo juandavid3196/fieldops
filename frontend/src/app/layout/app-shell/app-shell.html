@@ -88,9 +88,31 @@
         </a>
       }
 
-      <a class="shell__icon-button" [routerLink]="notificationsLink" aria-label="Notifications">
-        <i class="pi pi-bell" aria-hidden="true"></i>
-      </a>
+      @if (internalRole()) {
+        <button
+          #bell
+          type="button"
+          class="shell__icon-button shell__bell"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="pop.open()"
+          [attr.aria-label]="notificationsLabel()"
+          (click)="pop.toggle($event)"
+        >
+          <i class="pi pi-bell" aria-hidden="true"></i>
+          @if (unreadCount() > 0) {
+            <span class="shell__badge" aria-hidden="true">{{ unreadBadge() }}</span>
+          }
+        </button>
+        <app-notification-popover #pop [trigger]="bell" />
+      } @else {
+        <a
+          class="shell__icon-button shell__bell"
+          [routerLink]="notificationsLink()"
+          [attr.aria-label]="notificationsLabel()"
+        >
+          <i class="pi pi-bell" aria-hidden="true"></i>
+        </a>
+      }
 
       <div
         #userContainer

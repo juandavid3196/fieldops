@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.PortalAuth;
 using FieldOps.Application.Features.PortalDashboard;
@@ -10,7 +11,10 @@ using Microsoft.EntityFrameworkCore;
 namespace FieldOps.Infrastructure.Persistence.Portal;
 
 /// <summary>Messages to the organization (customer portal BR-35) and the contact data of a portal request (BR-28).</summary>
-internal sealed class PortalMessageStore(FieldOpsDbContext dbContext) : IPortalMessageStore, IPortalRequestStore
+internal sealed class PortalMessageStore(
+    FieldOpsDbContext dbContext,
+    INotificationEventWriter notifications,
+    TimeProvider timeProvider) : IPortalMessageStore, IPortalRequestStore
 {
     public async Task<PortalMessageTarget> GetTargetAsync(PortalScope scope, CancellationToken cancellationToken)
     {
@@ -59,6 +63,27 @@ internal sealed class PortalMessageStore(FieldOpsDbContext dbContext) : IPortalM
             scope.ContactId,
             ipAddress: clientIp,
             metadata: JsonSerializer.Serialize(new { length })));
+
+        // notifications-center BR-05: the message text and the contact data never leave the email; only the names do.
+        var customer = await dbContext.Customers.AsNoTracking()
+            .Where(candidate => candidate.OrganizationId == scope.OrganizationId && candidate.Id == scope.CustomerId)
+            .Select(candidate => new { candidate.DisplayName, candidate.BranchId })
+            .SingleAsync(cancellationToken);
+        var contact = await dbContext.CustomerContacts.AsNoTracking().ForPortal(scope)
+            .Where(candidate => candidate.Id == scope.ContactId)
+            .Select(candidate => new { candidate.FirstName, candidate.LastName })
+            .SingleAsync(cancellationToken);
+        await notifications.AddAsync(
+            new NotificationEvent(
+                NotificationEventCodes.CustomerMessageSent,
+                scope.OrganizationId,
+                customer.BranchId,
+                null,
+                timeProvider.GetUtcNow(),
+                scope.CustomerId,
+                NotificationCopy.CustomerMessage(
+                    customer.DisplayName, PortalReaders.FullName(contact.FirstName, contact.LastName ?? string.Empty))),
+            cancellationToken);
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }

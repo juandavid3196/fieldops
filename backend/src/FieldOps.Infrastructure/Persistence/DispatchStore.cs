@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.Dispatch;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.WorkOrders;
@@ -16,7 +17,10 @@ namespace FieldOps.Infrastructure.Persistence;
 /// then by the branch scope of the work order (BR-02); a missing, foreign or out-of-scope visit, branch or
 /// technician is one identical "not found". The dispatch transaction lives in <c>DispatchStore.Dispatch</c>.
 /// </summary>
-internal sealed partial class DispatchStore(FieldOpsDbContext dbContext, TimeProvider timeProvider) : IDispatchStore
+internal sealed partial class DispatchStore(
+    FieldOpsDbContext dbContext,
+    TimeProvider timeProvider,
+    INotificationEventWriter notifications) : IDispatchStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 

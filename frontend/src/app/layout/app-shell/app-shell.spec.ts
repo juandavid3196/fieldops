@@ -22,6 +22,7 @@ import { AppShell, SIGN_OUT_ERROR_MESSAGE } from './app-shell';
 
 const API_BASE_URL = 'http://api.test';
 const SESSION_URL = `${API_BASE_URL}/sessions/current`;
+const SUMMARY_URL = `${API_BASE_URL}/notifications/summary`;
 
 const SESSION: Session = {
   user: { id: 'u-1', firstName: ' Alex ', lastName: 'Morgan ', email: 'alex@example.com' },
@@ -55,7 +56,7 @@ describe('AppShell', () => {
     })) as unknown as typeof window.matchMedia;
   }
 
-  async function setup(session: Session = SESSION, mode: Mode = 'full'): Promise<void> {
+  async function setup(session: Session = SESSION, mode: Mode = 'full', unread = 0): Promise<void> {
     stubViewport(mode);
     TestBed.configureTestingModule({
       providers: [
@@ -72,6 +73,7 @@ describe('AppShell', () => {
               { path: 'coming-soon/:module', component: PageStub },
               { path: 'jobs', component: PageStub },
               { path: 'jobs/:id', component: PageStub },
+              { path: 'notifications', component: PageStub },
             ],
           },
           { path: 'auth/sign-in', component: SignInStub },
@@ -90,6 +92,11 @@ describe('AppShell', () => {
       MANAGE_ROLES.includes(session.role.code) ? '/dashboard' : '/overview',
     );
     await settle();
+    // notifications-center BR-16: internal roles load the bell count once, the technician never does.
+    if (session.role.code !== 'technician') {
+      httpTesting.expectOne({ method: 'GET', url: SUMMARY_URL }).flush({ unread, today: 0 });
+      await settle();
+    }
     host = harness.routeNativeElement as HTMLElement;
   }
 
@@ -158,9 +165,15 @@ describe('AppShell', () => {
       const expected =
         code === 'technician'
           ? [first, "Today's jobs", ...MODULE_LABELS.slice(1)]
-          : [first, ...MODULE_LABELS.slice(1)];
+          : [first, ...MODULE_LABELS.slice(1), 'Notifications'];
       expect(linkLabels()).toEqual(
         canSeeAdministration ? [...expected, 'Administration'] : expected,
+      );
+      // BR-17/BR-26: the technician keeps the Coming soon bell link; internal roles get the popover button.
+      const bell = host.querySelector('[aria-label="Notifications"]');
+      expect(bell?.tagName).toBe(code === 'technician' ? 'A' : 'BUTTON');
+      expect(bell?.getAttribute('href')).toBe(
+        code === 'technician' ? '/coming-soon/notifications' : null,
       );
       expect(
         Array.from(host.querySelectorAll('.sidebar__group-label'), (n) => n.textContent),
@@ -204,8 +217,8 @@ describe('AppShell', () => {
     expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe(
       '/coming-soon/help',
     );
-    const bell = host.querySelector('a[aria-label="Notifications"]')!;
-    expect(bell.getAttribute('href')).toBe('/coming-soon/notifications');
+    const bell = host.querySelector('button[aria-label="Notifications"]')!;
+    expect(bell.getAttribute('aria-haspopup')).toBe('dialog');
     expect(bell.textContent?.trim()).toBe('');
 
     orgButton()!.click();
@@ -360,6 +373,47 @@ describe('AppShell', () => {
     expect(canLeave).toHaveBeenCalledTimes(1);
   });
 
+  it.each([
+    [0, 'Notifications', null],
+    [7, 'Notifications, 7 unread', '7'],
+    [120, 'Notifications, 120 unread', '99+'],
+  ])(
+    'shows the unread badge for %s and marks Notifications current on /notifications (AC-19, AC-21)',
+    async (unread, label, badge) => {
+      await setup(SESSION, 'full', unread);
+
+      const bell = host.querySelector('button[aria-label^="Notifications"]')!;
+      expect(bell.getAttribute('aria-label')).toBe(label);
+      expect(bell.getAttribute('aria-expanded')).toBe('false');
+      expect(bell.querySelector('.shell__badge')?.textContent?.trim() ?? null).toBe(badge);
+
+      await router.navigateByUrl('/notifications');
+      await settle();
+      const current = host.querySelector('nav [aria-current="page"]');
+      expect(current?.textContent?.trim()).toBe('Notifications');
+      expect(current?.getAttribute('href')).toBe('/notifications');
+      // Navigation within 30 s reuses the count: no request (afterEach verifies).
+    },
+  );
+
+  it.each([
+    ['owner', true],
+    ['technician', false],
+  ])('polls the unread count every 30 s for %s only when internal (AC-20)', async (role, polls) => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      await setup({ ...SESSION, role: { code: role, name: role } });
+      await vi.advanceTimersByTimeAsync(30_000);
+      if (polls) {
+        httpTesting.expectOne({ method: 'GET', url: SUMMARY_URL }).flush({ unread: 2, today: 0 });
+      } else {
+        httpTesting.expectNone(SUMMARY_URL);
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('opens a labelled navigation drawer below md, closes it on selection and returns focus (FR-06, AC-16, AC-17, AC-18)', async () => {
     await setup(SESSION, 'drawer');
 
@@ -367,7 +421,7 @@ describe('AppShell', () => {
     expect(host.querySelector('.shell__search-input')).toBeNull();
     expect(host.querySelector('.shell__org-button')).toBeNull();
     expect(host.querySelector('a[aria-label="Help"]')).toBeNull();
-    expect(host.querySelector('a[aria-label="Notifications"]')).not.toBeNull();
+    expect(host.querySelector('button[aria-label="Notifications"]')).not.toBeNull();
     const navButton = host.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;
     expect(navButton.textContent).toContain('Open navigation');
 

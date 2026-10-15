@@ -1,5 +1,6 @@
 using System.Text.Json;
 using FieldOps.Application.Features.ServiceRequests;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.TechnicianVisits;
 using FieldOps.Application.Features.WorkOrders;
 using FieldOps.Domain.Notifications;
@@ -146,6 +147,16 @@ internal sealed partial class TechnicianVisitStore
                 // (6) Planned inside the transaction, sent by the handler after the commit.
                 email = await PlanEmailAsync(actor, order, visit, cancellationToken);
                 StartTravel(actor, visit, order, email is not null, now);
+                await AddNotificationAsync(
+                    organizationId,
+                    actor.UserId,
+                    actor.TechnicianId,
+                    NotificationEventCodes.VisitOnTheWay,
+                    visit,
+                    order,
+                    now,
+                    (orderNumber, visitNumber, technician) => NotificationCopy.VisitOnTheWay(orderNumber, visitNumber, technician),
+                    cancellationToken);
             }
             else
             {

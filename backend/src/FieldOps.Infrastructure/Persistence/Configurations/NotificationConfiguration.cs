@@ -66,6 +66,17 @@ internal sealed class NotificationConfiguration : IEntityTypeConfiguration<Notif
             .HasDefaultValueSql("now()")
             .IsRequired();
 
+        // CREATE INDEX ix_notifications_recipient
+        //   ON notifications (organization_id, recipient_user_id, created_at DESC)
+        builder.HasIndex(notification => new
+        {
+            notification.OrganizationId,
+            notification.RecipientUserId,
+            notification.CreatedAt,
+        })
+            .HasDatabaseName("ix_notifications_recipient")
+            .IsDescending(false, false, true);
+
         builder.HasOne<Organization>()
             .WithMany()
             .HasForeignKey(notification => notification.OrganizationId)

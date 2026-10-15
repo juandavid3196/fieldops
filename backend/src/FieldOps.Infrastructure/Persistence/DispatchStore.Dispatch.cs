@@ -1,4 +1,5 @@
 using FieldOps.Application.Features.Dispatch;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.WorkOrders;
@@ -290,6 +291,28 @@ internal sealed partial class DispatchStore
                 Serialize(new Dictionary<string, object?> { ["status"] = WorkOrderCodes.StatusCode(orderBefore) }),
                 Serialize(new Dictionary<string, object?> { ["status"] = WorkOrderCodes.StatusCode(order.Status) }),
                 Serialize(new Dictionary<string, object?> { ["visitId"] = visitId })));
+        }
+
+        // notifications-center BR-05: a dispatch or reassignment to a technician (an identical request returned above).
+        if (newIds.Count > 0)
+        {
+            var assignee = technicians[input.PrimaryTechnicianId ?? newIds[0]];
+
+            await notifications.AddAsync(
+                new NotificationEvent(
+                    NotificationEventCodes.VisitAssigned,
+                    organizationId,
+                    order.BranchId,
+                    actor.UserId,
+                    now,
+                    visitId,
+                    NotificationCopy.VisitAssigned(
+                        RequestCardRules.DisplayNumber(organization.WorkOrderPrefix, order.WorkOrderNumber),
+                        visit.VisitNumber,
+                        assignee.Name,
+                        input.Start,
+                        OrganizationTime.FindZone(organization.Timezone))),
+                cancellationToken);
         }
 
         await dbContext.SaveChangesAsync(cancellationToken);

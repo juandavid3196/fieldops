@@ -31,7 +31,7 @@ public class QuoteLinkResponseTests(CompanySettingsDatabaseFixture database)
                  + (SELECT COUNT(*) FROM visits WHERE organization_id = @o)
                  + (SELECT COUNT(*) FROM invoices WHERE organization_id = @o)
                  + (SELECT COUNT(*) FROM payments WHERE organization_id = @o)
-                 + (SELECT COUNT(*) FROM notifications WHERE organization_id = @o)
+                 + (SELECT COUNT(*) FROM notifications WHERE organization_id = @o AND template_code NOT LIKE 'quote.%')
                  + (SELECT COUNT(*) FROM assessments WHERE organization_id = @o)
             """,
             ("o", org));

@@ -1,5 +1,6 @@
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
@@ -205,6 +206,13 @@ internal sealed partial class InvoiceDeliveryStore : IInvoicePaymentStore
                     before,
                     AuditState(invoice),
                     new { paymentId = payment.Id });
+                await AddNotificationAsync(
+                    actor,
+                    invoice,
+                    NotificationEventCodes.PaymentReceived,
+                    now,
+                    (number, _) => NotificationCopy.PaymentReceived(number, NotificationCopy.Money(payment.Amount, payment.Currency)),
+                    cancellationToken);
 
                 return Step<PaymentRecorded>.Done(async () =>
                 {

@@ -1,0 +1,202 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: contents;
+}
+
+.pop {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  max-block-size: 31.25rem;
+  min-inline-size: 0;
+
+  &__header,
+  &__footer {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+  }
+
+  &__header {
+    border-block-end: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__footer {
+    justify-content: center;
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__action {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0 0.5rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &:disabled {
+      color: var(--fo-color-disabled-text);
+      cursor: default;
+    }
+
+    @include bp.up(md) {
+      min-block-size: var(--fo-size-control);
+    }
+  }
+
+  &__action:focus-visible,
+  &__row:focus-visible {
+    outline: 2px solid var(--fo-color-primary);
+    outline-offset: -2px;
+  }
+
+  &__body {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+  }
+
+  &__message {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding: 1.5rem 1rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    box-sizing: border-box;
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.625rem 1rem;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    background: transparent;
+    border: 0;
+    border-block-end: 1px solid var(--fo-color-row-divider);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &--unread,
+    &--unread:hover {
+      background: var(--fo-color-primary-soft);
+    }
+
+    &--unread .pop__row-title {
+      font-weight: 700;
+    }
+
+    &--unread .pop__dot {
+      visibility: visible;
+    }
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    color: var(--fo-color-neutral-text);
+    background: var(--fo-color-neutral-background);
+    border-radius: 50%;
+
+    &--info {
+      color: var(--fo-color-info-text);
+      background: var(--fo-color-info-background);
+    }
+
+    &--success {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+    }
+
+    &--danger {
+      color: var(--fo-color-danger-text);
+      background: var(--fo-color-danger-background);
+    }
+
+    &--warning {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-inline-size: 0;
+  }
+
+  &__row-title {
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__row-title,
+  &__desc {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__desc {
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__time {
+    flex: none;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__dot {
+    flex: none;
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    background: var(--fo-color-primary);
+    border-radius: 50%;
+    visibility: hidden;
+  }
+}

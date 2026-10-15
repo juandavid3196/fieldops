@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
@@ -32,7 +33,7 @@ internal sealed partial class ServiceRequestStore
         }
 
         var customer = await customerQuery
-            .Select(candidate => new { candidate.Id, candidate.Type })
+            .Select(candidate => new { candidate.Id, candidate.Type, candidate.DisplayName })
             .SingleOrDefaultAsync(cancellationToken);
 
         ContactSnapshot? contact = null;
@@ -185,6 +186,19 @@ internal sealed partial class ServiceRequestStore
                 ["urgency"] = request.Urgency,
                 ["hasActiveDamage"] = request.HasActiveDamage,
             })));
+
+        // notifications-center BR-05: staff creation; the acting staff member is not notified.
+        await notifications.AddAsync(
+            new NotificationEvent(
+                NotificationEventCodes.RequestCreated,
+                organizationId,
+                request.BranchId,
+                actor.UserId,
+                timeProvider.GetUtcNow(),
+                request.Id,
+                NotificationCopy.RequestCreated(
+                    RequestCardRules.DisplayNumber(requestPrefix, requestNumber), customer.DisplayName)),
+            cancellationToken);
 
         await dbContext.Organizations
             .Where(organization => organization.Id == organizationId)

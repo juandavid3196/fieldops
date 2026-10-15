@@ -11,6 +11,7 @@ using FieldOps.Application.Features.OperationsDashboard;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PasswordResets;
@@ -121,6 +122,8 @@ public static class DependencyInjection
         services.AddScoped<IOperationsDashboardStore, OperationsDashboardStore>();
         services.AddScoped<IBillingReviewStore, BillingReviewStore>();
         services.AddScoped<IBusinessOverviewStore, BusinessOverviewStore>();
+        services.AddScoped<INotificationEventWriter, NotificationEventWriter>();
+        services.AddScoped<INotificationInboxStore, NotificationInboxStore>();
         services.AddScoped<IInvoiceDeliveryStore, InvoiceDeliveryStore>();
         services.AddScoped<IInvoicePaymentStore>(provider => (InvoiceDeliveryStore)provider.GetRequiredService<IInvoiceDeliveryStore>());
         services.AddScoped<IInvoiceHubStore, InvoiceHubStore>();

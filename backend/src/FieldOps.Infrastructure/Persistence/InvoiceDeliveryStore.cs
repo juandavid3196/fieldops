@@ -2,6 +2,8 @@ using System.Text.Json;
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Domain.Invoices;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,8 +14,44 @@ namespace FieldOps.Infrastructure.Persistence;
 /// branch scope of <c>invoices.branch_id</c> (BR-02); a missing, foreign, out-of-scope or void invoice is one identical
 /// "not found". Reads are no-tracking. Writes live in <c>InvoiceDeliveryStore.Mutations</c>.
 /// </summary>
-internal sealed partial class InvoiceDeliveryStore(FieldOpsDbContext dbContext, TimeProvider timeProvider) : IInvoiceDeliveryStore
+internal sealed partial class InvoiceDeliveryStore(
+    FieldOpsDbContext dbContext,
+    TimeProvider timeProvider,
+    INotificationEventWriter notifications) : IInvoiceDeliveryStore
 {
+    /// <summary>
+    /// notifications-center BR-05: adds the notification of an invoice or payment event the staff actor just caused, inside the
+    /// caller's transaction, after the state change and its audit row. Replays and no-ops never call it.
+    /// </summary>
+    private async Task AddNotificationAsync(
+        BillingActor actor,
+        Invoice invoice,
+        string code,
+        DateTimeOffset now,
+        Func<string, string, NotificationContent> content,
+        CancellationToken cancellationToken)
+    {
+        var prefix = await dbContext.Organizations.AsNoTracking()
+            .Where(candidate => candidate.Id == invoice.OrganizationId)
+            .Select(candidate => candidate.InvoicePrefix)
+            .SingleAsync(cancellationToken);
+        var customer = await dbContext.Customers.AsNoTracking()
+            .Where(candidate => candidate.OrganizationId == invoice.OrganizationId && candidate.Id == invoice.CustomerId)
+            .Select(candidate => candidate.DisplayName)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        await notifications.AddAsync(
+            new NotificationEvent(
+                code,
+                invoice.OrganizationId,
+                invoice.BranchId,
+                actor.UserId,
+                now,
+                invoice.Id,
+                content(InvoiceHubRules.DisplayNumber(prefix, invoice.InvoiceNumber), customer ?? string.Empty)),
+            cancellationToken);
+    }
+
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     private const string AuditEntityType = "invoice";

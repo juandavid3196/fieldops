@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using System.Text.Json;
 using FieldOps.Application.Features.Access;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Requests;
@@ -14,7 +15,10 @@ namespace FieldOps.Infrastructure.Persistence;
 /// Requests pipeline persistence. Reads are no-tracking and always filter by organization first, then
 /// by branch scope (BR-02). Mutations serialize on the request row (see <c>ServiceRequestStore.Mutations</c>).
 /// </summary>
-internal sealed partial class ServiceRequestStore(FieldOpsDbContext dbContext, TimeProvider timeProvider) : IServiceRequestStore
+internal sealed partial class ServiceRequestStore(
+    FieldOpsDbContext dbContext,
+    TimeProvider timeProvider,
+    INotificationEventWriter notifications) : IServiceRequestStore
 {
     private const string AuditEntityType = "service_request";
 

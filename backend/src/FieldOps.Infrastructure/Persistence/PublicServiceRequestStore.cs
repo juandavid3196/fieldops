@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.PublicRequests;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
@@ -10,7 +11,10 @@ using Npgsql;
 
 namespace FieldOps.Infrastructure.Persistence;
 
-internal sealed class PublicServiceRequestStore(FieldOpsDbContext dbContext) : IPublicServiceRequestStore
+internal sealed class PublicServiceRequestStore(
+    FieldOpsDbContext dbContext,
+    INotificationEventWriter notifications,
+    TimeProvider timeProvider) : IPublicServiceRequestStore
 {
     public const string CreatedAuditAction = "service_request.created";
 
@@ -257,6 +261,22 @@ internal sealed class PublicServiceRequestStore(FieldOpsDbContext dbContext) : I
                     attachmentCount = submission.Attachments.Count,
                 },
                 JsonOptions)));
+
+        // notifications-center BR-05: public form and portal creations. The customer name is the display name, else the guest name.
+        var customerName = await dbContext.Customers.AsNoTracking()
+            .Where(customer => customer.Id == customerId && customer.OrganizationId == organizationId)
+            .Select(customer => customer.DisplayName)
+            .FirstOrDefaultAsync(cancellationToken) ?? guestName;
+        await notifications.AddAsync(
+            new NotificationEvent(
+                NotificationEventCodes.RequestCreated,
+                organizationId,
+                request.BranchId,
+                null,
+                timeProvider.GetUtcNow(),
+                request.Id,
+                NotificationCopy.RequestCreated(displayNumber, customerName)),
+            cancellationToken);
 
         await dbContext.Organizations
             .Where(organization => organization.Id == organizationId)

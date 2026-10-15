@@ -43,7 +43,7 @@ export const ADMINISTRATION_ITEMS: readonly AdministrationItem[] = [
   },
   { label: 'Taxes & currency', icon: 'pi-dollar', section: 'taxes-currency', link: null },
   { label: 'Document numbering', icon: 'pi-hashtag', section: 'document-numbering', link: null },
-  { label: 'Notifications', icon: 'pi-bell', section: null, link: comingSoonPath('notifications') },
+  { label: 'Notifications', icon: 'pi-bell', section: null, link: '/notifications' },
 ];
 
 /**
