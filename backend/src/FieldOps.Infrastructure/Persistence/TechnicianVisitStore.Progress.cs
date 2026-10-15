@@ -1,3 +1,4 @@
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.TechnicianVisits;
 using FieldOps.Application.Features.WorkOrders;
 using FieldOps.Domain.Catalog;
@@ -277,6 +278,16 @@ internal sealed partial class TechnicianVisitStore
                             ["visitNumber"] = visit.VisitNumber,
                             ["workOrderStatusChanged"] = workOrderChanged,
                         });
+                    await AddNotificationAsync(
+                        actor.OrganizationId,
+                        actor.UserId,
+                        technicianId,
+                        NotificationEventCodes.VisitStarted,
+                        visit,
+                        order,
+                        now,
+                        (orderNumber, visitNumber, technician) => NotificationCopy.VisitStarted(orderNumber, visitNumber, technician),
+                        cancellationToken);
 
                     return Step.Done;
                 }
@@ -303,6 +314,16 @@ internal sealed partial class TechnicianVisitStore
                     dbContext.VisitStatusHistories.Add(
                         VisitStatusHistory.Create(visit.Id, VisitStatus.InProgress, VisitStatus.Paused, actor.UserId, now));
                     AddAudit(actor, visit, order, "visit.paused", null, null, TransitionMetadata(order, visit));
+                    await AddNotificationAsync(
+                        actor.OrganizationId,
+                        actor.UserId,
+                        technicianId,
+                        NotificationEventCodes.VisitPaused,
+                        visit,
+                        order,
+                        now,
+                        (orderNumber, visitNumber, technician) => NotificationCopy.VisitPaused(orderNumber, visitNumber, technician),
+                        cancellationToken);
 
                     return Step.Done;
                 }

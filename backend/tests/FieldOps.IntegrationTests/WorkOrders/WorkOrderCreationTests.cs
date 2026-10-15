@@ -76,7 +76,7 @@ public class WorkOrderCreationTests(CompanySettingsDatabaseFixture database)
         Assert.Equal(
             "0|0|0",
             await database.ScalarAsync<string>(
-                "SELECT (SELECT COUNT(*) FROM visit_materials WHERE visit_id = @v) || '|' || (SELECT COUNT(*) FROM visit_assignments WHERE visit_id = @v) || '|' || (SELECT COUNT(*) FROM notifications WHERE organization_id = @o)",
+                "SELECT (SELECT COUNT(*) FROM visit_materials WHERE visit_id = @v) || '|' || (SELECT COUNT(*) FROM visit_assignments WHERE visit_id = @v) || '|' || (SELECT COUNT(*) FROM notifications WHERE organization_id = @o AND template_code NOT LIKE 'quote.%')",
                 ("v", visit),
                 ("o", world.Org)));
 

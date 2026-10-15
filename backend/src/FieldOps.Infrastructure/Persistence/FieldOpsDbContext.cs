@@ -155,6 +155,14 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    /// <summary>
+    /// Reads one top-level text field of a jsonb payload in SQL (<c>jsonb_extract_path_text</c>), so the notifications inbox
+    /// filters and pages in the database. A built-in function: it creates nothing in the schema.
+    /// </summary>
+    [DbFunction("jsonb_extract_path_text", IsBuiltIn = true)]
+    public static string? PayloadText(string payload, string key) =>
+        throw new NotSupportedException("Only translatable to SQL.");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Declares the enums with labels in enum declaration order.

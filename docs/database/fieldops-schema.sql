@@ -392,6 +392,7 @@ CREATE INDEX ix_invoice_payment_attempts_invoice ON invoice_payment_attempts(inv
 CREATE INDEX ix_invoices_org_issue_date ON invoices(organization_id,issue_date);
 CREATE INDEX ix_audit_entity ON audit_logs(organization_id,entity_type,entity_id,occurred_at DESC);
 CREATE INDEX ix_audit_actor ON audit_logs(organization_id,actor_user_id,occurred_at DESC);
+CREATE INDEX ix_notifications_recipient ON notifications(organization_id,recipient_user_id,created_at DESC);
 CREATE INDEX ix_quote_access_tokens_version ON quote_access_tokens(quote_version_id) WHERE revoked_at IS NULL;
 CREATE INDEX ix_invoice_access_tokens_invoice ON invoice_access_tokens(invoice_id) WHERE revoked_at IS NULL;
 CREATE UNIQUE INDEX ux_quotes_request_open ON quotes(organization_id,request_id) WHERE status<>'cancelled';

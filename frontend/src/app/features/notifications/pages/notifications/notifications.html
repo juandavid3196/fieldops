@@ -1,0 +1,308 @@
+<p-toast />
+<p-menu #rowMenuRef [popup]="true" appendTo="body" [model]="rowMenu()" />
+<p class="notif__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+<div class="notif">
+  <nav aria-label="Breadcrumb">
+    <ol class="notif__crumbs">
+      <li>Administration</li>
+      <li aria-current="page">Notifications</li>
+    </ol>
+  </nav>
+
+  <header class="notif__header">
+    <div>
+      <h1 class="notif__title">Notifications</h1>
+      <p class="notif__subtitle">Stay updated on activity that needs your attention.</p>
+    </div>
+    @if (!forbidden()) {
+      <div class="notif__actions">
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="markAllDisabled()"
+          (click)="markAllRead()"
+        >
+          <i class="pi pi-check" aria-hidden="true"></i>
+          Mark all as read
+        </button>
+      </div>
+    }
+  </header>
+
+  @if (forbidden()) {
+    <p class="notif__message" role="alert">{{ forbiddenMessage }}</p>
+  } @else if (options().status === 'error') {
+    <p class="notif__message" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retryOptions()">
+        Retry
+      </button>
+    </p>
+  } @else {
+    <div class="notif__bar">
+      <div class="notif__tabs" role="tablist" aria-label="Notification groups">
+        @for (item of tabs; track item.code; let index = $index) {
+          <button
+            type="button"
+            role="tab"
+            class="notif__tab"
+            [id]="'notif-tab-' + item.code"
+            aria-controls="notif-panel"
+            [attr.aria-selected]="view().tab === item.code"
+            [attr.tabindex]="view().tab === item.code ? 0 : -1"
+            [disabled]="controlsDisabled()"
+            (click)="selectTab(item.code)"
+            (keydown)="onTabKeydown($event, index)"
+          >
+            {{ item.label }}
+            @if (counts(); as totals) {
+              <span class="notif__count">{{ totals[item.code] }}</span>
+            } @else {
+              <p-skeleton width="1.5rem" height="1.25rem" borderRadius="999px" />
+            }
+          </button>
+        }
+      </div>
+
+      <section
+        class="notif__cards"
+        aria-label="Summary"
+        [attr.aria-busy]="summary().status === 'loading'"
+      >
+        @for (card of cards(); track card.label) {
+          @if (
+            summary().status === 'idle' ||
+            (summary().status === 'loading' && summary().data === null)
+          ) {
+            <p-skeleton height="4rem" />
+          } @else {
+            <div class="notif__card">
+              <span class="notif__card-icon" aria-hidden="true"
+                ><i class="pi {{ card.icon }}"></i
+              ></span>
+              <dl>
+                <dt>{{ card.label }}</dt>
+                <dd>{{ card.value }}</dd>
+              </dl>
+            </div>
+          }
+        }
+      </section>
+    </div>
+
+    <div id="notif-panel" role="tabpanel" [attr.aria-labelledby]="'notif-tab-' + view().tab">
+      <div class="notif__filters" role="search" aria-label="Filter notifications">
+        <div class="notif__field notif__field--search">
+          <p-iconfield>
+            <p-inputicon class="pi pi-search" />
+            <input
+              pInputText
+              type="search"
+              fluid
+              autocomplete="off"
+              maxlength="100"
+              aria-label="Search notifications"
+              placeholder="Search notifications…"
+              [disabled]="controlsDisabled()"
+              [ngModel]="searchText()"
+              (ngModelChange)="searchChanged($event)"
+            />
+          </p-iconfield>
+        </div>
+        <div class="notif__field">
+          <p-select
+            appendTo="body"
+            fluid
+            ariaLabel="Type"
+            optionLabel="label"
+            optionValue="code"
+            [disabled]="controlsDisabled()"
+            [options]="typeOptions"
+            [ngModel]="view().type ?? 'all'"
+            (ngModelChange)="changeType($event)"
+          />
+        </div>
+        @if (canChooseBranch()) {
+          <div class="notif__field">
+            <p-select
+              appendTo="body"
+              fluid
+              ariaLabel="Branch"
+              optionLabel="label"
+              optionValue="code"
+              [disabled]="controlsDisabled()"
+              [options]="branchChoices()"
+              [ngModel]="view().branch ?? 'all'"
+              (ngModelChange)="changeBranch($event)"
+            />
+          </div>
+        }
+        <div class="notif__field">
+          <p-select
+            appendTo="body"
+            fluid
+            ariaLabel="Date"
+            optionLabel="label"
+            optionValue="code"
+            [disabled]="controlsDisabled()"
+            [options]="dateOptions"
+            [ngModel]="view().date"
+            (ngModelChange)="changeDate($event)"
+          />
+        </div>
+        <button
+          pButton
+          type="button"
+          class="notif__clear"
+          [outlined]="true"
+          [disabled]="filterCount() === 0"
+          (click)="clearFilters()"
+        >
+          <i class="pi pi-sliders-h" aria-hidden="true"></i>
+          Clear filters
+          @if (filterCount() > 0) {
+            <span class="notif__count">{{ filterCount() }}</span>
+          }
+        </button>
+      </div>
+
+      <div class="notif__notice" role="status" aria-live="polite">
+        @if (newNotice()) {
+          <p class="notif__message">
+            New notifications available
+            <button pButton type="button" size="small" (click)="refreshNew()">Refresh</button>
+          </p>
+        }
+      </div>
+
+      <div [attr.aria-busy]="list().status === 'loading' || list().status === 'idle'">
+        @if (list().status === 'error') {
+          <p class="notif__message" role="alert">
+            {{ errorMessage }}
+            <button pButton type="button" severity="secondary" size="small" (click)="retryList()">
+              Retry
+            </button>
+          </p>
+        } @else if (
+          list().status === 'idle' || (list().status === 'loading' && list().data === null)
+        ) {
+          <div class="notif__skeletons">
+            @for (n of skeletonRows; track n) {
+              <p-skeleton height="3.5rem" />
+            }
+          </div>
+        } @else if (groups().length === 0) {
+          <div class="notif__message notif__message--stack">
+            @if (inboxEmpty()) {
+              <strong>{{ emptyTitle }}</strong>
+              <span>{{ emptyText }}</span>
+            } @else {
+              <strong>{{ filteredEmptyMessage }}</strong>
+              @if (canReset()) {
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  (click)="resetView()"
+                >
+                  Clear filters
+                </button>
+              }
+            }
+          </div>
+        } @else {
+          <div class="notif__list">
+            @for (group of groups(); track group.label) {
+              <section class="notif__group" [attr.aria-labelledby]="'notif-group-' + group.label">
+                <h2 class="notif__group-title" [id]="'notif-group-' + group.label">
+                  {{ group.label }}
+                </h2>
+                <ul class="notif__rows">
+                  @for (row of group.rows; track row.item.id) {
+                    <li class="notif__row" [class.notif__row--unread]="!row.item.isRead">
+                      <button
+                        type="button"
+                        class="notif__main"
+                        [attr.aria-label]="row.name"
+                        (click)="select(row)"
+                      >
+                        <span class="notif__dot" aria-hidden="true"></span>
+                        <span class="notif__icon notif__icon--{{ row.tone }}" aria-hidden="true">
+                          <i class="pi {{ row.icon }}"></i>
+                        </span>
+                        <span class="notif__text">
+                          <span class="notif__row-title">{{ row.item.title }}</span>
+                          <span class="notif__desc">{{ row.item.description }}</span>
+                        </span>
+                      </button>
+                      <div class="notif__entity">
+                        @if (row.route; as route) {
+                          <a
+                            class="notif__link"
+                            [routerLink]="route.commands"
+                            [queryParams]="route.queryParams"
+                            (click)="openEntity(row)"
+                            >{{ row.item.entityLabel }}</a
+                          >
+                        } @else if (row.item.entityLabel) {
+                          <span class="notif__strong">{{ row.item.entityLabel }}</span>
+                        }
+                        @if (row.detail) {
+                          <span class="notif__muted">{{ row.detail }}</span>
+                        }
+                      </div>
+                      <time
+                        class="notif__time"
+                        [attr.datetime]="row.item.createdAt"
+                        [attr.title]="row.full"
+                        [attr.aria-label]="row.full"
+                        >{{ row.relative }}</time
+                      >
+                      <button
+                        type="button"
+                        class="notif__menu"
+                        aria-haspopup="menu"
+                        [attr.aria-label]="'More actions for ' + row.item.title"
+                        (click)="openRowMenu($event, row, rowMenuRef)"
+                      >
+                        <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+            <div class="notif__footer">
+              <p class="notif__range">{{ footer() }}</p>
+              <div class="notif__paging">
+                <div class="notif__size">
+                  <span id="notif-size-label">Rows per page</span>
+                  <p-select
+                    appendTo="body"
+                    ariaLabelledBy="notif-size-label"
+                    [options]="pageSizeOptions"
+                    [ngModel]="view().pageSize"
+                    (ngModelChange)="changePageSize($event)"
+                  />
+                </div>
+                <p-paginator
+                  class="notif__pager"
+                  [first]="(view().page - 1) * view().pageSize"
+                  [rows]="view().pageSize"
+                  [totalRecords]="total()"
+                  [pageLinkSize]="3"
+                  [showFirstLastIcon]="false"
+                  (onPageChange)="changePage($event)"
+                />
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

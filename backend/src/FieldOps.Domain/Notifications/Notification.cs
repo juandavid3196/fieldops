@@ -79,4 +79,60 @@ public sealed class Notification
             RecipientContactId = recipientContactId,
         };
     }
+
+    /// <summary>
+    /// Creates a sent in-app notification for a staff recipient; the snapshot content is never re-rendered
+    /// (notifications-center BR-06). Time stamps all equal the event time.
+    /// </summary>
+    public static Notification CreateInApp(
+        Guid organizationId,
+        Guid recipientUserId,
+        string templateCode,
+        string subject,
+        string payload,
+        DateTimeOffset occurredAt)
+    {
+        if (recipientUserId == Guid.Empty)
+        {
+            throw new ArgumentException("Recipient user id is required.", nameof(recipientUserId));
+        }
+
+        if (string.IsNullOrWhiteSpace(subject))
+        {
+            throw new ArgumentException("Subject is required.", nameof(subject));
+        }
+
+        var notification = Create(
+            organizationId,
+            NotificationChannel.InApp,
+            templateCode,
+            recipientUserId);
+
+        notification.Subject = subject.Trim();
+        notification.Payload = string.IsNullOrWhiteSpace(payload) ? "{}" : payload;
+        notification.Status = NotificationStatus.Sent;
+        notification.ScheduledAt = occurredAt;
+        notification.SentAt = occurredAt;
+        notification.CreatedAt = occurredAt;
+
+        return notification;
+    }
+
+    /// <summary>sent to read (BR-19). Idempotent; any other state is left untouched.</summary>
+    public void MarkRead()
+    {
+        if (Status == NotificationStatus.Sent)
+        {
+            Status = NotificationStatus.Read;
+        }
+    }
+
+    /// <summary>read to sent (BR-19). Idempotent; any other state is left untouched.</summary>
+    public void MarkUnread()
+    {
+        if (Status == NotificationStatus.Read)
+        {
+            Status = NotificationStatus.Sent;
+        }
+    }
 }

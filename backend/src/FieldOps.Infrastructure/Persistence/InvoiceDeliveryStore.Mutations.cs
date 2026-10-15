@@ -1,5 +1,6 @@
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Validation;
 using FieldOps.Domain.Invoices;
 using FieldOps.Domain.Notifications;
@@ -110,6 +111,14 @@ internal sealed partial class InvoiceDeliveryStore
                     new Dictionary<string, object?> { ["status"] = "draft" },
                     new Dictionary<string, object?> { ["status"] = "sent" },
                     new { invoiceNumber = loaded.Preview.Number, total = invoice.Total, currency = invoice.Currency, notified = "email" });
+                await AddNotificationAsync(
+                    actor,
+                    invoice,
+                    NotificationEventCodes.InvoiceSent,
+                    now,
+                    (number, customer) => NotificationCopy.InvoiceSent(
+                        number, customer, NotificationCopy.Money(invoice.Total, invoice.Currency)),
+                    cancellationToken);
 
                 var email = EmailData(invoice, loaded);
 

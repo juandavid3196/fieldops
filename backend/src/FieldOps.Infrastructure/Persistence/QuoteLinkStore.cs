@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
@@ -22,7 +23,8 @@ namespace FieldOps.Infrastructure.Persistence;
 internal sealed class QuoteLinkStore(
     FieldOpsDbContext dbContext,
     TimeProvider timeProvider,
-    ILogger<QuoteLinkStore> logger) : IQuoteLinkStore
+    ILogger<QuoteLinkStore> logger,
+    INotificationEventWriter notifications) : IQuoteLinkStore
 {
     private const string UniqueViolation = "23505";
 
@@ -122,6 +124,13 @@ internal sealed class QuoteLinkStore(
                         userAgent = caller.UserAgent,
                     },
                     access: locked.Access);
+                await NotifyAsync(
+                    locked.Quote,
+                    NotificationEventCodes.QuoteApproved,
+                    now,
+                    (quote, request, customer) => NotificationCopy.QuoteApproved(
+                        quote, request, customer, NotificationCopy.Money(totals.Total, totals.Currency)),
+                    cancellationToken);
 
                 return Done(locked, "approved");
             },
@@ -150,6 +159,12 @@ internal sealed class QuoteLinkStore(
                 var before = locked.Quote.Status;
                 locked.Quote.Reject(now);
                 Audit(locked.Quote, "quote.rejected", caller, before, new { versionNo = version.VersionNo, userAgent = caller.UserAgent }, access: locked.Access);
+                await NotifyAsync(
+                    locked.Quote,
+                    NotificationEventCodes.QuoteRejected,
+                    now,
+                    NotificationCopy.QuoteRejected,
+                    cancellationToken);
 
                 return Done(locked, "rejected");
             },
@@ -187,6 +202,12 @@ internal sealed class QuoteLinkStore(
                 var before = locked.Quote.Status;
                 locked.Quote.RequestClarification(now);
                 Audit(locked.Quote, "quote.clarification_requested", caller, before, new { versionNo = version.VersionNo, userAgent = caller.UserAgent }, access: locked.Access);
+                await NotifyAsync(
+                    locked.Quote,
+                    NotificationEventCodes.QuoteClarificationRequested,
+                    now,
+                    NotificationCopy.QuoteClarification,
+                    cancellationToken);
 
                 return Done(locked, "clarification requested");
             },
@@ -817,6 +838,46 @@ internal sealed class QuoteLinkStore(
                 assessmentCompletedAt is { } completedAt ? OrganizationTime.LocalDate(completedAt, zone) : null),
             clarification is null ? null : new PublicClarification(OrganizationTime.LocalDate(clarification.RespondedAt, zone)),
             publicResponse);
+    }
+
+    // notifications-center BR-05: one event per recorded response, in the response transaction; a replay never reaches here.
+    // The customer response is a customer action, so no staff member is excluded as the actor.
+    private async Task NotifyAsync(
+        Quote quote,
+        string code,
+        DateTimeOffset occurredAt,
+        Func<string, string?, string, NotificationContent> content,
+        CancellationToken cancellationToken)
+    {
+        var organizationId = quote.OrganizationId;
+        var prefixes = await dbContext.Organizations.AsNoTracking()
+            .Where(candidate => candidate.Id == organizationId)
+            .Select(candidate => new { candidate.QuotePrefix, candidate.RequestPrefix })
+            .SingleAsync(cancellationToken);
+        var request = await dbContext.ServiceRequests.AsNoTracking()
+            .Where(candidate => candidate.Id == quote.RequestId && candidate.OrganizationId == organizationId)
+            .Select(candidate => new { candidate.RequestNumber, candidate.BranchId, candidate.CustomerId, candidate.GuestName })
+            .SingleAsync(cancellationToken);
+        var customer = request.CustomerId is { } customerId
+            ? await dbContext.Customers.AsNoTracking()
+                .Where(candidate => candidate.Id == customerId && candidate.OrganizationId == organizationId)
+                .Select(candidate => candidate.DisplayName)
+                .SingleOrDefaultAsync(cancellationToken)
+            : null;
+
+        await notifications.AddAsync(
+            new NotificationEvent(
+                code,
+                organizationId,
+                quote.BranchId ?? request.BranchId,
+                null,
+                occurredAt,
+                quote.Id,
+                content(
+                    RequestCardRules.DisplayNumber(prefixes.QuotePrefix, quote.QuoteNumber),
+                    RequestCardRules.DisplayNumber(prefixes.RequestPrefix, request.RequestNumber),
+                    customer ?? request.GuestName ?? string.Empty)),
+            cancellationToken);
     }
 
     // BR-22: the version, codes and totals only; never reasons, questions, names, contact data or tokens.

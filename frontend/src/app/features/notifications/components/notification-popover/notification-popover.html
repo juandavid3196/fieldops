@@ -1,0 +1,78 @@
+<p-toast />
+<p-popover
+  [dismissable]="true"
+  [focusOnShow]="false"
+  ariaLabel="Notifications"
+  [style]="panelStyle"
+  (onShow)="onShow()"
+  (onHide)="onHide()"
+>
+  <div class="pop">
+    <header class="pop__header">
+      <h2 class="pop__title">Notifications</h2>
+      <button
+        #markAll
+        type="button"
+        class="pop__action"
+        [disabled]="markAllDisabled()"
+        (click)="markAllRead()"
+      >
+        Mark all as read
+      </button>
+    </header>
+
+    <div class="pop__body">
+      @if (status() === 'error') {
+        <p class="pop__message" role="alert">
+          {{ errorMessage }}
+          <button type="button" class="pop__action" (click)="reload()">Retry</button>
+        </p>
+      } @else if (status() !== 'ready' && rows().length === 0) {
+        <div class="pop__skeletons" aria-busy="true">
+          @for (n of skeletonRows; track n) {
+            <p-skeleton height="3rem" />
+          }
+        </div>
+      } @else if (rows().length === 0) {
+        <p class="pop__message">You're all caught up.</p>
+      } @else {
+        <ul class="pop__rows">
+          @for (row of rows(); track row.item.id) {
+            <li>
+              <button
+                #rowEl
+                type="button"
+                data-popover-row
+                class="pop__row"
+                [class.pop__row--unread]="!row.item.isRead"
+                [attr.aria-label]="row.name"
+                (click)="select(row)"
+              >
+                <span class="pop__icon pop__icon--{{ row.tone }}" aria-hidden="true">
+                  <i class="pi {{ row.icon }}"></i>
+                </span>
+                <span class="pop__text">
+                  <span class="pop__row-title">{{ row.item.title }}</span>
+                  <span class="pop__desc">{{ row.item.description }}</span>
+                </span>
+                <time
+                  class="pop__time"
+                  [attr.datetime]="row.item.createdAt"
+                  [attr.title]="row.full"
+                  >{{ row.relative }}</time
+                >
+                <span class="pop__dot" aria-hidden="true"></span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <footer class="pop__footer">
+      <button #footerLink type="button" class="pop__action" (click)="viewAll()">
+        View all notifications <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      </button>
+    </footer>
+  </div>
+</p-popover>

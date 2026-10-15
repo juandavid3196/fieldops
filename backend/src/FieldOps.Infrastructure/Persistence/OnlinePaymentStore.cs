@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.PortalAccess;
@@ -26,7 +27,8 @@ internal sealed partial class OnlinePaymentStore(
     IPaymentGateway gateway,
     IBankDetailsEncryptor encryptor,
     TimeProvider timeProvider,
-    ILogger<OnlinePaymentStore> logger) : IOnlinePaymentStore
+    ILogger<OnlinePaymentStore> logger,
+    INotificationEventWriter notifications) : IOnlinePaymentStore
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -300,6 +302,25 @@ internal sealed partial class OnlinePaymentStore(
 
         dbContext.InvoicePaymentAttempts.Add(created);
         AuditInvoice(access, invoice, "invoice.bank_transfer_reported", new { amount = QuoteCalculator.Money(created.Amount) });
+
+        // notifications-center BR-05: only a new report reaches here; the pending-report replay returned above. The reporter is a customer.
+        var customerName = await dbContext.Customers.AsNoTracking()
+            .Where(customer => customer.OrganizationId == invoice.OrganizationId && customer.Id == invoice.CustomerId)
+            .Select(customer => customer.DisplayName)
+            .FirstOrDefaultAsync(cancellationToken) ?? string.Empty;
+        var invoiceNumber = InvoiceHubRules.DisplayNumber(org.InvoicePrefix, invoice.InvoiceNumber);
+
+        await notifications.AddAsync(
+            new NotificationEvent(
+                NotificationEventCodes.InvoiceBankTransferReported,
+                invoice.OrganizationId,
+                invoice.BranchId,
+                null,
+                now,
+                invoice.Id,
+                NotificationCopy.BankTransferReported(
+                    invoiceNumber, customerName, NotificationCopy.Money(created.Amount, created.Currency))),
+            cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 

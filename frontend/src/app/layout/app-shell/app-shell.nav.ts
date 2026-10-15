@@ -26,6 +26,8 @@ export interface NavGroup {
   readonly divider?: boolean;
   /** BR-01: shown only to `owner` and `viewer` (UX only; the backend decides). */
   readonly adminOnly?: boolean;
+  /** notifications-center BR-17: hidden for `technician` (UX only; the backend decides). */
+  readonly internalOnly?: boolean;
   /** BR-16: shown only to `technician` (UX only; the backend decides). */
   readonly technicianOnly?: boolean;
   /** operations-dashboard BR-01: shown only to the Manage roles (UX only). */
@@ -133,6 +135,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       },
       moduleItem('Reports', 'pi-chart-bar', 'reports'),
     ],
+  },
+  {
+    id: 'notifications',
+    heading: null,
+    divider: true,
+    internalOnly: true,
+    items: [{ label: 'Notifications', icon: 'pi-bell', link: '/notifications', exact: false }],
   },
   {
     id: 'administration',

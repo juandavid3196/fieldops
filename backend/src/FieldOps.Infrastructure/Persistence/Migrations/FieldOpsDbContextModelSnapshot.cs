@@ -26,7 +26,7 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.12")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.HasPostgresEnum(modelBuilder, "assessment_status", new[] { "scheduled", "completed", "cancelled", "no_show" });
@@ -1867,14 +1867,15 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_notifications");
 
-                    b.HasIndex("OrganizationId")
-                        .HasDatabaseName("ix_notifications_organization_id");
-
                     b.HasIndex("RecipientContactId")
                         .HasDatabaseName("ix_notifications_recipient_contact_id");
 
                     b.HasIndex("RecipientUserId")
                         .HasDatabaseName("ix_notifications_recipient_user_id");
+
+                    b.HasIndex("OrganizationId", "RecipientUserId", "CreatedAt")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("ix_notifications_recipient");
 
                     b.ToTable("notifications", null, t =>
                         {

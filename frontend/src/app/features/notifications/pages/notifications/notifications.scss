@@ -1,0 +1,514 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+// BR-22 wide layout (1280 px) has no shared breakpoint.
+$wide: 80rem;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.notif {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem 2.5rem;
+  overflow-wrap: anywhere;
+
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem 2.5rem;
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__crumbs {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: var(--fo-color-text-secondary);
+
+    li + li::before {
+      margin-inline-end: 0.5rem;
+      content: '/';
+    }
+  }
+
+  &__header {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    inline-size: 100%;
+
+    @include bp.up(md) {
+      inline-size: auto;
+    }
+
+    > * {
+      --p-button-outlined-secondary-color: var(--fo-color-primary-strong);
+      --p-button-outlined-secondary-border-color: var(--fo-color-primary);
+    }
+  }
+
+  &__actions > *,
+  &__clear,
+  &__notice .p-button {
+    justify-content: center;
+    min-block-size: var(--fo-size-touch-target);
+  }
+
+  &__clear {
+    --p-button-outlined-primary-color: var(--fo-color-primary-strong);
+    --p-button-outlined-primary-border-color: var(--fo-color-primary);
+
+    inline-size: 100%;
+
+    @include bp.up(md) {
+      flex: none;
+      inline-size: auto;
+      min-block-size: auto;
+    }
+  }
+
+  &__count {
+    min-inline-size: 1.25rem;
+    padding: 0 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.25rem;
+    color: var(--fo-color-neutral-text);
+    text-align: center;
+    background: var(--fo-color-neutral-background);
+    border-radius: 999px;
+  }
+
+  &__message {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0;
+    padding: 1rem;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-card);
+
+    &--stack {
+      flex-direction: column;
+      align-items: center;
+      padding-block: 2rem;
+      text-align: center;
+    }
+  }
+
+  // Tabs and cards: cards first below 1280 px, to the right of the tabs from 1280 px.
+  &__bar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    border-block-end: 1px solid var(--fo-color-border);
+
+    @media (min-width: $wide) {
+      flex-direction: row;
+      align-items: flex-end;
+      justify-content: space-between;
+    }
+  }
+
+  &__cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    order: -1;
+
+    @include bp.up(md) {
+      grid-template-columns: repeat(2, 11.5rem);
+    }
+
+    @media (min-width: $wide) {
+      order: 0;
+      margin-block-end: 0.5rem;
+    }
+  }
+
+  &__card {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    min-width: 0;
+    padding: 0.75rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    dl {
+      margin: 0;
+    }
+
+    dt {
+      font-size: 0.8125rem;
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+      font-size: 1.375rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__card-icon,
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+  }
+
+  &__card-icon {
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__tabs {
+    display: flex;
+    gap: 0.25rem;
+    overflow: auto hidden;
+    scrollbar-width: none;
+  }
+
+  &__tab {
+    display: inline-flex;
+    flex: none;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0 1rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-block-end: 2px solid transparent;
+    cursor: pointer;
+
+    @include bp.up(md) {
+      min-block-size: 3.5rem;
+    }
+
+    &[aria-selected='true'] {
+      color: var(--fo-color-primary-strong);
+      border-block-end-color: var(--fo-color-primary);
+    }
+  }
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    padding-block-end: 1rem;
+  }
+
+  &__field {
+    flex: 1 1 100%;
+    min-width: 0;
+
+    @include bp.up(md) {
+      flex: 0 1 11rem;
+    }
+
+    &--search {
+      @include bp.up(md) {
+        flex: 1 1 14rem;
+        max-inline-size: 24rem;
+      }
+    }
+  }
+
+  &__notice {
+    .notif__message {
+      justify-content: space-between;
+      margin-block-end: 0.75rem;
+      color: var(--fo-color-primary-strong);
+      background: var(--fo-color-primary-soft);
+      border: 1px solid var(--fo-color-primary);
+    }
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  // Rows
+  &__list {
+    min-width: 0;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__group-title {
+    margin: 0;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+    border-block-end: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__rows {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-areas:
+      'main menu'
+      'entity entity'
+      'time time';
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 0.5rem;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-block-end: 1px solid var(--fo-color-row-divider);
+
+    &--unread {
+      background: var(--fo-color-surface-muted);
+
+      .notif__row-title {
+        font-weight: 700;
+      }
+
+      .notif__dot {
+        visibility: visible;
+      }
+    }
+
+    @include bp.up(md) {
+      grid-template-areas:
+        'main main menu'
+        'entity time .';
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      padding-inline: 1rem;
+    }
+
+    @media (min-width: $wide) {
+      grid-template-areas: 'main entity time menu';
+      grid-template-columns: minmax(0, 1fr) 14rem 8rem auto;
+    }
+  }
+
+  &__main {
+    display: flex;
+    grid-area: main;
+    gap: 0.75rem;
+    align-items: center;
+    min-width: 0;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.25rem;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+  }
+
+  &__dot {
+    flex: none;
+    inline-size: 0.5rem;
+    block-size: 0.5rem;
+    background: var(--fo-color-primary);
+    border-radius: 50%;
+    visibility: hidden;
+  }
+
+  &__icon {
+    color: var(--fo-color-neutral-text);
+    background: var(--fo-color-neutral-background);
+    border-radius: 50%;
+
+    &--info {
+      color: var(--fo-color-info-text);
+      background: var(--fo-color-info-background);
+    }
+
+    &--success {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+    }
+
+    &--danger {
+      color: var(--fo-color-danger-text);
+      background: var(--fo-color-danger-background);
+    }
+
+    &--warning {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__row-title,
+  &__strong {
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__desc {
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__entity {
+    display: flex;
+    grid-area: entity;
+    flex-direction: column;
+    min-width: 0;
+    padding-inline-start: 0.25rem;
+
+    @include bp.up(md) {
+      padding-inline-start: 4.25rem;
+    }
+
+    @media (min-width: $wide) {
+      padding-inline-start: 0;
+    }
+  }
+
+  &__link {
+    font-weight: 700;
+    color: var(--fo-color-primary-strong);
+    text-decoration: underline;
+  }
+
+  &__muted {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__time {
+    grid-area: time;
+    padding-inline-start: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+    white-space: nowrap;
+
+    @include bp.up(md) {
+      padding-inline-start: 1rem;
+    }
+
+    @media (min-width: $wide) {
+      padding-inline-start: 0;
+    }
+  }
+
+  &__menu {
+    display: inline-flex;
+    grid-area: menu;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    @include bp.up(md) {
+      inline-size: 2.25rem;
+      block-size: 2.25rem;
+    }
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__range {
+    margin: 0;
+  }
+
+  &__paging {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__size {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__pager {
+    --p-paginator-padding: 0;
+    --p-paginator-background: transparent;
+  }
+
+  &__tab:focus-visible,
+  &__main:focus-visible,
+  &__link:focus-visible,
+  &__menu:focus-visible {
+    outline: none;
+    box-shadow: var(--fo-focus-ring);
+  }
+}
