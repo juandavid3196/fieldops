@@ -36,13 +36,13 @@ New policy **Notification Inbox** = `owner`, `operations_manager`,
 - Replace the `/coming-soon/notifications` destination with the `/notifications` page of Design 32. The page has a breadcrumb, a header with **Mark all as read**, Unread and Today cards, the All notifications and Unread tabs with counts, search, type, branch and date filters, **Clear filters**, a list grouped into Today and Earlier with a row menu, and server-side pagination.
 - Add the `GET /notifications`, `GET /notifications/summary`, `GET /notifications/options`, `POST /notifications/{id}/read`, `POST /notifications/{id}/unread` and `POST /notifications/read-all` endpoints.
 - Write notification rows for the events in BR-05, in the same transaction as each event.
-- Bell in the shell top bar: it opens `/notifications` and shows the unread count (BR-16).
+- Bell in the shell top bar: it opens `/notifications` and shows the unread count, refreshed by a 30-second poll of the summary while the tab is visible (BR-16). On `/notifications`, a notice offers to reload the list when new activity arrives (BR-25).
 - Sidebar item **Notifications** for internal roles. The Administration column link **Notifications** points to `/notifications` (BR-17).
 - One schema amendment: an index (Data and persistence impact).
 
 ## Non-goals
 
-- Notification preferences, email, SMS, push, WebSockets, background polling, deletion, archiving and template configuration.
+- Notification preferences, email, SMS, push, WebSockets, server-sent events, polling of the list itself (only `GET /notifications/summary` is polled, BR-16), deletion, archiving and template configuration.
 - Time-based reminders, such as visits needing attention or quotes expiring soon. No scheduled process is added. The design's "Visit requires attention" and "Quote expiring soon" examples are not implemented.
 - Technician notifications and any change to the technician shell. Its bell stays at `/today/soon/notifications`.
 - Customer or portal notifications (`recipient_contact_id` stays unused).
@@ -53,7 +53,7 @@ New policy **Notification Inbox** = `owner`, `operations_manager`,
 ## User flow
 
 1. An event in BR-05 happens. In the same transaction, the system writes one unread `in_app` notification for each eligible recipient (BR-04).
-2. A staff user sees the unread count on the shell bell and opens `/notifications` from the bell or the sidebar.
+2. A staff user sees the unread count on the shell bell, which refreshes every 30 s while the tab is visible, and opens `/notifications` from the bell or the sidebar.
 3. The system resolves the caller's visibility (BR-03). It loads the options, the summary and the first page of **All notifications**, and reflects the state in the URL.
 4. The user switches tabs, searches, filters or pages. The list and the tab counts update from the server.
 5. The user selects a notification. The system marks it read and navigates to the authorized target. A notification without a link is only marked read.
@@ -69,8 +69,8 @@ New policy **Notification Inbox** = `owner`, `operations_manager`,
 | FR-04 | The summary must return the Unread and Today counts used by the cards and the bell (BR-14). |
 | FR-05 | Each row must show the read state, type icon, title, description, related entity, branch and relative time, grouped into Today and Earlier (BR-15). |
 | FR-06 | Selecting a row must mark it read and open its server-authorized link. The row menu must toggle read/unread, and **Mark all as read** must mark every visible unread notification (BR-12, BR-18, BR-19). |
-| FR-07 | The shell bell must open `/notifications` and show the caller's unread count, with the 30-second reuse rule. The sidebar and the Administration links must open `/notifications` for internal roles only (BR-16, BR-17). |
-| FR-08 | The page must keep its state in the URL, normalize invalid values and render the loading, empty, error and forbidden states (BR-20, BR-21). |
+| FR-07 | The shell bell must open `/notifications` and show the caller's unread count, refreshed by a 30-second poll that pauses while the tab is hidden. The sidebar and the Administration links must open `/notifications` for internal roles only (BR-16, BR-17). |
+| FR-08 | The page must keep its state in the URL, normalize invalid values, render the loading, empty, error and forbidden states, and offer a reload notice when new activity arrives (BR-20, BR-21, BR-25). |
 | FR-09 | The page must reproduce Design 32 with the specified responsive and accessibility behavior (BR-22, BR-23). |
 
 ## Business and validation rules
@@ -92,7 +92,7 @@ New policy **Notification Inbox** = `owner`, `operations_manager`,
 | BR-13 | Order and pagination. Order: `created_at` descending, then `id` descending. `page` ≥ 1 and `pageSize` 1 – 100 (`400` otherwise). The API default is 25. The UI always sends `pageSize` and offers 10 (default), 25 and 50 rows per page. A page past the last returns empty `items` with the real `total`, and the frontend then requests the last page (`replaceUrl`). The footer shows "<from>–<to> of <total>", **Rows per page**, previous and next buttons, and page numbers. | Both |
 | BR-14 | Summary (no tab, search, type, branch or date). `unread` = visible notifications with `status ≠ 'read'`. `today` = visible notifications created during the current local day in the organization time zone. The cards are labelled "Unread" and "Today", and they are not interactive. | Backend |
 | BR-15 | Row content. Unread rows show a dot and a stronger title. Read rows show neither. Then come the type icon (BR-02), title (`subject`) and description. The related entity shows `entityLabel` as a link when `target` is not null, else as plain text, with "<secondaryLabel> · <branch name>" below. A part is omitted when absent, and nothing is shown when both are absent. The branch name is the current name of the branch. Relative time from `created_at`, in the organization time zone: < 1 min "Just now". < 60 min "<n> min ago". Same local day "<n> hr ago". Previous local day "Yesterday". Otherwise "MMM d", plus ", yyyy" in another year. The full date and time is the tooltip and the accessible label. Groups: rows created during the current local day go under **Today**, the rest under **Earlier**. Groups apply within the current page, and an empty group is not shown. | Both |
-| BR-16 | Bell. For internal roles, the bell links to `/notifications`. It shows a badge with the summary `unread` (hidden at 0, "99+" above 99) and is named "Notifications, <n> unread" ("Notifications" at 0). The count loads when the shell renders and refreshes on navigation. A navigation less than 30 s after the last successful load reuses the current value without a request. Marking actions on the page update the bell immediately from the server response, with no extra request. A failed load keeps the previous value, or no badge when there is none, with no error UI. There is no background polling. | Frontend |
+| BR-16 | Bell. For internal roles, the bell links to `/notifications`. It shows a badge with the summary `unread` (hidden at 0, "99+" above 99) and is named "Notifications, <n> unread" ("Notifications" at 0). The count loads when the shell renders. While the tab is visible, the shell requests `GET /notifications/summary` every 30 s after the last successful load, whether that load came from a poll, a navigation or a marking response. A navigation less than 30 s after the last successful load reuses the current value without a request. While the tab is hidden (`document.hidden`) no request is made. When the tab becomes visible again, one request is made if the last successful load is 30 s old or more, and polling resumes. At most one summary request is in flight. Marking actions on the page update the bell immediately from the server response, with no extra request. A failed load keeps the previous value, or no badge when there is none, with no error UI, and the next tick retries. A `403` stops the polling. Sign-out stops it and clears the count. The list endpoint is never polled. | Frontend |
 | BR-17 | Navigation. The sidebar shows **Notifications** (bell icon) to every internal role, in the bottom block above **Administration**. Administration stays visible to `owner` and `viewer` only. The item is current on `/notifications`. The Administration column link **Notifications** opens `/notifications`. For `technician`, the sidebar item and the bell badge are not shown, the app-shell bell keeps its current Coming soon link, and the technician shell is unchanged. `/coming-soon/notifications` stays a valid Coming soon page. | Frontend |
 | BR-18 | Selecting a row (click or Enter on the row's primary control). An unread row calls `POST /notifications/{id}/read` and is shown as read immediately. The link then opens. Navigation does not wait for, and is not blocked by, a failure of the read call. A row with `target = null` is only marked read, and the page shows the toast "This item is no longer available.". A read row with a target navigates without any call. | Frontend |
 | BR-19 | Read state. `POST /{id}/read` sets `status = 'read'`. `POST /{id}/unread` sets `status = 'sent'`. Both are idempotent and return the new summary. The row menu (⋮) offers **Mark as read** or **Mark as unread** for the row's state. **Mark all as read** sets `status = 'read'` on every visible unread notification of the caller created up to the request time, regardless of the tab or filters. It returns `{ updated, summary }`, and the page reloads the list. The button is disabled at `unread = 0` and while pending. On a `404` for a single row, the page shows "This notification isn't available." and reloads the list and summary. On other errors, it shows "Couldn't update the notification. Try again." and restores the previous state. No other columns change. | Both |
@@ -101,6 +101,7 @@ New policy **Notification Inbox** = `owner`, `operations_manager`,
 | BR-22 | Layout (Design 32). Breadcrumb "Administration" (plain text) / "Notifications". Title "Notifications", subtitle "Stay updated on activity that needs your attention.". **Mark all as read** with a check icon is right-aligned. The Unread and Today cards sit to the right of the tabs. Tabs "All notifications <count>" and "Unread <count>". From 1280 px: the filters sit in one row (search, Type, Branch, Date, Clear filters), and the rows show the columns dot/icon, title + description, entity + branch, time, menu. From 768 to 1279 px: the cards wrap below the header, the filters wrap, and the entity and time move under the description. Below 768 px: header action full width, one filter per row, cards side by side, rows stacked, and the pagination wraps. No page-level horizontal scroll at 375 px. The design's sample rows are never copied or seeded. | Frontend |
 | BR-23 | Accessibility. Tabs are a tablist whose names include the count. The unread state is conveyed by text ("Unread" in the accessible name), never by the dot alone. The row's primary control is named "<title>, <unread/read>, <relative time>". The menu button is "More actions for <title>". Filters have accessible labels. Icons are decorative. Result changes are announced politely ("<total> notifications"). Every control has a visible focus indicator. Touch targets are ≥ 44 px below 768 px. | Frontend |
 | BR-24 | Query efficiency. The list, summary and read-all each run a bounded number of database queries, independent of page size and row count. Filtering, counting, ordering and paging run in the database, using `ix_notifications_recipient`. Recipient resolution at event time uses one query per event, not one per member. | Backend |
+| BR-25 | New-activity notice. On `/notifications`, when a summary refresh from the poll or from tab focus returns `unread` greater than the unread count the page last received from the list or from a marking response, the page shows a polite notice "New notifications available" with the action **Refresh** above the list. The list, counts, URL and focus do not change until the user selects **Refresh**. **Refresh** reloads the list and summary with the current URL state and dismisses the notice. The notice is also dismissed by any list reload (filter, tab, page, **Mark all as read**). It is not shown on the first load, on a `403` or when `unread` does not increase. It is announced politely and is keyboard-reachable. | Frontend |
 
 ## States and transitions
 
@@ -150,8 +151,8 @@ The frontend uses it for relative time and the Today/Earlier groups (BR-15).
 
 | Screen | Loading | Empty | Error | Permission | Success |
 | ------ | ------- | ----- | ----- | ---------- | ------- |
-| `/notifications` | Skeleton cards, tab counts and rows. Filters disabled until options load | No notifications at all: "You're all caught up" / "New activity for you will appear here.". Filters or tab with no match: "No notifications match your filters" + **Clear filters** | "Couldn't load notifications." + **Retry**. The summary failing alone shows "—" in the cards | `403` (technician, unknown role): the existing forbidden state, with no requests after the first `403` | List, counts and pagination per BR-10 – BR-15 |
-| Shell bell | No badge until loaded | No badge at 0 | Previous value kept, no error UI (BR-16) | Technician: unchanged Coming soon link, no badge | Badge with the unread count |
+| `/notifications` | Skeleton cards, tab counts and rows. Filters disabled until options load | No notifications at all: "You're all caught up" / "New activity for you will appear here.". Filters or tab with no match: "No notifications match your filters" + **Clear filters** | "Couldn't load notifications." + **Retry**. The summary failing alone shows "—" in the cards | `403` (technician, unknown role): the existing forbidden state, with no requests after the first `403` | List, counts and pagination per BR-10 – BR-15, plus the BR-25 notice when new activity arrives |
+| Shell bell | No badge until loaded | No badge at 0 | Previous value kept, no error UI, next tick retries (BR-16) | Technician: unchanged Coming soon link, no badge, no polling | Badge with the unread count, refreshed every 30 s while visible |
 
 - Mockups: `design/assets/32-design.png` (Approved). The rows "Visit requires attention" and "Quote expiring soon" are excluded (Non-goals).
 - Responsive and accessibility constraints: BR-22, BR-23.
@@ -191,11 +192,12 @@ The frontend uses it for relative time and the Today/Earlier groups (BR-15).
 | AC-17 | A page past the last one, and a search typed quickly | The page loads, and the user types | An empty past-last page triggers a request for the last page; the search request is sent 300 ms after the last keystroke; **Clear filters** resets search, type, branch and date, counts its badge and is disabled with none active |
 | AC-18 | The loading, empty-inbox, no-match, error, summary-error and `403` conditions | The page renders each | Each shows the UI states table content; **Retry** reloads; `403` stops further requests |
 | AC-19 | An internal role with 0, 7 and 120 unread | The shell renders | The bell links to `/notifications`, shows no badge, "7" and "99+", and has the BR-16 accessible name |
-| AC-20 | The bell loaded at t = 0 | The user navigates at t = 10 s and at t = 40 s, then marks a notification read | No request at 10 s; one summary request at 40 s; the mark response updates the badge with no extra request; a failed load keeps the previous value without error UI |
+| AC-20 | The bell loaded at t = 0, with the tab visible | Time passes and the user navigates, marks a notification read, hides and shows the tab, and a load fails | A navigation at t = 10 s makes no request; one summary request per 30 s tick; a navigation at t = 40 s after a tick at t = 30 s makes none; no request while the tab is hidden; on return one request if 30 s or more have passed and the poll resumes; at most one request in flight; the mark response updates the badge with no extra request and restarts the interval; a failed load keeps the previous value without error UI and the next tick retries; a `403` and sign-out stop the polling |
 | AC-21 | An internal role, `owner`, and a technician | The shell renders | Internal roles see **Notifications** above Administration, current on `/notifications`; Administration still shows only for `owner`/`viewer`; the Administration column link opens `/notifications`; the technician sees no item or badge, the app-shell bell keeps the Coming soon link, and the technician shell is unchanged |
 | AC-22 | Viewports of 1280, 1024, 768 and 375 px | The user opens `/notifications` | The layout matches Design 32 and BR-22, without the excluded examples or sample data and with no page-level horizontal scroll at 375 px (user visual QA) |
 | AC-23 | Keyboard and screen-reader use | The user navigates the page | Tabs, filters, rows, menus and pagination are reachable with visible focus; accessible names and announcements follow BR-23; touch targets are ≥ 44 px below 768 px (user visual QA) |
 | AC-24 | 10 versus 100 visible notifications on a page | The list, summary and read-all run | The number of database queries is the same; filtering, counting and paging run in SQL; the schema doc and migration add only `ix_notifications_recipient`, unapplied |
+| AC-25 | `/notifications` is open with a loaded list, and the summary unread rises through a poll, then does not rise, then the user selects **Refresh** | Each poll result arrives | The notice appears only when unread rises above the last known unread; the rows, counts, URL and focus do not move; **Refresh** reloads with the current URL state and dismisses the notice; filter, tab, page and **Mark all as read** reloads also dismiss it; the notice is announced politely and reachable by keyboard; it never appears on the first load or on a `403` |
 
 ## Testing requirements
 
@@ -204,7 +206,7 @@ The frontend uses it for relative time and the Today/Earlier groups (BR-15).
 | Backend unit | Relative-day windows in the organization time zone (date filter and Today) only if implemented as a pure utility; `Notification` read/unread transitions | AC-07, AC-09, AC-11 |
 | Backend integration | Recipient fan-out matrix (table-driven across events, roles, branches, actor exclusion); one representative producer per event family (request, message, quote, visit, job, invoice/payment) with content snapshot; no-write on rollback and replay; list filters, counts, order and paging; summary; read/unread/read-all; validation errors; bounded query count | AC-04 – AC-11, AC-24 |
 | Authorization/tenant isolation | Technician `403`; cross-organization and cross-recipient `404`; re-authorization when the branch scope or role changes (one test covering list, counts and read-all); target eligibility per read policy | AC-01 – AC-03, AC-10 |
-| Frontend component/service | URL normalization and reset rules; row selection (mark-then-navigate, no-target toast); menu toggle and read-all with error paths; UI states; bell badge, caching and update from mark responses; sidebar visibility by role | AC-12 – AC-21 |
+| Frontend component/service | URL normalization and reset rules; row selection (mark-then-navigate, no-target toast); menu toggle and read-all with error paths; UI states; bell badge, 30 s polling with hidden-tab pause and resume (fake timers), reuse window and update from mark responses; new-activity notice; sidebar visibility by role | AC-12 – AC-21, AC-25 |
 | Browser (user visual QA) | Design 32 fidelity, responsive breakpoints, focus and keyboard | AC-22, AC-23 |
 
 Event families are proven by representative producer tests. Each source path
@@ -239,7 +241,7 @@ security risks and justify the upper end.
 | OD-06 | Read state | `status` toggle · new `read_at` | No | `read` ↔ `sent`, no read time (user 2026-10-15) |
 | OD-07 | Lost access | Keep showing · hide | No | Hidden from lists, counts, bell, search, paging and read-all (user 2026-10-15) |
 | OD-08 | Index | Add index · no schema change | No | Only `ix_notifications_recipient (organization_id, recipient_user_id, created_at DESC)`; migration generation authorized, never applied (user 2026-10-15) |
-| OD-09 | Bell refresh | Navigation with 30 s cache · polling · WebSockets | No | Shell load + navigation, reusing the value for 30 s; immediate update from mark responses (user 2026-10-15) |
+| OD-09 | Bell refresh | Navigation with 30 s cache · polling · WebSockets | No | Revised 2026-10-15 (user): poll `GET /notifications/summary` every 30 s while the tab is visible, pause when hidden and resume on focus, keep the 30 s reuse on navigation and the immediate update from mark responses. No WebSockets or SSE; the list is never polled; a notice offers a manual reload (BR-16, BR-25) |
 | OD-10 | Navigation | Sidebar for all internal roles · admin only | No | Sidebar for internal app-shell roles above Administration; technician excluded (user 2026-10-15) |
 
 ## Traceability
@@ -253,7 +255,7 @@ security risks and justify the upper end.
 | FR-05 | AC-10, AC-12 |
 | FR-06 | AC-10, AC-11, AC-13, AC-14, AC-15 |
 | FR-07 | AC-19, AC-20, AC-21 |
-| FR-08 | AC-16, AC-17, AC-18 |
+| FR-08 | AC-16, AC-17, AC-18, AC-25 |
 | FR-09 | AC-22, AC-23 |
 
 ## Change log
@@ -261,4 +263,6 @@ security risks and justify the upper end.
 | Date       | Status change | Reason |
 | ---------- | ------------- | ------ |
 | 2026-10-15 | — → DRAFT     | Created |
+| 2026-10-15 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-15 | APPROVED → DRAFT | Revised via /spec revise: summary polling every 30 s, tab-visibility pause and new-activity notice (BR-16, BR-25, AC-20, AC-25, OD-09). The contracts are unchanged |
 | 2026-10-15 | DRAFT → APPROVED | Approved by user via /spec approve |
