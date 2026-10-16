@@ -1,4 +1,6 @@
 using System.Net;
+using FieldOps.Application.Features.AuditTrail;
+using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Catalog;
 
 namespace FieldOps.Application.Features.Catalog;
@@ -46,11 +48,12 @@ public sealed class ListCatalogItemsHandler(ICatalogStore store)
 }
 
 /// <summary>GET /catalog-items/export (FR-12, BR-13): every matching item, no paging.</summary>
-public sealed class ExportCatalogItemsHandler(ICatalogStore store, TimeProvider timeProvider)
+public sealed class ExportCatalogItemsHandler(ICatalogStore store, IExportAuditWriter audit, TimeProvider timeProvider)
 {
     public async Task<CatalogResult<CatalogFile>> HandleAsync(
-        Guid organizationId, CatalogListQuery query, CancellationToken cancellationToken)
+        MembershipCall call, CatalogListQuery query, CancellationToken cancellationToken)
     {
+        var organizationId = call.OrganizationId;
         var filter = CatalogQueryParser.Parse(
             query.Type, query.Search, query.TaxStatus, query.Status, query.Sort, out var errors);
 
@@ -62,10 +65,30 @@ public sealed class ExportCatalogItemsHandler(ICatalogStore store, TimeProvider 
         var rows = await store.ListAllAsync(organizationId, filter, cancellationToken);
         var format = await store.GetOrganizationFormatAsync(organizationId, cancellationToken);
 
-        return CatalogResult<CatalogFile>.Ok(new CatalogFile(
+        var file = new CatalogFile(
             CatalogCsv.ExportFileName(OrganizationDate(format?.Timezone, timeProvider.GetUtcNow())),
             "text/csv; charset=utf-8",
-            CatalogCsv.Export(rows)));
+            CatalogCsv.Export(rows));
+
+        // audit-trail BR-16: after the CSV is built, before it is returned; a failed insert is a 500 with no file.
+        await audit.RecordAsync(
+            call,
+            ExportAudit.Entry(
+                ExportReportTypes.CatalogItems,
+                null,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["type"] = filter.Type,
+                    ["taxable"] = filter.Taxable,
+                    ["active"] = filter.Active,
+                    ["sort"] = filter.Sort,
+                    ["descending"] = filter.Descending,
+                    ["hasSearch"] = !string.IsNullOrWhiteSpace(filter.Search),
+                },
+                rows.Count),
+            cancellationToken);
+
+        return CatalogResult<CatalogFile>.Ok(file);
     }
 
     private static DateOnly OrganizationDate(string? timezone, DateTimeOffset now)

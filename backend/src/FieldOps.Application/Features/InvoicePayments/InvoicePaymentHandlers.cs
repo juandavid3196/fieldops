@@ -1,5 +1,6 @@
 using System.Globalization;
 using FieldOps.Application.Features.Access;
+using FieldOps.Application.Features.AuditTrail;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.ServiceRequests;
@@ -102,7 +103,8 @@ public sealed class ListHubPaymentsHandler(IInvoiceHubStore store, IBranchScopeR
 }
 
 /// <summary>GET /invoices/export (BR-10): the invoice filters without paging, escaped like the billing review export.</summary>
-public sealed class ExportHubInvoicesHandler(IInvoiceHubStore store, IBranchScopeResolver scopes, TimeProvider timeProvider)
+public sealed class ExportHubInvoicesHandler(
+    IInvoiceHubStore store, IBranchScopeResolver scopes, IExportAuditWriter audit, TimeProvider timeProvider)
 {
     private static readonly string[] Header =
         ["Invoice", "Customer", "Work order", "Branch", "Invoice date", "Due date", "Status", "Total", "Amount paid", "Balance", "Currency"];
@@ -120,7 +122,33 @@ public sealed class ExportHubInvoicesHandler(IInvoiceHubStore store, IBranchScop
         var export = await store.ExportInvoicesAsync(
             await HubHandlerSupport.ActorAsync(scopes, call, cancellationToken), query.Value, timeProvider.GetUtcNow(), cancellationToken);
 
-        return HubHandlerSupport.Forward(export, Compose);
+        if (export is not BillingOutcome<InvoiceExport>.Succeeded succeeded)
+        {
+            return HubHandlerSupport.Forward<InvoiceExport, BillingCsvFile>(export, _ => throw new InvalidOperationException());
+        }
+
+        var file = Compose(succeeded.Value);
+        var filters = query.Value;
+
+        // audit-trail BR-16: after the CSV is built, before it is returned; a failed insert is a 500 with no file.
+        await audit.RecordAsync(
+            call,
+            ExportAudit.Entry(
+                ExportReportTypes.Invoices,
+                filters.BranchId,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["from"] = filters.From,
+                    ["to"] = filters.To,
+                    ["status"] = filters.Status,
+                    ["customerId"] = filters.CustomerId,
+                    ["branchId"] = filters.BranchId,
+                    ["hasSearch"] = !string.IsNullOrWhiteSpace(filters.Search),
+                },
+                succeeded.Value.Rows.Count),
+            cancellationToken);
+
+        return new BillingOutcome<BillingCsvFile>.Succeeded(file);
     }
 
     private static BillingCsvFile Compose(InvoiceExport export)
@@ -154,7 +182,8 @@ public sealed class ExportHubInvoicesHandler(IInvoiceHubStore store, IBranchScop
 }
 
 /// <summary>GET /invoices/payments/export (BR-10).</summary>
-public sealed class ExportHubPaymentsHandler(IInvoiceHubStore store, IBranchScopeResolver scopes, TimeProvider timeProvider)
+public sealed class ExportHubPaymentsHandler(
+    IInvoiceHubStore store, IBranchScopeResolver scopes, IExportAuditWriter audit, TimeProvider timeProvider)
 {
     private static readonly string[] Header =
         ["Payment", "Date", "Customer", "Invoice", "Method", "Reference", "Amount", "Currency", "Received by", "Status"];
@@ -172,7 +201,32 @@ public sealed class ExportHubPaymentsHandler(IInvoiceHubStore store, IBranchScop
         var export = await store.ExportPaymentsAsync(
             await HubHandlerSupport.ActorAsync(scopes, call, cancellationToken), query.Value, timeProvider.GetUtcNow(), cancellationToken);
 
-        return HubHandlerSupport.Forward(export, Compose);
+        if (export is not BillingOutcome<PaymentExport>.Succeeded succeeded)
+        {
+            return HubHandlerSupport.Forward<PaymentExport, BillingCsvFile>(export, _ => throw new InvalidOperationException());
+        }
+
+        var file = Compose(succeeded.Value);
+        var filters = query.Value;
+
+        // audit-trail BR-16: after the CSV is built, before it is returned; a failed insert is a 500 with no file.
+        await audit.RecordAsync(
+            call,
+            ExportAudit.Entry(
+                ExportReportTypes.Payments,
+                filters.BranchId,
+                new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["from"] = filters.From,
+                    ["to"] = filters.To,
+                    ["method"] = filters.Method is { } method ? PaymentMethodCodes.Code(method) : null,
+                    ["branchId"] = filters.BranchId,
+                    ["hasSearch"] = !string.IsNullOrWhiteSpace(filters.Search),
+                },
+                succeeded.Value.Rows.Count),
+            cancellationToken);
+
+        return new BillingOutcome<BillingCsvFile>.Succeeded(file);
     }
 
     // The CSV amount is the net amount (amount - refunded amount); the status column tells whether a refund applies (BR-31).

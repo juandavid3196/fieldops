@@ -34,4 +34,7 @@ public interface IAuthenticationStore
     /// Saves the user's sign-in time and the audit row in one transaction.
     /// </summary>
     Task SaveSignInAsync(User user, AuditLog auditLog, CancellationToken cancellationToken);
+
+    /// <summary>Inserts the <c>auth.signed_out</c> audit row with a single save (audit-trail BR-18).</summary>
+    Task RecordSignedOutAsync(AuditLog auditLog, CancellationToken cancellationToken);
 }

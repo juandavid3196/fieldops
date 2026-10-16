@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
+import { auditLogRoute } from './features/audit-log/audit-log.routes';
 import { billingReviewRoute } from './features/billing-review/billing-review.routes';
 import { comingSoonRoute } from './features/coming-soon/coming-soon.routes';
 import { dashboardRoute } from './features/dashboard/dashboard.routes';
@@ -89,6 +90,7 @@ export const routes: Routes = [
       assessmentRoute,
       quotesRoute,
       notificationsRoute,
+      auditLogRoute,
       quoteEditRoute,
       quoteViewRoute,
       workOrderEditorRoute,

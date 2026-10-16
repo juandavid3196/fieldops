@@ -1,0 +1,170 @@
+<app-drawer-shell
+  size="min(25rem, 100vw)"
+  [dockable]="false"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="closed.emit()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="audit-drawer__title" [id]="titleId" tabindex="-1">Audit event</h2>
+    <span class="audit-drawer__spacer"></span>
+    <button
+      type="button"
+      class="audit-drawer__close"
+      aria-label="Close audit event"
+      (click)="closed.emit()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    <p class="audit-drawer__sr" role="status" aria-live="polite">{{ copied() }}</p>
+    @switch (state().status) {
+      @case ('error') {
+        <p class="audit-drawer__message" role="alert">
+          {{ errorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+            Try again
+          </button>
+        </p>
+      }
+      @case ('gone') {
+        <p class="audit-drawer__message" role="alert">{{ goneMessage }}</p>
+      }
+      @case ('ready') {
+        @if (view(); as v) {
+          <div class="audit-drawer__content">
+            <p class="audit-drawer__impact audit-drawer__impact--{{ v.detail.impact }}">
+              <i class="pi {{ v.impactIcon }}" aria-hidden="true"></i>
+              {{ v.impactLabel }} impact
+            </p>
+            <p class="audit-drawer__when">
+              <time [attr.datetime]="v.detail.occurredAt">{{ v.when }}</time>
+            </p>
+
+            <div class="audit-drawer__actor">
+              <span class="audit-drawer__avatar" aria-hidden="true">{{ v.initials }}</span>
+              <div>
+                <p class="audit-drawer__actor-name">{{ v.detail.actor.name }}</p>
+                @if (v.detail.actor.roleName) {
+                  <p class="audit-drawer__muted">{{ v.detail.actor.roleName }}</p>
+                }
+              </div>
+            </div>
+
+            <dl class="audit-drawer__facts">
+              <dt>Action</dt>
+              <dd>
+                <span class="audit-drawer__tag">{{ v.detail.action.label }}</span>
+              </dd>
+              <dt>Entity</dt>
+              <dd>
+                {{ v.detail.entity.label }}
+                @if (v.detail.reference !== '—') {
+                  <strong>{{ v.detail.reference }}</strong>
+                }
+                @if (v.route; as route) {
+                  <a
+                    class="audit-drawer__link"
+                    [routerLink]="route.commands"
+                    [queryParams]="route.queryParams"
+                  >
+                    <i class="pi pi-external-link" aria-hidden="true"></i>
+                    Open {{ v.detail.entity.label }}
+                  </a>
+                }
+              </dd>
+              <dt>Branch</dt>
+              <dd>{{ v.detail.branch?.name ?? allBranches }}</dd>
+              <dt>Source</dt>
+              <dd>{{ v.detail.source }}</dd>
+              <dt>IP address</dt>
+              <dd>{{ v.detail.ipAddress ?? '—' }}</dd>
+            </dl>
+
+            @if (v.detail.changes.length > 0) {
+              <section aria-labelledby="audit-drawer-changes">
+                <h3 class="audit-drawer__heading" id="audit-drawer-changes">Change summary</h3>
+                <div class="audit-drawer__scroll">
+                  <table class="audit-drawer__table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Field</th>
+                        <th scope="col">Before</th>
+                        <th scope="col">After</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (change of v.detail.changes; track change.field) {
+                        <tr>
+                          <th scope="row">{{ change.label }}</th>
+                          <td>{{ change.before }}</td>
+                          <td>{{ change.after }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            }
+
+            <section aria-labelledby="audit-drawer-metadata">
+              <h3 class="audit-drawer__heading" id="audit-drawer-metadata">Metadata</h3>
+              <dl class="audit-drawer__metadata">
+                @for (item of v.detail.metadata; track item.key) {
+                  <dt>{{ item.key }}</dt>
+                  <dd>{{ item.value }}</dd>
+                }
+              </dl>
+            </section>
+
+            <div class="audit-drawer__actions">
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                [outlined]="true"
+                (click)="copy(v.detail.eventId)"
+              >
+                <i class="pi pi-copy" aria-hidden="true"></i>
+                Copy event ID
+                <span class="audit-drawer__muted">{{ v.detail.eventId }}</span>
+              </button>
+              @if (v.detail.entity.id !== null) {
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  [outlined]="true"
+                  (click)="relatedRequested.emit(v.detail)"
+                >
+                  <i class="pi pi-link" aria-hidden="true"></i>
+                  View related activity
+                </button>
+              }
+            </div>
+
+            <p class="audit-drawer__note">
+              <i class="pi pi-info-circle" aria-hidden="true"></i>
+              Audit events are read-only and cannot be edited or deleted.
+            </p>
+            <p class="audit-drawer__muted">
+              Events are retained according to your organization's data policy.
+            </p>
+          </div>
+        }
+      }
+      @default {
+        <div class="audit-drawer__skeletons" aria-busy="true">
+          <p-skeleton height="1.75rem" width="8rem" />
+          <p-skeleton height="1.25rem" width="12rem" />
+          <p-skeleton height="3rem" />
+          <p-skeleton height="7rem" />
+          <p-skeleton height="7rem" />
+          <p-skeleton height="2.5rem" />
+        </div>
+      }
+    }
+  </ng-container>
+</app-drawer-shell>

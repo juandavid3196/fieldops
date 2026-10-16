@@ -80,6 +80,17 @@ internal sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
             .HasDatabaseName("ix_audit_actor")
             .IsDescending(false, false, true);
 
+        // CREATE INDEX ix_audit_org_occurred
+        //   ON audit_logs (organization_id, occurred_at DESC, id DESC)
+        builder.HasIndex(auditLog => new
+        {
+            auditLog.OrganizationId,
+            auditLog.OccurredAt,
+            auditLog.Id,
+        })
+            .HasDatabaseName("ix_audit_org_occurred")
+            .IsDescending(false, true, true);
+
         builder.HasOne<Organization>()
             .WithMany()
             .HasForeignKey(auditLog => auditLog.OrganizationId)

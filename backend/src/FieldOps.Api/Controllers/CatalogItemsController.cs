@@ -3,6 +3,7 @@ using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
 using FieldOps.Api.Contracts;
 using FieldOps.Application.Features.Catalog;
+using FieldOps.Application.Features.ServiceRequests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -103,7 +104,10 @@ public sealed class CatalogItemsController(
             return Unauthorized();
         }
 
-        var result = await exportHandler.HandleAsync(ticket.OrganizationId, request.ToQuery(), cancellationToken);
+        var result = await exportHandler.HandleAsync(
+            new MembershipCall(ticket.OrganizationId, ticket.MembershipId, ticket.UserId, GetClientIpAddress()),
+            request.ToQuery(),
+            cancellationToken);
 
         if (result.Kind == CatalogResultKind.Invalid)
         {
