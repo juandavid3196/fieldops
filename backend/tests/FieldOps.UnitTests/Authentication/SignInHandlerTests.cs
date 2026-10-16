@@ -281,6 +281,9 @@ public class SignInHandlerTests
             return Task.FromResult(User?.Email == normalizedEmail ? User : null);
         }
 
+        public Task<DateTimeOffset?> FindPhotoUpdatedAtAsync(Guid userId, CancellationToken cancellationToken) =>
+            Task.FromResult<DateTimeOffset?>(null);
+
         public Task<IReadOnlyList<MembershipCandidate>> GetMembershipsAsync(
             Guid userId,
             CancellationToken cancellationToken)

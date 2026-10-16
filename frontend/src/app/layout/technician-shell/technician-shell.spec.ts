@@ -47,6 +47,8 @@ describe('TechnicianShell', () => {
             ],
           },
           { path: 'team', component: PageStub },
+          { path: 'account/profile', component: PageStub },
+          { path: 'account', pathMatch: 'full', redirectTo: 'account/profile' },
           { path: 'auth/sign-in', component: PageStub },
         ]),
         provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
@@ -56,7 +58,13 @@ describe('TechnicianShell', () => {
     httpTesting = TestBed.inject(HttpTestingController);
     router = TestBed.inject(Router);
     TestBed.inject(SessionService).setSession({
-      user: { id: 'u-1', firstName: 'Carlos', lastName: 'Rivera', email: 'c@example.com' },
+      user: {
+        id: 'u-1',
+        firstName: 'Carlos',
+        lastName: 'Rivera',
+        email: 'c@example.com',
+        photoUpdatedAt: null,
+      },
       organization: { id: 'o-1', name: 'Acme' },
       role: { code: 'technician', name: 'Technician' },
     });
@@ -152,13 +160,20 @@ describe('TechnicianShell', () => {
     expect(router.url).toBe('/today');
   });
 
-  it('opens More with My profile and Sign out, and signs out through the existing flow, keeping the session on failure (AC-16)', async () => {
+  it('opens More with My profile, Account settings and Sign out in order (FR-04, AC-02), and signs out through the existing flow, keeping the session on failure (AC-16)', async () => {
     await setup();
 
     button('More').click();
     await settle();
     expect(button('More').getAttribute('aria-expanded')).toBe('true');
-    expect(host.querySelector('#tshell-more-panel a')?.getAttribute('href')).toBe('/team');
+    const panelItems = Array.from(host.querySelectorAll('#tshell-more-panel .tshell__panel-item'));
+    expect(panelItems.map((item) => item.textContent?.trim())).toEqual([
+      'My profile',
+      'Account settings',
+      'Sign out',
+    ]);
+    expect(panelItems[0].getAttribute('href')).toBe('/team');
+    expect(panelItems[1].getAttribute('href')).toBe('/account');
 
     button('Sign out').click();
     button('Sign out').click();

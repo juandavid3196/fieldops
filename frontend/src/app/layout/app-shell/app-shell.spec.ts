@@ -25,7 +25,13 @@ const SESSION_URL = `${API_BASE_URL}/sessions/current`;
 const SUMMARY_URL = `${API_BASE_URL}/notifications/summary`;
 
 const SESSION: Session = {
-  user: { id: 'u-1', firstName: ' Alex ', lastName: 'Morgan ', email: 'alex@example.com' },
+  user: {
+    id: 'u-1',
+    firstName: ' Alex ',
+    lastName: 'Morgan ',
+    email: 'alex@example.com',
+    photoUpdatedAt: null,
+  },
   organization: { id: 'o-1', name: 'FieldOps Services' },
   role: { code: 'owner', name: 'Owner' },
 };
@@ -74,6 +80,13 @@ describe('AppShell', () => {
               { path: 'jobs', component: PageStub },
               { path: 'jobs/:id', component: PageStub },
               { path: 'notifications', component: PageStub },
+              {
+                path: 'account',
+                children: [
+                  { path: '', pathMatch: 'full', redirectTo: 'profile' },
+                  { path: 'profile', component: PageStub },
+                ],
+              },
             ],
           },
           { path: 'auth/sign-in', component: SignInStub },
@@ -113,6 +126,9 @@ describe('AppShell', () => {
   const userButton = () => host.querySelector<HTMLButtonElement>('.shell__user-button')!;
   const orgButton = () => host.querySelector<HTMLButtonElement>('.shell__org-button');
   const menuItem = () => host.querySelector<HTMLButtonElement>('[role="menuitem"]')!;
+  const accountItems = () =>
+    Array.from(host.querySelectorAll<HTMLElement>('[aria-label="Account"] [role="menuitem"]'));
+  const signOutItem = () => accountItems().at(-1)!;
   // operations-dashboard BR-01: Manage roles see Dashboard where other roles see Overview.
   const MANAGE_ROLES = ['owner', 'operations_manager', 'dispatcher'];
   const MODULE_LABELS = [
@@ -130,7 +146,7 @@ describe('AppShell', () => {
   async function openMenuAndSignOut(): Promise<void> {
     userButton().click();
     await settle();
-    menuItem().click();
+    signOutItem().click();
     await settle();
   }
 
@@ -276,8 +292,12 @@ describe('AppShell', () => {
     expect(host.querySelector('.shell__org-name')?.textContent?.trim()).toBe('FieldOps Services');
     expect(host.querySelector('.shell__name')?.textContent?.trim()).toBe('Alex Morgan');
     expect(host.querySelector('.shell__role')?.textContent?.trim()).toBe('Owner');
-    expect(host.querySelector('.shell__initials')?.textContent?.trim()).toBe('AM');
-    expect(host.querySelector('.shell__initials')?.getAttribute('aria-hidden')).toBe('true');
+    expect(host.querySelector('.shell__user-button .avatar__initials')?.textContent?.trim()).toBe(
+      'AM',
+    );
+    expect(
+      host.querySelector('.shell__user-button .avatar__initials')?.getAttribute('aria-hidden'),
+    ).toBe('true');
     expect(userButton().getAttribute('aria-label')).toBe('Account menu, Alex Morgan, Owner');
 
     load({
@@ -288,7 +308,9 @@ describe('AppShell', () => {
     await settle();
 
     expect(host.querySelector('.shell__org-name')?.textContent?.trim()).toBe('Renamed Co');
-    expect(host.querySelector('.shell__initials')?.textContent?.trim()).toBe('A');
+    expect(host.querySelector('.shell__user-button .avatar__initials')?.textContent?.trim()).toBe(
+      'A',
+    );
     expect(userButton().getAttribute('aria-label')).toBe('Account menu, alex, Owner');
   });
 
@@ -319,10 +341,10 @@ describe('AppShell', () => {
     userButton().click();
     await settle();
     await expectAxeClean();
-    menuItem().click();
-    menuItem().click();
+    signOutItem().click();
+    signOutItem().click();
     await settle();
-    expect(menuItem().querySelector('svg[data-p-icon="spinner"]')).not.toBeNull();
+    expect(signOutItem().querySelector('svg[data-p-icon="spinner"]')).not.toBeNull();
 
     httpTesting
       .expectOne({ method: 'DELETE', url: SESSION_URL })
@@ -338,6 +360,36 @@ describe('AppShell', () => {
     expect(document.activeElement).toBe(userButton());
     await expectAxeClean();
   });
+
+  it.each(['owner', 'dispatcher', 'technician'])(
+    'lists the avatar header, My profile, Account settings and Sign out for %s, and the links go to the account area (FR-03, AC-01)',
+    async (code) => {
+      await setup({ ...SESSION, role: { code, name: 'Role name' } });
+
+      userButton().click();
+      await settle();
+
+      const menu = host.querySelector('[aria-label="Account"]')!;
+      expect(menu.querySelector('.shell__menu-header app-user-avatar')).not.toBeNull();
+      expect(menu.querySelector('.shell__menu-header')?.textContent).toContain('Alex Morgan');
+      expect(menu.querySelector('.shell__menu-header')?.textContent).toContain('Role name');
+      expect(accountItems().map((item) => item.textContent?.trim())).toEqual([
+        'My profile',
+        'Account settings',
+        'Sign out',
+      ]);
+      expect(menu.querySelector('[role="separator"]')).not.toBeNull();
+      expect(menu.textContent).not.toMatch(/Language|Dark mode|Help/);
+
+      // Roving keyboard focus over the three items, then Account settings ends on My profile page.
+      menuItem().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
+      expect(document.activeElement).toBe(signOutItem());
+      accountItems()[1].click();
+      await settle();
+      expect(router.url).toBe('/account/profile');
+      expect(host.querySelector('[role="menu"]')).toBeNull();
+    },
+  );
 
   it('closes the user menu with Escape and returns focus (FR-10)', async () => {
     await setup();

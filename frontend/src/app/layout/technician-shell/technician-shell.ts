@@ -14,7 +14,12 @@ import { comingSoonModuleName } from '../../core/config/coming-soon-modules';
 import { SessionService } from '../../core/services/session.service';
 import { TechnicianVisitsService } from '../../features/technician-jobs/services/technician-visits.service';
 import { avatarTextColor } from '../../features/technician-jobs/utils/technician-format';
-import { NOTIFICATIONS_LINK, PROFILE_LINK, TECHNICIAN_NAV } from './technician-shell.nav';
+import {
+  ACCOUNT_LINK,
+  NOTIFICATIONS_LINK,
+  PROFILE_LINK,
+  TECHNICIAN_NAV,
+} from './technician-shell.nav';
 
 export interface ShellBack {
   readonly link: string;
@@ -52,6 +57,7 @@ export class TechnicianShell {
   readonly nav = TECHNICIAN_NAV;
   readonly notificationsLink = NOTIFICATIONS_LINK;
   readonly profileLink = PROFILE_LINK;
+  readonly accountLink = ACCOUNT_LINK;
   readonly signOutErrorMessage = SIGN_OUT_ERROR_MESSAGE;
 
   readonly openPanel = signal<PanelKind | null>(null);

@@ -1,0 +1,37 @@
+<div class="account">
+  <nav aria-label="Breadcrumb">
+    <ol class="account__breadcrumb">
+      <li>Account</li>
+      <li class="account__current" aria-current="page">{{ currentLabel() }}</li>
+    </ol>
+  </nav>
+
+  <header class="account__header">
+    <h1 class="account__title">Account settings</h1>
+    <p class="account__subtitle">Manage your profile and security settings.</p>
+  </header>
+
+  <div class="account__body">
+    <nav class="account__nav" aria-label="Account settings sections">
+      <ul class="account__nav-list">
+        @for (section of sections; track section.link) {
+          <li>
+            <a
+              class="account__nav-link"
+              routerLinkActive="account__nav-link--current"
+              ariaCurrentWhenActive="page"
+              [routerLink]="section.link"
+            >
+              <i class="pi" [class]="section.icon" aria-hidden="true"></i>
+              {{ section.label }}
+            </a>
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <section class="account__card">
+      <router-outlet />
+    </section>
+  </div>
+</div>

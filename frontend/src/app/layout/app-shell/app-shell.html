@@ -129,7 +129,11 @@
           (click)="toggleMenu('user')"
           (keydown)="onButtonKeydown($event, 'user')"
         >
-          <span class="shell__initials" aria-hidden="true">{{ initials() }}</span>
+          <app-user-avatar
+            class="shell__avatar"
+            [initials]="initials()"
+            [photoUpdatedAt]="photoUpdatedAt()"
+          />
           <span class="shell__identity" aria-hidden="true">
             <span class="shell__name">{{ fullName() }}</span>
             <span class="shell__role">{{ session()?.role.name }}</span>
@@ -139,16 +143,50 @@
 
         @if (menuOpen()) {
           <div class="shell__menu" role="menu" aria-label="Account">
+            <div class="shell__menu-header" role="presentation">
+              <app-user-avatar
+                class="shell__avatar shell__avatar--large"
+                [initials]="initials()"
+                [photoUpdatedAt]="photoUpdatedAt()"
+              />
+              <span class="shell__menu-identity">
+                <span class="shell__name">{{ fullName() }}</span>
+                <span class="shell__role">{{ session()?.role.name }}</span>
+              </span>
+            </div>
+            <a
+              role="menuitem"
+              class="shell__menu-item"
+              routerLink="/account/profile"
+              (click)="onMenuLinkClick()"
+              (keydown)="onMenuKeydown($event)"
+            >
+              <i class="pi pi-user" aria-hidden="true"></i>
+              My profile
+            </a>
+            <a
+              role="menuitem"
+              class="shell__menu-item"
+              routerLink="/account"
+              (click)="onMenuLinkClick()"
+              (keydown)="onMenuKeydown($event)"
+            >
+              <i class="pi pi-cog" aria-hidden="true"></i>
+              Account settings
+            </a>
+            <div class="shell__menu-separator" role="separator"></div>
             <button
               type="button"
               role="menuitem"
-              class="shell__menu-item"
+              class="shell__menu-item shell__menu-item--danger"
               [attr.aria-disabled]="signingOut()"
               (click)="signOut()"
               (keydown)="onMenuKeydown($event)"
             >
               @if (signingOut()) {
                 <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+              } @else {
+                <i class="pi pi-sign-out" aria-hidden="true"></i>
               }
               Sign out
             </button>

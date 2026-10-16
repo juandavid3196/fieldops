@@ -1,0 +1,22 @@
+:host {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--fo-avatar-size, 2.25rem);
+  block-size: var(--fo-avatar-size, 2.25rem);
+  overflow: hidden;
+  font-size: calc(var(--fo-avatar-size, 2.25rem) * 0.36);
+  font-weight: 700;
+  color: var(--fo-color-primary-strong);
+  background: var(--fo-color-primary-soft);
+  border-radius: 50%;
+}
+
+.avatar {
+  &__image {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+  }
+}

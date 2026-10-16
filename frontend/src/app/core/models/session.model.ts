@@ -10,6 +10,8 @@ export interface SessionUser {
   readonly firstName: string;
   readonly lastName: string;
   readonly email: string;
+  /** ISO timestamp of the profile photo, `null` without one (account-settings BR-08). */
+  readonly photoUpdatedAt: string | null;
 }
 
 export interface SessionOrganization {

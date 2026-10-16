@@ -13,7 +13,8 @@ public sealed record SessionUser(
     Guid Id,
     string FirstName,
     string LastName,
-    string Email);
+    string Email,
+    DateTimeOffset? PhotoUpdatedAt);
 
 public sealed record SessionOrganization(Guid Id, string Name);
 

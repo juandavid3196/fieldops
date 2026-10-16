@@ -65,6 +65,8 @@ CREATE TABLE users (
   email_verified_at timestamptz, last_login_at timestamptz, password_changed_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (email)
 );
+-- SA-22 (account-settings): the user's own profile photo; it belongs to the user, so it carries no organization_id.
+CREATE TABLE user_photos (user_id uuid PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE, content_type varchar(40) NOT NULL CHECK (content_type IN ('image/png','image/jpeg')), content bytea NOT NULL, size_bytes integer NOT NULL CHECK (size_bytes BETWEEN 1 AND 5242880), created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE roles (id smallserial PRIMARY KEY, code varchar(50) UNIQUE NOT NULL, name varchar(100) NOT NULL, description text, is_canonical boolean NOT NULL DEFAULT true);
 CREATE TABLE permissions (id smallserial PRIMARY KEY, code varchar(100) UNIQUE NOT NULL, description text NOT NULL);
 CREATE TABLE role_permissions (role_id smallint NOT NULL REFERENCES roles(id) ON DELETE CASCADE, permission_id smallint NOT NULL REFERENCES permissions(id) ON DELETE CASCADE, PRIMARY KEY(role_id,permission_id));

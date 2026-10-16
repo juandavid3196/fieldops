@@ -80,6 +80,10 @@ export const routes: Routes = [
         path: 'overview',
         loadChildren: () => import('./features/overview/overview.routes'),
       },
+      {
+        path: 'account',
+        loadChildren: () => import('./features/account/account.routes'),
+      },
       dashboardRoute,
       // BR-23: the retired Coming soon page of Reports leads to the workspace (declared first).
       { path: 'coming-soon/reports', pathMatch: 'full', redirectTo: '/reports' },

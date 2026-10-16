@@ -26,6 +26,8 @@ import { canSeeDashboard } from '../../core/config/dashboard-roles';
 import { NotificationUnreadService } from '../../core/services/notification-unread.service';
 import { SessionService } from '../../core/services/session.service';
 import { NotificationPopover } from '../../features/notifications/components/notification-popover/notification-popover';
+import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
+import { fullNameOf, initialsOf } from '../../shared/utils/initials';
 import { ShellSidebar } from '../shell-sidebar/shell-sidebar';
 import { ADMINISTRATION_ROLE_CODES, NAV_GROUPS } from './app-shell.nav';
 
@@ -51,6 +53,7 @@ type MenuKind = 'org' | 'user';
     NotificationPopover,
     ShellSidebar,
     SpinnerIcon,
+    UserAvatar,
   ],
   templateUrl: './app-shell.html',
   styleUrl: './app-shell.scss',
@@ -134,20 +137,9 @@ export class AppShell {
   readonly notificationsLabel = computed(() =>
     this.unreadCount() > 0 ? `Notifications, ${this.unreadCount()} unread` : 'Notifications',
   );
-  readonly fullName = computed(() => {
-    const user = this.session()?.user;
-    return [user?.firstName, user?.lastName]
-      .map((part) => part?.trim() ?? '')
-      .filter((part) => part !== '')
-      .join(' ');
-  });
-  readonly initials = computed(() =>
-    this.fullName()
-      .split(' ')
-      .filter((part) => part !== '')
-      .map((part) => part.charAt(0).toUpperCase())
-      .join(''),
-  );
+  readonly fullName = computed(() => fullNameOf(this.session()?.user));
+  readonly initials = computed(() => initialsOf(this.fullName()));
+  readonly photoUpdatedAt = computed(() => this.session()?.user.photoUpdatedAt ?? null);
   readonly accountLabel = computed(
     () => `Account menu, ${this.fullName()}, ${this.session()?.role.name ?? ''}`,
   );
@@ -233,6 +225,11 @@ export class AppShell {
     this.focusMenuItem();
   }
 
+  /** Account links: the navigation itself moves focus, so the menu only closes. */
+  onMenuLinkClick(): void {
+    this.closeMenu(false);
+  }
+
   /** The organization menu has one current entry: selecting it changes nothing and sends nothing. */
   selectOrganization(): void {
     this.closeMenu(true);
@@ -247,7 +244,7 @@ export class AppShell {
       this.closeMenu(true);
     } else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
       event.preventDefault();
-      this.focusMenuItem();
+      this.moveMenuFocus(event.key);
     }
   }
 
@@ -321,6 +318,29 @@ export class AppShell {
         { injector: this.injector },
       );
     }
+  }
+
+  /** Roving focus over the open menu's items; wraps at both ends. */
+  private moveMenuFocus(key: string): void {
+    const items = Array.from(
+      this.host.querySelectorAll<HTMLElement>('.shell__menu [role="menuitem"]'),
+    );
+    if (items.length === 0) {
+      return;
+    }
+    const current = items.indexOf(document.activeElement as HTMLElement);
+    const last = items.length - 1;
+    const next =
+      key === 'Home'
+        ? 0
+        : key === 'End'
+          ? last
+          : key === 'ArrowDown'
+            ? (current + 1) % items.length
+            : current <= 0
+              ? last
+              : current - 1;
+    items[next].focus();
   }
 
   private focusMenuItem(): void {

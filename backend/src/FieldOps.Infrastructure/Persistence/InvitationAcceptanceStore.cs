@@ -297,9 +297,15 @@ internal sealed class InvitationAcceptanceStore(FieldOpsDbContext dbContext, Tim
 
         await transaction.CommitAsync(cancellationToken);
 
+        // An existing account may already have a photo (account settings FR-09).
+        var photoUpdatedAt = await dbContext.UserPhotos.AsNoTracking()
+            .Where(photo => photo.UserId == user.Id)
+            .Select(photo => (DateTimeOffset?)photo.UpdatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
         return InvitationResult<AcceptedInvitation>.Ok(new AcceptedInvitation(
             new SessionView(
-                new SessionUser(user.Id, user.FirstName, user.LastName, user.Email),
+                new SessionUser(user.Id, user.FirstName, user.LastName, user.Email, photoUpdatedAt),
                 new SessionOrganization(invitation.OrganizationId, organizationName),
                 new SessionRole(role.Code, role.Name)),
             membership.Id,

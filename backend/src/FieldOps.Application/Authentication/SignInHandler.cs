@@ -94,8 +94,10 @@ public sealed class SignInHandler(
 
         throttle.Reset(email);
 
+        var photoUpdatedAt = await store.FindPhotoUpdatedAtAsync(user.Id, cancellationToken);
+
         var session = new SessionView(
-            new SessionUser(user.Id, user.FirstName, user.LastName, user.Email),
+            new SessionUser(user.Id, user.FirstName, user.LastName, user.Email, photoUpdatedAt),
             new SessionOrganization(membership.OrganizationId, membership.OrganizationName),
             new SessionRole(membership.RoleCode, membership.RoleName));
 

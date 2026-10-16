@@ -28,3 +28,4 @@ export const TECHNICIAN_NAV: readonly TechnicianNavItem[] = [
 
 export const NOTIFICATIONS_LINK = technicianComingSoonPath('notifications');
 export const PROFILE_LINK = '/team';
+export const ACCOUNT_LINK = '/account';

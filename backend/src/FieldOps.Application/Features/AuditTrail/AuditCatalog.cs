@@ -154,6 +154,10 @@ public static class AuditCatalog
         [
             ("auth.signed_in", "Signed in", "user"),
             ("auth.signed_out", "Signed out", "user"),
+            ("auth.password_changed", "Password changed", "user"),
+            ("user.profile_updated", "Profile updated", "user"),
+            ("user.photo_updated", "Profile photo updated", "user"),
+            ("user.photo_removed", "Profile photo removed", "user"),
             ("organization.registered", "Organization registered", "organization"),
             ("organization.settings_updated", "Settings updated", "organization"),
             ("organization.bank_details_updated", "Bank details updated", "organization"),

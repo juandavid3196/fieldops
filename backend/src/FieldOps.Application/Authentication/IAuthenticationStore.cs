@@ -11,6 +11,9 @@ public interface IAuthenticationStore
     /// <summary>Finds a user by normalized email, tracked for update.</summary>
     Task<User?> FindUserByEmailAsync(string normalizedEmail, CancellationToken cancellationToken);
 
+    /// <summary>When the user's profile photo last changed, or null without a photo (account settings FR-09).</summary>
+    Task<DateTimeOffset?> FindPhotoUpdatedAtAsync(Guid userId, CancellationToken cancellationToken);
+
     /// <summary>Every membership of the user, whatever its status.</summary>
     Task<IReadOnlyList<MembershipCandidate>> GetMembershipsAsync(
         Guid userId,

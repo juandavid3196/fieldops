@@ -21,7 +21,13 @@ const API_BASE_URL = 'http://api.test';
 const SIGN_IN_URL = `${API_BASE_URL}/sessions`;
 
 const SESSION: Session = {
-  user: { id: 'u-1', firstName: 'Sofia', lastName: 'Martinez', email: 'sofia@example.com' },
+  user: {
+    id: 'u-1',
+    firstName: 'Sofia',
+    lastName: 'Martinez',
+    email: 'sofia@example.com',
+    photoUpdatedAt: null,
+  },
   organization: { id: 'o-1', name: 'Acme Services' },
   role: { code: 'owner', name: 'Owner' },
 };

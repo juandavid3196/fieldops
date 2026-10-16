@@ -91,7 +91,13 @@ describe('Today', () => {
     });
     httpTesting = TestBed.inject(HttpTestingController);
     TestBed.inject(SessionService).setSession({
-      user: { id: 'u-1', firstName: 'Carlos', lastName: 'Rivera', email: 'c@example.com' },
+      user: {
+        id: 'u-1',
+        firstName: 'Carlos',
+        lastName: 'Rivera',
+        email: 'c@example.com',
+        photoUpdatedAt: null,
+      },
       organization: { id: 'o-1', name: 'Acme' },
       role: { code: roleCode, name: 'Role' },
     });
