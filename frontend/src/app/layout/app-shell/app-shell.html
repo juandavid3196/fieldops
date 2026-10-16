@@ -178,13 +178,15 @@
             <button
               type="button"
               role="menuitem"
-              class="shell__menu-item"
+              class="shell__menu-item shell__menu-item--danger"
               [attr.aria-disabled]="signingOut()"
               (click)="signOut()"
               (keydown)="onMenuKeydown($event)"
             >
               @if (signingOut()) {
                 <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+              } @else {
+                <i class="pi pi-sign-out" aria-hidden="true"></i>
               }
               Sign out
             </button>

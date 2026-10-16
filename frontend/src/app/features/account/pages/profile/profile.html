@@ -44,7 +44,7 @@
         <button
           pButton
           type="button"
-          severity="secondary"
+          class="profile__change-photo"
           [outlined]="true"
           [disabled]="photoBusy()"
           [attr.aria-describedby]="
@@ -60,7 +60,7 @@
             pButton
             type="button"
             severity="secondary"
-            [text]="true"
+            [outlined]="true"
             [disabled]="photoBusy()"
             (click)="removePhoto()"
           >

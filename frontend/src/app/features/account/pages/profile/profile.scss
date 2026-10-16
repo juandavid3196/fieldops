@@ -71,11 +71,6 @@
     align-items: flex-start;
     gap: 0.375rem;
     min-width: 0;
-
-    @include bp.up(md) {
-      align-items: flex-end;
-      text-align: end;
-    }
   }
 
   &__photo-buttons {
@@ -87,6 +82,10 @@
       min-block-size: var(--fo-size-touch-target);
       gap: 0.5rem;
     }
+  }
+
+  &__change-photo {
+    border-color: currentColor;
   }
 
   // Visually hidden native input; the buttons drive it.

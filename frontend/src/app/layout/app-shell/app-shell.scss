@@ -253,6 +253,10 @@
     &:hover {
       background: var(--fo-color-surface-hover);
     }
+
+    &--danger {
+      color: var(--fo-color-danger-solid);
+    }
   }
 
   &__menu-header {
