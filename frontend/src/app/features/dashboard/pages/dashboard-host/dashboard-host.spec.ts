@@ -62,7 +62,13 @@ describe('Dashboard host', () => {
       const httpTesting = TestBed.inject(HttpTestingController);
       TestBed.inject(SessionService).loadCurrent().subscribe();
       httpTesting.expectOne(`${API}/sessions/current`).flush({
-        user: { id: 'u-1', firstName: 'Alex', lastName: 'Morgan', email: 'alex@acme.com' },
+        user: {
+          id: 'u-1',
+          firstName: 'Alex',
+          lastName: 'Morgan',
+          email: 'alex@acme.com',
+          photoUpdatedAt: null,
+        },
         organization: { id: 'o-1', name: 'Acme' },
         role: { code: role, name: role },
       });

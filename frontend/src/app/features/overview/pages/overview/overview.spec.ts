@@ -12,7 +12,13 @@ import { Overview } from './overview';
 const API_BASE_URL = 'http://api.test';
 
 const SESSION: Session = {
-  user: { id: 'u-1', firstName: 'Sofia', lastName: 'Martinez', email: 'sofia@example.com' },
+  user: {
+    id: 'u-1',
+    firstName: 'Sofia',
+    lastName: 'Martinez',
+    email: 'sofia@example.com',
+    photoUpdatedAt: null,
+  },
   organization: { id: 'o-1', name: 'Acme Services' },
   role: { code: 'owner', name: 'Owner' },
 };

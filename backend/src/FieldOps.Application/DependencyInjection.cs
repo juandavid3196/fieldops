@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Account;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Catalog;
@@ -56,6 +57,12 @@ public static class DependencyInjection
         services.AddScoped<GetOrganizationLogoHandler>();
         services.AddScoped<UploadOrganizationLogoHandler>();
         services.AddScoped<RemoveOrganizationLogoHandler>();
+        services.AddScoped<GetAccountProfileHandler>();
+        services.AddScoped<UpdateAccountProfileHandler>();
+        services.AddScoped<GetUserPhotoHandler>();
+        services.AddScoped<UploadUserPhotoHandler>();
+        services.AddScoped<RemoveUserPhotoHandler>();
+        services.AddScoped<ChangePasswordHandler>();
         services.AddScoped<ListCatalogItemsHandler>();
         services.AddScoped<GetCatalogSummaryHandler>();
         services.AddScoped<GetCatalogItemHandler>();

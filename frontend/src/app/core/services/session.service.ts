@@ -29,6 +29,18 @@ export class SessionService {
     );
   }
 
+  /**
+   * Reloads the session without clearing it when the reload fails, for refreshes that must not
+   * sign the user out (profile name and photo). Failures are swallowed; the next request decides.
+   */
+  refreshCurrent(): Observable<void> {
+    return this.http.get<Session>(buildApiUrl(this.config, 'sessions/current')).pipe(
+      tap((session) => this.currentSession.set(session)),
+      map(() => undefined),
+      catchError(() => of(undefined)),
+    );
+  }
+
   /** Signs in with `POST /sessions`; the email is trimmed and lowercased (BR-01). */
   signIn(request: SignInRequest): Observable<Session> {
     const body: SignInRequest = {

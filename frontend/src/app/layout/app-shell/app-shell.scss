@@ -175,18 +175,12 @@
     gap: 0.625rem;
   }
 
-  &__initials {
-    display: inline-flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    inline-size: 2.25rem;
-    block-size: 2.25rem;
-    font-size: 0.8125rem;
-    font-weight: 700;
-    color: var(--fo-color-primary-strong);
-    background: var(--fo-color-primary-soft);
-    border-radius: 50%;
+  &__avatar {
+    --fo-avatar-size: 2.25rem;
+
+    &--large {
+      --fo-avatar-size: 3rem;
+    }
   }
 
   // Below md the name, role and chevron stay out of the layout (the button keeps its name).
@@ -229,7 +223,7 @@
     inset-inline-end: 0;
     inset-block-start: 100%;
     z-index: 30;
-    min-inline-size: 11rem;
+    min-inline-size: 15rem;
     margin-block-start: 0.25rem;
     padding: 0.25rem;
     background: var(--fo-color-surface);
@@ -249,6 +243,7 @@
     font: inherit;
     color: var(--fo-color-text);
     text-align: start;
+    text-decoration: none;
     white-space: nowrap;
     background: transparent;
     border: 0;
@@ -258,6 +253,26 @@
     &:hover {
       background: var(--fo-color-surface-hover);
     }
+  }
+
+  &__menu-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0.75rem 0.75rem;
+  }
+
+  &__menu-identity {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.25;
+  }
+
+  &__menu-separator {
+    block-size: 1px;
+    margin: 0.25rem 0;
+    background: var(--fo-color-border);
   }
 
   &__menu-current {

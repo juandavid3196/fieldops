@@ -3993,6 +3993,50 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.Users.UserPhoto", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<byte[]>("Content")
+                        .IsRequired()
+                        .HasColumnType("bytea")
+                        .HasColumnName("content");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("content_type");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<int>("SizeBytes")
+                        .HasColumnType("integer")
+                        .HasColumnName("size_bytes");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.HasKey("UserId")
+                        .HasName("pk_user_photos");
+
+                    b.ToTable("user_photos", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_user_photos_content_type", "content_type IN ('image/png','image/jpeg')");
+
+                            t.HasCheckConstraint("ck_user_photos_size_bytes", "size_bytes BETWEEN 1 AND 5242880");
+                        });
+                });
+
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.ChecklistTemplate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -6201,6 +6245,16 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("fk_role_permissions_roles_role_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Users.UserPhoto", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_user_photos_users_user_id");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.WorkOrders.ChecklistTemplate", b =>

@@ -15,6 +15,12 @@ internal sealed class AuthenticationStore(FieldOpsDbContext dbContext) : IAuthen
             user => user.Email == normalizedEmail,
             cancellationToken);
 
+    public Task<DateTimeOffset?> FindPhotoUpdatedAtAsync(Guid userId, CancellationToken cancellationToken) =>
+        dbContext.UserPhotos.AsNoTracking()
+            .Where(photo => photo.UserId == userId)
+            .Select(photo => (DateTimeOffset?)photo.UpdatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
     public async Task<IReadOnlyList<MembershipCandidate>> GetMembershipsAsync(
         Guid userId,
         CancellationToken cancellationToken) =>
@@ -63,7 +69,15 @@ internal sealed class AuthenticationStore(FieldOpsDbContext dbContext) : IAuthen
                 && (user.PasswordChangedAt == null || user.PasswordChangedAt <= signedInAt)
                 && organization.IsActive
             select new SessionView(
-                new SessionUser(user.Id, user.FirstName, user.LastName, user.Email),
+                new SessionUser(
+                    user.Id,
+                    user.FirstName,
+                    user.LastName,
+                    user.Email,
+                    dbContext.UserPhotos
+                        .Where(photo => photo.UserId == user.Id)
+                        .Select(photo => (DateTimeOffset?)photo.UpdatedAt)
+                        .FirstOrDefault()),
                 new SessionOrganization(organization.Id, organization.Name),
                 new SessionRole(role.Code, role.Name)))
             .SingleOrDefaultAsync(cancellationToken);

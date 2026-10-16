@@ -33,7 +33,7 @@ describe('Overview route', () => {
     TestBed.inject(HttpTestingController)
       .expectOne('http://api.test/sessions/current')
       .flush({
-        user: { id: 'u-1', firstName: 'A', lastName: 'B', email: 'a@b.com' },
+        user: { id: 'u-1', firstName: 'A', lastName: 'B', email: 'a@b.com', photoUpdatedAt: null },
         organization: { id: 'o-1', name: 'Acme' },
         role: { code: role, name: role },
       });

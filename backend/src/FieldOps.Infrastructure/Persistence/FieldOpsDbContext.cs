@@ -25,6 +25,8 @@ public sealed class FieldOpsDbContext(
 
     public DbSet<User> Users => Set<User>();
 
+    public DbSet<UserPhoto> UserPhotos => Set<UserPhoto>();
+
     public DbSet<Role> Roles => Set<Role>();
 
     public DbSet<Permission> Permissions => Set<Permission>();

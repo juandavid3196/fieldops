@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Account;
 using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.Catalog;
@@ -99,6 +100,8 @@ public static class DependencyInjection
         services.AddScoped<IOrganizationRegistrationStore, OrganizationRegistrationStore>();
         services.AddScoped<IOrganizationSettingsStore, OrganizationSettingsStore>();
         services.AddScoped<IOrganizationLogoStore, OrganizationLogoStore>();
+        services.AddScoped<IAccountStore, AccountStore>();
+        services.AddScoped<IUserPhotoStore, UserPhotoStore>();
         services.AddScoped<IBranchStore, BranchStore>();
         services.AddScoped<ICatalogStore, CatalogStore>();
         services.AddScoped<ICatalogCategoryStore, CatalogCategoryStore>();
@@ -169,6 +172,7 @@ public static class DependencyInjection
 
         // In memory and per process: counters reset on restart.
         services.AddSingleton<ISignInThrottle, InMemorySignInThrottle>();
+        services.AddSingleton<IAccountPasswordThrottle, InMemoryAccountPasswordThrottle>();
         services.AddSingleton<IPasswordResetEmailThrottle, InMemoryPasswordResetEmailThrottle>();
 
         // Bounded in-memory dispatch of reset emails after the response (BR-11).

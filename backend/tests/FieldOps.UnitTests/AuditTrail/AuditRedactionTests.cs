@@ -132,6 +132,9 @@ public sealed class AuditRedactionTests
         public Task<User?> FindUserByEmailAsync(string normalizedEmail, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
+        public Task<DateTimeOffset?> FindPhotoUpdatedAtAsync(Guid userId, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
+
         public Task<IReadOnlyList<MembershipCandidate>> GetMembershipsAsync(Guid userId, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 

@@ -270,7 +270,13 @@ describe('CompanySetup', () => {
     await stable();
 
     httpTesting.expectOne(SESSION_URL).flush({
-      user: { id: 'u-1', firstName: 'Jane', lastName: 'Doe', email: 'owner@acme.com' },
+      user: {
+        id: 'u-1',
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'owner@acme.com',
+        photoUpdatedAt: null,
+      },
       organization: { id: 'o-1', name: 'Acme Renamed' },
       role: { code: 'owner', name: 'Owner' },
     });
@@ -489,7 +495,13 @@ describe('CompanySetup', () => {
     confirmed.flush({ ...SETTINGS_RESPONSE, hasInvoices, currency: 'EUR' });
     await stable();
     httpTesting.expectOne(SESSION_URL).flush({
-      user: { id: 'u-1', firstName: 'Jane', lastName: 'Doe', email: 'owner@acme.com' },
+      user: {
+        id: 'u-1',
+        firstName: 'Jane',
+        lastName: 'Doe',
+        email: 'owner@acme.com',
+        photoUpdatedAt: null,
+      },
       organization: { id: 'o-1', name: 'Acme' },
       role: { code: 'owner', name: 'Owner' },
     });

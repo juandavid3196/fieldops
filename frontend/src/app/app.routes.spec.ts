@@ -14,7 +14,13 @@ const API_BASE_URL = 'http://api.test';
 const SESSION_URL = `${API_BASE_URL}/sessions/current`;
 
 const SESSION: Session = {
-  user: { id: 'u-1', firstName: 'Sofia', lastName: 'Martinez', email: 'sofia@example.com' },
+  user: {
+    id: 'u-1',
+    firstName: 'Sofia',
+    lastName: 'Martinez',
+    email: 'sofia@example.com',
+    photoUpdatedAt: null,
+  },
   organization: { id: 'o-1', name: 'Acme Services' },
   role: { code: 'viewer', name: 'Viewer' },
 };

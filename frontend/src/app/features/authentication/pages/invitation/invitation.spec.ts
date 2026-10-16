@@ -41,7 +41,13 @@ const DETAIL: InvitationDetails = {
 };
 
 const SESSION: Session = {
-  user: { id: 'u-1', firstName: 'Olivia', lastName: 'Carter', email: DETAIL.email },
+  user: {
+    id: 'u-1',
+    firstName: 'Olivia',
+    lastName: 'Carter',
+    email: DETAIL.email,
+    photoUpdatedAt: null,
+  },
   organization: { id: 'o-1', name: 'Acme Services' },
   role: { code: 'dispatcher', name: 'Dispatcher' },
 };

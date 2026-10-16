@@ -1,0 +1,198 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.profile {
+  &__skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__skeleton-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__load-error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+
+    button {
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  // Below md the photo actions stack under the name.
+  &__header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-block-end: 1.25rem;
+    border-block-end: 1px solid var(--fo-color-border);
+
+    @include bp.up(md) {
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+
+  &__avatar {
+    --fo-avatar-size: 5rem;
+  }
+
+  &__identity {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__role {
+    margin: 0.125rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__photo-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.375rem;
+    min-width: 0;
+
+    @include bp.up(md) {
+      align-items: flex-end;
+      text-align: end;
+    }
+  }
+
+  &__photo-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    button {
+      min-block-size: var(--fo-size-touch-target);
+      gap: 0.5rem;
+    }
+  }
+
+  // Visually hidden native input; the buttons drive it.
+  &__file {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    inline-size: 12rem;
+    max-inline-size: 100%;
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding-block-start: 1.25rem;
+  }
+
+  &__alert {
+    display: block;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+
+    & + & {
+      padding-block-start: 1.5rem;
+      border-block-start: 1px solid var(--fo-color-border);
+    }
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+
+    @include bp.up(md) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    min-width: 0;
+
+    input {
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  &__label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__optional {
+    font-weight: 400;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__readonly {
+    background: var(--fo-color-surface-muted);
+  }
+
+  &__helper {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__error {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding-block-start: 1.25rem;
+    border-block-start: 1px solid var(--fo-color-border);
+
+    button {
+      min-block-size: var(--fo-size-touch-target);
+      gap: 0.5rem;
+    }
+  }
+}

@@ -1,0 +1,224 @@
+<p-toast />
+<app-discard-changes-dialog />
+
+@if (loading()) {
+  <div class="profile__skeleton" role="status" aria-busy="true" aria-label="Loading profile">
+    <div class="profile__skeleton-header">
+      <p-skeleton shape="circle" size="5rem" />
+      <p-skeleton width="12rem" height="1.5rem" />
+    </div>
+    <p-skeleton height="2.75rem" />
+    <p-skeleton height="2.75rem" />
+    <p-skeleton height="2.75rem" />
+  </div>
+} @else if (loadFailed()) {
+  <div class="profile__load-error">
+    <p-message severity="error">{{ loadError }}</p-message>
+    <button pButton type="button" severity="secondary" [outlined]="true" (click)="load()">
+      Retry
+    </button>
+  </div>
+} @else {
+  <header class="profile__header">
+    <app-user-avatar
+      class="profile__avatar"
+      [initials]="initials()"
+      [photoUpdatedAt]="photoUpdatedAt()"
+    />
+    <div class="profile__identity">
+      <p class="profile__name">{{ fullName() }}</p>
+      <p class="profile__role">{{ profile()?.role.name }}</p>
+    </div>
+
+    <div class="profile__photo-actions">
+      <input
+        #fileInput
+        type="file"
+        class="profile__file"
+        tabindex="-1"
+        aria-hidden="true"
+        [accept]="photoAccept"
+        (change)="onFileSelected($event)"
+      />
+      <div class="profile__photo-buttons">
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="photoBusy()"
+          [attr.aria-describedby]="
+            photoError() !== null ? 'profile-photo-error' : 'profile-photo-helper'
+          "
+          (click)="fileInput.click()"
+        >
+          <i class="pi pi-upload" aria-hidden="true"></i>
+          Change photo
+        </button>
+        @if (hasPhoto()) {
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            [text]="true"
+            [disabled]="photoBusy()"
+            (click)="removePhoto()"
+          >
+            Remove photo
+          </button>
+        }
+      </div>
+      <p class="profile__helper" id="profile-photo-helper">{{ photoHelper }}</p>
+      @if (uploading()) {
+        <div class="profile__progress" role="status">
+          <p-progressbar
+            [value]="progress() ?? 0"
+            [mode]="progress() === null ? 'indeterminate' : 'determinate'"
+            [showValue]="false"
+            ariaLabel="Uploading photo"
+          />
+          <span class="profile__helper">Uploading…</span>
+        </div>
+      }
+      @if (photoError(); as message) {
+        <p class="profile__error" id="profile-photo-error" role="alert">{{ message }}</p>
+      }
+    </div>
+  </header>
+
+  <form class="profile__form" novalidate [formGroup]="form" (ngSubmit)="save()">
+    @if (saveFailed()) {
+      <p-message class="profile__alert" severity="error">{{ saveErrorText }}</p-message>
+    }
+
+    <section class="profile__section" aria-labelledby="profile-personal">
+      <h2 class="profile__heading" id="profile-personal">Personal information</h2>
+      <div class="profile__grid">
+        <div class="profile__field">
+          <label class="profile__label" for="profile-firstName">First name</label>
+          <input
+            pInputText
+            id="profile-firstName"
+            formControlName="firstName"
+            autocomplete="given-name"
+            fluid
+            [invalid]="fieldErrors().firstName !== undefined"
+            [readonly]="submitting()"
+            [attr.aria-invalid]="fieldErrors().firstName !== undefined ? 'true' : null"
+            [attr.aria-describedby]="
+              fieldErrors().firstName !== undefined ? 'profile-firstName-error' : null
+            "
+          />
+          @if (fieldErrors().firstName; as error) {
+            <p class="profile__error" id="profile-firstName-error">{{ error }}</p>
+          }
+        </div>
+
+        <div class="profile__field">
+          <label class="profile__label" for="profile-lastName">Last name</label>
+          <input
+            pInputText
+            id="profile-lastName"
+            formControlName="lastName"
+            autocomplete="family-name"
+            fluid
+            [invalid]="fieldErrors().lastName !== undefined"
+            [readonly]="submitting()"
+            [attr.aria-invalid]="fieldErrors().lastName !== undefined ? 'true' : null"
+            [attr.aria-describedby]="
+              fieldErrors().lastName !== undefined ? 'profile-lastName-error' : null
+            "
+          />
+          @if (fieldErrors().lastName; as error) {
+            <p class="profile__error" id="profile-lastName-error">{{ error }}</p>
+          }
+        </div>
+
+        <div class="profile__field">
+          <label class="profile__label" for="profile-email">Email address</label>
+          <input
+            pInputText
+            id="profile-email"
+            class="profile__readonly"
+            readonly
+            fluid
+            aria-describedby="profile-email-helper"
+            [value]="profile()?.email ?? ''"
+          />
+          <p class="profile__helper" id="profile-email-helper">
+            Your email address cannot be changed.
+          </p>
+        </div>
+
+        <div class="profile__field">
+          <label class="profile__label" for="profile-phone">
+            Phone number <span class="profile__optional">(optional)</span>
+          </label>
+          <input
+            pInputText
+            id="profile-phone"
+            type="tel"
+            formControlName="phone"
+            autocomplete="tel"
+            placeholder="e.g. +1 555 123 4567"
+            fluid
+            [invalid]="fieldErrors().phone !== undefined"
+            [readonly]="submitting()"
+            [attr.aria-invalid]="fieldErrors().phone !== undefined ? 'true' : null"
+            [attr.aria-describedby]="
+              fieldErrors().phone !== undefined ? 'profile-phone-error' : null
+            "
+          />
+          @if (fieldErrors().phone; as error) {
+            <p class="profile__error" id="profile-phone-error">{{ error }}</p>
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="profile__section" aria-labelledby="profile-membership">
+      <h2 class="profile__heading" id="profile-membership">Membership</h2>
+      <p class="profile__helper" id="profile-membership-note">
+        Your organization and role are managed by an administrator.
+      </p>
+      <div class="profile__grid">
+        <div class="profile__field">
+          <label class="profile__label" for="profile-organization">Organization</label>
+          <input
+            pInputText
+            id="profile-organization"
+            class="profile__readonly"
+            readonly
+            fluid
+            [value]="profile()?.organization.name ?? ''"
+          />
+        </div>
+        <div class="profile__field">
+          <label class="profile__label" for="profile-role">Role</label>
+          <input
+            pInputText
+            id="profile-role"
+            class="profile__readonly"
+            readonly
+            fluid
+            [value]="profile()?.role.name ?? ''"
+          />
+        </div>
+      </div>
+    </section>
+
+    <div class="profile__actions">
+      <button pButton type="submit" [attr.aria-disabled]="submitting()">
+        @if (submitting()) {
+          <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+          Saving…
+        } @else {
+          Save changes
+        }
+      </button>
+      <button pButton type="button" severity="secondary" [outlined]="true" (click)="cancel()">
+        Cancel
+      </button>
+    </div>
+  </form>
+}

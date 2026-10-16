@@ -164,4 +164,26 @@ public sealed class User
         PasswordChangedAt = now;
         UpdatedAt = now;
     }
+
+    /// <summary>
+    /// Replaces the self-service profile fields (account settings BR-01). The
+    /// caller passes trimmed values and a null phone for an empty one.
+    /// </summary>
+    public void UpdateProfile(string firstName, string lastName, string? phone, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(firstName))
+        {
+            throw new ArgumentException("User first name is required.", nameof(firstName));
+        }
+
+        if (string.IsNullOrWhiteSpace(lastName))
+        {
+            throw new ArgumentException("User last name is required.", nameof(lastName));
+        }
+
+        FirstName = firstName;
+        LastName = lastName;
+        Phone = phone;
+        UpdatedAt = now;
+    }
 }

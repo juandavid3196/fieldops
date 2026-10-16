@@ -13,7 +13,13 @@ import { Session } from '../../core/models/session.model';
 const API = 'http://api.test';
 
 const session = (role: string): Session => ({
-  user: { id: 'u-1', firstName: 'Sofia', lastName: 'Martinez', email: 'sofia@example.com' },
+  user: {
+    id: 'u-1',
+    firstName: 'Sofia',
+    lastName: 'Martinez',
+    email: 'sofia@example.com',
+    photoUpdatedAt: null,
+  },
   organization: { id: 'o-1', name: 'Acme Services' },
   role: { code: role, name: role },
 });

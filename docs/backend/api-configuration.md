@@ -74,6 +74,9 @@ variables.
 | `POST /sessions` | All | Sign in (anonymous). `application/json` only, body ≤ 4 KB, rate limited. `200` session body + `Set-Cookie: fieldops_session`, `Cache-Control: no-store`. |
 | `GET /sessions/current` | All | Current session (`[Authorize]`). `200` session body or `401`; both `Cache-Control: no-store`. |
 | `DELETE /sessions/current` | All | Sign out (anonymous). Always `204` with a `Set-Cookie` deleting `fieldops_session`. |
+| `GET`, `PUT /account/profile` | All | Own profile (`[Authorize]`, any role; every `/account/*` response is `Cache-Control: no-store`). `PUT` is `application/json` ≤ 4 KB, `{ firstName, lastName, phone }`; other properties are ignored. `200` `{ firstName, lastName, email, phone, organization: { name }, role: { name }, photo }`. |
+| `GET`, `PUT`, `DELETE /account/photo` | All | Own profile photo (table `user_photos`). `PUT` is `multipart/form-data` field `file`, PNG or JPEG by content, ≤ 5 MB (`400` `errors.file`), body ≤ 6 MB (`413`), `415` otherwise. `GET` serves the stored type with `nosniff`, `default-src 'none'; sandbox` and `inline`; `404` without a photo. `DELETE` is always `204`. |
+| `POST /account/password` | All | Change own password. `application/json` ≤ 4 KB, `{ currentPassword, newPassword }`. `204` + re-issued session cookie (other sessions become invalid); `400` field errors; `429` + `Retry-After` after 5 failed current-password checks per user in a fixed 15-minute window (in memory, per process, not reset by a success). |
 | `POST /invitations/validate` | All | Invitation details for a usable token (anonymous). Body `{ token }`, ≤ 4 KB. `200` `{ organizationName, inviterName, email, firstName, lastName, role: { code, name }, isAllBranches, branches: [{ name }], expiresAt }`. |
 | `POST /invitations/accept` | All | Accept as a new user (anonymous). Body `{ token, firstName, lastName, password }`. `200` session body + `Set-Cookie` for the invited organization. |
 | `POST /invitations/accept-existing` | All | Accept as the signed-in user (`[Authorize]`, email must match). Body `{ token }`. `200` session body + `Set-Cookie` replacing the session. |
@@ -161,7 +164,7 @@ session (`PortalScope`); no portal body or header carries them. Resource ids tra
 emails, passwords, tokens, messages, reasons or addresses. `PortalSession` body:
 `{ user: { firstName, lastName, email }, account: { contactId, customerName, organizationName, hasLogo }, accounts: [{ contactId, customerName, organizationName }] }`.
 
-Session body: `{ user: { id, firstName, lastName, email }, organization: { id, name }, role: { code, name } }`.
+Session body: `{ user: { id, firstName, lastName, email, photoUpdatedAt }, organization: { id, name }, role: { code, name } }`.
 
 Health responses are `application/json` with `Cache-Control: no-store, no-cache`
 and contain only check names, statuses and durations; no descriptions,
