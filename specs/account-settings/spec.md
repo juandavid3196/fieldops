@@ -4,7 +4,7 @@
 | -------- | ------------------ |
 | Feature  | `account-settings` |
 | Type     | Full-stack         |
-| Status   | APPROVED           |
+| Status   | AUDITED            |
 | Created  | 2026-10-16         |
 | Updated  | 2026-10-16         |
 | Approved | 2026-10-16         |
@@ -330,3 +330,5 @@ Parameterized cases count as one method.
 | 2026-10-16 | — → DRAFT     | Created |
 | 2026-10-16 | DRAFT → DRAFT | Fixed validation warnings: W1 exact too-long messages in the profile field table; W2 cookie re-issue failure after commit defined (BR-05, Error behavior, AC-23); W3 AC-11 limited to Cancel and new AC-25 for the discard dialog and sign-out bypass (FR-12 traceability moved to AC-25); W4 audit rows record the client IP (BR-07) |
 | 2026-10-16 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-16 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-16 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |
