@@ -19,6 +19,15 @@ public static class AttentionTypes
     public const string OverCapacity = "over_capacity";
 }
 
+/// <summary>The arrival result of one visit (operations-dashboard BR-09): only <see cref="NotDue"/> is not eligible.</summary>
+public enum ArrivalResult
+{
+    OnTime,
+    Late,
+    NotStarted,
+    NotDue,
+}
+
 /// <summary>Pure calculations of the operations dashboard: no EF, no clock (the caller supplies instants).</summary>
 public static class OperationsDashboardRules
 {
@@ -90,24 +99,37 @@ public static class OperationsDashboardRules
 
         foreach (var visit in visits)
         {
-            var limit = visit.ArrivalWindowEnd ?? visit.ScheduledStart + ArrivalGrace;
-
-            if (visit.ActualStartedAt is { } started)
+            switch (Arrival(visit, reference))
             {
-                eligible++;
-
-                if (started <= limit)
-                {
+                case ArrivalResult.OnTime:
+                    eligible++;
                     onTime++;
-                }
-            }
-            else if ((visit.Status is VisitStatus.Scheduled or VisitStatus.Assigned or VisitStatus.OnTheWay) && limit < reference)
-            {
-                eligible++;
+                    break;
+                case ArrivalResult.Late or ArrivalResult.NotStarted:
+                    eligible++;
+                    break;
             }
         }
 
         return (eligible, onTime);
+    }
+
+    /// <summary>BR-09: the arrival window end, else the scheduled start plus 15 minutes.</summary>
+    public static DateTimeOffset ArrivalLimit(DashboardArrival visit) => visit.ArrivalWindowEnd ?? visit.ScheduledStart + ArrivalGrace;
+
+    /// <summary>BR-09 per visit (also used by the reports workspace): started on time or late, not started past its limit, or not due.</summary>
+    public static ArrivalResult Arrival(DashboardArrival visit, DateTimeOffset reference)
+    {
+        var limit = ArrivalLimit(visit);
+
+        if (visit.ActualStartedAt is { } started)
+        {
+            return started <= limit ? ArrivalResult.OnTime : ArrivalResult.Late;
+        }
+
+        return (visit.Status is VisitStatus.Scheduled or VisitStatus.Assigned or VisitStatus.OnTheWay) && limit < reference
+            ? ArrivalResult.NotStarted
+            : ArrivalResult.NotDue;
     }
 
     /// <summary>Integer percent, rounded half away from zero; null when the total is 0.</summary>

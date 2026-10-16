@@ -1,0 +1,22 @@
+<ul class="summary" aria-label="Summary">
+  @for (card of cards(); track card.key) {
+    <li class="summary__card">
+      <span class="summary__label">{{ card.label }}</span>
+      <strong class="summary__value" [attr.data-tone]="tone(card.key)">{{ card.value }}</strong>
+      @if (card.caption) {
+        <span class="summary__note">{{ card.caption }}</span>
+      }
+      @if (card.delta) {
+        <app-delta-badge [delta]="card.delta" [badWhenUp]="card.badWhenUp" />
+      }
+      @if (card.previousText) {
+        <span class="summary__note">{{ card.previousText }}</span>
+      }
+    </li>
+  }
+</ul>
+@if (otherCurrencyCount(); as count) {
+  <p class="summary__other" role="status">
+    {{ count }} quotes in other currencies are counted but not summed.
+  </p>
+}

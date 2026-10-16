@@ -18,6 +18,11 @@ public static class ExportReportTypes
     public const string BusinessOverview = "business_overview";
 
     public const string CatalogItems = "catalog_items";
+
+    /// <summary>Prefix of the reports workspace export types: <c>report_&lt;reportKey&gt;</c> (reports-workspace BR-16).</summary>
+    public const string ReportPrefix = "report_";
+
+    public static string Report(string reportKey) => ReportPrefix + reportKey;
 }
 
 /// <summary>One <c>export.generated</c> row to insert: the report type, the export's single branch filter and the metadata JSON.</summary>
@@ -40,19 +45,25 @@ public static class ExportAudit
     /// <param name="reportType">One of <see cref="ExportReportTypes"/>.</param>
     /// <param name="filters">Normalized filter values (ids, codes, dates, sort) and <c>hasSearch</c>.</param>
     /// <param name="rowCount">The number of CSV data rows, header excluded.</param>
-    public static string Metadata(string reportType, IReadOnlyDictionary<string, object?> filters, int rowCount) =>
-        JsonSerializer.Serialize(
-            new Dictionary<string, object?>
-            {
-                ["reportType"] = reportType,
-                ["filters"] = filters.ToDictionary(pair => pair.Key, pair => Normalize(pair.Value), StringComparer.Ordinal),
-                ["rowCount"] = rowCount,
-            },
-            JsonOptions);
+    /// <param name="format">The file format (<c>csv</c> or <c>pdf</c>) of a reports workspace export; omitted when null.</param>
+    public static string Metadata(string reportType, IReadOnlyDictionary<string, object?> filters, int rowCount, string? format = null)
+    {
+        var metadata = new Dictionary<string, object?> { ["reportType"] = reportType };
+
+        if (format is not null)
+        {
+            metadata["format"] = format;
+        }
+
+        metadata["filters"] = filters.ToDictionary(pair => pair.Key, pair => Normalize(pair.Value), StringComparer.Ordinal);
+        metadata["rowCount"] = rowCount;
+
+        return JsonSerializer.Serialize(metadata, JsonOptions);
+    }
 
     public static ExportAuditEntry Entry(
-        string reportType, Guid? branchId, IReadOnlyDictionary<string, object?> filters, int rowCount) =>
-        new(reportType, branchId, Metadata(reportType, filters, rowCount));
+        string reportType, Guid? branchId, IReadOnlyDictionary<string, object?> filters, int rowCount, string? format = null) =>
+        new(reportType, branchId, Metadata(reportType, filters, rowCount, format));
 
     private static object? Normalize(object? value) =>
         value switch

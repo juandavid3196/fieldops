@@ -189,6 +189,43 @@ public static class QuotesWorkspaceRules
         _ => "cancelled",
     };
 
+    /// <summary>BR-03 in memory (the workspace derives the same value in SQL): used by the reports workspace.</summary>
+    public static QuoteDisplayStatus Display(QuoteStatus status, int currentVersionNo, DateOnly? shownValidUntil, DateOnly today)
+    {
+        if (status == QuoteStatus.Cancelled)
+        {
+            return QuoteDisplayStatus.Cancelled;
+        }
+
+        if (currentVersionNo == 0)
+        {
+            return QuoteDisplayStatus.Draft;
+        }
+
+        return status switch
+        {
+            QuoteStatus.Approved => QuoteDisplayStatus.Approved,
+            QuoteStatus.Rejected => QuoteDisplayStatus.Rejected,
+            QuoteStatus.Expired => QuoteDisplayStatus.Expired,
+            QuoteStatus.Sent or QuoteStatus.ClarificationRequested =>
+                shownValidUntil is { } validUntil && validUntil < today
+                    ? QuoteDisplayStatus.Expired
+                    : status == QuoteStatus.Sent ? QuoteDisplayStatus.AwaitingResponse : QuoteDisplayStatus.ClarificationRequested,
+            _ => QuoteDisplayStatus.Draft,
+        };
+    }
+
+    public static string StatusLabel(QuoteDisplayStatus status) => status switch
+    {
+        QuoteDisplayStatus.Draft => "Draft",
+        QuoteDisplayStatus.AwaitingResponse => "Awaiting response",
+        QuoteDisplayStatus.ClarificationRequested => "Clarification requested",
+        QuoteDisplayStatus.Expired => "Expired",
+        QuoteDisplayStatus.Approved => "Approved",
+        QuoteDisplayStatus.Rejected => "Rejected",
+        _ => "Cancelled",
+    };
+
     /// <summary>BR-06: a blank status means no filter; a code outside the tab's set is invalid.</summary>
     public static bool TryParseStatus(string? value, QuotesTab tab, out QuoteDisplayStatus? status)
     {

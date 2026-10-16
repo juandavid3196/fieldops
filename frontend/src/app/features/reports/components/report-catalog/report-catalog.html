@@ -1,0 +1,92 @@
+<nav class="catalog" aria-label="Report catalog">
+  <p-iconfield>
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      name="report-search"
+      fluid
+      autocomplete="off"
+      aria-label="Search reports"
+      placeholder="Search reports…"
+      [disabled]="disabled()"
+      [ngModel]="search()"
+      (ngModelChange)="search.set($event)"
+    />
+  </p-iconfield>
+
+  <section class="catalog__section" aria-labelledby="catalog-favorites">
+    <h2 class="catalog__heading" id="catalog-favorites">
+      <i class="pi pi-star" aria-hidden="true"></i>
+      <span class="catalog__title">Favorites</span>
+      <span class="catalog__count">{{ favorites().length }}</span>
+    </h2>
+    <ul class="catalog__list">
+      @for (info of favoriteItems(); track info.key) {
+        <li>
+          <button
+            type="button"
+            class="catalog__item"
+            [disabled]="disabled()"
+            [attr.aria-current]="info.key === active() ? 'true' : null"
+            (click)="selected.emit(info.key)"
+          >
+            {{ info.name }}
+          </button>
+        </li>
+      }
+    </ul>
+  </section>
+
+  @if (recentItems().length > 0) {
+    <section class="catalog__section" aria-labelledby="catalog-recent">
+      <h2 class="catalog__heading" id="catalog-recent">
+        <i class="pi pi-history" aria-hidden="true"></i>
+        <span class="catalog__title">Recently viewed</span>
+      </h2>
+      <ul class="catalog__list">
+        @for (info of recentItems(); track info.key) {
+          <li>
+            <button
+              type="button"
+              class="catalog__item"
+              [disabled]="disabled()"
+              [attr.aria-current]="info.key === active() ? 'true' : null"
+              (click)="selected.emit(info.key)"
+            >
+              {{ info.name }}
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  @for (group of groups(); track group.name) {
+    <section class="catalog__section" [attr.aria-label]="group.name">
+      <h2 class="catalog__heading">
+        <i [class]="'pi ' + groupIcon(group.name)" aria-hidden="true"></i>
+        <span class="catalog__title">{{ group.name }}</span>
+        <span class="catalog__count">{{ group.count }}</span>
+      </h2>
+      <ul class="catalog__list">
+        @for (info of group.items; track info.key) {
+          <li>
+            <button
+              type="button"
+              class="catalog__item"
+              [disabled]="disabled()"
+              [attr.aria-current]="info.key === active() ? 'true' : null"
+              (click)="selected.emit(info.key)"
+            >
+              {{ info.name }}
+            </button>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+  @if (noMatches()) {
+    <p class="catalog__empty" role="status">No reports match your search.</p>
+  }
+</nav>

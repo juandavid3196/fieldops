@@ -155,6 +155,13 @@ describe('app routes', () => {
     },
   );
 
+  it('redirects the retired /coming-soon/reports to the Reports workspace (reports-workspace BR-23, AC-23)', async () => {
+    await navigate('/coming-soon/reports', [true]);
+
+    expect(router.url).toBe('/reports');
+    expect(harness.routeNativeElement?.querySelector('h1')?.textContent?.trim()).toBe('Reports');
+  });
+
   it('redirects an unknown Coming soon slug to Overview (FR-03, AC-03)', async () => {
     await navigate('/coming-soon/unknown-module', [true, true]);
 

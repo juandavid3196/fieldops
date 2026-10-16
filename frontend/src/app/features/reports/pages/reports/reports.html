@@ -1,0 +1,304 @@
+<p-toast />
+<p class="reports__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+<div class="reports">
+  <header class="reports__header">
+    <div>
+      <h1 class="reports__title">Reports</h1>
+      <p class="reports__subtitle">Analyze operations, sales, billing, and team performance.</p>
+    </div>
+    @if (!forbidden()) {
+      <div class="reports__tools">
+        <button
+          type="button"
+          class="reports__refresh"
+          aria-label="Refresh report"
+          [disabled]="controlsDisabled() || store.loading() || store.refreshing()"
+          (click)="store.refresh()"
+        >
+          <span class="reports__updated">{{ agoLabel() }}</span>
+          <i class="pi pi-refresh" [class.pi-spin]="store.refreshing()" aria-hidden="true"></i>
+        </button>
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="!ready()"
+          (click)="historyOpen.set(true)"
+        >
+          <i class="pi pi-clock" aria-hidden="true"></i>
+          Export history
+        </button>
+      </div>
+    }
+  </header>
+
+  @if (forbidden()) {
+    <p class="reports__message" role="alert">{{ forbiddenMessage }}</p>
+  } @else if (store.optionsStatus() === 'error') {
+    <p class="reports__message" role="alert">
+      {{ loadErrorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="store.retry()">
+        Try again
+      </button>
+    </p>
+  } @else if (noBranches()) {
+    <p class="reports__message">{{ noBranchesMessage }}</p>
+  } @else {
+    <section class="reports__bar" aria-label="Period and branch">
+      <div class="reports__field">
+        <span id="reports-range-label">Date range</span>
+        <p-select
+          appendTo="body"
+          fluid
+          optionLabel="name"
+          optionValue="id"
+          ariaLabelledBy="reports-range-label"
+          [options]="rangeChoices"
+          [disabled]="controlsDisabled() || asOfToday()"
+          [ngModel]="draft().range"
+          (onChange)="setRange($event.value)"
+        />
+      </div>
+      @if (draft().range === 'custom' && !asOfToday()) {
+        <div class="reports__dates">
+          <input
+            type="date"
+            class="reports__date"
+            aria-label="From date"
+            [max]="draft().to"
+            [value]="draft().from"
+            (change)="setDate('from', $any($event.target).value)"
+          />
+          <input
+            type="date"
+            class="reports__date"
+            aria-label="To date"
+            [max]="today()"
+            [value]="draft().to"
+            (change)="setDate('to', $any($event.target).value)"
+          />
+        </div>
+      }
+      <div class="reports__field">
+        <span id="reports-branch-label">Branch</span>
+        <p-select
+          appendTo="body"
+          fluid
+          optionLabel="name"
+          optionValue="id"
+          ariaLabelledBy="reports-branch-label"
+          [options]="branchChoices()"
+          [disabled]="controlsDisabled()"
+          [ngModel]="branchValue()"
+          (onChange)="setBranch($event.value)"
+        />
+      </div>
+      <div class="reports__compare">
+        <p-toggleswitch
+          inputId="reports-compare"
+          ariaLabel="Compare to previous period"
+          [disabled]="controlsDisabled() || asOfToday()"
+          [ngModel]="compare()"
+          (onChange)="onCompare($event.checked)"
+        />
+        <div>
+          <label for="reports-compare">Compare to previous period</label>
+          @if (asOfToday()) {
+            <p class="reports__hint">{{ agingNote }}</p>
+          } @else if (previousLabel() !== '') {
+            <p class="reports__hint">{{ previousLabel() }}</p>
+          }
+        </div>
+      </div>
+    </section>
+
+    <div class="reports__layout">
+      @if (wide()) {
+        <aside class="reports__side">
+          <app-report-catalog
+            [reports]="reports()"
+            [active]="route()?.report ?? null"
+            [favorites]="prefs.favorites()"
+            [recent]="prefs.recent()"
+            [disabled]="controlsDisabled()"
+            (selected)="selectReport($event)"
+          />
+        </aside>
+      } @else {
+        <button
+          pButton
+          type="button"
+          class="reports__catalog-button"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="controlsDisabled()"
+          (click)="catalogOpen.set(true)"
+        >
+          <i class="pi pi-list" aria-hidden="true"></i>
+          Reports
+        </button>
+      }
+
+      <div class="reports__main">
+        @if (route(); as current) {
+          @let m = meta()!;
+          <app-report-header
+            [meta]="m"
+            [favorite]="favorite()"
+            [disabled]="controlsDisabled()"
+            [exporting]="exporting()"
+            (favoriteToggled)="toggleFavorite()"
+            (exportRequested)="exportReport($event)"
+          />
+          <app-report-filters
+            [fields]="filterFields()"
+            [values]="draft().filters"
+            [disabled]="controlsDisabled()"
+            (changed)="setFilter($event)"
+            (applied)="apply()"
+            (resetRequested)="reset()"
+          />
+
+          @if (store.refreshFailed()) {
+            <p-message severity="warn" [closable]="false">
+              <span class="reports__inline">
+                {{ refreshErrorMessage }}
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  (click)="store.refresh()"
+                >
+                  Try again
+                </button>
+              </span>
+            </p-message>
+          }
+
+          @if (store.status() === 'error') {
+            <p-message severity="error" [closable]="false">
+              <span class="reports__inline">
+                {{ loadErrorMessage }}
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  (click)="store.retry()"
+                >
+                  Try again
+                </button>
+              </span>
+            </p-message>
+          } @else if (store.data(); as data) {
+            <app-report-summary
+              [metrics]="data.summary"
+              [currency]="data.currency"
+              [compare]="compare()"
+              [percentDecimals]="current.report === 'job_profitability' ? 1 : 0"
+              [otherCurrencyCount]="data.notes.otherCurrencyCount"
+            />
+          } @else {
+            <div class="reports__skeleton-cards" aria-busy="true">
+              @for (n of summarySkeletons; track n) {
+                <p-skeleton height="5.5rem" />
+              }
+            </div>
+          }
+
+          <div class="reports__row">
+            @if (store.data(); as data) {
+              <app-report-chart
+                [title]="m.chartTitle"
+                [chart]="data.chart"
+                [unit]="m.chartUnit"
+                [currency]="data.currency"
+                [noRows]="data.total === 0"
+              />
+            } @else if (store.status() !== 'error') {
+              <p-skeleton height="18rem" />
+            }
+            <app-report-definitions [meta]="m" />
+          </div>
+        } @else {
+          <div class="reports__skeleton-cards" aria-busy="true">
+            @for (n of summarySkeletons; track n) {
+              <p-skeleton height="5.5rem" />
+            }
+          </div>
+          <p-skeleton height="18rem" />
+        }
+      </div>
+    </div>
+
+    @if (route(); as current) {
+      @let m = meta()!;
+      @if (store.data(); as data) {
+        <app-report-table
+          [meta]="m"
+          [rows]="data.items"
+          [totals]="data.totals"
+          [total]="data.total"
+          [page]="current.page"
+          [pageSize]="current.pageSize"
+          [sort]="current.sort"
+          [direction]="current.direction"
+          [timezone]="data.timezone"
+          [currency]="data.currency"
+          [marginTarget]="data.marginTarget"
+          (sortRequested)="sortBy($event)"
+          (pageRequested)="changePage($event)"
+          (pageSizeRequested)="changePageSize($event)"
+          (resetRequested)="reset()"
+        />
+      } @else if (store.status() !== 'error') {
+        <p-skeleton height="16rem" />
+      }
+    }
+  }
+</div>
+
+@if (!forbidden()) {
+  <app-export-history-drawer
+    [open]="historyOpen()"
+    [timezone]="options()?.timezone ?? 'UTC'"
+    [branches]="options()?.branches ?? []"
+    (closed)="historyOpen.set(false)"
+    (reportOpened)="openHistoryReport($event)"
+    (sessionExpired)="onSessionExpired()"
+  />
+  @if (!wide()) {
+    <app-drawer-shell
+      size="min(22rem, 100vw)"
+      [dockable]="false"
+      [open]="catalogOpen()"
+      titleId="reports-catalog-title"
+      (closeRequested)="catalogOpen.set(false)"
+    >
+      <ng-container ngProjectAs="[drawerHeader]">
+        <h2 class="rdrawer__title" id="reports-catalog-title" tabindex="-1">Reports</h2>
+        <span class="rdrawer__spacer"></span>
+        <button
+          type="button"
+          class="rdrawer__close"
+          aria-label="Close report catalog"
+          (click)="catalogOpen.set(false)"
+        >
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </ng-container>
+      <ng-container ngProjectAs="[drawerBody]">
+        <app-report-catalog
+          [reports]="reports()"
+          [active]="route()?.report ?? null"
+          [favorites]="prefs.favorites()"
+          [recent]="prefs.recent()"
+          (selected)="selectReport($event)"
+        />
+      </ng-container>
+    </app-drawer-shell>
+  }
+}

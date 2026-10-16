@@ -2,6 +2,7 @@ using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
 using FieldOps.Application.Features.AuditTrail;
 using FieldOps.Application.Features.Notifications;
+using FieldOps.Application.Features.Reports;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -114,6 +115,8 @@ public static class ApiAuthenticationExtensions
                 policy.Requirements.Add(new MembershipRoleRequirement(NotificationCatalog.InboxRoles.ToArray())))
             .AddPolicy(BusinessOverviewPolicies.Read, policy =>
                 policy.Requirements.Add(new MembershipRoleRequirement("owner")))
+            .AddPolicy(ReportsPolicies.Read, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement(ReportCatalog.ReportRoles)))
             .AddPolicy(BillingReviewPolicies.Act, policy =>
                 policy.Requirements.Add(new MembershipRoleRequirement("owner", "accounting")))
             .AddPolicy(TeamPolicies.View, policy =>

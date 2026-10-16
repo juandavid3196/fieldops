@@ -4,7 +4,7 @@
 | -------- | ------------------- |
 | Feature  | `reports-workspace` |
 | Type     | Full-stack          |
-| Status   | APPROVED            |
+| Status   | AUDITED             |
 | Created  | 2026-10-16          |
 | Updated  | 2026-10-16          |
 | Approved | 2026-10-16          |
@@ -350,3 +350,5 @@ Statuses verified 2026-10-16 from each spec's metadata.
 | 2026-10-16 | DRAFT → DRAFT | Revised after validation: disclaimer verbatim from `business-overview` BR-19 (BR-20); minute-metric comparison as previous-value text (BR-06); invoice aging keeps common `from`/`to`/`compare` validation with no effect on figures (BR-09, API); explicit URL and API defaults (BR-05, BR-07); exact two-block CSV layout with `Section` column (BR-14); join keys in Data impact |
 | 2026-10-16 | DRAFT → DRAFT | Revised after validation: Data impact join keys corrected to the schema (`quotes.request_id`, `quote_responses.quote_version_id` via `quote_versions.quote_id`) and `quotes.customer_id` added; no behavior change |
 | 2026-10-16 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-16 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-16 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

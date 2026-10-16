@@ -125,7 +125,6 @@ describe('AppShell', () => {
     'Team',
     'Products and services',
     'Invoices',
-    'Reports',
   ];
 
   async function openMenuAndSignOut(): Promise<void> {
@@ -162,9 +161,12 @@ describe('AppShell', () => {
       await setup({ ...SESSION, role: { code, name: 'Some role' } });
 
       const first = MANAGE_ROLES.includes(code) ? 'Dashboard' : 'Overview';
-      // audit-trail BR-23/AC-23: "Audit log" follows "Reports" only for these roles.
+      // reports-workspace BR-23/AC-23 and audit-trail BR-23/AC-23: "Reports" and "Audit log" only for these roles.
       const modules = [
         ...MODULE_LABELS.slice(1),
+        ...(['owner', 'operations_manager', 'dispatcher', 'accounting'].includes(code)
+          ? ['Reports']
+          : []),
         ...(['owner', 'operations_manager', 'accounting'].includes(code) ? ['Audit log'] : []),
       ];
       const expected =

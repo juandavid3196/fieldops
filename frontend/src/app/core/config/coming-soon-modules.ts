@@ -12,7 +12,6 @@ export const COMING_SOON_MODULES: Readonly<Record<string, string>> = {
   'invoice-sent': 'Sent',
   'invoice-payments': 'Payments',
   'invoice-overdue': 'Overdue',
-  reports: 'Reports',
   'business-hours': 'Business hours',
   notifications: 'Notifications',
   help: 'Help',

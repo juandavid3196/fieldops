@@ -1,0 +1,84 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.defs {
+  box-sizing: border-box;
+  padding: 1rem;
+  background: color-mix(in srgb, var(--fo-color-action-blue-soft) 55%, var(--fo-color-surface));
+  border: 1px solid color-mix(in srgb, var(--fo-color-action-blue) 14%, var(--fo-color-border));
+  border-radius: var(--fo-radius-card);
+
+  &__title {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0 0 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    color: var(--fo-color-surface);
+    background: var(--fo-color-action-blue);
+    border-radius: 50%;
+
+    i {
+      font-size: 0.625rem;
+      -webkit-text-stroke: 0.5px currentcolor;
+    }
+  }
+
+  &__list {
+    margin: 0;
+
+    dt {
+      margin-block-start: 0.75rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
+    }
+
+    dd {
+      margin: 0.125rem 0 0;
+      font-size: 0.875rem;
+      color: var(--fo-color-text);
+    }
+  }
+
+  &__note {
+    display: flex;
+    gap: 0.625rem;
+    align-items: flex-start;
+    margin: 1rem 0 0;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-action-blue);
+    background: var(--fo-color-action-blue-soft);
+    border-radius: var(--fo-radius-control);
+  }
+}
+
+// From 1280 px the panel fills the chart row and scrolls inside it, so long definitions never
+// push the table down.
+@media (min-width: 80rem) {
+  :host {
+    position: relative;
+  }
+
+  .defs {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--fo-color-border-strong) transparent;
+    scrollbar-width: thin;
+  }
+}

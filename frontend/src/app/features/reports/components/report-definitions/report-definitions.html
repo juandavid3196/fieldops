@@ -1,0 +1,17 @@
+<aside class="defs" aria-labelledby="report-defs-title">
+  <h3 class="defs__title" id="report-defs-title">
+    <span class="defs__icon" aria-hidden="true"><i class="pi pi-info"></i></span> Report definitions
+  </h3>
+  <dl class="defs__list">
+    @for (item of meta().definitions; track item.term) {
+      <dt>{{ item.term }}</dt>
+      <dd>{{ item.text }}</dd>
+    }
+  </dl>
+  @for (note of meta().notes; track note) {
+    <p class="defs__note">
+      <span class="defs__icon" aria-hidden="true"><i class="pi pi-info"></i></span>
+      <span>{{ note }}</span>
+    </p>
+  }
+</aside>
