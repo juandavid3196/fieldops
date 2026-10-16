@@ -19,7 +19,7 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
-import { Subject, Subscription, catchError, of, switchMap } from 'rxjs';
+import { Subject, Subscription, catchError, debounceTime, of, switchMap } from 'rxjs';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -193,6 +193,8 @@ export class NewRequestDrawer {
     });
     this.search
       .pipe(
+        // Focus, dropdown click and reset can fire back to back; keep only the last one.
+        debounceTime(0),
         switchMap((term) => {
           this.searching.set(true);
           return this.requests.customerOptions(term).pipe(
