@@ -1,5 +1,6 @@
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
+using FieldOps.Application.Features.AuditTrail;
 using FieldOps.Application.Features.Notifications;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -107,6 +108,8 @@ public static class ApiAuthenticationExtensions
             .AddPolicy(BillingReviewPolicies.Read, policy =>
                 policy.Requirements.Add(new MembershipRoleRequirement(
                     "owner", "operations_manager", "dispatcher", "accounting", "viewer")))
+            .AddPolicy(AuditLogPolicies.Read, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement(AuditAccess.ReadRoles)))
             .AddPolicy(NotificationInboxPolicies.Inbox, policy =>
                 policy.Requirements.Add(new MembershipRoleRequirement(NotificationCatalog.InboxRoles.ToArray())))
             .AddPolicy(BusinessOverviewPolicies.Read, policy =>

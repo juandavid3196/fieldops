@@ -307,5 +307,8 @@ public class SignInHandlerTests
             Saved.Add((user, auditLog));
             return Task.CompletedTask;
         }
+
+        public Task RecordSignedOutAsync(AuditLog auditLog, CancellationToken cancellationToken) =>
+            throw new NotSupportedException();
     }
 }

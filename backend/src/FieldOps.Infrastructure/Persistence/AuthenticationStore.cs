@@ -79,4 +79,11 @@ internal sealed class AuthenticationStore(FieldOpsDbContext dbContext) : IAuthen
 
         await dbContext.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task RecordSignedOutAsync(AuditLog auditLog, CancellationToken cancellationToken)
+    {
+        dbContext.AuditLogs.Add(auditLog);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
 }

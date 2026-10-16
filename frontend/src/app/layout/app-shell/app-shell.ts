@@ -104,19 +104,21 @@ export class AppShell {
   readonly menuOpen = computed(() => this.openMenu() === 'user');
   readonly orgMenuOpen = computed(() => this.openMenu() === 'org');
 
-  readonly groups = computed(() =>
-    NAV_GROUPS.filter((group) => {
-      const role = this.session()?.role.code ?? '';
-      const manage = canSeeDashboard(role);
-      return (
+  readonly groups = computed(() => {
+    const role = this.session()?.role.code ?? '';
+    const manage = canSeeDashboard(role);
+    return NAV_GROUPS.filter(
+      (group) =>
         (!group.manageOnly || manage) &&
         (!group.hiddenForManage || !manage) &&
         (!group.adminOnly || ADMINISTRATION_ROLE_CODES.includes(role)) &&
         (!group.technicianOnly || role === 'technician') &&
-        (!group.internalOnly || role !== 'technician')
-      );
-    }),
-  );
+        (!group.internalOnly || role !== 'technician'),
+    ).map((group) => ({
+      ...group,
+      items: group.items.filter((item) => item.roles === undefined || item.roles.includes(role)),
+    }));
+  });
   readonly showAdministration = computed(() =>
     this.groups().some((group) => group.adminOnly === true),
   );

@@ -1,0 +1,351 @@
+<p-toast />
+<p class="audit__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+<div class="audit">
+  <header class="audit__header">
+    <div>
+      <h1 class="audit__title">Audit trail</h1>
+      <p class="audit__subtitle">Review who changed what and when across your organization.</p>
+    </div>
+    @if (!forbidden()) {
+      <button
+        pButton
+        type="button"
+        class="audit__export"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="exporting() || controlsDisabled()"
+        [attr.aria-busy]="exporting()"
+        (click)="exportCsv()"
+      >
+        <i
+          class="pi"
+          [class.pi-download]="!exporting()"
+          [class.pi-spin]="exporting()"
+          [class.pi-spinner]="exporting()"
+          aria-hidden="true"
+        ></i>
+        Export CSV
+      </button>
+    }
+  </header>
+
+  @if (forbidden()) {
+    <p class="audit__message" role="alert">{{ forbiddenMessage }}</p>
+  } @else if (options().status === 'error') {
+    <p class="audit__message" role="alert">
+      {{ errorMessage }}
+      <button pButton type="button" severity="secondary" size="small" (click)="retryOptions()">
+        Try again
+      </button>
+    </p>
+  } @else {
+    <section
+      class="audit__cards"
+      aria-label="Summary"
+      [attr.aria-busy]="summary().status === 'loading'"
+    >
+      @if (summary().status === 'error') {
+        <p class="audit__message audit__message--wide" role="alert">
+          {{ errorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retrySummary()">
+            Try again
+          </button>
+        </p>
+      } @else if (summary().data === null) {
+        @for (n of metricSkeletons; track n) {
+          <p-skeleton height="5.75rem" />
+        }
+      } @else {
+        @for (card of cards(); track card.label) {
+          <div class="audit__card audit__card--{{ card.tone }}">
+            <span class="audit__card-icon" aria-hidden="true"
+              ><i class="pi {{ card.icon }}"></i
+            ></span>
+            <dl>
+              <dt>{{ card.label }}</dt>
+              <dd>{{ card.value }}</dd>
+            </dl>
+          </div>
+        }
+      }
+    </section>
+
+    <form
+      class="audit__filters"
+      ngNoForm
+      role="search"
+      aria-label="Filter audit events"
+      (submit)="$event.preventDefault(); apply()"
+    >
+      <div class="audit__field audit__field--search">
+        <p-iconfield>
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="search"
+            name="q"
+            fluid
+            autocomplete="off"
+            maxlength="100"
+            aria-label="Search audit events"
+            placeholder="Search user, entity, reference, or event ID…"
+            [disabled]="controlsDisabled()"
+            [ngModel]="draft().q"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="patchDraft({ q: $event })"
+          />
+        </p-iconfield>
+      </div>
+
+      <fieldset class="audit__field audit__dates" [disabled]="controlsDisabled()">
+        <legend>Date</legend>
+        <input
+          type="date"
+          class="audit__date"
+          aria-label="From date"
+          [value]="fromValue()"
+          (change)="setDraftDay('from', $any($event.target).value)"
+        />
+        <input
+          type="date"
+          class="audit__date"
+          aria-label="To date"
+          [value]="toValue()"
+          (change)="setDraftDay('to', $any($event.target).value)"
+        />
+      </fieldset>
+
+      <div class="audit__field">
+        <span id="audit-user-label">User</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="audit-user-label"
+          optionLabel="label"
+          optionValue="code"
+          [disabled]="controlsDisabled()"
+          [options]="actorChoices()"
+          [ngModel]="draft().actor ?? 'all'"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="setDraftChoice('actor', $event)"
+        />
+      </div>
+      <div class="audit__field">
+        <span id="audit-action-label">Action</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="audit-action-label"
+          optionLabel="label"
+          optionValue="code"
+          [disabled]="controlsDisabled()"
+          [options]="actionChoices()"
+          [ngModel]="draft().action ?? 'all'"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="setDraftChoice('action', $event)"
+        />
+      </div>
+      <div class="audit__field">
+        <span id="audit-entity-label">Entity</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="audit-entity-label"
+          optionLabel="label"
+          optionValue="code"
+          [disabled]="controlsDisabled()"
+          [options]="entityChoices()"
+          [ngModel]="draft().entity ?? 'all'"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="setDraftEntity($event)"
+        />
+      </div>
+      <div class="audit__field">
+        <span id="audit-branch-label">Branch</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="audit-branch-label"
+          optionLabel="label"
+          optionValue="code"
+          [disabled]="controlsDisabled()"
+          [options]="branchChoices()"
+          [ngModel]="draft().branch ?? 'all'"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="setDraftChoice('branch', $event)"
+        />
+      </div>
+      <div class="audit__field">
+        <span id="audit-impact-label">Impact</span>
+        <p-select
+          appendTo="body"
+          fluid
+          ariaLabelledBy="audit-impact-label"
+          optionLabel="label"
+          optionValue="code"
+          [disabled]="controlsDisabled()"
+          [options]="impactOptions"
+          [ngModel]="draft().impact ?? 'all'"
+          [ngModelOptions]="{ standalone: true }"
+          (ngModelChange)="setDraftImpact($event)"
+        />
+      </div>
+      <div class="audit__buttons">
+        <button pButton type="submit" [disabled]="controlsDisabled()">Apply filters</button>
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="controlsDisabled()"
+          (click)="reset()"
+        >
+          Reset
+        </button>
+      </div>
+    </form>
+
+    <div [attr.aria-busy]="list().status === 'loading' || list().status === 'idle'">
+      @if (list().status === 'error') {
+        <p class="audit__message" role="alert">
+          {{ errorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retryList()">
+            Try again
+          </button>
+        </p>
+      } @else if (list().data === null) {
+        <div class="audit__skeletons">
+          @for (n of skeletonRows; track n) {
+            <p-skeleton height="3rem" />
+          }
+        </div>
+      } @else {
+        <p class="audit__count">
+          {{ total() }} events
+          @if (filteredToRecord()) {
+            <span class="audit__muted">· Showing activity for one record</span>
+          }
+        </p>
+        @if (rows().length === 0) {
+          <div class="audit__message audit__message--stack">
+            <strong>{{ emptyMessage }}</strong>
+            <button pButton type="button" severity="secondary" size="small" (click)="reset()">
+              Reset
+            </button>
+          </div>
+        } @else {
+          <div class="audit__table-card">
+            <div class="audit__scroll">
+              <table class="audit__table">
+                <thead>
+                  <tr>
+                    <th scope="col" [attr.aria-sort]="ariaSort('occurredAt')">
+                      <button type="button" class="audit__sort" (click)="sortBy('occurredAt')">
+                        Timestamp
+                        <i
+                          class="pi"
+                          [class.pi-sort-alt]="ariaSort('occurredAt') === 'none'"
+                          [class.pi-arrow-up]="ariaSort('occurredAt') === 'ascending'"
+                          [class.pi-arrow-down]="ariaSort('occurredAt') === 'descending'"
+                          aria-hidden="true"
+                        ></i>
+                      </button>
+                    </th>
+                    <th scope="col">User</th>
+                    <th scope="col">Action</th>
+                    <th scope="col">Entity</th>
+                    <th scope="col">Reference</th>
+                    <th scope="col">Summary</th>
+                    <th scope="col">Branch</th>
+                    <th scope="col">Source / IP</th>
+                    <th scope="col" [attr.aria-sort]="ariaSort('impact')">
+                      <button type="button" class="audit__sort" (click)="sortBy('impact')">
+                        Impact
+                        <i
+                          class="pi"
+                          [class.pi-sort-alt]="ariaSort('impact') === 'none'"
+                          [class.pi-arrow-up]="ariaSort('impact') === 'ascending'"
+                          [class.pi-arrow-down]="ariaSort('impact') === 'descending'"
+                          aria-hidden="true"
+                        ></i>
+                      </button>
+                    </th>
+                    <th scope="col">Details</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of rows(); track row.item.id) {
+                    <tr>
+                      <td class="audit__nowrap">
+                        <time [attr.datetime]="row.item.occurredAt">
+                          <span class="audit__line">{{ row.date }}</span>
+                          <span class="audit__line">{{ row.time }}</span>
+                        </time>
+                      </td>
+                      <td>{{ row.item.actor.name }}</td>
+                      <td>
+                        <span class="audit__tag">{{ row.item.action.label }}</span>
+                      </td>
+                      <td>{{ row.item.entity.label }}</td>
+                      <td class="audit__nowrap">{{ row.item.reference }}</td>
+                      <td class="audit__summary">{{ row.item.summary }}</td>
+                      <td class="audit__nowrap">{{ row.branch }}</td>
+                      <td class="audit__nowrap">{{ row.sourceIp }}</td>
+                      <td>
+                        <span class="audit__impact audit__impact--{{ row.item.impact }}">
+                          {{ row.impactLabel }}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          class="audit__view"
+                          [attr.aria-label]="'View ' + row.item.eventId"
+                          (click)="openEvent(row.item)"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <div class="audit__footer">
+              <p class="audit__range">{{ footer() }}</p>
+              <div class="audit__paging">
+                <p-paginator
+                  class="audit__pager"
+                  [first]="(view().page - 1) * view().pageSize"
+                  [rows]="view().pageSize"
+                  [totalRecords]="total()"
+                  [pageLinkSize]="3"
+                  [showFirstLastIcon]="false"
+                  (onPageChange)="changePage($event)"
+                />
+                <p-select
+                  appendTo="body"
+                  ariaLabel="Rows per page"
+                  optionLabel="label"
+                  optionValue="code"
+                  [options]="pageSizeOptions"
+                  [ngModel]="pageSizeCode()"
+                  (ngModelChange)="changePageSize($event)"
+                />
+              </div>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>
+
+<app-audit-event-drawer
+  [eventId]="selectedId()"
+  (closed)="closeEvent()"
+  (relatedRequested)="showRelated($event)"
+  (forbidden)="onForbidden()"
+  (sessionExpired)="onSessionExpired()"
+/>

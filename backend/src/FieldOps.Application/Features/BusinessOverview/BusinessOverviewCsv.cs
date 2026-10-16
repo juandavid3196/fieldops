@@ -92,7 +92,7 @@ public static class BusinessOverviewCsv
         var fileName = string.Create(
             CultureInfo.InvariantCulture, $"business-overview-{view.From:yyyy-MM-dd}-to-{view.To:yyyy-MM-dd}.csv");
 
-        return new BusinessExportFile(CsvCell.Document(rows), fileName);
+        return new BusinessExportFile(CsvCell.Document(rows), fileName, rows.Count - 1);
     }
 
     private static string Money(decimal value) => BusinessOverviewRules.Money(value);

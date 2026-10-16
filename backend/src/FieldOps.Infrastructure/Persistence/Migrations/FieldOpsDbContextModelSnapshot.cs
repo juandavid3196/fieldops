@@ -1789,6 +1789,10 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .IsDescending(false, false, true)
                         .HasDatabaseName("ix_audit_actor");
 
+                    b.HasIndex("OrganizationId", "OccurredAt", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("ix_audit_org_occurred");
+
                     b.HasIndex("OrganizationId", "EntityType", "EntityId", "OccurredAt")
                         .IsDescending(false, false, false, true)
                         .HasDatabaseName("ix_audit_entity");

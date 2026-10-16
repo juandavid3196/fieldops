@@ -8,6 +8,7 @@ using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
+using FieldOps.Application.Features.AuditTrail;
 using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.BusinessOverview;
@@ -39,6 +40,7 @@ public static class DependencyInjection
             ServiceLifetime.Singleton);
 
         services.AddScoped<SignInHandler>();
+        services.AddScoped<SignOutHandler>();
         services.AddScoped<GetCurrentSessionHandler>();
         services.AddScoped<RegisterOrganizationHandler>();
         services.AddScoped<GetOrganizationSettingsHandler>();
@@ -197,6 +199,11 @@ public static class DependencyInjection
         services.AddScoped<GetNotificationsOptionsHandler>();
         services.AddScoped<MarkNotificationReadHandler>();
         services.AddScoped<ReadAllNotificationsHandler>();
+        services.AddScoped<ListAuditLogHandler>();
+        services.AddScoped<GetAuditSummaryHandler>();
+        services.AddScoped<GetAuditFiltersHandler>();
+        services.AddScoped<GetAuditEventHandler>();
+        services.AddScoped<ExportAuditLogHandler>();
         services.AddScoped<GetBusinessOptionsHandler>();
         services.AddScoped<GetBusinessOverviewHandler>();
         services.AddScoped<ExportBusinessOverviewHandler>();

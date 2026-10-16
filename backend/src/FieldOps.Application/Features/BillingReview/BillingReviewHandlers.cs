@@ -1,5 +1,6 @@
 using System.Globalization;
 using FieldOps.Application.Features.Access;
+using FieldOps.Application.Features.AuditTrail;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.TechnicianVisits;
 
@@ -126,7 +127,8 @@ public sealed class GetBillingQueueHandler(IBillingReviewStore store, IBranchSco
 }
 
 /// <summary>Exports the filtered queue as CSV (BR-21): the filters and tab of the queue without paging.</summary>
-public sealed class ExportBillingQueueHandler(IBillingReviewStore store, IBranchScopeResolver scopes, TimeProvider timeProvider)
+public sealed class ExportBillingQueueHandler(
+    IBillingReviewStore store, IBranchScopeResolver scopes, IExportAuditWriter audit, TimeProvider timeProvider)
 {
     private static readonly string[] Header =
     [
@@ -151,7 +153,28 @@ public sealed class ExportBillingQueueHandler(IBillingReviewStore store, IBranch
         switch (await store.ExportAsync(call.OrganizationId, scope, query.Value, timeProvider.GetUtcNow(), cancellationToken))
         {
             case BillingOutcome<BillingExport>.Succeeded export:
-                return new BillingOutcome<BillingCsvFile>.Succeeded(Compose(export.Value));
+                var file = Compose(export.Value);
+                var filters = query.Value;
+
+                // audit-trail BR-16: after the CSV is built, before it is returned; a failed insert is a 500 with no file.
+                await audit.RecordAsync(
+                    call,
+                    ExportAudit.Entry(
+                        ExportReportTypes.BillingReview,
+                        filters.BranchId,
+                        new Dictionary<string, object?>(StringComparer.Ordinal)
+                        {
+                            ["completed"] = filters.Completed,
+                            ["technicianId"] = filters.TechnicianId,
+                            ["variance"] = filters.Variance,
+                            ["tab"] = filters.Tab,
+                            ["branchId"] = filters.BranchId,
+                            ["hasSearch"] = !string.IsNullOrWhiteSpace(filters.Search),
+                        },
+                        export.Value.Rows.Count),
+                    cancellationToken);
+
+                return new BillingOutcome<BillingCsvFile>.Succeeded(file);
             case BillingOutcome<BillingExport>.Invalid invalid:
                 return new BillingOutcome<BillingCsvFile>.Invalid(invalid.Errors);
             case BillingOutcome<BillingExport>.Conflict conflict:

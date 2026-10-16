@@ -109,7 +109,7 @@ public sealed record BusinessOverviewView(
     TeamCapacityView Team,
     IReadOnlyList<OwnerAlertView> Alerts);
 
-public sealed record BusinessExportFile(byte[] Content, string FileName);
+public sealed record BusinessExportFile(byte[] Content, string FileName, int RowCount);
 
 /// <summary>The organization settings every period and money figure depends on.</summary>
 public sealed record BusinessOrganization(string Timezone, string Currency);

@@ -1,3 +1,4 @@
+using FieldOps.Application.Features.AuditTrail;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.ServiceRequests;
 
@@ -107,7 +108,7 @@ public sealed class GetBusinessOverviewHandler(IBusinessOverviewStore store, Tim
     }
 }
 
-public sealed class ExportBusinessOverviewHandler(IBusinessOverviewStore store, TimeProvider timeProvider)
+public sealed class ExportBusinessOverviewHandler(IBusinessOverviewStore store, IExportAuditWriter audit, TimeProvider timeProvider)
 {
     public async Task<BillingOutcome<BusinessExportFile>> HandleAsync(
         MembershipCall call, BusinessOverviewQueryText text, CancellationToken cancellationToken)
@@ -119,7 +120,27 @@ public sealed class ExportBusinessOverviewHandler(IBusinessOverviewStore store, 
         {
             var view = await BusinessOverviewSupport.BuildAsync(store, call, ok.Value.Query, ok.Value.Organization, now, cancellationToken);
 
-            return new BillingOutcome<BusinessExportFile>.Succeeded(BusinessOverviewCsv.Build(view, ok.Value.Request.Compare));
+            var file = BusinessOverviewCsv.Build(view, ok.Value.Request.Compare);
+            var request = ok.Value.Request;
+
+            // audit-trail BR-16: after the CSV is built, before it is returned; a failed insert is a 500 with no file.
+            await audit.RecordAsync(
+                call,
+                ExportAudit.Entry(
+                    ExportReportTypes.BusinessOverview,
+                    request.BranchId,
+                    new Dictionary<string, object?>(StringComparer.Ordinal)
+                    {
+                        ["from"] = request.From,
+                        ["to"] = request.To,
+                        ["branchId"] = request.BranchId,
+                        ["compare"] = request.Compare,
+                        ["hasSearch"] = false,
+                    },
+                    file.RowCount),
+                cancellationToken);
+
+            return new BillingOutcome<BusinessExportFile>.Succeeded(file);
         }
 
         return prepared is BillingOutcome<BusinessPrepared>.Invalid invalid

@@ -27,6 +27,7 @@ namespace FieldOps.Api.Controllers;
 [Route("sessions")]
 public sealed class SessionsController(
     SignInHandler signInHandler,
+    SignOutHandler signOutHandler,
     ILogger<SessionsController> logger) : ControllerBase
 {
     public const int MaxRequestBodyBytes = 4 * 1024;
@@ -120,8 +121,20 @@ public sealed class SessionsController(
     [HttpDelete("current")]
     [AllowAnonymous]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> DeleteCurrentSession()
+    public async Task<IActionResult> DeleteCurrentSession(CancellationToken cancellationToken)
     {
+        // audit-trail BR-18: only a valid session writes auth.signed_out; the sign-out never depends on it.
+        if (SessionCookieEvents.GetValidatedSession(HttpContext) is not null
+            && SessionClaims.TryRead(User, out var ticket))
+        {
+            await signOutHandler.HandleAsync(
+                ticket.UserId,
+                ticket.OrganizationId,
+                GetClientIpAddress(),
+                exceptionType => logger.LogWarning("Sign-out audit failed: {ExceptionType}", exceptionType),
+                cancellationToken);
+        }
+
         await HttpContext.SignOutAsync(SessionCookie.Scheme);
 
         return NoContent();

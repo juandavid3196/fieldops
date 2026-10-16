@@ -162,10 +162,15 @@ describe('AppShell', () => {
       await setup({ ...SESSION, role: { code, name: 'Some role' } });
 
       const first = MANAGE_ROLES.includes(code) ? 'Dashboard' : 'Overview';
+      // audit-trail BR-23/AC-23: "Audit log" follows "Reports" only for these roles.
+      const modules = [
+        ...MODULE_LABELS.slice(1),
+        ...(['owner', 'operations_manager', 'accounting'].includes(code) ? ['Audit log'] : []),
+      ];
       const expected =
         code === 'technician'
-          ? [first, "Today's jobs", ...MODULE_LABELS.slice(1)]
-          : [first, ...MODULE_LABELS.slice(1), 'Notifications'];
+          ? [first, "Today's jobs", ...modules]
+          : [first, ...modules, 'Notifications'];
       expect(linkLabels()).toEqual(
         canSeeAdministration ? [...expected, 'Administration'] : expected,
       );

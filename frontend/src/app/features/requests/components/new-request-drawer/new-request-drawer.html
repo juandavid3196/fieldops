@@ -34,7 +34,7 @@
             optionLabel="displayName"
             placeholder="Search customers"
             emptyMessage="No customers found."
-            [showEmptyMessage]="true"
+            [showEmptyMessage]="!searching()"
             [dropdown]="true"
             [completeOnFocus]="true"
             [suggestions]="suggestions()"

@@ -13,6 +13,8 @@ export interface NavItem {
    * is current only when its path equals the link and the query matches them exactly.
    */
   readonly queryParams?: Readonly<Record<string, string>>;
+  /** audit-trail BR-23: shown only to these role codes (UX only; the backend decides). */
+  readonly roles?: readonly string[];
   /** Sub-items rendered as an expandable group under this item (sidebar only). */
   readonly children?: readonly NavItem[];
 }
@@ -35,6 +37,13 @@ export interface NavGroup {
   /** operations-dashboard BR-01: hidden for the Manage roles, who get the Dashboard instead. */
   readonly hiddenForManage?: boolean;
 }
+
+/** audit-trail BR-23: roles that see the Audit log item. */
+export const AUDIT_LOG_ROLE_CODES: readonly string[] = [
+  'owner',
+  'operations_manager',
+  'accounting',
+];
 
 function moduleItem(label: string, icon: string, slug: string): NavItem {
   return { label, icon, link: comingSoonPath(slug), exact: false };
@@ -134,6 +143,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         ],
       },
       moduleItem('Reports', 'pi-chart-bar', 'reports'),
+      {
+        label: 'Audit log',
+        icon: 'pi-history',
+        link: '/audit-log',
+        exact: false,
+        roles: AUDIT_LOG_ROLE_CODES,
+      },
     ],
   },
   {

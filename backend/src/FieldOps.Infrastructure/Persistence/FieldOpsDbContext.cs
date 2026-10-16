@@ -163,6 +163,14 @@ public sealed class FieldOpsDbContext(
     public static string? PayloadText(string payload, string key) =>
         throw new NotSupportedException("Only translatable to SQL.");
 
+    /// <summary>
+    /// The text of an inet address without its netmask (<c>host</c>), so the audit trail searches the IP address text in SQL.
+    /// A built-in function: it creates nothing in the schema.
+    /// </summary>
+    [DbFunction("host", IsBuiltIn = true)]
+    public static string? HostText(System.Net.IPAddress? address) =>
+        throw new NotSupportedException("Only translatable to SQL.");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Declares the enums with labels in enum declaration order.
