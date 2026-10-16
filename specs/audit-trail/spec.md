@@ -4,9 +4,9 @@
 | -------- | ------------- |
 | Feature  | `audit-trail` |
 | Type     | Full-stack    |
-| Status   | APPROVED      |
+| Status   | AUDITED       |
 | Created  | 2026-10-15    |
-| Updated  | 2026-10-15    |
+| Updated  | 2026-10-16    |
 | Approved | 2026-10-15    |
 
 ## Context and objective

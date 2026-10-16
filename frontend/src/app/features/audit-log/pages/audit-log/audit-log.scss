@@ -46,8 +46,13 @@
 
   &__export {
     min-block-size: var(--fo-size-touch-target);
-    --p-button-outlined-secondary-color: var(--fo-color-primary-strong);
-    --p-button-outlined-secondary-border-color: var(--fo-color-primary);
+    --p-button-outlined-secondary-color: var(--fo-color-link);
+    --p-button-outlined-secondary-border-color: var(--fo-color-link);
+    --p-button-outlined-secondary-hover-background: color-mix(
+      in srgb,
+      var(--fo-color-link) 8%,
+      transparent
+    );
   }
 
   // Metric cards: 4 columns, then 2, then 1 below 480px.
@@ -67,12 +72,20 @@
   }
 
   &__card {
+    --card-bg: var(--fo-color-info-background);
+    --card-border: var(--fo-color-info-border);
+    --card-chip: light-dark(#d6e8fb, rgb(37 99 235 / 30%));
+    --card-icon: light-dark(#1769e0, #7db3f5);
+    --card-text: light-dark(#14235f, #dbe4ff);
+
     display: flex;
-    gap: 0.75rem;
+    gap: 1rem;
     align-items: center;
+    box-sizing: border-box;
+    min-block-size: 5.75rem;
     padding: 0.75rem 1rem;
-    background: var(--fo-color-surface);
-    border: 1px solid var(--fo-color-border);
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
     border-radius: var(--fo-radius-card);
 
     dl {
@@ -80,35 +93,37 @@
     }
 
     dt {
-      font-size: 0.8125rem;
-      color: var(--fo-color-text-secondary);
+      font-size: 1rem;
+      color: var(--card-text);
     }
 
     dd {
       margin: 0;
-      font-size: 1.5rem;
+      font-size: 2rem;
       font-weight: 700;
-      line-height: 1.3;
-      color: var(--fo-color-heading);
-    }
-
-    &--info {
-      background: var(--fo-color-info-background);
-      border-color: var(--fo-color-info-border);
+      line-height: 1.15;
+      color: var(--card-text);
     }
 
     &--success {
-      background: var(--fo-color-success-background);
+      --card-bg: light-dark(#e9f8f3, rgb(15 118 110 / 20%));
+      --card-border: light-dark(#bfe6da, rgb(94 205 180 / 35%));
+      --card-chip: light-dark(#c4ebe0, rgb(15 118 110 / 35%));
+      --card-icon: light-dark(#0f766e, #5ecdb4);
     }
 
     &--warning {
-      background: var(--fo-color-warning-background);
-      border-color: var(--fo-color-warning-border);
+      --card-bg: light-dark(#fff3e8, rgb(234 108 8 / 18%));
+      --card-border: light-dark(#fbd5b0, rgb(248 170 104 / 35%));
+      --card-chip: light-dark(#fddcbb, rgb(234 108 8 / 32%));
+      --card-icon: light-dark(#ea6c08, #f8aa68);
     }
 
     &--danger {
-      background: var(--fo-color-danger-background);
-      border-color: var(--fo-color-danger-border);
+      --card-bg: light-dark(#fff0f0, rgb(220 38 38 / 18%));
+      --card-border: light-dark(#fbcaca, rgb(248 130 130 / 35%));
+      --card-chip: light-dark(#fccfcf, rgb(220 38 38 / 32%));
+      --card-icon: light-dark(#dc2626, #f88282);
     }
   }
 
@@ -116,27 +131,15 @@
     display: grid;
     flex: none;
     place-items: center;
-    inline-size: 2.5rem;
-    block-size: 2.5rem;
-    font-size: 1.25rem;
-    background: var(--fo-color-surface);
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    color: var(--card-icon);
+    background: var(--card-chip);
     border-radius: 50%;
-  }
 
-  &__card--info &__card-icon {
-    color: var(--fo-color-info-text);
-  }
-
-  &__card--success &__card-icon {
-    color: var(--fo-color-success-text);
-  }
-
-  &__card--warning &__card-icon {
-    color: var(--fo-color-warning-text);
-  }
-
-  &__card--danger &__card-icon {
-    color: var(--fo-color-danger-text);
+    i {
+      font-size: 1.75rem;
+    }
   }
 
   // Filters wrap below 1024px.
@@ -169,8 +172,19 @@
       color: var(--fo-color-text-secondary);
     }
 
+    p-select,
+    input[pInputText] {
+      min-block-size: var(--fo-size-touch-target);
+    }
+
     &--search {
       flex: 1 1 100%;
+      --p-iconfield-icon-color: light-dark(#14235f, #dbe4ff);
+
+      p-inputicon {
+        color: light-dark(#14235f, #dbe4ff);
+        -webkit-text-stroke: 0.6px currentcolor;
+      }
     }
   }
 
@@ -201,6 +215,14 @@
   }
 
   &__buttons {
+    --p-button-outlined-secondary-color: var(--fo-color-link);
+    --p-button-outlined-secondary-border-color: var(--fo-color-link);
+    --p-button-outlined-secondary-hover-background: color-mix(
+      in srgb,
+      var(--fo-color-link) 8%,
+      transparent
+    );
+
     display: flex;
     flex: 1 1 100%;
     gap: 0.5rem;
@@ -262,15 +284,20 @@
 
   // The table scrolls horizontally inside its card; the page itself never does.
   &__table-card {
-    overflow-x: auto;
+    overflow: hidden;
     background: var(--fo-color-surface);
     border: 1px solid var(--fo-color-border);
     border-radius: var(--fo-radius-card);
   }
 
+  &__scroll {
+    overflow-x: auto;
+  }
+
   &__table {
     inline-size: 100%;
     min-inline-size: 70rem;
+    overflow-wrap: normal;
     border-collapse: collapse;
 
     th {
@@ -334,7 +361,7 @@
 
   &__tag {
     display: inline-block;
-    padding: 0.125rem 0.625rem;
+    padding: 0.3125rem 0.75rem;
     font-size: 0.8125rem;
     font-weight: 600;
     color: var(--fo-color-info-text);
@@ -344,9 +371,10 @@
 
   &__impact {
     display: inline-flex;
+    white-space: nowrap;
     gap: 0.25rem;
     align-items: center;
-    padding: 0.125rem 0.625rem;
+    padding: 0.3125rem 0.75rem;
     font-size: 0.8125rem;
     font-weight: 600;
     border-radius: 999px;
@@ -369,9 +397,10 @@
 
   &__view {
     min-block-size: 2rem;
+    white-space: nowrap;
     padding: 0 0.5rem;
     font: inherit;
-    color: var(--fo-color-primary-strong);
+    color: var(--fo-color-link);
     background: none;
     border: 0;
     border-radius: var(--fo-radius-control);
@@ -393,6 +422,8 @@
     gap: 0.75rem;
     align-items: center;
     justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-block-start: 1px solid var(--fo-color-border);
   }
 
   &__range {

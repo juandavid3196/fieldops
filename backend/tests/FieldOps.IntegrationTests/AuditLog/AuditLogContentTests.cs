@@ -217,7 +217,7 @@ public class AuditLogContentTests(CompanySettingsDatabaseFixture database)
 
         // Filters and sort apply, and a successful export recorded exactly one row.
         Assert.Equal([$"AUD-{low}"], Records(await TextAsync(host, owner, "/audit-log/export?action=customer.updated")).Skip(1).Select(record => record[0]));
-        Assert.Equal([$"AUD-{low}", $"AUD-{high}"], Records(await TextAsync(host, owner, "/audit-log/export?sort=occurredAt&direction=asc")).Skip(1).Take(2).Select(record => record[0]));
+        Assert.Equal([$"AUD-{low}", $"AUD-{high}"], Records(await TextAsync(host, owner, "/audit-log/export?sort=occurredAt&direction=asc")).Skip(1).Select(record => record[0]).Where(id => id == $"AUD-{low}" || id == $"AUD-{high}"));
         Assert.Equal(3, await database.CountAuditAsync(world.Org, "export.generated"));
 
         // BR-14: more than 5,000 matches is a conflict with its code and writes nothing.

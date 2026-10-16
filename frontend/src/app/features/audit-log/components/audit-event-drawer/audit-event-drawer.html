@@ -84,7 +84,7 @@
             </dl>
 
             @if (v.detail.changes.length > 0) {
-              <section aria-labelledby="audit-drawer-changes">
+              <section class="audit-drawer__panel" aria-labelledby="audit-drawer-changes">
                 <h3 class="audit-drawer__heading" id="audit-drawer-changes">Change summary</h3>
                 <div class="audit-drawer__scroll">
                   <table class="audit-drawer__table">
@@ -109,7 +109,7 @@
               </section>
             }
 
-            <section aria-labelledby="audit-drawer-metadata">
+            <section class="audit-drawer__panel" aria-labelledby="audit-drawer-metadata">
               <h3 class="audit-drawer__heading" id="audit-drawer-metadata">Metadata</h3>
               <dl class="audit-drawer__metadata">
                 @for (item of v.detail.metadata; track item.key) {
