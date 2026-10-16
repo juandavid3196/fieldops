@@ -1,0 +1,68 @@
+<section class="chart" aria-labelledby="report-chart-title">
+  <div class="chart__head">
+    <h3 class="chart__title" id="report-chart-title">{{ title() }}</h3>
+    @if (!empty() && model().legend.length > 0) {
+      <ul class="chart__legend">
+        @for (item of model().legend; track item.label) {
+          <li>
+            <span class="chart__swatch" [attr.data-tone]="item.tone" aria-hidden="true"></span
+            >{{ item.label }}
+          </li>
+        }
+      </ul>
+    }
+  </div>
+  @if (empty()) {
+    <p class="chart__empty">{{ emptyMessage }}</p>
+  } @else {
+    <div
+      class="chart__plot"
+      [class.chart__plot--horizontal]="model().horizontal"
+      [class.chart__plot--stacked]="model().stacked"
+      aria-hidden="true"
+    >
+      @for (group of model().groups; track $index) {
+        <div class="chart__group">
+          <span class="chart__label">{{ group.label }}</span>
+          <div class="chart__bars">
+            @for (bar of group.bars; track bar.key) {
+              <div
+                class="chart__bar"
+                [style.--share]="bar.percent"
+                [attr.title]="bar.label + ': ' + bar.text"
+              >
+                <span class="chart__fill" [attr.data-tone]="bar.tone"></span>
+                <span class="chart__value">{{ bar.text }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    <table class="chart__sr">
+      <caption>
+        {{
+          title()
+        }}
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Group</th>
+          @for (bar of model().groups[0].bars; track bar.key) {
+            <th scope="col">{{ bar.label }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (group of model().groups; track $index) {
+          <tr>
+            <th scope="row">{{ group.label }}</th>
+            @for (bar of group.bars; track bar.key) {
+              <td>{{ bar.text }}</td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

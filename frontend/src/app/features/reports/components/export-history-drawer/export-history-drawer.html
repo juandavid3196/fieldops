@@ -1,0 +1,69 @@
+<app-drawer-shell
+  size="min(25rem, 100vw)"
+  [dockable]="false"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="closed.emit()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="hist__title" [id]="titleId" tabindex="-1">Export history</h2>
+    <span class="hist__spacer"></span>
+    <button
+      type="button"
+      class="hist__close"
+      aria-label="Close export history"
+      (click)="closed.emit()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    <p class="hist__note">Files aren't stored. Open a report to export it again.</p>
+    @switch (state().status) {
+      @case ('error') {
+        <p class="hist__message" role="alert">
+          {{ errorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+            Try again
+          </button>
+        </p>
+      }
+      @case ('ready') {
+        @if (rows().length === 0) {
+          <p class="hist__message">{{ emptyMessage }}</p>
+        } @else {
+          <ul class="hist__list">
+            @for (row of rows(); track row.item.id) {
+              <li class="hist__item">
+                <p class="hist__name">{{ row.item.reportName }}</p>
+                <p class="hist__meta">
+                  {{ row.when }} · {{ row.format }} · {{ row.item.rowCount }} rows
+                </p>
+                <p class="hist__meta">{{ row.period }} · {{ row.branch }}</p>
+                <button
+                  pButton
+                  type="button"
+                  severity="secondary"
+                  size="small"
+                  [outlined]="true"
+                  [attr.aria-label]="'Open report ' + row.item.reportName"
+                  (click)="reportOpened.emit(row.item)"
+                >
+                  Open report
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      }
+      @default {
+        <div class="hist__skeletons" aria-busy="true">
+          @for (n of skeletons; track n) {
+            <p-skeleton height="5rem" />
+          }
+        </div>
+      }
+    }
+  </ng-container>
+</app-drawer-shell>

@@ -6,6 +6,7 @@ using FieldOps.Application.Features.ChecklistTemplates;
 using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.BusinessOverview;
+using FieldOps.Application.Features.Reports;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.OperationsDashboard;
 using FieldOps.Application.Features.Invitations;
@@ -123,6 +124,7 @@ public static class DependencyInjection
         services.AddScoped<IOperationsDashboardStore, OperationsDashboardStore>();
         services.AddScoped<IBillingReviewStore, BillingReviewStore>();
         services.AddScoped<IBusinessOverviewStore, BusinessOverviewStore>();
+        services.AddScoped<IReportsStore, ReportsStore>();
         services.AddScoped<INotificationEventWriter, NotificationEventWriter>();
         services.AddScoped<INotificationInboxStore, NotificationInboxStore>();
         services.AddScoped<AuditLogStore>();
@@ -145,6 +147,7 @@ public static class DependencyInjection
         services.AddSingleton<IInvoicePdfRenderer, MigraDocInvoicePdfRenderer>();
         services.AddSingleton<IReceiptPdfRenderer, MigraDocReceiptPdfRenderer>();
         services.AddSingleton<ICompletionReportPdfRenderer, MigraDocCompletionReportPdfRenderer>();
+        services.AddSingleton<IReportPdfRenderer, MigraDocReportPdfRenderer>();
         services.AddEmail(configuration);
         services.AddOnlinePayments(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();

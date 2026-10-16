@@ -1,0 +1,117 @@
+@if (total() === 0) {
+  <div class="rtable__empty">
+    <strong>{{ emptyMessage }}</strong>
+    <button pButton type="button" severity="secondary" size="small" (click)="resetRequested.emit()">
+      Reset
+    </button>
+  </div>
+} @else {
+  <div class="rtable">
+    <div class="rtable__scroll">
+      <table class="rtable__table">
+        <thead>
+          <tr>
+            @for (column of meta().columns; track column.key) {
+              <th
+                scope="col"
+                [attr.aria-sort]="ariaSort(column)"
+                [class.rtable__end]="column.type === 'money'"
+              >
+                @if (column.sortable) {
+                  <button
+                    type="button"
+                    class="rtable__sort"
+                    (click)="sortRequested.emit(column.key)"
+                  >
+                    {{ column.label }}
+                    <i
+                      class="pi"
+                      [class.pi-sort-alt]="ariaSort(column) === 'none'"
+                      [class.pi-arrow-up]="ariaSort(column) === 'ascending'"
+                      [class.pi-arrow-down]="ariaSort(column) === 'descending'"
+                      aria-hidden="true"
+                    ></i>
+                  </button>
+                } @else {
+                  {{ column.label }}
+                }
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rowViews(); track row.id) {
+            <tr>
+              @for (cell of row.cells; track $index) {
+                <td [class.rtable__end]="isMoney($index)">
+                  <ng-container *ngTemplateOutlet="content; context: { $implicit: cell }" />
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+        @if (hasTotals()) {
+          <tfoot>
+            <tr>
+              @for (cell of totalCells(); track $index) {
+                <td [class.rtable__end]="isMoney($index)">
+                  @if ($index === 0) {
+                    <strong>Total</strong>
+                  }
+                  @if (cell) {
+                    <ng-container *ngTemplateOutlet="content; context: { $implicit: cell }" />
+                  }
+                </td>
+              }
+            </tr>
+          </tfoot>
+        }
+      </table>
+    </div>
+    <div class="rtable__footer">
+      <p class="rtable__range">{{ footer() }}</p>
+      <div class="rtable__paging">
+        <p-paginator
+          [first]="(page() - 1) * pageSize()"
+          [rows]="pageSize()"
+          [totalRecords]="total()"
+          [pageLinkSize]="3"
+          [showFirstLastIcon]="false"
+          (onPageChange)="changePage($event)"
+        />
+        <p-select
+          appendTo="body"
+          ariaLabel="Rows per page"
+          optionLabel="label"
+          optionValue="code"
+          [options]="pageSizeOptions"
+          [ngModel]="pageSizeCode()"
+          (ngModelChange)="pageSizeRequested.emit(+$event)"
+        />
+      </div>
+    </div>
+  </div>
+}
+
+<ng-template #content let-cell>
+  @if (cell.link) {
+    <a
+      class="rtable__link"
+      [routerLink]="cell.link.commands"
+      [queryParams]="cell.link.queryParams"
+      >{{ cell.text }}</a
+    >
+  } @else if (cell.mark === 'not-invoiced') {
+    <span class="rtable__tag">{{ cell.text }}</span>
+  } @else if (cell.mark === 'invoiced') {
+    <span class="rtable__tag rtable__tag--ok">{{ cell.text }}</span>
+  } @else if (cell.mark === 'below-target') {
+    <span class="rtable__tag rtable__tag--warn" [attr.title]="belowTarget"
+      >{{ cell.text }} <span class="rtable__sr">{{ belowTarget }}</span></span
+    >
+  } @else if (cell.tag; as tag) {
+    <span class="rtable__tag" [attr.data-tone]="tag.tone">{{ cell.text }}</span>
+  } @else {
+    {{ cell.text }}
+  }
+</ng-template>

@@ -1,5 +1,3 @@
-import { comingSoonPath } from '../../core/config/coming-soon-modules';
-
 /** One sidebar link. `exact` links match only their own URL (`aria-current="page"`). */
 export interface NavItem {
   readonly label: string;
@@ -45,9 +43,13 @@ export const AUDIT_LOG_ROLE_CODES: readonly string[] = [
   'accounting',
 ];
 
-function moduleItem(label: string, icon: string, slug: string): NavItem {
-  return { label, icon, link: comingSoonPath(slug), exact: false };
-}
+/** reports-workspace BR-23: roles that see the Reports item (UX only; the backend decides). */
+export const REPORTS_ROLE_CODES: readonly string[] = [
+  'owner',
+  'operations_manager',
+  'dispatcher',
+  'accounting',
+];
 
 /** BR-01: sidebar structure, order and icons. */
 export const NAV_GROUPS: readonly NavGroup[] = [
@@ -142,7 +144,13 @@ export const NAV_GROUPS: readonly NavGroup[] = [
           },
         ],
       },
-      moduleItem('Reports', 'pi-chart-bar', 'reports'),
+      {
+        label: 'Reports',
+        icon: 'pi-chart-bar',
+        link: '/reports',
+        exact: false,
+        roles: REPORTS_ROLE_CODES,
+      },
       {
         label: 'Audit log',
         icon: 'pi-history',

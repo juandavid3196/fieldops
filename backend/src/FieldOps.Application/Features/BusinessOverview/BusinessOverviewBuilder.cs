@@ -23,7 +23,7 @@ public static class BusinessOverviewBuilder
         public decimal Profit => Revenue - Cost;
     }
 
-    private sealed record Load(double Scheduled, double Available, double Overtime);
+    internal sealed record Load(double Scheduled, double Available, double Overtime);
 
     public static BusinessOverviewView Build(
         BusinessOverviewSource source, BusinessOverviewQuery query, string currency, DateTimeOffset now)
@@ -259,7 +259,7 @@ public static class BusinessOverviewBuilder
     }
 
     // Per technician and local day, the workload and availability of operations-dashboard BR-08 (visits plus assessments).
-    private static Load CapacityLoad(IReadOnlyList<BusinessTechnician> technicians, DateOnly start, int days, TimeZoneInfo zone)
+    internal static Load CapacityLoad(IReadOnlyList<BusinessTechnician> technicians, DateOnly start, int days, TimeZoneInfo zone)
     {
         double scheduled = 0;
         double available = 0;

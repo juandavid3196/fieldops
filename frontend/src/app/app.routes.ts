@@ -22,6 +22,7 @@ import {
 import { companyAdminRoute } from './features/organizations/organizations.routes';
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
 import { assessmentRoute, requestsRoute } from './features/requests/requests.routes';
+import { reportsRoute } from './features/reports/reports.routes';
 import { TECHNICIAN_SHELL_ROUTES } from './features/technician-jobs/technician-jobs.routes';
 import { skillsAvailabilityRoute, teamRoute } from './features/team/team.routes';
 import { scheduleRoute } from './features/schedule/schedule.routes';
@@ -80,6 +81,8 @@ export const routes: Routes = [
         loadChildren: () => import('./features/overview/overview.routes'),
       },
       dashboardRoute,
+      // BR-23: the retired Coming soon page of Reports leads to the workspace (declared first).
+      { path: 'coming-soon/reports', pathMatch: 'full', redirectTo: '/reports' },
       comingSoonRoute,
       companyAdminRoute,
       usersAdminRoute,
@@ -91,6 +94,7 @@ export const routes: Routes = [
       quotesRoute,
       notificationsRoute,
       auditLogRoute,
+      reportsRoute,
       quoteEditRoute,
       quoteViewRoute,
       workOrderEditorRoute,

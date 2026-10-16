@@ -1,0 +1,58 @@
+:host {
+  display: block;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @media (min-width: 64rem) {
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.75rem 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid color-mix(in srgb, var(--fo-color-action-blue) 14%, var(--fo-color-border));
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__label {
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__value {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    color: var(--fo-color-heading);
+    overflow-wrap: anywhere;
+
+    &[data-tone='positive'] {
+      color: var(--fo-color-success-text);
+    }
+
+    &[data-tone='negative'] {
+      color: light-dark(#e8410f, #ff8a65);
+    }
+  }
+
+  &__note {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__other {
+    margin: 0.5rem 0 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+}

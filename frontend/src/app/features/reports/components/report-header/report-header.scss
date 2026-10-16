@@ -1,0 +1,76 @@
+:host {
+  display: block;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-start;
+
+  &__star {
+    flex: none;
+    inline-size: 3.5rem;
+    block-size: 3.5rem;
+    color: light-dark(#ffb000, #ffc21a);
+    opacity: 0.5;
+
+    .pi {
+      font-size: 3rem;
+    }
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &--on {
+      opacity: 1;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__text {
+    flex: 1 1 14rem;
+    min-width: 0;
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__description {
+    margin: 0.25rem 0 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__actions {
+    --p-button-outlined-secondary-color: var(--fo-color-link);
+    --p-button-outlined-secondary-border-color: var(--fo-color-link);
+    --p-button-outlined-secondary-hover-background: color-mix(
+      in srgb,
+      var(--fo-color-link) 8%,
+      transparent
+    );
+
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    > * {
+      min-block-size: var(--reports-control);
+      white-space: nowrap;
+    }
+
+    .pi {
+      font-size: 1.125rem;
+      -webkit-text-stroke: 0.4px currentcolor;
+    }
+  }
+}

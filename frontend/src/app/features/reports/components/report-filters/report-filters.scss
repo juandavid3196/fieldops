@@ -1,0 +1,53 @@
+:host {
+  display: block;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: flex-end;
+
+  &__field {
+    display: flex;
+    flex: 1 1 100%;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+
+    @media (min-width: 48rem) {
+      flex: 1 1 10rem;
+    }
+
+    span {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+    }
+
+    p-select {
+      min-block-size: var(--reports-control);
+    }
+  }
+
+  &__buttons {
+    --p-button-outlined-secondary-color: var(--fo-color-link);
+    --p-button-outlined-secondary-border-color: var(--fo-color-link);
+
+    display: flex;
+    flex: 1 1 100%;
+    gap: 0.5rem;
+
+    @media (min-width: 48rem) {
+      flex: none;
+    }
+
+    > * {
+      flex: 1;
+      justify-content: center;
+      min-block-size: var(--reports-control);
+      padding-inline: 1.25rem;
+      white-space: nowrap;
+    }
+  }
+}

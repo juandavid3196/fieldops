@@ -1,0 +1,173 @@
+:host {
+  display: block;
+  min-width: 0;
+
+  // The 64rem table scrolls inside its card and never widens the page on phones.
+  contain: inline-size;
+}
+
+.rtable {
+  overflow: hidden;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  // The table scrolls horizontally inside its card; the page itself never does.
+  &__scroll {
+    overflow-x: auto;
+  }
+
+  &__table {
+    inline-size: 100%;
+    min-inline-size: 64rem;
+    border-collapse: collapse;
+
+    th,
+    td {
+      padding: 0.625rem 0.75rem;
+      font-size: 0.875rem;
+      text-align: start;
+      white-space: nowrap;
+      border-block-end: 1px solid var(--fo-color-row-divider);
+    }
+
+    th {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+      background: var(--fo-color-surface-muted);
+    }
+
+    td {
+      color: var(--fo-color-text);
+    }
+
+    th.rtable__end,
+    td.rtable__end {
+      text-align: end;
+    }
+
+    tfoot td {
+      font-weight: 700;
+      background: var(--fo-color-surface-muted);
+      border-block-end: 0;
+    }
+  }
+
+  &__sort {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    min-block-size: 2rem;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    i {
+      font-size: 0.6875rem;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__link {
+    color: var(--fo-color-link);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__tag {
+    display: inline-flex;
+    gap: 0.25rem;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-neutral-text);
+    background: var(--fo-color-neutral-background);
+    border-radius: var(--fo-radius-pill);
+
+    &--ok {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+    }
+
+    &--warn,
+    &[data-tone='warn'] {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+
+    &[data-tone='ok'] {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+    }
+
+    &[data-tone='danger'] {
+      color: var(--fo-color-danger-text);
+      background: var(--fo-color-danger-background);
+    }
+
+    &[data-tone='info'] {
+      color: var(--fo-color-action-blue);
+      background: var(--fo-color-action-blue-soft);
+    }
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-block-start: 1px solid var(--fo-color-border);
+  }
+
+  &__range {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__paging {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 2rem 1rem;
+    text-align: center;
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-card);
+  }
+}

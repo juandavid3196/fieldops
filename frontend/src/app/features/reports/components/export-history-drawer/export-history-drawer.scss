@@ -1,0 +1,64 @@
+@use '../../../../shared/components/drawer-shell/drawer-content' as dc;
+
+:host {
+  display: contents;
+}
+
+.hist {
+  @include dc.parts;
+
+  &__note {
+    margin: 0 0 1rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__skeletons,
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__message {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0;
+    padding: 1rem;
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    align-items: flex-start;
+    padding: 0.75rem;
+    overflow-wrap: anywhere;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    button {
+      min-block-size: var(--reports-control, var(--fo-size-touch-target));
+      margin-block-start: 0.25rem;
+    }
+  }
+
+  &__name {
+    margin: 0;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__meta {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+}

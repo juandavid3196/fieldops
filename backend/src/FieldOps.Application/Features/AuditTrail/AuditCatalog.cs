@@ -90,7 +90,8 @@ public static class AuditCatalog
     public static string[] FinancialCodes { get; } = [.. Entries.Values.Where(entry => entry.IsFinancial).Select(entry => entry.Code)];
 
     /// <summary>The report types that make an <c>export.generated</c> row financial.</summary>
-    public static string[] FinancialReportTypes { get; } = ["invoices", "payments", "billing_review"];
+    public static string[] FinancialReportTypes { get; } =
+        ["invoices", "payments", "billing_review", "report_job_profitability", "report_invoice_aging"];
 
     public static bool TryGet(string code, out AuditCatalogEntry entry) => Entries.TryGetValue(code, out entry!);
 

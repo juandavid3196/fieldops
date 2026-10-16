@@ -1,0 +1,55 @@
+<header class="head">
+  <button
+    type="button"
+    class="head__star"
+    [attr.aria-pressed]="favorite()"
+    [class.head__star--on]="favorite()"
+    [attr.aria-label]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
+    [disabled]="disabled()"
+    (click)="favoriteToggled.emit()"
+  >
+    <i class="pi pi-star-fill" aria-hidden="true"></i>
+  </button>
+  <div class="head__text">
+    <h2 class="head__name">{{ meta().name }}</h2>
+    <p class="head__description">{{ meta().description }}</p>
+  </div>
+  <div class="head__actions">
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="disabled() || exporting() !== null"
+      [attr.aria-busy]="exporting() === 'csv'"
+      (click)="exportRequested.emit('csv')"
+    >
+      <i
+        class="pi"
+        [class.pi-download]="exporting() !== 'csv'"
+        [class.pi-spinner]="exporting() === 'csv'"
+        [class.pi-spin]="exporting() === 'csv'"
+        aria-hidden="true"
+      ></i>
+      Export CSV
+    </button>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="disabled() || exporting() !== null"
+      [attr.aria-busy]="exporting() === 'pdf'"
+      (click)="exportRequested.emit('pdf')"
+    >
+      <i
+        class="pi"
+        [class.pi-file-pdf]="exporting() !== 'pdf'"
+        [class.pi-spinner]="exporting() === 'pdf'"
+        [class.pi-spin]="exporting() === 'pdf'"
+        aria-hidden="true"
+      ></i>
+      Download PDF
+    </button>
+  </div>
+</header>
