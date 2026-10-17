@@ -19,6 +19,7 @@ public sealed class DispatchController(
     GetVisitDispatchHandler detailHandler,
     EvaluateVisitHandler evaluationHandler,
     DispatchVisitHandler dispatchHandler,
+    CancelVisitHandler cancelHandler,
     IAuthorizationService authorization) : WorkOrderControllerBase
 {
     [HttpGet("dispatch/options")]
@@ -143,6 +144,25 @@ public sealed class DispatchController(
         return failure ?? Respond(await dispatchHandler.HandleAsync(Call(ticket), visitId, body.ToText(), cancellationToken));
     }
 
+    [HttpPost("dispatch/visits/{visitId:guid}/cancel")]
+    [Authorize(Policy = DispatchPolicies.Manage)]
+    [Consumes("application/json")]
+    [RequestSizeLimit(MaxJsonBodyBytes)]
+    [ProducesResponseType<VisitCancelResult>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Cancel(
+        Guid visitId,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] CancelVisitRequestBody body,
+        CancellationToken cancellationToken)
+    {
+        var failure = Begin(out var ticket);
+
+        return failure ?? Respond(await cancelHandler.HandleAsync(Call(ticket), visitId, body.ToText(), cancellationToken));
+    }
+
     private IActionResult Respond<T>(DispatchOutcome<T> outcome) =>
         outcome switch
         {
@@ -158,6 +178,7 @@ public sealed class DispatchController(
             },
             DispatchOutcome<T>.Locked => ConflictResult(DispatchCodes.VisitLocked, null),
             DispatchOutcome<T>.Changed => ConflictResult(DispatchCodes.VisitChanged, null),
+            DispatchOutcome<T>.NotCancellable => ConflictResult(DispatchCodes.VisitNotCancellable, null),
             DispatchOutcome<T>.Conflicts conflicts => ConflictResult(DispatchCodes.SchedulingConflicts, conflicts.Items),
             _ => NotFound(),
         };

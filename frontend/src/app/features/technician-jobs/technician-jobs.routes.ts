@@ -10,6 +10,8 @@ export const TODAY_BACK = { link: '/today', label: "Back to Today's jobs" };
 /** Titles shown in the technician top bar (`data.shellTitle`). */
 export const TODAY_TITLE = "Today's jobs";
 export const JOB_TITLE = 'Job details';
+export const SCHEDULE_TITLE = 'Schedule';
+export const SCHEDULE_PATH = `/${TODAY_ROUTE_PATH}/schedule`;
 export const REVIEW_TITLE = 'Review & complete';
 
 /** Today's jobs (`/today`); inside the technician shell. Not role-guarded: other roles see the forbidden state. */
@@ -19,6 +21,22 @@ export const todayRoute: Route = {
   title: "Today's jobs · FieldOps",
   data: { shellTitle: TODAY_TITLE },
   loadComponent: () => import('./pages/today/today').then((m) => m.Today),
+};
+
+/** My schedule (`/today/schedule`); inside the technician shell, same access rules as Today. */
+export const scheduleRoute: Route = {
+  path: `${TODAY_ROUTE_PATH}/schedule`,
+  pathMatch: 'full',
+  title: 'Schedule · FieldOps',
+  data: { shellTitle: SCHEDULE_TITLE },
+  loadComponent: () => import('./pages/schedule/schedule').then((m) => m.TechnicianSchedule),
+};
+
+/** The Schedule Coming soon destination was replaced by the real page (BR-20). */
+export const scheduleSoonRedirect: Route = {
+  path: `${TODAY_ROUTE_PATH}/soon/schedule`,
+  pathMatch: 'full',
+  redirectTo: SCHEDULE_PATH,
 };
 
 /** Job page (`/today/visits/:visitId`). */
@@ -45,7 +63,7 @@ export const visitReviewRoute: Route = {
   loadComponent: () => import('./pages/visit-review/visit-review').then((m) => m.VisitReview),
 };
 
-/** Schedule, Time, Messages and notifications: the shared Coming soon page inside the technician shell. */
+/** Time, Messages and notifications: the shared Coming soon page inside the technician shell. */
 export const technicianComingSoonRoute: Route = {
   path: `${TODAY_ROUTE_PATH}/soon/:module`,
   pathMatch: 'full',
@@ -58,6 +76,8 @@ export const technicianComingSoonRoute: Route = {
 
 export const TECHNICIAN_SHELL_ROUTES: Route[] = [
   todayRoute,
+  scheduleRoute,
+  scheduleSoonRedirect,
   visitDetailRoute,
   visitReviewRoute,
   technicianComingSoonRoute,

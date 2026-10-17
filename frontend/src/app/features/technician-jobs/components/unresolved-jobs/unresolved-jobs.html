@@ -1,0 +1,126 @@
+<button
+  #trigger
+  type="button"
+  class="jobs__block"
+  aria-haspopup="dialog"
+  [attr.aria-expanded]="open()"
+  (click)="show()"
+>
+  <span class="jobs__clip-wrap">
+    <svg class="jobs__clip" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill-rule="evenodd"
+        d="M9 2h6a1 1 0 0 1 1 1v1h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2V3a1 1 0 0 1 1-1zm1 2v1h4V4h-4zM8 10v2h2v-2H8zm4 0v2h4v-2h-4zm-4 4v2h2v-2H8zm4 0v2h4v-2h-4z"
+      />
+    </svg>
+  </span>
+  <span class="jobs__text">
+    <span class="jobs__title">Unfinished jobs</span>
+    <span class="jobs__summary">{{ summary() }}</span>
+  </span>
+  <span class="jobs__badge" aria-hidden="true">{{ count() }}</span>
+  <i class="pi pi-chevron-right jobs__chevron" aria-hidden="true"></i>
+</button>
+
+<p-dialog
+  position="bottom"
+  [style]="sheetStyle"
+  [maskStyle]="maskStyle"
+  [contentStyle]="{ paddingBlockEnd: '1.5rem' }"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  [closable]="true"
+  [closeOnEscape]="true"
+  [visible]="open()"
+  (visibleChange)="setVisible($event)"
+>
+  <ng-template #header let-labelledBy="ariaLabelledBy">
+    <div class="jobs__sheet-head">
+      <span class="jobs__handle" aria-hidden="true"></span>
+      <h2 class="jobs__sheet-title" [id]="labelledBy">Unfinished jobs</h2>
+    </div>
+  </ng-template>
+  <p class="jobs__subtitle">Finish or close earlier visits before starting new work.</p>
+  <ol class="jobs__list">
+    @for (card of cards(); track card.visit.visitId) {
+      <li class="jobs__card">
+        <span class="jobs__card-head">
+          <span class="jobs__status" [attr.data-status]="card.visit.status">{{ card.status }}</span>
+          @if (card.date) {
+            <span class="jobs__date">{{ card.date }}</span>
+          }
+        </span>
+        <span class="jobs__card-title">{{ card.visit.title }}</span>
+        <span class="jobs__muted">#{{ card.visit.displayNumber }}</span>
+        @if (card.customer) {
+          <span class="jobs__line">
+            <svg
+              class="jobs__icon"
+              [attr.data-icon]="card.visit.customerType === 'company' ? 'building' : 'person'"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              @if (card.visit.customerType === 'company') {
+                <path
+                  fill-rule="evenodd"
+                  d="M3 21V3h11v6h7v12H3zm3-14v2h2V7H6zm0 4v2h2v-2H6zm0 4v2h2v-2H6zm4-8v2h2V7h-2zm0 4v2h2v-2h-2zm0 4v2h2v-2h-2zm6-2v2h2v-2h-2z"
+                />
+              } @else {
+                <path
+                  d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"
+                />
+              }
+            </svg>
+            {{ card.customer }}
+          </span>
+        }
+        @if (card.since) {
+          <span class="jobs__line">
+            <svg
+              class="jobs__icon"
+              data-icon="clock"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm1 5h-2v6l5 3 1-1.700-4-2.300V7z"
+              />
+            </svg>
+            {{ card.since }}
+          </span>
+        }
+        @if (card.error) {
+          <span class="jobs__error" role="alert">{{ card.error }}</span>
+        }
+        @if (card.paused) {
+          <button
+            pButton
+            type="button"
+            class="jobs__action"
+            severity="secondary"
+            [outlined]="true"
+            [loading]="resuming() === card.visit.visitId"
+            [attr.aria-disabled]="resuming() !== null"
+            (click)="resume(card.visit.visitId)"
+          >
+            Resume job
+          </button>
+        } @else {
+          <a
+            class="jobs__action jobs__action--primary"
+            [routerLink]="['/today/visits', card.visit.visitId]"
+            (click)="navigated()"
+          >
+            Open active visit
+          </a>
+        }
+      </li>
+    }
+  </ol>
+  <p class="jobs__footer">Oldest unfinished job shown first.</p>
+</p-dialog>

@@ -308,4 +308,106 @@ describe('Dispatch drawer', () => {
     drawer.submit();
     httpTesting.expectNone(`${API}/dispatch/visits/v-1`);
   });
+
+  it('cancels a visit through the dialog: validation, one request, toast text per work order type, reload on not-cancellable, cancelled summary and no action for Viewer (AC-16)', async () => {
+    const eligible = {
+      ...DETAIL,
+      status: 'scheduled',
+      recurrence: null,
+      canCancel: true,
+      cancelCreatesReplacement: true,
+    };
+    const dialog = () => document.querySelector<HTMLElement>('.p-dialog');
+    const dialogButton = (label: string) =>
+      Array.from(dialog()!.querySelectorAll<HTMLButtonElement>('button')).find(
+        (button) => button.textContent?.trim() === label,
+      )!;
+    const openDialog = async () => {
+      Array.from(document.querySelectorAll<HTMLButtonElement>('.drawer-shell__footer button'))
+        .find((button) => button.textContent?.trim() === 'Cancel visit')!
+        .click();
+      await settle();
+    };
+    const typeReason = async (value: string) => {
+      const field = dialog()!.querySelector('textarea')!;
+      field.value = value;
+      field.dispatchEvent(new Event('input'));
+      await settle();
+    };
+
+    await setup(eligible);
+    const cancelled = vi.fn();
+    drawer.cancelled.subscribe(cancelled);
+    await openDialog();
+    expect(dialog()?.textContent).toContain('Cancel visit #WO-3091 · Visit 1?');
+    expect(dialog()?.textContent).toContain(
+      'The visit stays in history. A new unscheduled visit will be created for pending work.',
+    );
+    expect(dialog()?.textContent).toContain('0/500');
+
+    await typeReason('  too short ');
+    expect(dialog()?.textContent).toContain('12/500');
+    dialogButton('Cancel visit').click();
+    await settle();
+    expect(dialog()?.textContent).toContain('Enter a reason between 10 and 500 characters.');
+    httpTesting.expectNone(`${API}/dispatch/visits/v-1/cancel`);
+
+    await typeReason('  Customer cancelled the job  ');
+    dialogButton('Cancel visit').click();
+    dialogButton('Cancel visit').click();
+    await settle();
+    const request = call('POST', 'visits/v-1/cancel');
+    expect(request.request.body).toEqual({
+      reason: 'Customer cancelled the job',
+      updatedAt: '2026-10-06T10:00:00Z',
+    });
+    expect(dialogButton('Keep visit').disabled).toBe(true);
+    request.flush({ visit: eligible, replacementVisitId: 'v-2', workOrderStatus: 'scheduled' });
+    await settle();
+    expect(cancelled).toHaveBeenCalledExactlyOnceWith(
+      'Visit cancelled. A new unscheduled visit was created.',
+    );
+
+    // Recurring: occurrence text; a concurrent cancellation reloads with its message and the summary.
+    httpTesting.verify();
+    TestBed.resetTestingModule();
+    await setup({ ...eligible, cancelCreatesReplacement: false });
+    const recurring = vi.fn();
+    drawer.cancelled.subscribe(recurring);
+    await openDialog();
+    expect(dialog()?.textContent).toContain(
+      "The visit stays in history. This occurrence will be skipped; other occurrences don't change.",
+    );
+    await typeReason('Customer cancelled the job');
+    dialogButton('Cancel visit').click();
+    await settle();
+    call('POST', 'visits/v-1/cancel').flush(
+      { status: 409, code: 'visit_not_cancellable' },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await settle();
+    call('GET', 'visits/v-1').flush({
+      ...eligible,
+      status: 'cancelled',
+      canCancel: false,
+      isLocked: true,
+      cancellation: {
+        reason: 'Dispatcher cancelled it',
+        cancelledAt: '2026-10-06T14:05:00-05:00',
+        cancelledByName: 'Dana Lee',
+      },
+    });
+    await settle();
+    expect(recurring).not.toHaveBeenCalled();
+    expect(text()).toContain("This visit can't be cancelled anymore.");
+    expect(text()).toContain('Cancelled on Tue, Oct 6 · 2:05 PM by Dana Lee');
+    expect(text()).toContain('Reason: Dispatcher cancelled it');
+    expect(footerButtons()).toEqual(['Close']);
+
+    // Viewer: no action, even when the backend says the visit is cancellable.
+    httpTesting.verify();
+    TestBed.resetTestingModule();
+    await setup({ ...eligible, canManage: false }, false);
+    expect(footerButtons()).toEqual(['Close']);
+  });
 });

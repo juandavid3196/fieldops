@@ -56,6 +56,21 @@
           </div>
         </div>
 
+        @if (current.status === 'cancelled') {
+          <section class="dd__cancelled" aria-label="Cancellation">
+            @if (cancelledText(); as text) {
+              <p class="dd__strong">{{ text }}</p>
+            } @else {
+              <p class="dd__strong">Cancelled</p>
+            }
+            @if (current.cancellation; as cancellation) {
+              <p>Reason: {{ cancellation.reason }}</p>
+            }
+          </section>
+        }
+        @if (reloadNotice(); as notice) {
+          <p-message severity="warn" [closable]="false">{{ notice }}</p-message>
+        }
         @if (showLockedNote()) {
           <p-message severity="warn" [closable]="false">{{ lockedMessage }}</p-message>
         }
@@ -470,6 +485,19 @@
   </ng-container>
 
   <ng-container ngProjectAs="[drawerFooter]">
+    @if (canCancel()) {
+      <button
+        pButton
+        type="button"
+        severity="danger"
+        [outlined]="true"
+        class="dd__cancel-visit"
+        [disabled]="saving()"
+        (click)="openCancel($any($event.currentTarget))"
+      >
+        Cancel visit
+      </button>
+    }
     @if (loadState() === 'ready' && readOnly()) {
       <button pButton type="button" severity="secondary" [outlined]="true" (click)="requestClose()">
         Close
@@ -499,3 +527,70 @@
     }
   </ng-container>
 </app-drawer-shell>
+
+<p-dialog
+  [header]="cancelTitle()"
+  [modal]="true"
+  appendTo="body"
+  closeAriaLabel="Close"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="!cancelling()"
+  [closeOnEscape]="!cancelling()"
+  [visible]="cancelOpen()"
+  (visibleChange)="$event ? null : closeCancel()"
+  [style]="{ width: '28rem', maxWidth: '96vw' }"
+>
+  <div class="dd__cancel">
+    <p class="dd__meta">{{ cancelText() }}</p>
+    <app-form-field
+      label="Reason"
+      controlId="dispatch-cancel-reason"
+      [required]="true"
+      [error]="cancelError() === cancelReasonMessage ? cancelError() : null"
+    >
+      <textarea
+        pTextarea
+        rows="4"
+        fluid
+        id="dispatch-cancel-reason"
+        [maxlength]="cancelReasonMax"
+        [ngModel]="cancelReason()"
+        (ngModelChange)="cancelReason.set($event ?? '')"
+        [disabled]="cancelling()"
+        [attr.aria-invalid]="cancelError() === cancelReasonMessage ? 'true' : null"
+        [attr.aria-describedby]="
+          cancelError() === cancelReasonMessage ? 'dispatch-cancel-reason-error' : null
+        "
+      ></textarea>
+    </app-form-field>
+    <p class="dd__meta dd__counter">{{ cancelReason().length }}/{{ cancelReasonMax }}</p>
+    @if (cancelError(); as problem) {
+      @if (problem !== cancelReasonMessage) {
+        <p class="dd__error" role="alert">{{ problem }}</p>
+      }
+    }
+    <div class="dd__cancel-actions">
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        [disabled]="cancelling()"
+        (click)="closeCancel()"
+      >
+        Keep visit
+      </button>
+      <button
+        pButton
+        type="button"
+        severity="danger"
+        [disabled]="cancelling()"
+        [loading]="cancelling()"
+        (click)="confirmCancel()"
+      >
+        Cancel visit
+      </button>
+    </div>
+  </div>
+</p-dialog>

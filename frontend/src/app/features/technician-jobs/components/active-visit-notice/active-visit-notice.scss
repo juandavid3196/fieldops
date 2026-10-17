@@ -1,0 +1,64 @@
+:host {
+  display: block;
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  color: var(--fo-color-danger-text);
+  background: var(--fo-color-danger-background);
+  border: 1px solid var(--fo-color-danger-text);
+  border-radius: var(--fo-radius-card);
+
+  &__message {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0;
+    font-weight: 700;
+
+    &:focus-visible {
+      outline: 2px solid currentcolor;
+      outline-offset: 2px;
+    }
+  }
+
+  &__card {
+    padding: 0.625rem 0.75rem;
+    color: var(--fo-color-text);
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__title {
+    margin: 0;
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  &__meta {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-block-size: var(--fo-size-touch-target);
+    font-weight: 700;
+    color: var(--fo-color-on-primary);
+    text-decoration: none;
+    background: var(--fo-color-primary);
+    border-radius: var(--fo-radius-control);
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-color-text);
+      outline-offset: 2px;
+    }
+  }
+}

@@ -210,6 +210,30 @@ public sealed class Visit
         Touch(now);
     }
 
+    /// <summary>
+    /// Cancel visit (technician-schedule-active-visits BR-12): only a scheduled, assigned, on the way, in progress or paused
+    /// visit; the pause total gains the whole seconds of the closed pause entry. Schedule and assignments stay.
+    /// </summary>
+    public void Cancel(int closedPauseSeconds, DateTimeOffset now)
+    {
+        if (closedPauseSeconds < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(closedPauseSeconds), closedPauseSeconds, "Paused seconds cannot be negative.");
+        }
+
+        if (!IsCancellable(Status))
+        {
+            throw new InvalidOperationException("Only a scheduled, assigned, on the way, in progress or paused visit can be cancelled.");
+        }
+
+        Status = VisitStatus.Cancelled;
+        PauseSeconds += closedPauseSeconds;
+        Touch(now);
+    }
+
+    public static bool IsCancellable(VisitStatus status) =>
+        status is VisitStatus.Scheduled or VisitStatus.Assigned or VisitStatus.OnTheWay or VisitStatus.InProgress or VisitStatus.Paused;
+
     /// <summary>Billing review (completed-jobs-review BR-19): a completed visit becomes approved by the reviewer.</summary>
     public void Approve(Guid reviewerUserId, DateTimeOffset now)
     {

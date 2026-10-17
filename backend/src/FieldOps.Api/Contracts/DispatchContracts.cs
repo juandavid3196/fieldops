@@ -17,6 +17,12 @@ public sealed record EvaluationRequestBody(
         new(Date, Start, End, TechnicianIds?.Select(id => id ?? string.Empty).ToList(), PrimaryTechnicianId);
 }
 
+/// <summary>Body of POST /dispatch/visits/{id}/cancel; unknown keys, such as an organization id, are ignored.</summary>
+public sealed record CancelVisitRequestBody(string? Reason, string? UpdatedAt)
+{
+    public CancelBodyText ToText() => new(Reason, UpdatedAt);
+}
+
 /// <summary>Body of PUT /dispatch/visits/{id} (API contracts DispatchBody); booleans are nullable so a missing one is a 400.</summary>
 public sealed record DispatchRequestBody(
     string? Date,

@@ -26,7 +26,7 @@ internal sealed partial class TechnicianVisitStore
         Guid organizationId, Guid technicianId, Guid visitId, CancellationToken cancellationToken)
     {
         var row = await (
-            from visit in AssignedVisits(organizationId, technicianId)
+            from visit in AssignedVisits(organizationId, technicianId, includeCancelled: true)
             where visit.Id == visitId
             select new
             {
@@ -152,7 +152,7 @@ internal sealed partial class TechnicianVisitStore
                 SELECT a.is_primary AS "Value" FROM visits v
                 JOIN visit_assignments a ON a.visit_id = v.id AND a.technician_id = {technicianId} AND a.unassigned_at IS NULL
                 WHERE v.id = {visitId} AND v.organization_id = {organizationId}
-                  AND v.status NOT IN ('unscheduled', 'cancelled')
+                  AND v.status <> 'unscheduled'
                   AND v.scheduled_start IS NOT NULL AND v.scheduled_end IS NOT NULL
                 FOR UPDATE OF v
                 """)

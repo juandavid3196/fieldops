@@ -172,6 +172,30 @@ export interface VisitDispatchDetail {
   };
   readonly values: DispatchValues;
   readonly technicians: readonly DispatchTechnician[];
+  /** Cancellation of a `cancelled` visit; `null`/absent otherwise (BR-21). */
+  readonly cancellation?: VisitCancellation | null;
+  /** The caller may cancel this visit now (Manage role and eligible status). */
+  readonly canCancel?: boolean;
+  /** One-time work order: cancelling creates a replacement; recurring: the occurrence is skipped. */
+  readonly cancelCreatesReplacement?: boolean;
+}
+
+export interface VisitCancellation {
+  readonly reason: string;
+  /** ISO instant with offset. */
+  readonly cancelledAt: string;
+  readonly cancelledByName: string | null;
+}
+
+export interface CancelBody {
+  readonly reason: string;
+  readonly updatedAt: string;
+}
+
+export interface VisitCancelResult {
+  readonly visit: VisitDispatchDetail;
+  readonly replacementVisitId: string | null;
+  readonly workOrderStatus: string;
 }
 
 export interface EvaluationRequest {
