@@ -1,0 +1,92 @@
+@if (ref(); as current) {
+  <app-help-breadcrumb [items]="crumbs()" />
+  <a class="article__back" [routerLink]="[base, current.topic.slug]">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>Back to {{ current.topic.title }}
+  </a>
+
+  <article class="article__card">
+    <header>
+      <p class="article__eyebrow">{{ current.topic.title }}</p>
+      <h1 class="article__title">{{ current.article.title }}</h1>
+      <p class="article__intro">{{ current.article.introduction }}</p>
+      <p class="article__time">
+        <i class="pi pi-clock" aria-hidden="true"></i>{{ minutes() }} min read
+      </p>
+    </header>
+
+    @if (current.article.callout; as callout) {
+      <aside class="article__callout" aria-label="Information">
+        <span class="article__callout-icon" aria-hidden="true"><i class="pi pi-info"></i></span>
+        <p>{{ callout }}</p>
+      </aside>
+    }
+
+    <section aria-labelledby="article-steps-title">
+      <h2 class="article__heading" id="article-steps-title">{{ current.article.title }}</h2>
+      <ol class="article__steps">
+        @for (step of current.article.steps; track $index) {
+          <li class="article__step">
+            <p class="article__step-text">{{ step.text }}</p>
+            @if (step.screenshot; as shot) {
+              <img class="article__shot" loading="lazy" [src]="shot.src" [alt]="shot.alt" />
+            }
+          </li>
+        }
+      </ol>
+    </section>
+
+    <section class="article__next" aria-labelledby="article-next-title">
+      <span class="article__next-icon" aria-hidden="true"><i class="pi pi-check"></i></span>
+      <div class="article__next-body">
+        <h2 class="article__next-title" id="article-next-title">What happens next?</h2>
+        <p class="article__next-text">{{ current.article.whatHappensNext }}</p>
+      </div>
+    </section>
+
+    @if (neighbours(); as nav) {
+      <nav class="article__pager" aria-label="Article navigation">
+        @if (nav.previous; as previous) {
+          <a class="article__pager-link" [routerLink]="[base, current.topic.slug, previous.slug]">
+            <i class="pi pi-arrow-left article__pager-icon" aria-hidden="true"></i>
+            <span class="article__pager-text">
+              <span class="article__pager-label">Previous</span>
+              <span class="article__pager-title">{{ previous.title }}</span>
+            </span>
+          </a>
+        }
+        @if (nav.next; as next) {
+          <a
+            class="article__pager-link article__pager-link--next"
+            [routerLink]="[base, current.topic.slug, next.slug]"
+          >
+            <span class="article__pager-text">
+              <span class="article__pager-label">Next</span>
+              <span class="article__pager-title">{{ next.title }}</span>
+            </span>
+            <i class="pi pi-arrow-right article__pager-icon" aria-hidden="true"></i>
+          </a>
+        }
+      </nav>
+    }
+
+    <div class="article__feedback" aria-live="polite">
+      @if (answered()) {
+        <p class="article__thanks">Thanks for your feedback.</p>
+      } @else {
+        <p class="article__question" id="article-feedback-question">Was this article helpful?</p>
+        <div class="article__answers" role="group" aria-labelledby="article-feedback-question">
+          <button pButton type="button" severity="secondary" [outlined]="true" (click)="answer()">
+            Yes
+          </button>
+          <button pButton type="button" severity="secondary" [outlined]="true" (click)="answer()">
+            No
+          </button>
+        </div>
+      }
+    </div>
+  </article>
+
+  <app-help-support-card [articleTitle]="current.article.title" />
+} @else {
+  <app-help-not-found />
+}

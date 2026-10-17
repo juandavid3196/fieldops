@@ -1,0 +1,8 @@
+<a class="topic" [routerLink]="[base, topic().slug]">
+  <span class="topic__icon" aria-hidden="true"><i class="pi" [class]="topic().icon"></i></span>
+  <span class="topic__text">
+    <span class="topic__title">{{ topic().title }}</span>
+    <span class="topic__subtitle">{{ topic().cardSubtitle }}</span>
+  </span>
+  <i class="pi pi-chevron-right topic__chevron" aria-hidden="true"></i>
+</a>

@@ -84,7 +84,13 @@ export const routes: Routes = [
         path: 'account',
         loadChildren: () => import('./features/account/account.routes'),
       },
+      {
+        path: 'help',
+        loadChildren: () => import('./features/help/help.routes'),
+      },
       dashboardRoute,
+      // help-support-center FR-01: the retired Coming soon page of Help leads to the center.
+      { path: 'coming-soon/help', pathMatch: 'full', redirectTo: '/help' },
       // BR-23: the retired Coming soon page of Reports leads to the workspace (declared first).
       { path: 'coming-soon/reports', pathMatch: 'full', redirectTo: '/reports' },
       comingSoonRoute,

@@ -1,0 +1,68 @@
+@use '../../styles/help' as help;
+
+:host {
+  display: block;
+}
+
+.support {
+  @include help.card;
+
+  display: flex;
+  block-size: 100%;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  text-align: center;
+
+  &__icon {
+    @include help.icon-tile(3rem);
+
+    background: var(--fo-color-primary-soft);
+
+    svg {
+      inline-size: 1.625rem;
+      block-size: 1.625rem;
+    }
+  }
+
+  &__title {
+    @include help.card-title;
+  }
+
+  &__text {
+    font-size: 0.9375rem;
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__action {
+    align-self: center;
+    justify-content: center;
+    inline-size: 100%;
+    max-inline-size: 24rem;
+    text-decoration: none;
+  }
+
+  &__all {
+    font-weight: 500;
+    color: var(--fo-color-primary-strong);
+  }
+
+  &__note {
+    align-self: stretch;
+    margin: 0;
+    padding-block-start: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+    border-block-start: 1px solid var(--fo-color-border);
+  }
+}
+
+.support:not(.support--home) {
+  background: var(--fo-color-primary-soft);
+}
+
+// On the tinted card the tile is a slightly darker green than the background, without a border.
+.support:not(.support--home) .support__icon {
+  background: color-mix(in srgb, var(--fo-color-primary-soft) 85%, var(--fo-color-primary-strong));
+}

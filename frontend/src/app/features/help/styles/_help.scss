@@ -1,0 +1,101 @@
+@use '../../../../styles/breakpoints' as bp;
+
+// Shared page frame of the Help & support center (home, topic, article and not-found pages).
+@mixin page {
+  box-sizing: border-box;
+  display: block;
+  min-width: 0;
+  max-inline-size: 80rem;
+  margin-inline: auto;
+  padding: 1.25rem 1rem 6rem;
+  overflow-wrap: anywhere;
+
+  @include bp.up(md) {
+    padding: 1.25rem 1.5rem 2.5rem;
+  }
+}
+
+@mixin title {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--fo-color-heading);
+}
+
+@mixin subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--fo-color-text-secondary);
+}
+
+@mixin card {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  @include bp.up(md) {
+    padding: 1.5rem;
+  }
+}
+
+@mixin card-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--fo-color-heading);
+}
+
+// Inline (not flex) on purpose: an underline propagates to flex items, but not to inline-block
+// ones, so only the text is underlined and the arrow icon is not.
+@mixin back-link {
+  display: inline-block;
+  margin-block: 0.25rem 1rem;
+  font-weight: 500;
+  color: var(--fo-color-primary-strong);
+
+  text-decoration: underline;
+
+  > i {
+    display: inline-block;
+    margin-inline-end: 0.5rem;
+    vertical-align: middle;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--fo-focus-ring);
+  }
+}
+
+@mixin visually-hidden {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// Rounded teal tile that holds a topic or article icon.
+@mixin icon-tile($size: 2.5rem) {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  inline-size: $size;
+  block-size: $size;
+  color: var(--fo-color-primary-strong);
+  background: var(--fo-color-primary-soft);
+  border-radius: var(--fo-radius-panel);
+
+  // PrimeIcons ship a thin stroke at 1rem: scale the glyph with the tile and thicken it.
+  > i {
+    font-size: $size * 0.55;
+    -webkit-text-stroke: 0.6px currentcolor;
+  }
+}

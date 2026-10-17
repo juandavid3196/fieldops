@@ -15,7 +15,6 @@ export const PORTAL_NAV: readonly PortalNavItem[] = [
 ];
 
 export const UPDATES_LINK = '/portal/updates';
-export const HELP_FRAGMENT = 'help';
 export const SIGN_IN_LINK = '/portal/sign-in';
 
 /** Unread count shown on the bell: hidden at 0, "9+" above 9 (BR-16). */

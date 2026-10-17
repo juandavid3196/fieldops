@@ -1,0 +1,78 @@
+@if (topic(); as topic) {
+  <app-help-breadcrumb [items]="crumbs()" />
+  <a class="topic__back" [routerLink]="base">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>Back to Help &amp; support
+  </a>
+  <header class="topic__header">
+    <span class="topic__icon" aria-hidden="true"><i class="pi" [class]="topic.icon"></i></span>
+    <div>
+      <h1 class="topic__title">{{ topic.title }}</h1>
+      <p class="topic__subtitle">{{ topic.headerSubtitle }}</p>
+    </div>
+  </header>
+
+  <app-help-search-field
+    [placeholder]="searchPlaceholder()"
+    inputId="help-topic-search"
+    [(query)]="query"
+  />
+  <p class="topic__status" role="status" aria-live="polite">{{ status() }}</p>
+
+  <div class="topic__columns">
+    <section class="topic__articles" aria-labelledby="topic-articles-title">
+      <h2 class="topic__card-title" id="topic-articles-title">Articles</h2>
+      @for (section of sections(); track section.label) {
+        <h3 class="topic__section-label">{{ section.label }}</h3>
+        <ul class="topic__list">
+          @for (article of section.articles; track article.slug) {
+            <li>
+              <a class="topic__item" [routerLink]="[base, topic.slug, article.slug]">
+                <span class="topic__item-icon" aria-hidden="true">
+                  <i class="pi" [class]="article.icon"></i>
+                </span>
+                <span class="topic__item-text">
+                  <span class="topic__item-title">{{ article.title }}</span>
+                  <span class="topic__item-description">{{ article.description }}</span>
+                </span>
+                <i class="pi pi-chevron-right topic__chevron" aria-hidden="true"></i>
+              </a>
+            </li>
+          }
+        </ul>
+      } @empty {
+        <p class="topic__empty">No articles in {{ topic.title }} match "{{ trimmedQuery() }}"</p>
+      }
+    </section>
+
+    <div class="topic__side">
+      <section class="topic__popular" aria-labelledby="topic-popular-title">
+        <h2 class="topic__card-title" id="topic-popular-title">Popular in this topic</h2>
+        <ol class="topic__popular-list">
+          @for (article of popular(); track article.slug; let index = $index) {
+            <li class="topic__popular-item">
+              <span class="topic__number" aria-hidden="true">{{ index + 1 }}</span>
+              <span class="topic__item-text">
+                <a class="topic__popular-link" [routerLink]="[base, topic.slug, article.slug]">{{
+                  article.title
+                }}</a>
+                <span class="topic__item-description">{{ article.description }}</span>
+              </span>
+            </li>
+          }
+        </ol>
+      </section>
+      <app-help-support-card />
+    </div>
+  </div>
+
+  <section class="topic__related" aria-labelledby="topic-related-title">
+    <h2 class="topic__card-title" id="topic-related-title">Related topics</h2>
+    <div class="topic__related-list">
+      @for (other of related(); track other.slug) {
+        <app-help-topic-card [topic]="other" />
+      }
+    </div>
+  </section>
+} @else {
+  <app-help-not-found />
+}

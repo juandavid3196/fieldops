@@ -237,9 +237,7 @@ describe('AppShell', () => {
     expect(host.querySelector('.shell__search-input')?.getAttribute('placeholder')).toBe(
       'Search requests, customers, work orders…',
     );
-    expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe(
-      '/coming-soon/help',
-    );
+    expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe('/help');
     const bell = host.querySelector('button[aria-label="Notifications"]')!;
     expect(bell.getAttribute('aria-haspopup')).toBe('dialog');
     expect(bell.textContent?.trim()).toBe('');
@@ -362,7 +360,7 @@ describe('AppShell', () => {
   });
 
   it.each(['owner', 'dispatcher', 'technician'])(
-    'lists the avatar header, My profile, Account settings and Sign out for %s, and the links go to the account area (FR-03, AC-01)',
+    'lists the avatar header, My profile, Account settings, Help & support and Sign out for %s, and the links go to their pages (FR-03, AC-01; help-support-center FR-01, AC-01)',
     async (code) => {
       await setup({ ...SESSION, role: { code, name: 'Role name' } });
 
@@ -376,12 +374,14 @@ describe('AppShell', () => {
       expect(accountItems().map((item) => item.textContent?.trim())).toEqual([
         'My profile',
         'Account settings',
+        'Help & support',
         'Sign out',
       ]);
       expect(menu.querySelector('[role="separator"]')).not.toBeNull();
-      expect(menu.textContent).not.toMatch(/Language|Dark mode|Help/);
+      expect(menu.textContent).not.toMatch(/Language|Dark mode/);
+      expect(accountItems()[2].getAttribute('href')).toBe('/help');
 
-      // Roving keyboard focus over the three items, then Account settings ends on My profile page.
+      // Roving keyboard focus over the items, then Account settings ends on My profile page.
       menuItem().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp', bubbles: true }));
       expect(document.activeElement).toBe(signOutItem());
       accountItems()[1].click();

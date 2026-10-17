@@ -1,0 +1,34 @@
+<section class="support" [class.support--home]="home()" aria-labelledby="help-support-title">
+  <span class="support__icon" aria-hidden="true"
+    ><svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path
+        d="M3 11v3a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3zm0 0a9 9 0 1 1 18 0m0 0v3a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h3z"
+      />
+      <path d="M21 16v2a4 4 0 0 1-4 4h-5" /></svg
+  ></span>
+  <h2 class="support__title" id="help-support-title">Still need help?</h2>
+  @if (portal) {
+    <p class="support__text">Contact your service provider.</p>
+    <a pButton class="support__action" routerLink="/portal" fragment="help"
+      >Get help from your provider</a
+    >
+  } @else {
+    <p class="support__text">Contact our support team and we'll help you find the answer.</p>
+    <a pButton class="support__action" [href]="mailto()">Contact support</a>
+  }
+  @if (home()) {
+    <a class="support__all" [routerLink]="base" [queryParams]="{ view: 'all' }"
+      >View all help articles</a
+    >
+    @if (!portal) {
+      <p class="support__note">Support is provided by email.</p>
+    }
+  }
+</section>

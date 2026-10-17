@@ -1,0 +1,17 @@
+@use '../../styles/help' as help;
+
+:host {
+  display: block;
+}
+
+.missing {
+  &__title {
+    @include help.title;
+
+    margin-block-end: 0.75rem;
+  }
+
+  &__back {
+    @include help.back-link;
+  }
+}

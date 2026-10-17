@@ -168,6 +168,22 @@ describe('app routes', () => {
     expect(harness.routeNativeElement?.querySelector('h1')?.textContent?.trim()).toBe('Reports');
   });
 
+  it.each([
+    ['/coming-soon/help', 'viewer'],
+    ['/help', 'technician'],
+  ])(
+    'opens the Help center inside the main shell from %s for a %s (help-support-center FR-01, AC-02, AC-03)',
+    async (url, code) => {
+      await navigate(url, [{ ...SESSION, role: { code, name: 'Role' } }]);
+
+      expect(router.url).toBe('/help');
+      expect(harness.routeNativeElement?.tagName).toBe('APP-SHELL');
+      expect(harness.routeNativeElement?.querySelector('h1')?.textContent?.trim()).toBe(
+        'Help & support',
+      );
+    },
+  );
+
   it('redirects an unknown Coming soon slug to Overview (FR-03, AC-03)', async () => {
     await navigate('/coming-soon/unknown-module', [true, true]);
 

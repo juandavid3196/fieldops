@@ -1,0 +1,15 @@
+@use '../../styles/help' as help;
+
+:host {
+  display: block;
+  margin-block: 1rem 1.25rem;
+}
+
+.search__label {
+  @include help.visually-hidden;
+}
+
+input {
+  min-block-size: 3rem;
+  font-size: 1rem;
+}

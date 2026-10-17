@@ -1,0 +1,16 @@
+<form class="search" role="search" (submit)="$event.preventDefault()">
+  <label class="search__label" [for]="inputId()">{{ placeholder() }}</label>
+  <p-iconfield>
+    <p-inputicon class="pi pi-search" />
+    <input
+      pInputText
+      type="search"
+      fluid
+      autocomplete="off"
+      [id]="inputId()"
+      [placeholder]="placeholder()"
+      [value]="query()"
+      (input)="onInput($event)"
+    />
+  </p-iconfield>
+</form>
