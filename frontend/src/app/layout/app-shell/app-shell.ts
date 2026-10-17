@@ -73,7 +73,7 @@ export class AppShell {
   readonly session = this.sessionService.session;
   readonly signOutErrorMessage = SIGN_OUT_ERROR_MESSAGE;
   readonly searchPlaceholder = SEARCH_PLACEHOLDER;
-  readonly helpLink = comingSoonPath('help');
+  readonly helpLink = '/help';
   readonly comingSoonNotificationsLink = comingSoonPath('notifications');
   readonly drawerPt = {
     root: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'shell-drawer-title' },

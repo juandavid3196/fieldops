@@ -76,6 +76,8 @@ describe('PortalShell', () => {
     const single = await render(session([ACCOUNT_1]), 0);
     expect(text('.pshell__brand')).toContain('Northstar');
     expect(host.querySelectorAll('.pshell__nav a')).toHaveLength(5);
+    // FR-16 / AC-22: Help opens the portal help center and does not highlight Home.
+    expect(host.querySelector('.pshell__help')?.getAttribute('href')).toBe('/portal/help');
     click('.pshell__user-button');
     single.detectChanges();
     expect(text('.pshell__menu')).not.toContain('Switch account');

@@ -19,13 +19,7 @@ import { PortalSessionService } from '../../core/services/portal-session.service
 import { PortalOrganizationService } from '../../features/portal/services/portal-organization.service';
 import { PortalUpdatesStore } from '../../features/portal/services/portal-updates.store';
 import { initialsOf } from '../../features/portal/utils/portal-format';
-import {
-  HELP_FRAGMENT,
-  PORTAL_NAV,
-  SIGN_IN_LINK,
-  UPDATES_LINK,
-  bellCountText,
-} from './portal-shell.nav';
+import { PORTAL_NAV, SIGN_IN_LINK, UPDATES_LINK, bellCountText } from './portal-shell.nav';
 
 export const PORTAL_SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
 export const PORTAL_SWITCH_ERROR_MESSAGE = "We couldn't switch accounts. Try again.";
@@ -56,7 +50,6 @@ export class PortalShell {
 
   readonly nav = PORTAL_NAV;
   readonly updatesLink = UPDATES_LINK;
-  readonly helpFragment = HELP_FRAGMENT;
 
   readonly session = this.sessions.session;
   readonly isDrawer = signal(false);

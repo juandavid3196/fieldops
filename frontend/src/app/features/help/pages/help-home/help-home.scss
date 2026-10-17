@@ -1,0 +1,104 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../styles/help' as help;
+
+:host {
+  @include help.page;
+}
+
+.home {
+  &__title {
+    @include help.title;
+  }
+
+  // "All help articles": air between the page title and the first topic group.
+  &__title + &__group {
+    margin-block-start: 1.5rem;
+  }
+
+  &__subtitle {
+    @include help.subtitle;
+  }
+
+  &__status {
+    @include help.visually-hidden;
+  }
+
+  &__back {
+    @include help.back-link;
+  }
+
+  &__section,
+  &__group {
+    margin-block-end: 1.5rem;
+  }
+
+  &__section-title,
+  &__group-title {
+    margin: 0 0 0.75rem;
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__group-title {
+    font-size: 1.125rem;
+  }
+
+  &__empty {
+    @include help.card;
+
+    margin: 0;
+    font-weight: 500;
+  }
+
+  &__topics {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+
+    @include bp.up(lg) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  &__columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+    align-items: stretch;
+
+    @include bp.up(lg) {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+  }
+
+  &__popular {
+    @include help.card;
+  }
+
+  &__card-title {
+    @include help.card-title;
+
+    margin-block-end: 0.75rem;
+  }
+
+  &__answer {
+    font-size: 0.9375rem;
+    margin: 0 0 0.5rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__read {
+    font-weight: 500;
+    color: var(--fo-color-primary-strong);
+  }
+}
+
+// Header text size; the chevrons come from the toggleicon template so they are styled here.
+p-accordion-header {
+  font-size: 1.0625rem;
+}
+
+.home__toggle {
+  font-size: 1.25rem;
+}

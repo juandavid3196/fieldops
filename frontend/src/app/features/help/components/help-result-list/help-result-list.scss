@@ -1,0 +1,67 @@
+@use '../../styles/help' as help;
+
+:host {
+  display: block;
+}
+
+.results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  li + li {
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+
+  &__item {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    color: var(--fo-color-text);
+    text-decoration: none;
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset var(--fo-focus-ring);
+    }
+  }
+
+  &__icon {
+    @include help.icon-tile;
+  }
+
+  &__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  &__title {
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__description {
+    font-size: 0.9375rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__topic {
+    font-size: 0.8125rem;
+    color: var(--fo-color-primary-strong);
+  }
+
+  &__chevron {
+    color: var(--fo-color-text-secondary);
+  }
+}

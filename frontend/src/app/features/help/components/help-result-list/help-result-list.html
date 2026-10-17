@@ -1,0 +1,17 @@
+<ul class="results">
+  @for (result of results(); track result.topic.slug + result.article.slug) {
+    <li>
+      <a class="results__item" [routerLink]="[base, result.topic.slug, result.article.slug]">
+        <span class="results__icon" aria-hidden="true">
+          <i class="pi" [class]="result.article.icon"></i>
+        </span>
+        <span class="results__text">
+          <span class="results__title">{{ result.article.title }}</span>
+          <span class="results__description">{{ result.article.description }}</span>
+          <span class="results__topic">{{ result.topic.title }}</span>
+        </span>
+        <i class="pi pi-chevron-right results__chevron" aria-hidden="true"></i>
+      </a>
+    </li>
+  }
+</ul>

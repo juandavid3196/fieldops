@@ -105,6 +105,9 @@ describe('TechnicianShell', () => {
     expect(host.querySelector('a[aria-label="Notifications"]')?.getAttribute('href')).toBe(
       '/today/soon/notifications',
     );
+    // help-support-center FR-15 / AC-21: the top-bar help icon opens the help center.
+    expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe('/help');
+    expect(host.querySelector('a[aria-label="Help"] .pi-question-circle')).not.toBeNull();
     expect(host.querySelector('.tshell__avatar')?.textContent?.trim()).toBe('CR');
     expect(host.querySelectorAll('main')).toHaveLength(1);
     expect(host.querySelector('.p-badge, [class*="unread"]')).toBeNull();
@@ -160,7 +163,7 @@ describe('TechnicianShell', () => {
     expect(router.url).toBe('/today');
   });
 
-  it('opens More with My profile, Account settings and Sign out in order (FR-04, AC-02), and signs out through the existing flow, keeping the session on failure (AC-16)', async () => {
+  it('opens More with My profile, Account settings, Help & support and Sign out in order (FR-04, AC-02; help-support-center FR-02, AC-03), and signs out through the existing flow, keeping the session on failure (AC-16)', async () => {
     await setup();
 
     button('More').click();
@@ -170,10 +173,12 @@ describe('TechnicianShell', () => {
     expect(panelItems.map((item) => item.textContent?.trim())).toEqual([
       'My profile',
       'Account settings',
+      'Help & support',
       'Sign out',
     ]);
     expect(panelItems[0].getAttribute('href')).toBe('/team');
     expect(panelItems[1].getAttribute('href')).toBe('/account');
+    expect(panelItems[2].getAttribute('href')).toBe('/help');
 
     button('Sign out').click();
     button('Sign out').click();

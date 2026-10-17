@@ -6,4 +6,6 @@ export interface Environment {
   readonly production: boolean;
   /** Absolute or same-origin base URL of the FieldOps API, without trailing slash. */
   readonly apiBaseUrl: string;
+  /** Public support mailbox used by the Help & support center `mailto:` action. */
+  readonly supportEmail: string;
 }

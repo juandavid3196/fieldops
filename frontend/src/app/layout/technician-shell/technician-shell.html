@@ -36,6 +36,10 @@
     @if (header() === null) {
       <p class="tshell__title">{{ pageTitle() }}</p>
 
+      <a class="tshell__icon-button" [routerLink]="helpLink" aria-label="Help">
+        <i class="pi pi-question-circle" aria-hidden="true"></i>
+      </a>
+
       <a class="tshell__icon-button" [routerLink]="notificationsLink" aria-label="Notifications">
         <i class="pi pi-bell" aria-hidden="true"></i>
       </a>
@@ -89,6 +93,10 @@
         <a class="tshell__panel-item" [routerLink]="accountLink">
           <i class="pi pi-cog" aria-hidden="true"></i>
           Account settings
+        </a>
+        <a class="tshell__panel-item" [routerLink]="helpLink">
+          <i class="pi pi-question-circle" aria-hidden="true"></i>
+          Help &amp; support
         </a>
         <button
           type="button"

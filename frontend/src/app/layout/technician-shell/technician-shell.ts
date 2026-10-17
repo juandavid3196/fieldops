@@ -16,6 +16,7 @@ import { TechnicianVisitsService } from '../../features/technician-jobs/services
 import { avatarTextColor } from '../../features/technician-jobs/utils/technician-format';
 import {
   ACCOUNT_LINK,
+  HELP_LINK,
   NOTIFICATIONS_LINK,
   PROFILE_LINK,
   TECHNICIAN_NAV,
@@ -58,6 +59,7 @@ export class TechnicianShell {
   readonly notificationsLink = NOTIFICATIONS_LINK;
   readonly profileLink = PROFILE_LINK;
   readonly accountLink = ACCOUNT_LINK;
+  readonly helpLink = HELP_LINK;
   readonly signOutErrorMessage = SIGN_OUT_ERROR_MESSAGE;
 
   readonly openPanel = signal<PanelKind | null>(null);

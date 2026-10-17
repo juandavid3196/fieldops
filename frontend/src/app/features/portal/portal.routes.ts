@@ -133,6 +133,8 @@ export default [
         title: 'Recent activity · Customer portal',
         loadComponent: () => import('./pages/activity/activity').then((m) => m.PortalActivity),
       },
+      // help-support-center FR-16: declared before the catch-all; the portal guard above applies.
+      { path: 'help', loadChildren: () => import('../help/portal-help.routes') },
       { path: '**', redirectTo: '' },
     ],
   },
