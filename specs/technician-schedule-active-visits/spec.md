@@ -4,7 +4,7 @@
 | -------- | ----------------------------------- |
 | Feature  | `technician-schedule-active-visits` |
 | Type     | Full-stack                          |
-| Status   | APPROVED                            |
+| Status   | DRAFT                               |
 | Created  | 2026-10-17                          |
 | Updated  | 2026-10-17                          |
 | Approved | 2026-10-17                          |
@@ -187,7 +187,7 @@ new is introduced.
 | Dispatch drawer cancel dialog | Confirm button progress; inputs disabled | — | `400` inline; `409` per BR-21 | Viewer: no action | BR-21 |
 
 - Mockups: `design/assets/Agenda móvil del técnico FieldOps.png` (Approved;
-  Schedule). Shell from `design/assets/7-design.png`. Mockup data are examples;
+  Schedule and technician shell). Mockup data are examples;
   the bell keeps its current behavior in this spec.
 - Responsive and accessibility: BR-22.
 
@@ -301,3 +301,4 @@ automation.
 | 2026-10-17 | — → DRAFT     | Created |
 | 2026-10-17 | DRAFT → DRAFT | Revised: OD-01 resolved (recurring cancellation skips the occurrence without replacement; FR-09, BR-14, BR-21, dispatch detail `cancelCreatesReplacement`, States, AC-14, AC-16); BR-05 supersession of `mobile-job-details` BR-07 made explicit; OD-09 records the confirmed work order and audit rules |
 | 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-17 | APPROVED → DRAFT | Design reference corrected: shell comes from the Agenda mockup; `7-design.png` does not exist |
