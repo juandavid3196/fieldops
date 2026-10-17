@@ -1,7 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-import { ApiError, ApiErrorKind, ApiRowError, isApiError } from '../models/api-error.model';
+import {
+  ApiActiveVisit,
+  ApiError,
+  ApiErrorKind,
+  ApiRowError,
+  isApiError,
+} from '../models/api-error.model';
 import { ProblemDetails } from '../models/problem-details.model';
 
 const MESSAGES: Readonly<Record<ApiErrorKind, string>> = {
@@ -67,8 +73,12 @@ export class ApiErrorService {
         ? visits
         : undefined;
 
+    const activeVisit =
+      error.status === 409 ? readActiveVisit(problem?.['activeVisit']) : undefined;
+
     return {
       ...apiError,
+      ...(activeVisit === undefined ? {} : { activeVisit }),
       ...(upcomingVisitCount === undefined ? {} : { upcomingVisitCount }),
       ...(rowErrors === undefined ? {} : { rowErrors }),
       ...(retryAfterSeconds === undefined ? {} : { retryAfterSeconds }),
@@ -79,6 +89,23 @@ export class ApiErrorService {
   getMessage(error: unknown): string {
     return this.toApiError(error).message;
   }
+}
+
+function readActiveVisit(value: unknown): ApiActiveVisit | undefined {
+  if (typeof value !== 'object' || value === null) {
+    return undefined;
+  }
+  const { visitId, displayNumber, title, status, scheduledStart } = value as Record<
+    string,
+    unknown
+  >;
+  return typeof visitId === 'string' &&
+    typeof displayNumber === 'string' &&
+    typeof title === 'string' &&
+    typeof status === 'string' &&
+    (scheduledStart === null || typeof scheduledStart === 'string')
+    ? { visitId, displayNumber, title, status, scheduledStart }
+    : undefined;
 }
 
 function createApiError(

@@ -1,0 +1,17 @@
+<section class="notice" role="alert">
+  <p class="notice__message" tabindex="-1">
+    <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+    {{ message() }}
+  </p>
+  <div class="notice__card">
+    <p class="notice__title">{{ visit().title }}</p>
+    <p class="notice__meta">#{{ visit().displayNumber }} · {{ statusText() }}</p>
+    @if (scheduledText(); as scheduled) {
+      <p class="notice__meta">{{ scheduled }}</p>
+    }
+  </div>
+  <a class="notice__action" [routerLink]="['/today/visits', visit().visitId]">
+    Open active visit
+    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+  </a>
+</section>

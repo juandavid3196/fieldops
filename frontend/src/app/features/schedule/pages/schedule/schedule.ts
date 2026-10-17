@@ -308,6 +308,13 @@ export class SchedulePage {
     this.store.refresh();
   }
 
+  /** BR-21: a cancelled visit closes the drawer and refreshes the calendar and Unscheduled panel. */
+  onDrawerCancelled(message: string): void {
+    this.messageService.add({ severity: 'success', summary: message });
+    this.closeDrawer();
+    this.store.refresh();
+  }
+
   onDrawerUnavailable(): void {
     this.messageService.add({ severity: 'error', summary: VISIT_UNAVAILABLE_MESSAGE });
     this.closeDrawer();

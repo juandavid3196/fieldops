@@ -29,7 +29,6 @@ public class TechnicianVisitAccessTests(CompanySettingsDatabaseFixture database)
         var released = await database.SeedJobAsync(world, user, me.Profile, "assigned", Noon, title: "Secret released job");
         await database.UnassignAsync(released.Visit);
         var unscheduled = await database.SeedJobAsync(world, user, me.Profile, "unscheduled", Noon, title: "Secret unscheduled job");
-        var cancelled = await database.SeedJobAsync(world, user, me.Profile, "cancelled", Noon, title: "Secret cancelled job");
         var otherOrg = await database.SeedJobAsync(foreign, foreignTech.Member.UserId, foreignTech.Profile, "assigned", Noon, title: "Secret foreign job");
         var before = await database.VisitStateAsync(mine.Visit);
 
@@ -46,7 +45,7 @@ public class TechnicianVisitAccessTests(CompanySettingsDatabaseFixture database)
 
         var rejected = new List<HttpResponseMessage>();
 
-        foreach (var id in new[] { foreignVisit.Visit, released.Visit, unscheduled.Visit, cancelled.Visit, otherOrg.Visit, Guid.NewGuid() })
+        foreach (var id in new[] { foreignVisit.Visit, released.Visit, unscheduled.Visit, otherOrg.Visit, Guid.NewGuid() })
         {
             rejected.Add(await host.GetAsync($"/technician/visits/{id}", me.Cookie));
         }

@@ -17,6 +17,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 
 import { SessionService } from '../../../../core/services/session.service';
+import { ActiveVisitNotice } from '../../components/active-visit-notice/active-visit-notice';
 import { JobProgress } from '../../components/job-progress/job-progress';
 import { PhotoDeleteRequest, PhotoViewer } from '../../components/photo-viewer/photo-viewer';
 import { ReportIssue } from '../../components/report-issue/report-issue';
@@ -28,7 +29,7 @@ import {
 } from '../../components/visit-photos/visit-photos';
 import { VisitStepper } from '../../components/visit-stepper/visit-stepper';
 import { VisitTabs } from '../../components/visit-tabs/visit-tabs';
-import { TechnicianVisitDetail } from '../../models/technician-visits.model';
+import { ActiveVisitSummary, TechnicianVisitDetail } from '../../models/technician-visits.model';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
 import { classifyMutationFailure } from '../../utils/job-progress';
 import {
@@ -40,6 +41,7 @@ import {
 import {
   addressLine,
   arrivalWindowText,
+  formatInstantDateTime,
   formatInstantShortDate,
   formatTimeRange,
   priorityLabel,
@@ -77,6 +79,7 @@ type TravelAction = 'start-travel' | 'arrive' | 'start-job';
     Message,
     Skeleton,
     Tag,
+    ActiveVisitNotice,
     JobProgress,
     PhotoViewer,
     ReportIssue,
@@ -112,6 +115,8 @@ export class VisitDetail {
   /** Action in flight; blocks repeats. */
   readonly pending = signal<TravelAction | null>(null);
   readonly actionError = signal<string | null>(null);
+  /** Active visit behind a 409 `another_visit_active` (BR-19). */
+  readonly actionBlock = signal<ActiveVisitSummary | null>(null);
   readonly announcement = signal('');
   readonly assessmentOpen = signal(false);
   readonly reportOpen = signal(false);
@@ -124,6 +129,15 @@ export class VisitDetail {
   readonly working = computed(() => {
     const status = this.visit()?.status;
     return status === 'in_progress' || status === 'paused';
+  });
+  readonly cancelled = computed(() => this.visit()?.status === 'cancelled');
+  /** "This visit was cancelled on <EEE, MMM d> · <h:mm a>." (BR-09). */
+  readonly cancelledText = computed(() => {
+    const visit = this.visit();
+    const cancellation = visit?.cancellation;
+    return visit && cancellation
+      ? `This visit was cancelled on ${formatInstantDateTime(cancellation.cancelledAt, visit.timezone)}.`
+      : null;
   });
   readonly canDeletePhotos = computed(() => this.working() && this.visit()?.isPrimary === true);
 
@@ -264,6 +278,7 @@ export class VisitDetail {
     }
     this.pending.set(action);
     this.actionError.set(null);
+    this.actionBlock.set(null);
     const request =
       action === 'start-travel'
         ? this.visits.startTravel(this.visitId)
@@ -285,6 +300,7 @@ export class VisitDetail {
         );
         this.pending.set(null);
         this.actionError.set(failure.message);
+        this.actionBlock.set(failure.activeVisit ?? null);
         if (failure.reload) {
           this.load(true);
         }

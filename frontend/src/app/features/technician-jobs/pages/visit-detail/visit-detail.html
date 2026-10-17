@@ -35,7 +35,9 @@
     }
     @case ('ready') {
       @if (visit(); as job) {
-        <app-visit-stepper [steps]="steps()" />
+        @if (steps().length > 0) {
+          <app-visit-stepper [steps]="steps()" />
+        }
 
         <ng-template #jobHeader>
           <article
@@ -82,14 +84,16 @@
                   </p>
                 }
               </div>
-              <div class="visit__side">
-                <app-visit-actions
-                  [visit]="job"
-                  directionsLabel="Open directions"
-                  [featured]="true"
-                  [showCall]="!working()"
-                />
-              </div>
+              @if (!cancelled()) {
+                <div class="visit__side">
+                  <app-visit-actions
+                    [visit]="job"
+                    directionsLabel="Open directions"
+                    [featured]="true"
+                    [showCall]="!working()"
+                  />
+                </div>
+              }
             </div>
           </article>
         </ng-template>
@@ -105,6 +109,21 @@
           >
             <ng-container [ngTemplateOutlet]="jobHeader" />
           </app-job-progress>
+        } @else if (cancelled()) {
+          <section class="visit__banner visit__banner--cancelled" aria-label="Job status">
+            <i class="pi pi-ban" aria-hidden="true"></i>
+            <p class="visit__banner-text">
+              <strong>Cancelled</strong>
+              @if (cancelledText(); as text) {
+                <span class="visit__banner-note">{{ text }}</span>
+              }
+              @if (job.cancellation; as cancellation) {
+                <span class="visit__banner-note">Reason: {{ cancellation.reason }}</span>
+              }
+            </p>
+          </section>
+
+          <ng-container [ngTemplateOutlet]="jobHeader" />
         } @else {
           @if (banner(); as status) {
             <section class="visit__banner" aria-label="Job status">
@@ -166,7 +185,13 @@
 
           @if (bar(); as actions) {
             <div class="bar">
-              @if (actionError(); as errorText) {
+              @if (actionBlock(); as blocking) {
+                <app-active-visit-notice
+                  [message]="actionError() ?? ''"
+                  [visit]="blocking"
+                  [timezone]="job.timezone"
+                />
+              } @else if (actionError(); as errorText) {
                 <p-message class="bar__error" severity="error" [closable]="false">{{
                   errorText
                 }}</p-message>

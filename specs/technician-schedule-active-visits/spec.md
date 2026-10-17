@@ -4,7 +4,7 @@
 | -------- | ----------------------------------- |
 | Feature  | `technician-schedule-active-visits` |
 | Type     | Full-stack                          |
-| Status   | APPROVED                            |
+| Status   | AUDITED                             |
 | Created  | 2026-10-17                          |
 | Updated  | 2026-10-17                          |
 | Approved | 2026-10-17                          |
@@ -313,3 +313,5 @@ automation.
 | 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-17 | APPROVED → DRAFT | Revised by user request: Unfinished jobs block and sheet on Schedule with Open active visit and Resume job; `UnresolvedVisit` contract (OD-10; FR-07, BR-08, BR-17, AC-07, AC-20, States, Testing, Mockups) |
 | 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-17 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-17 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

@@ -1,0 +1,14 @@
+<section class="banner" role="status">
+  <p class="banner__heading">
+    <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+    {{ heading() }}
+  </p>
+  <p class="banner__line">{{ firstLine() }}</p>
+  @if (more() > 0) {
+    <p class="banner__more">+{{ more() }} more unfinished jobs</p>
+  }
+  <a class="banner__action" [routerLink]="['/today/visits', first().visitId]">
+    Open active visit
+    <i class="pi pi-chevron-right" aria-hidden="true"></i>
+  </a>
+</section>

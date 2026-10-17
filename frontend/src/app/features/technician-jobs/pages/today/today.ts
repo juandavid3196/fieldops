@@ -18,8 +18,14 @@ import { Toast } from 'primeng/toast';
 
 import { SessionService } from '../../../../core/services/session.service';
 import { TOAST_STATE_KEY, ToastHandoff } from '../../../requests/models/requests.model';
+import { ActiveVisitNotice } from '../../components/active-visit-notice/active-visit-notice';
+import { UnresolvedBanner } from '../../components/unresolved-banner/unresolved-banner';
 import { VisitActions } from '../../components/visit-actions/visit-actions';
-import { TodayResponse, TodayVisit } from '../../models/technician-visits.model';
+import {
+  ActiveVisitSummary,
+  TodayResponse,
+  TodayVisit,
+} from '../../models/technician-visits.model';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
 import {
   TechnicianLoadFailure,
@@ -61,7 +67,18 @@ type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
  */
 @Component({
   selector: 'app-today',
-  imports: [RouterLink, ButtonDirective, Message, ProgressBar, Skeleton, Tag, Toast, VisitActions],
+  imports: [
+    RouterLink,
+    ButtonDirective,
+    Message,
+    ProgressBar,
+    Skeleton,
+    Tag,
+    Toast,
+    ActiveVisitNotice,
+    UnresolvedBanner,
+    VisitActions,
+  ],
   providers: [MessageService],
   templateUrl: './today.html',
   styleUrls: ['./today.scss', './today-route.scss'],
@@ -86,6 +103,8 @@ export class Today {
   /** Start travel in flight on the next job card; blocks repeats (BR-15). */
   readonly starting = signal(false);
   readonly startError = signal<string | null>(null);
+  /** Active visit behind a 409 `another_visit_active` (BR-19). */
+  readonly startBlock = signal<ActiveVisitSummary | null>(null);
   private readonly loadedAt = signal(0);
   private readonly now = signal(Date.now());
   private readonly greetingText = signal('');
@@ -98,6 +117,7 @@ export class Today {
   });
 
   readonly timezone = computed(() => this.data()?.timezone ?? 'UTC');
+  readonly unresolved = computed(() => this.data()?.unresolvedVisits ?? []);
   readonly greeting = computed(
     () => `${this.greetingText()}, ${this.data()?.technician.firstName ?? ''}`,
   );
@@ -215,6 +235,7 @@ export class Today {
     }
     this.starting.set(true);
     this.startError.set(null);
+    this.startBlock.set(null);
     this.visits.startTravel(visit.visitId).subscribe({
       next: () => {
         this.router.navigate(['/today/visits', visit.visitId]).finally(() => {
@@ -223,7 +244,9 @@ export class Today {
       },
       error: (error: unknown) => {
         this.starting.set(false);
-        this.startError.set(classifyTravelFailure(error).message);
+        const failure = classifyTravelFailure(error);
+        this.startError.set(failure.message);
+        this.startBlock.set(failure.activeVisit ?? null);
       },
     });
   }

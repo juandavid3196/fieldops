@@ -76,6 +76,16 @@ function response(
   };
 }
 
+/** Text of the node with a space between elements (Angular drops whitespace-only text nodes). */
+function spaced(node: Element | null | undefined): string {
+  const parts: string[] = [];
+  const walker = document.createTreeWalker(node as Node, NodeFilter.SHOW_TEXT);
+  for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+    parts.push(text.textContent ?? '');
+  }
+  return parts.join(' ').replace(/\s+/g, ' ').trim();
+}
+
 describe('Today', () => {
   let httpTesting: HttpTestingController;
   let fixture: ComponentFixture<Today>;
@@ -378,6 +388,66 @@ describe('Today', () => {
       expect(router.url).toBe('/today/visits/2');
     },
   );
+
+  it('shows the unresolved banner above the metrics and the blocking active-visit card with focus on the message (AC-06, AC-07)', async () => {
+    const unresolved = [
+      {
+        visitId: 'v-9',
+        displayNumber: 'WO-9',
+        title: 'Old leak',
+        status: 'paused',
+        scheduledStart: '2026-10-06T09:00:00+13:00',
+        customerName: 'Sofia Martinez',
+        customerType: 'person' as const,
+        statusSince: null,
+      },
+      {
+        visitId: 'v-8',
+        displayNumber: 'WO-8',
+        title: 'Older job',
+        status: 'on_the_way',
+        scheduledStart: '2026-10-05T09:00:00+13:00',
+        customerName: 'Sofia Martinez',
+        customerType: 'person' as const,
+        statusSince: null,
+      },
+    ];
+    await load({
+      ...response([visit('2', 'assigned')], { scheduledMinutes: 60 }, '2'),
+      unresolvedVisits: unresolved,
+    });
+    const banner = root().querySelector('app-unresolved-banner')!;
+    expect(banner.querySelector('[role="status"]')).not.toBeNull();
+    expect(spaced(banner)).toContain(
+      'You have an unfinished job from Tue, Oct 6 Old leak · #WO-9 · Paused +1 more unfinished jobs',
+    );
+    expect(banner.querySelector('a')?.textContent?.trim()).toContain('Open active visit');
+    expect(banner.querySelector('a')?.getAttribute('href')).toBe('/today/visits/v-9');
+    expect(
+      banner.compareDocumentPosition(root().querySelector('.today__metrics')!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    Array.from(root().querySelectorAll('button'))
+      .find((b) => b.textContent?.includes('Start travel'))!
+      .click();
+    await settle();
+    httpTesting.expectOne({ method: 'POST', url: `${API}/technician/visits/2/start-travel` }).flush(
+      {
+        status: 409,
+        code: 'another_visit_active',
+        activeVisit: { ...unresolved[0], status: 'in_progress' },
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await settle();
+    const notice = root().querySelector('app-active-visit-notice')!;
+    const flat = spaced(notice);
+    expect(flat).toContain("You're already traveling to or working on another job.");
+    expect(flat).toContain('Old leak #WO-9 · In progress Tue, Oct 6 · 9:00 AM');
+    expect(notice.querySelector('a')?.getAttribute('href')).toBe('/today/visits/v-9');
+    expect(document.activeElement).toBe(notice.querySelector('p'));
+  });
 
   it.each([
     [

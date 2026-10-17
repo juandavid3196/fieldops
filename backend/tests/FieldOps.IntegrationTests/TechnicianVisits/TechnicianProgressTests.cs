@@ -111,7 +111,7 @@ public class TechnicianProgressTests(CompanySettingsDatabaseFixture database)
         var mineChildren = await SeedChildrenAsync(world, mine, user);
         await database.AssignAsync(mine.Visit, walker.Profile, user, primary: false);
 
-        // AC-01: other technicians', released, unscheduled, cancelled, other-organization and random visits.
+        // AC-01: other technicians', released, unscheduled, other-organization and random visits (a cancelled visit is covered by TechnicianScheduleTests).
         var hidden = new List<(Guid Visit, Children Children)>();
 
         foreach (var (technician, status) in new[]
@@ -119,7 +119,6 @@ public class TechnicianProgressTests(CompanySettingsDatabaseFixture database)
             (other.Profile, "in_progress"),
             (me.Profile, "in_progress"),
             (me.Profile, "unscheduled"),
-            (me.Profile, "cancelled"),
         })
         {
             var seeded = await database.SeedJobAsync(world, user, technician, status, Noon, title: "Secret job");

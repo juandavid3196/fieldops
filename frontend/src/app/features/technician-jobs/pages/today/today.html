@@ -33,6 +33,9 @@
     }
     @case ('ready') {
       @if (data(); as today) {
+        @if (unresolved().length > 0) {
+          <app-unresolved-banner [visits]="unresolved()" [timezone]="timezone()" />
+        }
         <header class="today__header">
           <div class="today__heading">
             <h1 class="today__greeting">{{ greeting() }}</h1>
@@ -140,7 +143,13 @@
             </div>
             <app-visit-actions [visit]="next" />
             <div class="today__primary-actions">
-              @if (startError(); as errorText) {
+              @if (startBlock(); as blocking) {
+                <app-active-visit-notice
+                  [message]="startError() ?? ''"
+                  [visit]="blocking"
+                  [timezone]="timezone()"
+                />
+              } @else if (startError(); as errorText) {
                 <p-message class="today__start-error" severity="error" [closable]="false">{{
                   errorText
                 }}</p-message>

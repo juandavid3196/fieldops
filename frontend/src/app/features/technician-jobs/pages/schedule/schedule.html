@@ -1,0 +1,183 @@
+<div class="sched">
+  @switch (state()) {
+    @case ('loading') {
+      <div
+        class="sched__skeletons"
+        aria-busy="true"
+        aria-label="Loading your schedule"
+        role="status"
+      >
+        <p-skeleton height="2rem" width="60%" />
+        <p-skeleton height="3.5rem" />
+        <p-skeleton height="2rem" width="80%" />
+        @for (card of skeletonCards; track card) {
+          <p-skeleton height="8rem" />
+        }
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="sched__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @case ('ready') {
+      @if (data(); as schedule) {
+        <header class="sched__header">
+          <h1 class="sched__title">My schedule</h1>
+        </header>
+
+        @if (weekFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="sched__error">
+              {{ loadErrorMessage }}
+              <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+                Retry
+              </button>
+            </span>
+          </p-message>
+        }
+
+        <div class="sched__week-row">
+          <button
+            type="button"
+            class="sched__week"
+            aria-label="Previous week"
+            [attr.aria-disabled]="changingWeek()"
+            (click)="changeWeek(-1)"
+          >
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <div class="sched__strip" role="tablist" aria-label="Days of the week">
+            @for (day of days(); track day.date; let index = $index) {
+              <button
+                type="button"
+                role="tab"
+                class="sched__day"
+                [class.sched__day--today]="day.isToday"
+                [attr.aria-selected]="day.date === selected()"
+                [attr.tabindex]="day.date === selected() ? 0 : -1"
+                (click)="select(day.date)"
+                (keydown)="moveSelection($event, index)"
+              >
+                <span class="sched__day-name">{{ day.name }}</span>
+                <span class="sched__day-number">{{ day.number }}</span>
+                @if (day.isToday) {
+                  <span class="sched__sr">Today</span>
+                }
+              </button>
+            }
+          </div>
+          <button
+            type="button"
+            class="sched__week"
+            aria-label="Next week"
+            [attr.aria-disabled]="changingWeek()"
+            (click)="changeWeek(1)"
+          >
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        @if (schedule.unresolvedVisits.length > 0) {
+          <app-unresolved-jobs [visits]="schedule.unresolvedVisits" [timezone]="timezone()" />
+        }
+
+        <section class="sched__day-view" role="tabpanel" aria-labelledby="sched-day-heading">
+          <div class="sched__day-head">
+            <h2 class="sched__heading" id="sched-day-heading">{{ heading() }}</h2>
+            <p class="sched__chip">{{ summary() }}</p>
+          </div>
+
+          @if (dayVisits().length === 0) {
+            <p class="sched__empty">{{ emptyMessage }}</p>
+          } @else {
+            <ol class="sched__list" aria-labelledby="sched-day-heading">
+              @for (item of dayVisits(); track item.visit.visitId) {
+                <li class="sched__item">
+                  <span class="sched__time">{{ item.time }}</span>
+                  <span class="sched__dot" aria-hidden="true"></span>
+                  <a
+                    class="sched__card"
+                    [class.sched__card--cancelled]="item.cancelled"
+                    [routerLink]="['/today/visits', item.visit.visitId]"
+                  >
+                    <span class="sched__card-body">
+                      <span class="sched__card-head">
+                        <span class="sched__status" [attr.data-status]="item.visit.status">{{
+                          item.status
+                        }}</span>
+                        <span class="sched__duration">{{ item.duration }}</span>
+                      </span>
+                      <span class="sched__card-title">{{ item.visit.title }}</span>
+                      <span class="sched__muted">#{{ item.visit.displayNumber }}</span>
+                      <span class="sched__line">
+                        <svg
+                          class="sched__icon"
+                          [attr.data-icon]="
+                            item.visit.customerType === 'company' ? 'building' : 'person'
+                          "
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          @if (item.visit.customerType === 'company') {
+                            <path
+                              fill-rule="evenodd"
+                              d="M3 21V3h11v6h7v12H3zm3-14v2h2V7H6zm0 4v2h2v-2H6zm0 4v2h2v-2H6zm4-8v2h2V7h-2zm0 4v2h2v-2h-2zm0 4v2h2v-2h-2zm6-2v2h2v-2h-2z"
+                            />
+                          } @else {
+                            <path
+                              d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"
+                            />
+                          }
+                        </svg>
+                        {{ item.visit.customerName }}
+                      </span>
+                      <span class="sched__line">
+                        <svg
+                          class="sched__icon"
+                          data-icon="pin"
+                          viewBox="0 0 24 24"
+                          aria-hidden="true"
+                          focusable="false"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.500a2.500 2.500 0 1 1 0-5 2.500 2.500 0 0 1 0 5z"
+                          />
+                        </svg>
+                        <span>
+                          {{ item.visit.address.line1 }}
+                          @if (item.city) {
+                            <span class="sched__muted sched__block">{{ item.city }}</span>
+                          }
+                        </span>
+                      </span>
+                      @if (item.visit.needsReschedule) {
+                        <span class="sched__reschedule">
+                          <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                          Ask dispatch to reschedule
+                        </span>
+                      }
+                    </span>
+                    <i class="pi pi-chevron-right sched__chevron" aria-hidden="true"></i>
+                  </a>
+                </li>
+              }
+            </ol>
+          }
+        </section>
+
+        <p class="sched__notice">{{ timezoneNotice }}</p>
+      }
+    }
+    @default {
+      <p class="sched__notice sched__notice--access" role="status">{{ accessText() }}</p>
+    }
+  }
+</div>
