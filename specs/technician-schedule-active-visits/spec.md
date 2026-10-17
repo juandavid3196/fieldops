@@ -40,7 +40,8 @@ No permission matrix grants technicians cancellation or deletion; none is added.
   soon destination, and `GET /technician/schedule`.
 - Active-visit guard redefinition and the `activeVisit` payload on
   `409 another_visit_active`, with the **Open active visit** UI.
-- Unresolved past active visits banner on `/today` and `/today/schedule`.
+- Unresolved past active visits: banner on `/today`; **Unfinished jobs** block and
+  bottom sheet on `/today/schedule`, with **Open active visit** and **Resume job**.
 - Read-only technician detail of `cancelled` visits and the "Ask dispatch to
   reschedule" state for past `scheduled`/`assigned` visits.
 - `POST /dispatch/visits/{visitId}/cancel` and **Cancel visit** in the dispatch
@@ -65,8 +66,10 @@ No permission matrix grants technicians cancellation or deletion; none is added.
    selected.
 2. They move by week, select any day and see that day's visits; tapping a
    visit opens `/today/visits/:visitId`.
-3. A past active visit shows the unresolved banner on Today and Schedule;
-   **Open active visit** opens it so the technician can finish it.
+3. A past active visit shows the unresolved banner on Today and the **Unfinished
+   jobs** block on Schedule; the block opens a bottom sheet listing them oldest
+   first, where **Open active visit** opens a started visit and **Resume job**
+   continues a paused one.
 4. Starting travel while another visit is active shows the blocking visit and
    **Open active visit** instead of a dead-end error.
 5. A dispatcher opens a past visit in the dispatch drawer, chooses **Cancel
@@ -84,7 +87,7 @@ No permission matrix grants technicians cancellation or deletion; none is added.
 | FR-04 | Past `scheduled`/`assigned` visits must be shown as needing reschedule and must never be treated as active work (BR-06). |
 | FR-05 | The active-visit guard must use status and open time entries only and return the blocking visit (BR-05). |
 | FR-06 | Every blocking message must show the active visit and **Open active visit** (BR-19). |
-| FR-07 | Unresolved past active visits must be returned and surfaced on Today and Schedule (BR-08, BR-17). |
+| FR-07 | Unresolved past active visits must be returned and surfaced on Today (banner) and Schedule (Unfinished jobs block and sheet with resolution actions) (BR-08, BR-17). |
 | FR-08 | The technician detail must serve `cancelled` visits read-only with the cancellation reason (BR-09). |
 | FR-09 | Manage roles must cancel eligible visits with a reason, atomically closing time entries, writing history and audit, creating the replacement visit for one-time work orders (skipping recurring occurrences) and updating the work order per BR-10–BR-14. |
 | FR-10 | The dispatch drawer must offer **Cancel visit** and show cancellations per BR-21. |
@@ -101,7 +104,7 @@ No permission matrix grants technicians cancellation or deletion; none is added.
 | BR-05 | Active visit: a visit V other than the target, in the session organization, actively assigned to the caller's profile (primary or not) and not `cancelled`, is active when V's status is `on_the_way`, `in_progress` or `paused`, **or** V has a `visit_time_entries` row of the caller's profile with `ended_at IS NULL`. Scheduled date never makes a visit active; a past `scheduled`/`assigned` visit without an open entry is never active. Start travel's `409 another_visit_active` is returned only for this condition and includes `activeVisit = { visitId, displayNumber, title, status, scheduledStart \| null }` of the active visit with the earliest `scheduled_start`, then lowest work order number and visit number. The message stays "You're already traveling to or working on another job.". This supersedes the `on_the_way`/`in_progress` condition of `mobile-job-details` BR-07; its guard order, profile lock and no-write behavior (BR-07, BR-10) are unchanged. | Backend |
 | BR-06 | Past not-started visits: a visit with status `scheduled` or `assigned` whose `scheduled_start` is before the current local day start has `needsReschedule = true`. It is shown with "Ask dispatch to reschedule" on its schedule card and detail; the detail shows no **Start travel** (replacing the travel controls of `mobile-job-details` BR-14 for that case). Start travel on it keeps returning `409 visit_not_today`. | Both |
 | BR-07 | No date-based guard is added to arrive, start job, pause, resume or completion; past active visits can be finished as today's. | Backend |
-| BR-08 | Unresolved past active visits: `GET /technician/today` and `GET /technician/schedule` (additive) return `unresolvedVisits: ActiveVisitSummary[]` = the caller's active visits (BR-05 definition without the target exclusion) whose `scheduled_start` is before the current local day start, ordered as BR-05. `ActiveVisitSummary = { visitId, displayNumber, title, status, scheduledStart }`. | Backend |
+| BR-08 | Unresolved past active visits: `GET /technician/today` and `GET /technician/schedule` (additive) return `unresolvedVisits: UnresolvedVisit[]` = the caller's active visits (BR-05 definition without the target exclusion) whose `scheduled_start` is before the current local day start, ordered as BR-05 (oldest first). `UnresolvedVisit = ActiveVisitSummary + { customerName, customerType ("person" \| "company"), statusSince \| null }`, where `statusSince` is `changed_at` of the visit's latest `visit_status_history` row whose `to_status` equals the visit's current status (null when none). `activeVisit` of BR-05 stays an `ActiveVisitSummary`. | Backend |
 | BR-09 | Cancelled detail: `GET /technician/visits/{visitId}` returns `cancelled` visits that are still actively assigned to the caller (superseding the `cancelled` exclusion of `technician-todays-jobs` BR-11 and `mobile-job-details` BR-01 for this read only), with additive `cancellation = { reason, cancelledAt } \| null` from the visit's latest `visit_status_history` row with `to_status = 'cancelled'`, and `needsReschedule`. The page renders read-only: status "Cancelled", the text "This visit was cancelled on <EEE, MMM d> · <h:mm a>." and "Reason: <reason>", no travel, job, task, material, photo, note or completion controls. Every mutation on a `cancelled` visit keeps returning `409 visit_status_invalid`. `unscheduled` visits stay `404`. Completed and approved visits remain read-only as today. | Both |
 | BR-10 | Cancel authorization: policy Manage of `dispatch-calendar` (`owner`, `operations_manager`, `dispatcher`), branch scope per `dispatch-calendar` BR-02; out of scope, other organization or nonexistent → identical `404`. Viewer and other roles → `403`. | Backend |
 | BR-11 | Cancel input: `reason` trimmed, 10–500 characters (`400 errors.reason` "Enter a reason between 10 and 500 characters."); `updatedAt` must equal the visit's `updated_at` (`409 visit_changed`, as `dispatch-calendar`). Eligible statuses: `scheduled`, `assigned`, `on_the_way`, `in_progress`, `paused`, on any date. Other visit statuses, or a work order `cancelled`, `completed` or `approved_for_billing` → `409 visit_not_cancellable` "This visit can't be cancelled in its current state.". | Backend |
@@ -110,7 +113,7 @@ No permission matrix grants technicians cancellation or deletion; none is added.
 | BR-14 | Replacement visit, only for `one_time` work orders: insert one visit with `visit_number` = current maximum of the work order + 1, status `unscheduled`, no schedule, arrival window, preferred window or dispatch note, one `visit_status_history` row (null → `unscheduled`), and a copy of the cancelled visit's `visit_checklist_items` with `is_completed = false` (label, `is_required`, `template_item_id`, `sort_order`; notes and completion fields empty). Completed items, materials, evidence, notes and time entries stay on the cancelled visit as read-only history. For `recurring` work orders no replacement is created: the cancelled occurrence is skipped, every other occurrence keeps its original `visit_number`, and `dispatch-calendar` BR-18 and `mobile-job-completion` BR-09 apply unchanged (`replacementVisitId` null). | Backend |
 | BR-15 | Schedule header and week strip: page title "My schedule"; previous/next week buttons ("Previous week", "Next week"); seven day buttons "EEE" and day number; the selected day is highlighted and exposed as selected; today is marked "Today" to assistive technology. Initial week = current; initial day = today. Changing week selects the same weekday in the new week. Any past or future day is selectable. | Frontend |
 | BR-16 | Day view: heading "EEEE, MMM d"; summary chip BR-04; a vertical timeline of the day's visits in BR-03 order: time "h:mm a" on the rail; card with status chip (`technician-todays-jobs` BR-13 texts plus `cancelled` "Cancelled"), duration ("1h 30m", "2h", "45m"), title, "#<prefix>-<n>", customer line with person icon (`person`) or building icon (`company`), address line 1 and "city, state postal"; "Ask dispatch to reschedule" when `needsReschedule`. The whole card is a link to `/today/visits/:visitId`. Cancelled cards are visually muted with the "Cancelled" text. Notice at the bottom: "Your schedule is shown in your branch time zone." All times in the response zone. | Frontend |
-| BR-17 | Unresolved banner on `/today` (above the greeting metrics) and `/today/schedule` (above the week strip) when `unresolvedVisits` is not empty: "You have an unfinished job from <EEE, MMM d>" with "<title> · #<prefix>-<n> · <status label>" for the first item, "+<n> more unfinished jobs" when more, and **Open active visit** → `/today/visits/:visitId` of the first. Announced as a status region, not by color alone. Not shown for past `scheduled`/`assigned` visits. | Frontend |
+| BR-17 | Unresolved visits UI, shown only when `unresolvedVisits` is not empty and never for past `scheduled`/`assigned` visits. **Today:** banner above the greeting metrics: "You have an unfinished job from <EEE, MMM d>" with "<title> · #<prefix>-<n> · <status label>" for the first item, "+<n> more unfinished jobs" when more, and **Open active visit** → `/today/visits/:visitId` of the first; announced as a status region, not by color alone. **Schedule:** below the week strip, an **Unfinished jobs** block with the text "<n> jobs from previous days" ("1 job from previous days" for one), a count badge and a chevron; it is a button that opens a modal bottom sheet over the schedule without navigating. The sheet has title "Unfinished jobs", subtitle "Finish or close earlier visits before starting new work.", a close control (also Escape and backdrop), the visits oldest first (BR-08 order) and the footer "Oldest unfinished job shown first.". Each card shows status chip (`technician-todays-jobs` BR-13 texts), "EEE, MMM d" of `scheduledStart` (no date when null), title, "#<prefix>-<n>", customer line with person/building icon, a relative time line from `statusSince` — `in_progress` "Started <relative>", `on_the_way` "On the way since <relative>", `paused` "Paused <relative>" (relative: "just now", "<n> min ago", "<n> hours ago", "yesterday", "<n> days ago"; line omitted when null) — and one action: **Open active visit** → `/today/visits/:visitId` for `on_the_way`/`in_progress`; **Resume job** for `paused`, which calls the existing `POST /technician/visits/{visitId}/resume` (`mobile-job-progress` BR-05, unchanged) and on success closes the sheet and opens `/today/visits/:visitId`; on failure it shows the mapped error inline on that card, keeps the sheet open and the action available; pending blocks repeats. Opening moves focus into the sheet, which traps focus and returns it to the block on close; the block and sheet are announced, not by color alone. | Frontend |
 | BR-18 | Schedule states: loading skeleton for strip, summary and cards; empty day "No jobs scheduled for this day." with navigation still enabled; load failure "We couldn't load your schedule. Check your connection and try again." with **Retry**; a failed week change keeps the previous week's data and selection visible with the inline error and Retry; one request at a time per week, stale responses ignored. Unlinked/inactive/forbidden states as `/today`. | Frontend |
 | BR-19 | Blocking UI: every `409 another_visit_active` (next job card on Today, job page action bar) shows the message plus a card with the active visit's title, "#<prefix>-<n>", status label and "EEE, MMM d · h:mm a" (or no date when `scheduledStart` is null) and **Open active visit** → `/today/visits/:activeVisitId`. Focus moves to the message; no dead-end text without the action. | Frontend |
 | BR-20 | Technician bottom navigation, in order: **Today** (`/today` and its job pages), **Schedule** (`/today/schedule`), **Time**, **Messages**, **More**. Time and Messages keep their Coming soon destinations until their specs replace them. The current destination is visually highlighted and has `aria-current="page"`; Today is not current on `/today/schedule`. The `/today/soon/schedule` Coming soon route redirects to `/today/schedule`. Today, More (notifications, Account settings, Help & support, Sign out) and top bar behavior are unchanged; top bar title "Schedule" on `/today/schedule`. | Frontend |
@@ -163,12 +166,13 @@ technician_profile_not_linked`.
 durationMinutes, customerName, customerType ("person" | "company"), address: {
 line1, city, stateRegion | null, postalCode | null }, needsReschedule }`.
 `ActiveVisitSummary = { visitId, displayNumber, title, status, scheduledStart |
-null }`.
+null }`. `UnresolvedVisit = ActiveVisitSummary & { customerName, customerType
+("person" | "company"), statusSince | null }` (BR-08).
 
 | Method | Path | Request | Success | Errors | Permission |
 | ------ | ---- | ------- | ------- | ------ | ---------- |
-| GET | `/technician/schedule` | Query `weekStart?` | `200 { timezone, today, weekStart, days: [{ date, visitCount, scheduledMinutes }], visits: ScheduleVisit[], unresolvedVisits: ActiveVisitSummary[] }` | `400 errors.weekStart` · common | TechnicianSelf |
-| GET | `/technician/today` | Unchanged | Additive `unresolvedVisits: ActiveVisitSummary[]` | Unchanged | TechnicianSelf |
+| GET | `/technician/schedule` | Query `weekStart?` | `200 { timezone, today, weekStart, days: [{ date, visitCount, scheduledMinutes }], visits: ScheduleVisit[], unresolvedVisits: UnresolvedVisit[] }` | `400 errors.weekStart` · common | TechnicianSelf |
+| GET | `/technician/today` | Unchanged | Additive `unresolvedVisits: UnresolvedVisit[]` | Unchanged | TechnicianSelf |
 | GET | `/technician/visits/{visitId}` | Unchanged | Additive `cancellation \| null`, `needsReschedule`; `cancelled` visits served (BR-09) | Unchanged | TechnicianSelf |
 | POST | `/technician/visits/{visitId}/start-travel` | Unchanged | Unchanged | `409 another_visit_active` gains `activeVisit: ActiveVisitSummary` (BR-05); others unchanged | TechnicianSelf |
 | POST | `/dispatch/visits/{visitId}/cancel` | `{ reason, updatedAt }` | `200 { visit: VisitDispatchDetail, replacementVisitId \| null, workOrderStatus }` | `400 errors.reason` · `403` · `404` · `409` (`visit_changed`, `visit_not_cancellable`) | Manage |
@@ -183,11 +187,13 @@ new is introduced.
 | ------ | ------- | ----- | ----- | ---------- | ------- |
 | `/today/schedule` | Skeleton strip, summary, cards | "No jobs scheduled for this day." (BR-18) | BR-18 error with **Retry**, previous data kept | As `/today` | BR-15–BR-17 |
 | `/today` banner | Part of page load | Hidden | As page | As `/today` | BR-17 |
+| `/today/schedule` Unfinished jobs block and sheet | Part of page load; Resume job shows progress | Block hidden | Resume failure inline on the card, sheet kept (BR-17) | As `/today` | BR-17 |
 | `/today/visits/:visitId` | Unchanged | — | Unchanged; `409 another_visit_active` per BR-19 | Unchanged | BR-06, BR-09 |
 | Dispatch drawer cancel dialog | Confirm button progress; inputs disabled | — | `400` inline; `409` per BR-21 | Viewer: no action | BR-21 |
 
 - Mockups: `design/assets/Agenda móvil del técnico FieldOps.png` (Approved;
-  Schedule and technician shell). Mockup data are examples;
+  Schedule and technician shell) and `design/assets/unfiniched jobs..png`
+  (Approved; Unfinished jobs block and bottom sheet). Mockup data are examples;
   the bell keeps its current behavior in this spec.
 - Responsive and accessibility: BR-22.
 
@@ -215,7 +221,7 @@ new is introduced.
 | AC-04 | The caller has only a past `assigned` visit and a past `scheduled` visit, no open entries, and a today `assigned` visit | Start travel is called on the today visit and on the past visit | The today visit starts (`200 changed = true`); the past visit returns `409 visit_not_today`; neither past visit is reported active; both show `needsReschedule = true` |
 | AC-05 | Another visit of the caller in `on_the_way`, `in_progress`, `paused`; an `assigned` visit with an open `work` entry of the caller; a `cancelled` visit and a visit unassigned from the caller with open entries (table-driven) | Start travel is called on a today `assigned` visit | The first four return `409 another_visit_active` with `activeVisit` of BR-05 (earliest by schedule when several) and no write; the cancelled and unassigned cases do not block |
 | AC-06 | A `409 another_visit_active` on the Today next card and on the job page | The error is shown and **Open active visit** is used | The message, the active visit card (title, number, status, date/time) and **Open active visit** appear with focus on the message; the action opens `/today/visits/:activeVisitId` |
-| AC-07 | A past `paused` visit, a past `on_the_way` visit, a today `in_progress` visit and a past `assigned` visit | `/today` and `/today/schedule` load | `unresolvedVisits` lists exactly the two past active visits in BR-05 order; the banner shows the first with "+1 more unfinished jobs" and **Open active visit**; no banner when only past `assigned` visits exist |
+| AC-07 | A past `paused` visit, a past `on_the_way` visit, a today `in_progress` visit and a past `assigned` visit | `/today` and `/today/schedule` load | `unresolvedVisits` lists exactly the two past active visits in BR-05 order with `customerName`, `customerType` and `statusSince`; Today shows the banner for the first with "+1 more unfinished jobs" and **Open active visit**; Schedule shows the **Unfinished jobs** block with "2 jobs from previous days"; neither appears when only past `assigned` visits exist |
 | AC-08 | A past `in_progress` visit opened from the banner | The primary technician pauses, resumes and completes it | The actions succeed without a date error (BR-07) and the banner disappears on the next load |
 | AC-09 | A `cancelled` visit still assigned to the caller, a cancelled visit of another technician, and an `unscheduled` visit | The technician detail is requested and the page opened; a mutation is attempted on the cancelled visit | The own cancelled visit returns `200` with `cancellation` and renders read-only with date, reason and no action controls; the others `404`; the mutation `409 visit_status_invalid` |
 | AC-10 | A past `assigned` visit opened in the job page | The page renders | "Ask dispatch to reschedule" is shown and **Start travel** is absent; on the schedule card the same text appears |
@@ -227,7 +233,8 @@ new is introduced.
 | AC-16 | The dispatch drawer for an eligible past visit of a one-time and of a recurring work order, a started visit, a cancelled visit, and as Viewer | **Cancel visit** is used with invalid then valid reason, and drawers are opened | The dialog follows BR-21 with counter, validation and the one-time or recurring text and toast; success closes, refreshes calendar and Unscheduled panel and shows the toast; the started visit's read-only drawer offers the action; the cancelled drawer shows date, name and reason; Viewer sees no action |
 | AC-17 | The Schedule page | Weeks are changed backward and forward, days selected, a visit card tapped, and a week load fails then is retried | Strip, selection and heading follow BR-15/BR-16; cards show BR-16 content in the response zone with the notice; tapping opens `/today/visits/:visitId`; failure keeps the prior week with the error and Retry reloads |
 | AC-18 | The technician shell | Each bottom destination is opened, including `/today/soon/schedule` | Order Today · Schedule · Time · Messages · More; the current item is highlighted with `aria-current`; Today not current on Schedule; the old Schedule Coming soon route redirects; More, bell, Account settings, Help & support and Sign out unchanged |
-| AC-19 | Viewports 375 px and 1280 px | Schedule is used by keyboard and touch | Approved design layout; no page-level horizontal scroll; targets ≥ 44 px; visible focus; ordered timeline; status not by color alone; centered column ≤ 480 px on wide screens |
+| AC-19 | Viewports 375 px and 1280 px | Schedule and the Unfinished jobs sheet are used by keyboard and touch | Approved design layout; no page-level horizontal scroll; targets ≥ 44 px; visible focus; ordered timeline; status not by color alone; centered column ≤ 480 px on wide screens |
+| AC-20 | Past `in_progress` and `paused` visits with known `statusSince`, and a week with none | The Schedule page loads, the **Unfinished jobs** block is opened, then **Open active visit** and **Resume job** are used (the resume once failing, once succeeding) | The block shows the count and is absent when there are none; the sheet opens over the schedule listing oldest first with date, status, customer and relative time; **Open active visit** navigates to the visit; **Resume job** calls resume, then closes the sheet and opens the visit; a failure shows the error on the card and keeps the sheet; focus is trapped and returns to the block on close |
 
 ## Testing requirements
 
@@ -238,8 +245,8 @@ new is introduced.
 | Backend integration | Active-visit guard matrix, `activeVisit` payload, past `assigned` non-blocking and `unresolvedVisits` | AC-04, AC-05, AC-07, AC-08 |
 | Backend integration | Cancel effects, replacement, work order rule, validation and concurrency | AC-12–AC-15 |
 | Authorization/tenant isolation | Schedule ignores foreign ids; cancelled detail `404` for others; cancel role/scope/foreign matrix (parameterized) | AC-01, AC-09, AC-11 |
-| Frontend component/service | Schedule page (strip, selection, cards, states, retry); unresolved banner; blocking card with Open active visit; cancelled/needs-reschedule detail; dispatch cancel dialog; bottom navigation (3–6 methods) | AC-03, AC-06, AC-07, AC-09, AC-10, AC-16–AC-18 |
-| User visual QA (manual) | Schedule design fidelity, responsive layout, focus | AC-19 |
+| Frontend component/service | Schedule page (strip, selection, cards, states, retry); Today banner; Unfinished jobs block and sheet (open, order, Open active visit, Resume job success/failure, focus); blocking card with Open active visit; cancelled/needs-reschedule detail; dispatch cancel dialog; bottom navigation (3–6 methods; one more allowed for the sheet) | AC-03, AC-06, AC-07, AC-09, AC-10, AC-16–AC-18, AC-20 |
+| User visual QA (manual) | Schedule and Unfinished jobs sheet design fidelity, responsive layout, focus | AC-19, AC-20 |
 
 Backend integration stays within 3–8 methods; the security-relevant cancel
 concurrency (AC-15) may justify one extra method. Agents run no browser
@@ -277,6 +284,7 @@ automation.
 | OD-07 | Cancellation | — | No | Dispatch drawer, Manage + scope, five statuses any date, reason 10–500, entries closed, history and audit, replacement with pending checklist only; work order cancel separate — user 2026-10-17 |
 | OD-08 | Cancelled visits for technician | Visible and readable · visible only | No | Visible, excluded from totals, read-only detail with reason — user 2026-10-17 |
 | OD-09 | Work order and audit after cancel | — | No | `scheduled`/`in_progress` without other active or scheduled visits → `ready_to_schedule` (BR-13); reason only in `visit_status_history`, `visit.cancelled` audit without reason, no email or notification (BR-12) — user 2026-10-17 |
+| OD-10 | Unfinished jobs on Schedule | Replace banner · block on both screens; Resume job inline · navigate; relative time source; contract | No | Block and sheet on Schedule replace its banner, Today keeps the banner; **Resume job** calls the existing resume then opens the visit; relative time from the last status change; `UnresolvedVisit` adds `customerName`, `customerType`, `statusSince` — user 2026-10-17 |
 
 ## Traceability
 
@@ -288,7 +296,7 @@ automation.
 | FR-04 | AC-04, AC-10 |
 | FR-05 | AC-04, AC-05 |
 | FR-06 | AC-06 |
-| FR-07 | AC-07, AC-08 |
+| FR-07 | AC-07, AC-08, AC-20 |
 | FR-08 | AC-09 |
 | FR-09 | AC-11, AC-12, AC-13, AC-14, AC-15 |
 | FR-10 | AC-16 |
@@ -302,4 +310,6 @@ automation.
 | 2026-10-17 | DRAFT → DRAFT | Revised: OD-01 resolved (recurring cancellation skips the occurrence without replacement; FR-09, BR-14, BR-21, dispatch detail `cancelCreatesReplacement`, States, AC-14, AC-16); BR-05 supersession of `mobile-job-details` BR-07 made explicit; OD-09 records the confirmed work order and audit rules |
 | 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-17 | APPROVED → DRAFT | Design reference corrected: shell comes from the Agenda mockup; `7-design.png` does not exist |
+| 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-17 | APPROVED → DRAFT | Revised by user request: Unfinished jobs block and sheet on Schedule with Open active visit and Resume job; `UnresolvedVisit` contract (OD-10; FR-07, BR-08, BR-17, AC-07, AC-20, States, Testing, Mockups) |
 | 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
