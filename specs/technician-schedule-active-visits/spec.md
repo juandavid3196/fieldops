@@ -4,7 +4,7 @@
 | -------- | ----------------------------------- |
 | Feature  | `technician-schedule-active-visits` |
 | Type     | Full-stack                          |
-| Status   | DRAFT                               |
+| Status   | APPROVED                            |
 | Created  | 2026-10-17                          |
 | Updated  | 2026-10-17                          |
 | Approved | 2026-10-17                          |
@@ -302,3 +302,4 @@ automation.
 | 2026-10-17 | DRAFT → DRAFT | Revised: OD-01 resolved (recurring cancellation skips the occurrence without replacement; FR-09, BR-14, BR-21, dispatch detail `cancelCreatesReplacement`, States, AC-14, AC-16); BR-05 supersession of `mobile-job-details` BR-07 made explicit; OD-09 records the confirmed work order and audit rules |
 | 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
 | 2026-10-17 | APPROVED → DRAFT | Design reference corrected: shell comes from the Agenda mockup; `7-design.png` does not exist |
+| 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
