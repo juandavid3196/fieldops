@@ -12,6 +12,7 @@ import { SessionService } from '../../core/services/session.service';
 import {
   TODAY_BACK,
   scheduleSoonRedirect,
+  timeSoonRedirect,
   technicianComingSoonRoute,
 } from '../../features/technician-jobs/technician-jobs.routes';
 import { TechnicianVisitsService } from '../../features/technician-jobs/services/technician-visits.service';
@@ -45,7 +46,9 @@ describe('TechnicianShell', () => {
                 data: { shellTitle: 'Job details', shellBack: TODAY_BACK },
               },
               { path: 'today/schedule', component: PageStub, data: { shellTitle: 'Schedule' } },
+              { path: 'today/time', component: PageStub, data: { shellTitle: 'Time' } },
               scheduleSoonRedirect,
+              timeSoonRedirect,
               technicianComingSoonRoute,
             ],
           },
@@ -150,7 +153,15 @@ describe('TechnicianShell', () => {
     expect(router.url).toBe('/today/schedule');
     expect(current()).toEqual(['Schedule']);
 
-    for (const name of ['Time', 'Messages']) {
+    // Time (AC-10): own destination; the old Coming soon route redirects.
+    expect(host.querySelector('nav a[href="/today/time"]')).not.toBeNull();
+    await go('/today/soon/time');
+    expect(router.url).toBe('/today/time');
+    expect(current()).toEqual(['Time']);
+    expect(title()).toBe('Time');
+    expect(host.querySelector('nav a[aria-current="page"]')?.textContent).toContain('Time');
+
+    for (const name of ['Messages']) {
       await go(`/today/soon/${name.toLowerCase()}`);
       expect(current()).toEqual([name]);
       expect(title()).toBe(name);

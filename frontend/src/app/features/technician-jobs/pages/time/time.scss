@@ -1,0 +1,448 @@
+:host {
+  display: block;
+  --fo-time-ink: light-dark(#000663, var(--fo-color-text));
+  --fo-time-work: var(--fo-color-primary-strong);
+  --fo-time-travel: var(--fo-color-info-text);
+  --fo-time-break: var(--fo-color-text-muted);
+}
+
+.time {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  color: var(--fo-time-ink);
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__error {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__header,
+  &__section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.25;
+  }
+
+  &__toggle {
+    display: inline-flex;
+    flex: none;
+    background: var(--fo-color-neutral-background);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+  }
+
+  &__toggle-button {
+    min-block-size: var(--fo-size-touch-target);
+    min-inline-size: 4.5rem;
+    padding-inline: 1rem;
+    font: inherit;
+    font-weight: 700;
+    color: inherit;
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &[aria-pressed='true'] {
+      color: var(--fo-color-on-primary);
+      background: var(--fo-time-ink);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-color-primary-strong);
+      outline-offset: 2px;
+    }
+  }
+
+  &__range {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  &__label {
+    min-inline-size: 8rem;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  &__nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: inherit;
+    background: var(--fo-color-neutral-background);
+    border: 0;
+    border-radius: 50%;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-color-primary-strong);
+      outline-offset: 2px;
+    }
+  }
+
+  &__card {
+    padding: 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__total {
+    margin: 0;
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  &__total-label,
+  &__muted {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__tiles,
+  &__chart,
+  &__legend,
+  &__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+    gap: 0.75rem;
+    margin-block-start: 1rem;
+  }
+
+  &__tile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-inline-size: 0;
+  }
+
+  &__tile-label {
+    display: block;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__tile-value {
+    display: block;
+    font-size: 1.0625rem;
+    font-weight: 700;
+  }
+
+  &__icon {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    color: var(--fo-time-work);
+    background: var(--fo-color-primary-soft);
+    border-radius: 50%;
+
+    &[data-type='travel'] {
+      color: var(--fo-time-travel);
+      background: var(--fo-color-info-background);
+    }
+
+    &[data-type='break'] {
+      color: var(--fo-color-neutral-text);
+      background: var(--fo-color-neutral-background);
+    }
+  }
+
+  &__chart {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin-block: 1.25rem 1.75rem;
+    border-block-end: 1px solid var(--fo-color-border-strong);
+  }
+
+  &__bar {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-inline-size: 0;
+  }
+
+  &__bar-total,
+  &__bar-name {
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  &__bar-name {
+    position: absolute;
+    inset-block-start: 100%;
+    padding-block-start: 0.25rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__bar-track {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    inline-size: 100%;
+    block-size: 7.5rem;
+  }
+
+  &__bar-stack {
+    display: flex;
+    flex-direction: column;
+    inline-size: 70%;
+    max-inline-size: 2.5rem;
+    overflow: hidden;
+    border-radius: 4px 4px 0 0;
+  }
+
+  &__segment {
+    flex-basis: 0;
+    flex-shrink: 0;
+    min-block-size: 0;
+
+    &[data-type='work'] {
+      background: var(--fo-time-work);
+    }
+
+    &[data-type='travel'] {
+      background: var(--fo-time-travel);
+    }
+
+    &[data-type='break'] {
+      background: var(--fo-time-break);
+    }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.875rem;
+  }
+
+  &__legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  &__swatch {
+    inline-size: 0.75rem;
+    block-size: 0.75rem;
+    border-radius: 2px;
+
+    &[data-type='work'] {
+      background: var(--fo-time-work);
+    }
+
+    &[data-type='travel'] {
+      background: var(--fo-time-travel);
+    }
+
+    &[data-type='break'] {
+      background: var(--fo-time-break);
+    }
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  &__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__heading {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  &__section-total {
+    margin: 0;
+    font-weight: 700;
+  }
+
+  &__list {
+    overflow: hidden;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    li + li {
+      border-block-start: 1px solid var(--fo-color-border);
+    }
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    box-sizing: border-box;
+    padding: 0.75rem;
+    font: inherit;
+    color: inherit;
+    text-align: start;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid var(--fo-color-primary-strong);
+      outline-offset: -2px;
+    }
+  }
+
+  &__row-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  &__row-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+  }
+
+  &__row-title {
+    font-weight: 700;
+  }
+
+  &__chip {
+    padding: 0.125rem 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    color: var(--fo-color-success-text);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+
+    &[data-type='travel'] {
+      color: var(--fo-color-info-text);
+      background: var(--fo-color-info-background);
+    }
+
+    &[data-type='break'] {
+      color: var(--fo-color-neutral-text);
+      background: var(--fo-color-neutral-background);
+    }
+
+    &--open {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+  }
+
+  &__duration {
+    flex: none;
+    font-weight: 700;
+  }
+
+  &__chevron {
+    flex: none;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__empty,
+  &__access,
+  &__notice {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__empty,
+  &__access {
+    padding: 1rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__notice {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-info-text);
+    background: var(--fo-color-info-background);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+
+    div {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    dt {
+      color: var(--fo-color-text-secondary);
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 700;
+      text-align: end;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-block-start: 1rem;
+  }
+}

@@ -1,0 +1,258 @@
+<div class="time">
+  @switch (state()) {
+    @case ('loading') {
+      <div class="time__skeletons" aria-busy="true" aria-label="Loading your time" role="status">
+        <p-skeleton height="2.5rem" width="60%" />
+        <p-skeleton height="2.75rem" width="70%" />
+        <p-skeleton height="14rem" />
+        @for (row of skeletonRows; track row) {
+          <p-skeleton height="5rem" />
+        }
+      </div>
+    }
+    @case ('error') {
+      <p-message severity="error" [closable]="false">
+        <span class="time__error">
+          {{ loadErrorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    }
+    @case ('ready') {
+      @if (data(); as summary) {
+        <header class="time__header">
+          <h1 class="time__title">Time summary</h1>
+          <div class="time__toggle" role="group" aria-label="Time view">
+            <button
+              type="button"
+              class="time__toggle-button"
+              [attr.aria-pressed]="view() === 'day'"
+              (click)="setView('day')"
+            >
+              Day
+            </button>
+            <button
+              type="button"
+              class="time__toggle-button"
+              [attr.aria-pressed]="view() === 'week'"
+              (click)="setView('week')"
+            >
+              Week
+            </button>
+          </div>
+        </header>
+
+        <div class="time__range">
+          <button
+            type="button"
+            class="time__nav"
+            [attr.aria-label]="'Previous ' + unit()"
+            (click)="move(-1)"
+          >
+            <i class="pi pi-chevron-left" aria-hidden="true"></i>
+          </button>
+          <p class="time__label" aria-live="polite">{{ label() }}</p>
+          <button
+            type="button"
+            class="time__nav"
+            [attr.aria-label]="'Next ' + unit()"
+            (click)="move(1)"
+          >
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </button>
+        </div>
+
+        @if (navigationFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="time__error">
+              {{ loadErrorMessage }}
+              <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+                Retry
+              </button>
+            </span>
+          </p-message>
+        }
+
+        <section class="time__card" [attr.aria-busy]="changing()" aria-label="Totals">
+          <p class="time__total">{{ totals().total }}</p>
+          <p class="time__total-label">Total recorded</p>
+          <ul class="time__tiles">
+            @for (tile of totals().tiles; track tile.type) {
+              <li class="time__tile">
+                <span class="time__icon" [attr.data-type]="tile.type">
+                  <i class="pi" [class]="tile.icon" aria-hidden="true"></i>
+                </span>
+                <span>
+                  <span class="time__tile-label">{{ tile.label }}</span>
+                  <span class="time__tile-value">{{ tile.value }}</span>
+                </span>
+              </li>
+            }
+          </ul>
+
+          @if (bars().length > 0) {
+            <ul class="time__chart" aria-label="Time per day">
+              @for (bar of bars(); track bar.day.date) {
+                <li class="time__bar">
+                  <span class="time__sr">{{ bar.alternative }}</span>
+                  <span class="time__bar-track" aria-hidden="true">
+                    <span class="time__bar-total">{{ bar.total }}</span>
+                    <span class="time__bar-stack" [style.block-size.rem]="bar.height * 0.055">
+                      <span
+                        class="time__segment"
+                        data-type="break"
+                        [style.flex-grow]="bar.day.breakSeconds"
+                      ></span>
+                      <span
+                        class="time__segment"
+                        data-type="travel"
+                        [style.flex-grow]="bar.day.travelSeconds"
+                      ></span>
+                      <span
+                        class="time__segment"
+                        data-type="work"
+                        [style.flex-grow]="bar.day.workSeconds"
+                      ></span>
+                    </span>
+                  </span>
+                  <span class="time__bar-name" aria-hidden="true">{{ bar.name }}</span>
+                </li>
+              }
+            </ul>
+            <ul class="time__legend" aria-label="Chart legend">
+              @for (item of legend; track item.type) {
+                <li class="time__legend-item">
+                  <span class="time__swatch" [attr.data-type]="item.type" aria-hidden="true"></span>
+                  {{ item.label }}
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        @if (summary.entries.length === 0) {
+          <p class="time__empty" role="status">{{ emptyMessage() }}</p>
+        }
+
+        @for (section of sections(); track section.date) {
+          <section class="time__section" [attr.aria-labelledby]="'time-' + section.date">
+            <div class="time__section-head">
+              <h2 class="time__heading" [id]="'time-' + section.date">{{ section.heading }}</h2>
+              <p class="time__section-total">{{ section.total }}</p>
+            </div>
+            <ul class="time__list">
+              @for (row of section.rows; track row.entry.id) {
+                <li>
+                  <button
+                    type="button"
+                    class="time__row"
+                    [attr.data-entry-id]="row.entry.id"
+                    aria-haspopup="dialog"
+                    (click)="show(row.entry, $event)"
+                  >
+                    <span class="time__icon" [attr.data-type]="row.entry.type">
+                      <i class="pi" [class]="row.icon" aria-hidden="true"></i>
+                    </span>
+                    <span class="time__row-body">
+                      <span class="time__row-head">
+                        <span class="time__row-title">{{ row.title }}</span>
+                        <span class="time__chip" [attr.data-type]="row.entry.type">{{
+                          row.typeLabel
+                        }}</span>
+                        @if (row.entry.isOpen) {
+                          <span class="time__chip time__chip--open">In progress</span>
+                        }
+                      </span>
+                      @if (row.secondary) {
+                        <span class="time__muted">{{ row.secondary }}</span>
+                      }
+                      <span class="time__muted">{{ row.number }}</span>
+                      <span class="time__muted">{{ row.range }}</span>
+                    </span>
+                    <span class="time__duration">{{ row.duration }}</span>
+                    <i class="pi pi-chevron-right time__chevron" aria-hidden="true"></i>
+                  </button>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <p class="time__notice">
+          <i class="pi pi-info-circle" aria-hidden="true"></i>
+          {{ notice }}
+        </p>
+      }
+    }
+    @default {
+      <p class="time__access" role="status">{{ accessText() }}</p>
+    }
+  }
+
+  <p-dialog
+    header="Time entry"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="true"
+    closeAriaLabel="Close"
+    [visible]="detail() !== null"
+    (visibleChange)="$event ? null : closeDetail()"
+    [style]="{ width: '28rem', maxWidth: '96vw' }"
+  >
+    @if (detail(); as item) {
+      <dl class="time__detail">
+        <div>
+          <dt>Type</dt>
+          <dd>{{ item.typeLabel }}</dd>
+        </div>
+        <div>
+          <dt>Work order</dt>
+          <dd>{{ item.entry.visit.title }} {{ item.number }}</dd>
+        </div>
+        <div>
+          <dt>Visit</dt>
+          <dd>{{ item.visitText }}</dd>
+        </div>
+        <div>
+          <dt>Date</dt>
+          <dd>{{ item.date }}</dd>
+        </div>
+        <div>
+          <dt>Start</dt>
+          <dd>{{ item.startText }}</dd>
+        </div>
+        <div>
+          <dt>End</dt>
+          <dd>{{ item.endText }}</dd>
+        </div>
+        <div>
+          <dt>Duration</dt>
+          <dd>{{ item.duration }}</dd>
+        </div>
+      </dl>
+      <p class="time__notice">{{ readOnlyMessage }}</p>
+      <div class="time__actions">
+        @if (item.entry.visitAccessible) {
+          <a
+            pButton
+            class="time__open-job"
+            [routerLink]="['/today/visits', item.entry.visit.visitId]"
+            >Open job</a
+          >
+        }
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          [outlined]="true"
+          (click)="closeDetail()"
+        >
+          Close
+        </button>
+      </div>
+    }
+  </p-dialog>
+</div>

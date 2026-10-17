@@ -262,3 +262,46 @@ export interface TaskUpdate {
 export type NewMaterial =
   | { readonly quantity: number; readonly catalogItemId: string }
   | { readonly quantity: number; readonly description: string; readonly unit: string };
+
+export type TimeView = 'day' | 'week';
+export type TimeEntryType = 'work' | 'travel' | 'break';
+
+export interface TimeTotals {
+  readonly workSeconds: number;
+  readonly travelSeconds: number;
+  readonly breakSeconds: number;
+  readonly totalSeconds: number;
+}
+
+export interface TimeDay extends TimeTotals {
+  readonly date: string;
+}
+
+export interface TimeEntry {
+  readonly id: string;
+  readonly type: TimeEntryType;
+  readonly startedAt: string;
+  readonly endedAt: string | null;
+  readonly durationSeconds: number;
+  readonly isOpen: boolean;
+  readonly visit: {
+    readonly visitId: string;
+    readonly displayNumber: string;
+    readonly title: string;
+    readonly status: string;
+    readonly visitNumber: number;
+  };
+  readonly visitAccessible: boolean;
+}
+
+/** `GET /technician/time`: range, totals per type and per day, and the caller's entries (newest first). */
+export interface TimeSummaryResponse {
+  readonly timezone: string;
+  readonly today: string;
+  readonly view: TimeView;
+  readonly from: string;
+  readonly to: string;
+  readonly totals: TimeTotals;
+  readonly days: readonly TimeDay[];
+  readonly entries: readonly TimeEntry[];
+}
