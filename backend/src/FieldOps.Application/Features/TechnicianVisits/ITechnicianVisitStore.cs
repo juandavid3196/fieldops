@@ -24,7 +24,27 @@ public interface ITechnicianVisitStore
         DateTimeOffset to,
         CancellationToken cancellationToken);
 
-    /// <summary>One assigned visit of any date, not unscheduled or cancelled, with its Design 8 content; null otherwise.</summary>
+    /// <summary>
+    /// The caller's active visits (technician-schedule-active-visits BR-05) that were scheduled before <paramref name="dayStart"/>,
+    /// ordered by start, work order number and visit number (BR-08).
+    /// </summary>
+    Task<IReadOnlyList<UnresolvedVisit>> ListUnresolvedAsync(
+        Guid organizationId, Guid technicianId, string zoneId, DateTimeOffset dayStart, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Assigned visits that are not unscheduled, including cancelled, with a start in <c>[from, to)</c>, in BR-03 order;
+    /// <c>NeedsReschedule</c> compares the start with <paramref name="dayStart"/>.
+    /// </summary>
+    Task<IReadOnlyList<ScheduleVisit>> ListWeekAsync(
+        Guid organizationId,
+        Guid technicianId,
+        string zoneId,
+        DateTimeOffset from,
+        DateTimeOffset to,
+        DateTimeOffset dayStart,
+        CancellationToken cancellationToken);
+
+    /// <summary>One assigned visit of any date, not unscheduled (a cancelled one is served read-only), with its Design 8 content; null otherwise.</summary>
     Task<FoundVisit?> FindAsync(
         Guid organizationId, Guid technicianId, string zoneId, Guid visitId, CancellationToken cancellationToken);
 
@@ -44,7 +64,7 @@ public interface ITechnicianVisitStore
 
     /// <summary>
     /// Lock-free, read-only access check of the mobile-job-progress mutations: the caller's primary flag and the
-    /// visit status for a visible visit, otherwise null (the identical 404). Never authoritative: the locked
+    /// visit status for a visible visit (a cancelled one included, so its mutations are a 409), otherwise null (the identical 404). Never authoritative: the locked
     /// transaction of <see cref="TransitionAsync"/> and <see cref="EditAsync"/> repeats the chain.
     /// </summary>
     Task<ProgressAccess?> GetProgressAccessAsync(
@@ -130,7 +150,12 @@ public enum ProgressOutcomeKind
 public sealed record ProgressOutcome(
     ProgressOutcomeKind Kind, FoundVisit? Found = null, bool Changed = false, string? LimitCode = null);
 
-public sealed record FoundVisit(TodayVisit Visit, string? DispatchNote, TechnicianVisitExtras Extras);
+public sealed record FoundVisit(
+    TodayVisit Visit,
+    string? DispatchNote,
+    TechnicianVisitExtras Extras,
+    bool NeedsReschedule = false,
+    VisitCancellation? Cancellation = null);
 
 public enum TravelKind
 {
@@ -151,9 +176,13 @@ public enum TravelOutcomeKind
     AnotherActive,
 }
 
-/// <summary><c>Found</c> and <c>Changed</c> are set only for <see cref="TravelOutcomeKind.Saved"/>; <c>Email</c> only when a customer email is due.</summary>
+/// <summary><c>Found</c> and <c>Changed</c> are set only for <see cref="TravelOutcomeKind.Saved"/>; <c>Email</c> only when a customer email is due; <c>ActiveVisit</c> only for <see cref="TravelOutcomeKind.AnotherActive"/>.</summary>
 public sealed record TravelOutcome(
-    TravelOutcomeKind Kind, FoundVisit? Found = null, bool Changed = false, TravelEmail? Email = null);
+    TravelOutcomeKind Kind,
+    FoundVisit? Found = null,
+    bool Changed = false,
+    TravelEmail? Email = null,
+    ActiveVisitSummary? ActiveVisit = null);
 
 /// <summary>Sends the customer "on the way" email after the commit; returns false when delivery failed (logged, never thrown).</summary>
 public interface ITravelNotifier

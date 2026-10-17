@@ -111,6 +111,7 @@
       [visitId]="store.selectedVisitId()"
       (closeRequested)="onDrawerCloseRequested()"
       (saved)="onDrawerSaved($event)"
+      (cancelled)="onDrawerCancelled($event)"
       (unavailable)="onDrawerUnavailable()"
       (dirtyChange)="store.drawerDirty.set($event)"
       (proposedChange)="onProposed($event)"

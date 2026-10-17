@@ -16,7 +16,8 @@ namespace FieldOps.Infrastructure.Persistence;
 /// </summary>
 internal sealed partial class TechnicianVisitStore(
     FieldOpsDbContext dbContext,
-    INotificationEventWriter notifications) : ITechnicianVisitStore
+    INotificationEventWriter notifications,
+    TimeProvider timeProvider) : ITechnicianVisitStore
 {
     /// <summary>
     /// notifications-center BR-05: adds the notification of a visit or job event the technician just caused, inside the
@@ -109,18 +110,56 @@ internal sealed partial class TechnicianVisitStore(
     public async Task<FoundVisit?> FindAsync(
         Guid organizationId, Guid technicianId, string zoneId, Guid visitId, CancellationToken cancellationToken)
     {
-        var rows = await Query(organizationId, technicianId, null, null, visitId).ToListAsync(cancellationToken);
+        // technician-schedule-active-visits BR-09: this read alone also serves a cancelled visit (read-only).
+        var rows = await Query(organizationId, technicianId, null, null, visitId, includeCancelled: true)
+            .ToListAsync(cancellationToken);
 
         if (rows.Count == 0)
         {
             return null;
         }
 
+        var zone = BranchTime.FindZone(zoneId);
         var visit = (await MapAsync(organizationId, zoneId, rows, cancellationToken))[0];
-        var extras = await ReadExtrasAsync(
-            organizationId, visitId, rows[0].WorkOrderId, BranchTime.FindZone(zoneId), cancellationToken);
+        var extras = await ReadExtrasAsync(organizationId, visitId, rows[0].WorkOrderId, zone, cancellationToken);
+        var (dayStart, _) = BranchTime.Day(timeProvider.GetUtcNow(), zone);
 
-        return new FoundVisit(visit, rows[0].DispatchNote, extras);
+        return new FoundVisit(
+            visit,
+            rows[0].DispatchNote,
+            extras,
+            IsPastNotStarted(rows[0].Status, rows[0].Start, dayStart),
+            rows[0].Status == VisitStatus.Cancelled
+                ? await ReadCancellationAsync(visitId, zone, cancellationToken)
+                : null);
+    }
+
+    /// <summary>BR-06: a scheduled or assigned visit that starts before the current local day.</summary>
+    private static bool IsPastNotStarted(VisitStatus status, DateTimeOffset start, DateTimeOffset dayStart) =>
+        status is VisitStatus.Scheduled or VisitStatus.Assigned && start < dayStart;
+
+    /// <summary>BR-09: the latest history row into cancelled; the visit's own change time when the row is missing.</summary>
+    private async Task<VisitCancellation> ReadCancellationAsync(
+        Guid visitId, TimeZoneInfo zone, CancellationToken cancellationToken)
+    {
+        var row = await dbContext.VisitStatusHistories.AsNoTracking()
+            .Where(history => history.VisitId == visitId && history.ToStatus == VisitStatus.Cancelled)
+            .OrderByDescending(history => history.ChangedAt)
+            .ThenByDescending(history => history.Id)
+            .Select(history => new { history.Reason, history.ChangedAt })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (row is not null)
+        {
+            return new VisitCancellation(row.Reason, OrganizationTime.ToZone(row.ChangedAt, zone));
+        }
+
+        var changedAt = await dbContext.Visits.AsNoTracking()
+            .Where(candidate => candidate.Id == visitId)
+            .Select(candidate => candidate.UpdatedAt)
+            .SingleAsync(cancellationToken);
+
+        return new VisitCancellation(null, OrganizationTime.ToZone(changedAt, zone));
     }
 
     public async Task<AssessmentPhotoImage?> FindAssessmentPhotoAsync(
@@ -431,12 +470,12 @@ internal sealed partial class TechnicianVisitStore(
             _ => null,
         };
 
-    /// <summary>The caller's actively assigned visits that are scheduled and not cancelled (BR-01).</summary>
-    private IQueryable<Visit> AssignedVisits(Guid organizationId, Guid technicianId) =>
+    /// <summary>The caller's actively assigned visits that are scheduled and, unless asked, not cancelled (BR-01).</summary>
+    private IQueryable<Visit> AssignedVisits(Guid organizationId, Guid technicianId, bool includeCancelled = false) =>
         dbContext.Visits.AsNoTracking()
             .Where(visit => visit.OrganizationId == organizationId
                 && visit.Status != VisitStatus.Unscheduled
-                && visit.Status != VisitStatus.Cancelled
+                && (includeCancelled || visit.Status != VisitStatus.Cancelled)
                 && visit.ScheduledStart != null
                 && visit.ScheduledEnd != null
                 && dbContext.VisitAssignments.Any(assignment =>
@@ -447,7 +486,12 @@ internal sealed partial class TechnicianVisitStore(
     /// order (BR-05), optionally limited to a start range or one visit.
     /// </summary>
     private IQueryable<VisitRow> Query(
-        Guid organizationId, Guid technicianId, DateTimeOffset? rangeFrom, DateTimeOffset? rangeTo, Guid? visitId) =>
+        Guid organizationId,
+        Guid technicianId,
+        DateTimeOffset? rangeFrom,
+        DateTimeOffset? rangeTo,
+        Guid? visitId,
+        bool includeCancelled = false) =>
         from visit in dbContext.Visits.AsNoTracking()
         join order in dbContext.WorkOrders.AsNoTracking()
             on new { visit.OrganizationId, Id = visit.WorkOrderId } equals new { order.OrganizationId, order.Id }
@@ -459,7 +503,7 @@ internal sealed partial class TechnicianVisitStore(
             on new { order.OrganizationId, Id = order.ServiceCategoryId } equals new { category.OrganizationId, category.Id }
         where visit.OrganizationId == organizationId
             && visit.Status != VisitStatus.Unscheduled
-            && visit.Status != VisitStatus.Cancelled
+            && (includeCancelled || visit.Status != VisitStatus.Cancelled)
             && visit.ScheduledStart != null
             && visit.ScheduledEnd != null
             && dbContext.VisitAssignments.Any(assignment =>

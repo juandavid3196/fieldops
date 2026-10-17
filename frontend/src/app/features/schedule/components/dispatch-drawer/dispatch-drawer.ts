@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
+import { Dialog } from 'primeng/dialog';
 import { Message } from 'primeng/message';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
@@ -26,6 +27,7 @@ import { Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
+import { formatInstantDateTime } from '../../../technician-jobs/utils/technician-format';
 import { visitStatusLabel } from '../../../jobs/utils/work-order-format';
 import { FormField } from '../../../organizations/components/form-field/form-field';
 import {
@@ -59,6 +61,15 @@ export const EVALUATION_DEBOUNCE_MS = 300;
 export const LOCKED_MESSAGE = "This visit has started or is closed and can't be changed.";
 export const CHANGED_MESSAGE =
   'This visit was changed by someone else. Reload to see the latest version.';
+export const CANCEL_REASON_MESSAGE = 'Enter a reason between 10 and 500 characters.';
+export const CANCEL_FAILED_MESSAGE = "We couldn't cancel this visit. Try again.";
+export const NOT_CANCELLABLE_MESSAGE = "This visit can't be cancelled anymore.";
+export const CANCEL_ONE_TIME_TEXT =
+  'The visit stays in history. A new unscheduled visit will be created for pending work.';
+export const CANCEL_RECURRING_TEXT =
+  "The visit stays in history. This occurrence will be skipped; other occurrences don't change.";
+export const CANCELLED_ONE_TIME_TOAST = 'Visit cancelled. A new unscheduled visit was created.';
+export const CANCELLED_RECURRING_TOAST = 'Visit cancelled. This occurrence was skipped.';
 export const SAVE_FAILED_MESSAGE = "We couldn't save this visit. Try again.";
 export const LOAD_FAILED_MESSAGE = "We couldn't load this visit.";
 export const EVALUATION_FAILED_MESSAGE = "We couldn't check availability.";
@@ -168,6 +179,7 @@ function formFrom(detail: VisitDispatchDetail): FormState {
     ButtonDirective,
     Checkbox,
     DrawerShell,
+    Dialog,
     FormField,
     InputText,
     Message,
@@ -190,6 +202,8 @@ export class DispatchDrawer {
   readonly closeRequested = output<void>();
   readonly saved = output<DispatchSaved>();
   readonly unavailable = output<void>();
+  /** Visit cancelled; carries the toast text. The page closes the drawer and refreshes. */
+  readonly cancelled = output<string>();
   readonly dirtyChange = output<boolean>();
   readonly proposedChange = output<ProposedBlock | null>();
 
@@ -209,6 +223,9 @@ export class DispatchDrawer {
   readonly noEmailMessage = NO_EMAIL_MESSAGE;
   readonly needsScheduleMessage = NEEDS_SCHEDULE_MESSAGE;
   readonly noTechniciansMessage = NO_TECHNICIANS_MESSAGE;
+  readonly cancelReasonMax = MAX_REASON;
+  readonly cancelFailedMessage = CANCEL_FAILED_MESSAGE;
+  readonly cancelReasonMessage = CANCEL_REASON_MESSAGE;
   readonly lockedMessage = LOCKED_MESSAGE;
   readonly changedMessage = CHANGED_MESSAGE;
   readonly saveFailedMessage = SAVE_FAILED_MESSAGE;
@@ -229,6 +246,15 @@ export class DispatchDrawer {
   readonly saveProblem = signal<SaveProblem>(null);
   private readonly serverConflicts = signal(false);
 
+  // Cancel visit (BR-21)
+  readonly cancelOpen = signal(false);
+  readonly cancelReason = signal('');
+  readonly cancelling = signal(false);
+  readonly cancelError = signal<string | null>(null);
+  /** Message that survives the reload after `visit_not_cancellable`. */
+  readonly reloadNotice = signal<string | null>(null);
+  private cancelTrigger: HTMLElement | null = null;
+
   readonly evaluation = signal<VisitEvaluation | null>(null);
   readonly evaluating = signal(false);
   readonly evaluationFailed = signal(false);
@@ -236,11 +262,41 @@ export class DispatchDrawer {
   readonly lockedLocally = signal(false);
   readonly readOnly = computed(() => {
     const detail = this.detail();
-    return detail === null || !detail.canManage || detail.isLocked || this.lockedLocally();
+    return (
+      detail === null ||
+      !detail.canManage ||
+      detail.isLocked ||
+      detail.status === 'cancelled' ||
+      this.lockedLocally()
+    );
   });
   readonly showLockedNote = computed(() => {
     const detail = this.detail();
-    return (detail?.isLocked ?? false) || this.lockedLocally();
+    return detail?.status !== 'cancelled' && ((detail?.isLocked ?? false) || this.lockedLocally());
+  });
+  readonly canCancel = computed(() => {
+    const detail = this.detail();
+    return detail !== null && detail.canManage && detail.canCancel === true;
+  });
+  readonly cancelText = computed(() =>
+    this.detail()?.cancelCreatesReplacement === false
+      ? CANCEL_RECURRING_TEXT
+      : CANCEL_ONE_TIME_TEXT,
+  );
+  readonly cancelTitle = computed(() => {
+    const detail = this.detail();
+    return detail === null
+      ? ''
+      : `Cancel visit #${detail.workOrder.displayNumber.replace('#', '')} · Visit ${detail.visitNumber}?`;
+  });
+  readonly cancelledText = computed(() => {
+    const detail = this.detail();
+    const cancellation = detail?.cancellation;
+    if (!detail || !cancellation) {
+      return null;
+    }
+    const when = `Cancelled on ${formatInstantDateTime(cancellation.cancelledAt, detail.timezone)}`;
+    return cancellation.cancelledByName ? `${when} by ${cancellation.cancelledByName}` : when;
   });
   readonly isDirty = computed(() => {
     const form = this.form();
@@ -358,6 +414,8 @@ export class DispatchDrawer {
     effect(() => {
       const id = this.visitId();
       untracked(() => {
+        this.reloadNotice.set(null);
+        this.cancelOpen.set(false);
         this.resetState();
         if (id !== null) {
           this.loads.next(id);
@@ -407,6 +465,7 @@ export class DispatchDrawer {
     this.saving.set(false);
     this.serverConflicts.set(false);
     this.lockedLocally.set(false);
+    this.cancelling.set(false);
     this.evaluation.set(null);
     this.evaluating.set(false);
     this.evaluationFailed.set(false);
@@ -554,6 +613,71 @@ export class DispatchDrawer {
             },
           ];
     });
+  }
+
+  // Cancel visit (BR-21)
+
+  openCancel(trigger: HTMLElement): void {
+    if (!this.canCancel() || this.saving()) {
+      return;
+    }
+    this.cancelTrigger = trigger;
+    this.cancelReason.set('');
+    this.cancelError.set(null);
+    this.cancelOpen.set(true);
+  }
+
+  /** Keep visit / Escape / close icon; ignored while the cancel request is pending. */
+  closeCancel(): void {
+    if (this.cancelOpen() && !this.cancelling()) {
+      this.cancelOpen.set(false);
+      const trigger = this.cancelTrigger;
+      setTimeout(() => trigger?.focus());
+    }
+  }
+
+  confirmCancel(): void {
+    const detail = this.detail();
+    if (detail === null || this.cancelling()) {
+      return;
+    }
+    const reason = this.cancelReason().trim();
+    if (reason.length < MIN_REASON || reason.length > MAX_REASON) {
+      this.cancelError.set(CANCEL_REASON_MESSAGE);
+      return;
+    }
+    this.cancelError.set(null);
+    this.cancelling.set(true);
+    this.api.cancel(detail.visitId, { reason, updatedAt: detail.updatedAt }).subscribe({
+      next: (result) => {
+        this.cancelling.set(false);
+        this.cancelOpen.set(false);
+        this.cancelled.emit(
+          result.replacementVisitId === null ? CANCELLED_RECURRING_TOAST : CANCELLED_ONE_TIME_TOAST,
+        );
+      },
+      error: (error: unknown) => this.handleCancelError(error),
+    });
+  }
+
+  private handleCancelError(error: unknown): void {
+    this.cancelling.set(false);
+    const apiError = isApiError(error) ? error : null;
+    if (apiError?.kind === 'validation' || apiError?.kind === 'bad-request') {
+      this.cancelError.set(CANCEL_REASON_MESSAGE);
+    } else if (apiError?.kind === 'not-found') {
+      this.cancelOpen.set(false);
+      this.unavailable.emit();
+    } else if (apiError?.code === 'visit_changed') {
+      this.cancelOpen.set(false);
+      this.saveProblem.set('changed');
+    } else if (apiError?.code === 'visit_not_cancellable') {
+      this.cancelOpen.set(false);
+      this.reload();
+      this.reloadNotice.set(NOT_CANCELLABLE_MESSAGE);
+    } else {
+      this.cancelError.set(CANCEL_FAILED_MESSAGE);
+    }
   }
 
   // Save (BR-14, BR-20)

@@ -166,6 +166,16 @@ function visit(
 const arrivedTravel = { startedAt: STARTED, arrivedAt: ARRIVED, durationMinutes: 22 };
 const openTravel = { startedAt: STARTED, arrivedAt: null, durationMinutes: null };
 
+/** Text of the node with a space between elements (Angular drops whitespace-only text nodes). */
+function spaced(node: Element | null | undefined): string {
+  const parts: string[] = [];
+  const walker = document.createTreeWalker(node as Node, NodeFilter.SHOW_TEXT);
+  for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+    parts.push(text.textContent ?? '');
+  }
+  return parts.join(' ').replace(/\s+/g, ' ').trim();
+}
+
 describe('VisitDetail', () => {
   let httpTesting: HttpTestingController;
   let harness: RouterTestingHarness;
@@ -699,6 +709,54 @@ describe('VisitDetail', () => {
     expect(back?.getAttribute('href') ?? null).toBe(hasBack ? '/today' : null);
     expect(root.querySelector('h1')).toBeNull();
     expect(root.querySelector('.bar')).toBeNull();
+  });
+
+  it('shows reschedule guidance without Start travel, a read-only cancelled visit, and the blocking card on a 409 (AC-06, AC-09, AC-10)', async () => {
+    const rescheduled = await open(visit('assigned', { needsReschedule: true }));
+    expect(flat(bar(rescheduled))).toContain('Ask dispatch to reschedule');
+    expect(button('Start travel', rescheduled)).toBeUndefined();
+
+    TestBed.resetTestingModule();
+    const cancelled = await open(
+      visit('cancelled', {
+        cancellation: { reason: 'Customer moved away', cancelledAt: '2026-10-06T14:05:00+13:00' },
+      }),
+    );
+    const status = spaced(cancelled.querySelector('.visit__banner'));
+    expect(status).toContain('Cancelled');
+    expect(status).toContain('This visit was cancelled on Tue, Oct 6 · 2:05 PM.');
+    expect(status).toContain('Reason: Customer moved away');
+    for (const selector of ['.bar', 'app-visit-tabs', 'app-visit-stepper', 'app-visit-actions']) {
+      expect(cancelled.querySelector(selector)).toBeNull();
+    }
+    expect(button('Start travel', cancelled)).toBeUndefined();
+    expect(button('Report', cancelled)).toBeUndefined();
+
+    TestBed.resetTestingModule();
+    const root = await open(visit('assigned'));
+    await clickAndSettle(button('Start travel', bar(root)));
+    httpTesting.expectOne({ method: 'POST', url: `${URL}/start-travel` }).flush(
+      {
+        status: 409,
+        code: 'another_visit_active',
+        activeVisit: {
+          visitId: 'v-9',
+          displayNumber: 'WO-9',
+          title: 'Old leak',
+          status: 'paused',
+          scheduledStart: null,
+        },
+      },
+      { status: 409, statusText: 'Conflict' },
+    );
+    await settle();
+    httpTesting.expectOne({ method: 'GET', url: URL }).flush(visit('assigned'));
+    await settle();
+    const notice = root.querySelector('app-active-visit-notice')!;
+    expect(spaced(notice)).toContain("You're already traveling to or working on another job.");
+    expect(spaced(notice)).toContain('Old leak #WO-9 · Paused Open active visit');
+    expect(notice.querySelector('a')?.getAttribute('href')).toBe('/today/visits/v-9');
+    expect(document.activeElement).toBe(notice.querySelector('p'));
   });
 
   it('shows Retry after a load failure and the forbidden state without a request for other roles', async () => {

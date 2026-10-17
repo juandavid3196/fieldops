@@ -1,4 +1,5 @@
 import { isApiError } from '../../../core/models/api-error.model';
+import { ActiveVisitSummary } from '../models/technician-visits.model';
 
 export type TechnicianLoadFailure =
   'forbidden' | 'inactive' | 'not-linked' | 'not-found' | 'failed';
@@ -51,6 +52,18 @@ export interface TravelFailure {
   readonly message: string;
   /** A conflict or a lost primary assignment means the shown visit is stale. */
   readonly reload: boolean;
+  /** Active visit behind `another_visit_active` (BR-19); the UI shows it with Open active visit. */
+  readonly activeVisit?: ActiveVisitSummary;
+}
+
+export const RESUME_INVALID_MESSAGE = "This job can't be resumed in its current state.";
+
+/** Resume reuses the travel classification, with its own copy for an invalid status. */
+export function classifyResumeFailure(error: unknown): TravelFailure {
+  const failure = classifyTravelFailure(error);
+  return isApiError(error) && error.status === 409 && error.code === 'visit_status_invalid'
+    ? { ...failure, message: RESUME_INVALID_MESSAGE }
+    : failure;
 }
 
 /** Maps a failed Start travel / I've arrived call to its fixed copy by `status` and `code` (BR-14). */
@@ -66,6 +79,9 @@ export function classifyTravelFailure(
             ? START_JOB_INVALID_MESSAGE
             : (CONFLICT_MESSAGES[error.code ?? ''] ?? UPDATE_ERROR_MESSAGE),
         reload: true,
+        ...(error.code === 'another_visit_active' && error.activeVisit !== undefined
+          ? { activeVisit: error.activeVisit }
+          : {}),
       };
     }
     if (error.status === 403 && error.code === 'not_primary_technician') {

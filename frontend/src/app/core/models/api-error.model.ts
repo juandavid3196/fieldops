@@ -34,8 +34,19 @@ export interface ApiError {
   readonly code?: string;
   /** Upcoming assigned visits blocking a technician deactivation (`409` extension); never a message. */
   readonly upcomingVisitCount?: number;
+  /** Active visit that blocks Start travel (`another_visit_active` 409 extension). */
+  readonly activeVisit?: ApiActiveVisit;
   /** Per-row import errors of a `400` (`rowErrors` extension); absent otherwise. */
   readonly rowErrors?: readonly ApiRowError[];
+}
+
+export interface ApiActiveVisit {
+  readonly visitId: string;
+  readonly displayNumber: string;
+  readonly title: string;
+  readonly status: string;
+  /** ISO instant with offset, or `null` when the visit has no schedule. */
+  readonly scheduledStart: string | null;
 }
 
 export interface ApiRowError {

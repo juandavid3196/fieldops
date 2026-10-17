@@ -21,7 +21,12 @@ export const TECHNICIAN_NAV: readonly TechnicianNavItem[] = [
     link: '/today',
     matches: (path) => path === '/today' || path.startsWith('/today/visits/'),
   },
-  soon('Schedule', 'pi-calendar', 'schedule'),
+  {
+    label: 'Schedule',
+    icon: 'pi-calendar',
+    link: '/today/schedule',
+    matches: (path) => path === '/today/schedule',
+  },
   soon('Time', 'pi-clock', 'time'),
   soon('Messages', 'pi-comments', 'messages'),
 ];

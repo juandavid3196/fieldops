@@ -23,6 +23,8 @@ public static class DispatchCodes
 
     public const string VisitChanged = "visit_changed";
 
+    public const string VisitNotCancellable = "visit_not_cancellable";
+
     public const string SchedulingConflicts = "scheduling_conflicts";
 
     public const string AtStart = "at_start";
@@ -62,6 +64,14 @@ public static class DispatchMessages
     public const string VisitLockedTitle = "This visit has started or is closed and can't be changed.";
 
     public const string VisitChangedTitle = "This visit was changed by someone else. Reload to see the latest version.";
+
+    public const string VisitNotCancellableTitle = "This visit can't be cancelled in its current state.";
+
+    public const string CancelReasonInvalid = "Enter a reason between 10 and 500 characters.";
+
+    public const int CancelReasonMinLength = 10;
+
+    public const int CancelReasonMaxLength = 500;
 
     public const string SchedulingConflictsTitle = "This schedule has conflicts. Enter a reason to confirm despite the conflicts.";
 
@@ -117,6 +127,7 @@ public static class DispatchMessages
     {
         DispatchCodes.VisitLocked => VisitLockedTitle,
         DispatchCodes.SchedulingConflicts => SchedulingConflictsTitle,
+        DispatchCodes.VisitNotCancellable => VisitNotCancellableTitle,
         _ => VisitChangedTitle,
     };
 }
@@ -234,6 +245,9 @@ public sealed record DispatchValuesView(
 
 public sealed record DispatchTechnicianOption(Guid Id, string Name, string Initials, string? ColorHex, string? PrimarySkill);
 
+/// <summary>The cancellation of a visit (technician-schedule-active-visits BR-21): the latest history row into cancelled.</summary>
+public sealed record VisitCancellationView(string? Reason, DateTimeOffset CancelledAt, string? CancelledByName);
+
 /// <summary>GET /dispatch/visits/{id}; also the visit of a dispatch result.</summary>
 public sealed record VisitDispatchDetail(
     Guid VisitId,
@@ -247,10 +261,22 @@ public sealed record VisitDispatchDetail(
     DispatchWorkOrderView WorkOrder,
     DispatchCustomerView Customer,
     DispatchValuesView Values,
-    IReadOnlyList<DispatchTechnicianOption> Technicians);
+    IReadOnlyList<DispatchTechnicianOption> Technicians,
+    VisitCancellationView? Cancellation = null,
+    bool CanCancel = false,
+    bool CancelCreatesReplacement = false);
 
 public sealed record VisitDispatchResult(
     VisitDispatchDetail Visit, string WorkOrderStatus, bool Notified, Guid? MaterializedVisitId);
+
+/// <summary>POST /dispatch/visits/{id}/cancel: the cancelled visit, the replacement of a one-time work order and the work order status.</summary>
+public sealed record VisitCancelResult(VisitDispatchDetail Visit, Guid? ReplacementVisitId, string WorkOrderStatus);
+
+/// <summary>A validated cancel request; the reason is trimmed (BR-11).</summary>
+public sealed record CancelInput(string Reason, DateTimeOffset UpdatedAt);
+
+/// <summary>Raw cancel body (POST /dispatch/visits/{id}/cancel).</summary>
+public sealed record CancelBodyText(string? Reason, string? UpdatedAt);
 
 /// <summary>Everything the handler needs to validate a request before the transaction.</summary>
 public sealed record DispatchVisitContext(
@@ -327,6 +353,9 @@ public abstract record DispatchOutcome<T>
 
     public sealed record Changed : DispatchOutcome<T>;
 
+    /// <summary>The visit status or the work order status does not allow a cancellation (BR-11).</summary>
+    public sealed record NotCancellable : DispatchOutcome<T>;
+
     public sealed record Conflicts(IReadOnlyList<DispatchConflict> Items) : DispatchOutcome<T>;
 
     public sealed record Invalid(IReadOnlyDictionary<string, string[]> Errors) : DispatchOutcome<T>;
@@ -402,6 +431,13 @@ public interface IDispatchStore
 
     Task<DispatchOutcome<DispatchSaved>> DispatchAsync(
         DispatchActor actor, Guid visitId, DispatchInput input, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Cancel visit in one transaction (technician-schedule-active-visits BR-10 to BR-14): locks the assigned technician
+    /// profiles in id order, the visit and the work order, re-reads the state and writes everything or nothing.
+    /// </summary>
+    Task<DispatchOutcome<VisitCancelResult>> CancelAsync(
+        DispatchActor actor, Guid visitId, CancelInput input, CancellationToken cancellationToken);
 }
 
 /// <summary>Sends the customer email after the commit; returns false when delivery failed (the failure is logged, never thrown).</summary>

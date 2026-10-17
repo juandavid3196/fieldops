@@ -250,7 +250,8 @@ public sealed class TechnicianVisitProgressHandler(ITechnicianVisitStore store, 
             return failure!;
         }
 
-        if (await store.GetProgressAccessAsync(organizationId, profile.Id, visitId, cancellationToken) is null)
+        // A cancelled visit is read-only (technician-schedule-active-visits BR-09): the catalog lookup serves editing only.
+        if (await store.GetProgressAccessAsync(organizationId, profile.Id, visitId, cancellationToken) is not { Status: not VisitStatus.Cancelled })
         {
             return TechnicianVisitResult<IReadOnlyList<MaterialCatalogItem>>.NotFound();
         }
