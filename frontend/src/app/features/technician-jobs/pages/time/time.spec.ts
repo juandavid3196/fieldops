@@ -360,7 +360,7 @@ describe('TechnicianTime', () => {
 
     await click(rows()[2]);
     expect(dialog()?.querySelector('a')).toBeNull();
-    expect(panel()).toContain('Type Travel');
+    expect(panel()).toContain('Travel Visit');
     await click(dialog()?.querySelector('button[aria-label="Close"]'));
     expect(dialog()).toBeNull();
   });

@@ -82,7 +82,7 @@
             @for (tile of totals().tiles; track tile.type) {
               <li class="time__tile">
                 <span class="time__icon" [attr.data-type]="tile.type">
-                  <i class="pi" [class]="tile.icon" aria-hidden="true"></i>
+                  <app-time-type-icon [type]="tile.type" />
                 </span>
                 <span>
                   <span class="time__tile-label">{{ tile.label }}</span>
@@ -153,7 +153,7 @@
                     (click)="show(row.entry, $event)"
                   >
                     <span class="time__icon" [attr.data-type]="row.entry.type">
-                      <i class="pi" [class]="row.icon" aria-hidden="true"></i>
+                      <app-time-type-icon [type]="row.entry.type" />
                     </span>
                     <span class="time__row-body">
                       <span class="time__row-head">
@@ -200,48 +200,78 @@
     closeAriaLabel="Close"
     [visible]="detail() !== null"
     (visibleChange)="$event ? null : closeDetail()"
-    [style]="{ width: '28rem', maxWidth: '96vw' }"
+    [style]="{ width: '34rem', maxWidth: '96vw' }"
   >
+    <ng-template #header>
+      <span class="time__dialog-icon" aria-hidden="true"><i class="pi pi-clock"></i></span>
+      <span class="time__dialog-heading">
+        <span class="time__dialog-title">Time entry</span>
+        <span class="time__dialog-subtitle">Recorded work time</span>
+      </span>
+    </ng-template>
     @if (detail(); as item) {
-      <dl class="time__detail">
-        <div>
-          <dt>Type</dt>
-          <dd>{{ item.typeLabel }}</dd>
+      <section class="time__order">
+        <p class="time__order-label">Work order</p>
+        <p class="time__order-title">
+          @if (item.entry.visitAccessible) {
+            <a [routerLink]="['/today/visits', item.entry.visit.visitId]"
+              >{{ item.entry.visit.title }} {{ item.number }}</a
+            >
+          } @else {
+            {{ item.entry.visit.title }} {{ item.number }}
+          }
+        </p>
+        <p class="time__order-meta">
+          <span><app-time-type-icon [type]="item.entry.type" />{{ item.typeLabel }}</span>
+          <span><i class="pi pi-map-marker" aria-hidden="true"></i>{{ item.visitText }}</span>
+        </p>
+      </section>
+      <div class="time__fact time__fact--date">
+        <span class="time__fact-icon time__fact-icon--date" aria-hidden="true"
+          ><i class="pi pi-calendar"></i
+        ></span>
+        <span>
+          <span class="time__fact-label">Date</span>
+          <span class="time__fact-value">{{ item.date }}</span>
+        </span>
+      </div>
+      <div class="time__facts">
+        <div class="time__fact">
+          <span class="time__fact-icon" aria-hidden="true"><i class="pi pi-clock"></i></span>
+          <span>
+            <span class="time__fact-label">Start</span>
+            <span class="time__fact-value">{{ item.startText }}</span>
+          </span>
         </div>
-        <div>
-          <dt>Work order</dt>
-          <dd>{{ item.entry.visit.title }} {{ item.number }}</dd>
+        <div class="time__fact">
+          <span class="time__fact-icon" aria-hidden="true"><i class="pi pi-clock"></i></span>
+          <span>
+            <span class="time__fact-label">End</span>
+            <span class="time__fact-value">{{ item.endText }}</span>
+          </span>
         </div>
-        <div>
-          <dt>Visit</dt>
-          <dd>{{ item.visitText }}</dd>
+        <div class="time__fact time__fact--duration">
+          <span class="time__fact-icon" aria-hidden="true"><i class="pi pi-stopwatch"></i></span>
+          <span>
+            <span class="time__fact-label">Duration</span>
+            <span class="time__fact-value">{{ item.duration }}</span>
+          </span>
         </div>
-        <div>
-          <dt>Date</dt>
-          <dd>{{ item.date }}</dd>
-        </div>
-        <div>
-          <dt>Start</dt>
-          <dd>{{ item.startText }}</dd>
-        </div>
-        <div>
-          <dt>End</dt>
-          <dd>{{ item.endText }}</dd>
-        </div>
-        <div>
-          <dt>Duration</dt>
-          <dd>{{ item.duration }}</dd>
-        </div>
-      </dl>
-      <p class="time__notice">{{ readOnlyMessage }}</p>
+      </div>
+      <p class="time__notice">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        {{ readOnlyMessage }}
+      </p>
       <div class="time__actions">
         @if (item.entry.visitAccessible) {
           <a
             pButton
             class="time__open-job"
             [routerLink]="['/today/visits', item.entry.visit.visitId]"
-            >Open job</a
           >
+            <i class="pi pi-external-link" aria-hidden="true"></i>
+            Open job
+          </a>
         }
         <button
           pButton

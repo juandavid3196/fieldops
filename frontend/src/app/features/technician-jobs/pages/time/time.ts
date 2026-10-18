@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
 import { TimeEntry, TimeSummaryResponse, TimeView } from '../../models/technician-visits.model';
+import { TimeTypeIcon } from '../../components/time-type-icon/time-type-icon';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
 import { addDays, localDateOf, weekdayIndex } from '../../utils/schedule-format';
 import {
@@ -47,7 +48,7 @@ interface TimeRequest {
  */
 @Component({
   selector: 'app-technician-time',
-  imports: [RouterLink, ButtonDirective, Dialog, Message, Skeleton],
+  imports: [RouterLink, ButtonDirective, Dialog, Message, Skeleton, TimeTypeIcon],
   templateUrl: './time.html',
   styleUrl: './time.scss',
 })
@@ -99,10 +100,14 @@ export class TechnicianTime {
     return {
       total: formatSeconds(totals?.totalSeconds ?? 0),
       tiles: [
-        { type: 'work', label: 'Work', icon: 'pi-briefcase', seconds: totals?.workSeconds ?? 0 },
-        { type: 'travel', label: 'Travel', icon: 'pi-car', seconds: totals?.travelSeconds ?? 0 },
-        { type: 'break', label: 'Break', icon: 'pi-pause', seconds: totals?.breakSeconds ?? 0 },
-      ].map((tile) => ({ ...tile, value: formatSeconds(tile.seconds) })),
+        { type: 'work', label: 'Work', seconds: totals?.workSeconds ?? 0 },
+        { type: 'travel', label: 'Travel', seconds: totals?.travelSeconds ?? 0 },
+        { type: 'break', label: 'Break', seconds: totals?.breakSeconds ?? 0 },
+      ].map((tile) => ({
+        ...tile,
+        type: tile.type as TimeEntry['type'],
+        value: formatSeconds(tile.seconds),
+      })),
     };
   });
   readonly bars = computed(() => {
@@ -221,7 +226,6 @@ export class TechnicianTime {
     const isBreak = entry.type === 'break';
     return {
       entry,
-      icon: { work: 'pi-briefcase', travel: 'pi-car', break: 'pi-pause' }[entry.type],
       typeLabel: TYPE_LABELS[entry.type],
       title: isBreak ? 'Break' : entry.visit.title,
       secondary: isBreak ? entry.visit.title : null,
