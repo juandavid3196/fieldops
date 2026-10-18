@@ -1,0 +1,90 @@
+<p-dialog
+  header="Time entry"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [closable]="true"
+  closeAriaLabel="Close"
+  [visible]="item() !== null"
+  (visibleChange)="$event ? null : closed.emit()"
+  [style]="{ width: '34rem', maxWidth: '96vw' }"
+>
+  <ng-template #header>
+    <span class="entry-dialog__dialog-icon" aria-hidden="true"><i class="pi pi-clock"></i></span>
+    <span class="entry-dialog__dialog-heading">
+      <span class="entry-dialog__dialog-title">Time entry</span>
+      <span class="entry-dialog__dialog-subtitle">Recorded work time</span>
+    </span>
+  </ng-template>
+  @if (item(); as item) {
+    <section class="entry-dialog__order">
+      <p class="entry-dialog__order-label">Work order</p>
+      <p class="entry-dialog__order-title">
+        @if (item.entry.visitAccessible) {
+          <a [routerLink]="['/today/visits', item.entry.visit.visitId]"
+            >{{ item.entry.visit.title }} {{ item.number }}</a
+          >
+        } @else {
+          {{ item.entry.visit.title }} {{ item.number }}
+        }
+      </p>
+      <p class="entry-dialog__order-meta">
+        <span><app-time-type-icon [type]="item.entry.type" />{{ item.typeLabel }}</span>
+        <span><i class="pi pi-map-marker" aria-hidden="true"></i>{{ item.visitText }}</span>
+      </p>
+    </section>
+    <div class="entry-dialog__fact entry-dialog__fact--date">
+      <span class="entry-dialog__fact-icon entry-dialog__fact-icon--date" aria-hidden="true"
+        ><i class="pi pi-calendar"></i
+      ></span>
+      <span>
+        <span class="entry-dialog__fact-label">Date</span>
+        <span class="entry-dialog__fact-value">{{ item.date }}</span>
+      </span>
+    </div>
+    <div class="entry-dialog__facts">
+      <div class="entry-dialog__fact">
+        <span class="entry-dialog__fact-icon" aria-hidden="true"><i class="pi pi-clock"></i></span>
+        <span>
+          <span class="entry-dialog__fact-label">Start</span>
+          <span class="entry-dialog__fact-value">{{ item.startText }}</span>
+        </span>
+      </div>
+      <div class="entry-dialog__fact">
+        <span class="entry-dialog__fact-icon" aria-hidden="true"><i class="pi pi-clock"></i></span>
+        <span>
+          <span class="entry-dialog__fact-label">End</span>
+          <span class="entry-dialog__fact-value">{{ item.endText }}</span>
+        </span>
+      </div>
+      <div class="entry-dialog__fact entry-dialog__fact--duration">
+        <span class="entry-dialog__fact-icon" aria-hidden="true"
+          ><i class="pi pi-stopwatch"></i
+        ></span>
+        <span>
+          <span class="entry-dialog__fact-label">Duration</span>
+          <span class="entry-dialog__fact-value">{{ item.duration }}</span>
+        </span>
+      </div>
+    </div>
+    <p class="entry-dialog__notice">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      {{ notice() }}
+    </p>
+    <div class="entry-dialog__actions">
+      @if (item.entry.visitAccessible) {
+        <a
+          pButton
+          class="entry-dialog__open-job"
+          [routerLink]="['/today/visits', item.entry.visit.visitId]"
+        >
+          <i class="pi pi-external-link" aria-hidden="true"></i>
+          Open job
+        </a>
+      }
+      <button pButton type="button" severity="secondary" [outlined]="true" (click)="closed.emit()">
+        Close
+      </button>
+    </div>
+  }
+</p-dialog>

@@ -1,7 +1,5 @@
 import { Component, DestroyRef, ElementRef, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
-import { Dialog } from 'primeng/dialog';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Subscription } from 'rxjs';
@@ -9,6 +7,7 @@ import { Subscription } from 'rxjs';
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
 import { TimeEntry, TimeSummaryResponse, TimeView } from '../../models/technician-visits.model';
+import { TimeEntryDialog } from '../../components/time-entry-dialog/time-entry-dialog';
 import { TimeTypeIcon } from '../../components/time-type-icon/time-type-icon';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
 import { addDays, localDateOf, weekdayIndex } from '../../utils/schedule-format';
@@ -48,7 +47,7 @@ interface TimeRequest {
  */
 @Component({
   selector: 'app-technician-time',
-  imports: [RouterLink, ButtonDirective, Dialog, Message, Skeleton, TimeTypeIcon],
+  imports: [ButtonDirective, Message, Skeleton, TimeEntryDialog, TimeTypeIcon],
   templateUrl: './time.html',
   styleUrl: './time.scss',
 })
