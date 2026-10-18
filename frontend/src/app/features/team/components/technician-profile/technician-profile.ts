@@ -35,6 +35,13 @@ export class TechnicianProfile {
   readonly canViewSettings = input(false);
   /** Disables the account buttons while a request is running. */
   readonly busy = input(false);
+  /** `page` is the Technician's own read-only page layout; `stacked` is the drawer's single column. */
+  readonly layout = input<'stacked' | 'page'>('stacked');
+  readonly schedulePath = SCHEDULE_PATH;
+  readonly initials = computed(() =>
+    `${this.detail().firstName.charAt(0)}${this.detail().lastName.charAt(0)}`.toUpperCase(),
+  );
+  readonly fullName = computed(() => `${this.detail().firstName} ${this.detail().lastName}`);
 
   readonly linkRequested = output<void>();
   readonly unlinkRequested = output<void>();

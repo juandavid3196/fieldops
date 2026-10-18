@@ -37,6 +37,9 @@ function currentStep(visit: TechnicianVisitDetail): number {
 
 /** BR-12 stepper. */
 export function stepsFor(visit: TechnicianVisitDetail): Step[] {
+  if (visit.status === 'cancelled') {
+    return [];
+  }
   const current = currentStep(visit);
   return STEP_LABELS.map((label, index) => ({
     label,
@@ -87,6 +90,7 @@ export function announcementFor(visit: TechnicianVisitDetail): string {
     : [banner.title, banner.detail, banner.note].filter((part) => part !== null).join('. ') + '.';
 }
 
+export const RESCHEDULE_MESSAGE = 'Ask dispatch to reschedule';
 export const START_JOB_AFTER_ARRIVAL = 'Available after arrival is recorded';
 
 export interface ActionBar {
@@ -107,6 +111,9 @@ export interface ActionBar {
 export function actionBarFor(visit: TechnicianVisitDetail): ActionBar {
   const arrived = hasArrived(visit);
   const helper = START_JOB_AFTER_ARRIVAL;
+  if (visit.needsReschedule === true && ['scheduled', 'assigned'].includes(visit.status)) {
+    return { travel: null, message: RESCHEDULE_MESSAGE, startJobHelper: null, startJob: false };
+  }
   if (!visit.isPrimary) {
     return {
       travel: null,

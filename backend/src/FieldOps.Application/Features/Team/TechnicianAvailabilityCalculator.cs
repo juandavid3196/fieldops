@@ -143,6 +143,16 @@ public static class BranchTime
         return (ToInstant(monday, TimeOnly.MinValue, zone), ToInstant(monday.AddDays(7), TimeOnly.MinValue, zone));
     }
 
+    /// <summary>The Monday of the week that contains <paramref name="date"/>.</summary>
+    public static DateOnly MondayOf(DateOnly date) => date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
+
+    /// <summary>
+    /// Local Monday 00:00 to the next local Monday 00:00 of the given week, as UTC instants. Both bounds are local midnights
+    /// converted separately, so a week with a DST change is 167 or 169 hours long, never a fixed 7 * 24 hours.
+    /// </summary>
+    public static (DateTimeOffset Start, DateTimeOffset End) WeekOf(DateOnly monday, TimeZoneInfo zone) =>
+        (ToInstant(monday, TimeOnly.MinValue, zone), ToInstant(monday.AddDays(7), TimeOnly.MinValue, zone));
+
     public static (DateTimeOffset Start, DateTimeOffset End) Period(TeamPeriod period, DateTimeOffset now, TimeZoneInfo zone) =>
         period == TeamPeriod.Week ? Week(now, zone) : Day(now, zone);
 

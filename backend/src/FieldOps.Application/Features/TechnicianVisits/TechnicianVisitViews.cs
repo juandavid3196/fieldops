@@ -89,13 +89,69 @@ public sealed record TechnicianVisitExtras(
     string? PrimaryTechnicianName,
     VisitCompletionView Completion);
 
+/// <summary>An active visit of the caller (technician-schedule-active-visits BR-05, BR-08).</summary>
+public sealed record ActiveVisitSummary(
+    Guid VisitId, string DisplayNumber, string Title, string Status, DateTimeOffset? ScheduledStart);
+
+/// <summary>
+/// An unresolved past active visit (BR-08): the summary plus the customer and the instant its current status began
+/// (latest history row into that status), null when none.
+/// </summary>
+public sealed record UnresolvedVisit(
+    Guid VisitId,
+    string DisplayNumber,
+    string Title,
+    string Status,
+    DateTimeOffset? ScheduledStart,
+    string CustomerName,
+    string CustomerType,
+    DateTimeOffset? StatusSince);
+
+/// <summary>The cancellation of a visit from its latest history row (BR-09).</summary>
+public sealed record VisitCancellation(string? Reason, DateTimeOffset CancelledAt);
+
+public sealed record ScheduleAddress(string Line1, string City, string? StateRegion, string? PostalCode);
+
+/// <summary>One visit of the schedule week (BR-03); instants carry the offset of the profile zone.</summary>
+public sealed record ScheduleVisit(
+    Guid VisitId,
+    string DisplayNumber,
+    string Title,
+    string Status,
+    DateTimeOffset Start,
+    DateTimeOffset End,
+    int DurationMinutes,
+    string CustomerName,
+    string CustomerType,
+    ScheduleAddress Address,
+    bool NeedsReschedule);
+
+public sealed record ScheduleDay(string Date, int VisitCount, int ScheduledMinutes);
+
+/// <summary>GET /technician/schedule (BR-02 to BR-04, BR-08).</summary>
+public sealed record TechnicianWeek(
+    string Timezone,
+    string Today,
+    string WeekStart,
+    IReadOnlyList<ScheduleDay> Days,
+    IReadOnlyList<ScheduleVisit> Visits,
+    IReadOnlyList<UnresolvedVisit> UnresolvedVisits);
+
 /// <summary><see cref="TodayVisit"/> plus the local date, zone, dispatch note and the Design 8 content; fields are additive.</summary>
 public sealed record TechnicianVisitDetail : TodayVisit
 {
     public TechnicianVisitDetail(
-        TodayVisit visit, string date, string timezone, string? dispatchNote, TechnicianVisitExtras extras)
+        TodayVisit visit,
+        string date,
+        string timezone,
+        string? dispatchNote,
+        TechnicianVisitExtras extras,
+        bool needsReschedule = false,
+        VisitCancellation? cancellation = null)
         : base(visit)
     {
+        NeedsReschedule = needsReschedule;
+        Cancellation = cancellation;
         Date = date;
         Timezone = timezone;
         DispatchNote = dispatchNote;
@@ -121,6 +177,10 @@ public sealed record TechnicianVisitDetail : TodayVisit
     public string Date { get; }
 
     public string Timezone { get; }
+
+    public bool NeedsReschedule { get; }
+
+    public VisitCancellation? Cancellation { get; }
 
     public string? DispatchNote { get; }
 
@@ -181,7 +241,8 @@ public sealed record TodayJobs(
     TodayTechnician Technician,
     TodayMetrics Metrics,
     Guid? NextVisitId,
-    IReadOnlyList<TodayVisit> Visits);
+    IReadOnlyList<TodayVisit> Visits,
+    IReadOnlyList<UnresolvedVisit> UnresolvedVisits);
 
 /// <summary>The caller's profile, loaded before any visit (BR-02). <c>ZoneId</c> is the BR-04 zone.</summary>
 public sealed record TechnicianVisitProfile(
@@ -272,7 +333,8 @@ public sealed record TechnicianVisitResult<T>(
     T? Value = default,
     string? Code = null,
     string? Message = null,
-    IReadOnlyDictionary<string, string[]>? Errors = null)
+    IReadOnlyDictionary<string, string[]>? Errors = null,
+    IReadOnlyDictionary<string, object?>? Extensions = null)
 {
     public static TechnicianVisitResult<T> Ok(T value) => new(TechnicianVisitResultKind.Succeeded, value);
 
@@ -281,8 +343,9 @@ public sealed record TechnicianVisitResult<T>(
     public static TechnicianVisitResult<T> Forbidden(string code, string? message = null) =>
         new(TechnicianVisitResultKind.Forbidden, Code: code, Message: message);
 
-    public static TechnicianVisitResult<T> Conflict(string code, string? message = null) =>
-        new(TechnicianVisitResultKind.Conflict, Code: code, Message: message);
+    public static TechnicianVisitResult<T> Conflict(
+        string code, string? message = null, IReadOnlyDictionary<string, object?>? extensions = null) =>
+        new(TechnicianVisitResultKind.Conflict, Code: code, Message: message, Extensions: extensions);
 
     public static TechnicianVisitResult<T> Invalid(IReadOnlyDictionary<string, string[]> errors) =>
         new(TechnicianVisitResultKind.Invalid, Errors: errors);

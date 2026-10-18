@@ -7,13 +7,26 @@
   <div class="team__main">
     <header class="team__header">
       <div class="team__heading">
-        <a class="team__back" routerLink="/overview">
-          <i class="pi pi-arrow-left" aria-hidden="true"></i>
-          Team
-        </a>
-        <h1 class="team__title">Team</h1>
-        @if (!forbidden()) {
-          <p class="team__description">{{ descriptionMessage }}</p>
+        @if (isTechnician() && !forbidden()) {
+          <nav class="team__crumbs" aria-label="Breadcrumb">
+            <ol>
+              <li><a routerLink="/team">Team</a></li>
+              <li aria-current="page">
+                {{ own() ? own()?.firstName + ' ' + own()?.lastName : 'My profile' }}
+              </li>
+            </ol>
+          </nav>
+          <h1 class="team__title">Technician profile</h1>
+          <p class="team__description">Contact details, availability, skills, and workload.</p>
+        } @else {
+          <a class="team__back" routerLink="/overview">
+            <i class="pi pi-arrow-left" aria-hidden="true"></i>
+            Team
+          </a>
+          <h1 class="team__title">Team</h1>
+          @if (!forbidden()) {
+            <p class="team__description">{{ descriptionMessage }}</p>
+          }
         }
       </div>
 
@@ -48,7 +61,7 @@
     @if (forbidden()) {
       <p class="team__forbidden">{{ forbiddenMessage }}</p>
     } @else if (isTechnician()) {
-      <section class="team__card" aria-label="Your technician profile">
+      <section class="team__own" aria-label="Your technician profile">
         @if (ownLoading()) {
           <div class="team__skeletons" aria-busy="true">
             <p-skeleton height="6rem" />
@@ -67,9 +80,7 @@
             </span>
           </p-message>
         } @else if (own(); as profile) {
-          <h2 class="team__section-title">{{ profile.firstName }} {{ profile.lastName }}</h2>
-          <app-technician-profile [detail]="profile" />
-          <a pButton class="team__action" [routerLink]="schedulePath">View schedule</a>
+          <app-technician-profile layout="page" [detail]="profile" />
         }
       </section>
     } @else {

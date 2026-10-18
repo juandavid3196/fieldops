@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { API_CONFIG, buildApiUrl } from '../../../core/config/api.config';
 import {
   CalendarQuery,
+  CancelBody,
   CalendarResponse,
   DispatchBody,
   DispatchOptions,
@@ -12,6 +13,7 @@ import {
   UNSCHEDULED_PAGE_SIZE,
   UnscheduledQuery,
   UnscheduledResponse,
+  VisitCancelResult,
   VisitDispatchDetail,
   VisitDispatchResult,
   VisitEvaluation,
@@ -76,6 +78,13 @@ export class ScheduleService {
   dispatch(visitId: string, body: DispatchBody): Observable<VisitDispatchResult> {
     return this.http.put<VisitDispatchResult>(
       this.url(`visits/${encodeURIComponent(visitId)}`),
+      body,
+    );
+  }
+
+  cancel(visitId: string, body: CancelBody): Observable<VisitCancelResult> {
+    return this.http.post<VisitCancelResult>(
+      this.url(`visits/${encodeURIComponent(visitId)}/cancel`),
       body,
     );
   }

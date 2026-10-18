@@ -1,0 +1,206 @@
+:host {
+  display: block;
+}
+
+.jobs {
+  &__block {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0.625rem 0.75rem;
+    font: inherit;
+    color: var(--fo-color-text);
+    text-align: start;
+    cursor: pointer;
+    background: var(--fo-color-warning-background);
+    border: 1px solid var(--fo-color-warning-border);
+    border-radius: var(--fo-radius-card);
+
+    &:focus-visible {
+      outline: 2px solid currentcolor;
+      outline-offset: 2px;
+    }
+  }
+
+  &__clip-wrap {
+    position: relative;
+    flex: none;
+    line-height: 0;
+
+    &::after {
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-end: 0;
+      inline-size: 0.5rem;
+      block-size: 0.5rem;
+      content: '';
+      background: var(--fo-color-warning-text);
+      border-radius: 50%;
+    }
+  }
+
+  &__clip {
+    flex: none;
+    inline-size: 2rem;
+    block-size: 2rem;
+    fill: currentcolor;
+  }
+
+  &__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-inline-size: 0;
+  }
+
+  &__title {
+    font-weight: 700;
+  }
+
+  &__summary {
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__badge {
+    flex: none;
+    min-inline-size: 1.75rem;
+    padding: 0.25rem 0.5rem;
+    font-weight: 700;
+    color: var(--fo-color-warning-text);
+    text-align: center;
+    background: var(--fo-color-warning-border);
+    border-radius: 999px;
+  }
+
+  &__chevron {
+    flex: none;
+  }
+
+  &__sheet-head {
+    position: relative;
+    flex: 1;
+    padding-block-start: 0.75rem;
+  }
+
+  &__handle {
+    position: absolute;
+    inset-block-start: -0.25rem;
+    inset-inline-start: 50%;
+    inline-size: 3rem;
+    block-size: 0.3rem;
+    background: var(--fo-color-border);
+    border-radius: 999px;
+    transform: translateX(-50%);
+  }
+
+  &__sheet-title {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  &__subtitle {
+    margin: 0 0 1rem;
+    font-size: 1.125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  &__card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+  }
+
+  &__card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  &__status {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--fo-color-warning-text);
+    background: var(--fo-color-warning-background);
+    border-radius: 999px;
+
+    &[data-status='paused'] {
+      color: var(--fo-color-info-text);
+      background: var(--fo-color-info-background);
+    }
+  }
+
+  &__date,
+  &__muted {
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__card-title {
+    font-weight: 700;
+    overflow-wrap: anywhere;
+  }
+
+  &__line {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    overflow-wrap: anywhere;
+  }
+
+  &__icon {
+    flex: none;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    fill: var(--fo-color-text-secondary);
+  }
+
+  &__error {
+    color: var(--fo-color-danger-text);
+  }
+
+  &__action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--fo-size-touch-target);
+    margin-block-start: 0.5rem;
+    font-weight: 700;
+    text-decoration: none;
+
+    &--primary {
+      color: var(--fo-color-on-primary);
+      background: var(--fo-color-primary-hover);
+      border-radius: var(--fo-radius-control);
+    }
+
+    &:focus-visible {
+      outline: 2px solid currentcolor;
+      outline-offset: 2px;
+    }
+  }
+
+  &__footer {
+    margin: 0.75rem 0 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+}

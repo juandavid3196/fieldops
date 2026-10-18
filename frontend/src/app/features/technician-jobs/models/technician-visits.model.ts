@@ -1,3 +1,5 @@
+import { ApiActiveVisit } from '../../../core/models/api-error.model';
+
 export type TodayVisitStatus =
   | 'scheduled'
   | 'assigned'
@@ -6,7 +8,8 @@ export type TodayVisitStatus =
   | 'paused'
   | 'needs_correction'
   | 'completed'
-  | 'approved';
+  | 'approved'
+  | 'cancelled';
 
 export interface VisitAddress {
   readonly line1: string;
@@ -64,6 +67,62 @@ export interface TodayResponse {
   readonly metrics: TodayMetrics;
   readonly nextVisitId: string | null;
   readonly visits: readonly TodayVisit[];
+  /** Past active visits still open (BR-17); treated as empty when absent. */
+  readonly unresolvedVisits?: readonly UnresolvedVisit[];
+}
+
+/** Active or unresolved visit shown in the blocking card and the unresolved banner. */
+export type ActiveVisitSummary = ApiActiveVisit;
+
+/** Past active visit with the context the Unfinished jobs sheet shows (BR-08). */
+export interface UnresolvedVisit extends ActiveVisitSummary {
+  readonly customerName: string;
+  readonly customerType: 'person' | 'company';
+  /** ISO instant the visit entered its current status, or `null` when unknown. */
+  readonly statusSince: string | null;
+}
+
+export interface ScheduleVisit {
+  readonly visitId: string;
+  /** Work order display number, for example `WO-1042`. */
+  readonly displayNumber: string;
+  readonly title: string;
+  readonly status: TodayVisitStatus;
+  /** ISO instants with offset. */
+  readonly start: string;
+  readonly end: string;
+  readonly durationMinutes: number;
+  readonly customerName: string;
+  readonly customerType: 'person' | 'company';
+  readonly address: {
+    readonly line1: string;
+    readonly city: string;
+    readonly stateRegion: string | null;
+    readonly postalCode: string | null;
+  };
+  readonly needsReschedule: boolean;
+}
+
+export interface ScheduleDay {
+  /** `YYYY-MM-DD` in the response time zone. */
+  readonly date: string;
+  readonly visitCount: number;
+  readonly scheduledMinutes: number;
+}
+
+export interface ScheduleResponse {
+  readonly timezone: string;
+  readonly today: string;
+  readonly weekStart: string;
+  readonly days: readonly ScheduleDay[];
+  readonly visits: readonly ScheduleVisit[];
+  readonly unresolvedVisits: readonly UnresolvedVisit[];
+}
+
+export interface VisitCancellation {
+  readonly reason: string;
+  /** ISO instant with offset. */
+  readonly cancelledAt: string;
 }
 
 export type CustomerType = 'person' | 'company';
@@ -179,6 +238,10 @@ export interface TechnicianVisitDetail extends TodayVisit {
   /** First and last name of the active primary assignee. */
   readonly primaryTechnicianName: string;
   readonly completion: VisitCompletion;
+  /** Latest cancellation of a `cancelled` visit; `null`/absent otherwise. */
+  readonly cancellation?: VisitCancellation | null;
+  /** Past `scheduled`/`assigned` visit: dispatch must reschedule it (BR-06). */
+  readonly needsReschedule?: boolean;
 }
 
 /** Response of start-travel, arrive, start-job, pause and resume; `changed` is false on an idempotent repeat. */
@@ -199,3 +262,46 @@ export interface TaskUpdate {
 export type NewMaterial =
   | { readonly quantity: number; readonly catalogItemId: string }
   | { readonly quantity: number; readonly description: string; readonly unit: string };
+
+export type TimeView = 'day' | 'week';
+export type TimeEntryType = 'work' | 'travel' | 'break';
+
+export interface TimeTotals {
+  readonly workSeconds: number;
+  readonly travelSeconds: number;
+  readonly breakSeconds: number;
+  readonly totalSeconds: number;
+}
+
+export interface TimeDay extends TimeTotals {
+  readonly date: string;
+}
+
+export interface TimeEntry {
+  readonly id: string;
+  readonly type: TimeEntryType;
+  readonly startedAt: string;
+  readonly endedAt: string | null;
+  readonly durationSeconds: number;
+  readonly isOpen: boolean;
+  readonly visit: {
+    readonly visitId: string;
+    readonly displayNumber: string;
+    readonly title: string;
+    readonly status: string;
+    readonly visitNumber: number;
+  };
+  readonly visitAccessible: boolean;
+}
+
+/** `GET /technician/time`: range, totals per type and per day, and the caller's entries (newest first). */
+export interface TimeSummaryResponse {
+  readonly timezone: string;
+  readonly today: string;
+  readonly view: TimeView;
+  readonly from: string;
+  readonly to: string;
+  readonly totals: TimeTotals;
+  readonly days: readonly TimeDay[];
+  readonly entries: readonly TimeEntry[];
+}

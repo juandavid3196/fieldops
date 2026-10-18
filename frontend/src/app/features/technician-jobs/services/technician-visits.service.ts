@@ -1,4 +1,4 @@
-import { HttpClient, HttpEventType } from '@angular/common/http';
+import { HttpClient, HttpEventType, HttpParams } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { Observable, filter, map, tap } from 'rxjs';
 
@@ -8,8 +8,11 @@ import {
   EvidenceType,
   EvidenceUploadEvent,
   NewMaterial,
+  ScheduleResponse,
   TaskUpdate,
   TechnicianVisitDetail,
+  TimeSummaryResponse,
+  TimeView,
   TodayResponse,
   TodayTechnician,
   TravelResult,
@@ -66,6 +69,26 @@ export class TechnicianVisitsService {
     return this.http
       .get<TodayResponse>(buildApiUrl(this.config, 'technician/today'))
       .pipe(tap((response) => this.currentTechnician.set(response.technician)));
+  }
+
+  /** Week of `weekStart` (a Monday); without it the backend returns the current local week. */
+  schedule(weekStart: string | null): Observable<ScheduleResponse> {
+    const params =
+      weekStart === null ? new HttpParams() : new HttpParams().set('weekStart', weekStart);
+    return this.http.get<ScheduleResponse>(buildApiUrl(this.config, 'technician/schedule'), {
+      params,
+    });
+  }
+
+  /** Day or week containing `date`; without `date` the backend uses the current local date. */
+  time(view: TimeView, date: string | null): Observable<TimeSummaryResponse> {
+    let params = new HttpParams().set('view', view);
+    if (date !== null) {
+      params = params.set('date', date);
+    }
+    return this.http.get<TimeSummaryResponse>(buildApiUrl(this.config, 'technician/time'), {
+      params,
+    });
   }
 
   visit(visitId: string): Observable<TechnicianVisitDetail> {

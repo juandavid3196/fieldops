@@ -11,6 +11,8 @@ import { errorInterceptor } from '../../core/interceptors/error.interceptor';
 import { SessionService } from '../../core/services/session.service';
 import {
   TODAY_BACK,
+  scheduleSoonRedirect,
+  timeSoonRedirect,
   technicianComingSoonRoute,
 } from '../../features/technician-jobs/technician-jobs.routes';
 import { TechnicianVisitsService } from '../../features/technician-jobs/services/technician-visits.service';
@@ -43,6 +45,10 @@ describe('TechnicianShell', () => {
                 component: PageStub,
                 data: { shellTitle: 'Job details', shellBack: TODAY_BACK },
               },
+              { path: 'today/schedule', component: PageStub, data: { shellTitle: 'Schedule' } },
+              { path: 'today/time', component: PageStub, data: { shellTitle: 'Time' } },
+              scheduleSoonRedirect,
+              timeSoonRedirect,
               technicianComingSoonRoute,
             ],
           },
@@ -96,7 +102,7 @@ describe('TechnicianShell', () => {
 
   afterEach(() => httpTesting.verify());
 
-  it('marks the current destination, titles the top bar and opens Coming soon inside the shell (AC-16)', async () => {
+  it('marks the current destination, titles the top bar, redirects the old Schedule route and opens Coming soon inside the shell (AC-16, AC-18)', async () => {
     await setup();
 
     expect(navLabels()).toEqual(['Today', 'Schedule', 'Time', 'Messages', 'More']);
@@ -138,7 +144,24 @@ describe('TechnicianShell', () => {
     harness.fixture.detectChanges();
     expect(progress()).toBeNull();
 
-    for (const name of ['Schedule', 'Time', 'Messages']) {
+    // Schedule (AC-18): own destination; Today is not current there; the old Coming soon route redirects.
+    expect(host.querySelector('nav a[href="/today/schedule"]')).not.toBeNull();
+    await go('/today/schedule');
+    expect(current()).toEqual(['Schedule']);
+    expect(title()).toBe('Schedule');
+    await go('/today/soon/schedule');
+    expect(router.url).toBe('/today/schedule');
+    expect(current()).toEqual(['Schedule']);
+
+    // Time (AC-10): own destination; the old Coming soon route redirects.
+    expect(host.querySelector('nav a[href="/today/time"]')).not.toBeNull();
+    await go('/today/soon/time');
+    expect(router.url).toBe('/today/time');
+    expect(current()).toEqual(['Time']);
+    expect(title()).toBe('Time');
+    expect(host.querySelector('nav a[aria-current="page"]')?.textContent).toContain('Time');
+
+    for (const name of ['Messages']) {
       await go(`/today/soon/${name.toLowerCase()}`);
       expect(current()).toEqual([name]);
       expect(title()).toBe(name);

@@ -16,6 +16,8 @@ namespace FieldOps.Api.Controllers;
 [Route("technician")]
 public sealed class TechnicianController(
     GetTodayVisitsHandler todayHandler,
+    GetTechnicianScheduleHandler scheduleHandler,
+    GetTechnicianTimeHandler timeHandler,
     GetTechnicianVisitHandler visitHandler,
     StartTravelHandler startTravelHandler,
     ArriveHandler arriveHandler,
@@ -54,6 +56,50 @@ public sealed class TechnicianController(
         }
 
         var result = await todayHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, cancellationToken);
+
+        return result.Kind == TechnicianVisitResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
+    }
+
+    /// <summary>technician-schedule-active-visits: the week of the caller; no technician id is accepted and extra parameters are ignored.</summary>
+    [HttpGet("schedule")]
+    [Authorize(Policy = TeamPolicies.Self)]
+    [ProducesResponseType<TechnicianWeek>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Schedule(string? weekStart, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        var result = await scheduleHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, weekStart, cancellationToken);
+
+        return result.Kind == TechnicianVisitResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
+    }
+
+    /// <summary>technician-time-summary: the caller's own time entries; no identifier is accepted and extra parameters are ignored.</summary>
+    [HttpGet("time")]
+    [Authorize(Policy = TeamPolicies.Self)]
+    [ProducesResponseType<TechnicianTime>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Time(string? view, string? date, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        var result = await timeHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, view, date, cancellationToken);
 
         return result.Kind == TechnicianVisitResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
     }
@@ -613,6 +659,11 @@ public sealed class TechnicianController(
         if (result.Code is not null)
         {
             problem.Extensions["code"] = result.Code;
+        }
+
+        foreach (var (key, value) in result.Extensions ?? new Dictionary<string, object?>())
+        {
+            problem.Extensions[key] = value;
         }
 
         return new ObjectResult(problem) { StatusCode = status };

@@ -104,6 +104,8 @@ public static class DependencyInjection
         services.AddScoped<GetTechnicianHandler>();
         services.AddScoped<GetOwnTechnicianHandler>();
         services.AddScoped<GetTodayVisitsHandler>();
+        services.AddScoped<GetTechnicianScheduleHandler>();
+        services.AddScoped<GetTechnicianTimeHandler>();
         services.AddScoped<GetTechnicianVisitHandler>();
         services.AddScoped<StartTravelHandler>();
         services.AddScoped<ArriveHandler>();
@@ -202,6 +204,7 @@ public static class DependencyInjection
         services.AddScoped<GetVisitDispatchHandler>();
         services.AddScoped<EvaluateVisitHandler>();
         services.AddScoped<DispatchVisitHandler>();
+        services.AddScoped<CancelVisitHandler>();
         services.AddScoped<ListNotificationsHandler>();
         services.AddScoped<GetNotificationsSummaryHandler>();
         services.AddScoped<GetNotificationsOptionsHandler>();

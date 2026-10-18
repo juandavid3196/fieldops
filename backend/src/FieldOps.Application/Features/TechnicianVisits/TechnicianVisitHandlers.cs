@@ -49,7 +49,13 @@ internal static class TechnicianVisitRules
             Date(found.Visit.Start, BranchTime.FindZone(profile.ZoneId)),
             profile.ZoneId,
             found.DispatchNote,
-            found.Extras);
+            found.Extras,
+            found.NeedsReschedule,
+            found.Cancellation);
+
+    /// <summary>BR-08: the extensions of a start-travel refusal; the blocking visit travels with the code.</summary>
+    public static IReadOnlyDictionary<string, object?> ActiveVisitExtension(ActiveVisitSummary? active) =>
+        new Dictionary<string, object?> { ["activeVisit"] = active };
 }
 
 /// <summary>GET /technician/today (technician-todays-jobs BR-02 to BR-05, BR-07, BR-09).</summary>
@@ -71,6 +77,8 @@ public sealed class GetTodayVisitsHandler(ITechnicianVisitStore store, TimeProvi
         var (dayStart, dayEnd) = BranchTime.Day(now, zone);
         var visits = await store.ListScheduledAsync(
             organizationId, profile.Id, profile.ZoneId, dayStart, dayEnd, cancellationToken);
+        var unresolved = await store.ListUnresolvedAsync(
+            organizationId, profile.Id, profile.ZoneId, dayStart, cancellationToken);
 
         return TechnicianVisitResult<TodayJobs>.Ok(new TodayJobs(
             TechnicianVisitRules.Date(now, zone),
@@ -81,8 +89,83 @@ public sealed class GetTodayVisitsHandler(ITechnicianVisitStore store, TimeProvi
                 profile.ColorHex),
             TechnicianVisitRules.Metrics(visits),
             TechnicianVisitRules.NextVisitId(visits),
-            visits));
+            visits,
+            unresolved));
     }
+}
+
+/// <summary>GET /technician/schedule (technician-schedule-active-visits BR-01 to BR-04, BR-06, BR-08).</summary>
+public sealed class GetTechnicianScheduleHandler(ITechnicianVisitStore store, TimeProvider timeProvider)
+{
+    public const string WeekStartInvalid = "Choose a valid week.";
+
+    private static readonly DateOnly FirstWeek = new(2000, 1, 3);
+
+    private static readonly DateOnly LastWeek = new(2099, 12, 28);
+
+    public async Task<TechnicianVisitResult<TechnicianWeek>> HandleAsync(
+        Guid organizationId, Guid membershipId, string? weekStartText, CancellationToken cancellationToken)
+    {
+        var (profile, failure) = await TechnicianVisitRules.ResolveAsync<TechnicianWeek>(
+            store, organizationId, membershipId, cancellationToken);
+
+        if (profile is null)
+        {
+            return failure!;
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var zone = BranchTime.FindZone(profile.ZoneId);
+        var today = BranchTime.LocalDate(now, zone);
+        var monday = BranchTime.MondayOf(today);
+
+        if (weekStartText is not null)
+        {
+            if (!TryParseWeekStart(weekStartText, out monday))
+            {
+                return TechnicianVisitResult<TechnicianWeek>.Invalid(
+                    new Dictionary<string, string[]>(StringComparer.Ordinal) { ["weekStart"] = [WeekStartInvalid] });
+            }
+        }
+
+        var (from, to) = BranchTime.WeekOf(monday, zone);
+        var (dayStart, _) = BranchTime.Day(now, zone);
+        var visits = await store.ListWeekAsync(
+            organizationId, profile.Id, profile.ZoneId, from, to, dayStart, cancellationToken);
+        var unresolved = await store.ListUnresolvedAsync(
+            organizationId, profile.Id, profile.ZoneId, dayStart, cancellationToken);
+
+        return TechnicianVisitResult<TechnicianWeek>.Ok(new TechnicianWeek(
+            profile.ZoneId,
+            Format(today),
+            Format(monday),
+            Days(monday, visits, zone),
+            visits,
+            unresolved));
+    }
+
+    /// <summary>BR-04: counts and minutes per local day over the visits that are not cancelled.</summary>
+    public static IReadOnlyList<ScheduleDay> Days(DateOnly monday, IReadOnlyList<ScheduleVisit> visits, TimeZoneInfo zone) =>
+        [
+            .. Enumerable.Range(0, 7).Select(offset =>
+            {
+                var date = monday.AddDays(offset);
+                var day = visits
+                    .Where(visit => visit.Status != "cancelled" && BranchTime.LocalDate(visit.Start, zone) == date)
+                    .ToList();
+
+                return new ScheduleDay(Format(date), day.Count, day.Sum(visit => visit.DurationMinutes));
+            }),
+        ];
+
+    /// <summary>BR-02: an ISO date that is a Monday between 2000-01-03 and 2099-12-28.</summary>
+    public static bool TryParseWeekStart(string? text, out DateOnly monday) =>
+        DateOnly.TryParseExact(text, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out monday)
+        && monday.DayOfWeek == DayOfWeek.Monday
+        && monday >= FirstWeek
+        && monday <= LastWeek;
+
+    private static string Format(DateOnly date) => date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 }
 
 /// <summary>GET /technician/visits/{visitId} (technician-todays-jobs BR-03, BR-11; mobile-job-details BR-03 to BR-06).</summary>
@@ -152,7 +235,10 @@ internal static class TravelHandlerSupport
             TravelOutcomeKind.NotToday => (
                 TechnicianVisitResult<TravelResult>.Conflict(TechnicianVisitCodes.VisitNotToday), null),
             TravelOutcomeKind.AnotherActive => (
-                TechnicianVisitResult<TravelResult>.Conflict(TechnicianVisitCodes.AnotherVisitActive), null),
+                TechnicianVisitResult<TravelResult>.Conflict(
+                    TechnicianVisitCodes.AnotherVisitActive,
+                    extensions: TechnicianVisitRules.ActiveVisitExtension(outcome.ActiveVisit)),
+                null),
             _ => (TechnicianVisitResult<TravelResult>.NotFound(), null),
         };
     }

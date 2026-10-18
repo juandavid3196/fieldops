@@ -61,6 +61,16 @@ export function formatInstantShortDate(iso: string, timeZone: string): string {
   }).format(new Date(iso));
 }
 
+/** "EEE, MMM d · h:mm a" of an instant in the response time zone (BR-19). */
+export function formatInstantDateTime(iso: string, timeZone: string): string {
+  return `${formatInstantShortDate(iso, timeZone)} · ${formatTime(iso, timeZone)}`;
+}
+
+/** Status label of a status code that may not be a known visit status. */
+export function statusLabelOf(status: string): string {
+  return Object.hasOwn(STATUS_LABELS, status) ? STATUS_LABELS[status as TodayVisitStatus] : status;
+}
+
 /** BR-06: 05:00-11:59 morning, 12:00-17:59 afternoon, otherwise evening, by local hour. */
 export function greetingFor(now: Date, timeZone: string): string {
   const hour = Number(
@@ -133,6 +143,7 @@ export const STATUS_LABELS: Readonly<Record<TodayVisitStatus, string>> = {
   in_progress: 'In progress',
   paused: 'Paused',
   needs_correction: 'Needs correction',
+  cancelled: 'Cancelled',
 };
 
 export type StatusSeverity = 'success' | 'info' | 'warn' | 'secondary' | 'danger';
@@ -146,6 +157,7 @@ export const STATUS_SEVERITIES: Readonly<Record<TodayVisitStatus, StatusSeverity
   in_progress: 'info',
   paused: 'warn',
   needs_correction: 'danger',
+  cancelled: 'secondary',
 };
 
 export function isCompleted(status: TodayVisitStatus): boolean {

@@ -71,7 +71,7 @@ internal sealed partial class TechnicianVisitStore
                 SELECT a.is_primary AS "Value" FROM visits v
                 JOIN visit_assignments a ON a.visit_id = v.id AND a.technician_id = {technicianId} AND a.unassigned_at IS NULL
                 WHERE v.id = {visitId} AND v.organization_id = {organizationId}
-                  AND v.status NOT IN ('unscheduled', 'cancelled')
+                  AND v.status <> 'unscheduled'
                   AND v.scheduled_start IS NOT NULL AND v.scheduled_end IS NOT NULL
                 FOR UPDATE OF v
                 """)
@@ -98,19 +98,16 @@ internal sealed partial class TechnicianVisitStore
 
         // (4) Guards in the BR-07 / BR-09 order; a refusal returns before any write and the transaction rolls back.
         TravelDecision decision;
+        ActiveVisitSummary? blocking = null;
 
         if (kind == TravelKind.Start)
         {
-            var anotherActive = visit.Status == VisitStatus.Assigned
-                && await dbContext.Visits.AsNoTracking().AnyAsync(
-                    candidate => candidate.OrganizationId == organizationId
-                        && candidate.Id != visitId
-                        && (candidate.Status == VisitStatus.OnTheWay || candidate.Status == VisitStatus.InProgress)
-                        && dbContext.VisitAssignments.Any(assignment =>
-                            assignment.VisitId == candidate.Id && assignment.TechnicianId == technicianId && assignment.UnassignedAt == null),
-                    cancellationToken);
+            // technician-schedule-active-visits BR-05: the shared active-visit definition, the target excluded.
+            blocking = visit.Status == VisitStatus.Assigned
+                ? await FirstActiveVisitAsync(organizationId, technicianId, actor.ZoneId, visitId, cancellationToken)
+                : null;
 
-            decision = TravelRules.Start(visit.Status, visit.ScheduledStart, now, actor.ZoneId, anotherActive);
+            decision = TravelRules.Start(visit.Status, visit.ScheduledStart, now, actor.ZoneId, blocking is not null);
         }
         else
         {
@@ -130,7 +127,7 @@ internal sealed partial class TechnicianVisitStore
             case TravelDecision.NotToday:
                 return new TravelOutcome(TravelOutcomeKind.NotToday);
             case TravelDecision.AnotherActive:
-                return new TravelOutcome(TravelOutcomeKind.AnotherActive);
+                return new TravelOutcome(TravelOutcomeKind.AnotherActive, ActiveVisit: blocking);
         }
 
         // (5) The write. An unchanged repeat commits nothing but still releases the locks before the read.

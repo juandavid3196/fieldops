@@ -192,13 +192,13 @@ describe('app routes', () => {
   });
 
   it('mounts the technician Coming soon page in the technician shell, not the desktop shell (FR-07, AC-16)', async () => {
-    await navigate('/today/soon/schedule', [
+    await navigate('/today/soon/messages', [
       { ...SESSION, role: { code: 'technician', name: 'Technician' } },
     ]);
 
     const root = harness.routeNativeElement as HTMLElement;
     expect(root.tagName).toBe('APP-TECHNICIAN-SHELL');
-    expect(root.querySelector('h1')?.textContent?.trim()).toBe('Schedule');
+    expect(root.querySelector('h1')?.textContent?.trim()).toBe('Messages');
     expect(root.querySelector('app-coming-soon a')?.getAttribute('href')).toBe('/today');
     expect(root.querySelector('app-shell')).toBeNull();
   });

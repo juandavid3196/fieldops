@@ -389,6 +389,45 @@ public sealed class GetVisitDispatchHandler(IDispatchStore store, IBranchScopeRe
             cancellationToken);
 }
 
+/// <summary>POST cancel: 404 (scope), reason and updatedAt shape 400, then the locked transaction in the store (BR-10 to BR-14).</summary>
+public sealed class CancelVisitHandler(IDispatchStore store, IBranchScopeResolver scopes)
+{
+    public async Task<DispatchOutcome<VisitCancelResult>> HandleAsync(
+        MembershipCall call, Guid visitId, CancelBodyText body, CancellationToken cancellationToken)
+    {
+        var scope = await DispatchHandlerSupport.ScopeAsync(scopes, call, cancellationToken);
+
+        if (await store.GetContextAsync(call.OrganizationId, scope, visitId, cancellationToken) is null)
+        {
+            return new DispatchOutcome<VisitCancelResult>.NotFound();
+        }
+
+        var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
+        var reason = body.Reason?.Trim() ?? string.Empty;
+
+        if (reason.Length is < DispatchMessages.CancelReasonMinLength or > DispatchMessages.CancelReasonMaxLength)
+        {
+            errors["reason"] = [DispatchMessages.CancelReasonInvalid];
+        }
+
+        if (!UpdatedAtValidation.TryParse(body.UpdatedAt, out var updatedAt))
+        {
+            errors["updatedAt"] = [DispatchMessages.UpdatedAtInvalid];
+        }
+
+        if (errors.Count > 0)
+        {
+            return new DispatchOutcome<VisitCancelResult>.Invalid(errors);
+        }
+
+        return await store.CancelAsync(
+            new DispatchActor(call.OrganizationId, call.UserId, scope, call.IpAddress),
+            visitId,
+            new CancelInput(reason, updatedAt),
+            cancellationToken);
+    }
+}
+
 /// <summary>POST evaluation: 404, locked 409, shape 400, then the store (hard technician rules and the BR-10 result).</summary>
 public sealed class EvaluateVisitHandler(IDispatchStore store, IBranchScopeResolver scopes, TimeProvider timeProvider)
 {

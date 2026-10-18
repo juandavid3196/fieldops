@@ -234,6 +234,11 @@ internal sealed partial class DispatchStore(
 
         var recurring = order.JobType == WorkOrderJobTypes.Recurring && order.RecurrenceCount is not null;
 
+        // technician-schedule-active-visits BR-21: the cancellation is readable by every role that reads the drawer.
+        var cancellation = visit.Status == VisitStatus.Cancelled
+            ? await ReadCancellationAsync(organizationId, visit, zone, cancellationToken)
+            : null;
+
         return new VisitDispatchDetail(
             visit.Id,
             visit.VisitNumber,
@@ -258,7 +263,43 @@ internal sealed partial class DispatchStore(
                 QuoteStore.FormatAddress(property.AddressLine1, property.AddressLine2, property.City, property.StateRegion, property.PostalCode) ?? string.Empty,
                 hasEmail),
             ValuesOf(visit, order, assignments.Select(item => (item.TechnicianId, item.IsPrimary)).ToList(), zone, hasEmail, now),
-            technicians);
+            technicians,
+            cancellation,
+            canManage && Visit.IsCancellable(visit.Status) && !ClosedOrderStatuses.Contains(order.Status),
+            order.JobType == WorkOrderJobTypes.OneTime);
+    }
+
+    /// <summary>The latest history row into cancelled with the name of the actor; the visit's change time when the row is missing.</summary>
+    private async Task<VisitCancellationView> ReadCancellationAsync(
+        Guid organizationId, Visit visit, TimeZoneInfo zone, CancellationToken cancellationToken)
+    {
+        var row = await dbContext.VisitStatusHistories.AsNoTracking()
+            .Where(history => history.VisitId == visit.Id && history.ToStatus == VisitStatus.Cancelled)
+            .OrderByDescending(history => history.ChangedAt)
+            .ThenByDescending(history => history.Id)
+            .Select(history => new { history.Reason, history.ChangedAt, history.ChangedByUserId })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (row is null)
+        {
+            return new VisitCancellationView(null, OrganizationTime.ToZone(visit.UpdatedAt, zone), null);
+        }
+
+        string? name = null;
+
+        if (row.ChangedByUserId is { } userId)
+        {
+            var person = await (
+                from member in dbContext.OrganizationUsers.AsNoTracking()
+                join user in dbContext.Users.AsNoTracking() on member.UserId equals user.Id
+                where member.OrganizationId == organizationId && user.Id == userId
+                select new { user.FirstName, user.LastName })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            name = person is null ? null : FullName(person.FirstName, person.LastName);
+        }
+
+        return new VisitCancellationView(row.Reason, OrganizationTime.ToZone(row.ChangedAt, zone), name);
     }
 
     /// <summary>The stored schedule, or the BR-08 prefill of an unscheduled visit.</summary>

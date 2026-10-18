@@ -305,6 +305,18 @@ public sealed class WorkOrder
         Touch(now);
     }
 
+    /// <summary>A cancelled visit left nothing to do on a scheduled or in progress work order (technician-schedule-active-visits BR-13).</summary>
+    public void ReturnToReadyToScheduleAfterCancel(DateTimeOffset now)
+    {
+        if (Status is not (WorkOrderStatus.Scheduled or WorkOrderStatus.InProgress))
+        {
+            throw new InvalidOperationException("Only a scheduled or in progress work order can return to ready to schedule.");
+        }
+
+        Status = WorkOrderStatus.ReadyToSchedule;
+        Touch(now);
+    }
+
     /// <summary>Sets a new concurrency value, truncated to microseconds (the PostgreSQL precision) and always different from the previous one.</summary>
     public void Touch(DateTimeOffset now)
     {

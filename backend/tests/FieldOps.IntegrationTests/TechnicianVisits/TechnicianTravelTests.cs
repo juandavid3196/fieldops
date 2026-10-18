@@ -142,7 +142,7 @@ public class TechnicianTravelTests(CompanySettingsDatabaseFixture database)
         host.SetNow(Noon);
         var user = me.Member.UserId;
 
-        // AC-01: another technician's, released, unscheduled, cancelled, other-organization and random visits.
+        // AC-01: another technician's, released, unscheduled, other-organization and random visits (a cancelled visit is covered by TechnicianScheduleTests).
         var hidden = new List<Guid>();
         var hiddenSeeded = new List<Guid>();
 
@@ -151,7 +151,6 @@ public class TechnicianTravelTests(CompanySettingsDatabaseFixture database)
             ("Secret other job", other.Profile, "assigned"),
             ("Secret released job", me.Profile, "assigned"),
             ("Secret unscheduled job", me.Profile, "unscheduled"),
-            ("Secret cancelled job", me.Profile, "cancelled"),
         })
         {
             var seeded = await database.SeedJobAsync(world, user, technician, status, Noon, title: title);
