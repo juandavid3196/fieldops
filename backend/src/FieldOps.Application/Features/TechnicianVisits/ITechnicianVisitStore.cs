@@ -44,6 +44,13 @@ public interface ITechnicianVisitStore
         DateTimeOffset dayStart,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// technician-time-summary BR-01: the caller's own time entries that started in <c>[from, to)</c> on visits of the
+    /// organization, whatever the current assignment or visit status; read-only and unordered.
+    /// </summary>
+    Task<IReadOnlyList<TechnicianTimeEntryRow>> ListTimeEntriesAsync(
+        Guid organizationId, Guid technicianId, DateTimeOffset from, DateTimeOffset to, CancellationToken cancellationToken);
+
     /// <summary>One assigned visit of any date, not unscheduled (a cancelled one is served read-only), with its Design 8 content; null otherwise.</summary>
     Task<FoundVisit?> FindAsync(
         Guid organizationId, Guid technicianId, string zoneId, Guid visitId, CancellationToken cancellationToken);
