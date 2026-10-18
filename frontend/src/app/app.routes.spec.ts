@@ -49,6 +49,13 @@ describe('app routes', () => {
     httpTesting
       .match({ method: 'GET', url: `${API_BASE_URL}/notifications/summary` })
       .forEach((request) => request.flush({ unread: 0, today: 0 }));
+    // technician-messages: the shells poll the Messages summary and the list loads its first page.
+    httpTesting
+      .match({ method: 'GET', url: `${API_BASE_URL}/messages/summary` })
+      .forEach((request) => request.flush({ unreadMessages: 0, unreadConversations: 0 }));
+    httpTesting
+      .match((request) => request.url === `${API_BASE_URL}/messages/conversations`)
+      .forEach((request) => request.flush({ items: [], nextCursor: null }));
     httpTesting.verify();
   });
 
@@ -192,16 +199,42 @@ describe('app routes', () => {
   });
 
   it('mounts the technician Coming soon page in the technician shell, not the desktop shell (FR-07, AC-16)', async () => {
-    await navigate('/today/soon/messages', [
+    await navigate('/today/soon/notifications', [
       { ...SESSION, role: { code: 'technician', name: 'Technician' } },
     ]);
 
     const root = harness.routeNativeElement as HTMLElement;
     expect(root.tagName).toBe('APP-TECHNICIAN-SHELL');
-    expect(root.querySelector('h1')?.textContent?.trim()).toBe('Messages');
+    expect(root.querySelector('h1')?.textContent?.trim()).toBe('Notifications');
     expect(root.querySelector('app-coming-soon a')?.getAttribute('href')).toBe('/today');
     expect(root.querySelector('app-shell')).toBeNull();
   });
+
+  it('redirects the retired /today/soon/messages to the technician Messages page (technician-messages AC-15)', async () => {
+    await navigate('/today/soon/messages', [
+      { ...SESSION, role: { code: 'technician', name: 'Technician' } },
+    ]);
+
+    const root = harness.routeNativeElement as HTMLElement;
+    expect(router.url).toBe('/today/messages');
+    expect(root.tagName).toBe('APP-TECHNICIAN-SHELL');
+    expect(root.querySelector('app-messages-host h1')?.textContent?.trim()).toBe('Messages');
+    expect(root.querySelector('app-coming-soon')).toBeNull();
+  });
+
+  it.each([
+    ['dispatcher', 'Select a conversation'],
+    ['viewer', "You don't have access to Messages."],
+  ])(
+    'opens staff /messages in the desktop shell for %s (technician-messages AC-15, AC-16)',
+    async (code, expected) => {
+      await navigate('/messages', [{ ...SESSION, role: { code, name: 'Role' } }]);
+
+      const root = harness.routeNativeElement as HTMLElement;
+      expect(root.tagName).toBe('APP-SHELL');
+      expect(root.querySelector('app-messages-host')?.textContent).toContain(expected);
+    },
+  );
 
   it('resolves the compound path /auth/register-company as a sibling of auth, with no guard', async () => {
     await harness.navigateByUrl('/auth/register-company');

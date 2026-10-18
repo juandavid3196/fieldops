@@ -12,6 +12,7 @@ import {
   publicInvoiceRoute,
 } from './features/invoices/invoices.routes';
 import { jobDetailRoute, jobsRoute } from './features/jobs/jobs.routes';
+import { staffMessagesRoute } from './features/messages/messages.routes';
 import { notificationsRoute } from './features/notifications/notifications.routes';
 import {
   quoteEditRoute,
@@ -103,6 +104,7 @@ export const routes: Routes = [
       assessmentRoute,
       quotesRoute,
       notificationsRoute,
+      staffMessagesRoute,
       auditLogRoute,
       reportsRoute,
       quoteEditRoute,

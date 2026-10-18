@@ -1,6 +1,7 @@
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
 using FieldOps.Application.Features.AuditTrail;
+using FieldOps.Application.Features.Messaging;
 using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.Reports;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -128,7 +129,9 @@ public static class ApiAuthenticationExtensions
                 policy.Requirements.Add(new MembershipRoleRequirement(
                     "owner", "operations_manager", "dispatcher", "technician")))
             .AddPolicy(TeamPolicies.Self, policy =>
-                policy.Requirements.Add(new MembershipRoleRequirement("technician")));
+                policy.Requirements.Add(new MembershipRoleRequirement("technician")))
+            .AddPolicy(MessagingPolicies.Access, policy =>
+                policy.Requirements.Add(new MembershipRoleRequirement(MessagingCatalog.Roles.ToArray())));
 
         return services;
     }

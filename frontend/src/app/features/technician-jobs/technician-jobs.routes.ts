@@ -1,6 +1,10 @@
 import { ActivatedRouteSnapshot, Route } from '@angular/router';
 
 import { knownModuleGuard, moduleTitle } from '../coming-soon/coming-soon.routes';
+import {
+  technicianMessagesRoute,
+  technicianMessagesSoonRedirect,
+} from '../messages/messages.routes';
 
 export const TODAY_ROUTE_PATH = 'today';
 
@@ -98,6 +102,8 @@ export const TECHNICIAN_SHELL_ROUTES: Route[] = [
   scheduleSoonRedirect,
   timeRoute,
   timeSoonRedirect,
+  technicianMessagesRoute,
+  technicianMessagesSoonRedirect,
   visitDetailRoute,
   visitReviewRoute,
   technicianComingSoonRoute,

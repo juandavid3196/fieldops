@@ -32,6 +32,7 @@ app.UseStatusCodePages();
 app.UseMiddleware<InvitationNoStoreMiddleware>();
 app.UseMiddleware<PasswordResetNoStoreMiddleware>();
 app.UseMiddleware<PortalNoStoreMiddleware>();
+app.UseMiddleware<MessagesNoStoreMiddleware>();
 app.UseMiddleware<QuoteLinkPublicHeadersMiddleware>();
 
 if (app.Environment.IsDevelopment())

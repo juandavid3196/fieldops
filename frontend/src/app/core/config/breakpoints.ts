@@ -1,8 +1,9 @@
 /**
  * Script mirrors of `styles/_breakpoints.scss` (SCSS emits no CSS a script can read).
- * Keep both files in sync: md 48rem, admin 68.75rem (1100px), dock 90rem (1440px).
+ * Keep both files in sync: md 48rem, lg 64rem, admin 68.75rem (1100px), dock 90rem (1440px).
  */
 export const MD_QUERY = '(min-width: 48rem)';
+export const LG_QUERY = '(min-width: 64rem)';
 export const ADMIN_QUERY = '(min-width: 68.75rem)';
 export const DOCK_QUERY = '(min-width: 90rem)';
 

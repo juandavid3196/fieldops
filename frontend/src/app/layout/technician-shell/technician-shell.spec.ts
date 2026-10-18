@@ -8,7 +8,9 @@ import { RouterTestingHarness } from '@angular/router/testing';
 import { API_CONFIG } from '../../core/config/api.config';
 import { authInterceptor } from '../../core/interceptors/auth.interceptor';
 import { errorInterceptor } from '../../core/interceptors/error.interceptor';
+import { MessageUnreadService } from '../../core/services/message-unread.service';
 import { SessionService } from '../../core/services/session.service';
+import { technicianMessagesSoonRedirect } from '../../features/messages/messages.routes';
 import {
   TODAY_BACK,
   scheduleSoonRedirect,
@@ -20,6 +22,7 @@ import { SIGN_OUT_ERROR_MESSAGE, TechnicianShell } from './technician-shell';
 
 const API = 'http://api.test';
 const SESSION_URL = `${API}/sessions/current`;
+const SUMMARY_URL = `${API}/messages/summary`;
 
 @Component({ template: '<h1>Page</h1>' })
 class PageStub {}
@@ -47,8 +50,15 @@ describe('TechnicianShell', () => {
               },
               { path: 'today/schedule', component: PageStub, data: { shellTitle: 'Schedule' } },
               { path: 'today/time', component: PageStub, data: { shellTitle: 'Time' } },
+              { path: 'today/messages', component: PageStub, data: { shellTitle: 'Messages' } },
+              {
+                path: 'today/messages/:conversationId',
+                component: PageStub,
+                data: { shellTitle: 'Messages' },
+              },
               scheduleSoonRedirect,
               timeSoonRedirect,
+              technicianMessagesSoonRedirect,
               technicianComingSoonRoute,
             ],
           },
@@ -76,6 +86,10 @@ describe('TechnicianShell', () => {
     });
     harness = await RouterTestingHarness.create();
     await harness.navigateByUrl('/today');
+    // technician-messages BR-14: the shell loads the unread summary once and then polls.
+    httpTesting
+      .expectOne({ method: 'GET', url: SUMMARY_URL })
+      .flush({ unreadMessages: 0, unreadConversations: 0 });
     host = harness.routeNativeElement as HTMLElement;
   }
 
@@ -109,7 +123,7 @@ describe('TechnicianShell', () => {
     expect(current()).toEqual(['Today']);
     expect(title()).toBe("Today's jobs");
     expect(host.querySelector('a[aria-label="Notifications"]')?.getAttribute('href')).toBe(
-      '/today/soon/notifications',
+      '/today/messages',
     );
     // help-support-center FR-15 / AC-21: the top-bar help icon opens the help center.
     expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe('/help');
@@ -161,18 +175,27 @@ describe('TechnicianShell', () => {
     expect(title()).toBe('Time');
     expect(host.querySelector('nav a[aria-current="page"]')?.textContent).toContain('Time');
 
-    for (const name of ['Messages']) {
-      await go(`/today/soon/${name.toLowerCase()}`);
-      expect(current()).toEqual([name]);
-      expect(title()).toBe(name);
-      expect(host.querySelector('h1')?.textContent?.trim()).toBe(name);
-      expect(host.querySelector('app-coming-soon p')?.textContent?.trim()).toBe(
-        `${name} isn't available yet.`,
-      );
-      const back = host.querySelector('app-coming-soon a')!;
-      expect(back.textContent?.trim()).toBe("Back to Today's jobs");
-      expect(back.getAttribute('href')).toBe('/today');
-    }
+    // technician-messages AC-15: Messages is a real destination, current on conversation pages too;
+    // the old Coming soon route redirects; the tab and the bell share the unread badge ("99+" cap).
+    await go('/today/soon/messages');
+    expect(router.url).toBe('/today/messages');
+    expect(current()).toEqual(['Messages']);
+    expect(title()).toBe('Messages');
+    await go('/today/messages/c-1');
+    expect(current()).toEqual(['Messages']);
+    expect(title()).toBe('Messages');
+    const unread = TestBed.inject(MessageUnreadService);
+    unread.set({ unreadMessages: 120, unreadConversations: 2 });
+    harness.fixture.detectChanges();
+    const tab = host.querySelector('nav a[href="/today/messages"]')!;
+    expect(tab.querySelector('.tshell__badge')?.textContent?.trim()).toBe('99+');
+    expect(tab.textContent).toContain('120 unread messages');
+    const bell = host.querySelector('a[href="/today/messages"][aria-label^="Notifications"]')!;
+    expect(bell.getAttribute('aria-label')).toBe('Notifications, 120 unread messages');
+    expect(bell.querySelector('.tshell__badge')?.textContent?.trim()).toBe('99+');
+    unread.set({ unreadMessages: 0, unreadConversations: 0 });
+    harness.fixture.detectChanges();
+    expect(host.querySelector('.tshell__badge')).toBeNull();
 
     await go('/today/soon/notifications');
     expect(title()).toBe('Notifications');

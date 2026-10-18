@@ -1714,6 +1714,162 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FieldOps.Domain.Messaging.Conversation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("branch_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<DateTimeOffset?>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_message_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasColumnName("type");
+
+                    b.Property<Guid?>("WorkOrderId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("work_order_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_conversations");
+
+                    b.HasAlternateKey("OrganizationId", "Id")
+                        .HasName("ak_conversations_organization_id_id");
+
+                    b.HasIndex("BranchId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_conversations_team")
+                        .HasFilter("type = 'team'");
+
+                    b.HasIndex("WorkOrderId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_conversations_job")
+                        .HasFilter("type = 'job'");
+
+                    b.HasIndex("OrganizationId", "WorkOrderId")
+                        .HasDatabaseName("ix_conversations_organization_id_work_order_id");
+
+                    b.HasIndex("OrganizationId", "BranchId", "LastMessageAt")
+                        .IsDescending(false, false, true)
+                        .HasDatabaseName("ix_conversations_org_branch_last");
+
+                    b.ToTable("conversations", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_conversations_job_work_order", "(type = 'job') = (work_order_id IS NOT NULL)");
+
+                            t.HasCheckConstraint("ck_conversations_type", "type IN ('job', 'team')");
+                        });
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Messaging.ConversationMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<Guid>("AuthorUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("author_user_id");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .HasColumnName("body");
+
+                    b.Property<Guid>("ClientMessageId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("client_message_id");
+
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_conversation_messages");
+
+                    b.HasIndex("AuthorUserId")
+                        .HasDatabaseName("ix_conversation_messages_author_user_id");
+
+                    b.HasIndex("OrganizationId", "ConversationId")
+                        .HasDatabaseName("ix_conversation_messages_organization_id_conversation_id");
+
+                    b.HasIndex("ConversationId", "AuthorUserId", "ClientMessageId")
+                        .IsUnique()
+                        .HasDatabaseName("ux_conversation_messages_client");
+
+                    b.HasIndex("ConversationId", "CreatedAt", "Id")
+                        .IsDescending(false, true, true)
+                        .HasDatabaseName("ix_conversation_messages_conversation");
+
+                    b.ToTable("conversation_messages", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_conversation_messages_body", "length(btrim(body)) > 0");
+                        });
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Messaging.ConversationReadState", b =>
+                {
+                    b.Property<Guid>("ConversationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("conversation_id");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
+                    b.Property<DateTimeOffset>("LastReadAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_read_at");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("organization_id");
+
+                    b.HasKey("ConversationId", "UserId")
+                        .HasName("pk_conversation_read_states");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_conversation_read_states_user_id");
+
+                    b.HasIndex("OrganizationId", "ConversationId")
+                        .HasDatabaseName("ix_conversation_read_states_organization_id_conversation_id");
+
+                    b.ToTable("conversation_read_states", (string)null);
+                });
+
             modelBuilder.Entity("FieldOps.Domain.Notifications.AuditLog", b =>
                 {
                     b.Property<long>("Id")
@@ -5620,6 +5776,81 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .HasConstraintName("fk_payment_webhook_events_organizations_organization_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Messaging.Conversation", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversations_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Branches.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "BranchId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversations_branches_organization_id_branch_id");
+
+                    b.HasOne("FieldOps.Domain.WorkOrders.WorkOrder", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "WorkOrderId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("fk_conversations_work_orders_organization_id_work_order_id");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Messaging.ConversationMessage", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversation_messages_users_author_user_id");
+
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversation_messages_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Messaging.Conversation", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ConversationId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversation_messages_conversations_organization_id_convers");
+                });
+
+            modelBuilder.Entity("FieldOps.Domain.Messaging.ConversationReadState", b =>
+                {
+                    b.HasOne("FieldOps.Domain.Organizations.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversation_read_states_organizations_organization_id");
+
+                    b.HasOne("FieldOps.Domain.Users.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversation_read_states_users_user_id");
+
+                    b.HasOne("FieldOps.Domain.Messaging.Conversation", null)
+                        .WithMany()
+                        .HasForeignKey("OrganizationId", "ConversationId")
+                        .HasPrincipalKey("OrganizationId", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("fk_conversation_read_states_conversations_organization_id_conv");
                 });
 
             modelBuilder.Entity("FieldOps.Domain.Notifications.AuditLog", b =>

@@ -11,6 +11,7 @@ import { Message } from 'primeng/message';
 import { filter } from 'rxjs';
 
 import { comingSoonModuleName } from '../../core/config/coming-soon-modules';
+import { MessageUnreadService } from '../../core/services/message-unread.service';
 import { SessionService } from '../../core/services/session.service';
 import { TechnicianVisitsService } from '../../features/technician-jobs/services/technician-visits.service';
 import { avatarTextColor } from '../../features/technician-jobs/utils/technician-format';
@@ -52,6 +53,7 @@ function deepest(snapshot: ActivatedRouteSnapshot): ActivatedRouteSnapshot {
 export class TechnicianShell {
   private readonly sessionService = inject(SessionService);
   private readonly visits = inject(TechnicianVisitsService);
+  private readonly unread = inject(MessageUnreadService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -74,6 +76,14 @@ export class TechnicianShell {
   readonly header = this.visits.shellHeader;
   /** Job page step progress drawn on the bottom nav's top edge; `null` elsewhere. */
   readonly jobProgress = this.visits.jobProgress;
+
+  /** technician-messages BR-15: the badge of the Messages tab and the bell; `null` hides it. */
+  readonly unreadBadge = this.unread.badge;
+  readonly unreadLabel = this.unread.label;
+  readonly bellLabel = computed(() => {
+    const label = this.unread.label();
+    return label === null ? 'Notifications' : `Notifications, ${label}`;
+  });
 
   readonly moreOpen = computed(() => this.openPanel() === 'more');
   readonly accountOpen = computed(() => this.openPanel() === 'account');
@@ -99,6 +109,12 @@ export class TechnicianShell {
   });
 
   constructor() {
+    // BR-14: the summary loads now and every 30 s while the tab is visible (technicians only).
+    this.unread.reset();
+    if (this.sessionService.session()?.role.code === 'technician') {
+      this.unread.startPolling();
+    }
+    this.destroyRef.onDestroy(() => this.unread.reset());
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),

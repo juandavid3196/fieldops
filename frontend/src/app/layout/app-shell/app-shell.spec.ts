@@ -23,6 +23,8 @@ import { AppShell, SIGN_OUT_ERROR_MESSAGE } from './app-shell';
 const API_BASE_URL = 'http://api.test';
 const SESSION_URL = `${API_BASE_URL}/sessions/current`;
 const SUMMARY_URL = `${API_BASE_URL}/notifications/summary`;
+const MESSAGES_SUMMARY_URL = `${API_BASE_URL}/messages/summary`;
+const MESSAGES_ROLES = ['owner', 'operations_manager', 'dispatcher'];
 
 const SESSION: Session = {
   user: {
@@ -62,7 +64,12 @@ describe('AppShell', () => {
     })) as unknown as typeof window.matchMedia;
   }
 
-  async function setup(session: Session = SESSION, mode: Mode = 'full', unread = 0): Promise<void> {
+  async function setup(
+    session: Session = SESSION,
+    mode: Mode = 'full',
+    unread = 0,
+    messages = 0,
+  ): Promise<void> {
     stubViewport(mode);
     TestBed.configureTestingModule({
       providers: [
@@ -80,6 +87,8 @@ describe('AppShell', () => {
               { path: 'jobs', component: PageStub },
               { path: 'jobs/:id', component: PageStub },
               { path: 'notifications', component: PageStub },
+              { path: 'messages', component: PageStub },
+              { path: 'messages/:conversationId', component: PageStub },
               {
                 path: 'account',
                 children: [
@@ -108,6 +117,13 @@ describe('AppShell', () => {
     // notifications-center BR-16: internal roles load the bell count once, the technician never does.
     if (session.role.code !== 'technician') {
       httpTesting.expectOne({ method: 'GET', url: SUMMARY_URL }).flush({ unread, today: 0 });
+      await settle();
+    }
+    // technician-messages BR-14: only Owner, Operations Manager and Dispatcher poll Messages.
+    if (MESSAGES_ROLES.includes(session.role.code)) {
+      httpTesting
+        .expectOne({ method: 'GET', url: MESSAGES_SUMMARY_URL })
+        .flush({ unreadMessages: messages, unreadConversations: 1 });
       await settle();
     }
     host = harness.routeNativeElement as HTMLElement;
@@ -178,8 +194,12 @@ describe('AppShell', () => {
 
       const first = MANAGE_ROLES.includes(code) ? 'Dashboard' : 'Overview';
       // reports-workspace BR-23/AC-23 and audit-trail BR-23/AC-23: "Reports" and "Audit log" only for these roles.
+      // technician-messages BR-15: "Messages" (after Schedule) only for Owner, Operations Manager, Dispatcher.
+      const operations = MODULE_LABELS.slice(1);
       const modules = [
-        ...MODULE_LABELS.slice(1),
+        ...(MESSAGES_ROLES.includes(code)
+          ? [...operations.slice(0, 4), 'Messages', ...operations.slice(4)]
+          : operations),
         ...(['owner', 'operations_manager', 'dispatcher', 'accounting'].includes(code)
           ? ['Reports']
           : []),
@@ -456,6 +476,29 @@ describe('AppShell', () => {
   );
 
   it.each([
+    [0, null],
+    [120, '99+'],
+  ])(
+    'shows the Messages badge for %s with a text equivalent and marks it current on conversations (technician-messages AC-15)',
+    async (messages, badge) => {
+      await setup(SESSION, 'full', 0, messages);
+
+      const link = () => host.querySelector<HTMLAnchorElement>('nav a[href="/messages"]')!;
+      expect(link().querySelector('.sidebar__badge')?.textContent?.trim() ?? null).toBe(badge);
+      expect(link().textContent).toContain(
+        messages === 0 ? 'Messages' : `${messages} unread messages`,
+      );
+      await router.navigateByUrl('/messages/c-1');
+      await settle();
+      expect(link().getAttribute('aria-current')).toBe('page');
+      // The staff bell keeps counting notifications only.
+      expect(
+        host.querySelector('button[aria-label^="Notifications"]')?.getAttribute('aria-label'),
+      ).toBe('Notifications');
+    },
+  );
+
+  it.each([
     ['owner', true],
     ['technician', false],
   ])('polls the unread count every 30 s for %s only when internal (AC-20)', async (role, polls) => {
@@ -465,8 +508,12 @@ describe('AppShell', () => {
       await vi.advanceTimersByTimeAsync(30_000);
       if (polls) {
         httpTesting.expectOne({ method: 'GET', url: SUMMARY_URL }).flush({ unread: 2, today: 0 });
+        httpTesting
+          .expectOne({ method: 'GET', url: MESSAGES_SUMMARY_URL })
+          .flush({ unreadMessages: 1, unreadConversations: 1 });
       } else {
         httpTesting.expectNone(SUMMARY_URL);
+        httpTesting.expectNone(MESSAGES_SUMMARY_URL);
       }
     } finally {
       vi.useRealTimers();

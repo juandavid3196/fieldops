@@ -34,6 +34,23 @@
     gap: 0.75rem;
   }
 
+  &__message {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+
+    button {
+      min-block-size: var(--fo-size-touch-target);
+    }
+  }
+
+  &__message-error {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-danger-text);
+  }
+
   &__notice {
     margin: 0;
     padding: 1rem;

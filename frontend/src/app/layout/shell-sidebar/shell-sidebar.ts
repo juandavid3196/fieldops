@@ -31,6 +31,9 @@ export class ShellSidebar {
   readonly groups = input.required<readonly NavGroup[]>();
   readonly rail = input(false);
   readonly drawer = input(false);
+  /** Unread messages badge of the items flagged `unreadMessages`; `null` hides it. */
+  readonly messagesBadge = input<string | null>(null);
+  readonly messagesLabel = input<string | null>(null);
   readonly navigated = output<void>();
   readonly closeRequested = output<void>();
   readonly collapseToggled = output<void>();
@@ -51,6 +54,15 @@ export class ShellSidebar {
   toggle(item: NavItem): void {
     const open = !this.isOpen(item);
     this.toggled.update((state) => ({ ...state, [item.link]: open }));
+  }
+
+  /** Rail links have no visible text, so the name carries the unread text equivalent. */
+  linkLabel(item: NavItem): string | null {
+    if (!this.rail()) {
+      return null;
+    }
+    const unread = item.unreadMessages === true ? this.messagesLabel() : null;
+    return unread === null ? item.label : `${item.label}, ${unread}`;
   }
 
   groupId(item: NavItem): string {

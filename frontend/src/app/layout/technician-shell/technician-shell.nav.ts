@@ -1,4 +1,4 @@
-import { technicianComingSoonPath } from '../../core/config/coming-soon-modules';
+import { TECHNICIAN_MESSAGES_PATH } from '../../features/messages/messages.routes';
 
 /** One bottom navigation destination (BR-15). */
 export interface TechnicianNavItem {
@@ -7,11 +7,8 @@ export interface TechnicianNavItem {
   readonly link: string;
   /** The item is current when the URL path matches one of these. */
   readonly matches: (path: string) => boolean;
-}
-
-function soon(label: string, icon: string, slug: string): TechnicianNavItem {
-  const link = technicianComingSoonPath(slug);
-  return { label, icon, link, matches: (path) => path === link };
+  /** Shows the unread messages badge (technician-messages BR-15). */
+  readonly unreadMessages?: boolean;
 }
 
 export const TECHNICIAN_NAV: readonly TechnicianNavItem[] = [
@@ -33,10 +30,17 @@ export const TECHNICIAN_NAV: readonly TechnicianNavItem[] = [
     link: '/today/time',
     matches: (path) => path === '/today/time',
   },
-  soon('Messages', 'pi-comments', 'messages'),
+  {
+    label: 'Messages',
+    icon: 'pi-comments',
+    link: TECHNICIAN_MESSAGES_PATH,
+    matches: (path) => path.startsWith(TECHNICIAN_MESSAGES_PATH),
+    unreadMessages: true,
+  },
 ];
 
-export const NOTIFICATIONS_LINK = technicianComingSoonPath('notifications');
+/** The bell opens Messages and shows the same unread badge (technician-messages BR-15). */
+export const NOTIFICATIONS_LINK = TECHNICIAN_MESSAGES_PATH;
 export const PROFILE_LINK = '/team';
 export const ACCOUNT_LINK = '/account';
 export const HELP_LINK = '/help';

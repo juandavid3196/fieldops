@@ -40,8 +40,15 @@
         <i class="pi pi-question-circle" aria-hidden="true"></i>
       </a>
 
-      <a class="tshell__icon-button" [routerLink]="notificationsLink" aria-label="Notifications">
+      <a
+        class="tshell__icon-button"
+        [routerLink]="notificationsLink"
+        [attr.aria-label]="bellLabel()"
+      >
         <i class="pi pi-bell" aria-hidden="true"></i>
+        @if (unreadBadge(); as badge) {
+          <span class="tshell__badge tshell__badge--bell" aria-hidden="true">{{ badge }}</span>
+        }
       </a>
 
       <div class="tshell__account" data-shell-panel>
@@ -137,6 +144,10 @@
         >
           <i class="pi" [class]="item.icon" aria-hidden="true"></i>
           <span>{{ item.label }}</span>
+          @if (item.unreadMessages && unreadBadge(); as badge) {
+            <span class="tshell__badge" aria-hidden="true">{{ badge }}</span>
+            <span class="tshell__sr">{{ unreadLabel() }}</span>
+          }
         </a>
       }
       <button
