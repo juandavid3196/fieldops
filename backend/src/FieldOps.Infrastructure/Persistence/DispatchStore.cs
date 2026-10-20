@@ -1,5 +1,6 @@
 using System.Text.Json;
 using FieldOps.Application.Features.Access;
+using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.ServiceRequests;
@@ -151,6 +152,20 @@ internal sealed partial class DispatchStore(
                 order.BranchId,
                 order.CustomerId))
             .SingleOrDefaultAsync(cancellationToken);
+
+    /// <summary>Business-hours BR-12 for a slot: the branch's own hours and time zone; null without a branch time zone.</summary>
+    private async Task<BusinessHoursCheck?> ReadBusinessHoursCheckAsync(
+        Guid organizationId, Guid branchId, DateTimeOffset start, DateTimeOffset end, CancellationToken cancellationToken)
+    {
+        var branch = await dbContext.Branches.AsNoTracking()
+            .Where(candidate => candidate.OrganizationId == organizationId && candidate.Id == branchId)
+            .Select(candidate => new { candidate.Timezone, candidate.BusinessHours })
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return branch is null
+            ? null
+            : BusinessHoursRules.Check(branch.BusinessHours, branch.Timezone, start, end);
+    }
 
     private async Task<string> ReadZoneIdAsync(Guid organizationId, Guid branchId, CancellationToken cancellationToken)
     {

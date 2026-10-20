@@ -104,6 +104,7 @@ describe('CompanySetup', () => {
             ...(withGuard ? { canDeactivate: [companySettingsUnsavedChangesGuard] } : {}),
           },
           { path: 'auth/sign-in', component: SignInStub },
+          { path: 'admin/business-hours', component: OtherStub },
           { path: 'coming-soon/:module', component: OtherStub },
           { path: 'other', component: OtherStub },
         ]),
@@ -392,7 +393,7 @@ describe('CompanySetup', () => {
 
     links()[2].click();
     await stable();
-    expect(router.url).toBe('/coming-soon/business-hours');
+    expect(router.url).toBe('/admin/business-hours');
   });
 
   it('uploads, previews, replaces and removes the logo without dirtying the form (FR-10, AC-13)', async () => {

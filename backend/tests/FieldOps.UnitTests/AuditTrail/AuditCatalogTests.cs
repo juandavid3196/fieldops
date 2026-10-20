@@ -12,7 +12,7 @@ public sealed partial class AuditCatalogTests
     [
         "auth.signed_in", "auth.signed_out", "auth.password_changed", "user.profile_updated", "user.photo_updated", "user.photo_removed", "export.generated",
         "organization.registered", "organization.settings_updated", "organization.bank_details_updated", "organization.logo_updated", "organization.logo_removed",
-        "branch.created", "branch.updated", "branch.set_as_main", "branch.deactivated", "branch.reactivated",
+        "branch.created", "branch.updated", "branch.business_hours_updated", "branch.set_as_main", "branch.deactivated", "branch.reactivated",
         "user.invited", "user.invitation_resent", "user.invitation_revoked", "user.invitation_accepted", "user.access_updated", "user.suspended", "user.reactivated",
         "customer.created", "customer.updated", "customer.archived", "customer.reactivated", "customer.imported", "customer.message_sent",
         "customer_tag.created", "customer_note.created",

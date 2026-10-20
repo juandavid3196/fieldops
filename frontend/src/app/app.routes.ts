@@ -20,7 +20,10 @@ import {
   quotesRoute,
   workOrderEditorRoute,
 } from './features/quotes/quotes.routes';
-import { companyAdminRoute } from './features/organizations/organizations.routes';
+import {
+  businessHoursAdminRoute,
+  companyAdminRoute,
+} from './features/organizations/organizations.routes';
 import { productsServicesAdminRoute } from './features/products-services/products-services.routes';
 import { assessmentRoute, requestsRoute } from './features/requests/requests.routes';
 import { reportsRoute } from './features/reports/reports.routes';
@@ -101,6 +104,7 @@ export const routes: Routes = [
       { path: 'coming-soon/reports', pathMatch: 'full', redirectTo: '/reports' },
       comingSoonRoute,
       companyAdminRoute,
+      businessHoursAdminRoute,
       usersAdminRoute,
       productsServicesAdminRoute,
       customersRoute,

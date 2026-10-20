@@ -27,6 +27,7 @@ import { Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
+import { formatTime12 } from '../../../../shared/utils/time-of-day';
 import { formatInstantDateTime } from '../../../technician-jobs/utils/technician-format';
 import { visitStatusLabel } from '../../../jobs/utils/work-order-format';
 import { FormField } from '../../../organizations/components/form-field/form-field';
@@ -198,6 +199,8 @@ export class DispatchDrawer {
   private readonly injector = inject(Injector);
 
   readonly visitId = input<string | null>(null);
+  /** Branch name used by the business-hours warning (BR-12). */
+  readonly branchName = input<string | null>(null);
 
   readonly closeRequested = output<void>();
   readonly saved = output<DispatchSaved>();
@@ -326,6 +329,17 @@ export class DispatchDrawer {
   );
   readonly conflictCount = computed(() => this.evaluation()?.conflicts.length ?? 0);
   readonly reasonNeeded = computed(() => this.conflictCount() > 0 || this.serverConflicts());
+  readonly businessHoursWarning = computed(() => {
+    const check = this.evaluation()?.businessHours;
+    if (check === null || check === undefined || !check.outside) {
+      return null;
+    }
+    const day = check.dayOfWeek.charAt(0).toUpperCase() + check.dayOfWeek.slice(1);
+    const branch = this.branchName() ?? 'This branch';
+    return check.isOpen && check.openingTime !== null && check.closingTime !== null
+      ? `Outside business hours: ${branch} is open ${formatTime12(check.openingTime)}–${formatTime12(check.closingTime)} on ${day}.`
+      : `Outside business hours: ${branch} is closed on ${day}.`;
+  });
   readonly bannerText = computed(() => {
     const count = this.conflictCount();
     return count === 0 ? 'No scheduling conflicts' : `${count} scheduling conflicts`;

@@ -1,8 +1,6 @@
 import { Component, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
-import { comingSoonPath } from '../../../../core/config/coming-soon-modules';
-
 interface AdministrationItem {
   readonly label: string;
   readonly icon: string;
@@ -13,7 +11,7 @@ interface AdministrationItem {
   readonly page?: AdministrationPage;
 }
 
-export type AdministrationPage = 'company' | 'users' | 'products';
+export type AdministrationPage = 'company' | 'users' | 'products' | 'business-hours';
 
 const COMPANY_PATH = '/admin/company';
 
@@ -25,7 +23,8 @@ export const ADMINISTRATION_ITEMS: readonly AdministrationItem[] = [
     label: 'Business hours',
     icon: 'pi-clock',
     section: null,
-    link: comingSoonPath('business-hours'),
+    link: '/admin/business-hours',
+    page: 'business-hours',
   },
   {
     label: 'Users & permissions',

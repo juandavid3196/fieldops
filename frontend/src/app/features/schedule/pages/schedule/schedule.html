@@ -109,6 +109,7 @@
   @if (!forbidden()) {
     <app-dispatch-drawer
       [visitId]="store.selectedVisitId()"
+      [branchName]="store.branch()?.name ?? null"
       (closeRequested)="onDrawerCloseRequested()"
       (saved)="onDrawerSaved($event)"
       (cancelled)="onDrawerCancelled($event)"

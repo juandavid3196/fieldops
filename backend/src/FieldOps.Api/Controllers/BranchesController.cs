@@ -27,7 +27,10 @@ public sealed class BranchesController(
     UpdateBranchHandler updateHandler,
     DeactivateBranchHandler deactivateHandler,
     ReactivateBranchHandler reactivateHandler,
-    SetMainBranchHandler setMainHandler) : ControllerBase
+    SetMainBranchHandler setMainHandler,
+    GetBusinessHoursHandler businessHoursHandler,
+    UpdateBusinessHoursHandler updateBusinessHoursHandler,
+    IAuthorizationService authorization) : ControllerBase
 {
     public const int MaxRequestBodyBytes = 32 * 1024;
 
@@ -212,6 +215,80 @@ public sealed class BranchesController(
 
             default:
                 throw new InvalidOperationException("Unknown update branch result.");
+        }
+    }
+
+    [HttpGet("{id:guid}/business-hours")]
+    [Authorize(Policy = CompanySettingsPolicies.View)]
+    [ProducesResponseType<BusinessHoursView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetBusinessHours(Guid id, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        var canManage = (await authorization.AuthorizeAsync(User, CompanySettingsPolicies.Manage)).Succeeded;
+        var view = await businessHoursHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, canManage, cancellationToken);
+
+        return view is null ? NotFound() : Ok(view);
+    }
+
+    [HttpPut("{id:guid}/business-hours")]
+    [Authorize(Policy = CompanySettingsPolicies.Manage)]
+    [Consumes("application/json")]
+    [RequestSizeLimit(MaxRequestBodyBytes)]
+    [ProducesResponseType<BusinessHoursView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> UpdateBusinessHours(
+        Guid id,
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] UpdateBusinessHoursRequest request,
+        CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!ModelState.IsValid)
+        {
+            return HasUnsupportedContentType() ? new UnsupportedMediaTypeResult() : BadRequest();
+        }
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        var result = await updateBusinessHoursHandler.HandleAsync(
+            new UpdateBusinessHoursCommand(
+                ticket.OrganizationId, id, request.Days, request.UpdatedAt, ticket.UserId, GetClientIpAddress()),
+            cancellationToken);
+
+        switch (result)
+        {
+            case UpdateBusinessHoursResult.Succeeded succeeded:
+                return Ok(succeeded.View);
+
+            case UpdateBusinessHoursResult.Invalid invalid:
+                AddErrors(invalid.Errors);
+                return ValidationProblem(ModelState);
+
+            case UpdateBusinessHoursResult.NotFound:
+                return NotFound();
+
+            case UpdateBusinessHoursResult.Stale:
+                return StaleProblem();
+
+            default:
+                throw new InvalidOperationException("Unknown update business hours result.");
         }
     }
 

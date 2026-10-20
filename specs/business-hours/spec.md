@@ -4,7 +4,7 @@
 | -------- | ---------------- |
 | Feature  | `business-hours` |
 | Type     | Full-stack       |
-| Status   | APPROVED         |
+| Status   | AUDITED          |
 | Created  | 2026-10-20       |
 | Updated  | 2026-10-20       |
 | Approved | 2026-10-20       |
@@ -280,3 +280,5 @@ by two editors (this page and the branch drawer).
 | ---------- | ------------- | ------ |
 | 2026-10-20 | — → DRAFT     | Created |
 | 2026-10-20 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-20 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-20 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

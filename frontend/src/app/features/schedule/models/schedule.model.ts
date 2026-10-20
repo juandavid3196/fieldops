@@ -212,7 +212,18 @@ export interface Check {
   readonly label: string;
 }
 
+/** BR-12: non-blocking result of comparing the slot with the branch business hours. */
+export interface BusinessHoursCheck {
+  readonly outside: boolean;
+  readonly dayOfWeek: string;
+  readonly isOpen: boolean;
+  readonly openingTime: string | null;
+  readonly closingTime: string | null;
+}
+
 export interface VisitEvaluation {
+  /** `null` when the branch has no time zone; absent from older responses. */
+  readonly businessHours?: BusinessHoursCheck | null;
   readonly conflicts: readonly Conflict[];
   readonly skills: Check;
   readonly checks: readonly {
@@ -245,6 +256,7 @@ export interface DispatchBody extends DispatchValues {
 }
 
 export interface VisitDispatchResult {
+  readonly businessHours?: BusinessHoursCheck | null;
   readonly visit: VisitDispatchDetail;
   readonly workOrderStatus: string;
   readonly notified: boolean;
