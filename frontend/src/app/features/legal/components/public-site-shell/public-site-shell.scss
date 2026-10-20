@@ -1,0 +1,141 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+  color: var(--fo-color-text);
+  background: var(--fo-color-app-background);
+  // Header and footer line up with the page content, which is wider on the public Help page.
+  --site-width: 72rem;
+
+  &:has(app-public-help) {
+    --site-width: 80rem;
+  }
+}
+
+.site {
+  &__header {
+    background: var(--fo-color-surface);
+    border-block-end: 1px solid var(--fo-color-border);
+  }
+
+  &__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-inline-size: var(--site-width);
+    margin-inline: auto;
+    padding: 0.5rem 1rem;
+
+    @include bp.up(md) {
+      padding-inline: 1.5rem;
+    }
+
+    &--footer {
+      padding-block: 0.25rem;
+    }
+  }
+
+  &__wordmark {
+    font-size: 1.75rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    text-decoration: none;
+    color: var(--fo-color-heading);
+  }
+
+  &__accent {
+    color: var(--fo-color-primary);
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+
+    @include bp.up(md) {
+      gap: 1rem;
+    }
+  }
+
+  &__link,
+  &__footer-link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    padding-inline: 0.5rem;
+    text-decoration: none;
+    color: inherit;
+
+    &:hover {
+      color: var(--fo-color-primary-strong);
+    }
+  }
+
+  &__link {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--fo-color-heading);
+
+    &--active {
+      color: var(--fo-color-primary-strong);
+      box-shadow: inset 0 -2px 0 var(--fo-color-primary);
+    }
+  }
+
+  &__sign-in {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    margin-inline-start: 0.5rem;
+    padding-inline: 1rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--fo-color-primary-strong);
+    border: 1px solid var(--fo-color-primary);
+    border-radius: var(--fo-radius-control);
+
+    &:hover {
+      background: var(--fo-color-primary-soft);
+    }
+  }
+
+  &__main {
+    flex: 1 0 auto;
+  }
+
+  &__footer {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-muted);
+    background: var(--fo-color-surface);
+    border-block-start: 1px solid var(--fo-color-border);
+  }
+
+  &__copy {
+    margin: 0;
+  }
+
+  &__footer-nav {
+    display: flex;
+    gap: 0.5rem;
+    // The last link's text ends on the content edge, not its padding.
+    margin-inline-end: -0.5rem;
+  }
+
+  &__footer-link--active {
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+  }
+}
+
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--fo-focus-ring);
+  border-radius: var(--fo-radius-control);
+}

@@ -63,7 +63,7 @@
     align-items: start;
     gap: 1rem;
 
-    @include bp.up(lg) {
+    @include bp.wide(lg) {
       grid-template-columns: 16rem minmax(0, 1fr);
       gap: 1.5rem;
     }

@@ -1,0 +1,208 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../styles/help' as help;
+
+:host {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.hero {
+  padding: 2rem 1rem 2.5rem;
+  text-align: center;
+  background: var(--fo-color-info-background);
+
+  &__eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__title {
+    margin: 0.5rem 0 0;
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--fo-color-heading);
+
+    @include bp.up(md) {
+      font-size: 3.25rem;
+    }
+  }
+
+  &__lead {
+    margin: 0.5rem 0 0;
+    font-size: 1.125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__search {
+    display: block;
+    max-inline-size: 44rem;
+    margin: 1.5rem auto 0;
+    text-align: start;
+    // Raised field on the tinted hero: shadow instead of a border, darker search icon.
+    --p-inputtext-border-color: transparent;
+    --p-inputtext-hover-border-color: transparent;
+    --p-inputtext-shadow: 0 4px 16px rgb(16 42 67 / 10%), 0 1px 3px rgb(16 42 67 / 8%);
+    --p-iconfield-icon-color: var(--fo-color-heading);
+  }
+
+  &__status {
+    @include help.visually-hidden;
+  }
+}
+
+.body {
+  box-sizing: border-box;
+  max-inline-size: 80rem;
+  margin-inline: auto;
+  padding: 2rem 1rem 2.5rem;
+
+  @include bp.up(md) {
+    padding-inline: 1.5rem;
+  }
+
+  &__section {
+    margin-block-end: 1.5rem;
+  }
+
+  &__title {
+    margin: 0 0 0.75rem;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__empty {
+    @include help.card;
+
+    margin: 0;
+    font-weight: 500;
+  }
+
+  &__columns {
+    display: grid;
+    gap: 1rem;
+
+    @include bp.up(lg) {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+  }
+}
+
+.topics {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.topic {
+  @include help.card;
+
+  display: flex;
+  block-size: 100%;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    border-color: var(--fo-color-primary);
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--fo-focus-ring);
+  }
+
+  &__icon {
+    @include help.icon-tile(3rem);
+
+    margin-block-end: 0.5rem;
+    color: var(--fo-color-heading);
+    border-radius: 50%;
+
+    // Thinner glyph than the shared tile (no extra stroke).
+    > i {
+      -webkit-text-stroke: 0;
+    }
+  }
+
+  &__name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__text {
+    flex-grow: 1;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-block-start: 0.5rem;
+    padding-block-start: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text);
+    border-block-start: 1px solid var(--fo-color-row-divider);
+  }
+}
+
+.popular {
+  @include help.card;
+
+  &__title {
+    @include help.card-title;
+
+    margin-block-end: 0.5rem;
+  }
+
+  &__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li + li {
+      border-block-start: 1px solid var(--fo-color-row-divider);
+    }
+  }
+
+  &__link {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    padding-inline: 0.25rem;
+    text-decoration: none;
+    color: var(--fo-color-text);
+
+    &:hover {
+      color: var(--fo-color-primary-strong);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__icon {
+    flex: none;
+    inline-size: 1.375rem;
+    block-size: 1.375rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__question {
+    flex-grow: 1;
+  }
+}

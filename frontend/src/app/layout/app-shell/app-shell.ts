@@ -112,17 +112,24 @@ export class AppShell {
   readonly groups = computed(() => {
     const role = this.session()?.role.code ?? '';
     const manage = canSeeDashboard(role);
-    return NAV_GROUPS.filter(
-      (group) =>
-        (!group.manageOnly || manage) &&
-        (!group.hiddenForManage || !manage) &&
-        (!group.adminOnly || ADMINISTRATION_ROLE_CODES.includes(role)) &&
-        (!group.technicianOnly || role === 'technician') &&
-        (!group.internalOnly || role !== 'technician'),
-    ).map((group) => ({
-      ...group,
-      items: group.items.filter((item) => item.roles === undefined || item.roles.includes(role)),
-    }));
+    return (
+      NAV_GROUPS.filter(
+        (group) =>
+          (!group.manageOnly || manage) &&
+          (!group.hiddenForManage || !manage) &&
+          (!group.adminOnly || ADMINISTRATION_ROLE_CODES.includes(role)) &&
+          (!group.technicianOnly || role === 'technician') &&
+          (!group.internalOnly || role !== 'technician'),
+      )
+        .map((group) => ({
+          ...group,
+          items: group.items.filter(
+            (item) => item.roles === undefined || item.roles.includes(role),
+          ),
+        }))
+        // A heading whose items are all hidden is not shown either.
+        .filter((group) => group.items.length > 0)
+    );
   });
   readonly showAdministration = computed(() =>
     this.groups().some((group) => group.adminOnly === true),

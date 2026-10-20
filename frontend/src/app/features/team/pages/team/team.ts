@@ -1,7 +1,7 @@
 import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { IconField } from 'primeng/iconfield';
@@ -189,6 +189,8 @@ export class Team {
   readonly skillsPath = SKILLS_PATH;
   readonly availabilityPath = AVAILABILITY_PATH;
   readonly schedulePath = SCHEDULE_PATH;
+  /** The technician shell's top bar already names the page, so it hides the breadcrumb. */
+  readonly showCrumbs = inject(ActivatedRoute).snapshot.data['hideCrumbs'] !== true;
 
   // Roles (UX only)
   private readonly roleCode = computed(() => this.sessionService.session()?.role.code ?? '');

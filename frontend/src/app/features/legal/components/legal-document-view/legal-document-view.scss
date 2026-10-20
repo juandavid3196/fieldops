@@ -1,0 +1,228 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  box-sizing: border-box;
+  max-inline-size: 72rem;
+  margin-inline: auto;
+  padding: 2rem 1rem 2.5rem;
+
+  @include bp.up(md) {
+    padding-inline: 1.5rem;
+  }
+}
+
+.hero {
+  margin-block-end: 1.5rem;
+  text-align: center;
+
+  &__eyebrow {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--fo-color-text-muted);
+  }
+
+  &__title {
+    margin: 0.5rem 0 0;
+    font-size: 2.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--fo-color-heading);
+
+    @include bp.up(md) {
+      font-size: 3rem;
+    }
+  }
+
+  &__lead {
+    margin: 0.5rem 0 0;
+    font-size: 1.125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__updated {
+    display: inline-block;
+    margin: 1rem 0 0;
+    padding: 0.25rem 1rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+    background: var(--fo-color-neutral-background);
+    border-radius: var(--fo-radius-pill);
+  }
+}
+
+.layout {
+  display: grid;
+  gap: 1rem;
+
+  @include bp.up(lg) {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.toc,
+.doc {
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-panel);
+}
+
+.toc {
+  padding: 1rem 0.75rem;
+
+  @include bp.up(lg) {
+    position: sticky;
+    inset-block-start: 1rem;
+  }
+
+  &__title {
+    margin: 0 0 0.75rem;
+    padding-inline: 0.5rem;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    min-block-size: 2.25rem;
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+    text-decoration: none;
+    color: var(--fo-color-text);
+    border-inline-start: 3px solid transparent;
+    border-radius: var(--fo-radius-control);
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &--active {
+      color: var(--fo-color-primary-strong);
+      background: var(--fo-color-primary-soft);
+      border-inline-start-color: var(--fo-color-primary);
+    }
+  }
+}
+
+.doc {
+  padding: 1.25rem 1rem;
+
+  @include bp.up(md) {
+    padding: 1.5rem;
+  }
+
+  &__highlight {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin: 0;
+    padding: 0.875rem 1rem;
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-control);
+
+    .pi {
+      font-size: 1.25rem;
+    }
+  }
+
+  &__section {
+    padding-block: 1.25rem;
+    scroll-margin-block-start: 1rem;
+
+    + .doc__section {
+      border-block-start: 1px solid var(--fo-color-row-divider);
+    }
+  }
+
+  &__heading {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+
+    @include bp.up(md) {
+      font-size: 1.75rem;
+    }
+  }
+
+  &__text {
+    margin: 0 0 0.5rem;
+    line-height: 1.55;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    margin: 0 0 0.5rem;
+    padding-inline-start: 1.5rem;
+    line-height: 1.55;
+    color: var(--fo-color-text-secondary);
+
+    li::marker {
+      color: var(--fo-color-primary);
+    }
+
+    strong {
+      color: var(--fo-color-heading);
+    }
+  }
+}
+
+.contact {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+  justify-items: start;
+
+  @include bp.up(md) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  margin-block-start: 0.5rem;
+  padding: 1rem 1.25rem;
+  background: var(--fo-color-surface-muted);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-panel);
+
+  &__title {
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--fo-color-heading);
+  }
+
+  &__text {
+    margin: 0.25rem 0 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__action {
+    white-space: nowrap;
+    text-decoration: none;
+  }
+}
+
+a:focus-visible {
+  outline: none;
+  box-shadow: var(--fo-focus-ring);
+}

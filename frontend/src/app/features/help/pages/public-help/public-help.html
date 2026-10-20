@@ -1,0 +1,78 @@
+<header class="hero">
+  <p class="hero__eyebrow">FieldOps help center</p>
+  <h1 class="hero__title">How can we help?</h1>
+  <p class="hero__lead">
+    Find clear answers for setting up, managing, and completing work in FieldOps.
+  </p>
+  <app-help-search-field
+    class="hero__search"
+    placeholder="Search help articles"
+    inputId="public-help-search"
+    [(query)]="query"
+  />
+  <p class="hero__status" role="status" aria-live="polite">{{ status() }}</p>
+</header>
+
+<div class="body">
+  @if (searching()) {
+    <section class="body__section" aria-labelledby="public-help-results">
+      <h2 class="body__title" id="public-help-results">Search results</h2>
+      @if (results().length > 0) {
+        <app-help-result-list [results]="results()" />
+      } @else {
+        <p class="body__empty">No articles match "{{ trimmedQuery() }}"</p>
+      }
+    </section>
+  } @else {
+    <section class="body__section" aria-labelledby="public-help-topics">
+      <h2 class="body__title" id="public-help-topics">Browse by topic</h2>
+      <ul class="topics">
+        @for (entry of topics; track entry.topic.slug) {
+          <li>
+            <a class="topic" [routerLink]="[base, entry.topic.slug]">
+              <span class="topic__icon" aria-hidden="true"
+                ><i class="pi" [class]="entry.topic.icon"></i
+              ></span>
+              <span class="topic__name">{{ entry.topic.title }}</span>
+              <span class="topic__text">{{ entry.topic.cardSubtitle }}</span>
+              <span class="topic__footer">
+                {{ entry.count }} {{ entry.count === 1 ? 'article' : 'articles' }}
+                <i class="pi pi-arrow-right" aria-hidden="true"></i>
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <div class="body__columns">
+    <section class="popular" aria-labelledby="public-help-popular">
+      <h2 class="popular__title" id="public-help-popular">Popular questions</h2>
+      <ul class="popular__list">
+        @for (entry of questions; track entry.question) {
+          <li>
+            <a class="popular__link" [routerLink]="entry.link">
+              <svg
+                class="popular__icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+                <path d="M14 3v5h5M9 13h6M9 17h6" />
+              </svg>
+              <span class="popular__question">{{ entry.question }}</span>
+              <i class="pi pi-arrow-right" aria-hidden="true"></i>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+    <app-help-support-card />
+  </div>
+</div>

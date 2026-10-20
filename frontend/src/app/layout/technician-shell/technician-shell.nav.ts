@@ -1,4 +1,9 @@
 import { TECHNICIAN_MESSAGES_PATH } from '../../features/messages/messages.routes';
+import {
+  ACCOUNT_PATH,
+  HELP_PATH,
+  PROFILE_PATH,
+} from '../../features/technician-jobs/technician-jobs.routes';
 
 /** One bottom navigation destination (BR-15). */
 export interface TechnicianNavItem {
@@ -39,8 +44,7 @@ export const TECHNICIAN_NAV: readonly TechnicianNavItem[] = [
   },
 ];
 
-/** The bell opens Messages and shows the same unread badge (technician-messages BR-15). */
-export const NOTIFICATIONS_LINK = TECHNICIAN_MESSAGES_PATH;
-export const PROFILE_LINK = '/team';
-export const ACCOUNT_LINK = '/account';
-export const HELP_LINK = '/help';
+/** More menu destinations, all inside the technician shell. */
+export const PROFILE_LINK = PROFILE_PATH;
+export const ACCOUNT_LINK = ACCOUNT_PATH;
+export const HELP_LINK = HELP_PATH;

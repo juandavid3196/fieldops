@@ -29,7 +29,10 @@
       </a>
     } @else {
       <a class="tshell__logo" routerLink="/today" aria-label="FieldOps, Today's jobs">
-        <span class="tshell__logo-mark" aria-hidden="true">F</span>
+        <svg class="tshell__logo-mark" viewBox="0 0 48 40" aria-hidden="true" focusable="false">
+          <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-300)" />
+          <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-500)" />
+        </svg>
         <span aria-hidden="true">Field<span class="tshell__accent">Ops</span></span>
       </a>
     }
@@ -40,45 +43,19 @@
         <i class="pi pi-question-circle" aria-hidden="true"></i>
       </a>
 
-      <a
-        class="tshell__icon-button"
-        [routerLink]="notificationsLink"
-        [attr.aria-label]="bellLabel()"
+      <!-- Identity only: the account actions live in More. -->
+      <span
+        class="tshell__avatar"
+        role="img"
+        [attr.aria-label]="fullName()"
+        [style]="avatarStyle()"
       >
-        <i class="pi pi-bell" aria-hidden="true"></i>
-        @if (unreadBadge(); as badge) {
-          <span class="tshell__badge tshell__badge--bell" aria-hidden="true">{{ badge }}</span>
-        }
-      </a>
-
-      <div class="tshell__account" data-shell-panel>
-        <button
-          type="button"
-          class="tshell__avatar"
-          aria-controls="tshell-account-panel"
-          [attr.aria-expanded]="accountOpen()"
-          [attr.aria-label]="'Account menu, ' + fullName()"
-          [style]="avatarStyle()"
-          (click)="togglePanel('account')"
-        >
-          <span aria-hidden="true">{{ initials() }}</span>
-        </button>
-
-        @if (accountOpen()) {
-          <div class="tshell__panel tshell__panel--account" id="tshell-account-panel">
-            <p class="tshell__panel-name">{{ fullName() }}</p>
-            <button
-              type="button"
-              class="tshell__panel-item"
-              [attr.aria-disabled]="signingOut()"
-              (click)="signOut()"
-            >
-              <i class="pi pi-sign-out" aria-hidden="true"></i>
-              Sign out
-            </button>
-          </div>
-        }
-      </div>
+        <app-user-avatar
+          class="tshell__avatar-image"
+          [initials]="initials()"
+          [photoUpdatedAt]="photoUpdatedAt()"
+        />
+      </span>
     }
   </header>
 
@@ -107,7 +84,7 @@
         </a>
         <button
           type="button"
-          class="tshell__panel-item"
+          class="tshell__panel-item tshell__panel-item--danger"
           [attr.aria-disabled]="signingOut()"
           (click)="signOut()"
         >

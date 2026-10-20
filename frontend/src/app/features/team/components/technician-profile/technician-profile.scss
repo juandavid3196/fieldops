@@ -131,7 +131,7 @@
     gap: 1rem;
     padding: 1rem;
 
-    @include bp.up(lg) {
+    @include bp.wide(lg) {
       flex-direction: row;
       align-items: center;
       justify-content: space-between;
@@ -181,7 +181,7 @@
     gap: 0.75rem;
     margin: 0;
 
-    @include bp.up(lg) {
+    @include bp.wide(lg) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0;
     }
@@ -193,7 +193,7 @@
     align-items: center;
     min-width: 0;
 
-    @include bp.up(lg) {
+    @include bp.wide(lg) {
       padding-inline: 1.5rem;
       border-inline-start: 1px solid var(--fo-color-border);
     }
@@ -222,7 +222,7 @@
     gap: 1.25rem;
     align-items: start;
 
-    @include bp.up(lg) {
+    @include bp.wide(lg) {
       grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr);
     }
   }
@@ -319,7 +319,7 @@
     gap: 1rem 0;
     margin: 0;
 
-    @include bp.up(md) {
+    @include bp.wide(md) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
@@ -336,8 +336,16 @@
     align-items: center;
     text-align: center;
 
-    &:not(:first-child) {
+    // Divider between columns only: every second item in two columns, every item but the first
+    // in the single four-column row.
+    &:nth-child(2n) {
       border-inline-start: 1px solid var(--fo-color-border);
+    }
+
+    @include bp.wide(md) {
+      &:not(:first-child) {
+        border-inline-start: 1px solid var(--fo-color-border);
+      }
     }
   }
 

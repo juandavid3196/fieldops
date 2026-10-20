@@ -17,6 +17,8 @@ import {
 export const SKILLS_PATH = comingSoonPath('team-skills');
 export const AVAILABILITY_PATH = comingSoonPath('team-availability');
 export const SCHEDULE_PATH = '/schedule';
+/** The Technician's own page opens their schedule in the technician shell. */
+export const OWN_SCHEDULE_PATH = '/today/schedule';
 
 /**
  * BR-13 sections (profile, account link, skills, availability, today) shared by the detail drawer
@@ -37,7 +39,7 @@ export class TechnicianProfile {
   readonly busy = input(false);
   /** `page` is the Technician's own read-only page layout; `stacked` is the drawer's single column. */
   readonly layout = input<'stacked' | 'page'>('stacked');
-  readonly schedulePath = SCHEDULE_PATH;
+  readonly ownSchedulePath = OWN_SCHEDULE_PATH;
   readonly initials = computed(() =>
     `${this.detail().firstName.charAt(0)}${this.detail().lastName.charAt(0)}`.toUpperCase(),
   );

@@ -59,6 +59,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/portal/portal.routes'),
   },
   {
+    // Public legal pages (Privacy, Terms, public Help) with their own header and footer.
+    path: '',
+    loadChildren: () => import('./features/legal/legal.routes'),
+  },
+  {
     // Old emailed links: the redirect keeps the URL fragment (customer-quote-approval BR-02).
     path: 'quote-approval',
     pathMatch: 'full',

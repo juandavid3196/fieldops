@@ -2,6 +2,8 @@ import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { PrimeNGConfigType } from 'primeng/config';
 
+import { environment } from '../../../environments/environment';
+
 /**
  * FieldOps preset: Aura with the teal palette as primary.
  * `primary.color` is darkened to teal.700 in light mode so white text on it meets WCAG AA.
@@ -59,6 +61,7 @@ const prefersReducedMotion =
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 export const primeNgConfig: PrimeNGConfigType = {
+  license: environment.primeUiLicense,
   ripple: !prefersReducedMotion,
   theme: {
     preset: FieldOpsPreset,

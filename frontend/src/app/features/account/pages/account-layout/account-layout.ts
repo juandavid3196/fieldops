@@ -1,6 +1,13 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import {
+  ActivatedRoute,
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+  RouterOutlet,
+} from '@angular/router';
 import { filter } from 'rxjs';
 
 interface AccountSection {
@@ -10,10 +17,12 @@ interface AccountSection {
 }
 
 /** FR-02: exactly these two sections; there is no Preferences item. */
-const SECTIONS: readonly AccountSection[] = [
-  { label: 'My profile', icon: 'pi-user', link: '/account/profile' },
-  { label: 'Security', icon: 'pi-shield', link: '/account/security' },
-];
+function sectionsFor(base: string): readonly AccountSection[] {
+  return [
+    { label: 'My profile', icon: 'pi-user', link: `${base}/profile` },
+    { label: 'Security', icon: 'pi-shield', link: `${base}/security` },
+  ];
+}
 
 /** Account settings frame: breadcrumb, heading, section navigation and the content card. */
 @Component({
@@ -24,8 +33,12 @@ const SECTIONS: readonly AccountSection[] = [
 })
 export class AccountLayout {
   private readonly router = inject(Router);
+  private readonly accountBase: unknown = inject(ActivatedRoute).snapshot.data['accountBase'];
 
-  readonly sections = SECTIONS;
+  /** `/account` by default; the technician shell mounts its own copy (`data.accountBase`). */
+  readonly sections = sectionsFor(
+    typeof this.accountBase === 'string' ? this.accountBase : '/account',
+  );
   readonly currentLabel = signal(this.labelFor());
 
   constructor() {
@@ -39,6 +52,6 @@ export class AccountLayout {
 
   private labelFor(): string {
     const path = this.router.url.split(/[?#]/)[0];
-    return SECTIONS.find((section) => section.link === path)?.label ?? SECTIONS[0].label;
+    return this.sections.find((section) => section.link === path)?.label ?? this.sections[0].label;
   }
 }

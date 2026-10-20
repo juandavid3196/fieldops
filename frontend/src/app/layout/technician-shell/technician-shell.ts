@@ -1,4 +1,5 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { Component, DestroyRef, Renderer2, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ActivatedRouteSnapshot,
@@ -14,14 +15,9 @@ import { comingSoonModuleName } from '../../core/config/coming-soon-modules';
 import { MessageUnreadService } from '../../core/services/message-unread.service';
 import { SessionService } from '../../core/services/session.service';
 import { TechnicianVisitsService } from '../../features/technician-jobs/services/technician-visits.service';
+import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
 import { avatarTextColor } from '../../features/technician-jobs/utils/technician-format';
-import {
-  ACCOUNT_LINK,
-  HELP_LINK,
-  NOTIFICATIONS_LINK,
-  PROFILE_LINK,
-  TECHNICIAN_NAV,
-} from './technician-shell.nav';
+import { ACCOUNT_LINK, HELP_LINK, PROFILE_LINK, TECHNICIAN_NAV } from './technician-shell.nav';
 
 export interface ShellBack {
   readonly link: string;
@@ -29,7 +25,9 @@ export interface ShellBack {
 }
 
 export const SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
-type PanelKind = 'more' | 'account';
+type PanelKind = 'more';
+/** Read by the `wide` breakpoint mixin (styles/_breakpoints.scss). */
+const PHONE_SHELL_CLASS = 'fo-phone-shell';
 
 function deepest(snapshot: ActivatedRouteSnapshot): ActivatedRouteSnapshot {
   let current = snapshot;
@@ -42,7 +40,7 @@ function deepest(snapshot: ActivatedRouteSnapshot): ActivatedRouteSnapshot {
 /** Technician layout: top bar, the single `main` and a fixed bottom navigation (BR-14, BR-15, BR-19). */
 @Component({
   selector: 'app-technician-shell',
-  imports: [RouterLink, RouterOutlet, Message],
+  imports: [RouterLink, RouterOutlet, Message, UserAvatar],
   templateUrl: './technician-shell.html',
   styleUrl: './technician-shell.scss',
   host: {
@@ -58,7 +56,6 @@ export class TechnicianShell {
   private readonly destroyRef = inject(DestroyRef);
 
   readonly nav = TECHNICIAN_NAV;
-  readonly notificationsLink = NOTIFICATIONS_LINK;
   readonly profileLink = PROFILE_LINK;
   readonly accountLink = ACCOUNT_LINK;
   readonly helpLink = HELP_LINK;
@@ -77,16 +74,12 @@ export class TechnicianShell {
   /** Job page step progress drawn on the bottom nav's top edge; `null` elsewhere. */
   readonly jobProgress = this.visits.jobProgress;
 
-  /** technician-messages BR-15: the badge of the Messages tab and the bell; `null` hides it. */
+  /** technician-messages BR-15: the badge of the Messages tab; `null` hides it. Technicians have
+   * no notifications (the API forbids them), so there is no bell. */
   readonly unreadBadge = this.unread.badge;
   readonly unreadLabel = this.unread.label;
-  readonly bellLabel = computed(() => {
-    const label = this.unread.label();
-    return label === null ? 'Notifications' : `Notifications, ${label}`;
-  });
 
   readonly moreOpen = computed(() => this.openPanel() === 'more');
-  readonly accountOpen = computed(() => this.openPanel() === 'account');
   readonly fullName = computed(() => {
     const user = this.sessionService.session()?.user;
     return [user?.firstName, user?.lastName]
@@ -103,12 +96,22 @@ export class TechnicianShell {
         .map((part) => part.charAt(0).toUpperCase())
         .join(''),
   );
+  /** The account photo (account-settings BR-08); the initials show while there is none. */
+  readonly photoUpdatedAt = computed(
+    () => this.sessionService.session()?.user.photoUpdatedAt ?? null,
+  );
   readonly avatarStyle = computed(() => {
     const color = this.visits.technician()?.colorHex ?? null;
     return color === null ? null : { background: color, color: avatarTextColor(color) };
   });
 
   constructor() {
+    // Pages shared with the app shell keep their phone layout here (`bp.wide` in styles).
+    const body = inject(DOCUMENT).body;
+    const renderer = inject(Renderer2);
+    renderer.addClass(body, PHONE_SHELL_CLASS);
+    this.destroyRef.onDestroy(() => renderer.removeClass(body, PHONE_SHELL_CLASS));
+
     // BR-14: the summary loads now and every 30 s while the tab is visible (technicians only).
     this.unread.reset();
     if (this.sessionService.session()?.role.code === 'technician') {
@@ -189,13 +192,14 @@ export class TechnicianShell {
     return this.router.url.split(/[?#]/)[0];
   }
 
+  /** The deepest `data.shellTitle` on the route chain (mounted features set it on their parent). */
   private titleFor(): string {
     const leaf = deepest(this.router.routerState.snapshot.root);
-    const shellTitle = leaf.data['shellTitle'];
-    if (typeof shellTitle === 'string') {
-      return shellTitle;
-    }
-    return comingSoonModuleName(leaf.paramMap.get('module') ?? '') ?? '';
+    const shellTitle = leaf.pathFromRoot
+      .map((snapshot) => snapshot.data['shellTitle'])
+      .filter((title): title is string => typeof title === 'string')
+      .at(-1);
+    return shellTitle ?? comingSoonModuleName(leaf.paramMap.get('module') ?? '') ?? '';
   }
 
   /** `data.shellBack` replaces the logo with a back button (the job page). */
