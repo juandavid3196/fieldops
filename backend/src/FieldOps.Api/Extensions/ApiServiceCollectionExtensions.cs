@@ -22,6 +22,7 @@ public static class ApiServiceCollectionExtensions
         services.AddProblemDetails();
 
         // Handlers run in registration order; the global handler is last.
+        services.AddExceptionHandler<RequestAbortedExceptionHandler>();
         services.AddExceptionHandler<BadHttpRequestExceptionHandler>();
         services.AddExceptionHandler<DuplicateEmailExceptionHandler>();
         services.AddExceptionHandler<DuplicateBranchCodeExceptionHandler>();

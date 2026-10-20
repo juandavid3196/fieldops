@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using FieldOps.Api.Middleware;
+using Microsoft.Extensions.Logging;
 
 namespace FieldOps.IntegrationTests.Api;
 
@@ -89,6 +90,29 @@ public class ExceptionHandlingTests
 
         var entry = Assert.Single(logs.Entries, entry => entry.Exception is not null);
         Assert.IsType<InvalidOperationException>(entry.Exception);
+    }
+
+    [Fact]
+    public async Task AbortedRequest_IsLoggedAs499WithoutErrors()
+    {
+        var logs = new CapturingLoggerProvider();
+        await using var baseFactory = FieldOpsApiFactory.Create();
+        await using var factory = logs.AttachTo(baseFactory);
+        using var client = factory.CreateClient();
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(
+            () => client.GetAsync("/test/wait-for-abort", cancellation.Token));
+
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (!logs.Entries.Any(entry => entry.Message.Contains("responded 499"))
+            && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(25);
+        }
+
+        Assert.Contains(logs.Entries, entry => entry.Message.Contains("responded 499"));
+        Assert.DoesNotContain(logs.Entries, entry => entry.Level >= LogLevel.Error || entry.Exception is not null);
     }
 
     [Fact]

@@ -98,6 +98,30 @@
           </article>
         </ng-template>
 
+        <ng-template #messageAction>
+          <div class="visit__message">
+            <button
+              pButton
+              type="button"
+              severity="secondary"
+              [outlined]="true"
+              aria-label="Message the team about this job"
+              [disabled]="messaging()"
+              [loading]="messaging()"
+              [attr.aria-busy]="messaging()"
+              (click)="messageTeam()"
+            >
+              @if (!messaging()) {
+                <i class="pi pi-comments" aria-hidden="true"></i>
+              }
+              Message
+            </button>
+            @if (messageError(); as problem) {
+              <p class="visit__message-error" role="alert">{{ problem }}</p>
+            }
+          </div>
+        </ng-template>
+
         @if (working()) {
           <app-job-progress
             [visit]="job"
@@ -109,6 +133,7 @@
           >
             <ng-container [ngTemplateOutlet]="jobHeader" />
           </app-job-progress>
+          <ng-container [ngTemplateOutlet]="messageAction" />
         } @else if (cancelled()) {
           <section class="visit__banner visit__banner--cancelled" aria-label="Job status">
             <i class="pi pi-ban" aria-hidden="true"></i>
@@ -141,6 +166,7 @@
           }
 
           <ng-container [ngTemplateOutlet]="jobHeader" />
+          <ng-container [ngTemplateOutlet]="messageAction" />
 
           <section class="visit__card" aria-labelledby="visit-access-title">
             <div class="visit__head">

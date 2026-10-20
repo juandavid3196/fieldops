@@ -1,0 +1,203 @@
+<section
+  class="conv"
+  [class.conv--split]="split"
+  aria-label="Conversation"
+  (pointerdown)="onInteract()"
+  (focusin)="onInteract()"
+>
+  <p class="conv__sr" role="status" aria-live="polite">{{ announcement() }}</p>
+
+  @switch (state()) {
+    @case ('loading') {
+      <div class="conv__skeletons" role="status" aria-busy="true" aria-label="Loading conversation">
+        @for (row of skeletons; track row) {
+          <p-skeleton height="3.5rem" width="70%" borderRadius="1rem" />
+        }
+      </div>
+    }
+    @case ('error') {
+      <div class="conv__pad">
+        <p-message severity="error" [closable]="false">
+          <span class="conv__error">
+            {{ errorMessage }}
+            <button pButton type="button" severity="secondary" size="small" (click)="open()">
+              Retry
+            </button>
+          </span>
+        </p-message>
+      </div>
+    }
+    @case ('not-found') {
+      <div class="conv__pad">
+        <p class="conv__notice" role="status">{{ notAvailableMessage }}</p>
+        <a pButton severity="secondary" [outlined]="true" [routerLink]="basePath">
+          Back to messages
+        </a>
+      </div>
+    }
+    @case ('ready') {
+      @if (detail(); as conversation) {
+        <div class="conv__top">
+          @if (split && !showBack()) {
+            <span class="conv__avatar" aria-hidden="true">
+              <i [class]="conversation.workOrder ? 'pi pi-briefcase' : 'pi pi-building'"></i>
+            </span>
+          }
+          <header class="conv__header">
+            @if (showBack()) {
+              <a class="conv__back" [routerLink]="basePath" aria-label="Back to messages">
+                <i class="pi pi-arrow-left" aria-hidden="true"></i>
+              </a>
+            }
+            <h1 class="conv__title">{{ conversation.title }}</h1>
+          </header>
+          <div class="conv__context">
+            @if (conversation.workOrder; as order) {
+              <span class="conv__chip">#{{ order.displayNumber }}</span>
+              @if (openJob(); as jobLink) {
+                <a class="conv__job" [routerLink]="jobLink">Open job</a>
+              }
+            } @else {
+              <span class="conv__chip">Team</span>
+            }
+          </div>
+        </div>
+
+        <div class="conv__log-wrap">
+          <div
+            #log
+            class="conv__log"
+            role="log"
+            aria-label="Messages"
+            aria-live="off"
+            tabindex="0"
+            (scroll)="onScroll()"
+          >
+            @if (hasMore()) {
+              <button
+                pButton
+                type="button"
+                class="conv__earlier"
+                severity="secondary"
+                [outlined]="true"
+                size="small"
+                [loading]="loadingEarlier()"
+                (click)="loadEarlier()"
+              >
+                Load earlier messages
+              </button>
+            }
+            @if (entries().length === 0) {
+              <p class="conv__empty" role="status">No messages yet. Start the conversation.</p>
+            }
+            @for (entry of entries(); track entry.key; let i = $index) {
+              @if (entry.kind === 'day') {
+                <p class="conv__day">{{ entry.label }}</p>
+              } @else {
+                @let bubble = entry.bubble;
+                <div
+                  class="msg"
+                  [class.msg--mine]="bubble.isMine"
+                  [class.msg--break]="startsGroup(i)"
+                >
+                  @if (!bubble.isMine) {
+                    <span class="msg__avatar" aria-hidden="true">{{ bubble.initials }}</span>
+                  }
+                  <div class="msg__bubble">
+                    @if (!bubble.isMine) {
+                      <p class="msg__author">
+                        {{ bubble.name }}
+                        @if (bubble.roleLabel) {
+                          <span class="msg__role">{{ bubble.roleLabel }}</span>
+                        }
+                      </p>
+                    }
+                    <p class="msg__body">{{ bubble.body }}</p>
+                    <p class="msg__foot">
+                      <span>{{ entry.time }}</span>
+                      @if (bubble.isMine && bubble.local) {
+                        <span class="msg__state" [attr.data-status]="bubble.status">
+                          @switch (bubble.status) {
+                            @case ('sending') {
+                              <i class="pi pi-clock" aria-hidden="true"></i>
+                              Sending…
+                            }
+                            @case ('sent') {
+                              <i class="pi pi-check" aria-hidden="true"></i>
+                              Sent
+                            }
+                            @case ('failed') {
+                              <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
+                              Failed
+                            }
+                          }
+                        </span>
+                      }
+                    </p>
+                    @if (bubble.status === 'failed') {
+                      <p class="msg__failure">{{ bubble.failure }}</p>
+                      <div class="msg__actions">
+                        <button type="button" class="msg__action" (click)="retry(bubble)">
+                          Retry
+                        </button>
+                        <button type="button" class="msg__action" (click)="discard(bubble)">
+                          Discard
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            }
+          </div>
+          @if (newMessages()) {
+            <button type="button" class="conv__new" (click)="showNewMessages()">
+              <i class="pi pi-arrow-down" aria-hidden="true"></i>
+              New messages
+            </button>
+          }
+        </div>
+
+        <form class="conv__composer" (submit)="$event.preventDefault(); send()">
+          @if (fieldError(); as problem) {
+            <p class="conv__field-error" role="alert">{{ problem }}</p>
+          }
+          <label class="conv__sr" for="conversation-message">Message</label>
+          <textarea
+            pTextarea
+            id="conversation-message"
+            class="conv__input"
+            rows="1"
+            fluid
+            placeholder="Write a message"
+            aria-describedby="conversation-counter"
+            [attr.aria-invalid]="overLimit() || fieldError() !== null"
+            [value]="draft()"
+            (input)="onDraft($any($event.target).value)"
+            (keydown.enter)="onEnter($event)"
+            (keydown.control.enter)="$event.preventDefault(); send()"
+            (keydown.meta.enter)="$event.preventDefault(); send()"
+          ></textarea>
+          <div class="conv__composer-row">
+            <p
+              class="conv__counter"
+              id="conversation-counter"
+              [class.conv__counter--over]="overLimit()"
+            >
+              {{ counter() }}
+            </p>
+            <button pButton type="submit" class="conv__send" [disabled]="!canSend()">
+              <i class="pi pi-send" aria-hidden="true"></i>
+              Send
+            </button>
+          </div>
+        </form>
+      }
+    }
+    @default {
+      <div class="conv__pad">
+        <p class="conv__notice" role="status">{{ accessText() }}</p>
+      </div>
+    }
+  }
+</section>

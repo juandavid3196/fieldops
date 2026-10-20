@@ -1,0 +1,146 @@
+<div class="list">
+  <header class="list__header">
+    <h1 class="list__title">Messages</h1>
+    <p class="list__subtitle">Job and team conversations</p>
+  </header>
+
+  @if (accessText(); as access) {
+    <p class="list__access" role="status">{{ access }}</p>
+  } @else {
+    <div class="list__search" role="search">
+      <label class="list__sr" for="messages-search">Search messages</label>
+      <p-iconfield>
+        <p-inputicon class="pi pi-search" />
+        <input
+          pInputText
+          id="messages-search"
+          type="search"
+          fluid
+          autocomplete="off"
+          placeholder="Search messages"
+          [value]="text()"
+          (input)="onSearch($any($event.target).value)"
+        />
+      </p-iconfield>
+    </div>
+
+    <div class="list__chips" role="group" aria-label="Filter conversations">
+      @for (option of filters; track option.value) {
+        <button
+          type="button"
+          class="list__chip"
+          [attr.aria-pressed]="filter() === option.value"
+          (click)="setFilter(option.value)"
+        >
+          {{ option.label }}
+          @if (option.value === 'unread' && unreadBadge(); as badge) {
+            <span class="list__count" aria-hidden="true">{{ badge }}</span>
+            <span class="list__sr">{{ unreadFilterLabel() }}</span>
+          }
+        </button>
+      }
+    </div>
+
+    <p class="list__notice">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      {{ notice }}
+    </p>
+
+    <h2 class="list__section">Recent</h2>
+
+    @switch (state()) {
+      @case ('loading') {
+        <div class="list__skeletons" role="status" aria-busy="true" aria-label="Loading messages">
+          @for (row of skeletonRows; track row) {
+            <p-skeleton height="5rem" borderRadius="0.75rem" />
+          }
+        </div>
+      }
+      @case ('error') {
+        <p-message severity="error" [closable]="false">
+          <span class="list__error">
+            {{ errorMessage }}
+            <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+              Retry
+            </button>
+          </span>
+        </p-message>
+      }
+      @default {
+        @if (openFailed()) {
+          <p-message severity="error" [closable]="false" role="alert">{{
+            openErrorMessage
+          }}</p-message>
+        }
+        @if (rows().length === 0) {
+          <p class="list__empty" role="status">{{ emptyText() }}</p>
+        } @else {
+          <ul class="list__rows">
+            @for (row of rows(); track row.key) {
+              <li>
+                @if (row.item.id; as id) {
+                  <a
+                    class="row"
+                    [class.row--unread]="row.item.unreadCount > 0"
+                    [class.row--selected]="selectedId() === id"
+                    [routerLink]="[basePath(), id]"
+                    [attr.aria-current]="selectedId() === id ? 'page' : null"
+                  >
+                    <ng-container
+                      *ngTemplateOutlet="rowBody; context: { $implicit: row }"
+                    ></ng-container>
+                  </a>
+                } @else {
+                  <button type="button" class="row row--button" (click)="openTeam(row.item)">
+                    <ng-container
+                      *ngTemplateOutlet="rowBody; context: { $implicit: row }"
+                    ></ng-container>
+                  </button>
+                }
+              </li>
+            }
+          </ul>
+          @if (hasMore()) {
+            <button
+              pButton
+              type="button"
+              class="list__more"
+              severity="secondary"
+              [outlined]="true"
+              [loading]="loadingMore()"
+              (click)="loadMore()"
+            >
+              Load more
+            </button>
+          }
+        }
+      }
+    }
+  }
+</div>
+
+<ng-template #rowBody let-row>
+  <span class="row__dot" [class.row__dot--on]="row.item.unreadCount > 0" aria-hidden="true"></span>
+  <span class="row__avatar" [class.row__avatar--team]="row.item.type === 'team'" aria-hidden="true">
+    @if (row.item.type === 'team') {
+      <i class="pi pi-building"></i>
+    } @else {
+      {{ row.initials }}
+    }
+  </span>
+  <span class="row__body">
+    <span class="row__title">{{ row.item.title }}</span>
+    <span class="row__preview">{{ row.preview }}</span>
+  </span>
+  <span class="row__meta">
+    @if (row.time) {
+      <span class="row__time">{{ row.time }}</span>
+    }
+    @if (row.unreadLabel) {
+      <span class="row__badge" aria-hidden="true">{{ row.item.unreadCount }}</span>
+      <span class="list__sr">{{ row.unreadLabel }}</span>
+    }
+    <span class="row__chip">{{ row.chip }}</span>
+  </span>
+  <i class="pi pi-chevron-right row__chevron" aria-hidden="true"></i>
+</ng-template>

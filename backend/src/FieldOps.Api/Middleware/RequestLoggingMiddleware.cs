@@ -33,6 +33,7 @@ public sealed class RequestLoggingMiddleware(
 
             var level = statusCode switch
             {
+                RequestAbortedExceptionHandler.ClientClosedRequestStatusCode => LogLevel.Debug,
                 >= 500 => LogLevel.Error,
                 >= 400 => LogLevel.Warning,
                 _ when context.Request.Path.StartsWithSegments("/health") => LogLevel.Debug,

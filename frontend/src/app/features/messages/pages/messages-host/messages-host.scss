@@ -1,0 +1,90 @@
+:host {
+  display: block;
+}
+
+.host {
+  &__access {
+    margin: 0;
+    padding: 1.5rem 1rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  // Staff desktop: one rounded card, list and conversation split by a divider.
+  &--split {
+    display: grid;
+    grid-template-columns: minmax(20rem, 29%) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    margin: 1rem;
+    block-size: calc(100dvh - var(--fo-size-topbar) - 2rem);
+    overflow: hidden;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: 1rem;
+    box-shadow: 0 8px 24px rgb(16 42 67 / 8%);
+  }
+
+  &--split &__list {
+    min-block-size: 0;
+    overflow-y: auto;
+    background: var(--fo-color-surface-muted);
+    border-inline-end: 1px solid var(--fo-color-border);
+  }
+
+  &--split &__detail {
+    display: flex;
+    flex-direction: column;
+    min-inline-size: 0;
+    min-block-size: 0;
+  }
+
+  &__empty {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-block-size: 0;
+  }
+
+  &__empty-bar {
+    flex: none;
+    block-size: 7.5rem;
+    background: var(--fo-color-surface);
+    border-block-end: 1px solid var(--fo-color-border);
+  }
+
+  &__empty-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    text-align: center;
+    background: var(--fo-color-surface-muted);
+  }
+
+  &__empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 6rem;
+    block-size: 6rem;
+    margin-block-end: 0.5rem;
+    font-size: 2.5rem;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: 50%;
+  }
+
+  &__empty-title {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: light-dark(#000663, var(--fo-color-text));
+  }
+
+  &__empty-hint {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+}

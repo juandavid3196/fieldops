@@ -1,0 +1,22 @@
+@if (!allowed) {
+  <p class="host__access" role="status">{{ forbiddenMessage }}</p>
+} @else {
+  <div class="host" [class.host--split]="twoPanes()">
+    @if (selectedId() === null || twoPanes()) {
+      <app-message-list class="host__list" [basePath]="basePath" [selectedId]="selectedId()" />
+    }
+    <div class="host__detail">
+      <router-outlet />
+      @if (selectedId() === null && twoPanes()) {
+        <div class="host__empty">
+          <span class="host__empty-bar" aria-hidden="true"></span>
+          <div class="host__empty-body">
+            <span class="host__empty-icon" aria-hidden="true"><i class="pi pi-comments"></i></span>
+            <p class="host__empty-title" role="status">{{ selectText }}</p>
+            <p class="host__empty-hint">{{ selectHint }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

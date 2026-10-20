@@ -48,6 +48,11 @@ describe('Invoice routes', () => {
     httpTesting
       .match({ method: 'GET', url: `${API}/notifications/summary` })
       .forEach((request) => request.flush({ unread: 0, today: 0 }));
+    // The shell also polls the Messages count for staff roles (technician-messages BR-14).
+    httpTesting
+      .match({ method: 'GET', url: `${API}/messages/summary` })
+      .filter((request) => !request.cancelled)
+      .forEach((request) => request.flush({ unreadMessages: 0, unreadConversations: 0 }));
     httpTesting.verify();
   });
 

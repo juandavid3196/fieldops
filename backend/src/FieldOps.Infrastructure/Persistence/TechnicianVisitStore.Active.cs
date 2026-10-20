@@ -141,34 +141,9 @@ internal sealed partial class TechnicianVisitStore
             : (await SummariesAsync(organizationId, zoneId, [row], cancellationToken))[0];
     }
 
-    /// <summary>
-    /// BR-05: visits actively assigned to the caller in the organization, not cancelled, that are on the way, in progress or
-    /// paused, or have an open time entry of the caller. The scheduled date never makes a visit active. Ordered by
-    /// scheduled start, work order number, then visit number.
-    /// </summary>
-    private IQueryable<ActiveRow> ActiveVisits(Guid organizationId, Guid technicianId) =>
-        from visit in dbContext.Visits.AsNoTracking()
-        join order in dbContext.WorkOrders.AsNoTracking()
-            on new { visit.OrganizationId, Id = visit.WorkOrderId } equals new { order.OrganizationId, order.Id }
-        where visit.OrganizationId == organizationId
-            && visit.Status != VisitStatus.Cancelled
-            && dbContext.VisitAssignments.Any(assignment =>
-                assignment.VisitId == visit.Id && assignment.TechnicianId == technicianId && assignment.UnassignedAt == null)
-            && (visit.Status == VisitStatus.OnTheWay
-                || visit.Status == VisitStatus.InProgress
-                || visit.Status == VisitStatus.Paused
-                || dbContext.VisitTimeEntries.Any(entry =>
-                    entry.VisitId == visit.Id && entry.TechnicianId == technicianId && entry.EndedAt == null))
-        orderby visit.ScheduledStart, order.WorkOrderNumber, visit.VisitNumber
-        select new ActiveRow
-        {
-            VisitId = visit.Id,
-            WorkOrderNumber = order.WorkOrderNumber,
-            Title = order.Title,
-            CustomerId = order.CustomerId,
-            Status = visit.Status,
-            ScheduledStart = visit.ScheduledStart,
-        };
+    /// <summary>BR-05: the shared definition, see <see cref="ActiveVisitQuery"/>.</summary>
+    private IQueryable<ActiveVisitRow> ActiveVisits(Guid organizationId, Guid technicianId) =>
+        ActiveVisitQuery.For(dbContext, organizationId, technicianId);
 
     private async Task<string> OrganizationPrefixAsync(Guid organizationId, CancellationToken cancellationToken) =>
         await dbContext.Organizations.AsNoTracking()
@@ -177,7 +152,7 @@ internal sealed partial class TechnicianVisitStore
             .SingleAsync(cancellationToken);
 
     private async Task<IReadOnlyList<ActiveVisitSummary>> SummariesAsync(
-        Guid organizationId, string zoneId, IReadOnlyList<ActiveRow> rows, CancellationToken cancellationToken)
+        Guid organizationId, string zoneId, IReadOnlyList<ActiveVisitRow> rows, CancellationToken cancellationToken)
     {
         if (rows.Count == 0)
         {
@@ -196,20 +171,5 @@ internal sealed partial class TechnicianVisitStore
                 WorkOrderCodes.VisitStatusCode(row.Status),
                 row.ScheduledStart is { } start ? OrganizationTime.ToZone(start, zone) : null)),
         ];
-    }
-
-    private sealed class ActiveRow
-    {
-        public Guid VisitId { get; init; }
-
-        public long WorkOrderNumber { get; init; }
-
-        public string Title { get; init; } = string.Empty;
-
-        public Guid CustomerId { get; init; }
-
-        public VisitStatus Status { get; init; }
-
-        public DateTimeOffset? ScheduledStart { get; init; }
     }
 }

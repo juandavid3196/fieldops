@@ -7,6 +7,7 @@ using FieldOps.Application.Features.ChecklistTemplates;
 using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Invitations;
+using FieldOps.Application.Features.Messaging;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
 using FieldOps.Application.Features.AuditTrail;
@@ -107,6 +108,7 @@ public static class DependencyInjection
         services.AddScoped<GetTechnicianScheduleHandler>();
         services.AddScoped<GetTechnicianTimeHandler>();
         services.AddScoped<GetTechnicianVisitHandler>();
+        services.AddScoped<MessagingHandler>();
         services.AddScoped<StartTravelHandler>();
         services.AddScoped<ArriveHandler>();
         services.AddScoped<GetVisitAssessmentPhotoHandler>();

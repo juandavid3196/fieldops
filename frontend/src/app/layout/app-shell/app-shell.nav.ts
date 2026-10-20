@@ -13,6 +13,8 @@ export interface NavItem {
   readonly queryParams?: Readonly<Record<string, string>>;
   /** audit-trail BR-23: shown only to these role codes (UX only; the backend decides). */
   readonly roles?: readonly string[];
+  /** technician-messages BR-15: shows the unread messages badge. */
+  readonly unreadMessages?: boolean;
   /** Sub-items rendered as an expandable group under this item (sidebar only). */
   readonly children?: readonly NavItem[];
 }
@@ -51,6 +53,9 @@ export const REPORTS_ROLE_CODES: readonly string[] = [
   'accounting',
 ];
 
+/** technician-messages BR-15: roles that see the Messages item (UX only; the backend decides). */
+export const MESSAGES_ROLE_CODES: readonly string[] = ['owner', 'operations_manager', 'dispatcher'];
+
 /** BR-01: sidebar structure, order and icons. */
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
@@ -79,6 +84,14 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       { label: 'Quotes', icon: 'pi-file-edit', link: '/quotes', exact: false },
       { label: 'Jobs', icon: 'pi-wrench', link: '/jobs', exact: false },
       { label: 'Schedule', icon: 'pi-calendar', link: '/schedule', exact: false },
+      {
+        label: 'Messages',
+        icon: 'pi-comments',
+        link: '/messages',
+        exact: false,
+        roles: MESSAGES_ROLE_CODES,
+        unreadMessages: true,
+      },
     ],
   },
   {

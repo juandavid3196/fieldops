@@ -1,7 +1,8 @@
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 
 import { API_CONFIG } from '../../../../core/config/api.config';
@@ -176,6 +177,9 @@ function spaced(node: Element | null | undefined): string {
   return parts.join(' ').replace(/\s+/g, ' ').trim();
 }
 
+@Component({ template: '<h1>Conversation</h1>' })
+class ConversationStub {}
+
 describe('VisitDetail', () => {
   let httpTesting: HttpTestingController;
   let harness: RouterTestingHarness;
@@ -185,6 +189,7 @@ describe('VisitDetail', () => {
       providers: [
         { provide: API_CONFIG, useValue: { baseUrl: API } },
         provideRouter([
+          { path: 'today/messages/:conversationId', component: ConversationStub },
           { path: 'today/visits/:visitId', component: VisitDetail },
           { path: 'today/visits/:visitId/review', component: VisitReview },
         ]),
@@ -308,7 +313,7 @@ describe('VisitDetail', () => {
         expect(text).toContain(expected);
       }
       expect(text).toContain('1842 Oak Street, Austin, TX 78704');
-      expect(text).not.toMatch(/Message|Live|Estimated|On time|Ready|mi\b/);
+      expect(text).not.toMatch(/Live|Estimated|On time|Ready|mi\b/);
       expect(root.querySelector('[aria-label*="menu"]')).toBeNull();
       const directions = root.querySelector<HTMLAnchorElement>('a[target="_blank"]')!;
       expect(directions.textContent).toContain('Open directions');
@@ -487,7 +492,7 @@ describe('VisitDetail', () => {
     // Scheduled, On the way and Arrived are done: 3 of 4 steps.
     expect(TestBed.inject(TechnicianVisitsService).jobProgress()).toBe(75);
     expect(root.querySelector('a[href^="tel:"]')).toBeNull();
-    expect(flat(root)).not.toMatch(/Access details|Message|\bmi\b/);
+    expect(flat(root)).not.toMatch(/Access details|\bmi\b/);
 
     // Job photos open in the viewer; Delete asks first, then replaces the visit and stays open.
     const thumbnail = root.querySelector<HTMLButtonElement>('.photos__button')!;
@@ -757,6 +762,34 @@ describe('VisitDetail', () => {
     expect(spaced(notice)).toContain('Old leak #WO-9 · Paused Open active visit');
     expect(notice.querySelector('a')?.getAttribute('href')).toBe('/today/visits/v-9');
     expect(document.activeElement).toBe(notice.querySelector('p'));
+  });
+
+  it('resolves the work order Job conversation from Message, shows the BR-11 failure once and opens it (technician-messages AC-13)', async () => {
+    const root = await open(DETAIL);
+    const message = () =>
+      root.querySelector<HTMLButtonElement>(
+        'button[aria-label="Message the team about this job"]',
+      )!;
+    const resolve = () =>
+      httpTesting.expectOne({ method: 'POST', url: `${API}/messages/conversations/resolve` });
+
+    expect(flat(message())).toBe('Message');
+    await clickAndSettle(message());
+    expect(message().disabled).toBe(true);
+    expect(message().getAttribute('aria-busy')).toBe('true');
+    const failed = resolve();
+    expect(failed.request.body).toEqual({ type: 'job', workOrderId: 'wo-1' });
+    failed.flush(null, { status: 500, statusText: 'Server Error' });
+    await settle();
+    expect(root.querySelector('[role="alert"]')?.textContent?.trim()).toBe(
+      "We couldn't open the conversation. Try again.",
+    );
+    expect(message().disabled).toBe(false);
+
+    await clickAndSettle(message());
+    resolve().flush({ conversationId: 'c-9' });
+    await settle();
+    expect(TestBed.inject(Router).url).toBe('/today/messages/c-9');
   });
 
   it('shows Retry after a load failure and the forbidden state without a request for other roles', async () => {

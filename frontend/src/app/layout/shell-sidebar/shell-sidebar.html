@@ -78,7 +78,7 @@
                     [routerLink]="item.link"
                     [class.sidebar__link--active]="isActive(item)"
                     [attr.aria-current]="isActive(item) ? 'page' : null"
-                    [attr.aria-label]="rail() ? item.label : null"
+                    [attr.aria-label]="linkLabel(item)"
                     [pTooltip]="rail() ? item.label : undefined"
                     tooltipPosition="right"
                     (click)="navigated.emit()"
@@ -87,6 +87,12 @@
                     <span class="sidebar__link-label" [class.sidebar__hidden]="rail()">{{
                       item.label
                     }}</span>
+                    @if (item.unreadMessages && messagesBadge(); as badge) {
+                      <span class="sidebar__badge" aria-hidden="true">{{ badge }}</span>
+                      @if (!rail()) {
+                        <span class="sidebar__hidden">{{ messagesLabel() }}</span>
+                      }
+                    }
                   </a>
                 }
               </li>

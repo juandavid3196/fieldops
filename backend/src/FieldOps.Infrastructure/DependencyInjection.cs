@@ -11,6 +11,7 @@ using FieldOps.Application.Features.Reports;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.OperationsDashboard;
 using FieldOps.Application.Features.Invitations;
+using FieldOps.Application.Features.Messaging;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
 using FieldOps.Application.Features.AuditTrail;
@@ -145,6 +146,7 @@ public static class DependencyInjection
         services.AddScoped<IVisitNotifier, VisitNotifier>();
         services.AddScoped<ITravelNotifier, TravelNotifier>();
         services.AddScoped<ITechnicianVisitStore, TechnicianVisitStore>();
+        services.AddScoped<IMessagingStore, MessagingStore>();
         services.AddScoped<IChecklistTemplateStore, ChecklistTemplateStore>();
         services.AddSingleton<IQuotePdfRenderer, MigraDocQuotePdfRenderer>();
         services.AddSingleton<IInvoicePdfRenderer, MigraDocInvoicePdfRenderer>();
@@ -169,6 +171,7 @@ public static class DependencyInjection
         services.AddScoped<IPortalInvitationNotifier>(provider => provider.GetRequiredService<PortalNotifier>());
         services.AddScoped<IPortalNotifier>(provider => provider.GetRequiredService<PortalNotifier>());
         services.AddSingleton<IPortalActionThrottle, InMemoryPortalActionThrottle>();
+        services.AddSingleton<IMessageSendThrottle, InMemoryMessageSendThrottle>();
 
         // In memory and per process: counters reset on restart.
         services.AddSingleton<ISignInThrottle, InMemorySignInThrottle>();

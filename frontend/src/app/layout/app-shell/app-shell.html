@@ -4,6 +4,8 @@
       class="shell__sidebar"
       [groups]="groups()"
       [rail]="railActive()"
+      [messagesBadge]="messagesBadge()"
+      [messagesLabel]="messagesLabel()"
       (collapseToggled)="toggleCollapsed()"
     />
   }
@@ -231,6 +233,8 @@
       <app-shell-sidebar
         [groups]="groups()"
         [drawer]="true"
+        [messagesBadge]="messagesBadge()"
+        [messagesLabel]="messagesLabel()"
         (navigated)="closeDrawer()"
         (closeRequested)="closeDrawer()"
       />

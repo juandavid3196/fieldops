@@ -61,6 +61,9 @@ internal sealed class TechnicianHost : IAsyncDisposable
         return (await CompanySettingsApi.SignInCookieAsync(_client, member.Email), member);
     }
 
+    /// <summary>Signs in an already seeded member and returns the session cookie.</summary>
+    public Task<string> CookieAsync(string email) => CompanySettingsApi.SignInCookieAsync(_client, email);
+
     public Task<HttpResponseMessage> GetAsync(string path, string? cookie) =>
         CompanySettingsApi.SendRawAsync(_client, HttpMethod.Get, path, null, cookie);
 

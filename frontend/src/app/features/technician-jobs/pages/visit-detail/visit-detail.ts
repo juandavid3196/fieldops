@@ -9,7 +9,7 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { Message } from 'primeng/message';
@@ -17,6 +17,9 @@ import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 
 import { SessionService } from '../../../../core/services/session.service';
+import { TECHNICIAN_MESSAGES_PATH } from '../../../messages/messages.routes';
+import { MessagesService } from '../../../messages/services/messages.service';
+import { OPEN_ERROR_MESSAGE } from '../../../messages/utils/messages-format';
 import { ActiveVisitNotice } from '../../components/active-visit-notice/active-visit-notice';
 import { JobProgress } from '../../components/job-progress/job-progress';
 import { PhotoDeleteRequest, PhotoViewer } from '../../components/photo-viewer/photo-viewer';
@@ -94,6 +97,8 @@ type TravelAction = 'start-travel' | 'arrive' | 'start-job';
 export class VisitDetail {
   private readonly visits = inject(TechnicianVisitsService);
   private readonly sessionService = inject(SessionService);
+  private readonly messagesService = inject(MessagesService);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute).snapshot;
   private readonly visitId = this.route.paramMap.get('visitId') ?? '';
@@ -124,6 +129,9 @@ export class VisitDetail {
   readonly deleteTarget = signal<string | null>(null);
   readonly deleting = signal(false);
   readonly deleteError = signal<string | null>(null);
+  /** technician-messages BR-11: the Message action resolving the work order's Job conversation. */
+  readonly messaging = signal(false);
+  readonly messageError = signal<string | null>(null);
 
   /** BR-15: Design 9 for `in_progress` and `paused`. */
   readonly working = computed(() => {
@@ -304,6 +312,26 @@ export class VisitDetail {
         if (failure.reload) {
           this.load(true);
         }
+      },
+    });
+  }
+
+  /** Resolves (creating when needed) the Job conversation, then opens it. */
+  messageTeam(): void {
+    const workOrderId = this.visit()?.workOrderId;
+    if (this.messaging() || workOrderId === undefined) {
+      return;
+    }
+    this.messaging.set(true);
+    this.messageError.set(null);
+    this.messagesService.resolve({ type: 'job', workOrderId }).subscribe({
+      next: (id) => {
+        this.messaging.set(false);
+        void this.router.navigate([TECHNICIAN_MESSAGES_PATH, id]);
+      },
+      error: () => {
+        this.messaging.set(false);
+        this.messageError.set(OPEN_ERROR_MESSAGE);
       },
     });
   }

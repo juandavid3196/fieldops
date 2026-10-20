@@ -344,6 +344,11 @@ CREATE UNIQUE INDEX ux_customer_portal_invitations_open ON customer_portal_invit
 CREATE TABLE visit_reschedule_requests (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), visit_id uuid NOT NULL, contact_id uuid NOT NULL, original_scheduled_start timestamptz NOT NULL, preferred_date date NOT NULL, time_window varchar(20) NOT NULL CHECK (time_window IN ('morning','afternoon','evening','any')), reason varchar(500) NOT NULL, created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY (organization_id, visit_id) REFERENCES visits(organization_id, id), FOREIGN KEY (organization_id, contact_id) REFERENCES customer_contacts(organization_id, id));
 CREATE UNIQUE INDEX ux_visit_reschedule_requests_pending ON visit_reschedule_requests(visit_id, original_scheduled_start);
 
+-- SA-01 (technician-messages): internal Job (one per work order) and Team (one per branch) conversations. Participation is computed, never stored; rows are never deleted by the feature.
+CREATE TABLE conversations (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), branch_id uuid NOT NULL, type varchar(10) NOT NULL CHECK(type IN ('job','team')), work_order_id uuid, created_at timestamptz NOT NULL DEFAULT now(), last_message_at timestamptz, FOREIGN KEY(organization_id,branch_id) REFERENCES branches(organization_id,id), FOREIGN KEY(organization_id,work_order_id) REFERENCES work_orders(organization_id,id), CHECK((type = 'job') = (work_order_id IS NOT NULL)), UNIQUE(organization_id,id));
+CREATE TABLE conversation_messages (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), conversation_id uuid NOT NULL, author_user_id uuid NOT NULL REFERENCES users(id), client_message_id uuid NOT NULL, body varchar(2000) NOT NULL CHECK(length(btrim(body)) > 0), created_at timestamptz NOT NULL DEFAULT now(), FOREIGN KEY(organization_id,conversation_id) REFERENCES conversations(organization_id,id), CONSTRAINT ux_conversation_messages_client UNIQUE(conversation_id,author_user_id,client_message_id));
+CREATE TABLE conversation_read_states (organization_id uuid NOT NULL REFERENCES organizations(id), conversation_id uuid NOT NULL, user_id uuid NOT NULL REFERENCES users(id), last_read_at timestamptz NOT NULL, PRIMARY KEY(conversation_id,user_id), FOREIGN KEY(organization_id,conversation_id) REFERENCES conversations(organization_id,id));
+
 CREATE TABLE notifications (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), organization_id uuid NOT NULL REFERENCES organizations(id), recipient_user_id uuid REFERENCES users(id), recipient_contact_id uuid REFERENCES customer_contacts(id), channel varchar(20) NOT NULL CHECK(channel IN ('email','sms','in_app')), template_code varchar(80) NOT NULL, subject varchar(240), payload jsonb NOT NULL DEFAULT '{}'::jsonb, status notification_status NOT NULL DEFAULT 'pending', scheduled_at timestamptz NOT NULL DEFAULT now(), sent_at timestamptz, failure_reason text, created_at timestamptz NOT NULL DEFAULT now());
 CREATE TABLE audit_logs (id bigserial PRIMARY KEY, organization_id uuid NOT NULL REFERENCES organizations(id), actor_user_id uuid REFERENCES users(id), action varchar(100) NOT NULL, entity_type varchar(100) NOT NULL, entity_id uuid, branch_id uuid REFERENCES branches(id), before_data jsonb, after_data jsonb, metadata jsonb NOT NULL DEFAULT '{}'::jsonb, ip_address inet, occurred_at timestamptz NOT NULL DEFAULT now());
 
@@ -402,6 +407,11 @@ CREATE UNIQUE INDEX ux_quotes_request_open ON quotes(organization_id,request_id)
 CREATE UNIQUE INDEX ux_quote_versions_one_mutable ON quote_versions(quote_id) WHERE NOT is_immutable;
 CREATE UNIQUE INDEX ux_quote_responses_final ON quote_responses(quote_version_id) WHERE response IN ('approved','rejected');
 CREATE UNIQUE INDEX ux_quote_responses_clarification ON quote_responses(quote_version_id) WHERE response = 'clarification_requested';
+-- SA-01 (technician-messages)
+CREATE UNIQUE INDEX ux_conversations_job ON conversations(work_order_id) WHERE type = 'job';
+CREATE UNIQUE INDEX ux_conversations_team ON conversations(branch_id) WHERE type = 'team';
+CREATE INDEX ix_conversations_org_branch_last ON conversations(organization_id,branch_id,last_message_at DESC);
+CREATE INDEX ix_conversation_messages_conversation ON conversation_messages(conversation_id,created_at DESC,id DESC);
 
 INSERT INTO roles(code,name) VALUES
  ('owner','Owner'),('dispatcher','Dispatcher'),('technician','Technician'),('accounting','Accounting'),

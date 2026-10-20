@@ -2,6 +2,7 @@ using FieldOps.Domain.Branches;
 using FieldOps.Domain.Catalog;
 using FieldOps.Domain.Customers;
 using FieldOps.Domain.Invoices;
+using FieldOps.Domain.Messaging;
 using FieldOps.Domain.Notifications;
 using FieldOps.Domain.Organizations;
 using FieldOps.Domain.Quotes;
@@ -81,6 +82,12 @@ public sealed class FieldOpsDbContext(
     public DbSet<RequestAttachment> RequestAttachments => Set<RequestAttachment>();
 
     public DbSet<RequestMessage> RequestMessages => Set<RequestMessage>();
+
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+
+    public DbSet<ConversationMessage> ConversationMessages => Set<ConversationMessage>();
+
+    public DbSet<ConversationReadState> ConversationReadStates => Set<ConversationReadState>();
 
     public DbSet<RequestStatusHistory> RequestStatusHistories => Set<RequestStatusHistory>();
 

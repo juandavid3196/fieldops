@@ -14,3 +14,19 @@ public sealed class ThrowingTestController : ControllerBase
     [HttpGet]
     public IActionResult Get() => throw new InvalidOperationException(ExceptionMessage);
 }
+
+/// <summary>
+/// Test-only endpoint that waits until the client aborts the request.
+/// </summary>
+[ApiController]
+[Route("test/wait-for-abort")]
+public sealed class WaitForAbortTestController : ControllerBase
+{
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        await Task.Delay(Timeout.Infinite, HttpContext.RequestAborted);
+
+        return Ok();
+    }
+}

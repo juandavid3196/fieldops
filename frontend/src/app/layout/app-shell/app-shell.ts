@@ -23,13 +23,14 @@ import { filter } from 'rxjs';
 import { ADMIN_QUERY, MD_QUERY, watchMedia } from '../../core/config/breakpoints';
 import { comingSoonPath } from '../../core/config/coming-soon-modules';
 import { canSeeDashboard } from '../../core/config/dashboard-roles';
+import { MessageUnreadService } from '../../core/services/message-unread.service';
 import { NotificationUnreadService } from '../../core/services/notification-unread.service';
 import { SessionService } from '../../core/services/session.service';
 import { NotificationPopover } from '../../features/notifications/components/notification-popover/notification-popover';
 import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
 import { fullNameOf, initialsOf } from '../../shared/utils/initials';
 import { ShellSidebar } from '../shell-sidebar/shell-sidebar';
-import { ADMINISTRATION_ROLE_CODES, NAV_GROUPS } from './app-shell.nav';
+import { ADMINISTRATION_ROLE_CODES, MESSAGES_ROLE_CODES, NAV_GROUPS } from './app-shell.nav';
 
 export const SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
 export const SEARCH_PLACEHOLDER = 'Search requests, customers, work orders…';
@@ -62,6 +63,7 @@ type MenuKind = 'org' | 'user';
 export class AppShell {
   private readonly sessionService = inject(SessionService);
   private readonly unread = inject(NotificationUnreadService);
+  private readonly messageUnread = inject(MessageUnreadService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector);
@@ -137,6 +139,9 @@ export class AppShell {
   readonly notificationsLabel = computed(() =>
     this.unreadCount() > 0 ? `Notifications, ${this.unreadCount()} unread` : 'Notifications',
   );
+  /** technician-messages BR-15: sidebar badge of the Messages item (Owner, Operations, Dispatcher). */
+  readonly messagesBadge = this.messageUnread.badge;
+  readonly messagesLabel = this.messageUnread.label;
   readonly fullName = computed(() => fullNameOf(this.session()?.user));
   readonly initials = computed(() => initialsOf(this.fullName()));
   readonly photoUpdatedAt = computed(() => this.session()?.user.photoUpdatedAt ?? null);
@@ -173,6 +178,13 @@ export class AppShell {
       md.stop();
       admin.stop();
     });
+
+    // technician-messages BR-14: the Messages summary polls for the roles that see the item.
+    this.messageUnread.reset();
+    if (MESSAGES_ROLE_CODES.includes(this.session()?.role.code ?? '')) {
+      this.messageUnread.startPolling();
+    }
+    this.destroyRef.onDestroy(() => this.messageUnread.reset());
 
     // BR-16: the count loads when the shell renders and on navigation (30 s reuse in the service),
     // then polls every 30 s while the tab is visible (internal roles only).
@@ -293,6 +305,7 @@ export class AppShell {
 
   private handleSignedOut(): void {
     this.unread.reset();
+    this.messageUnread.reset();
     this.router.navigateByUrl('/auth/sign-in', { replaceUrl: true }).then(
       (navigated) => {
         if (!navigated) {
