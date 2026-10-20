@@ -108,7 +108,7 @@ export const profileRoute: Route = {
   path: `${TODAY_ROUTE_PATH}/profile`,
   pathMatch: 'full',
   title: 'My profile · FieldOps',
-  data: { shellTitle: 'My profile' },
+  data: { shellTitle: 'My profile', hideCrumbs: true },
   loadComponent: () => import('../team/pages/team/team').then((m) => m.Team),
 };
 

@@ -8,14 +8,16 @@
     <header class="team__header">
       <div class="team__heading">
         @if (isTechnician() && !forbidden()) {
-          <nav class="team__crumbs" aria-label="Breadcrumb">
-            <ol>
-              <li><a routerLink="/team">Team</a></li>
-              <li aria-current="page">
-                {{ own() ? own()?.firstName + ' ' + own()?.lastName : 'My profile' }}
-              </li>
-            </ol>
-          </nav>
+          @if (showCrumbs) {
+            <nav class="team__crumbs" aria-label="Breadcrumb">
+              <ol>
+                <li><a routerLink="/team">Team</a></li>
+                <li aria-current="page">
+                  {{ own() ? own()?.firstName + ' ' + own()?.lastName : 'My profile' }}
+                </li>
+              </ol>
+            </nav>
+          }
           <h1 class="team__title">Technician profile</h1>
           <p class="team__description">Contact details, availability, skills, and workload.</p>
         } @else {
