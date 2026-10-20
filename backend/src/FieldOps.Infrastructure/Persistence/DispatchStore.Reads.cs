@@ -1,4 +1,5 @@
 using FieldOps.Application.Features.Access;
+using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
@@ -311,7 +312,13 @@ internal sealed partial class DispatchStore
             input.Start, input.End, required, [.. candidates.Select(profile => technicians[profile.Id])], dayFrom, dayTo, zone, visitId);
 
         return new DispatchOutcome<VisitEvaluation>.Succeeded(
-            new VisitEvaluation(classification.Conflicts, classification.Skills, classification.Checks, impact, ranking));
+            new VisitEvaluation(
+                classification.Conflicts,
+                classification.Skills,
+                classification.Checks,
+                impact,
+                ranking,
+                await ReadBusinessHoursCheckAsync(organizationId, info.BranchId, input.Start, input.End, cancellationToken)));
     }
 
     private IQueryable<FieldOps.Domain.Branches.Branch> VisibleBranch(Guid organizationId, BranchScope scope)

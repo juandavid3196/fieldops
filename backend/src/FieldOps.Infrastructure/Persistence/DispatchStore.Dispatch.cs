@@ -1,3 +1,4 @@
+using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.ServiceRequests;
@@ -163,7 +164,8 @@ internal sealed partial class DispatchStore
                 await BuildDetailAsync(organizationId, visitId, true, now, cancellationToken),
                 WorkOrderCodes.StatusCode(order.Status),
                 false,
-                null);
+                null,
+                await ReadBusinessHoursCheckAsync(organizationId, order.BranchId, input.Start, input.End, cancellationToken));
 
             return new DispatchOutcome<DispatchSaved>.Succeeded(new DispatchSaved(unchanged, null));
         }
@@ -319,11 +321,16 @@ internal sealed partial class DispatchStore
         await transaction.CommitAsync(cancellationToken);
 
         var orderStatus = WorkOrderCodes.StatusCode(order.Status);
+        var branchId = order.BranchId;
 
         dbContext.ChangeTracker.Clear();
 
         var result = new VisitDispatchResult(
-            await BuildDetailAsync(organizationId, visitId, true, now, cancellationToken), orderStatus, false, materializedId);
+            await BuildDetailAsync(organizationId, visitId, true, now, cancellationToken),
+            orderStatus,
+            false,
+            materializedId,
+            await ReadBusinessHoursCheckAsync(organizationId, branchId, input.Start, input.End, cancellationToken));
 
         return new DispatchOutcome<DispatchSaved>.Succeeded(new DispatchSaved(result, emailPlan));
     }

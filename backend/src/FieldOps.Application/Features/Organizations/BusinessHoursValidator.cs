@@ -134,7 +134,7 @@ public static class BusinessHoursValidator
             ? value.GetString()
             : null;
 
-    private static bool IsValidTime(string value) =>
+    public static bool IsValidTime(string value) =>
         value.Length == 5
         && value[2] == ':'
         && int.TryParse(value.AsSpan(0, 2), out var hour) && hour is >= 0 and <= 23

@@ -153,7 +153,6 @@ describe('app routes', () => {
   it.each([
     ['quotes', 'Quotes'],
     ['notifications', 'Notifications'],
-    ['business-hours', 'Business hours'],
     ['tax-rates', 'Tax rates'],
   ])(
     'renders the shared Coming soon page for /coming-soon/%s inside the shell with no API request (FR-03, AC-03)',

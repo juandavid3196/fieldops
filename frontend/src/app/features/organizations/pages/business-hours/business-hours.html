@@ -1,0 +1,217 @@
+<p-toast />
+<app-discard-changes-dialog />
+
+<div class="business-hours">
+  @if (!forbidden()) {
+    <app-administration-nav class="business-hours__admin-nav" current="business-hours" />
+  }
+
+  <div class="business-hours__main">
+    <nav class="business-hours__breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/admin/company">Administration</a>
+      <span aria-hidden="true">/</span>
+      <span class="business-hours__current" aria-current="page">Business hours</span>
+    </nav>
+
+    <header class="business-hours__header">
+      <h1 class="business-hours__title">Business hours</h1>
+      @if (!forbidden()) {
+        <p class="business-hours__description">{{ descriptionMessage }}</p>
+      }
+    </header>
+
+    @if (forbidden()) {
+      <p class="business-hours__forbidden" role="alert">{{ forbiddenMessage }}</p>
+    } @else if (branchesLoading()) {
+      <div class="business-hours__skeletons" aria-busy="true">
+        <p-skeleton height="4.5rem" />
+      </div>
+      <div class="business-hours__skeletons" aria-busy="true">
+        @for (day of skeletonRows; track day) {
+          <p-skeleton height="2.5rem" />
+        }
+      </div>
+    } @else if (branchesError()) {
+      <div class="business-hours__load-error" role="alert">
+        <p>{{ branchesErrorMessage }}</p>
+        <button pButton type="button" severity="secondary" (click)="retryBranches()">Retry</button>
+      </div>
+    } @else {
+      @if (branchGone()) {
+        <p-message severity="error" [closable]="false" role="alert">{{
+          branchGoneMessage
+        }}</p-message>
+      }
+
+      @if (branches().length === 0) {
+        <p class="business-hours__empty">{{ emptyMessage }}</p>
+      } @else {
+        <section class="business-hours__card business-hours__branch" aria-label="Branch">
+          <div class="business-hours__field">
+            <label class="business-hours__label" for="business-hours-branch">Branch</label>
+            <p-select
+              inputId="business-hours-branch"
+              [formControl]="branchControl"
+              [options]="branchOptions()"
+              optionLabel="label"
+              optionValue="id"
+              ariaLabel="Branch"
+              appendTo="body"
+              fluid
+              [readonly]="submitting()"
+              (onChange)="onBranchChange($event.value)"
+            />
+          </div>
+          <div class="business-hours__field">
+            <label class="business-hours__label" for="business-hours-timezone">Time zone</label>
+            <input
+              pInputText
+              id="business-hours-timezone"
+              class="business-hours__timezone"
+              readonly
+              fluid
+              [value]="timezone()"
+              aria-describedby="business-hours-timezone-helper"
+            />
+            <p class="business-hours__helper" id="business-hours-timezone-helper">
+              Business hours follow the selected branch time zone.
+            </p>
+          </div>
+        </section>
+
+        <p class="business-hours__info" role="note">
+          <i class="pi pi-info-circle" aria-hidden="true"></i>
+          <span>{{ infoMessage }}</span>
+        </p>
+
+        @if (hoursLoading()) {
+          <div class="business-hours__skeletons" aria-busy="true">
+            @for (day of skeletonRows; track day) {
+              <p-skeleton height="2.5rem" />
+            }
+          </div>
+        } @else if (hoursError()) {
+          <div class="business-hours__load-error" role="alert">
+            <p>{{ hoursErrorMessage }}</p>
+            <button pButton type="button" severity="secondary" (click)="retryHours()">Retry</button>
+          </div>
+        } @else if (showEditor()) {
+          <section class="business-hours__card" aria-labelledby="business-hours-weekly">
+            <h2 class="business-hours__section-title" id="business-hours-weekly">Weekly hours</h2>
+            <p class="business-hours__section-description">Set one opening period for each day.</p>
+
+            @if (!canManage()) {
+              <p class="business-hours__readonly" role="status">
+                <i class="pi pi-eye" aria-hidden="true"></i>
+                <span>{{ readOnlyMessage }}</span>
+              </p>
+            }
+
+            @if (pageMessage(); as message) {
+              <p-message severity="error" [closable]="false" role="alert">{{ message }}</p-message>
+            }
+
+            @if (staleConflict()) {
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                class="business-hours__reload"
+                (click)="reloadStale()"
+              >
+                Reload
+              </button>
+            }
+
+            <ul class="business-hours__rows">
+              @for (row of rows(); track row.day) {
+                <li class="business-hours__row">
+                  <div class="business-hours__day">
+                    <span class="business-hours__day-name">{{ dayLabel(row.day) }}</span>
+                    <p-toggleswitch
+                      [inputId]="id(row.day, 'toggle')"
+                      [ngModel]="row.isOpen"
+                      (ngModelChange)="setOpen(row.day, $event)"
+                      [disabled]="locked()"
+                      [ariaLabel]="dayLabel(row.day) + ' open'"
+                    />
+                    <span class="business-hours__state">{{ row.isOpen ? 'Open' : 'Closed' }}</span>
+                  </div>
+
+                  <div class="business-hours__times">
+                    @for (part of parts; track part) {
+                      @if (part === 'closingTime') {
+                        <span class="business-hours__separator">to</span>
+                      }
+                      <div class="business-hours__time">
+                        <p-select
+                          [inputId]="id(row.day, part)"
+                          [options]="options(row.day, part)"
+                          optionLabel="label"
+                          optionValue="value"
+                          [ngModel]="part === 'openingTime' ? row.opening : row.closing"
+                          (ngModelChange)="setTime(row.day, part, $event)"
+                          [disabled]="!row.isOpen || locked()"
+                          [showClear]="row.isOpen && !locked()"
+                          [placeholder]="'Select time'"
+                          [ariaLabel]="
+                            dayLabel(row.day) +
+                            (part === 'openingTime' ? ' opening time' : ' closing time')
+                          "
+                          appendTo="body"
+                          fluid
+                          [invalid]="error(row.day, part) !== null"
+                          [attr.aria-invalid]="error(row.day, part) !== null ? 'true' : null"
+                          [attr.aria-describedby]="
+                            error(row.day, part) !== null ? id(row.day, part) + '-error' : null
+                          "
+                        />
+                        @if (error(row.day, part); as message) {
+                          <p class="business-hours__error" [id]="id(row.day, part) + '-error'">
+                            <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                            {{ message }}
+                          </p>
+                        }
+                      </div>
+                    }
+                  </div>
+                </li>
+              }
+            </ul>
+
+            <p class="business-hours__note">
+              <i class="pi pi-calendar" aria-hidden="true"></i>
+              <span>{{ schedulingNote }}</span>
+            </p>
+
+            <footer class="business-hours__footer">
+              <p class="business-hours__status" role="status">
+                {{ dirty() ? 'Unsaved changes' : 'No unsaved changes' }}
+              </p>
+              @if (canManage()) {
+                <div class="business-hours__actions">
+                  <button
+                    pButton
+                    type="button"
+                    severity="secondary"
+                    [outlined]="true"
+                    [disabled]="!canSave()"
+                    (click)="cancel()"
+                  >
+                    Cancel
+                  </button>
+                  <button pButton type="button" [disabled]="!canSave()" (click)="save()">
+                    @if (submitting()) {
+                      <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+                    }
+                    Save changes
+                  </button>
+                </div>
+              }
+            </footer>
+          </section>
+        }
+      }
+    }
+  </div>
+</div>

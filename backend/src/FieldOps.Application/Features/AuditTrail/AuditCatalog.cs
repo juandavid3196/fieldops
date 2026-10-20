@@ -38,7 +38,7 @@ public static class AuditCatalog
 
     private static readonly string[] MediumList =
     [
-        ExportGenerated, "user.invited", "branch.created", "branch.updated", "invoice.created", "invoice.sent",
+        ExportGenerated, "user.invited", "branch.created", "branch.updated", "branch.business_hours_updated", "invoice.created", "invoice.sent",
         "quote.sent", "quote.approved", "quote.rejected", "quote.revised", "work_order.created", "visit.completed",
         "catalog_item.updated", "technician_profile.updated",
     ];
@@ -165,6 +165,7 @@ public static class AuditCatalog
             ("organization.logo_removed", "Logo removed", "organization"),
             ("branch.created", "Branch created", "branch"),
             ("branch.updated", "Branch updated", "branch"),
+            ("branch.business_hours_updated", "Business hours updated", "branch"),
             ("branch.set_as_main", "Main branch changed", "branch"),
             ("branch.deactivated", "Branch deactivated", "branch"),
             ("branch.reactivated", "Branch reactivated", "branch"),

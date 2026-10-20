@@ -214,6 +214,49 @@ describe('Dispatch drawer', () => {
     },
   );
 
+  it.each([
+    [
+      { outside: true, dayOfWeek: 'sunday', isOpen: false, openingTime: null, closingTime: null },
+      'Outside business hours: Main branch is closed on Sunday.',
+    ],
+    [
+      {
+        outside: true,
+        dayOfWeek: 'monday',
+        isOpen: true,
+        openingTime: '08:00',
+        closingTime: '17:00',
+      },
+      'Outside business hours: Main branch is open 8:00 AM–5:00 PM on Monday.',
+    ],
+    [
+      {
+        outside: false,
+        dayOfWeek: 'monday',
+        isOpen: true,
+        openingTime: '08:00',
+        closingTime: '17:00',
+      },
+      null,
+    ],
+    [null, null],
+  ])(
+    'shows a non-blocking business-hours warning only when outside (AC-23) %#',
+    async (businessHours, warning) => {
+      await setup(DETAIL, false);
+      fixture.componentRef.setInput('branchName', 'Main branch');
+      await wait(350);
+      call('POST', 'visits/v-1/evaluation').flush({ ...CLEAN, businessHours });
+      await settle();
+
+      expect(drawer.businessHoursWarning()).toBe(warning);
+      expect(text().includes('Outside business hours')).toBe(warning !== null);
+      // Not a conflict: no justification is required and saving stays available.
+      expect(drawer.conflictCount()).toBe(0);
+      expect(drawer.reasonNeeded()).toBe(false);
+    },
+  );
+
   it('requires a justification, sends one request, handles 409 and reports success (AC-10, AC-14, AC-23)', async () => {
     await setup(DETAIL, false);
     drawer.setTechnicians(['t-1']);

@@ -393,6 +393,14 @@
                   </ul>
                 }
               </div>
+              @if (businessHoursWarning(); as warning) {
+                <div class="dd__banner dd__banner--warn" role="status">
+                  <p class="dd__strong">
+                    <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+                    {{ warning }}
+                  </p>
+                </div>
+              }
             }
           </section>
         }

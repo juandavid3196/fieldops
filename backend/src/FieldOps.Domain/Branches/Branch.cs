@@ -195,6 +195,23 @@ public sealed class Branch
     }
 
     /// <summary>
+    /// Replaces only the business hours with the final canonical JSON object and
+    /// advances <c>updated_at</c> (business-hours BR-05, BR-06).
+    /// </summary>
+    public void UpdateBusinessHours(string businessHours, DateTimeOffset updatedAt)
+    {
+        if (string.IsNullOrWhiteSpace(businessHours))
+        {
+            throw new ArgumentException(
+                "Branch business hours are required.",
+                nameof(businessHours));
+        }
+
+        BusinessHours = businessHours;
+        UpdatedAt = updatedAt;
+    }
+
+    /// <summary>
     /// Deactivates the branch (BR-06 is enforced by the caller, not here).
     /// Returns <c>false</c> without changing anything when already inactive
     /// (BR-08 no-op).

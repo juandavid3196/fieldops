@@ -1,5 +1,6 @@
 using System.Net;
 using FieldOps.Application.Features.Access;
+using FieldOps.Application.Features.Branches;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Domain.WorkOrders;
@@ -157,7 +158,8 @@ public sealed record VisitEvaluation(
     DispatchCheck Skills,
     IReadOnlyList<TechnicianChecks> Checks,
     IReadOnlyList<TechnicianImpact> Impact,
-    IReadOnlyList<TechnicianRanking> Ranking);
+    IReadOnlyList<TechnicianRanking> Ranking,
+    BusinessHoursCheck? BusinessHours = null);
 
 public sealed record DispatchLoad(double ScheduledMinutes, double AvailableMinutes, string State);
 
@@ -267,7 +269,11 @@ public sealed record VisitDispatchDetail(
     bool CancelCreatesReplacement = false);
 
 public sealed record VisitDispatchResult(
-    VisitDispatchDetail Visit, string WorkOrderStatus, bool Notified, Guid? MaterializedVisitId);
+    VisitDispatchDetail Visit,
+    string WorkOrderStatus,
+    bool Notified,
+    Guid? MaterializedVisitId,
+    BusinessHoursCheck? BusinessHours = null);
 
 /// <summary>POST /dispatch/visits/{id}/cancel: the cancelled visit, the replacement of a one-time work order and the work order status.</summary>
 public sealed record VisitCancelResult(VisitDispatchDetail Visit, Guid? ReplacementVisitId, string WorkOrderStatus);
