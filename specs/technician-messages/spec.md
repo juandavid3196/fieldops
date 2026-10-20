@@ -4,9 +4,9 @@
 | -------- | --------------------- |
 | Feature  | `technician-messages` |
 | Type     | Full-stack            |
-| Status   | APPROVED              |
+| Status   | AUDITED               |
 | Created  | 2026-10-17            |
-| Updated  | 2026-10-17            |
+| Updated  | 2026-10-20            |
 | Approved | 2026-10-17            |
 
 ## Context and objective
@@ -303,3 +303,4 @@ automation.
 | 2026-10-17 | — → DRAFT     | Created |
 | 2026-10-17 | DRAFT → DRAFT | Revised with user confirmations: rate limit per user + organization with `Retry-After` (BR-09, AC-06); UTC storage and device zone/locale display (BR-12); sending on closed work orders confirmed (OD-10) |
 | 2026-10-17 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-20 | APPROVED → AUDITED | User override: final-audit returned AUDIT FAIL because the frontend full test run (`npm run test -- --watch=false`) never finished green (10, 113, 150, 17 and 78 failures across five runs, different files each time, mostly 5 s timeouts; the flagged files pass in isolation and none belong to this feature). The user confirmed the feature works in the browser and asked to mark the spec audited. Persistence APPROVED (fp `5cd91c66`), backend full green (1087 unit, 576 integration), qa-auditor found no Critical or Important findings (2 Minor), user visual QA PASS. Open: confirm the frontend suite is stable (rerun on a quiet machine or in CI). |
