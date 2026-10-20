@@ -1,0 +1,40 @@
+<header class="site__header">
+  <div class="site__bar">
+    <a class="site__wordmark" routerLink="/auth/sign-in" aria-label="FieldOps, sign in">
+      <span>Field</span><span class="site__accent">Ops</span>
+    </a>
+    <nav class="site__nav" aria-label="Legal and help">
+      @for (link of links; track link.path) {
+        <a
+          class="site__link"
+          [routerLink]="link.path"
+          routerLinkActive="site__link--active"
+          ariaCurrentWhenActive="page"
+          >{{ link.label }}</a
+        >
+      }
+      <a class="site__sign-in" routerLink="/auth/sign-in">Sign in</a>
+    </nav>
+  </div>
+</header>
+
+<main class="site__main">
+  <router-outlet />
+</main>
+
+<footer class="site__footer">
+  <div class="site__bar site__bar--footer">
+    <p class="site__copy">© {{ year }} FieldOps</p>
+    <nav class="site__footer-nav" aria-label="Footer">
+      @for (link of links; track link.path) {
+        <a
+          class="site__footer-link"
+          [routerLink]="link.path"
+          routerLinkActive="site__footer-link--active"
+          ariaCurrentWhenActive="page"
+          >{{ link.label }}</a
+        >
+      }
+    </nav>
+  </div>
+</footer>

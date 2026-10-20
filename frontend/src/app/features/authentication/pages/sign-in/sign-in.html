@@ -138,14 +138,20 @@
 
   <footer class="sign-in__footer">
     <nav class="sign-in__footer-links" aria-label="Legal and help">
-      <a href="#" (click)="$event.preventDefault()">Privacy</a>
-      <a href="#" (click)="$event.preventDefault()">Terms</a>
-      <a href="#" (click)="$event.preventDefault()">Help</a>
+      <a routerLink="/privacy">Privacy</a>
+      <a routerLink="/terms">Terms</a>
+      <a routerLink="/support">Help</a>
     </nav>
-    <button type="button" class="sign-in__language" aria-label="Language: English">
-      <i class="pi pi-globe" aria-hidden="true"></i>
-      English
-      <i class="pi pi-angle-down" aria-hidden="true"></i>
-    </button>
+    <div class="sign-in__footer-end">
+      <button type="button" class="sign-in__language" aria-label="Language: English">
+        <i class="pi pi-globe" aria-hidden="true"></i>
+        English
+        <i class="pi pi-angle-down" aria-hidden="true"></i>
+      </button>
+      <p class="sign-in__badge">
+        <span class="sign-in__flag" aria-hidden="true"></span>
+        Designed &amp; built in Colombia
+      </p>
+    </div>
   </footer>
 </main>

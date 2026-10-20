@@ -1,0 +1,66 @@
+@let doc = content();
+
+<header class="hero">
+  <p class="hero__eyebrow">Legal</p>
+  <h1 class="hero__title">{{ doc.title }}</h1>
+  <p class="hero__lead">{{ doc.lead }}</p>
+  <p class="hero__updated">Last updated: {{ lastUpdated }}</p>
+</header>
+
+<div class="layout">
+  <nav class="toc" aria-labelledby="toc-heading">
+    <h2 class="toc__title" id="toc-heading">On this page</h2>
+    <ul class="toc__list">
+      @for (section of doc.sections; track section.id) {
+        <li>
+          <a
+            class="toc__link"
+            [class.toc__link--active]="activeId() === section.id"
+            [attr.aria-current]="activeId() === section.id ? 'location' : null"
+            [href]="'#' + section.id"
+            (click)="goTo($event, section.id)"
+            >{{ section.title }}</a
+          >
+        </li>
+      }
+    </ul>
+  </nav>
+
+  <article class="doc">
+    <p class="doc__highlight">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      {{ doc.highlight }}
+    </p>
+
+    @for (section of doc.sections; track section.id; let index = $index) {
+      <section class="doc__section" [id]="section.id">
+        <h2 class="doc__heading">{{ index + 1 }}. {{ section.title }}</h2>
+        @for (block of section.blocks; track $index) {
+          @if (block.kind === 'paragraph') {
+            <p class="doc__text">{{ block.text }}</p>
+          } @else {
+            <ul class="doc__list">
+              @for (item of block.items; track $index) {
+                <li>
+                  @if (isTerm(item)) {
+                    <strong>{{ item.term }}:</strong> {{ item.text }}
+                  } @else {
+                    {{ item }}
+                  }
+                </li>
+              }
+            </ul>
+          }
+        }
+      </section>
+    }
+
+    <aside class="contact" aria-labelledby="contact-heading">
+      <div>
+        <h2 class="contact__title" id="contact-heading">{{ doc.contact.title }}</h2>
+        <p class="contact__text">{{ doc.contact.text }}</p>
+      </div>
+      <a pButton class="contact__action" [href]="mailto()">Contact support</a>
+    </aside>
+  </article>
+</div>

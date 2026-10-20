@@ -96,6 +96,6 @@
   // PrimeIcons ship a thin stroke at 1rem: scale the glyph with the tile and thicken it.
   > i {
     font-size: $size * 0.55;
-    -webkit-text-stroke: 0.6px currentcolor;
+    -webkit-text-stroke: 0.3px currentcolor;
   }
 }

@@ -42,5 +42,28 @@ export function createHelpRoutes(audience: HelpAudience): Routes {
   ];
 }
 
+/** Base path of the public help pages linked from sign-in (no session). */
+export const PUBLIC_HELP_BASE = '/support';
+
+/**
+ * Public copy of the internal help center: its own home page, and the internal topic and article
+ * pages with links kept under `/support`.
+ */
+export function createPublicHelpRoutes(): Routes {
+  const data = { helpAudience: 'internal', helpBase: PUBLIC_HELP_BASE };
+  return [
+    {
+      path: '',
+      pathMatch: 'full',
+      title: 'Help & support · FieldOps',
+      data,
+      loadComponent: () => import('./pages/public-help/public-help').then((m) => m.PublicHelp),
+    },
+    ...createHelpRoutes('internal')
+      .filter((route) => route.path !== '')
+      .map((route) => ({ ...route, data })),
+  ];
+}
+
 /** Authenticated help center; mounted inside the app shell, which owns the auth guard (BR-01). */
 export default createHelpRoutes('internal');
