@@ -23,3 +23,14 @@ $breakpoints: (
     @content;
   }
 }
+
+// Like `up`, but never inside the technician shell, whose phone column stays narrow on any
+// viewport (the shell marks <body> with `fo-phone-shell`). For component styles of pages mounted
+// in both shells; app-shell behaviour is unchanged.
+@mixin wide($name) {
+  @include up($name) {
+    :host-context(body:not(.fo-phone-shell)) & {
+      @content;
+    }
+  }
+}

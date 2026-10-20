@@ -59,11 +59,21 @@
   }
 
   &__wordmark {
+    display: flex;
+    align-items: center;
     margin: 0;
     font-size: 1.25rem;
     font-weight: 700;
     white-space: nowrap;
     color: var(--fo-color-heading);
+  }
+
+  // Sign-in brand mark, in its light-background colours.
+  &__mark {
+    flex: none;
+    inline-size: 1.5rem;
+    block-size: 1.26rem;
+    margin-inline-end: 0.35rem;
   }
 
   &__search {

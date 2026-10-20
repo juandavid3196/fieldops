@@ -63,7 +63,20 @@
   }
 
   &__wordmark {
+    display: flex;
+    align-items: center;
     margin: 0;
+  }
+
+  &__mark {
+    flex: none;
+    inline-size: 1.75rem;
+    block-size: 1.47rem;
+    margin-inline-end: 0.4rem;
+  }
+
+  &--rail &__mark {
+    margin-inline-end: 0;
   }
 
   &__close {

@@ -7,6 +7,7 @@
   @if (drawer()) {
     <div class="sidebar__brand sidebar__brand--drawer">
       <p class="sidebar__wordmark" aria-hidden="true">
+        <ng-container [ngTemplateOutlet]="mark" />
         <span>Field</span><span class="sidebar__accent">Ops</span>
       </p>
       <span class="sidebar__hidden" id="shell-drawer-title">Navigation</span>
@@ -17,14 +18,22 @@
     </div>
   } @else {
     <p class="sidebar__brand">
+      <ng-container [ngTemplateOutlet]="mark" />
       @if (rail()) {
-        <span aria-hidden="true">F<span class="sidebar__accent">O</span></span>
         <span class="sidebar__hidden">FieldOps</span>
       } @else {
         <span>Field</span><span class="sidebar__accent">Ops</span>
       }
     </p>
   }
+
+  <!-- Brand mark of the sign-in page, in its navy-background colours. -->
+  <ng-template #mark>
+    <svg class="sidebar__mark" viewBox="0 0 48 40" aria-hidden="true" focusable="false">
+      <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-300)" />
+      <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-500)" />
+    </svg>
+  </ng-template>
 
   <nav class="sidebar__nav" aria-label="Main navigation">
     <ul class="sidebar__list">

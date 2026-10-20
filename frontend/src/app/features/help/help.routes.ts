@@ -5,12 +5,14 @@ import { findArticle, findTopic } from './utils/help-content';
 
 /**
  * The help center routes of one audience (FR-16, BR-13). The same pages serve `/help` and
- * `/portal/help`; the leaf route data tells them which topics and base path to use.
+ * `/portal/help`; the leaf route data tells them which topics and base path to use. Copies
+ * mounted elsewhere (public `/support`, technician shell) pass their own `base`.
  */
-export function createHelpRoutes(audience: HelpAudience): Routes {
+export function createHelpRoutes(audience: HelpAudience, base?: string): Routes {
   const baseTitle =
     audience === 'portal' ? 'Help & support · Customer portal' : 'Help & support · FieldOps';
-  const data = { helpAudience: audience };
+  const data =
+    base === undefined ? { helpAudience: audience } : { helpAudience: audience, helpBase: base };
 
   return [
     {
@@ -59,9 +61,7 @@ export function createPublicHelpRoutes(): Routes {
       data,
       loadComponent: () => import('./pages/public-help/public-help').then((m) => m.PublicHelp),
     },
-    ...createHelpRoutes('internal')
-      .filter((route) => route.path !== '')
-      .map((route) => ({ ...route, data })),
+    ...createHelpRoutes('internal', PUBLIC_HELP_BASE).filter((route) => route.path !== ''),
   ];
 }
 

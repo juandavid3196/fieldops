@@ -96,7 +96,40 @@ export const technicianComingSoonRoute: Route = {
     import('../coming-soon/pages/coming-soon/coming-soon').then((m) => m.ComingSoon),
 };
 
+/**
+ * Profile, account settings and help inside the technician shell, so technicians never land in the
+ * desktop app shell. Same pages as `/team`, `/account` and `/help`, with links kept under `/today`.
+ */
+export const PROFILE_PATH = `/${TODAY_ROUTE_PATH}/profile`;
+export const ACCOUNT_PATH = `/${TODAY_ROUTE_PATH}/account`;
+export const HELP_PATH = `/${TODAY_ROUTE_PATH}/help`;
+
+export const profileRoute: Route = {
+  path: `${TODAY_ROUTE_PATH}/profile`,
+  pathMatch: 'full',
+  title: 'My profile · FieldOps',
+  data: { shellTitle: 'My profile' },
+  loadComponent: () => import('../team/pages/team/team').then((m) => m.Team),
+};
+
+export const accountRoute: Route = {
+  path: `${TODAY_ROUTE_PATH}/account`,
+  data: { shellTitle: 'Account settings' },
+  loadChildren: () =>
+    import('../account/account.routes').then((m) => m.createAccountRoutes(ACCOUNT_PATH)),
+};
+
+export const helpRoute: Route = {
+  path: `${TODAY_ROUTE_PATH}/help`,
+  data: { shellTitle: 'Help & support' },
+  loadChildren: () =>
+    import('../help/help.routes').then((m) => m.createHelpRoutes('internal', HELP_PATH)),
+};
+
 export const TECHNICIAN_SHELL_ROUTES: Route[] = [
+  profileRoute,
+  accountRoute,
+  helpRoute,
   todayRoute,
   scheduleRoute,
   scheduleSoonRedirect,

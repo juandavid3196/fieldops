@@ -20,13 +20,13 @@
 
   &__title {
     margin: 0;
-    font-size: 2rem;
+    font-size: 1.625rem;
     line-height: 1.2;
   }
 
   &__subtitle {
     margin: 0.25rem 0 0;
-    font-size: 1.125rem;
+    font-size: 1rem;
     color: var(--fo-color-text-secondary);
   }
 
@@ -39,7 +39,7 @@
 
   &__search input {
     min-block-size: var(--fo-size-touch-target);
-    font-size: 1.0625rem;
+    font-size: 0.9375rem;
   }
 
   &__chips {
@@ -54,9 +54,9 @@
     gap: 0.5rem;
     box-sizing: border-box;
     min-block-size: var(--fo-size-touch-target);
-    padding-inline: 1.125rem;
+    padding-inline: 1rem;
     font: inherit;
-    font-size: 1.0625rem;
+    font-size: 0.9375rem;
     font-weight: 600;
     color: var(--fo-msg-ink);
     background: var(--fo-color-neutral-background);
@@ -112,7 +112,7 @@
 
   &__section {
     margin: 0.5rem 0 0;
-    font-size: 1.25rem;
+    font-size: 1.125rem;
   }
 
   &__skeletons,

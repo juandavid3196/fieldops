@@ -56,6 +56,33 @@ export const REPORTS_ROLE_CODES: readonly string[] = [
 /** technician-messages BR-15: roles that see the Messages item (UX only; the backend decides). */
 export const MESSAGES_ROLE_CODES: readonly string[] = ['owner', 'operations_manager', 'dispatcher'];
 
+/**
+ * Roles that can open each page, mirroring the pages' own read rules so the sidebar never offers a
+ * page that would only show its "no access" state (UX only; the backend decides).
+ */
+/** Requests, Quotes, Customers, Products and services, Invoices. */
+export const INTERNAL_ROLE_CODES: readonly string[] = [
+  'owner',
+  'operations_manager',
+  'dispatcher',
+  'accounting',
+  'viewer',
+];
+/** Jobs and Schedule. */
+export const WORK_ROLE_CODES: readonly string[] = [
+  'owner',
+  'operations_manager',
+  'dispatcher',
+  'viewer',
+];
+/** Team (a technician sees their own profile). */
+export const TEAM_ROLE_CODES: readonly string[] = [
+  'owner',
+  'operations_manager',
+  'dispatcher',
+  'technician',
+];
+
 /** BR-01: sidebar structure, order and icons. */
 export const NAV_GROUPS: readonly NavGroup[] = [
   {
@@ -80,10 +107,28 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     id: 'operations',
     heading: 'Operations',
     items: [
-      { label: 'Requests', icon: 'pi-inbox', link: '/requests', exact: false },
-      { label: 'Quotes', icon: 'pi-file-edit', link: '/quotes', exact: false },
-      { label: 'Jobs', icon: 'pi-wrench', link: '/jobs', exact: false },
-      { label: 'Schedule', icon: 'pi-calendar', link: '/schedule', exact: false },
+      {
+        label: 'Requests',
+        icon: 'pi-inbox',
+        link: '/requests',
+        exact: false,
+        roles: INTERNAL_ROLE_CODES,
+      },
+      {
+        label: 'Quotes',
+        icon: 'pi-file-edit',
+        link: '/quotes',
+        exact: false,
+        roles: INTERNAL_ROLE_CODES,
+      },
+      { label: 'Jobs', icon: 'pi-wrench', link: '/jobs', exact: false, roles: WORK_ROLE_CODES },
+      {
+        label: 'Schedule',
+        icon: 'pi-calendar',
+        link: '/schedule',
+        exact: false,
+        roles: WORK_ROLE_CODES,
+      },
       {
         label: 'Messages',
         icon: 'pi-comments',
@@ -98,8 +143,14 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     id: 'people',
     heading: 'People',
     items: [
-      { label: 'Customers', icon: 'pi-users', link: '/customers', exact: false },
-      { label: 'Team', icon: 'pi-id-card', link: '/team', exact: false },
+      {
+        label: 'Customers',
+        icon: 'pi-users',
+        link: '/customers',
+        exact: false,
+        roles: INTERNAL_ROLE_CODES,
+      },
+      { label: 'Team', icon: 'pi-id-card', link: '/team', exact: false, roles: TEAM_ROLE_CODES },
     ],
   },
   {
@@ -111,6 +162,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         icon: 'pi-box',
         link: '/admin/products-services',
         exact: true,
+        roles: INTERNAL_ROLE_CODES,
       },
       {
         label: 'Invoices',
@@ -118,6 +170,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         link: '/invoices',
         exact: false,
         activePrefix: '/invoices',
+        roles: INTERNAL_ROLE_CODES,
         children: [
           {
             label: 'All invoices',

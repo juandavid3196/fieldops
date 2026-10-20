@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
@@ -13,7 +14,7 @@ import { NavGroup, NavItem } from '../app-shell/app-shell.nav';
  */
 @Component({
   selector: 'app-shell-sidebar',
-  imports: [RouterLink, TooltipModule],
+  imports: [NgTemplateOutlet, RouterLink, TooltipModule],
   templateUrl: './shell-sidebar.html',
   styleUrl: './shell-sidebar.scss',
 })

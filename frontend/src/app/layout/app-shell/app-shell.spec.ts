@@ -193,18 +193,31 @@ describe('AppShell', () => {
       await setup({ ...SESSION, role: { code, name: 'Some role' } });
 
       const first = MANAGE_ROLES.includes(code) ? 'Dashboard' : 'Overview';
+      // The sidebar offers only the pages the role can open (each page's own read rules).
       // reports-workspace BR-23/AC-23 and audit-trail BR-23/AC-23: "Reports" and "Audit log" only for these roles.
       // technician-messages BR-15: "Messages" (after Schedule) only for Owner, Operations Manager, Dispatcher.
+      const internal = ['owner', 'operations_manager', 'dispatcher', 'accounting', 'viewer'];
+      const visible: Record<string, boolean> = {
+        Requests: internal.includes(code),
+        Quotes: internal.includes(code),
+        Jobs: ['owner', 'operations_manager', 'dispatcher', 'viewer'].includes(code),
+        Schedule: ['owner', 'operations_manager', 'dispatcher', 'viewer'].includes(code),
+        Messages: MESSAGES_ROLES.includes(code),
+        Customers: internal.includes(code),
+        Team: ['owner', 'operations_manager', 'dispatcher', 'technician'].includes(code),
+        'Products and services': internal.includes(code),
+        Invoices: internal.includes(code),
+        Reports: ['owner', 'operations_manager', 'dispatcher', 'accounting'].includes(code),
+        'Audit log': ['owner', 'operations_manager', 'accounting'].includes(code),
+      };
       const operations = MODULE_LABELS.slice(1);
       const modules = [
-        ...(MESSAGES_ROLES.includes(code)
-          ? [...operations.slice(0, 4), 'Messages', ...operations.slice(4)]
-          : operations),
-        ...(['owner', 'operations_manager', 'dispatcher', 'accounting'].includes(code)
-          ? ['Reports']
-          : []),
-        ...(['owner', 'operations_manager', 'accounting'].includes(code) ? ['Audit log'] : []),
-      ];
+        ...operations.slice(0, 4),
+        'Messages',
+        ...operations.slice(4),
+        'Reports',
+        'Audit log',
+      ].filter((label) => visible[label]);
       const expected =
         code === 'technician'
           ? [first, "Today's jobs", ...modules]
@@ -218,27 +231,41 @@ describe('AppShell', () => {
       expect(bell?.getAttribute('href')).toBe(
         code === 'technician' ? '/coming-soon/notifications' : null,
       );
+      // A heading is shown only when one of its items is.
+      const headings = [
+        ['Operations', ['Requests', 'Quotes', 'Jobs', 'Schedule', 'Messages']],
+        ['People', ['Customers', 'Team']],
+        ['Finance', ['Products and services', 'Invoices', 'Reports', 'Audit log']],
+      ] as const;
       expect(
         Array.from(host.querySelectorAll('.sidebar__group-label'), (n) => n.textContent),
-      ).toEqual(['Operations', 'People', 'Finance']);
+      ).toEqual(
+        headings
+          .filter(([, items]) => items.some((label) => visible[label]))
+          .map(([heading]) => heading),
+      );
       expect(host.querySelector('nav a i')?.classList.contains('pi-th-large')).toBe(true);
       expect(host.querySelectorAll('header')).toHaveLength(1);
       expect(host.querySelectorAll('main')).toHaveLength(1);
       expect(host.querySelector('nav')?.getAttribute('aria-label')).toBe('Main navigation');
       expect(host.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe(first);
 
-      await router.navigateByUrl('/jobs/job-1');
-      await settle();
-      expect(host.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1);
-      expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe('Jobs');
-      expect(host.querySelector('nav [aria-current="page"]')?.getAttribute('href')).toBe('/jobs');
+      if (visible['Jobs']) {
+        await router.navigateByUrl('/jobs/job-1');
+        await settle();
+        expect(host.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1);
+        expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe('Jobs');
+        expect(host.querySelector('nav [aria-current="page"]')?.getAttribute('href')).toBe('/jobs');
+      }
 
-      await router.navigateByUrl('/admin/products-services');
-      await settle();
-      expect(host.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1);
-      expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe(
-        'Products and services',
-      );
+      if (visible['Products and services']) {
+        await router.navigateByUrl('/admin/products-services');
+        await settle();
+        expect(host.querySelectorAll('nav [aria-current="page"]')).toHaveLength(1);
+        expect(host.querySelector('nav [aria-current="page"]')?.textContent?.trim()).toBe(
+          'Products and services',
+        );
+      }
 
       if (canSeeAdministration) {
         await router.navigateByUrl('/admin/company');

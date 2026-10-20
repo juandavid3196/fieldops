@@ -23,7 +23,13 @@
           <i class="pi pi-bars" aria-hidden="true"></i>
           <span class="shell__hidden">Open navigation</span>
         </button>
-        <p class="shell__wordmark"><span>Field</span><span class="shell__accent">Ops</span></p>
+        <p class="shell__wordmark">
+          <svg class="shell__mark" viewBox="0 0 48 40" aria-hidden="true" focusable="false">
+            <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-400)" />
+            <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-600)" />
+          </svg>
+          <span>Field</span><span class="shell__accent">Ops</span>
+        </p>
       } @else {
         <form class="shell__search" role="search" (submit)="onSearch($event)">
           <label class="shell__hidden" for="shell-search">Search</label>

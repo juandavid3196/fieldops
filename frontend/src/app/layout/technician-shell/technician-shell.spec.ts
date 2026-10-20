@@ -62,9 +62,6 @@ describe('TechnicianShell', () => {
               technicianComingSoonRoute,
             ],
           },
-          { path: 'team', component: PageStub },
-          { path: 'account/profile', component: PageStub },
-          { path: 'account', pathMatch: 'full', redirectTo: 'account/profile' },
           { path: 'auth/sign-in', component: PageStub },
         ]),
         provideHttpClient(withInterceptors([authInterceptor, errorInterceptor])),
@@ -122,11 +119,10 @@ describe('TechnicianShell', () => {
     expect(navLabels()).toEqual(['Today', 'Schedule', 'Time', 'Messages', 'More']);
     expect(current()).toEqual(['Today']);
     expect(title()).toBe("Today's jobs");
-    expect(host.querySelector('a[aria-label="Notifications"]')?.getAttribute('href')).toBe(
-      '/today/messages',
-    );
-    // help-support-center FR-15 / AC-21: the top-bar help icon opens the help center.
-    expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe('/help');
+    // Technicians have no notifications: there is no bell.
+    expect(host.querySelector('a[aria-label^="Notifications"]')).toBeNull();
+    // help-support-center FR-15 / AC-21: the top-bar help icon opens the help center in the shell.
+    expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe('/today/help');
     expect(host.querySelector('a[aria-label="Help"] .pi-question-circle')).not.toBeNull();
     expect(host.querySelector('.tshell__avatar')?.textContent?.trim()).toBe('CR');
     expect(host.querySelectorAll('main')).toHaveLength(1);
@@ -176,7 +172,7 @@ describe('TechnicianShell', () => {
     expect(host.querySelector('nav a[aria-current="page"]')?.textContent).toContain('Time');
 
     // technician-messages AC-15: Messages is a real destination, current on conversation pages too;
-    // the old Coming soon route redirects; the tab and the bell share the unread badge ("99+" cap).
+    // the old Coming soon route redirects; the tab shows the unread badge ("99+" cap).
     await go('/today/soon/messages');
     expect(router.url).toBe('/today/messages');
     expect(current()).toEqual(['Messages']);
@@ -190,9 +186,6 @@ describe('TechnicianShell', () => {
     const tab = host.querySelector('nav a[href="/today/messages"]')!;
     expect(tab.querySelector('.tshell__badge')?.textContent?.trim()).toBe('99+');
     expect(tab.textContent).toContain('120 unread messages');
-    const bell = host.querySelector('a[href="/today/messages"][aria-label^="Notifications"]')!;
-    expect(bell.getAttribute('aria-label')).toBe('Notifications, 120 unread messages');
-    expect(bell.querySelector('.tshell__badge')?.textContent?.trim()).toBe('99+');
     unread.set({ unreadMessages: 0, unreadConversations: 0 });
     harness.fixture.detectChanges();
     expect(host.querySelector('.tshell__badge')).toBeNull();
@@ -222,9 +215,10 @@ describe('TechnicianShell', () => {
       'Help & support',
       'Sign out',
     ]);
-    expect(panelItems[0].getAttribute('href')).toBe('/team');
-    expect(panelItems[1].getAttribute('href')).toBe('/account');
-    expect(panelItems[2].getAttribute('href')).toBe('/help');
+    // Every destination stays inside the technician shell.
+    expect(panelItems[0].getAttribute('href')).toBe('/today/profile');
+    expect(panelItems[1].getAttribute('href')).toBe('/today/account');
+    expect(panelItems[2].getAttribute('href')).toBe('/today/help');
 
     button('Sign out').click();
     button('Sign out').click();
@@ -237,9 +231,10 @@ describe('TechnicianShell', () => {
     expect(TestBed.inject(SessionService).session()).not.toBeNull();
     expect(router.url).toBe('/today');
 
-    host.querySelector<HTMLButtonElement>('.tshell__avatar')!.click();
+    // The avatar is identity only; More is the only menu with Sign out.
+    expect(host.querySelector('.tshell__avatar')?.hasAttribute('href')).toBe(false);
+    button('More').click();
     await settle();
-    expect(host.querySelector('#tshell-account-panel')?.textContent).toContain('Carlos Rivera');
     button('Sign out').click();
     httpTesting
       .expectOne({ method: 'DELETE', url: SESSION_URL })

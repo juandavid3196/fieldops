@@ -50,6 +50,13 @@
     text-decoration: none;
   }
 
+  // The technician shell's top bar already names the page (My profile).
+  &__crumbs {
+    :host-context(body.fo-phone-shell) & {
+      display: none;
+    }
+  }
+
   &__crumbs ol {
     display: flex;
     gap: 0.5rem;

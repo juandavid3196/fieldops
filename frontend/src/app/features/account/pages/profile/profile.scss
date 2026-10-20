@@ -38,7 +38,7 @@
     padding-block-end: 1.25rem;
     border-block-end: 1px solid var(--fo-color-border);
 
-    @include bp.up(md) {
+    @include bp.wide(md) {
       flex-direction: row;
       align-items: center;
     }
@@ -139,7 +139,7 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
 
-    @include bp.up(md) {
+    @include bp.wide(md) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }

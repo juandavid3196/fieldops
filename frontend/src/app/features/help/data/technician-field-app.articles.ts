@@ -13,7 +13,7 @@ export const TECHNICIAN_FIELD_APP_SECTIONS: readonly HelpSection[] = [
         introduction:
           "Today's jobs is the first page technicians see after signing in. It shows your visits for the day and highlights the one to do next.",
         callout:
-          'The bottom bar also lists Schedule, Time and Messages, and the bell opens Notifications. These are Coming soon for technicians, so use Today for your work.',
+          'The bottom bar also lists Schedule, Time and Messages. Messages shows a badge when you have unread messages.',
         steps: [
           {
             text: 'Read the summary at the top: the number of jobs, scheduled hours and jobs remaining, plus the progress bar of completed jobs.',
@@ -73,7 +73,7 @@ export const TECHNICIAN_FIELD_APP_SECTIONS: readonly HelpSection[] = [
           { text: 'Select Account settings to manage your own account.' },
           { text: 'Select Help & support to open this help center.' },
           {
-            text: 'Select Sign out when you finish. The avatar at the top right also offers Sign out.',
+            text: 'Select Sign out when you finish.',
           },
         ],
         whatHappensNext: 'Select Today in the bottom bar to return to your route.',

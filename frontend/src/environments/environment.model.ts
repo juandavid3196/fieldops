@@ -8,4 +8,6 @@ export interface Environment {
   readonly apiBaseUrl: string;
   /** Public support mailbox used by the Help & support center `mailto:` action. */
   readonly supportEmail: string;
+  /** PrimeUI community license key (public by design: PrimeNG verifies it in the browser). */
+  readonly primeUiLicense: string;
 }
