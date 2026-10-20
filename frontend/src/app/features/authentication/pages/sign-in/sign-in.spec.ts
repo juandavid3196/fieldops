@@ -176,10 +176,16 @@ describe('SignIn', () => {
       const routed = Array.from(host.querySelectorAll('a')).filter(
         (a) => a.getAttribute('href') !== '#',
       );
-      // Routed: company registration, forgot password and the customer portal sign-in
-      // (customer-portal-dashboard, requested by the user 2026-10-13).
-      expect(routed).toHaveLength(3);
+      // Routed: company registration, forgot password, the customer portal sign-in
+      // (customer-portal-dashboard, requested by the user 2026-10-13) and the public
+      // Privacy, Terms and Help pages of the footer.
+      expect(routed).toHaveLength(6);
       expect(routed.some((anchor) => anchor.getAttribute('href') === '/portal/sign-in')).toBe(true);
+      expect(
+        Array.from(host.querySelectorAll('.sign-in__footer-links a'), (a) =>
+          a.getAttribute('href'),
+        ),
+      ).toEqual(['/privacy', '/terms', '/support']);
       expect(query<HTMLAnchorElement>('.sign-in__forgot')?.getAttribute('href')).toBe(
         '/auth/forgot-password',
       );

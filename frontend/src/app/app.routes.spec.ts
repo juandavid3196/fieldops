@@ -145,7 +145,9 @@ describe('app routes', () => {
     expect(router.url).toBe('/admin/company');
     expect(harness.routeNativeElement?.tagName).toBe('APP-SHELL');
     expect(links()).not.toContain('Administration');
-    expect(links()).toContain('Requests');
+    // The sidebar offers only the pages the new role can open.
+    expect(links()).not.toContain('Requests');
+    expect(links()).toContain('Team');
   });
 
   it.each([
