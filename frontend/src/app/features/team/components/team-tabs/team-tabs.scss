@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// Tabs scroll horizontally on narrow screens; projected controls sit at the end.
+.team-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  overflow-x: auto;
+  border-block-end: 1px solid var(--fo-color-border);
+
+  &__tab {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0 1rem;
+    font-weight: 500;
+    color: var(--fo-color-text-secondary);
+    text-decoration: none;
+    white-space: nowrap;
+    border-block-end: 2px solid transparent;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+
+    &--current {
+      font-weight: 600;
+      color: var(--fo-color-primary-strong);
+      border-block-end-color: var(--fo-color-primary);
+    }
+  }
+
+  &__trailing {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 0.5rem;
+    margin-inline-start: auto;
+  }
+}

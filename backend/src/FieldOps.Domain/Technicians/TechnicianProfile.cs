@@ -47,6 +47,9 @@ public sealed class TechnicianProfile
 
     public string? Notes { get; private set; }
 
+    /// <summary>True when the recurring availability comes from the home branch business hours.</summary>
+    public bool UsesBranchHours { get; private set; } = true;
+
     public DateTimeOffset CreatedAt { get; private set; }
 
     public DateTimeOffset UpdatedAt { get; private set; }
@@ -141,6 +144,27 @@ public sealed class TechnicianProfile
 
     /// <summary>Advances the profile version after weekly availability or skills changed.</summary>
     public void Touch(DateTimeOffset now) => UpdatedAt = now;
+
+    /// <summary>Makes the home branch business hours the recurring availability source; false when already so.</summary>
+    public bool UseBranchHours(DateTimeOffset now)
+    {
+        if (UsesBranchHours)
+        {
+            return false;
+        }
+
+        UsesBranchHours = true;
+        UpdatedAt = now;
+
+        return true;
+    }
+
+    /// <summary>Makes the profile's own weekly rows the recurring availability source.</summary>
+    public void UseCustomSchedule(DateTimeOffset now)
+    {
+        UsesBranchHours = false;
+        UpdatedAt = now;
+    }
 
     /// <summary>Changes the status; false when it already has that status.</summary>
     public bool ChangeStatus(TechnicianStatus status, DateTimeOffset now)

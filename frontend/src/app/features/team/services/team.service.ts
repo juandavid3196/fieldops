@@ -14,6 +14,17 @@ import {
   TechnicianListResponse,
   TechnicianRequest,
 } from '../models/team.model';
+import {
+  AvailabilityDay,
+  AvailabilityPage,
+  AvailabilityQuery,
+  SkillAssignments,
+  SkillsMatrixPage,
+  SkillsMatrixQuery,
+  TechnicianAvailability,
+  TimeOff,
+  TimeOffRequest,
+} from '../models/team-planning.model';
 
 /** `/team` endpoints. Organization and branch scope are resolved server-side only. */
 @Injectable({ providedIn: 'root' })
@@ -107,5 +118,90 @@ export class TeamService {
       params = params.set('branchId', branchId);
     }
     return this.http.get<SkillCoverage[]>(this.url('team/skill-coverage'), { params });
+  }
+
+  // Availability and skills tabs (team-availability-skills)
+
+  availability(query: AvailabilityQuery): Observable<AvailabilityPage> {
+    let params = new HttpParams().set('availability', query.availability).set('page', query.page);
+    if (query.weekStart !== null) {
+      params = params.set('weekStart', query.weekStart);
+    }
+    const search = query.search.trim();
+    if (search.length > 0) {
+      params = params.set('search', search);
+    }
+    if (query.branchId !== null) {
+      params = params.set('branchId', query.branchId);
+    }
+    return this.http.get<AvailabilityPage>(this.url('team/availability'), { params });
+  }
+
+  technicianAvailability(id: string): Observable<TechnicianAvailability> {
+    return this.http.get<TechnicianAvailability>(this.url(`team/technicians/${id}/availability`));
+  }
+
+  saveAvailability(
+    id: string,
+    body: { readonly updatedAt: string; readonly days: readonly AvailabilityDay[] },
+  ): Observable<TechnicianAvailability> {
+    return this.http.put<TechnicianAvailability>(
+      this.url(`team/technicians/${id}/availability`),
+      body,
+    );
+  }
+
+  useBranchHours(id: string, updatedAt: string): Observable<TechnicianAvailability> {
+    return this.http.post<TechnicianAvailability>(
+      this.url(`team/technicians/${id}/availability/use-branch-hours`),
+      { updatedAt },
+    );
+  }
+
+  addTimeOff(id: string, body: TimeOffRequest): Observable<TimeOff> {
+    return this.http.post<TimeOff>(this.url(`team/technicians/${id}/time-off`), body);
+  }
+
+  removeTimeOff(
+    id: string,
+    timeOffId: string,
+    updatedAt: string,
+  ): Observable<{ readonly timeOff: TimeOff | null }> {
+    return this.http.post<{ readonly timeOff: TimeOff | null }>(
+      this.url(`team/technicians/${id}/time-off/${timeOffId}/retire`),
+      { updatedAt },
+    );
+  }
+
+  skillsMatrix(query: SkillsMatrixQuery): Observable<SkillsMatrixPage> {
+    let params = new HttpParams()
+      .set('coverage', query.coverage)
+      .set('sort', query.sort)
+      .set('page', query.page);
+    const search = query.search.trim();
+    if (search.length > 0) {
+      params = params.set('search', search);
+    }
+    if (query.branchId !== null) {
+      params = params.set('branchId', query.branchId);
+    }
+    if (query.skillId !== null) {
+      params = params.set('skillId', query.skillId);
+    }
+    return this.http.get<SkillsMatrixPage>(this.url('team/skills-matrix'), { params });
+  }
+
+  skillAssignments(id: string): Observable<SkillAssignments> {
+    return this.http.get<SkillAssignments>(this.url(`team/technicians/${id}/skill-assignments`));
+  }
+
+  saveSkillAssignments(
+    id: string,
+    body: { readonly updatedAt: string; readonly skillIds: readonly string[] },
+  ): Observable<SkillAssignments> {
+    return this.http.put<SkillAssignments>(
+      this.url(`team/technicians/${id}/skill-assignments`),
+      body,
+    );
   }
 }

@@ -665,7 +665,7 @@ internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStor
             context.Prefix,
             now.AddDays(-9),
             now.AddDays(9),
-            onlyActiveExceptions: false,
+            onlyActiveExceptions: true,
             cancellationToken);
 
     private async Task<TechnicianProfileData> BuildProfileAsync(

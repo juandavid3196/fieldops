@@ -1,0 +1,203 @@
+<app-drawer-shell
+  size="28rem"
+  [dockable]="false"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="time-off__title" [id]="titleId" tabindex="-1">Time off</h2>
+    <span class="time-off__spacer"></span>
+    <button
+      type="button"
+      class="time-off__close"
+      aria-label="Close time off"
+      [disabled]="busy()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (open()) {
+      <div class="time-off__body">
+        <div class="time-off__field">
+          <label class="time-off__label" for="time-off-technician">Technician</label>
+          <app-technician-picker
+            inputId="time-off-technician"
+            [value]="selection()"
+            [current]="current()"
+            [disabled]="busy()"
+            (selected)="onPick($event)"
+          />
+        </div>
+
+        @if (loading() && detail() === null) {
+          <div class="time-off__skeletons" aria-busy="true">
+            <p-skeleton height="3rem" />
+            <p-skeleton height="3rem" />
+            <p-skeleton height="3rem" />
+          </div>
+        } @else if (notFound()) {
+          <p-message severity="error" [closable]="false">{{ unavailableMessage }}</p-message>
+        } @else if (loadFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="time-off__inline">
+              We couldn't load this technician's time off.
+              <button pButton type="button" severity="secondary" size="small" (click)="reload()">
+                Retry
+              </button>
+            </span>
+          </p-message>
+        } @else if (detail()) {
+          <section class="time-off__section" aria-labelledby="time-off-upcoming">
+            <h3 class="time-off__heading" id="time-off-upcoming">Upcoming time off</h3>
+            @if (conflict(); as notice) {
+              <p-message severity="error" [closable]="false" role="alert">
+                <span class="time-off__inline">
+                  {{ notice.text }}
+                  @if (notice.reloadable) {
+                    <button
+                      pButton
+                      type="button"
+                      severity="secondary"
+                      size="small"
+                      (click)="reload()"
+                    >
+                      Reload
+                    </button>
+                  }
+                </span>
+              </p-message>
+            }
+            @if (items().length === 0) {
+              <p class="time-off__empty">No upcoming time off.</p>
+            } @else {
+              <ul class="time-off__list">
+                @for (entry of items(); track entry.item.id) {
+                  <li class="time-off__item">
+                    <div class="time-off__item-text">
+                      <span class="time-off__range">{{ entry.range }}</span>
+                      @if (entry.item.note) {
+                        <span class="time-off__note">{{ entry.item.note }}</span>
+                      }
+                    </div>
+                    <button
+                      pButton
+                      type="button"
+                      severity="secondary"
+                      size="small"
+                      [outlined]="true"
+                      [attr.aria-label]="'Remove time off ' + entry.range"
+                      [disabled]="busy() || loading()"
+                      (click)="confirmRemove(entry.item)"
+                    >
+                      Remove
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </section>
+
+          <form
+            class="time-off__form"
+            ngNoForm
+            novalidate
+            aria-label="Add time off"
+            (submit)="$event.preventDefault(); add()"
+          >
+            <h3 class="time-off__heading">Add time off</h3>
+            @if (saveFailed()) {
+              <p-message severity="error" [closable]="false" role="alert">
+                We couldn't add time off. Try again.
+              </p-message>
+            }
+            <div class="time-off__row">
+              <app-form-field
+                label="Start date"
+                controlId="time-off-start"
+                [required]="true"
+                [error]="errors().startDate ?? null"
+              >
+                <input
+                  pInputText
+                  fluid
+                  type="date"
+                  id="time-off-start"
+                  [min]="today()"
+                  [ngModel]="form().startDate"
+                  (ngModelChange)="patch({ startDate: $event }, 'startDate')"
+                  [disabled]="busy()"
+                  [invalid]="errors().startDate !== undefined"
+                  aria-required="true"
+                  [attr.aria-invalid]="errors().startDate !== undefined ? 'true' : null"
+                  [attr.aria-describedby]="errors().startDate ? 'time-off-start-error' : null"
+                />
+              </app-form-field>
+              <app-form-field
+                label="End date"
+                controlId="time-off-end"
+                [required]="true"
+                [error]="errors().endDate ?? null"
+              >
+                <input
+                  pInputText
+                  fluid
+                  type="date"
+                  id="time-off-end"
+                  [min]="form().startDate || today()"
+                  [ngModel]="form().endDate"
+                  (ngModelChange)="patch({ endDate: $event }, 'endDate')"
+                  [disabled]="busy()"
+                  [invalid]="errors().endDate !== undefined"
+                  aria-required="true"
+                  [attr.aria-invalid]="errors().endDate !== undefined ? 'true' : null"
+                  [attr.aria-describedby]="errors().endDate ? 'time-off-end-error' : null"
+                />
+              </app-form-field>
+            </div>
+            <app-form-field label="Note" controlId="time-off-note" [error]="errors().note ?? null">
+              <textarea
+                pTextarea
+                rows="3"
+                fluid
+                id="time-off-note"
+                [ngModel]="form().note"
+                (ngModelChange)="patch({ note: $event }, 'note')"
+                [disabled]="busy()"
+                [invalid]="errors().note !== undefined"
+                [attr.aria-invalid]="errors().note !== undefined ? 'true' : null"
+                [attr.aria-describedby]="errors().note ? 'time-off-note-error' : null"
+              ></textarea>
+            </app-form-field>
+            <button pButton type="submit" class="time-off__action" [disabled]="busy() || loading()">
+              @if (submitting()) {
+                <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+              }
+              Add time off
+            </button>
+          </form>
+        } @else {
+          <p class="time-off__empty">Choose a technician to see their time off.</p>
+        }
+      </div>
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <span class="time-off__spacer"></span>
+    <button
+      pButton
+      type="button"
+      class="time-off__action"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="busy()"
+      (click)="requestClose()"
+    >
+      Close
+    </button>
+  </ng-container>
+</app-drawer-shell>

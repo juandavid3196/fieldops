@@ -126,6 +126,11 @@ public static class DependencyInjection
         services.AddScoped<SaveSkillsAvailabilityHandler>();
         services.AddScoped<TechnicianExceptionsHandler>();
         services.AddScoped<SkillCatalogHandler>();
+        services.AddScoped<GetTeamAvailabilityHandler>();
+        services.AddScoped<GetSkillsMatrixHandler>();
+        services.AddScoped<TechnicianAvailabilityHandler>();
+        services.AddScoped<TechnicianTimeOffHandler>();
+        services.AddScoped<TechnicianSkillAssignmentsHandler>();
         services.AddScoped<ListUsersHandler>();
         services.AddScoped<GetUsersSummaryHandler>();
         services.AddSingleton<GetPermissionMatrixHandler>();

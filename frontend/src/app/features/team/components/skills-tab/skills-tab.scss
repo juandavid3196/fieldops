@@ -1,0 +1,278 @@
+@use '../../../../../styles/breakpoints' as bp;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 1.25rem 1rem;
+  background: var(--fo-color-surface);
+  border: 1px solid var(--fo-color-border);
+  border-radius: var(--fo-radius-card);
+
+  @include bp.up(md) {
+    padding: 1rem 1.5rem 1.25rem;
+  }
+
+  &__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  &__filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__search {
+    flex: 1 1 100%;
+
+    @include bp.up(md) {
+      flex: 1 1 14rem;
+      max-inline-size: 20rem;
+    }
+  }
+
+  &__select {
+    flex: 1 1 100%;
+    min-width: 0;
+    min-height: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      flex: 0 1 11rem;
+      min-height: var(--fo-size-control);
+    }
+  }
+
+  &__control {
+    min-height: var(--fo-size-touch-target);
+
+    @include bp.up(md) {
+      min-height: var(--fo-size-control);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-inline-start: auto;
+  }
+
+  &__action {
+    min-height: var(--fo-size-touch-target);
+    white-space: nowrap;
+
+    @include bp.up(md) {
+      min-height: var(--fo-size-control);
+    }
+  }
+
+  &__note {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__results {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  &__error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--p-content-border-radius);
+  }
+
+  &__empty-text {
+    margin: 0;
+  }
+
+  // The table scrolls inside the card; the Technician column stays fixed (BR-26).
+  &__scroll {
+    overflow-x: auto;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-panel);
+
+    &--busy {
+      opacity: 0.6;
+    }
+  }
+
+  &__table {
+    inline-size: 100%;
+    min-inline-size: 48rem;
+    border-collapse: separate;
+    border-spacing: 0;
+
+    th,
+    td {
+      padding: 0.625rem 0.75rem;
+      text-align: start;
+      border-block-end: 1px solid var(--fo-color-row-divider);
+    }
+
+    thead th {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+      white-space: nowrap;
+      background: var(--fo-color-surface-muted);
+    }
+
+    tbody tr:last-child > * {
+      border-block-end: 0;
+    }
+  }
+
+  &__sticky {
+    position: sticky;
+    inset-inline-start: 0;
+    z-index: 1;
+    min-inline-size: 13rem;
+    background: var(--fo-color-surface);
+  }
+
+  thead &__sticky {
+    background: var(--fo-color-surface-muted);
+  }
+
+  // Outranks `.matrix__table th/td { text-align: start }` so headers and cells share one axis.
+  &__table &__center {
+    text-align: center;
+  }
+
+  &__person {
+    font-weight: 600;
+
+    > * {
+      vertical-align: middle;
+    }
+  }
+
+  &__avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    margin-inline-end: 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-primary-strong);
+    background: color-mix(in srgb, var(--avatar-color, var(--fo-color-primary)) 16%, transparent);
+    border-radius: 50%;
+  }
+
+  &__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-block-size: 2rem;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 1.5rem;
+    block-size: 1.5rem;
+    font-size: 0.75rem;
+    color: var(--fo-color-surface);
+    background: var(--fo-color-primary);
+    border-radius: 50%;
+  }
+
+  &__dash {
+    display: inline-block;
+    inline-size: 1rem;
+    block-size: 2px;
+    vertical-align: middle;
+    background: var(--fo-color-border);
+    border-radius: 2px;
+  }
+
+  &__menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: var(--fo-size-touch-target);
+    block-size: var(--fo-size-touch-target);
+    color: var(--fo-color-text-secondary);
+    background: transparent;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--fo-color-disabled-background);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  &__report {
+    margin: 0;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__paginator {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0;
+  }
+}

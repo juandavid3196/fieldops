@@ -14,10 +14,12 @@ internal sealed record ScheduleSubject(Guid Id, TechnicianStatus Status, string?
 /// </summary>
 internal static class TechnicianScheduleLoader
 {
+    private sealed record HoursSource(Guid Id, bool UsesBranchHours, string BusinessHours);
+
     private static readonly VisitStatus[] OnJobStatuses = [VisitStatus.OnTheWay, VisitStatus.InProgress, VisitStatus.Paused];
 
     /// <param name="onlyActiveExceptions">
-    /// The Team pages keep their historical behavior (false); the assessment flow considers active exceptions only.
+    /// Every caller considers active exceptions only: cancelled time off is released (team-availability-skills BR-15, BR-16).
     /// </param>
     public static async Task<Dictionary<Guid, TechnicianSchedule>> LoadAsync(
         FieldOpsDbContext dbContext,
@@ -32,8 +34,19 @@ internal static class TechnicianScheduleLoader
     {
         var ids = subjects.Select(row => row.Id).ToArray();
 
+        // BR-07: a profile that uses the branch hours has no personal rows to read.
+        var sources = await (
+            from profile in dbContext.TechnicianProfiles.AsNoTracking()
+            join branch in dbContext.Branches.AsNoTracking() on profile.BranchId equals branch.Id
+            where ids.Contains(profile.Id)
+            select new HoursSource(profile.Id, profile.UsesBranchHours, branch.BusinessHours))
+            .ToListAsync(cancellationToken);
+
+        var sourceById = sources.ToDictionary(item => item.Id);
+        var ownIds = ids.Where(id => !sourceById.TryGetValue(id, out var source) || !source.UsesBranchHours).ToArray();
+
         var slotRows = await dbContext.TechnicianWeeklyAvailabilities.AsNoTracking()
-            .Where(slot => ids.Contains(slot.TechnicianId))
+            .Where(slot => ownIds.Contains(slot.TechnicianId))
             .Select(slot => new { slot.Id, slot.TechnicianId, slot.DayOfWeek, slot.StartTime, slot.EndTime, slot.CapacityPercent })
             .ToListAsync(cancellationToken);
 
@@ -87,12 +100,12 @@ internal static class TechnicianScheduleLoader
             row => new TechnicianSchedule(
                 row.Status,
                 BranchTime.ResolveZoneId(row.BranchTimezone, organizationTimezone),
-                [.. slotRows.Where(slot => slot.TechnicianId == row.Id).Select(slot => new AvailabilitySlot(
+                ResolveSlots(row.Id, sourceById, slotRows.Where(slot => slot.TechnicianId == row.Id).Select(slot => new AvailabilitySlot(
                     slot.DayOfWeek,
                     slot.StartTime,
                     slot.EndTime,
                     slot.CapacityPercent,
-                    breaksBySlot.TryGetValue(slot.Id, out var breaks) ? breaks : []))],
+                    breaksBySlot.TryGetValue(slot.Id, out var breaks) ? breaks : [])).ToList()),
                 [.. exceptionRows.Where(item => item.TechnicianId == row.Id)
                     .Select(item => new AvailabilityOverride(item.StartsAt, item.EndsAt, item.IsAvailable))],
                 [.. visitRows.Where(item => item.TechnicianId == row.Id).Select(item => new AssignedVisit(
@@ -101,6 +114,12 @@ internal static class TechnicianScheduleLoader
                     item.ScheduledEnd,
                     item.Scope is null ? null : $"{workOrderPrefix}-{item.WorkOrderNumber} – {FirstLine(item.Scope)}"))]));
     }
+
+    private static IReadOnlyList<AvailabilitySlot> ResolveSlots(
+        Guid id, Dictionary<Guid, HoursSource> sources, List<AvailabilitySlot> own) =>
+        sources.TryGetValue(id, out var source)
+            ? EffectiveWeeklyAvailability.Resolve(source.UsesBranchHours, source.BusinessHours, own)
+            : own;
 
     private static string FirstLine(string text) => text.Split('\n', 2)[0].Trim();
 }

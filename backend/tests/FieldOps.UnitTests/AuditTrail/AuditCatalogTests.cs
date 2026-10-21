@@ -20,6 +20,7 @@ public sealed partial class AuditCatalogTests
         "catalog_item.created", "catalog_item.updated", "catalog_item.activated", "catalog_item.deactivated", "catalog_item.image_updated", "catalog_item.image_removed", "catalog_item.imported",
         "catalog_category.created", "catalog_category.renamed", "catalog_category.deactivated", "catalog_category.reactivated",
         "technician_profile.created", "technician_profile.updated", "technician_profile.activated", "technician_profile.deactivated", "technician_profile.account_linked", "technician_profile.account_unlinked", "technician_profile.skills_availability_updated",
+        "technician.availability_updated", "technician.skills_updated", "technician.time_off_created", "technician.time_off_removed",
         "technician_exception.created", "technician_exception.updated", "technician_exception.activated", "technician_exception.cancelled",
         "skill.created", "skill.updated", "skill.activated", "skill.deactivated",
         "checklist_template.created",

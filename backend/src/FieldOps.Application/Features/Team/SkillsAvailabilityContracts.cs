@@ -34,6 +34,9 @@ public static class ExceptionKinds
     public const string Partial = "partial";
 
     public const string Unavailable = "unavailable";
+
+    /// <summary>A read-only active full-day range of more than one local day (team-availability-skills BR-27).</summary>
+    public const string TimeOff = "time_off";
 }
 
 public sealed record ExceptionValues(DateOnly Date, string Kind, TimeOnly? Start, TimeOnly? End, string Reason);
@@ -66,6 +69,7 @@ public sealed record SkillsAvailabilityData(
     DateTimeOffset UpdatedAt,
     string ZoneId,
     IReadOnlyList<AvailabilitySlot> Slots,
+    bool UsesBranchHours,
     IReadOnlyList<AssignedSkillData> Skills,
     IReadOnlyList<ExceptionData> Exceptions,
     IReadOnlyList<AssignedVisit> Visits);
@@ -113,8 +117,9 @@ public sealed record WeeklyDayView(
 
 public sealed record AssignedSkillView(Guid SkillId, string Name, int? Proficiency, bool IsPrimary);
 
+/// <summary><c>EndDate</c> is set only for kind <c>time_off</c> (read-only multi-day time off).</summary>
 public sealed record ExceptionView(
-    Guid Id, string Date, string Kind, string? Start, string? End, string Reason, string Status, string Version);
+    Guid Id, string Date, string Kind, string? Start, string? End, string Reason, string Status, string Version, string? EndDate = null);
 
 public sealed record UpcomingWindowView(string Start, string End);
 
@@ -136,6 +141,7 @@ public sealed record SkillsAvailabilityView(
     string Version,
     string Timezone,
     string TimezoneLabel,
+    bool UsesBranchHours,
     IReadOnlyList<WeeklyDayView> WeeklyAvailability,
     IReadOnlyList<AssignedSkillView> Skills,
     IReadOnlyList<ExceptionView> Exceptions,
@@ -206,6 +212,14 @@ public static class SkillsAvailabilityMessages
 
 public static class SkillsAvailabilityAuditActions
 {
+    public const string AvailabilityUpdated = "technician.availability_updated";
+
+    public const string TimeOffCreated = "technician.time_off_created";
+
+    public const string TimeOffRemoved = "technician.time_off_removed";
+
+    public const string SkillsUpdated = "technician.skills_updated";
+
     public const string ProfileUpdated = "technician_profile.skills_availability_updated";
 
     public const string ExceptionEntity = "technician_exception";

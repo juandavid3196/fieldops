@@ -1,0 +1,29 @@
+<nav class="team-tabs" aria-label="Team sections">
+  <a
+    class="team-tabs__tab"
+    routerLink="/team"
+    [class.team-tabs__tab--current]="current() === 'members'"
+    [attr.aria-current]="current() === 'members' ? 'page' : null"
+  >
+    Team members ({{ membersCount() ?? '—' }})
+  </a>
+  <a
+    class="team-tabs__tab"
+    routerLink="/team"
+    [queryParams]="availabilityQuery"
+    [class.team-tabs__tab--current]="current() === 'availability'"
+    [attr.aria-current]="current() === 'availability' ? 'page' : null"
+  >
+    Availability
+  </a>
+  <a
+    class="team-tabs__tab"
+    routerLink="/team"
+    [queryParams]="skillsQuery"
+    [class.team-tabs__tab--current]="current() === 'skills'"
+    [attr.aria-current]="current() === 'skills' ? 'page' : null"
+  >
+    Skills
+  </a>
+  <div class="team-tabs__trailing"><ng-content /></div>
+</nav>

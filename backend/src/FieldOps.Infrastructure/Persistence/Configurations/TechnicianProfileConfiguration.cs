@@ -72,6 +72,12 @@ internal sealed class TechnicianProfileConfiguration
             .HasSentinel(TechnicianStatus.Active)
             .IsRequired();
 
+        // True = recurring availability inherits the home branch business hours (team-availability-skills BR-07).
+        builder.Property(technician => technician.UsesBranchHours)
+            .HasDefaultValue(true)
+            .HasSentinel(true)
+            .IsRequired();
+
         builder.Property(technician => technician.ColorHex)
             .HasMaxLength(7)
             .IsFixedLength();

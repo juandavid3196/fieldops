@@ -1,0 +1,202 @@
+<app-drawer-shell
+  size="26rem"
+  [dockable]="false"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <div class="skills-drawer__heading">
+      <h2 class="skills-drawer__title" [id]="titleId" tabindex="-1">Edit skills</h2>
+      <p class="skills-drawer__subtitle">Choose the skills this technician can be assigned to.</p>
+    </div>
+    <span class="skills-drawer__spacer"></span>
+    <button
+      type="button"
+      class="skills-drawer__close"
+      aria-label="Close edit skills"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (open()) {
+      <div class="skills-drawer__body">
+        <div class="skills-drawer__field">
+          <label class="skills-drawer__label" for="skills-technician">Technician</label>
+          <app-technician-picker
+            inputId="skills-technician"
+            [value]="selection()"
+            [current]="current()"
+            [disabled]="submitting()"
+            (selected)="onPick($event)"
+          />
+        </div>
+
+        @if (loading() || catalogLoading()) {
+          <div class="skills-drawer__skeletons" aria-busy="true">
+            @for (row of [0, 1, 2, 3, 4]; track row) {
+              <p-skeleton height="2.25rem" />
+            }
+          </div>
+        } @else if (notFound()) {
+          <p-message severity="error" [closable]="false">{{ unavailableMessage }}</p-message>
+        } @else if (loadFailed() || catalogFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="skills-drawer__inline">
+              We couldn't load skills.
+              <button
+                pButton
+                type="button"
+                severity="secondary"
+                size="small"
+                (click)="catalogFailed() ? loadCatalog() : load()"
+              >
+                Retry
+              </button>
+            </span>
+          </p-message>
+        } @else if (assignments()) {
+          @if (stale()) {
+            <p-message severity="error" [closable]="false" role="alert">
+              <span class="skills-drawer__inline">
+                {{ staleMessage }}
+                <button pButton type="button" severity="secondary" size="small" (click)="load()">
+                  Reload
+                </button>
+              </span>
+            </p-message>
+          } @else if (saveFailed()) {
+            <p-message severity="error" [closable]="false" role="alert">
+              We couldn't save skills. Try again.
+            </p-message>
+          }
+          @if (activeSkills().length === 0) {
+            <p class="skills-drawer__hint">No skills defined yet.</p>
+          } @else {
+            <section class="skills-drawer__section" aria-labelledby="skills-selected-title">
+              <div class="skills-drawer__row">
+                <h3 id="skills-selected-title" class="skills-drawer__label">Selected skills</h3>
+                <p class="skills-drawer__count" aria-live="polite">
+                  {{ selectedCount() }} selected
+                </p>
+              </div>
+              @if (selectedSkills().length > 0) {
+                <ul class="skills-drawer__chips" aria-label="Selected skills">
+                  @for (skill of selectedSkills(); track skill.id) {
+                    <li class="skills-drawer__chip">
+                      {{ skill.name }}
+                      <button
+                        type="button"
+                        class="skills-drawer__chip-remove"
+                        [disabled]="submitting()"
+                        [attr.aria-label]="'Remove ' + skill.name"
+                        (click)="remove(skill.id)"
+                      >
+                        <i class="pi pi-times" aria-hidden="true"></i>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+              <p class="skills-drawer__note">
+                <i class="pi pi-info-circle" aria-hidden="true"></i>
+                New skills start at Intermediate level.
+              </p>
+            </section>
+            @if (skillsError(); as message) {
+              <p class="skills-drawer__error" role="alert">{{ message }}</p>
+            }
+            <p-iconfield>
+              <p-inputicon class="pi pi-search" />
+              <input
+                pInputText
+                type="search"
+                fluid
+                class="skills-drawer__search"
+                placeholder="Search skill catalog..."
+                aria-label="Search skills"
+                maxlength="100"
+                [ngModel]="searchText()"
+                (ngModelChange)="onSearch($event)"
+              />
+            </p-iconfield>
+            <p-select
+              class="skills-drawer__filter"
+              appendTo="body"
+              fluid
+              ariaLabel="Show skills"
+              [options]="filterOptions"
+              optionLabel="label"
+              optionValue="code"
+              [ngModel]="filter()"
+              (ngModelChange)="filter.set($event)"
+            />
+            <section class="skills-drawer__section" aria-labelledby="skills-available-title">
+              <h3 id="skills-available-title" class="skills-drawer__label">Available skills</h3>
+              @if (visibleSkills().length === 0) {
+                <p class="skills-drawer__hint">No skills match.</p>
+              } @else {
+                <ul class="skills-drawer__list" aria-label="Skills">
+                  @for (skill of visibleSkills(); track skill.id) {
+                    <li>
+                      <label class="skills-drawer__option">
+                        <input
+                          type="checkbox"
+                          [checked]="selectedSet().has(skill.id)"
+                          [disabled]="submitting()"
+                          (change)="toggle(skill.id, $event)"
+                        />
+                        <span class="skills-drawer__option-text">
+                          <span class="skills-drawer__option-name">{{ skill.name }}</span>
+                          @if (skill.description) {
+                            <span class="skills-drawer__option-description">
+                              {{ skill.description }}
+                            </span>
+                          }
+                        </span>
+                      </label>
+                    </li>
+                  }
+                </ul>
+              }
+            </section>
+          }
+        } @else {
+          <p class="skills-drawer__hint">Choose a technician to edit skills.</p>
+        }
+      </div>
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    <p class="skills-drawer__footer-note">Changes affect future job matching.</p>
+    <span class="skills-drawer__spacer"></span>
+    <button
+      pButton
+      type="button"
+      class="skills-drawer__action"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      Cancel
+    </button>
+    <button
+      pButton
+      type="button"
+      class="skills-drawer__action"
+      [disabled]="!canSave()"
+      (click)="submit()"
+    >
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Save changes
+    </button>
+  </ng-container>
+</app-drawer-shell>

@@ -1,5 +1,5 @@
 import { Component, DestroyRef, computed, inject, signal, viewChild } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
@@ -34,19 +34,22 @@ import {
   discardChangesConfirmation,
 } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 import { handleUnauthorized } from '../../../organizations/utils/handle-unauthorized';
+import { AvailabilityTab } from '../../components/availability-tab/availability-tab';
 import { LinkAccountDialog } from '../../components/link-account-dialog/link-account-dialog';
+import { SkillsTab } from '../../components/skills-tab/skills-tab';
 import { TeamTable } from '../../components/team-table/team-table';
+import { TeamTabs } from '../../components/team-tabs/team-tabs';
 import { TechnicianDrawer } from '../../components/technician-drawer/technician-drawer';
 import {
   TechnicianFormDrawer,
   TechnicianFormMode,
 } from '../../components/technician-form-drawer/technician-form-drawer';
 import {
-  AVAILABILITY_PATH,
   SCHEDULE_PATH,
   SKILLS_PATH,
   TechnicianProfile,
 } from '../../components/technician-profile/technician-profile';
+import { TeamTab } from '../../models/team-planning.model';
 import {
   AccountLinkFilter,
   SkillCoverage,
@@ -146,8 +149,11 @@ type Panel = 'none' | 'detail' | 'form';
     Skeleton,
     Tag,
     Toast,
+    AvailabilityTab,
     LinkAccountDialog,
+    SkillsTab,
     TeamTable,
+    TeamTabs,
     TechnicianDrawer,
     TechnicianFormDrawer,
     TechnicianProfile,
@@ -187,10 +193,20 @@ export class Team {
   readonly healthLabels = HEALTH_LABELS;
   readonly healthSeverities = HEALTH_SEVERITIES;
   readonly skillsPath = SKILLS_PATH;
-  readonly availabilityPath = AVAILABILITY_PATH;
   readonly schedulePath = SCHEDULE_PATH;
   /** The technician shell's top bar already names the page, so it hides the breadcrumb. */
-  readonly showCrumbs = inject(ActivatedRoute).snapshot.data['hideCrumbs'] !== true;
+  private readonly route = inject(ActivatedRoute);
+  readonly showCrumbs = this.route.snapshot.data['hideCrumbs'] !== true;
+  /** BR-01: the selected tab lives in the `tab` query parameter. */
+  readonly tab = toSignal(
+    this.route.queryParamMap.pipe(
+      map((params): TeamTab => {
+        const value = params.get('tab');
+        return value === 'availability' || value === 'skills' ? value : 'members';
+      }),
+    ),
+    { initialValue: 'members' as TeamTab },
+  );
 
   // Roles (UX only)
   private readonly roleCode = computed(() => this.sessionService.session()?.role.code ?? '');
@@ -655,6 +671,11 @@ export class Team {
 
   onUnauthorized(): void {
     handleUnauthorized(this.router, this.sessionExpired);
+  }
+
+  /** A tab's data request was refused with `403`: the existing forbidden state. */
+  onTabForbidden(): void {
+    this.serverForbidden.set(true);
   }
 
   // Account link and status (BR-17, BR-18)

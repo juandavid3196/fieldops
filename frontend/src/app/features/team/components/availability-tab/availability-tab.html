@@ -1,0 +1,201 @@
+<section class="avail" aria-label="Team availability">
+  <app-team-tabs current="availability" [membersCount]="membersCount()">
+    <div class="avail__week" role="group" aria-label="Week">
+      <button
+        type="button"
+        class="avail__week-button"
+        aria-label="Previous week"
+        [disabled]="weekStart() === null"
+        (click)="shiftWeek(-1)"
+      >
+        <i class="pi pi-angle-left" aria-hidden="true"></i>
+      </button>
+      <span class="avail__range" aria-live="polite">{{ range() }}</span>
+      <button
+        type="button"
+        class="avail__week-button"
+        aria-label="Next week"
+        [disabled]="weekStart() === null"
+        (click)="shiftWeek(1)"
+      >
+        <i class="pi pi-angle-right" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="avail__week-button" (click)="thisWeek()">This week</button>
+    </div>
+  </app-team-tabs>
+
+  <div class="avail__filters" role="search" aria-label="Filter availability">
+    <p-iconfield class="avail__search">
+      <p-inputicon class="pi pi-search" />
+      <input
+        pInputText
+        type="search"
+        class="avail__control"
+        placeholder="Search technicians..."
+        aria-label="Search technicians"
+        maxlength="100"
+        fluid
+        [ngModel]="searchText()"
+        (ngModelChange)="onSearchText($event)"
+      />
+    </p-iconfield>
+    <p-select
+      class="avail__select"
+      appendTo="body"
+      fluid
+      ariaLabel="Branch"
+      [loading]="branchesLoading()"
+      [options]="branchChoices()"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="branchId() ?? 'all'"
+      (ngModelChange)="onBranch($event)"
+    >
+      <ng-template #selectedItem let-option>
+        {{ option.code === 'all' ? 'Branch' : option.label }}
+      </ng-template>
+    </p-select>
+    <p-select
+      class="avail__select"
+      appendTo="body"
+      fluid
+      ariaLabel="Availability"
+      [options]="availabilityOptions"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="availability()"
+      (ngModelChange)="onAvailability($event)"
+    >
+      <ng-template #selectedItem let-option>
+        {{ option.code === 'all' ? 'Availability' : option.label }}
+      </ng-template>
+    </p-select>
+    @if (canMutate()) {
+      <div class="avail__actions">
+        <button
+          pButton
+          type="button"
+          class="avail__action"
+          severity="secondary"
+          [outlined]="true"
+          (click)="open('timeOff')"
+        >
+          Time off
+        </button>
+        <button pButton type="button" class="avail__action" (click)="open('edit')">
+          Edit availability
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="avail__results" [attr.aria-busy]="loading()">
+    @if (error()) {
+      <p-message severity="error" [closable]="false">
+        <span class="avail__error">
+          {{ errorMessage }}
+          <button pButton type="button" severity="secondary" size="small" (click)="load()">
+            Retry
+          </button>
+        </span>
+      </p-message>
+    } @else if (loading()) {
+      <div class="avail__skeletons">
+        @for (row of skeletonRows; track row) {
+          <p-skeleton height="3rem" />
+        }
+      </div>
+    } @else if (rows().length === 0) {
+      <div class="avail__empty">
+        @if (hasFilters()) {
+          <p class="avail__empty-text">{{ filteredEmptyMessage }}</p>
+          <button pButton type="button" severity="secondary" (click)="clearFilters()">
+            Clear filters
+          </button>
+        } @else {
+          <p class="avail__empty-text">{{ emptyMessage }}</p>
+        }
+      </div>
+    } @else {
+      <div class="avail__scroll">
+        <table class="avail__table">
+          <caption class="avail__sr">
+            Weekly availability,
+            {{
+              range()
+            }}
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col" class="avail__sticky">Technician</th>
+              @for (header of headers(); track $index) {
+                <th scope="col" class="avail__center">{{ header }}</th>
+              }
+              <th scope="col" class="avail__center">Weekly hours</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.technicianId) {
+              <tr>
+                <th scope="row" class="avail__sticky avail__person">
+                  <span
+                    class="avail__avatar"
+                    aria-hidden="true"
+                    [style.--avatar-color]="row.colorHex"
+                  >
+                    {{ initials(row.firstName, row.lastName) }}
+                  </span>
+                  <span class="avail__who">
+                    <span class="avail__name">{{ row.firstName }} {{ row.lastName }}</span>
+                    <span class="avail__branch">{{ row.branch.name }}</span>
+                  </span>
+                </th>
+                @for (day of row.days; track day.date) {
+                  <td class="avail__center">
+                    <span class="avail__cell avail__cell--{{ day.state }}">{{
+                      cellText(day)
+                    }}</span>
+                  </td>
+                }
+                <td class="avail__center avail__hours">{{ weeklyHours(row.weeklyMinutes) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <ul class="avail__legend" aria-label="Legend">
+        @for (item of legend; track item.key) {
+          <li class="avail__legend-item">
+            <span class="avail__dot avail__dot--{{ item.key }}" aria-hidden="true"></span>
+            {{ item.label }}
+          </li>
+        }
+      </ul>
+      <div class="avail__pager">
+        <p class="avail__report">{{ report() }}</p>
+        <p-paginator
+          class="avail__paginator"
+          [first]="first()"
+          [rows]="pageSize"
+          [totalRecords]="totalCount()"
+          (onPageChange)="onPageChange($event)"
+        />
+      </div>
+    }
+  </div>
+</section>
+
+@if (canMutate()) {
+  <app-availability-drawer
+    [open]="drawer() === 'edit'"
+    (closed)="closeDrawer()"
+    (saved)="load()"
+    (unauthorized)="unauthorized.emit()"
+  />
+  <app-time-off-drawer
+    [open]="drawer() === 'timeOff'"
+    (closed)="closeDrawer()"
+    (changed)="load()"
+    (unauthorized)="unauthorized.emit()"
+  />
+}
