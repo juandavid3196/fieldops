@@ -27,6 +27,7 @@ using FieldOps.Application.Features.PortalRequests;
 using FieldOps.Application.Features.PublicRequests;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Quotes;
+using FieldOps.Application.Features.Search;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.TechnicianVisits;
@@ -128,6 +129,7 @@ public static class DependencyInjection
         services.AddScoped<IOperationsDashboardStore, OperationsDashboardStore>();
         services.AddScoped<IBillingReviewStore, BillingReviewStore>();
         services.AddScoped<IBusinessOverviewStore, BusinessOverviewStore>();
+        services.AddScoped<ISearchStore, SearchStore>();
         services.AddScoped<IReportsStore, ReportsStore>();
         services.AddScoped<INotificationEventWriter, NotificationEventWriter>();
         services.AddScoped<INotificationInboxStore, NotificationInboxStore>();

@@ -1,6 +1,12 @@
 -- FieldOps relational model for PostgreSQL 16+
 -- Updated from the consolidated 29-screen functional specification.
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+-- SA-23 (global-search): accent-insensitive matching. unaccent itself is only STABLE, so the search calls this IMMUTABLE
+-- wrapper, which pins the dictionary. No indexes and no columns are added.
+CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE OR REPLACE FUNCTION public.fieldops_unaccent(value text) RETURNS text
+  LANGUAGE sql IMMUTABLE PARALLEL SAFE STRICT
+  AS $$ SELECT public.unaccent('public.unaccent'::regdictionary, value) $$;
 
 CREATE TYPE user_status AS ENUM ('pending','active','suspended','disabled');
 CREATE TYPE customer_type AS ENUM ('person','company');

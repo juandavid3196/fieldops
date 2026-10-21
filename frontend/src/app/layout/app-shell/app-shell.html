@@ -31,21 +31,7 @@
           <span>Field</span><span class="shell__accent">Ops</span>
         </p>
       } @else {
-        <form class="shell__search" role="search" (submit)="onSearch($event)">
-          <label class="shell__hidden" for="shell-search">Search</label>
-          <p-iconfield>
-            <p-inputicon class="pi pi-search" />
-            <input
-              pInputText
-              id="shell-search"
-              type="search"
-              class="shell__search-input"
-              fluid
-              autocomplete="off"
-              [placeholder]="searchPlaceholder"
-            />
-          </p-iconfield>
-        </form>
+        <app-global-search class="shell__search" />
       }
 
       <span class="shell__spacer"></span>
