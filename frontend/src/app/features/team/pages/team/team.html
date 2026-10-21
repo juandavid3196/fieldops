@@ -129,174 +129,189 @@
           }
         </section>
 
-        <section class="team__card" aria-label="Team members">
-          <div class="team__tabs">
-            <span class="team__tab team__tab--current" aria-current="page">
-              Team members ({{ teamMembersCount() ?? '—' }})
-            </span>
-            <a class="team__tab" [routerLink]="availabilityPath">Availability</a>
-            <a class="team__tab" [routerLink]="skillsPath">Skills</a>
-            <div class="team__period" role="group" aria-label="Period">
-              <button
-                type="button"
-                class="team__period-button"
-                [attr.aria-pressed]="period() === 'today'"
-                (click)="onPeriod('today')"
-              >
-                Today
-              </button>
-              <button
-                type="button"
-                class="team__period-button"
-                [attr.aria-pressed]="period() === 'week'"
-                (click)="onPeriod('week')"
-              >
-                This week
-              </button>
-            </div>
-          </div>
-
-          <div class="team__filters" role="search" aria-label="Filter technicians">
-            <p-iconfield class="team__search">
-              <p-inputicon class="pi pi-search" />
-              <input
-                pInputText
-                type="search"
-                class="team__control"
-                placeholder="Search technicians..."
-                aria-label="Search technicians"
-                maxlength="100"
-                fluid
-                [ngModel]="searchText()"
-                (ngModelChange)="onSearchText($event)"
-              />
-            </p-iconfield>
-            <p-select
-              class="team__select"
-              appendTo="body"
-              fluid
-              ariaLabel="Branch"
-              [loading]="optionsLoading()"
-              [options]="branchChoices()"
-              optionLabel="label"
-              optionValue="code"
-              [ngModel]="branchId() ?? 'all'"
-              (ngModelChange)="onBranch($event)"
-            >
-              <ng-template #selectedItem let-option>
-                {{ option.code === 'all' ? 'Branch' : option.label }}
-              </ng-template>
-            </p-select>
-            <p-select
-              class="team__select"
-              appendTo="body"
-              fluid
-              ariaLabel="Skill"
-              [loading]="optionsLoading()"
-              [options]="skillChoices()"
-              optionLabel="label"
-              optionValue="code"
-              [ngModel]="skillId() ?? 'all'"
-              (ngModelChange)="onSkill($event)"
-            >
-              <ng-template #selectedItem let-option>
-                {{ option.code === 'all' ? 'Skill' : option.label }}
-              </ng-template>
-            </p-select>
-            <p-select
-              class="team__select"
-              appendTo="body"
-              fluid
-              ariaLabel="Current status"
-              [options]="statusOptions"
-              optionLabel="label"
-              optionValue="code"
-              [ngModel]="status()"
-              (ngModelChange)="onStatus($event)"
-            >
-              <ng-template #selectedItem let-option>
-                {{ option.code === 'all_active' ? 'Current status' : option.label }}
-              </ng-template>
-            </p-select>
-            <p-select
-              class="team__select"
-              appendTo="body"
-              fluid
-              ariaLabel="Account link"
-              [options]="linkOptions"
-              optionLabel="label"
-              optionValue="code"
-              [ngModel]="accountLink()"
-              (ngModelChange)="onAccountLink($event)"
-            >
-              <ng-template #selectedItem let-option>
-                {{ option.code === 'all' ? 'Account link' : option.label }}
-              </ng-template>
-            </p-select>
-          </div>
-
-          <div class="team__results" [attr.aria-busy]="loading()">
-            @if (listError()) {
-              <p-message severity="error" [closable]="false">
-                <span class="team__error">
-                  {{ loadErrorMessage }}
-                  <button
-                    pButton
-                    type="button"
-                    severity="secondary"
-                    size="small"
-                    (click)="loadList()"
-                  >
-                    Retry
-                  </button>
-                </span>
-              </p-message>
-            } @else if (loading()) {
-              <div class="team__skeletons">
-                @for (row of skeletonRows; track row) {
-                  <p-skeleton height="2.5rem" />
-                }
+        @if (tab() === 'availability') {
+          <app-availability-tab
+            [canMutate]="canMutate()"
+            [branches]="branches()"
+            [branchesLoading]="optionsLoading()"
+            [membersCount]="teamMembersCount()"
+            (unauthorized)="onUnauthorized()"
+            (forbidden)="onTabForbidden()"
+          />
+        } @else if (tab() === 'skills') {
+          <app-skills-tab
+            [canMutate]="canMutate()"
+            [branches]="branches()"
+            [branchesLoading]="optionsLoading()"
+            [membersCount]="teamMembersCount()"
+            (unauthorized)="onUnauthorized()"
+            (forbidden)="onTabForbidden()"
+          />
+        } @else {
+          <section class="team__card" aria-label="Team members">
+            <app-team-tabs current="members" [membersCount]="teamMembersCount()">
+              <div class="team__period" role="group" aria-label="Period">
+                <button
+                  type="button"
+                  class="team__period-button"
+                  [attr.aria-pressed]="period() === 'today'"
+                  (click)="onPeriod('today')"
+                >
+                  Today
+                </button>
+                <button
+                  type="button"
+                  class="team__period-button"
+                  [attr.aria-pressed]="period() === 'week'"
+                  (click)="onPeriod('week')"
+                >
+                  This week
+                </button>
               </div>
-            } @else if (rows().length === 0) {
-              <div class="team__empty">
-                @if (hasFilters()) {
-                  <p class="team__empty-text">{{ emptyFilteredMessage }}</p>
-                  <button pButton type="button" severity="secondary" (click)="clearFilters()">
-                    Clear filters
-                  </button>
-                } @else {
-                  <p class="team__empty-text">{{ emptyInitialMessage }}</p>
-                  @if (canMutate()) {
-                    <button pButton type="button" (click)="openCreate()">
-                      <i class="pi pi-plus" aria-hidden="true"></i>
-                      Add technician profile
-                    </button>
-                  }
-                }
-              </div>
-            } @else {
-              <app-team-table
-                [rows]="rows()"
-                [sort]="sort()"
-                [period]="period()"
-                [busyId]="mutatingId()"
-                (sortRequested)="toggleNameSort()"
-                (nameClicked)="openDetail($event.id)"
-                (menuRequested)="openMenu($event.event, $event.row)"
-              />
-              <div class="team__pager">
-                <p class="team__pager-report">{{ report() }}</p>
-                <p-paginator
-                  class="team__paginator"
-                  [first]="first()"
-                  [rows]="pageSize"
-                  [totalRecords]="totalCount()"
-                  (onPageChange)="onPageChange($event)"
+            </app-team-tabs>
+
+            <div class="team__filters" role="search" aria-label="Filter technicians">
+              <p-iconfield class="team__search">
+                <p-inputicon class="pi pi-search" />
+                <input
+                  pInputText
+                  type="search"
+                  class="team__control"
+                  placeholder="Search technicians..."
+                  aria-label="Search technicians"
+                  maxlength="100"
+                  fluid
+                  [ngModel]="searchText()"
+                  (ngModelChange)="onSearchText($event)"
                 />
-              </div>
-            }
-          </div>
-        </section>
+              </p-iconfield>
+              <p-select
+                class="team__select"
+                appendTo="body"
+                fluid
+                ariaLabel="Branch"
+                [loading]="optionsLoading()"
+                [options]="branchChoices()"
+                optionLabel="label"
+                optionValue="code"
+                [ngModel]="branchId() ?? 'all'"
+                (ngModelChange)="onBranch($event)"
+              >
+                <ng-template #selectedItem let-option>
+                  {{ option.code === 'all' ? 'Branch' : option.label }}
+                </ng-template>
+              </p-select>
+              <p-select
+                class="team__select"
+                appendTo="body"
+                fluid
+                ariaLabel="Skill"
+                [loading]="optionsLoading()"
+                [options]="skillChoices()"
+                optionLabel="label"
+                optionValue="code"
+                [ngModel]="skillId() ?? 'all'"
+                (ngModelChange)="onSkill($event)"
+              >
+                <ng-template #selectedItem let-option>
+                  {{ option.code === 'all' ? 'Skill' : option.label }}
+                </ng-template>
+              </p-select>
+              <p-select
+                class="team__select"
+                appendTo="body"
+                fluid
+                ariaLabel="Current status"
+                [options]="statusOptions"
+                optionLabel="label"
+                optionValue="code"
+                [ngModel]="status()"
+                (ngModelChange)="onStatus($event)"
+              >
+                <ng-template #selectedItem let-option>
+                  {{ option.code === 'all_active' ? 'Current status' : option.label }}
+                </ng-template>
+              </p-select>
+              <p-select
+                class="team__select"
+                appendTo="body"
+                fluid
+                ariaLabel="Account link"
+                [options]="linkOptions"
+                optionLabel="label"
+                optionValue="code"
+                [ngModel]="accountLink()"
+                (ngModelChange)="onAccountLink($event)"
+              >
+                <ng-template #selectedItem let-option>
+                  {{ option.code === 'all' ? 'Account link' : option.label }}
+                </ng-template>
+              </p-select>
+            </div>
+
+            <div class="team__results" [attr.aria-busy]="loading()">
+              @if (listError()) {
+                <p-message severity="error" [closable]="false">
+                  <span class="team__error">
+                    {{ loadErrorMessage }}
+                    <button
+                      pButton
+                      type="button"
+                      severity="secondary"
+                      size="small"
+                      (click)="loadList()"
+                    >
+                      Retry
+                    </button>
+                  </span>
+                </p-message>
+              } @else if (loading()) {
+                <div class="team__skeletons">
+                  @for (row of skeletonRows; track row) {
+                    <p-skeleton height="2.5rem" />
+                  }
+                </div>
+              } @else if (rows().length === 0) {
+                <div class="team__empty">
+                  @if (hasFilters()) {
+                    <p class="team__empty-text">{{ emptyFilteredMessage }}</p>
+                    <button pButton type="button" severity="secondary" (click)="clearFilters()">
+                      Clear filters
+                    </button>
+                  } @else {
+                    <p class="team__empty-text">{{ emptyInitialMessage }}</p>
+                    @if (canMutate()) {
+                      <button pButton type="button" (click)="openCreate()">
+                        <i class="pi pi-plus" aria-hidden="true"></i>
+                        Add technician profile
+                      </button>
+                    }
+                  }
+                </div>
+              } @else {
+                <app-team-table
+                  [rows]="rows()"
+                  [sort]="sort()"
+                  [period]="period()"
+                  [busyId]="mutatingId()"
+                  (sortRequested)="toggleNameSort()"
+                  (nameClicked)="openDetail($event.id)"
+                  (menuRequested)="openMenu($event.event, $event.row)"
+                />
+                <div class="team__pager">
+                  <p class="team__pager-report">{{ report() }}</p>
+                  <p-paginator
+                    class="team__paginator"
+                    [first]="first()"
+                    [rows]="pageSize"
+                    [totalRecords]="totalCount()"
+                    (onPageChange)="onPageChange($event)"
+                  />
+                </div>
+              }
+            </div>
+          </section>
+        }
 
         @if (!metricsFailed() && metrics(); as current) {
           @if (current.capacityAlert || current.unlinkedAlert) {

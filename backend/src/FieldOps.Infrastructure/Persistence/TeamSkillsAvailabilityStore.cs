@@ -21,7 +21,9 @@ internal sealed partial class TeamStore
         Guid BranchId,
         string BranchName,
         string? BranchTimezone,
-        DateTimeOffset UpdatedAt);
+        DateTimeOffset UpdatedAt,
+        bool UsesBranchHours,
+        string BranchBusinessHours);
 
     public async Task<string?> GetZoneIdAsync(
         Guid organizationId, BranchScope scope, Guid technicianId, CancellationToken cancellationToken)
@@ -60,10 +62,13 @@ internal sealed partial class TeamStore
         var low = now.AddDays(-2);
         var high = now.AddDays(9);
 
-        var slotRows = await dbContext.TechnicianWeeklyAvailabilities.AsNoTracking()
-            .Where(slot => slot.TechnicianId == technicianId)
-            .Select(slot => new { slot.Id, slot.DayOfWeek, slot.StartTime, slot.EndTime, slot.CapacityPercent })
-            .ToListAsync(cancellationToken);
+        // BR-07: an inheriting profile has no personal rows to read.
+        var slotRows = row.UsesBranchHours
+            ? []
+            : await dbContext.TechnicianWeeklyAvailabilities.AsNoTracking()
+                .Where(slot => slot.TechnicianId == technicianId)
+                .Select(slot => new { slot.Id, slot.DayOfWeek, slot.StartTime, slot.EndTime, slot.CapacityPercent })
+                .ToListAsync(cancellationToken);
 
         var slotIds = slotRows.Select(slot => slot.Id).ToArray();
         var breakRows = await dbContext.TechnicianBreaks.AsNoTracking()
@@ -111,12 +116,16 @@ internal sealed partial class TeamStore
             new TeamOption(row.BranchId, row.BranchName),
             row.UpdatedAt,
             BranchTime.ResolveZoneId(row.BranchTimezone, organizationTimezone),
-            [.. slotRows.Select(slot => new AvailabilitySlot(
-                slot.DayOfWeek,
-                slot.StartTime,
-                slot.EndTime,
-                slot.CapacityPercent,
-                breaksBySlot.TryGetValue(slot.Id, out var breaks) ? breaks : []))],
+            EffectiveWeeklyAvailability.Resolve(
+                row.UsesBranchHours,
+                row.BranchBusinessHours,
+                [.. slotRows.Select(slot => new AvailabilitySlot(
+                    slot.DayOfWeek,
+                    slot.StartTime,
+                    slot.EndTime,
+                    slot.CapacityPercent,
+                    breaksBySlot.TryGetValue(slot.Id, out var breaks) ? breaks : []))]),
+            row.UsesBranchHours,
             skills,
             exceptions,
             visits);
@@ -174,8 +183,10 @@ internal sealed partial class TeamStore
 
         var slotsByDay = slots.GroupBy(slot => (int)slot.DayOfWeek).ToDictionary(group => group.Key, group => group.OrderBy(slot => slot.StartTime).First());
 
-        // BR-25: legacy extras make the save a change even when the visible (normalized) rows match.
-        var weeklyChanged = slots.Count != values.Weekly.Count
+        // BR-25: legacy extras make the save a change even when the visible (normalized) rows match. An inheriting
+        // profile always changes: the save creates its override (team-availability-skills BR-27).
+        var weeklyChanged = profile.UsesBranchHours
+            || slots.Count != values.Weekly.Count
             || breaks.GroupBy(item => item.AvailabilityId).Any(group => group.Count() > 1)
             || values.Weekly.Any(day =>
             {
@@ -285,6 +296,11 @@ internal sealed partial class TeamStore
             }
         }
 
+        if (weeklyChanged)
+        {
+            profile.UseCustomSchedule(now);
+        }
+
         profile.Touch(now);
         dbContext.AuditLogs.Add(AuditLog.Create(
             organizationId,
@@ -324,7 +340,10 @@ internal sealed partial class TeamStore
             return new ExceptionResult(ExceptionOutcome.NotFound);
         }
 
-        if (await DateTakenAsync(technicianId, write.DayStart, write.DayEnd, null, cancellationToken))
+        var zone = await ZoneOfAsync(organizationId, profile.BranchId, cancellationToken);
+
+        if (await DateTakenAsync(technicianId, write.DayStart, write.DayEnd, null, cancellationToken)
+            || await TimeOffIntersectsAsync(technicianId, write.DayStart, write.DayEnd, null, zone, cancellationToken))
         {
             return new ExceptionResult(ExceptionOutcome.DateTaken);
         }
@@ -373,6 +392,11 @@ internal sealed partial class TeamStore
 
         var zone = BranchTime.FindZone(zoneId);
 
+        if (IsMultiDayTimeOff(exception, zone))
+        {
+            return new ExceptionResult(ExceptionOutcome.NotFound);
+        }
+
         if (exception.StartsAt < BranchTime.Day(now, zone).Start)
         {
             return new ExceptionResult(ExceptionOutcome.Past);
@@ -388,7 +412,8 @@ internal sealed partial class TeamStore
             return new ExceptionResult(ExceptionOutcome.Stale);
         }
 
-        if (await DateTakenAsync(technicianId, write.DayStart, write.DayEnd, exception.Id, cancellationToken))
+        if (await DateTakenAsync(technicianId, write.DayStart, write.DayEnd, exception.Id, cancellationToken)
+            || await TimeOffIntersectsAsync(technicianId, write.DayStart, write.DayEnd, exception.Id, zone, cancellationToken))
         {
             return new ExceptionResult(ExceptionOutcome.DateTaken);
         }
@@ -437,6 +462,11 @@ internal sealed partial class TeamStore
 
         var zone = BranchTime.FindZone(zoneId);
 
+        if (IsMultiDayTimeOff(exception, zone))
+        {
+            return new ExceptionResult(ExceptionOutcome.NotFound);
+        }
+
         if (exception.StartsAt < BranchTime.Day(now, zone).Start)
         {
             return new ExceptionResult(ExceptionOutcome.Past);
@@ -461,7 +491,8 @@ internal sealed partial class TeamStore
             var (dayStart, dayEnd) = (
                 BranchTime.ToInstant(date, TimeOnly.MinValue, zone), BranchTime.ToInstant(date.AddDays(1), TimeOnly.MinValue, zone));
 
-            if (await DateTakenAsync(technicianId, dayStart, dayEnd, exception.Id, cancellationToken))
+            if (await DateTakenAsync(technicianId, dayStart, dayEnd, exception.Id, cancellationToken)
+                || await TimeOffIntersectsAsync(technicianId, dayStart, dayEnd, exception.Id, zone, cancellationToken))
             {
                 return new ExceptionResult(ExceptionOutcome.DateTaken);
             }
@@ -575,7 +606,9 @@ internal sealed partial class TeamStore
                 profile.BranchId,
                 branch.Name,
                 branch.Timezone,
-                profile.UpdatedAt))
+                profile.UpdatedAt,
+                profile.UsesBranchHours,
+                branch.BusinessHours))
             .SingleOrDefaultAsync(cancellationToken);
 
     /// <summary>
@@ -623,6 +656,37 @@ internal sealed partial class TeamStore
                     && item.StartsAt < dayEnd
                     && (excludeId == null || item.Id != excludeId),
                 cancellationToken);
+
+    /// <summary>BR-27: an active full-day unavailable range (time off) that intersects the local day.</summary>
+    private async Task<bool> TimeOffIntersectsAsync(
+        Guid technicianId, DateTimeOffset dayStart, DateTimeOffset dayEnd, Guid? excludeId, TimeZoneInfo zone, CancellationToken cancellationToken)
+    {
+        var candidates = await dbContext.TechnicianExceptions.AsNoTracking()
+            .Where(item => item.TechnicianId == technicianId
+                && item.Status == TechnicianExceptionStatus.Active
+                && !item.IsAvailable
+                && item.StartsAt < dayEnd
+                && item.EndsAt > dayStart
+                && (excludeId == null || item.Id != excludeId))
+            .Select(item => new { item.StartsAt, item.EndsAt })
+            .ToListAsync(cancellationToken);
+
+        return candidates.Any(item => TimeOffRules.TryFullDayRange(item.StartsAt, item.EndsAt, zone, out _, out _));
+    }
+
+    private static bool IsMultiDayTimeOff(TechnicianException exception, TimeZoneInfo zone) =>
+        TimeOffRules.IsMultiDay(exception.IsAvailable, exception.StartsAt, exception.EndsAt, zone);
+
+    private async Task<TimeZoneInfo> ZoneOfAsync(Guid organizationId, Guid branchId, CancellationToken cancellationToken)
+    {
+        var branchTimezone = await dbContext.Branches.AsNoTracking()
+            .Where(branch => branch.Id == branchId)
+            .Select(branch => branch.Timezone)
+            .SingleOrDefaultAsync(cancellationToken);
+
+        return BranchTime.FindZone(BranchTime.ResolveZoneId(
+            branchTimezone, (await OrganizationContextAsync(organizationId, cancellationToken)).Timezone));
+    }
 
     private async Task<ExceptionResult> CommitExceptionAsync(
         Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction,

@@ -223,8 +223,8 @@ describe('Team page', () => {
     expect(page.buildMenu(ETHAN).map((item) => item.label)).toContain('Link account');
     expect(page.buildMenu(OLD).map((item) => item.label)).toContain('Activate');
     expect(button('Manage skills')?.getAttribute('href')).toBe('/coming-soon/team-skills');
-    expect(button('Availability')?.getAttribute('href')).toBe('/coming-soon/team-availability');
-    expect(button('Skills')?.getAttribute('href')).toBe('/coming-soon/team-skills');
+    expect(button('Availability')?.getAttribute('href')).toBe('/team?tab=availability');
+    expect(button('Skills')?.getAttribute('href')).toBe('/team?tab=skills');
 
     // Dispatcher: same data, no mutation affordances.
     TestBed.resetTestingModule();

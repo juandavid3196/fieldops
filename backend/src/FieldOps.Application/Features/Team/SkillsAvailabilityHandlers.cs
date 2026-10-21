@@ -31,9 +31,33 @@ internal static class SkillsAvailabilityMapping
         return $"(UTC{sign}{Math.Abs(offset.Hours):00}:{Math.Abs(offset.Minutes):00}) {zoneId}";
     }
 
+    /// <summary>
+    /// BR-27: an active full-day exception of more than one local day is team-availability-skills time off. It is
+    /// shown read-only; the same kind of row that was cancelled is hidden.
+    /// </summary>
+    public static bool IsMultiDayTimeOff(ExceptionData data, TimeZoneInfo zone) =>
+        TimeOffRules.IsMultiDay(data.IsAvailable, data.StartsAt, data.EndsAt, zone);
+
     public static ExceptionView ToView(ExceptionData data, TimeZoneInfo zone)
     {
         var date = BranchTime.LocalDate(data.StartsAt, zone);
+
+        if (IsMultiDayTimeOff(data, zone))
+        {
+            TimeOffRules.TryFullDayRange(data.StartsAt, data.EndsAt, zone, out _, out var endDate);
+
+            return new ExceptionView(
+                data.Id,
+                DateText(date),
+                ExceptionKinds.TimeOff,
+                null,
+                null,
+                data.Reason,
+                data.Status,
+                SkillsAvailabilityRules.FormatVersion(data.UpdatedAt),
+                DateText(endDate));
+        }
+
         var (dayStart, dayEnd) = (
             BranchTime.ToInstant(date, TimeOnly.MinValue, zone), BranchTime.ToInstant(date.AddDays(1), TimeOnly.MinValue, zone));
 
@@ -89,8 +113,9 @@ internal static class SkillsAvailabilityMapping
             .ToList();
 
         var exceptions = data.Exceptions
+            .Where(item => item.Status == TechnicianExceptionStatus.Active || !IsMultiDayTimeOff(item, zone))
             .Select(item => (Item: item, View: ToView(item, zone)))
-            .Where(item => string.CompareOrdinal(item.View.Date, DateText(today)) >= 0)
+            .Where(item => string.CompareOrdinal(item.View.EndDate ?? item.View.Date, DateText(today)) >= 0)
             .OrderBy(item => item.View.Date, StringComparer.Ordinal)
             .ThenBy(item => item.Item.StartsAt)
             .Select(item => item.View)
@@ -114,6 +139,7 @@ internal static class SkillsAvailabilityMapping
             SkillsAvailabilityRules.FormatVersion(data.UpdatedAt),
             data.ZoneId,
             ZoneLabel(data.ZoneId, zone, now),
+            data.UsesBranchHours,
             weekly,
             [.. data.Skills
                 .OrderByDescending(skill => skill.IsPrimary)

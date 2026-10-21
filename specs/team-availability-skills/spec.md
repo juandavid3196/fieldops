@@ -4,7 +4,7 @@
 | -------- | --------------------------- |
 | Feature  | `team-availability-skills`  |
 | Type     | Full-stack                  |
-| Status   | APPROVED                    |
+| Status   | AUDITED                     |
 | Created  | 2026-10-21                  |
 | Updated  | 2026-10-21                  |
 | Approved | 2026-10-21                  |
@@ -357,3 +357,5 @@ BR-14) required by the approved scope. 26 active ACs: two consumers' regression
 | 2026-10-21 | — → DRAFT     | Created with user decisions OD-01–OD-08 |
 | 2026-10-21 | DRAFT → DRAFT | Revised after validation: BR-27 lists multi-day time off by end date ≥ today (including started ranges); BR-08 defines the time zone label format |
 | 2026-10-21 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-21 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-21 | IMPLEMENTED → AUDITED | final-audit returned AUDIT PASS WITH MINOR FINDINGS. |

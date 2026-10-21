@@ -1,0 +1,174 @@
+<app-drawer-shell
+  size="32rem"
+  [dockable]="false"
+  [open]="open()"
+  [titleId]="titleId"
+  (closeRequested)="requestClose()"
+>
+  <ng-container ngProjectAs="[drawerHeader]">
+    <h2 class="availability-drawer__title" [id]="titleId" tabindex="-1">Edit availability</h2>
+    <span class="availability-drawer__spacer"></span>
+    <button
+      type="button"
+      class="availability-drawer__close"
+      aria-label="Close edit availability"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerBody]">
+    @if (open()) {
+      <div class="availability-drawer__body">
+        <div class="availability-drawer__field">
+          <label class="availability-drawer__label" for="availability-technician">Technician</label>
+          <app-technician-picker
+            inputId="availability-technician"
+            [value]="selection()"
+            [current]="current()"
+            [disabled]="submitting()"
+            (selected)="onPick($event)"
+          />
+        </div>
+
+        @if (loading()) {
+          <div class="availability-drawer__skeletons" aria-busy="true">
+            @for (row of [0, 1, 2, 3, 4, 5, 6]; track row) {
+              <p-skeleton height="2.5rem" />
+            }
+          </div>
+        } @else if (notFound()) {
+          <p-message severity="error" [closable]="false">{{ unavailableMessage }}</p-message>
+        } @else if (loadFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="availability-drawer__inline">
+              {{ loadFailedMessage }}
+              <button pButton type="button" severity="secondary" size="small" (click)="load()">
+                Retry
+              </button>
+            </span>
+          </p-message>
+        } @else if (detail(); as technician) {
+          <div class="availability-drawer__meta">
+            <span class="availability-drawer__badge">{{ scheduleLabel() }}</span>
+            <span class="availability-drawer__zone">Time zone: {{ technician.timezoneLabel }}</span>
+          </div>
+
+          @if (stale()) {
+            <p-message severity="error" [closable]="false" role="alert">
+              <span class="availability-drawer__inline">
+                {{ staleMessage }}
+                <button pButton type="button" severity="secondary" size="small" (click)="load()">
+                  Reload
+                </button>
+              </span>
+            </p-message>
+          } @else if (saveFailed()) {
+            <p-message severity="error" [closable]="false" role="alert">
+              We couldn't save availability. Try again.
+            </p-message>
+          }
+          @if (hasServerErrors()) {
+            <app-error-summary [id]="summaryId" [links]="errorLinks()" />
+          }
+
+          <ul class="availability-drawer__days" aria-label="Weekly schedule">
+            @for (row of rows(); track row.day.dayOfWeek) {
+              <li class="availability-drawer__day">
+                <span class="availability-drawer__day-name">{{ row.label }}</span>
+                <p-select
+                  appendTo="body"
+                  fluid
+                  optionLabel="label"
+                  optionValue="value"
+                  [inputId]="'availability-' + row.day.dayOfWeek + '-status'"
+                  [ariaLabel]="row.label + ' availability'"
+                  [options]="statusChoices"
+                  [ngModel]="row.day.isAvailable"
+                  [disabled]="submitting()"
+                  [invalid]="row.error.day !== undefined"
+                  (ngModelChange)="patch(row.day.dayOfWeek, { isAvailable: $event })"
+                />
+                <p-select
+                  appendTo="body"
+                  fluid
+                  optionLabel="label"
+                  optionValue="value"
+                  [inputId]="'availability-' + row.day.dayOfWeek + '-start'"
+                  [ariaLabel]="row.label + ' start time'"
+                  [options]="row.startChoices"
+                  [ngModel]="row.day.start"
+                  [disabled]="submitting() || !row.day.isAvailable"
+                  [invalid]="row.error.start !== undefined"
+                  (ngModelChange)="patch(row.day.dayOfWeek, { start: $event })"
+                />
+                <p-select
+                  appendTo="body"
+                  fluid
+                  optionLabel="label"
+                  optionValue="value"
+                  [inputId]="'availability-' + row.day.dayOfWeek + '-end'"
+                  [ariaLabel]="row.label + ' end time'"
+                  [options]="row.endChoices"
+                  [ngModel]="row.day.end"
+                  [disabled]="submitting() || !row.day.isAvailable"
+                  [invalid]="row.error.end !== undefined"
+                  (ngModelChange)="patch(row.day.dayOfWeek, { end: $event })"
+                />
+                @if (row.error.day ?? row.error.start ?? row.error.end; as message) {
+                  <p class="availability-drawer__error">{{ message }}</p>
+                }
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="availability-drawer__hint">Choose a technician to edit availability.</p>
+        }
+      </div>
+    }
+  </ng-container>
+
+  <ng-container ngProjectAs="[drawerFooter]">
+    @if (detail(); as technician) {
+      @if (!technician.usesBranchHours) {
+        <button
+          pButton
+          type="button"
+          class="availability-drawer__action"
+          severity="secondary"
+          [text]="true"
+          [disabled]="busy()"
+          (click)="useBranchHours()"
+        >
+          Use branch hours
+        </button>
+      }
+    }
+    <span class="availability-drawer__spacer"></span>
+    <button
+      pButton
+      type="button"
+      class="availability-drawer__action"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="submitting()"
+      (click)="requestClose()"
+    >
+      Cancel
+    </button>
+    <button
+      pButton
+      type="button"
+      class="availability-drawer__action"
+      [disabled]="!canSave()"
+      (click)="submit()"
+    >
+      @if (submitting()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+      }
+      Save
+    </button>
+  </ng-container>
+</app-drawer-shell>

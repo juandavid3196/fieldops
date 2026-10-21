@@ -8,15 +8,19 @@ import {
   output,
   signal,
   untracked,
+  viewChild,
 } from '@angular/core';
-import { NgTemplateOutlet } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { IconField } from 'primeng/iconfield';
+import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
+import { Menu } from 'primeng/menu';
 import { Message } from 'primeng/message';
+import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 
@@ -35,16 +39,21 @@ interface Draft {
   readonly description: string;
 }
 
-/** BR-17 "Manage skill list" dialog (editors): list, inline add/edit, activate/deactivate. */
+type StatusFilter = 'all' | 'active' | 'inactive';
+
+/** BR-17 "Manage skills" dialog (editors): search, add/edit panel, list, activate/deactivate. */
 @Component({
   selector: 'app-skill-catalog-dialog',
   imports: [
     FormsModule,
-    NgTemplateOutlet,
     ButtonDirective,
     Dialog,
+    IconField,
+    InputIcon,
     InputText,
+    Menu,
     Message,
+    Select,
     Skeleton,
     Tag,
   ],
@@ -62,9 +71,30 @@ export class SkillCatalogDialog {
   readonly catalogChange = output<readonly CatalogSkill[]>();
   readonly unauthorized = output<void>();
 
+  private readonly menu = viewChild.required(Menu);
+
   protected readonly emptyMessage = NO_CATALOG_MESSAGE;
   protected readonly skeletons = [0, 1, 2];
+  protected readonly statusOptions: { code: StatusFilter; label: string }[] = [
+    { code: 'all', label: 'All skills' },
+    { code: 'active', label: 'Active' },
+    { code: 'inactive', label: 'Inactive' },
+  ];
+  protected readonly searchText = signal('');
+  protected readonly statusFilter = signal<StatusFilter>('all');
+  protected readonly menuModel = signal<MenuItem[]>([]);
   protected readonly skills = signal<readonly CatalogSkill[]>([]);
+  protected readonly visibleSkills = computed(() => {
+    const term = this.searchText().trim().toLowerCase();
+    const status = this.statusFilter();
+    return this.skills().filter(
+      (skill) =>
+        (status === 'all' || skill.isActive === (status === 'active')) &&
+        (term === '' ||
+          skill.name.toLowerCase().includes(term) ||
+          (skill.description ?? '').toLowerCase().includes(term)),
+    );
+  });
   protected readonly loading = signal(false);
   protected readonly loadFailed = signal(false);
   protected readonly draft = signal<Draft | null>(null);
@@ -88,6 +118,8 @@ export class SkillCatalogDialog {
       if (this.visible()) {
         untracked(() => {
           this.draft.set(null);
+          this.searchText.set('');
+          this.statusFilter.set('all');
           this.load();
         });
       }
@@ -235,6 +267,17 @@ export class SkillCatalogDialog {
           this.checkUnauthorized(error);
         },
       });
+  }
+
+  protected openMenu(event: Event, skill: CatalogSkill): void {
+    this.menuModel.set([
+      {
+        label: skill.isActive ? 'Deactivate' : 'Activate',
+        icon: skill.isActive ? 'pi pi-ban' : 'pi pi-check-circle',
+        command: () => this.setActive(skill, !skill.isActive),
+      },
+    ]);
+    this.menu().toggle(event);
   }
 
   protected onVisibleChange(open: boolean): void {

@@ -108,6 +108,18 @@ public sealed class TechnicianException
         return true;
     }
 
+    /// <summary>Ends an exception earlier; the new end must stay after the start and before the current end.</summary>
+    public void Shorten(DateTimeOffset endsAt, DateTimeOffset now)
+    {
+        if (endsAt <= StartsAt || endsAt >= EndsAt)
+        {
+            throw new ArgumentException("The new end must be after the start and before the current end.", nameof(endsAt));
+        }
+
+        EndsAt = endsAt;
+        UpdatedAt = now;
+    }
+
     /// <summary>Cancels an active exception; false when it is already cancelled.</summary>
     public bool Cancel(DateTimeOffset now) => Move(TechnicianExceptionStatus.Cancelled, now);
 

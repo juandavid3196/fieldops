@@ -3658,8 +3658,8 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnName("is_available");
 
                     b.Property<string>("Reason")
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
+                        .HasMaxLength(250)
+                        .HasColumnType("character varying(250)")
                         .HasColumnName("reason");
 
                     b.Property<DateTimeOffset>("StartsAt")
@@ -3775,6 +3775,12 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at")
                         .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("UsesBranchHours")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("uses_branch_hours");
 
                     b.HasKey("Id")
                         .HasName("pk_technician_profiles");

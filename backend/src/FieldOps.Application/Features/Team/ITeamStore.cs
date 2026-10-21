@@ -196,4 +196,88 @@ public interface ITeamStore
         Guid actorUserId,
         IPAddress? clientIp,
         CancellationToken cancellationToken);
+
+    // Team availability and skills tabs (team-availability-skills). Every method here sees active in-scope profiles only.
+
+    /// <summary>The time zone id of an active in-scope profile, or null when it is not visible.</summary>
+    Task<string?> GetActiveProfileZoneIdAsync(
+        Guid organizationId, BranchScope scope, Guid technicianId, CancellationToken cancellationToken);
+
+    Task<string?> GetOrganizationTimezoneAsync(Guid organizationId, CancellationToken cancellationToken);
+
+    /// <summary>Active in-scope profiles matching the filter with effective weekly slots and active exceptions near the range.</summary>
+    Task<IReadOnlyList<AvailabilityGridProfile>> ListAvailabilityGridAsync(
+        Guid organizationId,
+        BranchScope scope,
+        AvailabilityGridFilter filter,
+        DateTimeOffset low,
+        DateTimeOffset high,
+        CancellationToken cancellationToken);
+
+    /// <summary>Active organization skills and the active in-scope profiles matching the filter with their active-skill ids.</summary>
+    Task<SkillMatrixData> GetSkillMatrixAsync(
+        Guid organizationId, BranchScope scope, AvailabilityGridFilter filter, CancellationToken cancellationToken);
+
+    Task<TechnicianAvailabilityData?> GetTechnicianAvailabilityAsync(
+        Guid organizationId, BranchScope scope, Guid technicianId, DateTimeOffset now, CancellationToken cancellationToken);
+
+    /// <summary>BR-10: replaces the weekly rows under a profile row lock; an unchanged custom schedule writes nothing.</summary>
+    Task<AvailabilityWriteResult> SaveAvailabilityAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        DateTimeOffset version,
+        IReadOnlyList<AvailabilityDayValues> days,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    /// <summary>BR-12: deletes the weekly rows and inherits the branch hours; already inheriting is a no-op.</summary>
+    Task<AvailabilityWriteResult> UseBranchHoursAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        DateTimeOffset version,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<TimeOffResult> CreateTimeOffAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        TimeOffWrite write,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<TimeOffResult> RetireTimeOffAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        Guid timeOffId,
+        DateTimeOffset version,
+        string zoneId,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
+    Task<SkillAssignmentsData?> GetSkillAssignmentsAsync(
+        Guid organizationId, BranchScope scope, Guid technicianId, CancellationToken cancellationToken);
+
+    /// <summary>BR-21: ids are validated before the lock; the active-skill set is replaced atomically.</summary>
+    Task<AvailabilityWriteResult> SaveSkillAssignmentsAsync(
+        Guid organizationId,
+        BranchScope scope,
+        Guid technicianId,
+        DateTimeOffset version,
+        IReadOnlyList<Guid> skillIds,
+        Guid actorUserId,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
 }

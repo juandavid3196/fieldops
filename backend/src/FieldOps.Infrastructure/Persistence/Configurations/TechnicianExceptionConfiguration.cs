@@ -34,7 +34,7 @@ internal sealed class TechnicianExceptionConfiguration
             .IsRequired();
 
         builder.Property(exception => exception.Reason)
-            .HasMaxLength(200);
+            .HasMaxLength(250);
 
         builder.Property(exception => exception.Status)
             .HasMaxLength(20)

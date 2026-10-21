@@ -103,6 +103,9 @@ public static class TeamSeed
             ("e", end),
             ("c", capacity));
 
+        // Personal rows only count for a custom schedule (team-availability-skills BR-07).
+        await db.ExecuteAsync("UPDATE technician_profiles SET uses_branch_hours = false WHERE id = @t", ("t", technicianId));
+
         return id;
     }
 

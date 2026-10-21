@@ -1,0 +1,94 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../../../shared/components/drawer-shell/drawer-content' as dc;
+
+:host {
+  display: contents;
+}
+
+.availability-drawer {
+  @include dc.parts;
+
+  &__body,
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  &__label {
+    font-weight: 600;
+  }
+
+  &__inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  &__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+
+  &__badge {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: 999px;
+  }
+
+  &__zone,
+  &__hint {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__days {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  // Stacked on phones; day name beside the three selects from md.
+  &__day {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    align-items: center;
+
+    @include bp.up(md) {
+      grid-template-columns: 5.5rem repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  &__day-name {
+    grid-column: 1 / -1;
+    font-weight: 600;
+
+    @include bp.up(md) {
+      grid-column: auto;
+    }
+  }
+
+  &__error {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--fo-color-danger-text);
+  }
+}
