@@ -198,6 +198,14 @@ public sealed class FieldOpsDbContext(
         modelBuilder.HasPostgresEnum<PaymentAttemptStatus>(name: "payment_attempt_status");
         modelBuilder.HasPostgresEnum<NotificationStatus>(name: "notification_status");
 
+        // SA-23: the immutable unaccent wrapper used by the global search. The function is created by the migration SQL.
+        modelBuilder
+            .HasDbFunction(typeof(SearchDbFunctions).GetMethod(nameof(SearchDbFunctions.Unaccent), [typeof(string)])!)
+            .HasName(SearchDbFunctions.UnaccentName)
+            .HasSchema("public")
+            .HasParameter("value")
+            .PropagatesNullability();
+
         modelBuilder.ApplyConfigurationsFromAssembly(
             typeof(FieldOpsDbContext).Assembly);
 

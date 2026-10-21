@@ -281,9 +281,8 @@ describe('AppShell', () => {
   it('shows the top bar controls, organization menu and Coming soon destinations without requests (FR-04, AC-01, AC-03)', async () => {
     await setup();
 
-    expect(host.querySelector('.shell__search-input')?.getAttribute('placeholder')).toBe(
-      'Search requests, customers, work orders…',
-    );
+    const combobox = host.querySelector('[role="search"] input[role="combobox"]');
+    expect(combobox?.getAttribute('placeholder')).toBe('Search requests, customers, work orders…');
     expect(host.querySelector('a[aria-label="Help"]')?.getAttribute('href')).toBe('/help');
     const bell = host.querySelector('button[aria-label="Notifications"]')!;
     expect(bell.getAttribute('aria-haspopup')).toBe('dialog');
@@ -299,10 +298,11 @@ describe('AppShell', () => {
     expect(host.querySelector('[role="menu"]')).toBeNull();
     expect(router.url).toBe('/dashboard');
 
+    // global-search BR-16: Enter without an active result never opens Coming soon.
     const search = host.querySelector<HTMLInputElement>('#shell-search')!;
-    search.form!.dispatchEvent(new Event('submit', { cancelable: true }));
+    search.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     await settle();
-    expect(router.url).toBe('/coming-soon/search');
+    expect(router.url).toBe('/dashboard');
     await expectAxeClean();
   });
 
@@ -551,7 +551,7 @@ describe('AppShell', () => {
     await setup(SESSION, 'drawer');
 
     expect(host.querySelector('.sidebar')).toBeNull();
-    expect(host.querySelector('.shell__search-input')).toBeNull();
+    expect(host.querySelector('app-global-search')).toBeNull();
     expect(host.querySelector('.shell__org-button')).toBeNull();
     expect(host.querySelector('a[aria-label="Help"]')).toBeNull();
     expect(host.querySelector('button[aria-label="Notifications"]')).not.toBeNull();

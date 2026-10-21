@@ -13,10 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { Drawer } from 'primeng/drawer';
 import { FocusTrap } from 'primeng/focustrap';
-import { IconField } from 'primeng/iconfield';
 import { SpinnerIcon } from 'primeng/icons/spinner';
-import { InputIcon } from 'primeng/inputicon';
-import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { filter } from 'rxjs';
 
@@ -30,10 +27,10 @@ import { NotificationPopover } from '../../features/notifications/components/not
 import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
 import { fullNameOf, initialsOf } from '../../shared/utils/initials';
 import { ShellSidebar } from '../shell-sidebar/shell-sidebar';
+import { GlobalSearch } from './global-search/global-search';
 import { ADMINISTRATION_ROLE_CODES, MESSAGES_ROLE_CODES, NAV_GROUPS } from './app-shell.nav';
 
 export const SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
-export const SEARCH_PLACEHOLDER = 'Search requests, customers, work orders…';
 
 /** FR-02: below 768px a drawer, 768-1099px the rail, from 1100px the full sidebar. */
 export type LayoutMode = 'drawer' | 'rail' | 'full';
@@ -47,9 +44,7 @@ type MenuKind = 'org' | 'user';
     RouterOutlet,
     Drawer,
     FocusTrap,
-    IconField,
-    InputIcon,
-    InputText,
+    GlobalSearch,
     Message,
     NotificationPopover,
     ShellSidebar,
@@ -74,7 +69,6 @@ export class AppShell {
 
   readonly session = this.sessionService.session;
   readonly signOutErrorMessage = SIGN_OUT_ERROR_MESSAGE;
-  readonly searchPlaceholder = SEARCH_PLACEHOLDER;
   readonly helpLink = '/help';
   readonly comingSoonNotificationsLink = comingSoonPath('notifications');
   readonly drawerPt = {
@@ -98,6 +92,9 @@ export class AppShell {
   /** Per page visit only (never persisted); `null` follows the layout mode default. Reset on mode change. */
   readonly collapsed = signal<boolean | null>(null);
   readonly drawerOpen = signal(false);
+  private readonly searchOpen = signal(false);
+  /** Drawer layout only: the search takes over the top bar until it is closed. */
+  readonly mobileSearch = computed(() => this.isDrawer() && this.searchOpen());
   readonly openMenu = signal<MenuKind | null>(null);
   readonly signingOut = signal(false);
   readonly signOutFailed = signal(false);
@@ -210,6 +207,21 @@ export class AppShell {
           }
         });
     }
+
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.searchOpen.set(false));
+  }
+
+  openSearch(): void {
+    this.searchOpen.set(true);
+  }
+
+  closeSearch(): void {
+    this.searchOpen.set(false);
   }
 
   openDrawer(): void {
@@ -227,12 +239,6 @@ export class AppShell {
 
   toggleCollapsed(): void {
     this.collapsed.set(!this.railActive());
-  }
-
-  /** Enter in the search field opens the Coming soon page; there are no suggestions. */
-  onSearch(event: Event): void {
-    event.preventDefault();
-    void this.router.navigateByUrl(comingSoonPath('search'));
   }
 
   toggleMenu(kind: MenuKind = 'user'): void {

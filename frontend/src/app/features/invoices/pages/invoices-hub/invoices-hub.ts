@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { IconField } from 'primeng/iconfield';
@@ -136,7 +136,6 @@ const TAB_LABELS: Readonly<Record<HubTab, string>> = {
     PaymentsTable,
     ReadyTable,
     RecordPaymentDrawer,
-    RouterLink,
     Select,
     Toast,
   ],

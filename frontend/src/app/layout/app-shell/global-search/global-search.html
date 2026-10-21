@@ -1,0 +1,117 @@
+<div class="gs" role="search">
+  <label class="gs__hidden" for="shell-search">Search</label>
+  <p-iconfield>
+    <p-inputicon class="pi pi-search" />
+    <input
+      #field
+      pInputText
+      id="shell-search"
+      type="text"
+      role="combobox"
+      class="gs__input"
+      fluid
+      autocomplete="off"
+      maxlength="100"
+      aria-autocomplete="list"
+      aria-controls="global-search-listbox"
+      [attr.aria-expanded]="open()"
+      [attr.aria-activedescendant]="activeId()"
+      [placeholder]="placeholder"
+      [value]="term()"
+      (input)="onInput(field.value)"
+      (focus)="onFieldOpen()"
+      (click)="onFieldOpen()"
+      (keydown)="onKeydown($event)"
+    />
+    @if (term()) {
+      <p-inputicon class="gs__clear-icon">
+        <button type="button" class="gs__clear" aria-label="Clear search" (click)="clear()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </p-inputicon>
+    }
+  </p-iconfield>
+  <span class="gs__hidden" role="status" aria-live="polite">{{ announcement() }}</span>
+
+  @if (open()) {
+    <div class="gs__panel">
+      @if (state() === 'results') {
+        <div class="gs__header">
+          <span class="gs__title">Search results</span>
+          <span class="gs__count">{{ countText() }}</span>
+        </div>
+        <div class="gs__body">
+          <div id="global-search-listbox" role="listbox" aria-label="Search results">
+            @for (group of groups(); track group.type) {
+              <div role="group" [attr.aria-labelledby]="group.labelId">
+                <div class="gs__group" [id]="group.labelId">{{ group.label }}</div>
+                @for (row of group.rows; track row.id) {
+                  <!-- Combobox pattern: focus stays in the input (aria-activedescendant) and the keys are handled there. -->
+                  <!-- eslint-disable @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+                  <div
+                    role="option"
+                    class="gs__option"
+                    [id]="row.id"
+                    [attr.aria-selected]="row.id === activeId()"
+                    [attr.aria-label]="row.name"
+                    [class.gs__option--active]="row.id === activeId()"
+                    (mousedown)="$event.preventDefault()"
+                    (click)="select(row)"
+                    (mousemove)="setActive(options().indexOf(row))"
+                  >
+                    <i class="pi gs__icon" [class]="row.icon" aria-hidden="true"></i>
+                    <span class="gs__text" aria-hidden="true">
+                      <span class="gs__line">{{ row.text }}</span>
+                      <span class="gs__meta">{{ row.meta }}</span>
+                    </span>
+                    @if (row.statusLabel) {
+                      <span class="gs__chip gs__chip--{{ row.tone }}" aria-hidden="true">{{
+                        row.statusLabel
+                      }}</span>
+                    }
+                  </div>
+                  <!-- eslint-enable @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+                }
+              </div>
+            }
+          </div>
+          @if (hasMore()) {
+            <p class="gs__note">{{ moreText }}</p>
+          }
+        </div>
+      } @else {
+        <div class="gs__body">
+          @switch (state()) {
+            @case ('loading') {
+              <div aria-hidden="true">
+                @for (row of skeletonRows; track row) {
+                  <div class="gs__option"><span class="gs__skeleton"></span></div>
+                }
+              </div>
+            }
+            @case ('empty') {
+              <p class="gs__note">{{ emptyText() }}</p>
+            }
+            @case ('error') {
+              <div class="gs__note gs__error">
+                <span>{{ errorText }}</span>
+                <p-button label="Retry" size="small" severity="secondary" (onClick)="retry()" />
+              </div>
+            }
+            @case ('short') {
+              <p class="gs__note">{{ shortText }}</p>
+            }
+            @default {
+              <p class="gs__note">{{ hint }}</p>
+            }
+          }
+        </div>
+      }
+      <div class="gs__footer" aria-hidden="true">
+        <span><kbd>↑↓</kbd> Navigate</span>
+        <span><kbd>Enter</kbd> Open</span>
+        <span><kbd>Esc</kbd> Close</span>
+      </div>
+    </div>
+  }
+</div>

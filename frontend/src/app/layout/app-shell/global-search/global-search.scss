@@ -1,0 +1,217 @@
+:host {
+  display: block;
+}
+
+.gs {
+  position: relative;
+
+  &__hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  p-iconfield {
+    --p-iconfield-icon-color: color-mix(
+      in srgb,
+      var(--fo-color-text-muted) 50%,
+      var(--fo-color-text-secondary)
+    );
+  }
+
+  // PrimeNG offsets the icon from the middle by half a glyph; the button is taller, so centre it by box.
+  &__clear-icon {
+    display: flex;
+    align-items: center;
+    inset-block: 0;
+    margin-block: 0;
+  }
+
+  &__clear {
+    display: grid;
+    place-items: center;
+    padding: 0.25rem;
+    color: inherit;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    pointer-events: auto;
+
+    &:hover {
+      color: var(--fo-color-text);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__input {
+    min-height: var(--fo-size-control);
+    background: var(--fo-color-surface-muted);
+  }
+
+  &__panel {
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    inline-size: 100%;
+    max-block-size: 520px;
+    margin-block-start: 0.25rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+    box-shadow: var(--fo-shadow-overlay);
+  }
+
+  &__header,
+  &__footer {
+    display: flex;
+    flex: none;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__header {
+    justify-content: space-between;
+  }
+
+  &__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fo-color-heading);
+  }
+
+  &__footer {
+    border-block-start: 1px solid var(--fo-color-border);
+
+    kbd {
+      padding: 0.0625rem 0.375rem;
+      font: inherit;
+      border: 1px solid var(--fo-color-border-strong);
+      border-radius: 4px;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-block-size: 0;
+    padding-block-end: 0.5rem;
+    overflow-y: auto;
+  }
+
+  &__group {
+    padding: 0.5rem 1rem 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-block-size: 3.5rem;
+    padding: 0.375rem 1rem;
+    border-inline-start: 3px solid transparent;
+    cursor: pointer;
+
+    &--active {
+      background: color-mix(in srgb, var(--fo-color-primary-soft) 50%, transparent);
+      border-inline-start-color: var(--fo-color-primary);
+    }
+  }
+
+  &__icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    inline-size: 2.25rem;
+    block-size: 2.25rem;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-row-divider);
+    border-radius: var(--fo-radius-panel);
+  }
+
+  &__text {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-inline-size: 0;
+  }
+
+  &__line,
+  &__meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__line {
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__meta {
+    font-size: 0.8125rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__chip {
+    flex: none;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    border-radius: var(--fo-radius-control);
+
+    @each $tone
+      in ('success', 'info', 'warning', 'danger', 'neutral', 'violet', 'teal', 'orange', 'pink')
+    {
+      &--#{$tone} {
+        color: var(--fo-color-#{$tone}-text);
+        background: color-mix(
+          in srgb,
+          var(--fo-color-#{$tone}-text) 12%,
+          var(--fo-color-#{$tone}-background)
+        );
+      }
+    }
+  }
+
+  &__note {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    color: var(--fo-color-text-secondary);
+  }
+
+  &__error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__skeleton {
+    inline-size: 100%;
+    block-size: 2.25rem;
+    background: var(--fo-color-surface-muted);
+    border-radius: var(--fo-radius-control);
+  }
+}

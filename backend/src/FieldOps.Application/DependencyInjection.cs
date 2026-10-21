@@ -25,6 +25,7 @@ using FieldOps.Application.Features.PublicRequests;
 using FieldOps.Application.Features.QuoteLinks;
 using FieldOps.Application.Features.Reports;
 using FieldOps.Application.Features.Quotes;
+using FieldOps.Application.Features.Search;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Application.Features.Team;
 using FieldOps.Application.Features.TechnicianVisits;
@@ -222,6 +223,7 @@ public static class DependencyInjection
         services.AddScoped<GetBusinessOptionsHandler>();
         services.AddScoped<GetBusinessOverviewHandler>();
         services.AddScoped<ExportBusinessOverviewHandler>();
+        services.AddScoped<GlobalSearchHandler>();
         services.AddSingleton(ReportExportLimits.Default);
         services.AddScoped<GetReportOptionsHandler>();
         services.AddScoped<GetReportHandler>();

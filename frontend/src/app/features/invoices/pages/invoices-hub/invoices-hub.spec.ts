@@ -114,7 +114,6 @@ describe('Invoices hub page', () => {
     expect(text()).toContain(
       'Track invoices, outstanding balances, due dates, and customer payments.',
     );
-    expect(host.querySelector('a.hub__back')?.getAttribute('href')).toBe('/invoices');
     expect(
       Array.from(host.querySelectorAll('.overview__metric'), (n) =>
         [n.querySelector('dt')?.textContent, n.querySelector('dd')?.textContent].join(' '),
