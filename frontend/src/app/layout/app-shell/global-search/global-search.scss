@@ -15,6 +15,43 @@
     white-space: nowrap;
   }
 
+  p-iconfield {
+    --p-iconfield-icon-color: color-mix(
+      in srgb,
+      var(--fo-color-text-muted) 50%,
+      var(--fo-color-text-secondary)
+    );
+  }
+
+  // PrimeNG offsets the icon from the middle by half a glyph; the button is taller, so centre it by box.
+  &__clear-icon {
+    display: flex;
+    align-items: center;
+    inset-block: 0;
+    margin-block: 0;
+  }
+
+  &__clear {
+    display: grid;
+    place-items: center;
+    padding: 0.25rem;
+    color: inherit;
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+    pointer-events: auto;
+
+    &:hover {
+      color: var(--fo-color-text);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
   &__input {
     min-height: var(--fo-size-control);
     background: var(--fo-color-surface-muted);
@@ -28,7 +65,7 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    inline-size: min(640px, calc(100vw - 2rem));
+    inline-size: 100%;
     max-block-size: 520px;
     margin-block-start: 0.25rem;
     background: var(--fo-color-surface);
@@ -42,7 +79,8 @@
     display: flex;
     flex: none;
     align-items: center;
-    gap: 1rem;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
     padding: 0.75rem 1rem;
     font-size: 0.8125rem;
     color: var(--fo-color-text-secondary);
@@ -95,7 +133,7 @@
     cursor: pointer;
 
     &--active {
-      background: var(--fo-color-primary-soft);
+      background: color-mix(in srgb, var(--fo-color-primary-soft) 50%, transparent);
       border-inline-start-color: var(--fo-color-primary);
     }
   }
@@ -107,8 +145,8 @@
     inline-size: 2.25rem;
     block-size: 2.25rem;
     color: var(--fo-color-primary-strong);
-    background: var(--fo-color-surface-muted);
-    border-radius: var(--fo-radius-control);
+    background: var(--fo-color-row-divider);
+    border-radius: var(--fo-radius-panel);
   }
 
   &__text {
@@ -137,15 +175,21 @@
 
   &__chip {
     flex: none;
-    padding: 0.125rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
     font-weight: 600;
-    border-radius: var(--fo-radius-pill);
+    border-radius: var(--fo-radius-control);
 
-    @each $tone in (success, info, warning, danger, neutral) {
+    @each $tone
+      in ('success', 'info', 'warning', 'danger', 'neutral', 'violet', 'teal', 'orange', 'pink')
+    {
       &--#{$tone} {
         color: var(--fo-color-#{$tone}-text);
-        background: var(--fo-color-#{$tone}-background);
+        background: color-mix(
+          in srgb,
+          var(--fo-color-#{$tone}-text) 12%,
+          var(--fo-color-#{$tone}-background)
+        );
       }
     }
   }

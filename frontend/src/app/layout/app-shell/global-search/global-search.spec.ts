@@ -192,15 +192,15 @@ describe('GlobalSearch', () => {
     ['work_order', '/jobs/id-1'],
     ['invoice', '/invoices/id-1'],
   ] as const)(
-    'opens %s on click, clearing the field and closing (FR-08, AC-04)',
+    'opens %s on click, keeping the term and closing the panel (FR-08, AC-04)',
     async (type_, url) => {
       await search('abc', [item(type_, 'id-1')]);
 
       options()[0].click();
       render();
 
-      expect(navigate).toHaveBeenCalledWith(url);
-      expect(input.value).toBe('');
+      expect(navigate.mock.calls[0][0]).toBe(url);
+      expect(input.value).toBe('abc');
       expect(host.querySelector('.gs__panel')).toBeNull();
     },
   );
@@ -229,7 +229,7 @@ describe('GlobalSearch', () => {
     expect(input.getAttribute('aria-activedescendant')).toBe(options()[0].id);
     key('ArrowDown');
     key('Enter');
-    expect(navigate).toHaveBeenCalledWith('/quotes/b');
+    expect(navigate).toHaveBeenCalledWith('/quotes/b', expect.anything());
 
     await search('xyz', [item('quote', 'a')]);
     key('Escape');

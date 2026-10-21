@@ -4,9 +4,9 @@
 | -------- | --------------- |
 | Feature  | `global-search` |
 | Type     | Full-stack      |
-| Status   | APPROVED        |
+| Status   | AUDITED         |
 | Created  | 2026-10-20      |
-| Updated  | 2026-10-20      |
+| Updated  | 2026-10-21      |
 | Approved | 2026-10-20      |
 
 ## Context and objective
@@ -246,3 +246,5 @@ distinct security risk.
 | ---------- | ------------- | ------ |
 | 2026-10-20 | — → DRAFT     | Created |
 | 2026-10-20 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-21 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-21 | IMPLEMENTED → AUDITED | User override: final-audit returned AUDIT FAIL (open: database-reviewer approval for the unaccent migration, formal user visual QA report, and spec amendment for the post-spec UI changes: field kept after selection, mobile search button, dropdown width equal to the bar). |

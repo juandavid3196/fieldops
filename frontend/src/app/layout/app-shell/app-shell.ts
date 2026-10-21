@@ -92,6 +92,9 @@ export class AppShell {
   /** Per page visit only (never persisted); `null` follows the layout mode default. Reset on mode change. */
   readonly collapsed = signal<boolean | null>(null);
   readonly drawerOpen = signal(false);
+  private readonly searchOpen = signal(false);
+  /** Drawer layout only: the search takes over the top bar until it is closed. */
+  readonly mobileSearch = computed(() => this.isDrawer() && this.searchOpen());
   readonly openMenu = signal<MenuKind | null>(null);
   readonly signingOut = signal(false);
   readonly signOutFailed = signal(false);
@@ -204,6 +207,21 @@ export class AppShell {
           }
         });
     }
+
+    this.router.events
+      .pipe(
+        filter((event) => event instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.searchOpen.set(false));
+  }
+
+  openSearch(): void {
+    this.searchOpen.set(true);
+  }
+
+  closeSearch(): void {
+    this.searchOpen.set(false);
   }
 
   openDrawer(): void {

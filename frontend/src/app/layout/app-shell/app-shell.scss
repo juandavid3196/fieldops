@@ -41,7 +41,7 @@
     z-index: 20;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.25rem;
     box-sizing: border-box;
     block-size: var(--fo-size-topbar);
     padding: 0 0.75rem;
@@ -60,6 +60,8 @@
 
   &__wordmark {
     display: flex;
+    min-inline-size: 0;
+    overflow: hidden;
     align-items: center;
     margin: 0;
     font-size: 1.25rem;
@@ -78,7 +80,29 @@
 
   &__search {
     flex: 1;
-    max-inline-size: 27.5rem;
+    margin-inline: auto;
+    max-inline-size: 31.625rem;
+
+    // The auto margins centre the search; the spacer would otherwise take the free space.
+    + .shell__spacer {
+      display: none;
+    }
+  }
+
+  // Mobile: the search replaces the rest of the top bar while it is open.
+  &__search--mobile {
+    min-inline-size: 0;
+    max-inline-size: none;
+    margin-inline: 0;
+  }
+
+  &__topbar--searching {
+    .shell__spacer,
+    .shell__bell,
+    .shell__user,
+    app-notification-popover {
+      display: none;
+    }
   }
 
   &__icon-button {

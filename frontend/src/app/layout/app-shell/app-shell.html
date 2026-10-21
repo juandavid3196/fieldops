@@ -11,8 +11,18 @@
   }
 
   <div class="shell__column">
-    <header class="shell__topbar">
-      @if (isDrawer()) {
+    <header class="shell__topbar" [class.shell__topbar--searching]="mobileSearch()">
+      @if (mobileSearch()) {
+        <button
+          type="button"
+          class="shell__icon-button"
+          aria-label="Close search"
+          (click)="closeSearch()"
+        >
+          <i class="pi pi-arrow-left" aria-hidden="true"></i>
+        </button>
+        <app-global-search class="shell__search shell__search--mobile" [focusOnInit]="true" />
+      } @else if (isDrawer()) {
         <button
           #navButton
           type="button"
@@ -35,6 +45,12 @@
       }
 
       <span class="shell__spacer"></span>
+
+      @if (isDrawer() && !mobileSearch()) {
+        <button type="button" class="shell__icon-button" aria-label="Search" (click)="openSearch()">
+          <i class="pi pi-search" aria-hidden="true"></i>
+        </button>
+      }
 
       @if (!isDrawer()) {
         <div

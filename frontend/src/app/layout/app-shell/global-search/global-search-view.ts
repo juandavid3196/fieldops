@@ -4,7 +4,8 @@ import { statusLabel as invoiceStatusLabel } from '../../../features/invoices/ut
 import { STATUS_LABELS as WORK_ORDER_STATUS_LABELS } from '../../../features/jobs/utils/work-order-format';
 import { STATUS_LABELS as QUOTE_STATUS_LABELS } from '../../../features/quotes/utils/quote-format';
 
-export type SearchTone = 'success' | 'info' | 'warning' | 'danger' | 'neutral';
+export type SearchTone =
+  'success' | 'info' | 'warning' | 'danger' | 'neutral' | 'violet' | 'teal' | 'orange' | 'pink';
 
 export interface SearchRow {
   readonly id: string;
@@ -56,44 +57,66 @@ const TONES: Readonly<Record<GlobalSearchEntityType, Readonly<Record<string, Sea
   service_request: {
     new: 'info',
     needs_review: 'warning',
-    assessment_scheduled: 'info',
-    ready_for_quote: 'info',
-    quoted: 'info',
+    assessment_scheduled: 'violet',
+    ready_for_quote: 'teal',
+    quoted: 'orange',
     converted: 'success',
     cancelled: 'neutral',
   },
   quote: {
-    draft: 'neutral',
+    draft: 'violet',
     sent: 'info',
     clarification_requested: 'warning',
     approved: 'success',
     rejected: 'danger',
-    expired: 'neutral',
+    expired: 'orange',
     cancelled: 'neutral',
   },
-  work_order: { draft: 'neutral', ready_to_schedule: 'warning', scheduled: 'info' },
+  work_order: {
+    draft: 'neutral',
+    ready_to_schedule: 'warning',
+    scheduled: 'info',
+    assigned: 'violet',
+    on_the_way: 'teal',
+    in_progress: 'orange',
+    paused: 'pink',
+    completed: 'success',
+    needs_correction: 'danger',
+    approved: 'teal',
+    cancelled: 'neutral',
+  },
   invoice: {
     draft: 'neutral',
     sent: 'info',
     partially_paid: 'warning',
     paid: 'success',
     overdue: 'danger',
-    void: 'neutral',
+    void: 'orange',
   },
 };
 
-function lookup(map: Readonly<Record<string, string>>, status: string): string {
-  return Object.hasOwn(map, status) ? map[status] : status;
+/** "needs_correction" → "Needs correction". */
+function humanize(status: string): string {
+  const spaced = status.replace(/_/g, ' ');
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
 }
 
-/** Status label of the entity's own list; an unknown code is shown as is, never backend text. */
+function lookup(map: Readonly<Record<string, string>>, status: string): string {
+  return Object.hasOwn(map, status) ? map[status] : humanize(status);
+}
+
+/** Status label of the entity's own list; an unknown code is humanized, never backend text. */
 export function statusLabelOf(type: GlobalSearchEntityType, status: string | null): string {
   if (status === null) {
     return '';
   }
   switch (type) {
     case 'customer':
-      return status === 'active' ? 'Customer' : status === 'inactive' ? 'Inactive' : status;
+      return status === 'active'
+        ? 'Customer'
+        : status === 'inactive'
+          ? 'Inactive'
+          : humanize(status);
     case 'service_request':
       return lookup(REQUEST_STATUS_LABELS, status);
     case 'quote':

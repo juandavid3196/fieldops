@@ -6,6 +6,7 @@ import {
   afterNextRender,
   computed,
   inject,
+  input,
   signal,
   viewChild,
 } from '@angular/core';
@@ -20,6 +21,7 @@ import { EMPTY, Subject, catchError, filter, map, of, switchMap, timer } from 'r
 import { GlobalSearchItem } from '../../../core/models/global-search.model';
 import { isApiError } from '../../../core/models/api-error.model';
 import { GlobalSearchService } from '../../../core/services/global-search.service';
+import { RELOAD_ON_PARAM_CHANGE } from '../../../core/services/reload-route-reuse.strategy';
 import { SearchGroup, SearchRow, buildGroups } from './global-search-view';
 
 export const SEARCH_PLACEHOLDER = 'Search requests, customers, work orders…';
@@ -57,6 +59,8 @@ export class GlobalSearch {
   private readonly injector = inject(Injector);
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
   private readonly input = viewChild.required<ElementRef<HTMLInputElement>>('field');
+  /** Focuses the field as soon as it is rendered (the mobile search row). */
+  readonly focusOnInit = input(false);
   private readonly requests = new Subject<{ query: string; delay: number }>();
   private trimmed = '';
 
@@ -102,6 +106,12 @@ export class GlobalSearch {
   });
 
   constructor() {
+    afterNextRender(() => {
+      if (this.focusOnInit()) {
+        this.input().nativeElement.focus();
+        this.open.set(true);
+      }
+    });
     this.requests
       .pipe(
         switchMap(({ query, delay }) =>
@@ -221,19 +231,32 @@ export class GlobalSearch {
     }
   }
 
+  clear(): void {
+    this.resetTerm();
+    this.input().nativeElement.focus();
+    this.open.set(true);
+  }
+
   select(row: SearchRow): void {
+    // The term and results stay: clicking the field again reopens them.
     this.open.set(false);
+    if (row.queryParams === null) {
+      void this.router.navigateByUrl(row.route, { state: { [RELOAD_ON_PARAM_CHANGE]: true } });
+    } else {
+      void this.router.navigateByUrl(
+        this.router.createUrlTree([row.route], { queryParams: row.queryParams }).toString(),
+      );
+    }
+  }
+
+  private resetTerm(): void {
     this.term.set('');
     this.input().nativeElement.value = '';
     this.trimmed = '';
     this.query.set('');
+    this.activeIndex.set(-1);
     this.reset('idle');
     this.requests.next({ query: '', delay: 0 });
-    void this.router.navigateByUrl(
-      row.queryParams === null
-        ? row.route
-        : this.router.createUrlTree([row.route], { queryParams: row.queryParams }).toString(),
-    );
   }
 
   onDocumentClick(event: Event): void {

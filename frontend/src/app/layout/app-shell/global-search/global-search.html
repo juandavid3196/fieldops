@@ -23,6 +23,13 @@
       (click)="onFieldOpen()"
       (keydown)="onKeydown($event)"
     />
+    @if (term()) {
+      <p-inputicon class="gs__clear-icon">
+        <button type="button" class="gs__clear" aria-label="Clear search" (click)="clear()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+        </button>
+      </p-inputicon>
+    }
   </p-iconfield>
   <span class="gs__hidden" role="status" aria-live="polite">{{ announcement() }}</span>
 
