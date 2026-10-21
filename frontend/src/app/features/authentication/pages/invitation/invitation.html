@@ -7,20 +7,23 @@
         <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-400)" />
         <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-600)" />
       </svg>
-      <span>Field</span><span class="invitation__accent">Ops</span>
+      <span>{{ 'authentication.invitation.field' | transloco }}</span
+      ><span class="invitation__accent">{{ 'authentication.invitation.ops' | transloco }}</span>
     </p>
   </header>
 
   <section class="invitation__card">
     <a class="invitation__back" routerLink="/auth/sign-in" (click)="leave()">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      Back to sign in
+      {{ 'authentication.invitation.backToSignIn' | transloco }}
     </a>
 
     @switch (state()) {
       @case ('loading') {
         <div class="invitation__loading" role="status" aria-live="polite">
-          <span class="invitation__sr">Loading invitation…</span>
+          <span class="invitation__sr">{{
+            'authentication.invitation.loadingInvitation' | transloco
+          }}</span>
           <p-skeleton shape="circle" size="4.5rem" />
           <p-skeleton width="70%" height="2rem" />
           <p-skeleton width="90%" height="1rem" />
@@ -73,10 +76,12 @@
           class="invitation__submit"
           routerLink="/auth/sign-in"
           (click)="leave()"
-          >Back to sign in</a
+          >{{ 'authentication.invitation.backToSignIn' | transloco }}</a
         >
 
-        <p class="invitation__help">Need help? Contact your organization.</p>
+        <p class="invitation__help">
+          {{ 'authentication.invitation.needHelpContactYour' | transloco }}
+        </p>
       }
 
       @case ('load-error') {
@@ -84,7 +89,9 @@
           <span class="invitation__icon invitation__icon--warning" aria-hidden="true">
             <i class="pi pi-exclamation-triangle"></i>
           </span>
-          <h1 class="invitation__title" tabindex="-1">Invitation not loaded</h1>
+          <h1 class="invitation__title" tabindex="-1">
+            {{ 'authentication.invitation.invitationNotLoaded' | transloco }}
+          </h1>
         </div>
         <p-message class="invitation__message" severity="error">{{ loadErrorMessage() }}</p-message>
         <button
@@ -95,7 +102,7 @@
           [disabled]="retryLocked()"
           (click)="retry()"
         >
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       }
 
@@ -113,23 +120,31 @@
                 />
               </svg>
             </span>
-            <h1 class="invitation__title" tabindex="-1">Join {{ invitation.organizationName }}</h1>
+            <h1 class="invitation__title" tabindex="-1">
+              {{
+                'authentication.invitation.join'
+                  | transloco: { organizationName: invitation.organizationName }
+              }}
+            </h1>
             <p class="invitation__subtitle">
-              {{ invitation.inviterName }} invited you to join their FieldOps workspace.
+              {{
+                'authentication.invitation.invitedYouToJoin'
+                  | transloco: { inviterName: invitation.inviterName }
+              }}
             </p>
           </div>
 
           <dl class="invitation__details">
             <div class="invitation__detail">
-              <dt>Email</dt>
+              <dt>{{ 'common.email' | transloco }}</dt>
               <dd>{{ invitation.email }}</dd>
             </div>
             <div class="invitation__detail">
-              <dt>Role</dt>
-              <dd>{{ invitation.role.name }}</dd>
+              <dt>{{ 'common.role' | transloco }}</dt>
+              <dd>{{ invitation.role.name | codeLabel: 'roles' : invitation.role.code }}</dd>
             </div>
             <div class="invitation__detail">
-              <dt>Branch access</dt>
+              <dt>{{ 'authentication.invitation.branchAccess' | transloco }}</dt>
               <dd>{{ branchAccess() }}</dd>
             </div>
           </dl>
@@ -138,7 +153,9 @@
             @if (mode() === 'new-account') {
               <div class="invitation__names">
                 <div class="invitation__field">
-                  <label class="invitation__label" for="first-name">First name</label>
+                  <label class="invitation__label" for="first-name">{{
+                    'authentication.invitation.firstName' | transloco
+                  }}</label>
                   <input
                     pInputText
                     class="invitation__input"
@@ -161,7 +178,9 @@
                   }
                 </div>
                 <div class="invitation__field">
-                  <label class="invitation__label" for="last-name">Last name</label>
+                  <label class="invitation__label" for="last-name">{{
+                    'authentication.invitation.lastName' | transloco
+                  }}</label>
                   <input
                     pInputText
                     class="invitation__input"
@@ -186,7 +205,9 @@
               </div>
             } @else {
               <div class="invitation__field">
-                <label class="invitation__label" for="email">Email</label>
+                <label class="invitation__label" for="email">{{
+                  'common.email' | transloco
+                }}</label>
                 <input
                   pInputText
                   class="invitation__input"
@@ -202,7 +223,9 @@
             }
 
             <div class="invitation__field">
-              <label class="invitation__label" for="password">Password</label>
+              <label class="invitation__label" for="password">{{
+                'authentication.invitation.password' | transloco
+              }}</label>
               <input
                 pInputPassword
                 class="invitation__input"
@@ -228,7 +251,9 @@
 
             @if (mode() === 'new-account') {
               <div class="invitation__field">
-                <label class="invitation__label" for="confirm-password">Confirm password</label>
+                <label class="invitation__label" for="confirm-password">{{
+                  'authentication.invitation.confirmPassword' | transloco
+                }}</label>
                 <input
                   pInputPassword
                   class="invitation__input"
@@ -262,12 +287,16 @@
                 [binary]="true"
                 (onChange)="togglePassword($event)"
               />
-              <label class="invitation__show-label" for="show-password">Show password</label>
+              <label class="invitation__show-label" for="show-password">{{
+                'authentication.invitation.showPassword' | transloco
+              }}</label>
             </div>
 
             @if (mode() === 'new-account') {
               <div class="invitation__requirements" id="password-requirements">
-                <p class="invitation__requirements-title">Your password must:</p>
+                <p class="invitation__requirements-title">
+                  {{ 'authentication.invitation.yourPasswordMust' | transloco }}
+                </p>
                 <ul>
                   <li [class.invitation__met]="requirements().lengthMet">
                     <i
@@ -276,9 +305,11 @@
                       [class.pi-circle]="!requirements().lengthMet"
                       aria-hidden="true"
                     ></i>
-                    12–128 characters
+                    {{ 'authentication.invitation.n12128Characters' | transloco }}
                     <span class="invitation__sr">{{
-                      requirements().lengthMet ? '(met)' : '(not met)'
+                      requirements().lengthMet
+                        ? ('authentication.invitation.met' | transloco)
+                        : ('authentication.invitation.notMet' | transloco)
                     }}</span>
                   </li>
                   <li [class.invitation__met]="requirements().differsFromEmailMet">
@@ -288,9 +319,11 @@
                       [class.pi-circle]="!requirements().differsFromEmailMet"
                       aria-hidden="true"
                     ></i>
-                    Must not match your email
+                    {{ 'authentication.invitation.mustNotMatchYour' | transloco }}
                     <span class="invitation__sr">{{
-                      requirements().differsFromEmailMet ? '(met)' : '(not met)'
+                      requirements().differsFromEmailMet
+                        ? ('authentication.invitation.met' | transloco)
+                        : ('authentication.invitation.notMet' | transloco)
                     }}</span>
                   </li>
                 </ul>
@@ -307,7 +340,7 @@
                   class="invitation__link"
                   (click)="switchMode('existing-account')"
                 >
-                  Sign in to accept
+                  {{ 'authentication.invitation.signInToAccept' | transloco }}
                 </button>
               }
             }
@@ -322,16 +355,24 @@
             >
               @if (submitting()) {
                 <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-                {{ mode() === 'new-account' ? 'Accepting…' : 'Signing in…' }}
+                {{
+                  mode() === 'new-account'
+                    ? ('authentication.invitation.accepting' | transloco)
+                    : ('authentication.invitation.signingIn' | transloco)
+                }}
               } @else {
-                {{ mode() === 'new-account' ? 'Accept invitation' : 'Sign in and accept' }}
+                {{
+                  mode() === 'new-account'
+                    ? ('authentication.invitation.acceptInvitation' | transloco)
+                    : ('authentication.invitation.signInAndAccept' | transloco)
+                }}
               }
             </button>
           </form>
 
           <p class="invitation__switch">
             @if (mode() === 'new-account') {
-              Already have a FieldOps account?
+              {{ 'authentication.invitation.alreadyHaveAFieldops' | transloco }}
               <button
                 pButton
                 type="button"
@@ -340,10 +381,10 @@
                 [disabled]="submitting()"
                 (click)="switchMode('existing-account')"
               >
-                Sign in to accept
+                {{ 'authentication.invitation.signInToAccept' | transloco }}
               </button>
             } @else {
-              New to FieldOps?
+              {{ 'authentication.invitation.newToFieldops' | transloco }}
               <button
                 pButton
                 type="button"
@@ -352,7 +393,7 @@
                 [disabled]="submitting()"
                 (click)="switchMode('new-account')"
               >
-                Create your account
+                {{ 'authentication.invitation.createYourAccount' | transloco }}
               </button>
             }
           </p>
@@ -365,4 +406,7 @@
       }
     }
   </section>
+  <footer class="invitation__footer">
+    <app-language-footer-selector />
+  </footer>
 </main>

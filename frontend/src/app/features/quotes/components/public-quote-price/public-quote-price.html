@@ -1,5 +1,7 @@
 <section class="price" aria-labelledby="price-heading">
-  <h2 class="price__title" id="price-heading">Price details</h2>
+  <h2 class="price__title" id="price-heading">
+    {{ 'quotes.publicQuotePrice.priceDetails' | transloco }}
+  </h2>
 
   <ng-template #rows let-lines let-optional="optional">
     @for (line of lines; track $index) {
@@ -30,18 +32,32 @@
     }
   </ng-template>
 
-  <div class="price__table" role="table" aria-label="Line items">
+  <div
+    class="price__table"
+    role="table"
+    [attr.aria-label]="'quotes.publicQuotePrice.lineItems' | transloco"
+  >
     <div class="price__row price__row--head" role="row">
-      <div class="price__cell price__cell--name" role="columnheader">Description</div>
-      <div class="price__cell price__cell--qty" role="columnheader">Qty</div>
-      <div class="price__cell price__cell--rate" role="columnheader">Rate</div>
-      <div class="price__cell price__cell--amount" role="columnheader">Amount</div>
+      <div class="price__cell price__cell--name" role="columnheader">
+        {{ 'common.description' | transloco }}
+      </div>
+      <div class="price__cell price__cell--qty" role="columnheader">
+        {{ 'quotes.publicQuotePrice.qty' | transloco }}
+      </div>
+      <div class="price__cell price__cell--rate" role="columnheader">
+        {{ 'quotes.publicQuotePrice.rate' | transloco }}
+      </div>
+      <div class="price__cell price__cell--amount" role="columnheader">
+        {{ 'common.amount' | transloco }}
+      </div>
     </div>
     <ng-container *ngTemplateOutlet="rows; context: { $implicit: regular(), optional: false }" />
   </div>
 
   @if (optional().length > 0) {
-    <h3 class="price__subtitle" id="optional-heading">Optional items</h3>
+    <h3 class="price__subtitle" id="optional-heading">
+      {{ 'quotes.publicQuotePrice.optionalItems' | transloco }}
+    </h3>
     <div class="price__table" role="table" aria-labelledby="optional-heading">
       <ng-container *ngTemplateOutlet="rows; context: { $implicit: optional(), optional: true }" />
     </div>
@@ -49,12 +65,12 @@
 
   <dl class="price__totals" [attr.aria-busy]="calculating()">
     <div class="price__total-row">
-      <dt>Subtotal</dt>
+      <dt>{{ 'quotes.publicQuotePrice.subtotal' | transloco }}</dt>
       <dd>{{ money(totals().subtotal) }}</dd>
     </div>
     @if (totals().discountTotal > 0) {
       <div class="price__total-row">
-        <dt>Discount</dt>
+        <dt>{{ 'quotes.publicQuotePrice.discount' | transloco }}</dt>
         <dd>−{{ money(totals().discountTotal) }}</dd>
       </div>
     }
@@ -63,7 +79,7 @@
       <dd>{{ money(totals().taxTotal) }}</dd>
     </div>
     <div class="price__total-row price__total-row--band">
-      <dt>Total</dt>
+      <dt>{{ 'common.total' | transloco }}</dt>
       <dd>{{ money(totals().total) }}</dd>
     </div>
   </dl>

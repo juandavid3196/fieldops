@@ -1,5 +1,6 @@
 import { Component, DestroyRef, effect, inject, input, signal, untracked } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AssessmentPhoto } from '../../models/requests.model';
 import { RequestsService } from '../../services/requests.service';
@@ -11,6 +12,7 @@ import { RequestsService } from '../../services/requests.service';
  */
 @Component({
   selector: 'app-assessment-photos',
+  imports: [TranslocoPipe],
   templateUrl: './assessment-photos.html',
   styleUrl: './assessment-photos.scss',
 })

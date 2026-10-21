@@ -8,7 +8,9 @@ import { SessionService } from '../../../../core/services/session.service';
 import { MessageList } from '../../components/message-list/message-list';
 import { FORBIDDEN_MESSAGE, MESSAGING_ROLES } from '../../utils/messages-format';
 
-export const SELECT_CONVERSATION_TEXT = 'Select a conversation';
+import { t } from '../../../../core/i18n/translate';
+export const SELECT_CONVERSATION_TEXT = (): string =>
+  t('messages.messagesHost.selectConversationText');
 
 /**
  * Messages screen of both shells. Technician (`split` false): the list, or the conversation when one
@@ -32,9 +34,15 @@ export class MessagesHost {
       : '/messages';
   readonly split = this.route.snapshot.data['split'] === true;
   readonly allowed = MESSAGING_ROLES.includes(inject(SessionService).session()?.role.code ?? '');
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly selectText = SELECT_CONVERSATION_TEXT;
-  readonly selectHint = 'Choose a job or team conversation to view messages and reply.';
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get selectText(): string {
+    return SELECT_CONVERSATION_TEXT();
+  }
+  get selectHint(): string {
+    return t('messages.messagesHost.chooseAJobOr');
+  }
 
   readonly wide = signal(true);
   readonly selectedId = signal<string | null>(this.currentId());

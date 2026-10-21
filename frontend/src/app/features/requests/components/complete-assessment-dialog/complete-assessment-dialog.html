@@ -1,5 +1,5 @@
 <p-dialog
-  header="Complete assessment"
+  [header]="'requests.completeAssessmentDialog.completeAssessment' | transloco"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
@@ -16,7 +16,7 @@
     (keydown.escape)="requestClose()"
   >
     <app-form-field
-      label="Diagnosis"
+      [label]="'requests.completeAssessmentDialog.diagnosis' | transloco"
       controlId="complete-assessment-diagnosis"
       [required]="true"
       [error]="error('diagnosis')"
@@ -35,7 +35,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Recommended scope"
+      [label]="'requests.completeAssessmentDialog.recommendedScope' | transloco"
       controlId="complete-assessment-recommendedScope"
       [error]="error('recommendedScope')"
     >
@@ -53,14 +53,14 @@
     </app-form-field>
 
     <app-form-field
-      label="Photos"
+      [label]="'requests.completeAssessmentDialog.photos' | transloco"
       controlId="complete-assessment-photos"
       [error]="error('photos')"
-      helper="Optional. Up to 6 JPG or PNG files of 10 MB or less."
+      [helper]="'requests.completeAssessmentDialog.optionalUpTo6' | transloco"
     >
       <label class="complete__drop" for="complete-assessment-photos">
         <i class="pi pi-upload" aria-hidden="true"></i>
-        Add photos (optional)
+        {{ 'requests.completeAssessmentDialog.addPhotosOptional' | transloco }}
         <input
           class="complete__input"
           id="complete-assessment-photos"
@@ -76,7 +76,10 @@
     </app-form-field>
 
     @if (photos().length > 0) {
-      <ul class="complete__files" aria-label="Selected photos">
+      <ul
+        class="complete__files"
+        [attr.aria-label]="'requests.completeAssessmentDialog.selectedPhotos' | transloco"
+      >
         @for (file of photos(); track $index) {
           <li class="complete__file">
             <span class="complete__name">{{ file.name }}</span>
@@ -84,7 +87,9 @@
             <button
               type="button"
               class="complete__remove"
-              [attr.aria-label]="'Remove ' + file.name"
+              [attr.aria-label]="
+                'requests.completeAssessmentDialog.remove' | transloco: { name: file.name }
+              "
               [disabled]="submitting()"
               (click)="removePhoto($index)"
             >
@@ -105,13 +110,13 @@
       [disabled]="submitting()"
       (click)="requestClose()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button pButton type="button" [disabled]="submitting()" (click)="submit()">
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Complete assessment
+      {{ 'requests.completeAssessmentDialog.completeAssessment' | transloco }}
     </button>
   </ng-template>
 </p-dialog>

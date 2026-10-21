@@ -17,6 +17,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
 import { EMPTY, Observable, Subscription, forkJoin, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { watchMedia, LG_QUERY } from '../../../../core/config/breakpoints';
 import { MessageUnreadService } from '../../../../core/services/message-unread.service';
@@ -43,6 +44,7 @@ import {
   timeLabel,
 } from '../../utils/messages-format';
 
+import { t } from '../../../../core/i18n/translate';
 type PageState =
   'loading' | 'ready' | 'error' | 'not-found' | 'forbidden' | 'inactive' | 'not-linked';
 type DeliveryStatus = 'sent' | 'sending' | 'failed';
@@ -98,7 +100,7 @@ function fromServer(message: ConversationMessage, local: boolean): Bubble {
  */
 @Component({
   selector: 'app-conversation',
-  imports: [ButtonDirective, Message, RouterLink, Skeleton, Textarea],
+  imports: [TranslocoPipe, ButtonDirective, Message, RouterLink, Skeleton, Textarea],
   host: { '(document:keydown.escape)': 'onEscape($event)' },
   templateUrl: './conversation.html',
   styleUrl: './conversation.scss',
@@ -128,8 +130,12 @@ export class Conversation {
   private readonly wide = signal(true);
 
   readonly maxLength = MAX_BODY_LENGTH;
-  readonly errorMessage = CONVERSATION_ERROR_MESSAGE;
-  readonly notAvailableMessage = NOT_AVAILABLE_MESSAGE;
+  get errorMessage(): string {
+    return CONVERSATION_ERROR_MESSAGE();
+  }
+  get notAvailableMessage(): string {
+    return NOT_AVAILABLE_MESSAGE();
+  }
   readonly skeletons = [0, 1, 2];
 
   readonly state = signal<PageState>('loading');
@@ -149,11 +155,11 @@ export class Conversation {
   readonly accessText = computed(() => {
     switch (this.state()) {
       case 'forbidden':
-        return FORBIDDEN_MESSAGE;
+        return FORBIDDEN_MESSAGE();
       case 'inactive':
-        return INACTIVE_MESSAGE;
+        return INACTIVE_MESSAGE();
       case 'not-linked':
-        return NOT_LINKED_MESSAGE;
+        return NOT_LINKED_MESSAGE();
       default:
         return null;
     }
@@ -358,7 +364,7 @@ export class Conversation {
     ]);
     this.draft.set('');
     this.fieldError.set(null);
-    this.announcement.set('Sending message.');
+    this.announcement.set(t('messages.conversation.sendingMessage'));
     this.scrollToBottom();
     this.dispatch(clientMessageId, body);
   }
@@ -369,13 +375,13 @@ export class Conversation {
       return;
     }
     this.patch(bubble.key, { status: 'sending', failure: null });
-    this.announcement.set('Sending message.');
+    this.announcement.set(t('messages.conversation.sendingMessage'));
     this.dispatch(bubble.clientMessageId, bubble.body);
   }
 
   discard(bubble: Bubble): void {
     this.bubbles.update((bubbles) => bubbles.filter((item) => item.key !== bubble.key));
-    this.announcement.set('Message discarded.');
+    this.announcement.set(t('messages.conversation.messageDiscarded'));
   }
 
   showNewMessages(): void {
@@ -403,7 +409,7 @@ export class Conversation {
             ? bubbles.filter((item) => item.key !== clientMessageId)
             : bubbles.map((item) => (item.key === clientMessageId ? stored : item)),
         );
-        this.announcement.set('Message sent.');
+        this.announcement.set(t('messages.conversation.messageSent'));
       },
       error: (error: unknown) => {
         const failure = sendFailure(error);
@@ -415,7 +421,7 @@ export class Conversation {
           return;
         }
         this.patch(clientMessageId, { status: 'failed', failure: failure.message });
-        this.announcement.set('Message failed to send.');
+        this.announcement.set(t('messages.conversation.messageFailedToSend'));
       },
     });
   }
@@ -461,7 +467,9 @@ export class Conversation {
     this.bubbles.set(next);
     const others = fresh.filter((message) => !message.isMine);
     if (others.length > 0) {
-      this.announcement.set(`New message from ${others[others.length - 1].author.name}`);
+      this.announcement.set(
+        t('messages.conversation.newMessageFrom', { value: others[others.length - 1].author.name }),
+      );
       this.unreadIncoming = true;
       if (stickToBottom) {
         this.scrollToBottom();

@@ -21,6 +21,7 @@ import { Paginator, PaginatorState } from 'primeng/paginator';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Subject, Subscription, debounceTime, filter, map } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { MatrixRow, SkillCoverageFilter, SkillsMatrixPage } from '../../models/team-planning.model';
@@ -31,11 +32,13 @@ import { SkillCatalogDialog } from '../skill-catalog-dialog/skill-catalog-dialog
 import { SkillsDrawer } from '../skills-drawer/skills-drawer';
 import { TeamTabs } from '../team-tabs/team-tabs';
 
-export const SKILLS_ERROR_MESSAGE = "We couldn't load skills. Try again.";
-export const SKILLS_NOTE = 'Skills help Dispatch match technicians to the right jobs.';
-export const NO_SKILLS_MESSAGE = 'No skills defined yet.';
-const EMPTY_TECHNICIANS_MESSAGE = 'No active technicians yet.';
-const FILTERED_EMPTY_MESSAGE = 'No technicians match these filters.';
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const SKILLS_ERROR_MESSAGE = (): string => t('team.skillsTab.skillsErrorMessage');
+export const SKILLS_NOTE = (): string => t('team.skillsTab.skillsNote');
+export const NO_SKILLS_MESSAGE = (): string => t('team.skillsTab.noSkillsMessage');
+const EMPTY_TECHNICIANS_MESSAGE = (): string => t('team.skillsTab.emptyTechniciansMessage');
+const FILTERED_EMPTY_MESSAGE = (): string => t('team.skillsTab.filteredEmptyMessage');
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5];
 
@@ -44,11 +47,11 @@ interface Choice {
   readonly label: string;
 }
 
-const COVERAGE_OPTIONS: Choice[] = [
-  { code: 'all', label: 'All coverage' },
-  { code: 'with', label: 'With skills' },
-  { code: 'without', label: 'Without skills' },
-];
+const COVERAGE_OPTIONS: Choice[] = localizedList(() => [
+  { code: 'all', label: t('team.skillsTab.allCoverage') },
+  { code: 'with', label: t('team.skillsTab.withSkills') },
+  { code: 'without', label: t('team.skillsTab.withoutSkills') },
+]);
 
 interface MatrixRowView {
   readonly row: MatrixRow;
@@ -60,6 +63,8 @@ interface MatrixRowView {
 @Component({
   selector: 'app-skills-tab',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     IconField,
@@ -92,11 +97,21 @@ export class SkillsTab {
   readonly unauthorized = output<void>();
   readonly forbidden = output<void>();
 
-  readonly errorMessage = SKILLS_ERROR_MESSAGE;
-  readonly note = SKILLS_NOTE;
-  readonly noSkillsMessage = NO_SKILLS_MESSAGE;
-  readonly emptyMessage = EMPTY_TECHNICIANS_MESSAGE;
-  readonly filteredEmptyMessage = FILTERED_EMPTY_MESSAGE;
+  get errorMessage(): string {
+    return SKILLS_ERROR_MESSAGE();
+  }
+  get note(): string {
+    return SKILLS_NOTE();
+  }
+  get noSkillsMessage(): string {
+    return NO_SKILLS_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return EMPTY_TECHNICIANS_MESSAGE();
+  }
+  get filteredEmptyMessage(): string {
+    return FILTERED_EMPTY_MESSAGE();
+  }
   readonly coverageOptions = COVERAGE_OPTIONS;
   readonly skeletonRows = SKELETON_ROWS;
   readonly pageSize = TEAM_PAGE_SIZE;
@@ -131,7 +146,11 @@ export class SkillsTab {
   readonly report = computed(() => {
     const total = this.totalCount();
     const from = total === 0 ? 0 : this.first() + 1;
-    return `Showing ${from} – ${Math.min(this.first() + TEAM_PAGE_SIZE, total)} of ${total} technicians`;
+    return t('team.skillsTab.showingOfTechnicians', {
+      from: from,
+      value: Math.min(this.first() + TEAM_PAGE_SIZE, total),
+      total: total,
+    });
   });
   readonly ariaSort = computed(() => (this.sort() === 'asc' ? 'ascending' : 'descending'));
   readonly hasFilters = computed(
@@ -142,13 +161,13 @@ export class SkillsTab {
       this.coverage() !== 'all',
   );
   readonly branchChoices = computed<Choice[]>(() => [
-    { code: 'all', label: 'All branches' },
+    { code: 'all', label: t('team.skillsTab.allBranches') },
     ...this.branches().map((branch) => ({ code: branch.id, label: branch.name })),
   ]);
   /** Active skills seen so far; kept while a new page loads so the filter stays usable. */
   private readonly knownSkills = signal<readonly TeamOption[]>([]);
   readonly skillChoices = computed<Choice[]>(() => [
-    { code: 'all', label: 'All skills' },
+    { code: 'all', label: t('team.skillsTab.allSkills') },
     ...this.knownSkills().map((skill) => ({ code: skill.id, label: skill.name })),
   ]);
 
@@ -268,7 +287,7 @@ export class SkillsTab {
   openMenu(event: Event, view: MatrixRowView): void {
     this.menuModel.set([
       {
-        label: 'Edit skills',
+        label: t('team.skillsTab.editSkills'),
         icon: 'pi pi-pencil',
         command: () => this.openDrawer(view.row.technicianId),
       },

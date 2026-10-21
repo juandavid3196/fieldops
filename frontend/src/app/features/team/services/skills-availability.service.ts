@@ -12,6 +12,7 @@ import {
   TechnicianException,
 } from '../models/skills-availability.model';
 
+import { t } from '../../../core/i18n/translate';
 /** Skills & availability, exception and skill-catalog endpoints. Scope is resolved server-side. */
 @Injectable({ providedIn: 'root' })
 export class SkillsAvailabilityService {
@@ -91,7 +92,9 @@ export class SkillsAvailabilityService {
 
   setSkillActive(skillId: string, active: boolean): Observable<void> {
     return this.http.post<void>(
-      this.url(`team/skills/${encodeURIComponent(skillId)}/${active ? 'activate' : 'deactivate'}`),
+      this.url(
+        `team/skills/${encodeURIComponent(skillId)}/${active ? t('team.skillsAvailabilityService.activate') : t('team.skillsAvailabilityService.deactivate')}`,
+      ),
       null,
     );
   }

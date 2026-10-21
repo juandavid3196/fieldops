@@ -2,6 +2,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PlannedMaterial, TechnicianVisitDetail } from '../../models/technician-visits.model';
 import {
@@ -19,6 +20,7 @@ const OVERVIEW_MATERIALS = 3;
 @Component({
   selector: 'app-visit-tabs',
   imports: [
+    TranslocoPipe,
     NgTemplateOutlet,
     ButtonDirective,
     Tabs,

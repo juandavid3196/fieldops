@@ -1,11 +1,11 @@
-<nav class="team-tabs" aria-label="Team sections">
+<nav class="team-tabs" [attr.aria-label]="'team.teamTabs.teamSections' | transloco">
   <a
     class="team-tabs__tab"
     routerLink="/team"
     [class.team-tabs__tab--current]="current() === 'members'"
     [attr.aria-current]="current() === 'members' ? 'page' : null"
   >
-    Team members ({{ membersCount() ?? '—' }})
+    {{ 'team.teamTabs.teamMembers' | transloco: { value: membersCount() ?? '—' } }}
   </a>
   <a
     class="team-tabs__tab"
@@ -14,7 +14,7 @@
     [class.team-tabs__tab--current]="current() === 'availability'"
     [attr.aria-current]="current() === 'availability' ? 'page' : null"
   >
-    Availability
+    {{ 'team.teamTabs.availability' | transloco }}
   </a>
   <a
     class="team-tabs__tab"
@@ -23,7 +23,7 @@
     [class.team-tabs__tab--current]="current() === 'skills'"
     [attr.aria-current]="current() === 'skills' ? 'page' : null"
   >
-    Skills
+    {{ 'team.teamTabs.skills' | transloco }}
   </a>
   <div class="team-tabs__trailing"><ng-content /></div>
 </nav>

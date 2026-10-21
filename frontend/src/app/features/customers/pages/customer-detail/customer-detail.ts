@@ -18,6 +18,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 import { Toast } from 'primeng/toast';
 import { Observable, Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -77,13 +78,17 @@ import {
   UPDATE_FAILED_MESSAGE,
 } from '../customers/customers';
 
-export const NOT_FOUND_TITLE = 'Customer not found';
-export const NOT_FOUND_MESSAGE = "This customer doesn't exist or you don't have access to it.";
-export const DETAIL_ERROR_MESSAGE = "We couldn't load this customer.";
-export const PROPERTY_UPDATE_FAILED_MESSAGE = "We couldn't update the property. Try again.";
-export const NOTE_FAILED_MESSAGE = "We couldn't add the note. Try again.";
-export const PORTAL_FAILED_MESSAGE = "We couldn't update portal access. Try again.";
-export const PORTAL_INVITE_UNAVAILABLE_MESSAGE = "Portal access can't be sent for this contact.";
+import { localizedList, t } from '../../../../core/i18n/translate';
+export const NOT_FOUND_TITLE = (): string => t('customers.customerDetail.notFoundTitle');
+export const NOT_FOUND_MESSAGE = (): string => t('customers.customerDetail.notFoundMessage');
+export const DETAIL_ERROR_MESSAGE = (): string => t('customers.customerDetail.detailErrorMessage');
+export const PROPERTY_UPDATE_FAILED_MESSAGE = (): string =>
+  t('customers.customerDetail.propertyUpdateFailedMessage');
+export const NOTE_FAILED_MESSAGE = (): string => t('customers.customerDetail.noteFailedMessage');
+export const PORTAL_FAILED_MESSAGE = (): string =>
+  t('customers.customerDetail.portalFailedMessage');
+export const PORTAL_INVITE_UNAVAILABLE_MESSAGE = (): string =>
+  t('customers.customerDetail.portalInviteUnavailableMessage');
 const MUTATE_ROLES: readonly string[] = ['owner', 'dispatcher'];
 const READ_ROLES: readonly string[] = ['operations_manager', 'accounting', 'viewer'];
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -95,29 +100,39 @@ interface TabInfo {
   readonly soon?: { readonly noun: string; readonly link: string };
 }
 
-const TABS: readonly TabInfo[] = [
-  { code: 'overview', label: 'Overview' },
+const TABS: readonly TabInfo[] = localizedList(() => [
+  { code: 'overview', label: t('customers.customerDetail.overview') },
   {
     code: 'requests',
-    label: 'Requests',
-    soon: { noun: 'requests', link: '/requests' },
+    label: t('customers.customerDetail.requests'),
+    soon: { noun: t('customers.customerDetail.nounRequests'), link: '/requests' },
   },
-  { code: 'quotes', label: 'Quotes', soon: { noun: 'quotes', link: '/coming-soon/quotes' } },
-  { code: 'jobs', label: 'Jobs', soon: { noun: 'jobs', link: '/coming-soon/work-orders' } },
+  {
+    code: 'quotes',
+    label: t('customers.customerDetail.quotes'),
+    soon: { noun: t('customers.customerDetail.nounQuotes'), link: '/coming-soon/quotes' },
+  },
+  {
+    code: 'jobs',
+    label: t('customers.customerDetail.jobs'),
+    soon: { noun: t('customers.customerDetail.nounJobs'), link: '/coming-soon/work-orders' },
+  },
   {
     code: 'invoices',
-    label: 'Invoices',
-    soon: { noun: 'invoices', link: '/coming-soon/invoices' },
+    label: t('customers.customerDetail.invoices'),
+    soon: { noun: t('customers.customerDetail.nounInvoices'), link: '/coming-soon/invoices' },
   },
-  { code: 'activity', label: 'Activity' },
-];
+  { code: 'activity', label: t('customers.customerDetail.activity') },
+]);
 
-const CREATE_LINKS: readonly { readonly label: string; readonly path: string }[] = [
-  { label: 'Request', path: '/requests' },
-  { label: 'Quote', path: '/coming-soon/quotes' },
-  { label: 'Job', path: '/coming-soon/work-orders' },
-  { label: 'Invoice', path: '/coming-soon/invoices' },
-];
+const CREATE_LINKS: readonly { readonly label: string; readonly path: string }[] = localizedList(
+  () => [
+    { label: t('customers.customerDetail.request'), path: '/requests' },
+    { label: t('customers.customerDetail.quote'), path: '/coming-soon/quotes' },
+    { label: t('customers.customerDetail.job'), path: '/coming-soon/work-orders' },
+    { label: t('customers.customerDetail.invoice'), path: '/coming-soon/invoices' },
+  ],
+);
 
 type PropertyAction = 'set-primary' | 'archive' | 'reactivate';
 
@@ -130,6 +145,7 @@ type PropertyAction = 'set-primary' | 'archive' | 'reactivate';
 @Component({
   selector: 'app-customer-detail',
   imports: [
+    TranslocoPipe,
     RouterLink,
     ButtonDirective,
     Menu,
@@ -165,10 +181,18 @@ export class CustomerDetail {
   private readonly propertyDrawer = viewChild(PropertyDrawer);
   private readonly menu = viewChild.required(Menu);
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly notFoundTitle = NOT_FOUND_TITLE;
-  readonly notFoundMessage = NOT_FOUND_MESSAGE;
-  readonly detailErrorMessage = DETAIL_ERROR_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get notFoundTitle(): string {
+    return NOT_FOUND_TITLE();
+  }
+  get notFoundMessage(): string {
+    return NOT_FOUND_MESSAGE();
+  }
+  get detailErrorMessage(): string {
+    return DETAIL_ERROR_MESSAGE();
+  }
   readonly tabs = TABS;
   readonly activityPageSize = ACTIVITY_PAGE_SIZE;
 
@@ -228,7 +252,10 @@ export class CustomerDetail {
     return {
       initials: initials(o.type, o.displayName, o.contact),
       name: o.displayName,
-      typeLabel: o.type === 'commercial' ? 'Commercial' : 'Residential',
+      typeLabel:
+        o.type === 'commercial'
+          ? t('customers.customerDetail.commercial')
+          : t('customers.customerDetail.residential'),
       statusLabel: STATUS_LABELS[o.displayStatus] ?? o.displayStatus,
       severity: statusSeverity(o.displayStatus),
       email: o.contact.email,
@@ -244,7 +271,7 @@ export class CustomerDetail {
     return (data?.items ?? []).map((item) => ({
       id: item.id,
       label: activityLabel(item.action, item.subjectName),
-      actor: item.actorName?.trim() || 'System',
+      actor: item.actorName?.trim() || t('customers.customerDetail.system'),
       date: formatDateTime(item.occurredAt, data?.timezone ?? 'UTC'),
     }));
   });
@@ -494,7 +521,11 @@ export class CustomerDetail {
 
   openCreateMenu(event: Event): void {
     this.menuModel.set([
-      { label: 'Property', icon: 'pi pi-home', command: () => this.openAddProperty() },
+      {
+        label: t('customers.customerDetail.property'),
+        icon: 'pi pi-home',
+        command: () => this.openAddProperty(),
+      },
       ...CREATE_LINKS.map((item) => ({
         label: item.label,
         command: () => void this.router.navigateByUrl(item.path),
@@ -511,13 +542,13 @@ export class CustomerDetail {
     this.menuModel.set([
       o.isActive
         ? {
-            label: 'Archive customer',
+            label: t('customers.customerDetail.archiveCustomer'),
             icon: 'pi pi-box',
             disabled: this.mutating(),
             command: () => this.confirmArchiveCustomer(o),
           }
         : {
-            label: 'Reactivate customer',
+            label: t('customers.customerDetail.reactivateCustomer'),
             icon: 'pi pi-replay',
             disabled: this.mutating(),
             command: () => this.reactivateCustomer(o),
@@ -532,13 +563,13 @@ export class CustomerDetail {
       property.isActive
         ? [
             {
-              label: 'Set as primary',
+              label: t('customers.customerDetail.setAsPrimary'),
               icon: 'pi pi-star',
               disabled: busy,
               command: () => this.runPropertyAction(property, 'set-primary'),
             },
             {
-              label: 'Archive',
+              label: t('customers.customerDetail.archive'),
               icon: 'pi pi-box',
               disabled: busy,
               command: () => this.confirmArchiveProperty(property),
@@ -546,7 +577,7 @@ export class CustomerDetail {
           ]
         : [
             {
-              label: 'Reactivate',
+              label: t('customers.customerDetail.reactivate'),
               icon: 'pi pi-replay',
               disabled: busy,
               command: () => this.runPropertyAction(property, 'reactivate'),
@@ -603,9 +634,9 @@ export class CustomerDetail {
 
   private dirtySubject(): string | null {
     if (this.customerDrawer()?.isDirty()) {
-      return 'this customer';
+      return t('customers.customerDetail.thisCustomer');
     }
-    return this.propertyDrawer()?.isDirty() ? 'this property' : null;
+    return this.propertyDrawer()?.isDirty() ? t('customers.customerDetail.thisProperty') : null;
   }
 
   onCustomerDrawerClosed(): void {
@@ -636,7 +667,7 @@ export class CustomerDetail {
   }
 
   onCustomerUnavailable(): void {
-    this.messageService.add({ severity: 'error', summary: CUSTOMER_UNAVAILABLE_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: CUSTOMER_UNAVAILABLE_MESSAGE() });
     this.leaveConfirmed = true;
     void this.router.navigate(['/customers']).finally(() => (this.leaveConfirmed = false));
   }
@@ -647,7 +678,7 @@ export class CustomerDetail {
       this.onCustomerUnavailable();
       return;
     }
-    this.messageService.add({ severity: 'error', summary: PROPERTY_UNAVAILABLE_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: PROPERTY_UNAVAILABLE_MESSAGE() });
     this.propertyDrawerOpen.set(false);
     this.refreshAfterChange(false);
   }
@@ -704,11 +735,14 @@ export class CustomerDetail {
       return;
     }
     this.confirmationService.confirm({
-      header: 'Remove portal access?',
-      message: `${customer.displayName} will be signed out of the portal.`,
+      header: t('customers.customerDetail.removePortalAccess'),
+      message: t('customers.customerDetail.willBeSignedOut', { displayName: customer.displayName }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Remove portal access', severity: 'danger' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: {
+        label: t('customers.customerDetail.removePortalAccess2'),
+        severity: 'danger',
+      },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => this.changePortalAccess(this.customers.removePortalAccess(customer.id)),
     });
   }
@@ -737,9 +771,9 @@ export class CustomerDetail {
         if (apiError?.kind === 'unauthorized') {
           this.onUnauthorized();
         } else if (apiError?.status === 409 && apiError.code === 'portal_invite_unavailable') {
-          this.portalError.set(PORTAL_INVITE_UNAVAILABLE_MESSAGE);
+          this.portalError.set(PORTAL_INVITE_UNAVAILABLE_MESSAGE());
         } else {
-          this.portalError.set(PORTAL_FAILED_MESSAGE);
+          this.portalError.set(PORTAL_FAILED_MESSAGE());
         }
       },
     });
@@ -749,17 +783,16 @@ export class CustomerDetail {
 
   private confirmArchiveCustomer(customer: CustomerOverview): void {
     this.confirmationService.confirm({
-      header: `Archive ${customer.displayName}?`,
-      message:
-        'Archived customers are hidden from active lists. Their contacts, properties and history are kept.',
+      header: t('customers.customerDetail.archive2', { displayName: customer.displayName }),
+      message: t('customers.customerDetail.archivedCustomersAreHidden'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Archive' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('customers.customerDetail.archive') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () =>
         this.mutateCustomer(
           this.customers.archive(customer.id),
-          'Customer archived.',
-          ALREADY_ARCHIVED_MESSAGE,
+          t('customers.customerDetail.customerArchived'),
+          ALREADY_ARCHIVED_MESSAGE(),
         ),
     });
   }
@@ -767,8 +800,8 @@ export class CustomerDetail {
   private reactivateCustomer(customer: CustomerOverview): void {
     this.mutateCustomer(
       this.customers.reactivate(customer.id),
-      'Customer reactivated.',
-      ALREADY_ACTIVE_MESSAGE,
+      t('customers.customerDetail.customerReactivated'),
+      ALREADY_ACTIVE_MESSAGE(),
     );
   }
 
@@ -794,7 +827,7 @@ export class CustomerDetail {
         } else if (kind === 'not-found') {
           this.onCustomerUnavailable();
         } else {
-          this.messageService.add({ severity: 'error', summary: UPDATE_FAILED_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: UPDATE_FAILED_MESSAGE() });
         }
       },
     });
@@ -804,12 +837,11 @@ export class CustomerDetail {
 
   private confirmArchiveProperty(property: PropertyItem): void {
     this.confirmationService.confirm({
-      header: `Archive ${property.name}?`,
-      message:
-        "Archived properties are hidden from this customer's active properties. Their history is kept.",
+      header: t('customers.customerDetail.archive3', { name: property.name }),
+      message: t('customers.customerDetail.archivedPropertiesAreHidden'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Archive' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('customers.customerDetail.archive') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => this.runPropertyAction(property, 'archive'),
     });
   }
@@ -819,16 +851,16 @@ export class CustomerDetail {
     switch (action) {
       case 'set-primary':
         return property.isPrimary
-          ? 'This property is already the primary property.'
+          ? t('customers.customerDetail.thisPropertyIsAlready')
           : !property.isActive
-            ? 'Reactivate this property before making it primary.'
-            : 'The primary property was changed by someone else. Refresh and try again.';
+            ? t('customers.customerDetail.reactivateThisPropertyBefore')
+            : t('customers.customerDetail.thePrimaryPropertyWas');
       case 'archive':
         return property.isActive
-          ? 'Set another property as primary before archiving this one.'
-          : 'This property is already archived.';
+          ? t('customers.customerDetail.setAnotherPropertyAs')
+          : t('customers.customerDetail.thisPropertyIsAlready2');
       case 'reactivate':
-        return 'This property is already active.';
+        return t('customers.customerDetail.thisPropertyIsAlready3');
     }
   }
 
@@ -845,10 +877,10 @@ export class CustomerDetail {
           : this.customers.reactivateProperty(id, property.id);
     const success =
       action === 'set-primary'
-        ? 'Primary property updated.'
+        ? t('customers.customerDetail.primaryPropertyUpdated')
         : action === 'archive'
-          ? 'Property archived.'
-          : 'Property reactivated.';
+          ? t('customers.customerDetail.propertyArchived')
+          : t('customers.customerDetail.propertyReactivated');
     this.propertyBusyId.set(property.id);
     request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
@@ -868,10 +900,10 @@ export class CustomerDetail {
           });
           this.refreshAfterChange(false);
         } else if (kind === 'not-found') {
-          this.messageService.add({ severity: 'error', summary: PROPERTY_UNAVAILABLE_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: PROPERTY_UNAVAILABLE_MESSAGE() });
           this.refreshAfterChange(false);
         } else {
-          this.messageService.add({ severity: 'error', summary: PROPERTY_UPDATE_FAILED_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: PROPERTY_UPDATE_FAILED_MESSAGE() });
         }
       },
     });
@@ -910,7 +942,10 @@ export class CustomerDetail {
               ? { status: 'ready', data: [entry, ...(state.data ?? [])] }
               : state,
           );
-          this.messageService.add({ severity: 'success', summary: 'Note added.' });
+          this.messageService.add({
+            severity: 'success',
+            summary: t('customers.customerDetail.noteAdded'),
+          });
           if (this.activity().status !== 'idle') {
             this.activity.set(IDLE_REGION);
             if (this.tab() === 'activity') {
@@ -932,9 +967,9 @@ export class CustomerDetail {
             const first = Object.values(apiError.fieldErrors).find(
               (messages) => messages.length > 0,
             );
-            this.noteError.set(first?.[0] ?? NOTE_FAILED_MESSAGE);
+            this.noteError.set(first?.[0] ?? NOTE_FAILED_MESSAGE());
           } else {
-            this.messageService.add({ severity: 'error', summary: NOTE_FAILED_MESSAGE });
+            this.messageService.add({ severity: 'error', summary: NOTE_FAILED_MESSAGE() });
           }
         },
       });
@@ -968,7 +1003,10 @@ export class CustomerDetail {
         error: (error: unknown) => {
           this.notesLoadingMore.set(false);
           if (!this.handleFailure(error)) {
-            this.messageService.add({ severity: 'error', summary: "We couldn't load notes." });
+            this.messageService.add({
+              severity: 'error',
+              summary: t('customers.customerDetail.weCouldntLoadNotes'),
+            });
           }
         },
       });

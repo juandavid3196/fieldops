@@ -27,6 +27,7 @@ import {
   tooLongMessage,
 } from './register-company.messages';
 
+import { localized, t } from '../../../../core/i18n/translate';
 export const EMAIL_MAX_LENGTH = 254;
 export const PHONE_MAX_LENGTH = 40;
 
@@ -35,95 +36,117 @@ const SUPPORTED_CURRENCIES = new Set(SUPPORTED_CURRENCY_CODES);
 const SUPPORTED_COUNTRIES = new Set(SUPPORTED_COUNTRY_CODES);
 
 /** Visible labels, shared by field labels and the error summary link text. */
-export const FIELD_LABELS: Readonly<Record<FieldKey, string>> = {
-  'organization.name': 'Display name',
-  'organization.legalName': 'Legal business name',
-  'organization.taxId': 'Tax ID',
-  'organization.email': 'Business email',
-  'organization.phone': 'Business phone',
-  'organization.timezone': 'Company time zone',
-  'organization.currency': 'Currency',
-  'organization.defaultTaxRate': 'Default tax rate',
-  'organization.quotePrefix': 'Quote prefix',
-  'organization.workOrderPrefix': 'Work order prefix',
-  'organization.invoicePrefix': 'Invoice prefix',
-  'organization.nextInvoiceNumber': 'Next invoice number',
-  'branch.name': 'Branch name',
-  'branch.code': 'Branch code',
-  'branch.phone': 'Branch phone',
-  'branch.email': 'Branch email',
-  'branch.timezone': 'Branch time zone',
-  'branch.addressLine1': 'Address line 1',
-  'branch.city': 'City',
+export const FIELD_LABELS: Readonly<Record<FieldKey, string>> = localized(() => ({
+  'organization.name': t('organizations.registerCompanyValidators.displayName'),
+  'organization.legalName': t('organizations.registerCompanyValidators.legalBusinessName'),
+  'organization.taxId': t('organizations.registerCompanyValidators.taxId'),
+  'organization.email': t('organizations.registerCompanyValidators.businessEmail'),
+  'organization.phone': t('organizations.registerCompanyValidators.businessPhone'),
+  'organization.timezone': t('organizations.registerCompanyValidators.companyTimeZone'),
+  'organization.currency': t('organizations.registerCompanyValidators.currency'),
+  'organization.defaultTaxRate': t('organizations.registerCompanyValidators.defaultTaxRate'),
+  'organization.quotePrefix': t('organizations.registerCompanyValidators.quotePrefix'),
+  'organization.workOrderPrefix': t('organizations.registerCompanyValidators.workOrderPrefix'),
+  'organization.invoicePrefix': t('organizations.registerCompanyValidators.invoicePrefix'),
+  'organization.nextInvoiceNumber': t('organizations.registerCompanyValidators.nextInvoiceNumber'),
+  'branch.name': t('organizations.registerCompanyValidators.branchName'),
+  'branch.code': t('organizations.registerCompanyValidators.branchCode'),
+  'branch.phone': t('organizations.registerCompanyValidators.branchPhone'),
+  'branch.email': t('organizations.registerCompanyValidators.branchEmail'),
+  'branch.timezone': t('organizations.registerCompanyValidators.branchTimeZone'),
+  'branch.addressLine1': t('organizations.registerCompanyValidators.addressLine1'),
+  'branch.city': t('organizations.registerCompanyValidators.city'),
   'branch.stateRegion': 'State/Region',
-  'branch.postalCode': 'Postal code',
-  'branch.countryCode': 'Default country',
-  'branch.businessHours': 'Business hours',
-  'branch.businessHours.monday.start': 'Monday start time',
-  'branch.businessHours.monday.end': 'Monday end time',
-  'branch.businessHours.tuesday.start': 'Tuesday start time',
-  'branch.businessHours.tuesday.end': 'Tuesday end time',
-  'branch.businessHours.wednesday.start': 'Wednesday start time',
-  'branch.businessHours.wednesday.end': 'Wednesday end time',
-  'branch.businessHours.thursday.start': 'Thursday start time',
-  'branch.businessHours.thursday.end': 'Thursday end time',
-  'branch.businessHours.friday.start': 'Friday start time',
-  'branch.businessHours.friday.end': 'Friday end time',
-  'branch.businessHours.saturday.start': 'Saturday start time',
-  'branch.businessHours.saturday.end': 'Saturday end time',
-  'branch.businessHours.sunday.start': 'Sunday start time',
-  'branch.businessHours.sunday.end': 'Sunday end time',
-  'owner.firstName': 'First name',
-  'owner.lastName': 'Last name',
-  'owner.email': 'Email',
-  'owner.phone': 'Phone',
-  'owner.password': 'Password',
-  confirmPassword: 'Confirm password',
-};
+  'branch.postalCode': t('organizations.registerCompanyValidators.postalCode'),
+  'branch.countryCode': t('organizations.registerCompanyValidators.defaultCountry'),
+  'branch.businessHours': t('organizations.registerCompanyValidators.businessHours'),
+  'branch.businessHours.monday.start': t('organizations.registerCompanyValidators.mondayStartTime'),
+  'branch.businessHours.monday.end': t('organizations.registerCompanyValidators.mondayEndTime'),
+  'branch.businessHours.tuesday.start': t(
+    'organizations.registerCompanyValidators.tuesdayStartTime',
+  ),
+  'branch.businessHours.tuesday.end': t('organizations.registerCompanyValidators.tuesdayEndTime'),
+  'branch.businessHours.wednesday.start': t(
+    'organizations.registerCompanyValidators.wednesdayStartTime',
+  ),
+  'branch.businessHours.wednesday.end': t(
+    'organizations.registerCompanyValidators.wednesdayEndTime',
+  ),
+  'branch.businessHours.thursday.start': t(
+    'organizations.registerCompanyValidators.thursdayStartTime',
+  ),
+  'branch.businessHours.thursday.end': t('organizations.registerCompanyValidators.thursdayEndTime'),
+  'branch.businessHours.friday.start': t('organizations.registerCompanyValidators.fridayStartTime'),
+  'branch.businessHours.friday.end': t('organizations.registerCompanyValidators.fridayEndTime'),
+  'branch.businessHours.saturday.start': t(
+    'organizations.registerCompanyValidators.saturdayStartTime',
+  ),
+  'branch.businessHours.saturday.end': t('organizations.registerCompanyValidators.saturdayEndTime'),
+  'branch.businessHours.sunday.start': t('organizations.registerCompanyValidators.sundayStartTime'),
+  'branch.businessHours.sunday.end': t('organizations.registerCompanyValidators.sundayEndTime'),
+  'owner.firstName': t('organizations.registerCompanyValidators.firstName'),
+  'owner.lastName': t('organizations.registerCompanyValidators.lastName'),
+  'owner.email': t('common.email'),
+  'owner.phone': t('common.phone'),
+  'owner.password': t('organizations.registerCompanyValidators.password'),
+  confirmPassword: t('organizations.registerCompanyValidators.confirmPassword'),
+}));
 
 /** The BR-24 catalog messages a field is allowed to show; anything else becomes the fallback. */
-const ALLOWED_MESSAGES: Readonly<Record<SimpleFieldKey, readonly string[]>> = {
-  'organization.name': [REQUIRED_MESSAGE, tooLongMessage(160)],
-  'organization.legalName': [REQUIRED_MESSAGE, tooLongMessage(200)],
+const ALLOWED_MESSAGES: Readonly<Record<SimpleFieldKey, readonly string[]>> = localized(() => ({
+  'organization.name': [REQUIRED_MESSAGE(), tooLongMessage(160)],
+  'organization.legalName': [REQUIRED_MESSAGE(), tooLongMessage(200)],
   'organization.taxId': [tooLongMessage(60)],
-  'organization.email': [REQUIRED_MESSAGE, tooLongMessage(EMAIL_MAX_LENGTH), EMAIL_INVALID_MESSAGE],
-  'organization.phone': [REQUIRED_MESSAGE, tooLongMessage(PHONE_MAX_LENGTH), PHONE_INVALID_MESSAGE],
-  'organization.timezone': [TIMEZONE_MESSAGE],
-  'organization.currency': [CURRENCY_MESSAGE],
-  'organization.defaultTaxRate': [REQUIRED_MESSAGE, TAX_RATE_MESSAGE],
-  'organization.quotePrefix': [REQUIRED_MESSAGE, PREFIX_MESSAGE],
-  'organization.workOrderPrefix': [REQUIRED_MESSAGE, PREFIX_MESSAGE],
-  'organization.invoicePrefix': [REQUIRED_MESSAGE, PREFIX_MESSAGE],
-  'organization.nextInvoiceNumber': [REQUIRED_MESSAGE, NEXT_INVOICE_NUMBER_MESSAGE],
-  'branch.name': [REQUIRED_MESSAGE, tooLongMessage(140)],
-  'branch.code': [REQUIRED_MESSAGE, BRANCH_CODE_MESSAGE],
-  'branch.phone': [tooLongMessage(PHONE_MAX_LENGTH), PHONE_INVALID_MESSAGE],
-  'branch.email': [tooLongMessage(EMAIL_MAX_LENGTH), EMAIL_INVALID_MESSAGE],
-  'branch.timezone': [TIMEZONE_MESSAGE],
-  'branch.addressLine1': [REQUIRED_MESSAGE, tooLongMessage(180)],
-  'branch.city': [REQUIRED_MESSAGE, tooLongMessage(100)],
-  'branch.stateRegion': [tooLongMessage(100)],
-  'branch.postalCode': [REQUIRED_MESSAGE, tooLongMessage(30)],
-  'branch.countryCode': [COUNTRY_MESSAGE],
-  'owner.firstName': [REQUIRED_MESSAGE, tooLongMessage(100)],
-  'owner.lastName': [REQUIRED_MESSAGE, tooLongMessage(100)],
-  'owner.email': [
-    REQUIRED_MESSAGE,
+  'organization.email': [
+    REQUIRED_MESSAGE(),
     tooLongMessage(EMAIL_MAX_LENGTH),
-    EMAIL_INVALID_MESSAGE,
-    DUPLICATE_EMAIL_MESSAGE,
+    EMAIL_INVALID_MESSAGE(),
   ],
-  'owner.phone': [tooLongMessage(PHONE_MAX_LENGTH), PHONE_INVALID_MESSAGE],
-  'owner.password': [REQUIRED_MESSAGE, PASSWORD_LENGTH_MESSAGE, PASSWORD_EQUALS_EMAIL_MESSAGE],
-  confirmPassword: [REQUIRED_MESSAGE, PASSWORDS_DONT_MATCH_MESSAGE],
-};
+  'organization.phone': [
+    REQUIRED_MESSAGE(),
+    tooLongMessage(PHONE_MAX_LENGTH),
+    PHONE_INVALID_MESSAGE(),
+  ],
+  'organization.timezone': [TIMEZONE_MESSAGE()],
+  'organization.currency': [CURRENCY_MESSAGE()],
+  'organization.defaultTaxRate': [REQUIRED_MESSAGE(), TAX_RATE_MESSAGE()],
+  'organization.quotePrefix': [REQUIRED_MESSAGE(), PREFIX_MESSAGE()],
+  'organization.workOrderPrefix': [REQUIRED_MESSAGE(), PREFIX_MESSAGE()],
+  'organization.invoicePrefix': [REQUIRED_MESSAGE(), PREFIX_MESSAGE()],
+  'organization.nextInvoiceNumber': [REQUIRED_MESSAGE(), NEXT_INVOICE_NUMBER_MESSAGE()],
+  'branch.name': [REQUIRED_MESSAGE(), tooLongMessage(140)],
+  'branch.code': [REQUIRED_MESSAGE(), BRANCH_CODE_MESSAGE()],
+  'branch.phone': [tooLongMessage(PHONE_MAX_LENGTH), PHONE_INVALID_MESSAGE()],
+  'branch.email': [tooLongMessage(EMAIL_MAX_LENGTH), EMAIL_INVALID_MESSAGE()],
+  'branch.timezone': [TIMEZONE_MESSAGE()],
+  'branch.addressLine1': [REQUIRED_MESSAGE(), tooLongMessage(180)],
+  'branch.city': [REQUIRED_MESSAGE(), tooLongMessage(100)],
+  'branch.stateRegion': [tooLongMessage(100)],
+  'branch.postalCode': [REQUIRED_MESSAGE(), tooLongMessage(30)],
+  'branch.countryCode': [COUNTRY_MESSAGE()],
+  'owner.firstName': [REQUIRED_MESSAGE(), tooLongMessage(100)],
+  'owner.lastName': [REQUIRED_MESSAGE(), tooLongMessage(100)],
+  'owner.email': [
+    REQUIRED_MESSAGE(),
+    tooLongMessage(EMAIL_MAX_LENGTH),
+    EMAIL_INVALID_MESSAGE(),
+    DUPLICATE_EMAIL_MESSAGE(),
+  ],
+  'owner.phone': [tooLongMessage(PHONE_MAX_LENGTH), PHONE_INVALID_MESSAGE()],
+  'owner.password': [
+    REQUIRED_MESSAGE(),
+    PASSWORD_LENGTH_MESSAGE(),
+    PASSWORD_EQUALS_EMAIL_MESSAGE(),
+  ],
+  confirmPassword: [REQUIRED_MESSAGE(), PASSWORDS_DONT_MATCH_MESSAGE()],
+}));
 
 // --- Shared per-rule validators (BR-25 order; first failing rule wins) ----
 
 export function validateRequiredText(value: string, maxLength: number): string | null {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   return trimmed.length > maxLength ? tooLongMessage(maxLength) : null;
 }
@@ -135,12 +158,12 @@ export function validateOptionalText(value: string, maxLength: number): string |
 export function validateRequiredEmail(value: string): string | null {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   if (trimmed.length > EMAIL_MAX_LENGTH) {
     return tooLongMessage(EMAIL_MAX_LENGTH);
   }
-  return isValidEmailFormat(trimmed) ? null : EMAIL_INVALID_MESSAGE;
+  return isValidEmailFormat(trimmed) ? null : EMAIL_INVALID_MESSAGE();
 }
 
 export function validateOptionalEmail(value: string): string | null {
@@ -151,18 +174,18 @@ export function validateOptionalEmail(value: string): string | null {
   if (trimmed.length > EMAIL_MAX_LENGTH) {
     return tooLongMessage(EMAIL_MAX_LENGTH);
   }
-  return isValidEmailFormat(trimmed) ? null : EMAIL_INVALID_MESSAGE;
+  return isValidEmailFormat(trimmed) ? null : EMAIL_INVALID_MESSAGE();
 }
 
 export function validateRequiredPhone(value: string): string | null {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   if (trimmed.length > PHONE_MAX_LENGTH) {
     return tooLongMessage(PHONE_MAX_LENGTH);
   }
-  return isValidPhoneFormat(trimmed) ? null : PHONE_INVALID_MESSAGE;
+  return isValidPhoneFormat(trimmed) ? null : PHONE_INVALID_MESSAGE();
 }
 
 export function validateOptionalPhone(value: string): string | null {
@@ -173,92 +196,92 @@ export function validateOptionalPhone(value: string): string | null {
   if (trimmed.length > PHONE_MAX_LENGTH) {
     return tooLongMessage(PHONE_MAX_LENGTH);
   }
-  return isValidPhoneFormat(trimmed) ? null : PHONE_INVALID_MESSAGE;
+  return isValidPhoneFormat(trimmed) ? null : PHONE_INVALID_MESSAGE();
 }
 
 export function validateTimezone(value: string): string | null {
   const trimmed = value.trim();
-  return trimmed.length > 0 && SUPPORTED_TIME_ZONES.has(trimmed) ? null : TIMEZONE_MESSAGE;
+  return trimmed.length > 0 && SUPPORTED_TIME_ZONES.has(trimmed) ? null : TIMEZONE_MESSAGE();
 }
 
 export function validateCurrency(value: string): string | null {
   const trimmed = value.trim().toUpperCase();
-  return trimmed.length > 0 && SUPPORTED_CURRENCIES.has(trimmed) ? null : CURRENCY_MESSAGE;
+  return trimmed.length > 0 && SUPPORTED_CURRENCIES.has(trimmed) ? null : CURRENCY_MESSAGE();
 }
 
 export function validateCountryCode(value: string): string | null {
   const trimmed = value.trim().toUpperCase();
-  return trimmed.length > 0 && SUPPORTED_COUNTRIES.has(trimmed) ? null : COUNTRY_MESSAGE;
+  return trimmed.length > 0 && SUPPORTED_COUNTRIES.has(trimmed) ? null : COUNTRY_MESSAGE();
 }
 
 export function validateTaxRate(value: number | null): string | null {
   if (value === null) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   if (!Number.isFinite(value) || value < 0 || value > 100) {
-    return TAX_RATE_MESSAGE;
+    return TAX_RATE_MESSAGE();
   }
   const rounded = Math.round(value * 10_000) / 10_000;
-  return Math.abs(rounded - value) < 1e-9 ? null : TAX_RATE_MESSAGE;
+  return Math.abs(rounded - value) < 1e-9 ? null : TAX_RATE_MESSAGE();
 }
 
 export function validatePrefix(value: string): string | null {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   const upper = trimmed.toUpperCase();
-  return upper.length <= 20 && /^[A-Z0-9-]+$/.test(upper) ? null : PREFIX_MESSAGE;
+  return upper.length <= 20 && /^[A-Z0-9-]+$/.test(upper) ? null : PREFIX_MESSAGE();
 }
 
 export function validateNextInvoiceNumber(value: number | null): string | null {
   if (value === null) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   return Number.isInteger(value) && value >= 1 && value <= 999_999_999_999
     ? null
-    : NEXT_INVOICE_NUMBER_MESSAGE;
+    : NEXT_INVOICE_NUMBER_MESSAGE();
 }
 
 export function validateBranchCode(value: string): string | null {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   const upper = trimmed.toUpperCase();
-  return upper.length <= 8 && /^[A-Z0-9-]+$/.test(upper) ? null : BRANCH_CODE_MESSAGE;
+  return upper.length <= 8 && /^[A-Z0-9-]+$/.test(upper) ? null : BRANCH_CODE_MESSAGE();
 }
 
 /** Validates one open day's start time. Closed days are never validated. */
 export function validateBusinessHoursStart(start: string): string | null {
-  return start.length === 0 ? REQUIRED_MESSAGE : null;
+  return start.length === 0 ? REQUIRED_MESSAGE() : null;
 }
 
 /** Validates one open day's end time against its start. Closed days are never validated. */
 export function validateBusinessHoursEnd(start: string, end: string): string | null {
   if (end.length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
-  return end > start ? null : END_NOT_AFTER_START_MESSAGE;
+  return end > start ? null : END_NOT_AFTER_START_MESSAGE();
 }
 
 export function validatePassword(value: string, ownerEmail: string): string | null {
   if (value.length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   if (value.length < 12 || value.length > 128) {
-    return PASSWORD_LENGTH_MESSAGE;
+    return PASSWORD_LENGTH_MESSAGE();
   }
   return value.toLowerCase() === ownerEmail.trim().toLowerCase()
-    ? PASSWORD_EQUALS_EMAIL_MESSAGE
+    ? PASSWORD_EQUALS_EMAIL_MESSAGE()
     : null;
 }
 
 export function validateConfirmPassword(value: string, password: string): string | null {
   if (value.length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
-  return value === password ? null : PASSWORDS_DONT_MATCH_MESSAGE;
+  return value === password ? null : PASSWORDS_DONT_MATCH_MESSAGE();
 }
 
 function isValidEmailFormat(email: string): boolean {
@@ -408,7 +431,9 @@ export function mapServerFieldErrors(
   for (const field of SIMPLE_FIELD_KEYS) {
     const message = fieldErrors[field]?.[0];
     if (message !== undefined) {
-      result[field] = ALLOWED_MESSAGES[field].includes(message) ? message : FALLBACK_FIELD_MESSAGE;
+      result[field] = ALLOWED_MESSAGES[field].includes(message)
+        ? message
+        : FALLBACK_FIELD_MESSAGE();
     }
   }
 
@@ -427,16 +452,16 @@ export function mapServerFieldErrors(
       const message = fieldErrors[key]?.[0];
       if (message !== undefined) {
         result[key] =
-          message === REQUIRED_MESSAGE || message === END_NOT_AFTER_START_MESSAGE
+          message === REQUIRED_MESSAGE() || message === END_NOT_AFTER_START_MESSAGE()
             ? message
-            : FALLBACK_FIELD_MESSAGE;
+            : FALLBACK_FIELD_MESSAGE();
       }
     }
   }
 
   const rootMessage = fieldErrors['branch.businessHours']?.[0];
   if (rootMessage !== undefined) {
-    result['branch.businessHours'] = FALLBACK_FIELD_MESSAGE;
+    result['branch.businessHours'] = FALLBACK_FIELD_MESSAGE();
   }
 
   return result;

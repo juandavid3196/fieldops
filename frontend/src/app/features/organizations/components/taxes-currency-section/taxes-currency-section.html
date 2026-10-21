@@ -1,12 +1,12 @@
 <app-wizard-card
   headingId="taxes-currency-heading"
-  title="Taxes & currency"
-  description="Choose your currency and default tax rate. These settings will be used on new quotes and invoices."
+  [title]="'organizations.taxesCurrencySection.taxesCurrency' | transloco"
+  [description]="'organizations.taxesCurrencySection.chooseYourCurrencyAnd' | transloco"
   icon="pi-wallet"
 >
   <div class="taxes-currency__grid" [formGroup]="group()">
     <app-form-field
-      label="Currency"
+      [label]="'organizations.taxesCurrencySection.currency' | transloco"
       controlId="organization-currency"
       [required]="true"
       [error]="error('organization.currency')"
@@ -19,7 +19,7 @@
         optionLabel="label"
         optionValue="code"
         [filter]="true"
-        ariaLabel="Currency"
+        [ariaLabel]="'organizations.taxesCurrencySection.currency' | transloco"
         fluid
         [invalid]="error('organization.currency') !== null"
         [readonly]="submitting()"
@@ -33,7 +33,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Default tax rate"
+      [label]="'organizations.taxesCurrencySection.defaultTaxRate' | transloco"
       controlId="organization-defaultTaxRate"
       [required]="true"
       [error]="error('organization.defaultTaxRate')"
@@ -49,7 +49,7 @@
         fluid
         [invalid]="error('organization.defaultTaxRate') !== null"
         [readonly]="submitting()"
-        [ariaLabel]="'Default tax rate'"
+        [ariaLabel]="'organizations.taxesCurrencySection.defaultTaxRate' | transloco"
         aria-required="true"
         [attr.aria-invalid]="error('organization.defaultTaxRate') !== null ? 'true' : null"
         [attr.aria-describedby]="
@@ -60,8 +60,7 @@
     </app-form-field>
 
     <app-wizard-note>
-      The selected currency will be used on new quotes and invoices. You can change this later in
-      your settings.
+      {{ 'organizations.taxesCurrencySection.theSelectedCurrencyWill' | transloco }}
     </app-wizard-note>
   </div>
 </app-wizard-card>

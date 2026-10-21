@@ -34,6 +34,11 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.Phone)
             .HasMaxLength(40);
 
+        builder.Property(user => user.PreferredLanguage)
+            .HasMaxLength(10)
+            .HasDefaultValue("en")
+            .IsRequired();
+
         // PostgreSQL enum user_status, mapped in FieldOpsDbContext.
         builder.Property(user => user.Status)
             .IsRequired();

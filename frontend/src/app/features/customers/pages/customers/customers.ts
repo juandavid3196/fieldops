@@ -18,6 +18,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -54,17 +55,19 @@ import {
 } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to customers.";
-export const DESCRIPTION_MESSAGE =
-  'Manage customer contact information, properties, and service history.';
-export const LIST_ERROR_MESSAGE = "We couldn't load customers.";
-export const EMPTY_INITIAL_TITLE = 'No customers yet';
-export const EMPTY_INITIAL_MESSAGE = 'Add your first customer or import a CSV.';
-export const EMPTY_FILTERED_MESSAGE = 'No customers match your filters.';
-export const EMPTY_ARCHIVED_MESSAGE = 'No archived customers.';
-export const UPDATE_FAILED_MESSAGE = "We couldn't update the customer. Try again.";
-export const ALREADY_ARCHIVED_MESSAGE = 'This customer is already archived.';
-export const ALREADY_ACTIVE_MESSAGE = 'This customer is already active.';
+import { t } from '../../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../../core/i18n/active-locale';
+export const FORBIDDEN_MESSAGE = (): string => t('customers.customers.forbiddenMessage');
+export const DESCRIPTION_MESSAGE = (): string => t('customers.customers.descriptionMessage');
+export const LIST_ERROR_MESSAGE = (): string => t('customers.customers.listErrorMessage');
+export const EMPTY_INITIAL_TITLE = (): string => t('customers.customers.emptyInitialTitle');
+export const EMPTY_INITIAL_MESSAGE = (): string => t('customers.customers.emptyInitialMessage');
+export const EMPTY_FILTERED_MESSAGE = (): string => t('customers.customers.emptyFilteredMessage');
+export const EMPTY_ARCHIVED_MESSAGE = (): string => t('customers.customers.emptyArchivedMessage');
+export const UPDATE_FAILED_MESSAGE = (): string => t('customers.customers.updateFailedMessage');
+export const ALREADY_ARCHIVED_MESSAGE = (): string =>
+  t('customers.customers.alreadyArchivedMessage');
+export const ALREADY_ACTIVE_MESSAGE = (): string => t('customers.customers.alreadyActiveMessage');
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5];
 const MUTATE_ROLES: readonly string[] = ['owner', 'dispatcher'];
@@ -82,6 +85,7 @@ type ListResult =
 @Component({
   selector: 'app-customers',
   imports: [
+    TranslocoPipe,
     ConfirmDialog,
     DiscardChangesDialog,
     ButtonDirective,
@@ -113,13 +117,27 @@ export class Customers {
   private readonly listRequests = new Subject<CustomerListQuery>();
   private readonly searchInput = new Subject<string>();
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly descriptionMessage = DESCRIPTION_MESSAGE;
-  readonly listErrorMessage = LIST_ERROR_MESSAGE;
-  readonly emptyInitialTitle = EMPTY_INITIAL_TITLE;
-  readonly emptyInitialMessage = EMPTY_INITIAL_MESSAGE;
-  readonly emptyFilteredMessage = EMPTY_FILTERED_MESSAGE;
-  readonly emptyArchivedMessage = EMPTY_ARCHIVED_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get descriptionMessage(): string {
+    return DESCRIPTION_MESSAGE();
+  }
+  get listErrorMessage(): string {
+    return LIST_ERROR_MESSAGE();
+  }
+  get emptyInitialTitle(): string {
+    return EMPTY_INITIAL_TITLE();
+  }
+  get emptyInitialMessage(): string {
+    return EMPTY_INITIAL_MESSAGE();
+  }
+  get emptyFilteredMessage(): string {
+    return EMPTY_FILTERED_MESSAGE();
+  }
+  get emptyArchivedMessage(): string {
+    return EMPTY_ARCHIVED_MESSAGE();
+  }
   readonly pageSize = PAGE_SIZE;
   readonly skeletonRows = SKELETON_ROWS;
 
@@ -174,7 +192,11 @@ export class Customers {
     const total = this.totalCount();
     const from = total === 0 ? 0 : this.first() + 1;
     const to = Math.min(this.first() + PAGE_SIZE, total);
-    return `Showing ${from} – ${to} of ${total.toLocaleString('en-US')} customers`;
+    return t('customers.customers.showingOfCustomers', {
+      from: from,
+      to: to,
+      value: total.toLocaleString(activeIntlLocale()),
+    });
   });
   readonly emptyKind = computed<'filtered' | 'archived' | 'tab' | 'initial'>(() =>
     this.hasFilters()
@@ -280,7 +302,12 @@ export class Customers {
       return;
     }
     this.listError.set(
-      result.error ?? { kind: 'unknown', status: 0, message: LIST_ERROR_MESSAGE, fieldErrors: {} },
+      result.error ?? {
+        kind: 'unknown',
+        status: 0,
+        message: LIST_ERROR_MESSAGE(),
+        fieldErrors: {},
+      },
     );
   }
 
@@ -478,7 +505,7 @@ export class Customers {
   }
 
   onCustomerUnavailable(): void {
-    this.messageService.add({ severity: 'error', summary: CUSTOMER_UNAVAILABLE_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: CUSTOMER_UNAVAILABLE_MESSAGE() });
     this.drawerOpen.set(false);
     this.refresh();
   }
@@ -495,7 +522,7 @@ export class Customers {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this customer',
+          subject: t('customers.customers.thisCustomer'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();
@@ -522,20 +549,30 @@ export class Customers {
 
   buildMenu(row: CustomerRow): MenuItem[] {
     if (!this.canMutate()) {
-      return [{ label: 'View', icon: 'pi pi-eye', command: () => this.showDrawer('view', row.id) }];
+      return [
+        {
+          label: t('common.view'),
+          icon: 'pi pi-eye',
+          command: () => this.showDrawer('view', row.id),
+        },
+      ];
     }
     const archived = row.displayStatus === 'archived';
     return [
-      { label: 'Edit', icon: 'pi pi-pencil', command: () => this.showDrawer('edit', row.id) },
+      {
+        label: t('common.edit'),
+        icon: 'pi pi-pencil',
+        command: () => this.showDrawer('edit', row.id),
+      },
       archived
         ? {
-            label: 'Reactivate',
+            label: t('customers.customers.reactivate'),
             icon: 'pi pi-replay',
             disabled: this.mutatingId() !== null,
             command: () => this.reactivate(row),
           }
         : {
-            label: 'Archive',
+            label: t('customers.customers.archive'),
             icon: 'pi pi-box',
             disabled: this.mutatingId() !== null,
             command: () => this.confirmArchive(row),
@@ -545,18 +582,17 @@ export class Customers {
 
   private confirmArchive(row: CustomerRow): void {
     this.confirmationService.confirm({
-      header: `Archive ${row.displayName}?`,
-      message:
-        'Archived customers are hidden from active lists. Their contacts, properties and history are kept.',
+      header: t('customers.customers.archive2', { displayName: row.displayName }),
+      message: t('customers.customers.archivedCustomersAreHidden'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Archive' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('customers.customers.archive') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () =>
         this.mutate(
           row,
           this.customers.archive(row.id),
-          'Customer archived.',
-          ALREADY_ARCHIVED_MESSAGE,
+          t('customers.customers.customerArchived'),
+          ALREADY_ARCHIVED_MESSAGE(),
         ),
     });
   }
@@ -565,8 +601,8 @@ export class Customers {
     this.mutate(
       row,
       this.customers.reactivate(row.id),
-      'Customer reactivated.',
-      ALREADY_ACTIVE_MESSAGE,
+      t('customers.customers.customerReactivated'),
+      ALREADY_ACTIVE_MESSAGE(),
     );
   }
 
@@ -597,10 +633,10 @@ export class Customers {
           this.messageService.add({ severity: 'error', summary: conflictMessage });
           this.refresh();
         } else if (kind === 'not-found') {
-          this.messageService.add({ severity: 'error', summary: CUSTOMER_UNAVAILABLE_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: CUSTOMER_UNAVAILABLE_MESSAGE() });
           this.refresh();
         } else {
-          this.messageService.add({ severity: 'error', summary: UPDATE_FAILED_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: UPDATE_FAILED_MESSAGE() });
         }
       },
     });
@@ -615,7 +651,11 @@ export class Customers {
   onImported(count: number): void {
     this.messageService.add({
       severity: 'success',
-      summary: `${count.toLocaleString('en-US')} ${count === 1 ? 'customer' : 'customers'} imported.`,
+      summary: t('customers.customers.imported', {
+        value: count.toLocaleString(activeIntlLocale()),
+        value2:
+          count === 1 ? t('customers.customers.customer') : t('customers.customers.customers2'),
+      }),
     });
     this.loadTags();
     this.refresh();

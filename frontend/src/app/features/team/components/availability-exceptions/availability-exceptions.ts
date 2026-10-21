@@ -14,6 +14,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Menu } from 'primeng/menu';
 import { Tag } from 'primeng/tag';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { TechnicianException } from '../../models/skills-availability.model';
@@ -26,12 +27,14 @@ import {
 } from '../../utils/skills-availability';
 import { ExceptionDialog, exceptionConflictMessage } from '../exception-dialog/exception-dialog';
 
-export const NO_EXCEPTIONS_MESSAGE = 'No upcoming exceptions.';
+import { t } from '../../../../core/i18n/translate';
+export const NO_EXCEPTIONS_MESSAGE = (): string =>
+  t('team.availabilityExceptions.noExceptionsMessage');
 
 /** BR-16 exceptions card: list, Add/Edit dialog and Edit / Cancel / Activate row actions. */
 @Component({
   selector: 'app-availability-exceptions',
-  imports: [ButtonDirective, ExceptionDialog, Menu, Tag],
+  imports: [TranslocoPipe, ButtonDirective, ExceptionDialog, Menu, Tag],
   templateUrl: './availability-exceptions.html',
   styleUrl: './availability-exceptions.scss',
 })
@@ -53,7 +56,9 @@ export class AvailabilityExceptions {
   /** The dialog, for the page's leave guard. */
   readonly dialog = viewChild(ExceptionDialog);
 
-  protected readonly emptyMessage = NO_EXCEPTIONS_MESSAGE;
+  protected get emptyMessage(): string {
+    return NO_EXCEPTIONS_MESSAGE();
+  }
   protected readonly dialogOpen = signal(false);
   protected readonly editTarget = signal<TechnicianException | null>(null);
   protected readonly busyId = signal<string | null>(null);
@@ -64,7 +69,10 @@ export class AvailabilityExceptions {
       item,
       date: formatExceptionDate(item.date),
       kind: KIND_LABELS[item.kind],
-      time: item.kind === 'unavailable' ? 'All day' : exceptionTime(item.start, item.end),
+      time:
+        item.kind === 'unavailable'
+          ? t('team.availabilityExceptions.allDay')
+          : exceptionTime(item.start, item.end),
       active: item.status === 'active',
     })),
   );
@@ -79,24 +87,28 @@ export class AvailabilityExceptions {
       item.status === 'active'
         ? [
             {
-              label: 'Edit',
+              label: t('common.edit'),
               icon: 'pi pi-pencil',
               command: () => {
                 this.editTarget.set(item);
                 this.dialogOpen.set(true);
               },
             },
-            { label: 'Cancel', icon: 'pi pi-ban', command: () => this.confirmCancel(item) },
+            {
+              label: t('common.cancel'),
+              icon: 'pi pi-ban',
+              command: () => this.confirmCancel(item),
+            },
           ]
         : [
             {
-              label: 'Activate',
+              label: t('team.availabilityExceptions.activate'),
               icon: 'pi pi-replay',
               command: () =>
                 this.run(
                   item,
                   this.service.activateException(this.technicianId(), item.id, item.version),
-                  'Exception activated.',
+                  t('team.availabilityExceptions.exceptionActivated'),
                 ),
             },
           ];
@@ -106,16 +118,20 @@ export class AvailabilityExceptions {
 
   private confirmCancel(item: TechnicianException): void {
     this.confirmation.confirm({
-      header: 'Cancel this exception?',
-      message: 'The weekly schedule applies again on that date. You can activate it later.',
+      header: t('team.availabilityExceptions.cancelThisException'),
+      message: t('team.availabilityExceptions.theWeeklyScheduleApplies'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Cancel exception' },
-      rejectButtonProps: { label: 'Keep exception', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('team.availabilityExceptions.cancelException') },
+      rejectButtonProps: {
+        label: t('team.availabilityExceptions.keepException'),
+        severity: 'secondary',
+        outlined: true,
+      },
       accept: () =>
         this.run(
           item,
           this.service.cancelException(this.technicianId(), item.id, item.version),
-          'Exception cancelled.',
+          t('team.availabilityExceptions.exceptionCancelled'),
         ),
     });
   }
@@ -140,7 +156,7 @@ export class AvailabilityExceptions {
         if (!isApiError(error)) {
           this.messages.add({
             severity: 'error',
-            summary: "We couldn't update the exception. Try again.",
+            summary: t('team.availabilityExceptions.weCouldntUpdateThe'),
           });
         } else if (error.kind === 'unauthorized') {
           this.unauthorized.emit();
@@ -152,7 +168,7 @@ export class AvailabilityExceptions {
             summary:
               error.kind === 'conflict'
                 ? exceptionConflictMessage(error, false)
-                : "We couldn't update the exception. Try again.",
+                : t('team.availabilityExceptions.weCouldntUpdateThe'),
           });
           if (error.kind === 'conflict') {
             this.changed.emit();

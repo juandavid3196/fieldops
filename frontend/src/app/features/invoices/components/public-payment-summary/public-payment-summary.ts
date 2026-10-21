@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PAYMENT_STATUS_LABELS } from '../../models/invoices-hub.model';
 import { PublicInvoice } from '../../models/invoice.model';
@@ -10,6 +11,7 @@ import { formatCalendarDate, money } from '../../utils/public-invoice-format';
  */
 @Component({
   selector: 'app-public-payment-summary',
+  imports: [TranslocoPipe],
   templateUrl: './public-payment-summary.html',
   styleUrl: './public-payment-summary.scss',
 })

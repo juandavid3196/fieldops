@@ -2,6 +2,8 @@ import { DayOfWeekName, GridDay } from '../models/team-planning.model';
 import { TIME_OPTIONS, formatExceptionDate, toMinutes } from './skills-availability';
 import { formatWindowTime } from './team-format';
 
+import { localized, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 export const DAY_KEYS: readonly DayOfWeekName[] = [
   'monday',
   'tuesday',
@@ -12,20 +14,20 @@ export const DAY_KEYS: readonly DayOfWeekName[] = [
   'sunday',
 ];
 
-export const DAY_LABELS: Readonly<Record<DayOfWeekName, string>> = {
-  monday: 'Monday',
-  tuesday: 'Tuesday',
-  wednesday: 'Wednesday',
-  thursday: 'Thursday',
-  friday: 'Friday',
-  saturday: 'Saturday',
-  sunday: 'Sunday',
-};
+export const DAY_LABELS: Readonly<Record<DayOfWeekName, string>> = localized(() => ({
+  monday: t('team.teamPlanning.monday'),
+  tuesday: t('team.teamPlanning.tuesday'),
+  wednesday: t('team.teamPlanning.wednesday'),
+  thursday: t('team.teamPlanning.thursday'),
+  friday: t('team.teamPlanning.friday'),
+  saturday: t('team.teamPlanning.saturday'),
+  sunday: t('team.teamPlanning.sunday'),
+}));
 
-export const STALE_MESSAGE =
-  'This technician was updated by someone else. Reload to see the latest changes.';
-export const UNAVAILABLE_TECHNICIAN_MESSAGE = "This technician profile isn't available.";
-export const END_BEFORE_START_MESSAGE = 'End time must be after start time.';
+export const STALE_MESSAGE = (): string => t('team.teamPlanning.staleMessage');
+export const UNAVAILABLE_TECHNICIAN_MESSAGE = (): string =>
+  t('team.teamPlanning.unavailableTechnicianMessage');
+export const END_BEFORE_START_MESSAGE = (): string => t('team.teamPlanning.endBeforeStartMessage');
 
 const asDate = (value: string): Date => {
   const [year, month, day] = value.split('-').map(Number);
@@ -33,7 +35,9 @@ const asDate = (value: string): Date => {
 };
 
 const format = (value: string, options: Intl.DateTimeFormatOptions): string =>
-  new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(asDate(value));
+  new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: 'UTC' }).format(
+    asDate(value),
+  );
 
 /** `yyyy-MM-dd` shifted by whole days (calendar arithmetic, no time zone). */
 export function addDays(value: string, days: number): string {
@@ -66,18 +70,18 @@ export function weekDates(weekStart: string): readonly string[] {
 
 /** BR-05: whole or one-decimal hours, "45 h" or "37.5 h". */
 export function weeklyHours(minutes: number): string {
-  return `${Math.round(minutes / 6) / 10} h`;
+  return t('team.teamPlanning.h', { value: Math.round(minutes / 6) / 10 });
 }
 
 /** BR-04: cells carry text, never color alone. */
 export function cellText(day: GridDay): string {
   if (day.state === 'time_off') {
-    return 'Time off';
+    return t('team.teamPlanning.timeOff');
   }
   if (day.state === 'available' && day.start !== null && day.end !== null) {
     return `${formatWindowTime(day.start)} – ${formatWindowTime(day.end)}`;
   }
-  return 'Unavailable';
+  return t('team.teamPlanning.unavailable');
 }
 
 export function initials(firstName: string, lastName: string): string {

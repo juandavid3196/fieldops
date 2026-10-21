@@ -1,9 +1,13 @@
-<div class="filters" role="search" aria-label="Filter requests">
+<div
+  class="filters"
+  role="search"
+  [attr.aria-label]="'requests.requestFilters.filterRequests' | transloco"
+>
   <p-select
     class="filters__select"
     appendTo="body"
     fluid
-    ariaLabel="Assignee"
+    [ariaLabel]="'requests.requestFilters.assignee' | transloco"
     [disabled]="disabled()"
     [options]="assigneeOptions()"
     optionLabel="label"
@@ -11,14 +15,16 @@
     [ngModel]="filters().assignee ?? 'all'"
     (ngModelChange)="filterChange.emit({ assignee: none($event) })"
   >
-    <ng-template #selectedItem let-option>Assignee: {{ option.label }}</ng-template>
+    <ng-template #selectedItem let-option>{{
+      'requests.requestFilters.assignee2' | transloco: { label: option.label }
+    }}</ng-template>
   </p-select>
 
   <p-select
     class="filters__select"
     appendTo="body"
     fluid
-    ariaLabel="Service"
+    [ariaLabel]="'requests.requestFilters.service' | transloco"
     [disabled]="disabled()"
     [options]="serviceOptions()"
     optionLabel="label"
@@ -26,52 +32,60 @@
     [ngModel]="filters().categoryId ?? 'all'"
     (ngModelChange)="filterChange.emit({ categoryId: none($event) })"
   >
-    <ng-template #selectedItem let-option>Service: {{ option.label }}</ng-template>
+    <ng-template #selectedItem let-option>{{
+      'requests.requestFilters.service2' | transloco: { label: option.label }
+    }}</ng-template>
   </p-select>
 
   <p-select
     class="filters__select"
     appendTo="body"
     fluid
-    ariaLabel="Priority"
+    [ariaLabel]="'requests.requestFilters.priority' | transloco"
     [disabled]="disabled()"
-    [options]="priorityOptions"
+    [options]="priorityOptions | localizedRef"
     optionLabel="label"
     optionValue="code"
     [ngModel]="filters().urgency ?? 'all'"
     (ngModelChange)="filterChange.emit({ urgency: none($event) })"
   >
-    <ng-template #selectedItem let-option>Priority: {{ option.label }}</ng-template>
+    <ng-template #selectedItem let-option>{{
+      'requests.requestFilters.priority2' | transloco: { label: option.label }
+    }}</ng-template>
   </p-select>
 
   <p-select
     class="filters__select"
     appendTo="body"
     fluid
-    ariaLabel="Source"
+    [ariaLabel]="'requests.requestFilters.source' | transloco"
     [disabled]="disabled()"
-    [options]="sourceOptions"
+    [options]="sourceOptions | localizedRef"
     optionLabel="label"
     optionValue="code"
     [ngModel]="filters().source ?? 'all'"
     (ngModelChange)="filterChange.emit({ source: none($event) })"
   >
-    <ng-template #selectedItem let-option>Source: {{ option.label }}</ng-template>
+    <ng-template #selectedItem let-option>{{
+      'requests.requestFilters.source2' | transloco: { label: option.label }
+    }}</ng-template>
   </p-select>
 
   <p-select
     class="filters__select"
     appendTo="body"
     fluid
-    ariaLabel="Date"
+    [ariaLabel]="'common.date' | transloco"
     [disabled]="disabled()"
-    [options]="dateOptions"
+    [options]="dateOptions | localizedRef"
     optionLabel="label"
     optionValue="code"
     [ngModel]="filters().created ?? 'all'"
     (ngModelChange)="filterChange.emit({ created: none($event) })"
   >
-    <ng-template #selectedItem let-option>Date: {{ option.label }}</ng-template>
+    <ng-template #selectedItem let-option>{{
+      'requests.requestFilters.date' | transloco: { label: option.label }
+    }}</ng-template>
   </p-select>
 
   <p-iconfield class="filters__search">
@@ -80,8 +94,8 @@
       pInputText
       type="search"
       class="filters__control"
-      placeholder="Search requests..."
-      aria-label="Search requests"
+      [attr.placeholder]="'requests.requestFilters.searchRequests' | transloco"
+      [attr.aria-label]="'requests.requestFilters.searchRequests2' | transloco"
       maxlength="100"
       fluid
       [disabled]="disabled()"
@@ -93,7 +107,7 @@
   @if (canCreate()) {
     <button pButton type="button" class="filters__new" (click)="newRequest.emit()">
       <i class="pi pi-plus" aria-hidden="true"></i>
-      New request
+      {{ 'requests.requestFilters.newRequest' | transloco }}
     </button>
   }
 </div>

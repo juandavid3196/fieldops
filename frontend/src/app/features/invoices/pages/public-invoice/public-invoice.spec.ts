@@ -340,7 +340,7 @@ describe('PublicInvoicePage', () => {
     for (const [url, status, expected] of [
       ['/invoices/view', 0, 'This invoice is no longer available'],
       [`/invoices/view#token=${TOKEN}`, 404, 'This invoice is no longer available'],
-      [`/invoices/view#token=${TOKEN}`, 429, PUBLIC_RATE_LIMITED_MESSAGE],
+      [`/invoices/view#token=${TOKEN}`, 429, PUBLIC_RATE_LIMITED_MESSAGE()],
       [`/invoices/view#token=${TOKEN}`, 500, "We couldn't load this invoice. Try again."],
     ] as const) {
       await setup(url);
@@ -411,7 +411,7 @@ describe('PublicInvoicePage', () => {
     // A network failure without a response keeps the key: the retry is the same submission.
     first.error(new ProgressEvent('error'), { status: 0, statusText: '' });
     await tick(0);
-    expect(text()).toContain(CARD_START_FAILED_MESSAGE);
+    expect(text()).toContain(CARD_START_FAILED_MESSAGE());
     expect(text()).not.toContain('Processing your payment');
     await click('Pay $287.30');
     const retry = request('payments/card-intent');
@@ -453,10 +453,10 @@ describe('PublicInvoicePage', () => {
     await load(publicInvoiceBody());
     const keys: string[] = [await pay(INTENT)];
     for (const [category, message] of [
-      ['card_declined', CARD_DECLINED_MESSAGE],
-      ['expired', CARD_EXPIRED_MESSAGE],
-      ['processing_error', CARD_OTHER_FAILURE_MESSAGE],
-      ['incorrect_cvc', CARD_DECLINED_MESSAGE],
+      ['card_declined', CARD_DECLINED_MESSAGE()],
+      ['expired', CARD_EXPIRED_MESSAGE()],
+      ['processing_error', CARD_OTHER_FAILURE_MESSAGE()],
+      ['incorrect_cvc', CARD_DECLINED_MESSAGE()],
     ] as const) {
       await tick(0);
       await respond(request('payments/status'), attemptState('failed', category));
@@ -496,7 +496,7 @@ describe('PublicInvoicePage', () => {
       pending.flush(attemptState('pending'));
     }
     await stable();
-    expect(text()).toContain(CARD_STILL_CONFIRMING_MESSAGE);
+    expect(text()).toContain(CARD_STILL_CONFIRMING_MESSAGE());
     expect(button('Try payment again')).toBeUndefined();
     expect(document.body.querySelector('.overlay')).toBeNull();
     await tick(6000);
@@ -506,10 +506,10 @@ describe('PublicInvoicePage', () => {
   it('handles start errors, conflicts, a paid-in-the-meantime invoice and a replay without client secret (FR-15, AC-22)', async () => {
     vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
     for (const [status, code, message, newKey] of [
-      [502, 'payment_provider_unavailable', CARD_START_FAILED_MESSAGE, true],
-      [429, undefined, PUBLIC_RATE_LIMITED_MESSAGE, false],
-      [409, 'payment_in_progress', CARD_STILL_CONFIRMING_MESSAGE, false],
-      [409, 'idempotency_conflict', CARD_START_FAILED_MESSAGE, true],
+      [502, 'payment_provider_unavailable', CARD_START_FAILED_MESSAGE(), true],
+      [429, undefined, PUBLIC_RATE_LIMITED_MESSAGE(), false],
+      [409, 'payment_in_progress', CARD_STILL_CONFIRMING_MESSAGE(), false],
+      [409, 'idempotency_conflict', CARD_START_FAILED_MESSAGE(), true],
     ] as const) {
       await load(publicInvoiceBody());
       const key = await pay({ code }, status);
@@ -542,7 +542,7 @@ describe('PublicInvoicePage', () => {
     expect(fake.confirms).toHaveLength(0);
     await tick(0);
     await respond(request('payments/status'), attemptState('failed', 'card_declined'));
-    expect(text()).toContain(CARD_DECLINED_MESSAGE);
+    expect(text()).toContain(CARD_DECLINED_MESSAGE());
   });
 
   it('resumes a pending attempt on load and after the Stripe redirect, and clears a stored attempt of a paid invoice (FR-15, AC-22)', async () => {
@@ -570,7 +570,7 @@ describe('PublicInvoicePage', () => {
     expect(stored.request.body).toEqual({ token: TOKEN, attemptId: 'att-7' });
     expect(JSON.stringify([view.request.body, stored.request.body])).not.toMatch(/pi_|cs_secret/);
     await respond(stored, attemptState('failed', 'authentication_failed', 'att-7'));
-    expect(text()).toContain(CARD_DECLINED_MESSAGE);
+    expect(text()).toContain(CARD_DECLINED_MESSAGE());
     teardown();
 
     // A paid invoice with a stored attempt and none active: cleared, success view, no status call.

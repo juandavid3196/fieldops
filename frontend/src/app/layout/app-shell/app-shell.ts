@@ -16,6 +16,7 @@ import { FocusTrap } from 'primeng/focustrap';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Message } from 'primeng/message';
 import { filter } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ADMIN_QUERY, MD_QUERY, watchMedia } from '../../core/config/breakpoints';
 import { comingSoonPath } from '../../core/config/coming-soon-modules';
@@ -24,13 +25,17 @@ import { MessageUnreadService } from '../../core/services/message-unread.service
 import { NotificationUnreadService } from '../../core/services/notification-unread.service';
 import { SessionService } from '../../core/services/session.service';
 import { NotificationPopover } from '../../features/notifications/components/notification-popover/notification-popover';
+import { LanguageMenuItem } from '../../shared/components/language-menu-item/language-menu-item';
+import { LanguageToast } from '../../shared/components/language-toast/language-toast';
 import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
 import { fullNameOf, initialsOf } from '../../shared/utils/initials';
 import { ShellSidebar } from '../shell-sidebar/shell-sidebar';
 import { GlobalSearch } from './global-search/global-search';
 import { ADMINISTRATION_ROLE_CODES, MESSAGES_ROLE_CODES, NAV_GROUPS } from './app-shell.nav';
 
-export const SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
+import { t } from '../../core/i18n/translate';
+import { CodeLabelPipe } from '../../core/i18n/code-label.pipe';
+export const SIGN_OUT_ERROR_MESSAGE = (): string => t('shell.appShell.signOutErrorMessage');
 
 /** FR-02: below 768px a drawer, 768-1099px the rail, from 1100px the full sidebar. */
 export type LayoutMode = 'drawer' | 'rail' | 'full';
@@ -40,11 +45,15 @@ type MenuKind = 'org' | 'user';
 @Component({
   selector: 'app-shell',
   imports: [
+    CodeLabelPipe,
+    TranslocoPipe,
     RouterLink,
     RouterOutlet,
     Drawer,
     FocusTrap,
     GlobalSearch,
+    LanguageMenuItem,
+    LanguageToast,
     Message,
     NotificationPopover,
     ShellSidebar,
@@ -68,7 +77,9 @@ export class AppShell {
   private readonly orgButton = viewChild<ElementRef<HTMLButtonElement>>('orgButton');
 
   readonly session = this.sessionService.session;
-  readonly signOutErrorMessage = SIGN_OUT_ERROR_MESSAGE;
+  get signOutErrorMessage(): string {
+    return SIGN_OUT_ERROR_MESSAGE();
+  }
   readonly helpLink = '/help';
   readonly comingSoonNotificationsLink = comingSoonPath('notifications');
   readonly drawerPt = {
@@ -141,7 +152,9 @@ export class AppShell {
     this.unreadCount() > 99 ? '99+' : String(this.unreadCount()),
   );
   readonly notificationsLabel = computed(() =>
-    this.unreadCount() > 0 ? `Notifications, ${this.unreadCount()} unread` : 'Notifications',
+    this.unreadCount() > 0
+      ? t('shell.appShell.notificationsUnread', { unreadCount: this.unreadCount() })
+      : t('shell.appShell.notifications'),
   );
   /** technician-messages BR-15: sidebar badge of the Messages item (Owner, Operations, Dispatcher). */
   readonly messagesBadge = this.messageUnread.badge;
@@ -149,8 +162,11 @@ export class AppShell {
   readonly fullName = computed(() => fullNameOf(this.session()?.user));
   readonly initials = computed(() => initialsOf(this.fullName()));
   readonly photoUpdatedAt = computed(() => this.session()?.user.photoUpdatedAt ?? null);
-  readonly accountLabel = computed(
-    () => `Account menu, ${this.fullName()}, ${this.session()?.role.name ?? ''}`,
+  readonly accountLabel = computed(() =>
+    t('shell.appShell.accountMenu', {
+      fullName: this.fullName(),
+      value: this.session()?.role.name ?? '',
+    }),
   );
   readonly organizationName = computed(() => this.session()?.organization.name ?? '');
 
@@ -253,6 +269,11 @@ export class AppShell {
   /** Account links: the navigation itself moves focus, so the menu only closes. */
   onMenuLinkClick(): void {
     this.closeMenu(false);
+  }
+
+  /** BR-18: choosing a language closes the menu and returns focus to the menu button. */
+  onLanguageChosen(): void {
+    this.closeMenu(true);
   }
 
   /** The organization menu has one current entry: selecting it changes nothing and sends nothing. */

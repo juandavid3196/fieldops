@@ -1,0 +1,135 @@
+{
+  "notificationPopover": {
+    "markAllAsRead": "Marcar todas como leídas",
+    "notifications": "Notificaciones",
+    "viewAllNotifications": "Ver todas las notificaciones",
+    "youReAllCaught": "Estás al día.",
+    "read": "leída",
+    "unread": "sin leer"
+  },
+  "notifications": {
+    "administration": "Administración",
+    "branch": "Sucursal",
+    "breadcrumb": "Ruta de navegación",
+    "clearFilters": "Borrar filtros",
+    "filterNotifications": "Filtrar notificaciones",
+    "markAllAsRead": "Marcar todas como leídas",
+    "moreActionsFor": "Más acciones para {{title}}",
+    "newNotificationsAvailable": "Hay notificaciones nuevas",
+    "notificationGroups": "Grupos de notificaciones",
+    "notifications": "Notificaciones",
+    "rowsPerPage": "Filas por página",
+    "searchNotifications": "Buscar notificaciones",
+    "searchNotifications2": "Buscar notificaciones…",
+    "stayUpdatedOnActivity": "Mantente al día con la actividad que requiere tu atención.",
+    "summary": "Resumen",
+    "allBranches": "Todas las sucursales",
+    "allTypes": "Todos los tipos",
+    "earlier": "Anteriores",
+    "markAsRead": "Marcar como leída",
+    "markAsUnread": "Marcar como sin leer",
+    "notifications2": "{{total}} notificaciones",
+    "of": "{{value}}–{{value2}} de {{total}}",
+    "read": "leídas",
+    "today": "Hoy",
+    "unread": "Sin leer",
+    "unread2": "sin leer"
+  },
+  "notificationsFormat": {
+    "allNotifications": "Todas las notificaciones",
+    "anyDate": "Cualquier fecha",
+    "hrAgo": "Hace {{value}} h",
+    "invoices": "Facturas",
+    "jobs": "Trabajos",
+    "justNow": "Justo ahora",
+    "last30Days": "Últimos 30 días",
+    "last7Days": "Últimos 7 días",
+    "messages": "Mensajes",
+    "minAgo": "Hace {{minutes}} min",
+    "payments": "Pagos",
+    "quotes": "Cotizaciones",
+    "requests": "Solicitudes",
+    "today": "Hoy",
+    "unread": "Sin leer",
+    "visits": "Visitas",
+    "yesterday": "Ayer"
+  },
+  "notificationsModel": {
+    "notificationsEmptyText": "Aquí aparecerá la nueva actividad que te concierne.",
+    "notificationsEmptyTitle": "Estás al día",
+    "notificationsFilteredEmptyMessage": "Ninguna notificación coincide con tus filtros",
+    "notificationsForbiddenMessage": "No tienes acceso a las notificaciones.",
+    "notificationsLoadErrorMessage": "No se pudieron cargar las notificaciones.",
+    "notificationTargetGoneMessage": "Este elemento ya no está disponible.",
+    "notificationUnavailableMessage": "Esta notificación no está disponible.",
+    "notificationUpdateFailedMessage": "No se pudo actualizar la notificación. Inténtalo de nuevo."
+  },
+  "templates": {
+    "request": {
+      "created": {
+        "title": "Nueva solicitud de servicio",
+        "body": "{{name}} envió {{number}}."
+      }
+    },
+    "customer": {
+      "message_sent": {
+        "title": "El cliente envió un mensaje",
+        "body": "{{contact}} de {{customer}} envió un mensaje desde el portal de clientes."
+      }
+    },
+    "quote": {
+      "approved": {
+        "title": "La cotización {{number}} fue aprobada",
+        "body": "{{customer}} aprobó la cotización por {{total}}."
+      },
+      "rejected": {
+        "title": "La cotización {{number}} fue rechazada",
+        "body": "{{customer}} rechazó la cotización."
+      },
+      "clarification_requested": {
+        "title": "Pregunta sobre la cotización {{number}}",
+        "body": "{{customer}} solicitó una aclaración."
+      }
+    },
+    "visit": {
+      "assigned": {
+        "title": "Visita asignada",
+        "body": "{{order}} se asignó a {{technician}} para {{when}}."
+      },
+      "on_the_way": {
+        "title": "Técnico en camino",
+        "body": "{{technician}} va en camino a {{order}}."
+      },
+      "started": {
+        "title": "Visita iniciada",
+        "body": "{{technician}} inició {{order}}."
+      },
+      "paused": {
+        "title": "Visita en pausa",
+        "body": "{{technician}} puso en pausa {{order}}."
+      }
+    },
+    "job": {
+      "completed": {
+        "title": "Trabajo completado",
+        "body": "{{technician}} completó {{order}}."
+      }
+    },
+    "invoice": {
+      "sent": {
+        "title": "La factura {{number}} fue enviada",
+        "body": "{{number}} se envió a {{customer}} por {{total}}."
+      },
+      "bank_transfer_reported": {
+        "title": "Transferencia bancaria informada",
+        "body": "{{customer}} informó una transferencia bancaria de {{amount}} para {{number}}."
+      }
+    },
+    "payment": {
+      "received": {
+        "title": "Pago recibido",
+        "body": "Se registró un pago de {{amount}} para la factura {{number}}."
+      }
+    }
+  }
+}

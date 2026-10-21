@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatMoney } from '../../../customers/utils/customer-detail-format';
 import { CustomerView, CustomerViewLine } from '../../models/quote.model';
@@ -9,7 +10,7 @@ import { CustomerView, CustomerViewLine } from '../../models/quote.model';
  * It only renders customer-visible content; internal data never reaches its input.
  */
 @Component({
-  imports: [NgTemplateOutlet],
+  imports: [TranslocoPipe, NgTemplateOutlet],
   selector: 'app-quote-customer-view',
   templateUrl: './quote-customer-view.html',
   styleUrl: './quote-customer-view.scss',

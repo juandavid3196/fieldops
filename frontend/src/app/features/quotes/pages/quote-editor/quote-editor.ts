@@ -36,6 +36,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -98,9 +99,12 @@ import {
   toDraftBody,
 } from '../../utils/quote-lines';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 export const CALC_DEBOUNCE_MS = 400;
-export const NO_NON_OPTIONAL_MESSAGE = "Add at least one line that isn't optional.";
-const LINES_LIMIT_MESSAGE = `Add up to ${MAX_LINES} lines.`;
+export const NO_NON_OPTIONAL_MESSAGE = (): string => t('quotes.quoteEditor.noNonOptionalMessage');
+const LINES_LIMIT_MESSAGE = (): string =>
+  t('quotes.quoteEditor.linesLimitMessage', { MAX_LINES: MAX_LINES });
 const KNOWN_KEYS: readonly string[] = [
   'discountTotal',
   'customerMessage',
@@ -138,6 +142,8 @@ function lowerFirst(value: string): string {
 @Component({
   selector: 'app-quote-editor',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     RouterLink,
     ButtonDirective,
@@ -177,10 +183,18 @@ export class QuoteEditor {
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
   private readonly moreMenu = viewChild<Menu>('moreMenu');
 
-  readonly forbiddenMessage = EDITOR_FORBIDDEN_MESSAGE;
-  readonly unavailableMessage = QUOTE_UNAVAILABLE_MESSAGE;
-  readonly loadErrorMessage = QUOTE_LOAD_ERROR_MESSAGE;
-  readonly noRecipientMessage = NO_RECIPIENT_MESSAGE;
+  get forbiddenMessage(): string {
+    return EDITOR_FORBIDDEN_MESSAGE();
+  }
+  get unavailableMessage(): string {
+    return QUOTE_UNAVAILABLE_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return QUOTE_LOAD_ERROR_MESSAGE();
+  }
+  get noRecipientMessage(): string {
+    return NO_RECIPIENT_MESSAGE();
+  }
   readonly termsPresets = TERMS_PRESETS;
   readonly messageLimit = MESSAGE_LIMIT;
   readonly termsLimit = TERMS_LIMIT;
@@ -266,7 +280,9 @@ export class QuoteEditor {
 
   // Header
   readonly title = computed(() =>
-    (this.detail()?.draft?.versionNo ?? 1) > 1 ? 'Revise quote' : 'Create quote',
+    (this.detail()?.draft?.versionNo ?? 1) > 1
+      ? t('quotes.quoteEditor.reviseQuote')
+      : t('quotes.quoteEditor.createQuote'),
   );
   readonly saveState = computed(() => {
     const detail = this.detail();
@@ -274,14 +290,21 @@ export class QuoteEditor {
       return { label: '', time: '' };
     }
     return this.dirty()
-      ? { label: 'Unsaved changes', time: '' }
-      : { label: 'Draft saved', time: relativeTime(detail.updatedAt, this.clock(), 'UTC') };
+      ? { label: t('quotes.quoteEditor.unsavedChanges'), time: '' }
+      : {
+          label: t('quotes.quoteEditor.draftSaved'),
+          time: relativeTime(detail.updatedAt, this.clock(), 'UTC'),
+        };
   });
   readonly minDate = computed(() => addDays(todayInTimeZone(undefined, this.clock()), 1));
   readonly maxDate = computed(() => addDays(todayInTimeZone(undefined, this.clock()), 365));
   readonly requestQueryParams = computed(() => ({ request: this.detail()?.request.id ?? '' }));
   readonly moreItems = computed<MenuItem[]>(() => [
-    { label: 'Discard draft', disabled: this.submitting(), command: () => this.confirmDiscard() },
+    {
+      label: t('quotes.quoteEditor.discardDraft'),
+      disabled: this.submitting(),
+      command: () => this.confirmDiscard(),
+    },
   ]);
   readonly sendBlocked = computed(() => (this.detail()?.recipient.email ?? null) === null);
 
@@ -548,7 +571,7 @@ export class QuoteEditor {
 
   onAddLine(add: LineAdd): void {
     if (this.lines().length >= MAX_LINES) {
-      this.errors.update((errors) => ({ ...errors, lines: LINES_LIMIT_MESSAGE }));
+      this.errors.update((errors) => ({ ...errors, lines: LINES_LIMIT_MESSAGE() }));
       return;
     }
     const uid = crypto.randomUUID();
@@ -558,7 +581,12 @@ export class QuoteEditor {
         : lineFromCatalog(add.item, add.type, add.isOptional, uid);
     this.lines.update((lines) => addLine(lines, line));
     this.clearErrors('lines');
-    this.announce(`Added ${add.item?.name ?? 'a new line'} to ${this.section(line)} items.`);
+    this.announce(
+      t('quotes.quoteEditor.addedToItems', {
+        value: add.item?.name ?? t('quotes.quoteEditor.aNewLine'),
+        line: this.section(line),
+      }),
+    );
     this.focus(`[data-field-key="${uid}.name"]`);
   }
 
@@ -571,7 +599,7 @@ export class QuoteEditor {
     const removed = lines[index];
     const next = lines.filter((line) => line.uid !== uid);
     this.lines.set(next);
-    this.announce(`Removed ${lineName(removed, index)}.`);
+    this.announce(t('quotes.quoteEditor.removed', { value: lineName(removed, index) }));
     this.focus(
       next[index] !== undefined
         ? `[data-field-key="${next[index].uid}.name"]`
@@ -595,13 +623,18 @@ export class QuoteEditor {
     this.lines.set(move.lines);
     const index = move.lines.indexOf(move.line);
     this.announce(
-      `Moved ${lineName(move.line, index)} to position ${move.position} of ${move.count} in ${this.section(move.line)} items.`,
+      t('quotes.quoteEditor.movedToPositionOf', {
+        value: lineName(move.line, index),
+        position: move.position,
+        count: move.count,
+        line: this.section(move.line),
+      }),
     );
     this.focus(`[data-menu-uid="${move.line.uid}"]`);
   }
 
   private section(line: { readonly isOptional: boolean }): string {
-    return line.isOptional ? 'Optional' : 'Regular';
+    return line.isOptional ? t('common.optional') : t('quotes.quoteEditor.regular');
   }
 
   private announce(message: string): void {
@@ -633,7 +666,10 @@ export class QuoteEditor {
         next: (saved) => {
           this.submitting.set(false);
           this.applyDetail(saved, false);
-          this.messageService.add({ severity: 'success', summary: 'Draft saved.' });
+          this.messageService.add({
+            severity: 'success',
+            summary: t('quotes.quoteEditor.draftSaved2'),
+          });
         },
         error: (error: unknown) => this.mutationFailed(isApiError(error) ? error : null),
       });
@@ -648,10 +684,10 @@ export class QuoteEditor {
         errors['emailMessage'] = message;
       }
       if ((this.detail()?.recipient.email ?? null) === null) {
-        errors['recipient'] = NO_RECIPIENT_MESSAGE;
+        errors['recipient'] = NO_RECIPIENT_MESSAGE();
       }
       if (this.lines().every((line) => line.isOptional)) {
-        errors['lines'] = NO_NON_OPTIONAL_MESSAGE;
+        errors['lines'] = NO_NON_OPTIONAL_MESSAGE();
       }
     }
     this.errors.set(errors);
@@ -669,11 +705,16 @@ export class QuoteEditor {
     }
     const versionNo = detail.draft?.versionNo ?? 1;
     this.confirmationService.confirm({
-      header: 'Send quote?',
-      message: `${detail.customer.name} will receive version ${versionNo} of ${detail.displayNumber} at ${detail.recipient.email}. A sent version can't be edited; later changes create a new version.`,
+      header: t('quotes.quoteEditor.sendQuoteTitle'),
+      message: t('quotes.quoteEditor.willReceiveVersionOf', {
+        name: detail.customer.name,
+        versionNo: versionNo,
+        displayNumber: detail.displayNumber,
+        email: detail.recipient.email,
+      }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Send quote' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('quotes.quoteEditor.sendQuote2') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => this.doSend(),
     });
   }
@@ -692,7 +733,10 @@ export class QuoteEditor {
         next: (result) =>
           this.leaveTo(['/quotes', this.quoteId], {
             severity: result.emailStatus === 'failed' ? 'warn' : 'success',
-            summary: result.emailStatus === 'failed' ? EMAIL_FAILED_MESSAGE : 'Quote sent.',
+            summary:
+              result.emailStatus === 'failed'
+                ? EMAIL_FAILED_MESSAGE()
+                : t('quotes.quoteEditor.quoteSent'),
           }),
         error: (error: unknown) => this.mutationFailed(isApiError(error) ? error : null),
       });
@@ -712,13 +756,20 @@ export class QuoteEditor {
     const versionNo = detail.draft?.versionNo ?? 1;
     const first = versionNo <= 1;
     this.confirmationService.confirm({
-      header: 'Discard draft?',
+      header: t('quotes.quoteEditor.discardDraft2'),
       message: first
-        ? `The quote ${detail.displayNumber} will be cancelled. Its number won't be reused.`
-        : `Your changes to version ${versionNo} will be deleted. Version ${versionNo - 1} stays with the customer.`,
+        ? t('quotes.quoteEditor.theQuoteWillBe', { displayNumber: detail.displayNumber })
+        : t('quotes.quoteEditor.yourChangesToVersion', {
+            versionNo: versionNo,
+            value: versionNo - 1,
+          }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Discard draft', severity: 'danger' },
-      rejectButtonProps: { label: 'Keep editing', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('quotes.quoteEditor.discardDraft'), severity: 'danger' },
+      rejectButtonProps: {
+        label: t('quotes.quoteEditor.keepEditing'),
+        severity: 'secondary',
+        outlined: true,
+      },
       accept: () => this.doDiscard(first),
     });
   }
@@ -734,7 +785,10 @@ export class QuoteEditor {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (result) => {
-          const toast: ToastHandoff = { severity: 'success', summary: 'Draft discarded.' };
+          const toast: ToastHandoff = {
+            severity: 'success',
+            summary: t('quotes.quoteEditor.draftDiscarded'),
+          };
           if (first) {
             this.leaveTo(['/requests'], toast, { request: result.requestId });
           } else {
@@ -768,7 +822,7 @@ export class QuoteEditor {
           this.messageService.add({
             key: 'quote-changed',
             severity: 'warn',
-            summary: QUOTE_CHANGED_MESSAGE,
+            summary: QUOTE_CHANGED_MESSAGE(),
             sticky: true,
           });
           return;
@@ -782,7 +836,7 @@ export class QuoteEditor {
         }
         break;
     }
-    this.messageService.add({ severity: 'error', summary: QUOTE_SAVE_FAILED_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: QUOTE_SAVE_FAILED_MESSAGE() });
   }
 
   /** Maps `lines[i].key` and the top-level keys to controls; false when none is recognised. */
@@ -836,7 +890,7 @@ export class QuoteEditor {
     }
     this.confirmationService.confirm(
       discardChangesConfirmation({
-        subject: 'this quote',
+        subject: t('quotes.quoteEditor.thisQuote'),
         accept: () => this.loads.next(),
       }),
     );
@@ -873,7 +927,7 @@ export class QuoteEditor {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this quote',
+          subject: t('quotes.quoteEditor.thisQuote'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();

@@ -28,6 +28,8 @@ import {
   maxLengthMessage,
 } from './service-request.messages';
 
+import { t } from '../../core/i18n/translate';
+import { activeIntlLocale } from '../../core/i18n/active-locale';
 export const MAX_FILES = 5;
 export const MAX_FILE_BYTES = 10 * 1024 * 1024;
 export const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
@@ -105,20 +107,20 @@ export function validateContact(data: ContactData): StepErrors {
 
   const email = data.email.trim();
   if (email.length === 0) {
-    errors['contact.email'] = REQUIRED_MESSAGE;
+    errors['contact.email'] = REQUIRED_MESSAGE();
   } else if (!isValidEmail(email)) {
-    errors['contact.email'] = EMAIL_INVALID_MESSAGE;
+    errors['contact.email'] = EMAIL_INVALID_MESSAGE();
   }
 
   const phone = data.phone.trim();
   if (phone.length === 0) {
-    errors['contact.phone'] = REQUIRED_MESSAGE;
+    errors['contact.phone'] = REQUIRED_MESSAGE();
   } else if (phone.length > 40 || !/^\d{10,15}$/.test(phone.replace(/[\s()\-+.]/g, ''))) {
-    errors['contact.phone'] = PHONE_INVALID_MESSAGE;
+    errors['contact.phone'] = PHONE_INVALID_MESSAGE();
   }
 
   if (!data.prefersEmail && !data.prefersSms) {
-    errors['contact.prefersEmail'] = CONTACT_METHOD_MESSAGE;
+    errors['contact.prefersEmail'] = CONTACT_METHOD_MESSAGE();
   }
   return errors;
 }
@@ -129,10 +131,10 @@ export function validateProperty(data: PropertyData): StepErrors {
   optionalText(errors, 'property.addressLine2', data.addressLine2, 180);
   requiredText(errors, 'property.city', data.city, 100);
   if (!US_STATES.includes(data.state)) {
-    errors['property.state'] = STATE_INVALID_MESSAGE;
+    errors['property.state'] = STATE_INVALID_MESSAGE();
   }
   if (!/^\d{5}(-\d{4})?$/.test(data.postalCode.trim())) {
-    errors['property.postalCode'] = POSTAL_CODE_INVALID_MESSAGE;
+    errors['property.postalCode'] = POSTAL_CODE_INVALID_MESSAGE();
   }
   optionalText(errors, 'property.accessInstructions', data.accessInstructions, 1000);
   return errors;
@@ -142,20 +144,22 @@ export function validateProperty(data: PropertyData): StepErrors {
 export function validateService(data: ServiceData, files: readonly FileInfo[] = []): StepErrors {
   const errors: Record<string, string> = {};
   if (data.categoryId === '') {
-    errors['service.categoryId'] = CATEGORY_REQUIRED_MESSAGE;
+    errors['service.categoryId'] = CATEGORY_REQUIRED_MESSAGE();
   }
   if (!data.notSure && data.serviceId === '') {
-    errors['service.serviceId'] = SERVICE_REQUIRED_MESSAGE;
+    errors['service.serviceId'] = SERVICE_REQUIRED_MESSAGE();
   }
   const description = data.description.trim();
   if (description.length === 0) {
-    errors['service.description'] = DESCRIPTION_REQUIRED_MESSAGE;
+    errors['service.description'] = DESCRIPTION_REQUIRED_MESSAGE();
   } else if (description.length > 1000) {
     errors['service.description'] = maxLengthMessage(1000);
   }
   const total = files.reduce((sum, file) => sum + file.size, 0);
   if (files.length > MAX_FILES || total > MAX_TOTAL_BYTES) {
-    errors['attachments'] = FILE_TOTAL_MESSAGE('Your files');
+    errors['attachments'] = FILE_TOTAL_MESSAGE(
+      t('serviceRequest.serviceRequestValidators.yourFiles'),
+    );
   }
   return errors;
 }
@@ -165,9 +169,9 @@ export function validateAvailability(data: AvailabilityData, today: string): Ste
   const errors: Record<string, string> = {};
   if (data.dateMode === 'date') {
     if (data.preferredDate === '') {
-      errors['availability.preferredDate'] = DATE_REQUIRED_MESSAGE;
+      errors['availability.preferredDate'] = DATE_REQUIRED_MESSAGE();
     } else if (!isDateInRange(data.preferredDate, today)) {
-      errors['availability.preferredDate'] = DATE_RANGE_MESSAGE;
+      errors['availability.preferredDate'] = DATE_RANGE_MESSAGE();
     }
   }
   optionalText(errors, 'availability.schedulingNotes', data.schedulingNotes, 1000);
@@ -175,7 +179,7 @@ export function validateAvailability(data: AvailabilityData, today: string): Ste
 }
 
 export function validateConsent(consent: boolean): StepErrors {
-  return consent ? {} : { consent: CONSENT_REQUIRED_MESSAGE };
+  return consent ? {} : { consent: CONSENT_REQUIRED_MESSAGE() };
 }
 
 export function validateStep(
@@ -235,9 +239,9 @@ export function todayInTimeZone(timeZone: string | undefined, now: Date = new Da
   const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: '2-digit', day: '2-digit' };
   let formatter: Intl.DateTimeFormat;
   try {
-    formatter = new Intl.DateTimeFormat('en-US', { ...options, timeZone });
+    formatter = new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone });
   } catch {
-    formatter = new Intl.DateTimeFormat('en-US', options);
+    formatter = new Intl.DateTimeFormat(activeIntlLocale(), options);
   }
   const parts = Object.fromEntries(formatter.formatToParts(now).map((p) => [p.type, p.value]));
   return `${parts['year']}-${parts['month']}-${parts['day']}`;
@@ -266,7 +270,7 @@ function isDateInRange(value: string, today: string): boolean {
 function requiredText(errors: Record<string, string>, path: string, value: string, max: number) {
   const length = value.trim().length;
   if (length === 0) {
-    errors[path] = REQUIRED_MESSAGE;
+    errors[path] = REQUIRED_MESSAGE();
   } else if (length > max) {
     errors[path] = maxLengthMessage(max);
   }

@@ -4,7 +4,7 @@ using FieldOps.Domain.Notifications;
 
 namespace FieldOps.Application.Features.PortalAuth;
 
-public sealed record PortalSessionUser(string FirstName, string LastName, string Email);
+public sealed record PortalSessionUser(string FirstName, string LastName, string Email, string PreferredLanguage);
 
 public sealed record PortalSessionAccount(Guid ContactId, string CustomerName, string OrganizationName, bool HasLogo);
 

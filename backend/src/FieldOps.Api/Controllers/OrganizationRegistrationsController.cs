@@ -91,7 +91,8 @@ public sealed class OrganizationRegistrationsController(
                 request.Owner.Email,
                 request.Owner.Password,
                 request.Owner.Phone),
-            GetClientIpAddress());
+            GetClientIpAddress(),
+            LanguageInput.AsString(request.PreferredLanguage));
 
         var result = await handler.HandleAsync(command, cancellationToken);
 

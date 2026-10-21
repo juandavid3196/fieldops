@@ -1,35 +1,40 @@
 import { Component, inject } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { WizardStep } from '../../models/service-request.model';
 import { ServiceRequestWizardStore } from '../../services/service-request-wizard.store';
 import { StepIcon } from '../step-icon/step-icon';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 @Component({
   selector: 'app-request-summary-panel',
-  imports: [ButtonDirective, StepIcon],
+  imports: [TranslocoPipe, ButtonDirective, StepIcon],
   templateUrl: './request-summary-panel.html',
   styleUrl: './request-summary-panel.scss',
 })
 export class RequestSummaryPanel {
   protected readonly store = inject(ServiceRequestWizardStore);
-  protected readonly before = [
-    {
-      icon: 'pi-file-edit',
-      title: "We'll review your request",
-      text: 'Our team will look over the details and confirm we have everything we need.',
-    },
-    {
-      icon: 'pi-phone',
-      title: 'We may contact you',
-      text: 'We might reach out if we have questions or need additional information.',
-    },
-    {
-      icon: 'pi-bell',
-      title: "You'll receive updates",
-      text: "We'll let you know the next steps by email or phone once your request is reviewed.",
-    },
-  ] as const;
+  protected readonly before = localizedList(
+    () =>
+      [
+        {
+          icon: 'pi-file-edit',
+          title: t('serviceRequest.requestSummaryPanel.wellReviewYourRequest'),
+          text: t('serviceRequest.requestSummaryPanel.ourTeamWillLook'),
+        },
+        {
+          icon: 'pi-phone',
+          title: t('serviceRequest.requestSummaryPanel.weMayContactYou'),
+          text: t('serviceRequest.requestSummaryPanel.weMightReachOut'),
+        },
+        {
+          icon: 'pi-bell',
+          title: t('serviceRequest.requestSummaryPanel.youllReceiveUpdates'),
+          text: t('serviceRequest.requestSummaryPanel.wellLetYouKnow'),
+        },
+      ] as const,
+  );
   protected readonly icons: Record<WizardStep, string> = {
     contact: 'pi-user',
     property: 'pi-home',

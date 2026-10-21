@@ -1,4 +1,7 @@
-<ul class="metrics" aria-label="Catalog metrics">
+<ul
+  class="metrics"
+  [attr.aria-label]="'productsServices.catalogMetrics.catalogMetrics' | transloco"
+>
   @for (metric of metrics; track metric.key) {
     <li class="metrics__card metrics__card--{{ metric.tone }}">
       <span class="metrics__icon" aria-hidden="true">

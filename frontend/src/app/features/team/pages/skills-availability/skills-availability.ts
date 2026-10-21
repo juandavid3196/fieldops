@@ -8,6 +8,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 import { Toast } from 'primeng/toast';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { comingSoonPath } from '../../../../core/config/coming-soon-modules';
 import { isApiError } from '../../../../core/models/api-error.model';
@@ -47,12 +48,12 @@ import {
 } from '../../utils/skills-availability';
 import { PROFILE_STATUS_LABELS, formatClock, profileStatusSeverity } from '../../utils/team-format';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to Team.";
-export const NOT_AVAILABLE_MESSAGE = "This technician profile isn't available.";
-export const LOAD_ERROR_MESSAGE = "We couldn't load this technician's skills and availability.";
-export const SAVE_FAILED_MESSAGE = "We couldn't save your changes. Try again.";
-export const SAVE_CONFLICT_MESSAGE =
-  'This technician was updated by someone else. Reload to see the latest changes.';
+import { localizedList, t } from '../../../../core/i18n/translate';
+export const FORBIDDEN_MESSAGE = (): string => t('team.skillsAvailability.forbiddenMessage');
+export const NOT_AVAILABLE_MESSAGE = (): string => t('team.skillsAvailability.notAvailableMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('team.skillsAvailability.loadErrorMessage');
+export const SAVE_FAILED_MESSAGE = (): string => t('team.skillsAvailability.saveFailedMessage');
+export const SAVE_CONFLICT_MESSAGE = (): string => t('team.skillsAvailability.saveConflictMessage');
 const EDIT_ROLES: readonly string[] = ['owner', 'operations_manager'];
 const READ_ROLES: readonly string[] = [...EDIT_ROLES, 'dispatcher', 'technician'];
 
@@ -72,6 +73,7 @@ interface UpcomingView {
 @Component({
   selector: 'app-skills-availability',
   imports: [
+    TranslocoPipe,
     RouterLink,
     ButtonDirective,
     ConfirmDialog,
@@ -100,21 +102,31 @@ export class SkillsAvailabilityPage {
   private readonly exceptionsCard = viewChild(AvailabilityExceptions);
   private readonly catalogDialog = viewChild(SkillCatalogDialog);
 
-  protected readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  protected readonly notAvailableMessage = NOT_AVAILABLE_MESSAGE;
-  protected readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
-  protected readonly conflictMessage = SAVE_CONFLICT_MESSAGE;
-  protected readonly saveFailedMessage = SAVE_FAILED_MESSAGE;
+  protected get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  protected get notAvailableMessage(): string {
+    return NOT_AVAILABLE_MESSAGE();
+  }
+  protected get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  protected get conflictMessage(): string {
+    return SAVE_CONFLICT_MESSAGE();
+  }
+  protected get saveFailedMessage(): string {
+    return SAVE_FAILED_MESSAGE();
+  }
   protected readonly profilePath = comingSoonPath('technician-profile');
   protected readonly schedulePath = '/schedule';
   protected readonly historyPath = comingSoonPath('technician-job-history');
   protected readonly statusLabels = PROFILE_STATUS_LABELS;
   protected readonly statusSeverity = profileStatusSeverity;
-  protected readonly matchingSteps = [
-    'Work order defines required skills.',
-    'Technician profile provides skills and availability.',
-    'Dispatcher compares matches and assigns manually.',
-  ];
+  protected readonly matchingSteps = localizedList(() => [
+    t('team.skillsAvailability.workOrderDefinesRequired'),
+    t('team.skillsAvailability.technicianProfileProvidesSkills'),
+    t('team.skillsAvailability.dispatcherComparesMatchesAnd'),
+  ]);
 
   // Role UX (BR-21); backend authorization is authoritative.
   private readonly roleCode = computed(() => this.session.session()?.role.code ?? '');
@@ -184,7 +196,9 @@ export class SkillsAvailabilityPage {
   });
   protected readonly booked = computed(() => {
     const percent = this.data()?.today.bookedPercent;
-    return typeof percent === 'number' ? `${percent}% booked` : '—';
+    return typeof percent === 'number'
+      ? t('team.skillsAvailability.booked', { percent: percent })
+      : '—';
   });
 
   constructor() {
@@ -205,15 +219,17 @@ export class SkillsAvailabilityPage {
   private upcomingView(day: UpcomingDay, timezone: string): UpcomingView {
     const label =
       day.label === 'today'
-        ? 'Today'
+        ? t('team.skillsAvailability.today')
         : day.label === 'tomorrow'
-          ? 'Tomorrow'
+          ? t('team.skillsAvailability.tomorrow')
           : formatUpcomingDate(day.date);
     let text: string | null = null;
     if (day.state === 'available_now') {
-      text = 'Available now';
+      text = t('team.skillsAvailability.availableNow');
     } else if (day.state === 'next_available' && day.nextAvailableAt) {
-      text = `Next available ${formatClock(day.nextAvailableAt, timezone)}`;
+      text = t('team.skillsAvailability.nextAvailable', {
+        value: formatClock(day.nextAvailableAt, timezone),
+      });
     } else if (day.state === 'windows') {
       text = windowsText(day.windows);
     }
@@ -323,7 +339,7 @@ export class SkillsAvailabilityPage {
   }
 
   protected onUnavailable(): void {
-    this.messages.add({ severity: 'error', summary: NOT_AVAILABLE_MESSAGE });
+    this.messages.add({ severity: 'error', summary: NOT_AVAILABLE_MESSAGE() });
     this.refreshDerived();
   }
 
@@ -359,7 +375,10 @@ export class SkillsAvailabilityPage {
         next: (saved) => {
           this.saving.set(false);
           this.apply(saved);
-          this.messages.add({ severity: 'success', summary: 'Changes saved.' });
+          this.messages.add({
+            severity: 'success',
+            summary: t('team.skillsAvailability.changesSaved'),
+          });
         },
         error: (error: unknown) => {
           this.saving.set(false);
@@ -417,7 +436,9 @@ export class SkillsAvailabilityPage {
       return true;
     }
     return this.confirmDiscard(
-      this.dirty() ? "this technician's availability and skills" : 'this dialog',
+      this.dirty()
+        ? t('team.skillsAvailability.thisTechniciansAvailabilityAnd')
+        : t('team.skillsAvailability.thisDialog'),
     );
   }
 

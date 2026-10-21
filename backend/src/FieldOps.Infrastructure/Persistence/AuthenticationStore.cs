@@ -77,7 +77,8 @@ internal sealed class AuthenticationStore(FieldOpsDbContext dbContext) : IAuthen
                     dbContext.UserPhotos
                         .Where(photo => photo.UserId == user.Id)
                         .Select(photo => (DateTimeOffset?)photo.UpdatedAt)
-                        .FirstOrDefault()),
+                        .FirstOrDefault(),
+                    user.PreferredLanguage),
                 new SessionOrganization(organization.Id, organization.Name),
                 new SessionRole(role.Code, role.Name)))
             .SingleOrDefaultAsync(cancellationToken);

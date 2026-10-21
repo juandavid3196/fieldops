@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PortalAppointment } from '../../models/portal.model';
 import { dateLabel, longDateLabel, timeRange } from '../../utils/portal-format';
@@ -10,7 +11,7 @@ import { PortalProgressStepper } from '../portal-progress-stepper/portal-progres
 /** Upcoming appointment card (BR-22) with the progress stepper (BR-38). */
 @Component({
   selector: 'app-appointment-card',
-  imports: [ButtonDirective, PortalProgressStepper, RouterLink],
+  imports: [TranslocoPipe, ButtonDirective, PortalProgressStepper, RouterLink],
   templateUrl: './appointment-card.html',
   styleUrls: ['../../portal.scss', '../../portal-card.scss', './appointment-card.scss'],
 })

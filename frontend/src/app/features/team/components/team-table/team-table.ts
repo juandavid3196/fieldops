@@ -1,5 +1,6 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TeamPeriod, TeamSort, TechnicianRow } from '../../models/team.model';
 import {
@@ -10,6 +11,7 @@ import {
   workloadView,
 } from '../../utils/team-format';
 
+import { t } from '../../../../core/i18n/translate';
 export interface TeamRowView {
   readonly row: TechnicianRow;
   readonly skills: string;
@@ -20,7 +22,7 @@ export interface TeamRowView {
 /** BR-12 table: presentational; the page owns data, sorting and the actions menu. */
 @Component({
   selector: 'app-team-table',
-  imports: [Tag],
+  imports: [TranslocoPipe, Tag],
   templateUrl: './team-table.html',
   styleUrl: './team-table.scss',
 })
@@ -39,7 +41,7 @@ export class TeamTable {
 
   readonly ariaSort = computed(() => (this.sort() === 'name_asc' ? 'ascending' : 'descending'));
   readonly jobsHeader = computed(() =>
-    this.period() === 'today' ? 'Jobs today' : 'Jobs this week',
+    this.period() === 'today' ? t('team.teamTable.jobsToday') : t('team.teamTable.jobsThisWeek'),
   );
   readonly views = computed<readonly TeamRowView[]>(() =>
     this.rows().map((row) => ({

@@ -215,6 +215,8 @@ describe('TechnicianShell', () => {
       'Help & support',
       'Sign out',
     ]);
+    // FR-03: the Language item lives in the More panel.
+    expect(host.querySelector('#tshell-more-panel app-language-menu-item')).not.toBeNull();
     // Every destination stays inside the technician shell.
     expect(panelItems[0].getAttribute('href')).toBe('/today/profile');
     expect(panelItems[1].getAttribute('href')).toBe('/today/account');
@@ -227,7 +229,7 @@ describe('TechnicianShell', () => {
       .expectOne({ method: 'DELETE', url: SESSION_URL })
       .flush(null, { status: 500, statusText: 'Server Error' });
     await settle();
-    expect(host.querySelector('p-message')?.textContent?.trim()).toBe(SIGN_OUT_ERROR_MESSAGE);
+    expect(host.querySelector('p-message')?.textContent?.trim()).toBe(SIGN_OUT_ERROR_MESSAGE());
     expect(TestBed.inject(SessionService).session()).not.toBeNull();
     expect(router.url).toBe('/today');
 

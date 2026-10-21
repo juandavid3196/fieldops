@@ -1,6 +1,10 @@
 <div class="board" [attr.aria-busy]="loading() || refreshing()">
   @if (refreshing()) {
-    <div class="board__progress" role="status" aria-label="Updating requests"></div>
+    <div
+      class="board__progress"
+      role="status"
+      [attr.aria-label]="'requests.requestBoard.updatingRequests' | transloco"
+    ></div>
   }
   @for (status of statuses(); track status) {
     @let column = columns()[status];
@@ -9,7 +13,10 @@
         <h2 class="board__column-title" [id]="'board-heading-' + status">
           {{ columnLabels[status] }}
         </h2>
-        <span class="board__count" [attr.aria-label]="column.total + ' requests'">
+        <span
+          class="board__count"
+          [attr.aria-label]="'requests.requestBoard.requests' | transloco: { total: column.total }"
+        >
           {{ column.total }}
         </span>
       </header>
@@ -20,7 +27,7 @@
             <p-skeleton height="6.5rem" />
           }
         } @else if (column.items.length === 0) {
-          <p class="board__empty">No requests</p>
+          <p class="board__empty">{{ 'requests.requestBoard.noRequests' | transloco }}</p>
         } @else {
           @for (card of column.items; track card.id) {
             <button
@@ -62,7 +69,9 @@
                     <span class="card__chip card__chip--urgent">{{ urgencyLabel(card) }}</span>
                   }
                   @if (card.awaitingResponse) {
-                    <span class="card__chip card__chip--awaiting">Awaiting response</span>
+                    <span class="card__chip card__chip--awaiting">{{
+                      'requests.requestBoard.awaitingResponse' | transloco
+                    }}</span>
                   }
                   <span class="card__chip card__chip--age">{{ age(card) }}</span>
                 </span>
@@ -78,10 +87,16 @@
               size="small"
               class="board__more"
               [disabled]="column.loadingMore"
-              [attr.aria-label]="'Load more ' + columnLabels[status]"
+              [attr.aria-label]="
+                'requests.requestBoard.loadMore' | transloco: { value: columnLabels[status] }
+              "
               (click)="loadMore.emit(status)"
             >
-              {{ column.moreFailed ? "Couldn't load more. Retry" : 'Load more' }}
+              {{
+                column.moreFailed
+                  ? ('requests.requestBoard.couldnTLoadMore' | transloco)
+                  : ('requests.requestBoard.loadMore2' | transloco)
+              }}
             </button>
           }
         }

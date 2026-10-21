@@ -5,12 +5,14 @@
   (closeRequested)="requestClose()"
 >
   <ng-container ngProjectAs="[drawerHeader]">
-    <h2 class="new-request__title" [id]="titleId" tabindex="-1">New request</h2>
+    <h2 class="new-request__title" [id]="titleId" tabindex="-1">
+      {{ 'requests.newRequestDrawer.newRequest' | transloco }}
+    </h2>
     <span class="new-request__spacer"></span>
     <button
       type="button"
       class="new-request__close"
-      aria-label="Close new request drawer"
+      [attr.aria-label]="'requests.newRequestDrawer.closeNewRequestDrawer' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -22,7 +24,7 @@
     <form class="new-request__form" ngNoForm novalidate (submit)="$event.preventDefault(); save()">
       <fieldset class="new-request__group" [disabled]="submitting()">
         <app-form-field
-          label="Customer"
+          [label]="'common.customer' | transloco"
           controlId="new-request-customerId"
           [required]="true"
           [error]="error('customerId')"
@@ -32,8 +34,8 @@
             fluid
             appendTo="body"
             optionLabel="displayName"
-            placeholder="Search customers"
-            emptyMessage="No customers found."
+            [placeholder]="'requests.newRequestDrawer.searchCustomers' | transloco"
+            [emptyMessage]="'requests.newRequestDrawer.noCustomersFound' | transloco"
             [showEmptyMessage]="!searching()"
             [dropdown]="true"
             [completeOnFocus]="true"
@@ -45,12 +47,14 @@
             (ngModelChange)="onCustomerInput($event)"
           />
           @if (searching()) {
-            <span class="new-request__progress" role="status">Searching customers...</span>
+            <span class="new-request__progress" role="status">{{
+              'requests.newRequestDrawer.searchingCustomers' | transloco
+            }}</span>
           }
         </app-form-field>
 
         <app-form-field
-          label="Contact"
+          [label]="'requests.newRequestDrawer.contact' | transloco"
           controlId="new-request-contactId"
           [required]="true"
           [error]="error('contactId')"
@@ -59,7 +63,7 @@
             inputId="new-request-contactId"
             appendTo="body"
             fluid
-            placeholder="Choose a contact"
+            [placeholder]="'requests.newRequestDrawer.chooseAContact' | transloco"
             optionLabel="label"
             optionValue="code"
             [options]="contactChoices()"
@@ -72,7 +76,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Property"
+          [label]="'requests.newRequestDrawer.property' | transloco"
           controlId="new-request-propertyId"
           [required]="true"
           [error]="error('propertyId')"
@@ -81,7 +85,7 @@
             inputId="new-request-propertyId"
             appendTo="body"
             fluid
-            placeholder="Choose a property"
+            [placeholder]="'requests.newRequestDrawer.chooseAProperty' | transloco"
             optionLabel="label"
             optionValue="code"
             [options]="propertyChoices()"
@@ -94,7 +98,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Category"
+          [label]="'requests.newRequestDrawer.category' | transloco"
           controlId="new-request-categoryId"
           [required]="true"
           [error]="error('categoryId')"
@@ -103,7 +107,7 @@
             inputId="new-request-categoryId"
             appendTo="body"
             fluid
-            placeholder="Choose a category"
+            [placeholder]="'requests.newRequestDrawer.chooseACategory' | transloco"
             optionLabel="label"
             optionValue="code"
             [options]="categoryChoices()"
@@ -116,7 +120,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Service"
+          [label]="'requests.newRequestDrawer.service' | transloco"
           controlId="new-request-serviceId"
           [required]="!notSure()"
           [error]="error('serviceId')"
@@ -125,7 +129,7 @@
             inputId="new-request-serviceId"
             appendTo="body"
             fluid
-            placeholder="Choose a service"
+            [placeholder]="'requests.newRequestDrawer.chooseAService' | transloco"
             optionLabel="label"
             optionValue="code"
             [options]="serviceChoices()"
@@ -143,11 +147,11 @@
             [ngModel]="notSure()"
             (ngModelChange)="onNotSure($event)"
           />
-          I'm not sure
+          {{ 'requests.newRequestDrawer.iMNotSure' | transloco }}
         </label>
 
         <app-form-field
-          label="Description"
+          [label]="'common.description' | transloco"
           controlId="new-request-description"
           [required]="true"
           [error]="error('description')"
@@ -166,14 +170,18 @@
           ></textarea>
         </app-form-field>
 
-        <app-form-field label="Priority" controlId="new-request-urgency" [error]="error('urgency')">
+        <app-form-field
+          [label]="'requests.newRequestDrawer.priority' | transloco"
+          controlId="new-request-urgency"
+          [error]="error('urgency')"
+        >
           <p-select
             inputId="new-request-urgency"
             appendTo="body"
             fluid
             optionLabel="label"
             optionValue="code"
-            [options]="urgencyChoices"
+            [options]="urgencyChoices | localizedRef"
             [ngModel]="urgency()"
             (ngModelChange)="urgency.set($event)"
           />
@@ -185,24 +193,27 @@
             [ngModel]="hasActiveDamage()"
             (ngModelChange)="hasActiveDamage.set($event)"
           />
-          Active damage
+          {{ 'requests.newRequestDrawer.activeDamage' | transloco }}
         </label>
 
-        <app-form-field label="Availability" controlId="new-request-dateMode">
+        <app-form-field
+          [label]="'requests.newRequestDrawer.availability' | transloco"
+          controlId="new-request-dateMode"
+        >
           <p-select
             inputId="new-request-dateMode"
             appendTo="body"
             fluid
             optionLabel="label"
             optionValue="code"
-            [options]="dateModes"
+            [options]="dateModes | localizedRef"
             [ngModel]="dateMode()"
             (ngModelChange)="dateMode.set($event); clear('preferredDate')"
           />
         </app-form-field>
         @if (dateMode() === 'date') {
           <app-form-field
-            label="Preferred date"
+            [label]="'requests.newRequestDrawer.preferredDate' | transloco"
             controlId="new-request-preferredDate"
             [required]="true"
             [error]="error('preferredDate')"
@@ -219,21 +230,24 @@
               (ngModelChange)="preferredDate.set($event); clear('preferredDate')"
             />
           </app-form-field>
-          <app-form-field label="Time window" controlId="new-request-timeWindow">
+          <app-form-field
+            [label]="'requests.newRequestDrawer.timeWindow' | transloco"
+            controlId="new-request-timeWindow"
+          >
             <p-select
               inputId="new-request-timeWindow"
               appendTo="body"
               fluid
               optionLabel="label"
               optionValue="code"
-              [options]="windowChoices"
+              [options]="windowChoices | localizedRef"
               [ngModel]="timeWindow()"
               (ngModelChange)="timeWindow.set($event)"
             />
           </app-form-field>
         }
         <app-form-field
-          label="Scheduling notes"
+          [label]="'requests.newRequestDrawer.schedulingNotes' | transloco"
           controlId="new-request-schedulingNotes"
           [error]="error('schedulingNotes')"
         >
@@ -262,13 +276,13 @@
       [disabled]="submitting()"
       (click)="requestClose()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button pButton type="button" [disabled]="submitting()" (click)="save()">
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Create request
+      {{ 'requests.newRequestDrawer.createRequest' | transloco }}
     </button>
   </ng-container>
 </app-drawer-shell>

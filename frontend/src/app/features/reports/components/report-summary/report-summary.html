@@ -1,4 +1,4 @@
-<ul class="summary" aria-label="Summary">
+<ul class="summary" [attr.aria-label]="'reports.reportSummary.summary' | transloco">
   @for (card of cards(); track card.key) {
     <li class="summary__card">
       <span class="summary__label">{{ card.label }}</span>
@@ -17,6 +17,6 @@
 </ul>
 @if (otherCurrencyCount(); as count) {
   <p class="summary__other" role="status">
-    {{ count }} quotes in other currencies are counted but not summed.
+    {{ 'reports.reportSummary.quotesInOtherCurrencies' | transloco: { count: count } }}
   </p>
 }

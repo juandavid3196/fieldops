@@ -2,7 +2,7 @@
 <p-popover
   [dismissable]="true"
   [focusOnShow]="false"
-  ariaLabel="Notifications"
+  [ariaLabel]="'notifications.notificationPopover.notifications' | transloco"
   styleClass="notif-pop"
   [style]="panelStyle"
   (onShow)="onShow()"
@@ -10,7 +10,9 @@
 >
   <div class="pop">
     <header class="pop__header">
-      <h2 class="pop__title">Notifications</h2>
+      <h2 class="pop__title">
+        {{ 'notifications.notificationPopover.notifications' | transloco }}
+      </h2>
       <button
         #markAll
         type="button"
@@ -18,7 +20,7 @@
         [disabled]="markAllDisabled()"
         (click)="markAllRead()"
       >
-        Mark all as read
+        {{ 'notifications.notificationPopover.markAllAsRead' | transloco }}
       </button>
     </header>
 
@@ -26,7 +28,9 @@
       @if (status() === 'error') {
         <p class="pop__message" role="alert">
           {{ errorMessage }}
-          <button type="button" class="pop__action" (click)="reload()">Retry</button>
+          <button type="button" class="pop__action" (click)="reload()">
+            {{ 'common.retry' | transloco }}
+          </button>
         </p>
       } @else if (status() !== 'ready' && rows().length === 0) {
         <div class="pop__skeletons" aria-busy="true">
@@ -35,7 +39,9 @@
           }
         </div>
       } @else if (rows().length === 0) {
-        <p class="pop__message">You're all caught up.</p>
+        <p class="pop__message">
+          {{ 'notifications.notificationPopover.youReAllCaught' | transloco }}
+        </p>
       } @else {
         <ul class="pop__rows">
           @for (row of rows(); track row.item.id) {
@@ -53,8 +59,12 @@
                   <i class="pi {{ row.icon }}"></i>
                 </span>
                 <span class="pop__text">
-                  <span class="pop__row-title">{{ row.item.title }}</span>
-                  <span class="pop__desc">{{ row.item.description }}</span>
+                  <span class="pop__row-title">{{
+                    row.item.title | notificationText: row.item.eventCode : 'title'
+                  }}</span>
+                  <span class="pop__desc">{{
+                    row.item.description | notificationText: row.item.eventCode : 'body'
+                  }}</span>
                 </span>
                 <time
                   class="pop__time"
@@ -72,7 +82,8 @@
 
     <footer class="pop__footer">
       <button #footerLink type="button" class="pop__action" (click)="viewAll()">
-        View all notifications <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        {{ 'notifications.notificationPopover.viewAllNotifications' | transloco }}
+        <i class="pi pi-arrow-right" aria-hidden="true"></i>
       </button>
     </footer>
   </div>

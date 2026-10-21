@@ -9,20 +9,24 @@ import {
 import { formatInstant, monthDay } from '../../schedule/utils/schedule-range';
 import { AppLink, boardLink, jobLink, TEAM_LINK, visitLink } from './dashboard-params';
 
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
+import { localized, t } from '../../../core/i18n/translate';
 const MINUS = '−';
-const WEEKDAY_DATE = new Intl.DateTimeFormat('en-US', {
+const WEEKDAY_DATE_OPTIONS: Intl.DateTimeFormatOptions = {
   weekday: 'long',
   month: 'short',
   day: 'numeric',
   year: 'numeric',
   timeZone: 'UTC',
-});
+};
 const HEX_COLOR = /^#[0-9a-fA-F]{6}$/;
 
 /** BR-04: "EEEE, MMM d, yyyy". */
 export function longDate(date: string): string {
   const [year, month, day] = date.split('-').map(Number);
-  return WEEKDAY_DATE.format(new Date(Date.UTC(year, month - 1, day)));
+  return new Intl.DateTimeFormat(activeIntlLocale(), WEEKDAY_DATE_OPTIONS).format(
+    new Date(Date.UTC(year, month - 1, day)),
+  );
 }
 
 /** Hours with at most one decimal. */
@@ -38,16 +42,20 @@ export function hoursText(minutes: number): string {
 /** BR-13: "<h>h <m>m". */
 export function durationText(minutes: number): string {
   const hours = Math.floor(minutes / 60);
-  return hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+  return hours > 0
+    ? t('dashboard.dashboardView.hM', { hours: hours, value: minutes % 60 })
+    : `${minutes}m`;
 }
 
 /** BR-13: "+<n> min", "−<n> min" or "On estimate". */
 export function varianceText(estimated: number, actual: number): string {
   const diff = actual - estimated;
   if (diff === 0) {
-    return 'On estimate';
+    return t('dashboard.dashboardView.onEstimate');
   }
-  return diff > 0 ? `+${diff} min` : `${MINUS}${-diff} min`;
+  return diff > 0
+    ? t('dashboard.dashboardView.min', { diff: diff })
+    : t('dashboard.dashboardView.min2', { MINUS: MINUS, value: -diff });
 }
 
 /** Variance colour: on or under estimate is good, up to 15% over a warning, beyond that a problem. */
@@ -81,11 +89,14 @@ export function onTimeTrend(percent: number | null, previous: number | null): Tr
   }
   const diff = percent - previous;
   if (diff === 0) {
-    return { text: 'Same as last week', direction: 'same' };
+    return { text: t('dashboard.dashboardView.sameAsLastWeek'), direction: 'same' };
   }
   return diff > 0
-    ? { text: `+${diff}% vs last week`, direction: 'up' }
-    : { text: `${MINUS}${-diff}% vs last week`, direction: 'down' };
+    ? { text: t('dashboard.dashboardView.vsLastWeek', { diff: diff }), direction: 'up' }
+    : {
+        text: t('dashboard.dashboardView.vsLastWeek2', { MINUS: MINUS, value: -diff }),
+        direction: 'down',
+      };
 }
 
 // BR-10 operation rows
@@ -98,19 +109,27 @@ export interface StatusChip {
 
 export function statusChip(visit: DayVisit): StatusChip {
   if (visit.isDelayed) {
-    return { label: 'Delayed', icon: 'pi-exclamation-circle', tone: 'danger' };
+    return {
+      label: t('dashboard.dashboardView.delayed'),
+      icon: 'pi-exclamation-circle',
+      tone: 'danger',
+    };
   }
   switch (visit.status) {
     case 'on_the_way':
-      return { label: 'On the way', icon: 'pi-send', tone: 'info' };
+      return { label: t('dashboard.dashboardView.onTheWay'), icon: 'pi-send', tone: 'info' };
     case 'in_progress':
-      return { label: 'In progress', icon: 'pi-play', tone: 'info' };
+      return { label: t('dashboard.dashboardView.inProgress'), icon: 'pi-play', tone: 'info' };
     case 'paused':
-      return { label: 'Paused', icon: 'pi-pause', tone: 'warning' };
+      return { label: t('dashboard.dashboardView.paused'), icon: 'pi-pause', tone: 'warning' };
     default:
       return visit.statusGroup === 'completed'
-        ? { label: 'Completed', icon: 'pi-check-circle', tone: 'success' }
-        : { label: 'Scheduled', icon: 'pi-clock', tone: 'neutral' };
+        ? {
+            label: t('dashboard.dashboardView.completed'),
+            icon: 'pi-check-circle',
+            tone: 'success',
+          }
+        : { label: t('dashboard.dashboardView.scheduled'), icon: 'pi-clock', tone: 'neutral' };
   }
 }
 
@@ -123,21 +142,38 @@ export function timing(visit: DayVisit, timezone: string): Timing {
   if (visit.statusGroup === 'completed') {
     const at =
       visit.actualCompletedAt === null ? '' : formatInstant(visit.actualCompletedAt, timezone);
-    return { label: at === '' ? 'Completed' : `Completed ${at}`, note: null };
+    return {
+      label:
+        at === ''
+          ? t('dashboard.dashboardView.completed')
+          : t('dashboard.dashboardView.completed2', { at: at }),
+      note: null,
+    };
   }
-  const late = visit.isDelayed ? { text: `+${visit.delayMinutes ?? 0} min`, late: true } : null;
+  const late = visit.isDelayed
+    ? { text: t('dashboard.dashboardView.min3', { value: visit.delayMinutes ?? 0 }), late: true }
+    : null;
   if (visit.statusGroup === 'active') {
     const end = formatInstant(visit.projectedEnd ?? visit.scheduledEnd, timezone);
-    return { label: `Ends ~${end}`, note: late ?? { text: 'On time', late: false } };
+    return {
+      label: t('dashboard.dashboardView.ends', { end: end }),
+      note: late ?? { text: t('dashboard.dashboardView.onTime'), late: false },
+    };
   }
   return {
-    label: `Starts ${formatInstant(visit.scheduledStart, timezone)}`,
-    note: late ?? (visit.status === 'on_the_way' ? { text: 'On time', late: false } : null),
+    label: t('dashboard.dashboardView.starts', {
+      value: formatInstant(visit.scheduledStart, timezone),
+    }),
+    note:
+      late ??
+      (visit.status === 'on_the_way'
+        ? { text: t('dashboard.dashboardView.onTime'), late: false }
+        : null),
   };
 }
 
 export interface RowAction {
-  readonly label: 'Assign' | 'Reassign' | 'Contact' | 'View';
+  readonly label: string;
   readonly link: AppLink | null;
   /** `tel:` target of Contact. */
   readonly href: string | null;
@@ -146,24 +182,24 @@ export interface RowAction {
 export function rowAction(visit: DayVisit, date: string): RowAction {
   const schedule = visitLink(visit.branchId, date, visit.visitId);
   if (visit.status === 'scheduled') {
-    return { label: 'Assign', link: schedule, href: null };
+    return { label: t('dashboard.dashboardView.assign'), link: schedule, href: null };
   }
   if (visit.status === 'assigned' && visit.isDelayed) {
-    return { label: 'Reassign', link: schedule, href: null };
+    return { label: t('dashboard.dashboardView.reassign'), link: schedule, href: null };
   }
   if (visit.status === 'on_the_way' && visit.customerPhone !== null) {
     return {
-      label: 'Contact',
+      label: t('dashboard.dashboardView.contact'),
       link: null,
       href: `tel:${visit.customerPhone.replace(/[^\d+]/g, '')}`,
     };
   }
-  return { label: 'View', link: jobLink(visit.workOrderId), href: null };
+  return { label: t('common.view'), link: jobLink(visit.workOrderId), href: null };
 }
 
 export function technicianLabel(visit: DayVisit): string {
   if (visit.technician === null) {
-    return 'Unassigned';
+    return t('dashboard.dashboardView.unassigned');
   }
   return visit.otherTechnicianCount > 0
     ? `${visit.technician.fullName} +${visit.otherTechnicianCount}`
@@ -208,26 +244,35 @@ export function attentionView(
       key: `capacity-${tech.id}`,
       severity: 'Warning',
       icon: 'pi-users',
-      title: `Technician ${tech.fullName} at ${tech.percent}% capacity`,
-      subtitle: `${hoursNumber(tech.scheduledMinutes)}/${hoursNumber(tech.availableMinutes)} hrs scheduled · Consider rebalancing`,
+      title: t('dashboard.dashboardView.technicianAtCapacity', {
+        fullName: tech.fullName,
+        percent: tech.percent,
+      }),
+      subtitle: t('dashboard.dashboardView.hrsScheduledConsiderRebalancing', {
+        scheduledMinutes: hoursNumber(tech.scheduledMinutes),
+        availableMinutes: hoursNumber(tech.availableMinutes),
+      }),
       time,
-      action: { label: 'Balance workload', link: boardLink(item.branchId, date) },
-      menu: { label: 'View team', link: TEAM_LINK },
+      action: {
+        label: t('dashboard.dashboardView.balanceWorkload'),
+        link: boardLink(item.branchId, date),
+      },
+      menu: { label: t('dashboard.dashboardView.viewTeam'), link: TEAM_LINK },
     };
   }
   const job = jobLink(item.workOrderId ?? '');
   const schedule = visitLink(item.branchId, date, item.visitId ?? '');
   const action =
     item.visitStatus === 'scheduled'
-      ? { label: 'Assign', link: schedule }
+      ? { label: t('dashboard.dashboardView.assign'), link: schedule }
       : item.visitStatus === 'assigned'
-        ? { label: 'Reassign', link: schedule }
-        : { label: 'View job', link: job };
+        ? { label: t('dashboard.dashboardView.reassign'), link: schedule }
+        : { label: t('dashboard.dashboardView.viewJob'), link: job };
   const base = {
     key: `${item.type}-${item.visitId ?? index}`,
     time,
     action,
-    menu: { label: 'View job', link: job },
+    menu: { label: t('dashboard.dashboardView.viewJob'), link: job },
   };
   switch (item.type) {
     case 'delayed':
@@ -235,7 +280,10 @@ export function attentionView(
         ...base,
         severity: 'Critical',
         icon: 'pi-exclamation-circle',
-        title: `${number} delayed by ${item.minutes ?? 0} min`,
+        title: t('dashboard.dashboardView.delayedByMin', {
+          number: number,
+          value: item.minutes ?? 0,
+        }),
         subtitle: title,
       };
     case 'unassigned':
@@ -243,29 +291,32 @@ export function attentionView(
         ...base,
         severity: 'Warning',
         icon: 'pi-exclamation-triangle',
-        title: `${number} has no technician assigned`,
-        subtitle: `${title} · Starts at ${time ?? ''}`,
+        title: t('dashboard.dashboardView.hasNoTechnicianAssigned', { number: number }),
+        subtitle: t('dashboard.dashboardView.startsAt', { title: title, value: time ?? '' }),
       };
     default:
       return {
         ...base,
         severity: 'Warning',
         icon: 'pi-stopwatch',
-        title: `${number} estimated duration exceeded`,
-        subtitle: `${title} · ${item.minutes ?? 0} min over estimate`,
+        title: t('dashboard.dashboardView.estimatedDurationExceeded', { number: number }),
+        subtitle: t('dashboard.dashboardView.minOverEstimate', {
+          title: title,
+          value: item.minutes ?? 0,
+        }),
       };
   }
 }
 
 // BR-12 technicians
 
-const STATUS_VIEW: Record<TechnicianStatus, { label: string; tone: string }> = {
-  time_off: { label: 'Time off', tone: 'neutral' },
-  off: { label: 'Off', tone: 'neutral' },
-  break: { label: 'Break', tone: 'warning' },
-  on_job: { label: 'On job', tone: 'info' },
-  available: { label: 'Available', tone: 'success' },
-};
+const STATUS_VIEW: Record<TechnicianStatus, { label: string; tone: string }> = localized(() => ({
+  time_off: { label: t('dashboard.dashboardView.timeOff'), tone: 'neutral' },
+  off: { label: t('dashboard.dashboardView.off'), tone: 'neutral' },
+  break: { label: t('dashboard.dashboardView.break'), tone: 'warning' },
+  on_job: { label: t('dashboard.dashboardView.onJob'), tone: 'info' },
+  available: { label: t('dashboard.dashboardView.available'), tone: 'success' },
+}));
 
 export interface TechnicianRow {
   readonly id: string;
@@ -289,7 +340,7 @@ export function technicianRow(
       : tech.skills.join(', ') + (tech.extraSkillCount > 0 ? ` +${tech.extraSkillCount}` : '');
   let workload: TechnicianRow['workload'] = null;
   if (tech.availableMinutes === 0 && tech.scheduledMinutes > 0) {
-    workload = { text: 'No availability', bar: 100, over: true };
+    workload = { text: t('dashboard.dashboardView.noAvailability'), bar: 100, over: true };
   } else if (tech.percent !== null) {
     workload = {
       text: `${tech.percent}%`,
@@ -300,7 +351,7 @@ export function technicianRow(
   let next = '—';
   if (isToday) {
     if (tech.currentStatus === 'available') {
-      next = 'Now';
+      next = t('dashboard.dashboardView.now');
     } else if (tech.nextAvailable !== null) {
       next = formatInstant(tech.nextAvailable, timezone);
     }
@@ -346,14 +397,26 @@ export interface ActivityView {
 }
 
 export function activityView(event: ActivityEvent, index: number, timezone: string): ActivityView {
-  const who = event.technicianName ?? 'A technician';
+  const who = event.technicianName ?? t('dashboard.dashboardView.aTechnician');
   const number = event.displayNumber;
   const texts: Record<ActivityEvent['type'], readonly [string, string]> = {
-    on_the_way: ['Technician on the way', `${who} is on the way to ${number}`],
-    started: ['Job started', `${who} started ${number}`],
-    completed: ['Job completed', `${number} · ${event.title} · ${who}`],
-    assigned: ['Technician assigned', `${who} assigned to ${number}`],
-    reassigned: ['Assignment changed', `${number} reassigned to ${who}`],
+    on_the_way: [
+      t('dashboard.dashboardView.technicianOnTheWay'),
+      t('dashboard.dashboardView.isOnTheWay', { who: who, number: number }),
+    ],
+    started: [
+      t('dashboard.dashboardView.jobStarted'),
+      t('dashboard.dashboardView.started', { who: who, number: number }),
+    ],
+    completed: [t('dashboard.dashboardView.jobCompleted'), `${number} · ${event.title} · ${who}`],
+    assigned: [
+      t('dashboard.dashboardView.technicianAssigned'),
+      t('dashboard.dashboardView.assignedTo', { who: who, number: number }),
+    ],
+    reassigned: [
+      t('dashboard.dashboardView.assignmentChanged'),
+      t('dashboard.dashboardView.reassignedTo', { number: number, who: who }),
+    ],
   };
   const [title, subtitle] = texts[event.type];
   return {

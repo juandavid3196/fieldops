@@ -1,5 +1,7 @@
 <section class="bank-card" id="bank-details" aria-labelledby="bank-details-heading">
-  <h2 id="bank-details-heading">Bank transfer details</h2>
+  <h2 id="bank-details-heading">
+    {{ 'organizations.bankDetailsCard.bankTransferDetails' | transloco }}
+  </h2>
 
   @if (loading()) {
     <div class="bank-card__skeletons" aria-busy="true">
@@ -10,14 +12,16 @@
   } @else if (loadError()) {
     <div class="bank-card__load-error">
       <p role="alert">{{ loadErrorMessage }}</p>
-      <button pButton type="button" severity="secondary" (click)="load()">Retry</button>
+      <button pButton type="button" severity="secondary" (click)="load()">
+        {{ 'common.retry' | transloco }}
+      </button>
     </div>
   } @else {
     <p class="bank-card__helper">{{ helper }}</p>
 
     <form class="bank-card__grid" [formGroup]="form" novalidate (ngSubmit)="save()">
       <app-form-field
-        label="Bank name"
+        [label]="'organizations.bankDetailsCard.bankName' | transloco"
         controlId="bank-bankName"
         [required]="true"
         [error]="error('bankName')"
@@ -36,7 +40,7 @@
       </app-form-field>
 
       <app-form-field
-        label="Account number"
+        [label]="'organizations.bankDetailsCard.accountNumber' | transloco"
         controlId="bank-accountNumber"
         [required]="!details()?.configured"
         [error]="error('accountNumber')"
@@ -67,14 +71,14 @@
               [outlined]="true"
               (click)="replace()"
             >
-              Replace
+              {{ 'organizations.bankDetailsCard.replace' | transloco }}
             </button>
           </div>
         }
       </app-form-field>
 
       <app-form-field
-        label="Routing number"
+        [label]="'organizations.bankDetailsCard.routingNumber' | transloco"
         controlId="bank-routingNumber"
         [required]="true"
         [error]="error('routingNumber')"
@@ -98,7 +102,7 @@
           {{ message }}
           @if (stale()) {
             <button pButton type="button" size="small" severity="secondary" (click)="load()">
-              Refresh
+              {{ 'common.refresh' | transloco }}
             </button>
           }
         </p>
@@ -109,7 +113,7 @@
           @if (saving()) {
             <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
           }
-          Save bank details
+          {{ 'organizations.bankDetailsCard.saveBankDetails' | transloco }}
         </button>
       </div>
     </form>

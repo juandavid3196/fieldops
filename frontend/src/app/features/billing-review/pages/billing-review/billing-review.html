@@ -8,29 +8,36 @@
         size="small"
         severity="secondary"
         [routerLink]="['/invoices', message.data.invoiceId]"
-        >View invoice</a
+        >{{ 'billingReview.billingReview.viewInvoice' | transloco }}</a
       >
     </div>
   </ng-template>
 </p-toast>
 <app-confirm-dialog [key]="varianceKey" />
 <app-confirm-dialog [key]="discardKey" acceptFirst />
-<p-menu #menu [popup]="true" appendTo="body" [model]="exportMenu" />
+<p-menu #menu [popup]="true" appendTo="body" [model]="exportMenu | localizedRef" />
 
 <div class="review">
   <header class="review__header">
     <div class="review__heading">
-      <h1 #heading class="review__title" tabindex="-1">Completed jobs review</h1>
-      <p class="review__subtitle">Verify completed work before invoicing.</p>
+      <h1 #heading class="review__title" tabindex="-1">
+        {{ 'billingReview.billingReview.completedJobsReview' | transloco }}
+      </h1>
+      <p class="review__subtitle">
+        {{ 'billingReview.billingReview.verifyCompletedWorkBefore' | transloco }}
+      </p>
     </div>
 
     @if (state() === 'ready') {
       @if (metrics(); as metrics) {
-        <dl class="review__metrics" aria-label="Review metrics">
+        <dl
+          class="review__metrics"
+          [attr.aria-label]="'billingReview.billingReview.reviewMetrics' | transloco"
+        >
           <div class="review__metric review__metric--info">
             <dt>
               <span class="review__metric-icon" aria-hidden="true"><i class="pi pi-file"></i></span
-              >Needs review
+              >{{ 'billingReview.billingReview.needsReview' | transloco }}
             </dt>
             <dd>{{ metrics.needsReview }}</dd>
           </div>
@@ -38,14 +45,14 @@
             <dt>
               <span class="review__metric-icon" aria-hidden="true"
                 ><i class="pi pi-exclamation-triangle"></i></span
-              >With variances
+              >{{ 'billingReview.billingReview.withVariances' | transloco }}
             </dt>
             <dd>{{ metrics.withVariances }}</dd>
           </div>
           <div class="review__metric review__metric--success">
             <dt>
               <span class="review__metric-icon" aria-hidden="true"><i class="pi pi-check"></i></span
-              >Ready to invoice
+              >{{ 'billingReview.billingReview.readyToInvoice' | transloco }}
             </dt>
             <dd>{{ metrics.readyToInvoice }}</dd>
           </div>
@@ -53,7 +60,7 @@
             <dt>
               <span class="review__metric-icon" aria-hidden="true"
                 ><i class="pi pi-dollar"></i></span
-              >Completed value
+              >{{ 'billingReview.billingReview.completedValue' | transloco }}
             </dt>
             <dd>{{ metrics.valueText }}</dd>
           </div>
@@ -77,16 +84,20 @@
         (click)="menu.toggle($event)"
       >
         <i class="pi pi-upload" aria-hidden="true"></i>
-        Export
+        {{ 'billingReview.billingReview.export' | transloco }}
         <i class="pi pi-chevron-down" aria-hidden="true"></i>
       </button>
     }
   </header>
 
   @if (state() === 'ready') {
-    <div class="review__filters" role="search" aria-label="Filter completed jobs">
+    <div
+      class="review__filters"
+      role="search"
+      [attr.aria-label]="'billingReview.billingReview.filterCompletedJobs' | transloco"
+    >
       <div class="review__field">
-        <span id="review-branch-label">Branch</span>
+        <span id="review-branch-label">{{ 'billingReview.billingReview.branch' | transloco }}</span>
         <p-select
           appendTo="body"
           fluid
@@ -99,12 +110,14 @@
         />
       </div>
       <div class="review__field">
-        <span id="review-completed-label">Completion date</span>
+        <span id="review-completed-label">{{
+          'billingReview.billingReview.completionDate' | transloco
+        }}</span>
         <p-select
           appendTo="body"
           fluid
           ariaLabelledBy="review-completed-label"
-          [options]="completedOptions"
+          [options]="completedOptions | localizedRef"
           optionLabel="label"
           optionValue="code"
           [ngModel]="filters().completed"
@@ -112,7 +125,9 @@
         />
       </div>
       <div class="review__field">
-        <span id="review-technician-label">Technician</span>
+        <span id="review-technician-label">{{
+          'billingReview.billingReview.technician' | transloco
+        }}</span>
         <p-select
           appendTo="body"
           fluid
@@ -125,12 +140,14 @@
         />
       </div>
       <div class="review__field">
-        <span id="review-variance-label">Variance status</span>
+        <span id="review-variance-label">{{
+          'billingReview.billingReview.varianceStatus' | transloco
+        }}</span>
         <p-select
           appendTo="body"
           fluid
           ariaLabelledBy="review-variance-label"
-          [options]="varianceOptions"
+          [options]="varianceOptions | localizedRef"
           optionLabel="label"
           optionValue="code"
           [ngModel]="filters().variance"
@@ -144,8 +161,8 @@
           type="search"
           fluid
           maxlength="100"
-          placeholder="Search by customer, WO #, or job description..."
-          aria-label="Search completed jobs"
+          [attr.placeholder]="'billingReview.billingReview.searchByCustomerWo' | transloco"
+          [attr.aria-label]="'billingReview.billingReview.searchCompletedJobs' | transloco"
           [ngModel]="searchText()"
           (ngModelChange)="searchChanged($event)"
         />
@@ -167,7 +184,7 @@
       <p class="review__message" role="alert">
         {{ errorMessage }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </p>
     }
@@ -191,7 +208,7 @@
         <div class="review__detail">
           <button type="button" class="review__back" (click)="backToQueue()">
             <i class="pi pi-arrow-left" aria-hidden="true"></i>
-            Back to quote
+            {{ 'billingReview.billingReview.backToQuote' | transloco }}
           </button>
           @switch (detailState()) {
             @case ('loading') {
@@ -213,7 +230,7 @@
                   size="small"
                   (click)="retryDetail()"
                 >
-                  Retry
+                  {{ 'common.retry' | transloco }}
                 </button>
               </p>
             }
@@ -227,7 +244,9 @@
                   (noteChange)="setNote($event)"
                 />
               } @else if (!queueLoading() && !queueFailed()) {
-                <p class="review__message">Select a job to review it.</p>
+                <p class="review__message">
+                  {{ 'billingReview.billingReview.selectAJobTo' | transloco }}
+                </p>
               }
             }
           }

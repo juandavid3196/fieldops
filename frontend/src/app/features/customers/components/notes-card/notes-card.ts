@@ -5,6 +5,7 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { NoteItem, RegionState } from '../../models/customer.model';
 import { formatDateTime } from '../../utils/customer-detail-format';
@@ -17,7 +18,7 @@ export const NOTE_INPUT_ID = 'customer-detail-note';
  */
 @Component({
   selector: 'app-notes-card',
-  imports: [FormsModule, ButtonDirective, Message, Skeleton, SpinnerIcon, Textarea],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Message, Skeleton, SpinnerIcon, Textarea],
   templateUrl: './notes-card.html',
   styleUrl: './notes-card.scss',
 })

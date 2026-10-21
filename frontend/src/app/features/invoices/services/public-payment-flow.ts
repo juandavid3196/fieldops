@@ -187,20 +187,20 @@ export class PublicPaymentFlow {
     if (apiError?.status === 404) {
       this.events.next('unavailable');
     } else if (apiError?.kind === 'rate-limited') {
-      this.startError.set(PUBLIC_RATE_LIMITED_MESSAGE);
+      this.startError.set(PUBLIC_RATE_LIMITED_MESSAGE());
     } else if (apiError?.status === 409 && apiError.code === 'payment_in_progress') {
       this.phase.set('long-pending');
     } else if (apiError?.status === 409 && apiError.code === 'invoice_not_payable') {
       this.events.next('reload');
     } else if (apiError?.status === 409 && apiError.code === 'card_unavailable') {
-      this.startError.set(CARD_UNAVAILABLE_MESSAGE);
+      this.startError.set(CARD_UNAVAILABLE_MESSAGE());
       this.events.next('reload');
     } else {
       if (apiError?.status === 502 || apiError?.code === 'idempotency_conflict') {
         this.idempotencyKey = null;
       }
       // Network failures and other errors keep the key so the retry is the same submission.
-      this.startError.set(CARD_START_FAILED_MESSAGE);
+      this.startError.set(CARD_START_FAILED_MESSAGE());
     }
   }
 

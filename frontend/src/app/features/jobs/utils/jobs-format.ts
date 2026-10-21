@@ -10,23 +10,25 @@ import {
   JobsView,
 } from '../models/jobs.model';
 
+import { localized, localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 export type ChipTone = 'neutral' | 'info' | 'purple' | 'warning' | 'success' | 'danger';
 
 /** BR-05: code -> fixed label and chip tone (the API never sends labels). */
 export const JOB_STATUS_CHIPS: Readonly<
   Record<JobStatusCode, { readonly label: string; readonly tone: ChipTone }>
-> = {
-  ready_to_schedule: { label: 'Ready to schedule', tone: 'neutral' },
-  scheduled: { label: 'Scheduled', tone: 'info' },
-  assigned: { label: 'Assigned', tone: 'purple' },
-  on_the_way: { label: 'On the way', tone: 'info' },
-  in_progress: { label: 'In progress', tone: 'warning' },
-  paused: { label: 'Paused', tone: 'warning' },
-  completed: { label: 'Completed', tone: 'success' },
-  needs_correction: { label: 'Needs correction', tone: 'danger' },
-  approved_for_billing: { label: 'Approved for billing', tone: 'success' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
+> = localized(() => ({
+  ready_to_schedule: { label: t('jobs.jobsFormat.readyToSchedule'), tone: 'neutral' },
+  scheduled: { label: t('jobs.jobsFormat.scheduled'), tone: 'info' },
+  assigned: { label: t('jobs.jobsFormat.assigned'), tone: 'purple' },
+  on_the_way: { label: t('jobs.jobsFormat.onTheWay'), tone: 'info' },
+  in_progress: { label: t('jobs.jobsFormat.inProgress'), tone: 'warning' },
+  paused: { label: t('jobs.jobsFormat.paused'), tone: 'warning' },
+  completed: { label: t('jobs.jobsFormat.completed'), tone: 'success' },
+  needs_correction: { label: t('jobs.jobsFormat.needsCorrection'), tone: 'danger' },
+  approved_for_billing: { label: t('jobs.jobsFormat.approvedForBilling'), tone: 'success' },
+  cancelled: { label: t('jobs.jobsFormat.cancelled'), tone: 'neutral' },
+}));
 
 /** BR-06: status codes allowed per tab. */
 export const TAB_STATUSES: Readonly<Record<JobsTab, readonly JobStatusCode[]>> = {
@@ -36,27 +38,30 @@ export const TAB_STATUSES: Readonly<Record<JobsTab, readonly JobStatusCode[]>> =
   completed: ['completed', 'needs_correction', 'approved_for_billing'],
 };
 
-export const JOBS_TABS: readonly { readonly code: JobsTab; readonly label: string }[] = [
-  { code: 'all', label: 'All jobs' },
-  { code: 'active', label: 'Active' },
-  { code: 'unscheduled', label: 'Unscheduled' },
-  { code: 'completed', label: 'Completed' },
-];
+export const JOBS_TABS: readonly { readonly code: JobsTab; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'all', label: t('jobs.jobsFormat.allJobs') },
+    { code: 'active', label: t('common.active') },
+    { code: 'unscheduled', label: t('jobs.jobsFormat.unscheduled') },
+    { code: 'completed', label: t('jobs.jobsFormat.completed') },
+  ]);
 
-export const JOBS_PRIORITIES: readonly { readonly code: JobsPriority; readonly label: string }[] = [
-  { code: 'urgent', label: 'Urgent' },
-  { code: 'high', label: 'High' },
-  { code: 'normal', label: 'Normal' },
-  { code: 'low', label: 'Low' },
-];
+export const JOBS_PRIORITIES: readonly { readonly code: JobsPriority; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'urgent', label: t('jobs.jobsFormat.urgent') },
+    { code: 'high', label: t('jobs.jobsFormat.high') },
+    { code: 'normal', label: t('jobs.jobsFormat.normal') },
+    { code: 'low', label: t('jobs.jobsFormat.low') },
+  ]);
 
-export const JOBS_SORTS: readonly { readonly code: JobsSort; readonly label: string }[] = [
-  { code: 'newest', label: 'Newest' },
-  { code: 'oldest', label: 'Oldest' },
-  { code: 'updated', label: 'Recently updated' },
-  { code: 'schedule', label: 'Schedule' },
-  { code: 'priority', label: 'Priority' },
-];
+export const JOBS_SORTS: readonly { readonly code: JobsSort; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'newest', label: t('jobs.jobsFormat.newest') },
+    { code: 'oldest', label: t('jobs.jobsFormat.oldest') },
+    { code: 'updated', label: t('jobs.jobsFormat.recentlyUpdated') },
+    { code: 'schedule', label: t('jobs.jobsFormat.schedule') },
+    { code: 'priority', label: t('jobs.jobsFormat.priority') },
+  ]);
 
 const MAX_SEARCH_LENGTH = 100;
 
@@ -143,7 +148,7 @@ const dayNumber = (key: string): number => Date.parse(`${key}T00:00:00Z`) / 86_4
 /** "MMM d", with ", yyyy" when the year differs from the reference year. */
 export function monthDay(date: Date, timeZone: string, now: Date): string {
   const sameYear = dayKey(date, timeZone).slice(0, 4) === dayKey(now, timeZone).slice(0, 4);
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     timeZone,
     month: 'short',
     day: 'numeric',
@@ -152,7 +157,7 @@ export function monthDay(date: Date, timeZone: string, now: Date): string {
 }
 
 function clock(date: Date, timeZone: string): { time: string; period: string } {
-  const parts = new Intl.DateTimeFormat('en-US', {
+  const parts = new Intl.DateTimeFormat(activeIntlLocale(), {
     timeZone,
     hour: 'numeric',
     minute: '2-digit',
@@ -166,12 +171,17 @@ function clock(date: Date, timeZone: string): { time: string; period: string } {
 export function scheduleText(row: JobRow, now: Date): string {
   const start = row.currentVisit?.scheduledStart ?? null;
   if (start === null) {
-    return 'Not scheduled';
+    return t('jobs.jobsFormat.notScheduled');
   }
   const from = new Date(start);
   const zone = row.timezone;
   const diff = dayNumber(dayKey(from, zone)) - dayNumber(dayKey(now, zone));
-  const day = diff === 0 ? 'Today' : diff === 1 ? 'Tomorrow' : monthDay(from, zone, now);
+  const day =
+    diff === 0
+      ? t('jobs.jobsFormat.today')
+      : diff === 1
+        ? t('jobs.jobsFormat.tomorrow')
+        : monthDay(from, zone, now);
   const first = clock(from, zone);
   const endIso = row.currentVisit?.scheduledEnd ?? null;
   if (endIso === null) {
@@ -190,21 +200,21 @@ export function updatedText(iso: string, timeZone: string, now: Date): string {
   const at = new Date(iso);
   const minutes = Math.floor((now.getTime() - at.getTime()) / 60_000);
   if (minutes < 1) {
-    return 'Just now';
+    return t('jobs.jobsFormat.justNow');
   }
   if (minutes < 60) {
-    return `${minutes} min ago`;
+    return t('jobs.jobsFormat.minAgo', { minutes: minutes });
   }
   const diff = dayNumber(dayKey(now, timeZone)) - dayNumber(dayKey(at, timeZone));
   if (diff <= 0) {
-    return 'Today';
+    return t('jobs.jobsFormat.today');
   }
-  return diff === 1 ? 'Yesterday' : monthDay(at, timeZone, now);
+  return diff === 1 ? t('jobs.jobsFormat.yesterday') : monthDay(at, timeZone, now);
 }
 
 /** Full date and time, the accessible label and tooltip of the Updated cell. */
 export function fullDateTime(iso: string, timeZone: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     timeZone,
     dateStyle: 'medium',
     timeStyle: 'short',
@@ -237,7 +247,7 @@ export function jobActionTargets(row: JobRow): JobActionTarget[] {
       case 'view':
         targets.push({
           code,
-          label: 'View job',
+          label: t('jobs.jobsFormat.viewJob'),
           commands: ['/jobs', row.id],
           queryParams: null,
         });
@@ -246,7 +256,7 @@ export function jobActionTargets(row: JobRow): JobActionTarget[] {
         if (visit !== null) {
           targets.push({
             code,
-            label: 'Schedule visit',
+            label: t('jobs.jobsFormat.scheduleVisit'),
             commands: ['/schedule'],
             queryParams: { branch: row.branch.id, visit: visit.id },
           });
@@ -256,7 +266,7 @@ export function jobActionTargets(row: JobRow): JobActionTarget[] {
         if (visit !== null && visit.scheduledStart !== null) {
           targets.push({
             code,
-            label: 'Open in schedule',
+            label: t('jobs.jobsFormat.openInSchedule'),
             commands: ['/schedule'],
             queryParams: {
               branch: row.branch.id,
@@ -270,7 +280,7 @@ export function jobActionTargets(row: JobRow): JobActionTarget[] {
       case 'review_completion':
         targets.push({
           code,
-          label: 'Review completion',
+          label: t('jobs.jobsFormat.reviewCompletion'),
           commands: ['/invoices', 'review'],
           queryParams: { workOrderId: row.id },
         });

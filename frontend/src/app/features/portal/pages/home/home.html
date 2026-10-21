@@ -2,13 +2,13 @@
   <header class="home__head">
     <div class="home__greeting">
       <h1 class="home__title">{{ greeting() }}</h1>
-      <p class="home__subtitle">Here's what's happening with your services.</p>
+      <p class="home__subtitle">{{ 'portal.home.hereSWhatS' | transloco }}</p>
     </div>
     <div class="home__controls">
       @if (knownProperties().length > 0) {
         <app-portal-property-filter
           class="home__selector"
-          label="Property"
+          [label]="'portal.home.property' | transloco"
           [properties]="knownProperties()"
           [value]="selected()"
           [showAll]="showAll()"
@@ -23,21 +23,23 @@
         [queryParams]="requestQuery()"
       >
         <i class="pi pi-plus" aria-hidden="true"></i>
-        Request a service
+        {{ 'portal.home.requestAService' | transloco }}
       </a>
     </div>
   </header>
 
   <p class="sr" role="status" aria-live="polite">
     @if (loading()) {
-      Loading your dashboard
+      {{ 'portal.home.loadingYourDashboard' | transloco }}
     }
   </p>
 
   @if (failed()) {
     <div class="home__error" role="alert">
       <p-message severity="error">{{ errorMessage }}</p-message>
-      <button pButton type="button" severity="secondary" (click)="reload()">Try again</button>
+      <button pButton type="button" severity="secondary" (click)="reload()">
+        {{ 'common.tryAgain' | transloco }}
+      </button>
     </div>
   } @else {
     <div class="home__grid">

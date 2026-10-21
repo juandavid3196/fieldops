@@ -21,6 +21,7 @@ import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Subject, Subscription, debounceTime } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
@@ -37,6 +38,8 @@ import {
 } from '../../utils/team-planning';
 import { TechnicianPicker } from '../technician-picker/technician-picker';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 const SEARCH_DEBOUNCE_MS = 300;
 const TITLE_ID = 'skills-drawer-title';
 const byName = (a: { name: string }, b: { name: string }): number =>
@@ -51,6 +54,8 @@ type SelectionFilter = 'all' | 'selected' | 'unselected';
 @Component({
   selector: 'app-skills-drawer',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     IconField,
@@ -86,8 +91,12 @@ export class SkillsDrawer {
   readonly unauthorized = output<void>();
 
   readonly titleId = TITLE_ID;
-  readonly staleMessage = STALE_MESSAGE;
-  readonly unavailableMessage = UNAVAILABLE_TECHNICIAN_MESSAGE;
+  get staleMessage(): string {
+    return STALE_MESSAGE();
+  }
+  get unavailableMessage(): string {
+    return UNAVAILABLE_TECHNICIAN_MESSAGE();
+  }
 
   readonly selection = signal<string | null>(null);
   readonly technicianId = signal<string | null>(null);
@@ -105,11 +114,11 @@ export class SkillsDrawer {
   readonly selected = signal<readonly string[]>([]);
   readonly searchText = signal('');
   readonly filter = signal<SelectionFilter>('all');
-  readonly filterOptions: { code: SelectionFilter; label: string }[] = [
-    { code: 'all', label: 'All skills' },
-    { code: 'selected', label: 'Selected' },
-    { code: 'unselected', label: 'Not selected' },
-  ];
+  readonly filterOptions: { code: SelectionFilter; label: string }[] = localizedList(() => [
+    { code: 'all', label: t('team.skillsDrawer.allSkills') },
+    { code: 'selected', label: t('team.skillsDrawer.selected2') },
+    { code: 'unselected', label: t('team.skillsDrawer.notSelected') },
+  ]);
   private readonly searchTerm = signal('');
   private readonly snapshot = signal<string | null>(null);
 
@@ -226,7 +235,7 @@ export class SkillsDrawer {
     }
     this.confirmation.confirm(
       discardChangesConfirmation({
-        subject: 'these skills',
+        subject: t('team.skillsDrawer.theseSkills'),
         accept: () => this.load(id),
         reject: () => this.selection.set(this.technicianId()),
       }),
@@ -304,7 +313,7 @@ export class SkillsDrawer {
       .subscribe({
         next: () => {
           this.submitting.set(false);
-          this.messages.add({ severity: 'success', summary: 'Skills saved.' });
+          this.messages.add({ severity: 'success', summary: t('team.skillsDrawer.skillsSaved') });
           this.saved.emit();
           this.closed.emit();
         },
@@ -341,7 +350,7 @@ export class SkillsDrawer {
     if (this.dirty()) {
       this.confirmation.confirm(
         discardChangesConfirmation({
-          subject: 'these skills',
+          subject: t('team.skillsDrawer.theseSkills'),
           accept: () => this.closed.emit(),
         }),
       );

@@ -7,7 +7,7 @@
   <div class="customers__main">
     <header class="customers__header">
       <div>
-        <h1 class="customers__title">Customers</h1>
+        <h1 class="customers__title">{{ 'customers.customers.customers' | transloco }}</h1>
         @if (!forbidden()) {
           <p class="customers__description">{{ descriptionMessage }}</p>
         }
@@ -25,13 +25,13 @@
               (click)="openImport()"
             >
               <i class="pi pi-download" aria-hidden="true"></i>
-              Import customers
+              {{ 'customers.customers.importCustomers' | transloco }}
             </button>
           }
           @if (canMutate()) {
             <button pButton type="button" class="customers__action" (click)="openCreate()">
               <i class="pi pi-plus" aria-hidden="true"></i>
-              New customer
+              {{ 'customers.customers.newCustomer' | transloco }}
             </button>
           }
         </div>
@@ -58,13 +58,16 @@
                 size="small"
                 (click)="loadMetrics()"
               >
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
         }
 
-        <section class="customers__card" aria-label="Customers">
+        <section
+          class="customers__card"
+          [attr.aria-label]="'customers.customers.customers' | transloco"
+        >
           <app-customer-toolbar
             [tab]="tab()"
             [counts]="tabCounts()"
@@ -102,7 +105,7 @@
                     size="small"
                     (click)="loadList()"
                   >
-                    Retry
+                    {{ 'common.retry' | transloco }}
                   </button>
                 </span>
               </p-message>
@@ -118,7 +121,7 @@
                   @case ('filtered') {
                     <p>{{ emptyFilteredMessage }}</p>
                     <button pButton type="button" severity="secondary" (click)="clearFilters()">
-                      Clear filters
+                      {{ 'customers.customers.clearFilters' | transloco }}
                     </button>
                   }
                   @case ('archived') {
@@ -140,13 +143,13 @@
                           (click)="openImport()"
                         >
                           <i class="pi pi-download" aria-hidden="true"></i>
-                          Import customers
+                          {{ 'customers.customers.importCustomers' | transloco }}
                         </button>
                       }
                       @if (canMutate()) {
                         <button pButton type="button" (click)="openCreate()">
                           <i class="pi pi-plus" aria-hidden="true"></i>
-                          New customer
+                          {{ 'customers.customers.newCustomer' | transloco }}
                         </button>
                       }
                     </div>
@@ -166,11 +169,14 @@
               />
               <div class="customers__pager">
                 <p class="customers__pager-report">{{ report() }}</p>
-                <nav class="customers__pagination" aria-label="Pagination">
+                <nav
+                  class="customers__pagination"
+                  [attr.aria-label]="'customers.customers.pagination' | transloco"
+                >
                   <button
                     type="button"
                     class="customers__page customers__page--step"
-                    aria-label="Previous page"
+                    [attr.aria-label]="'customers.customers.previousPage' | transloco"
                     [disabled]="page() === 1"
                     (click)="goToPage(page() - 1)"
                   >
@@ -184,7 +190,7 @@
                         type="button"
                         class="customers__page customers__page--number"
                         [class.customers__page--current]="item === page()"
-                        [attr.aria-label]="'Page ' + item"
+                        [attr.aria-label]="'customers.customers.page' | transloco: { item: item }"
                         [attr.aria-current]="item === page() ? 'page' : null"
                         (click)="goToPage(item)"
                       >
@@ -192,11 +198,14 @@
                       </button>
                     }
                   }
-                  <span class="customers__page-count">Page {{ page() }} of {{ totalPages() }}</span>
+                  <span class="customers__page-count">{{
+                    'customers.customers.pageOf'
+                      | transloco: { page: page(), totalPages: totalPages() }
+                  }}</span>
                   <button
                     type="button"
                     class="customers__page customers__page--step"
-                    aria-label="Next page"
+                    [attr.aria-label]="'customers.customers.nextPage' | transloco"
                     [disabled]="page() === totalPages()"
                     (click)="goToPage(page() + 1)"
                   >

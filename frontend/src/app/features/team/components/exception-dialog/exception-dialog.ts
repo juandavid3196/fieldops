@@ -19,6 +19,7 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
@@ -30,12 +31,14 @@ import {
 import { SkillsAvailabilityService } from '../../services/skills-availability.service';
 import { KIND_LABELS, TIME_OPTIONS, toMinutes } from '../../utils/skills-availability';
 
-export const EXCEPTION_CONFLICT_MESSAGES: Readonly<Record<string, string>> = {
-  exception_date_taken: 'This technician already has an active exception on this date.',
-  exception_past: "Past exceptions can't be changed.",
-  exception_cancelled: 'Activate this exception before editing it.',
-  exception_stale: 'This exception was changed by someone else. Reload to see the latest version.',
-};
+import { localized, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const EXCEPTION_CONFLICT_MESSAGES: Readonly<Record<string, string>> = localized(() => ({
+  exception_date_taken: t('team.exceptionDialog.thisTechnicianAlreadyHas'),
+  exception_past: t('team.exceptionDialog.pastExceptionsCantBe'),
+  exception_cancelled: t('team.exceptionDialog.activateThisExceptionBefore'),
+  exception_stale: t('team.exceptionDialog.thisExceptionWasChanged'),
+}));
 export const DUPLICATE_DATE_MESSAGE = EXCEPTION_CONFLICT_MESSAGES['exception_date_taken'];
 
 /** BR-14/BR-15 conflict text: by backend `code` (never ProblemDetails text), else the generic message. */
@@ -48,7 +51,7 @@ export function exceptionConflictMessage(error: ApiError, creating: boolean): st
 
 const KIND_OPTIONS = (Object.keys(KIND_LABELS) as ExceptionKind[]).map((value) => ({
   value,
-  label: value === 'unavailable' ? 'Unavailable all day' : KIND_LABELS[value],
+  label: value === 'unavailable' ? t('team.exceptionDialog.unavailableAllDay') : KIND_LABELS[value],
 }));
 
 interface FormValue {
@@ -67,22 +70,22 @@ const EMPTY: FormValue = { date: '', kind: null, start: null, end: null, reason:
 export function validateException(value: FormValue, today: string): Errors {
   const errors: Errors = {};
   if (value.date === '' || value.date < today) {
-    errors.date = 'Choose today or a future date.';
+    errors.date = t('team.exceptionDialog.chooseTodayOrA');
   }
   if (value.kind === null) {
-    errors.kind = 'Choose an availability type.';
+    errors.kind = t('team.exceptionDialog.chooseAnAvailabilityType');
   } else if (value.kind !== 'unavailable') {
     if (value.start === null || value.end === null) {
-      errors.start = 'Choose a start and end time.';
+      errors.start = t('team.exceptionDialog.chooseAStartAnd');
     } else if (toMinutes(value.start) >= toMinutes(value.end)) {
-      errors.end = 'End time must be after start time.';
+      errors.end = t('team.exceptionDialog.endTimeMustBe');
     }
   }
   const reason = value.reason.trim();
   if (reason === '') {
-    errors.reason = 'Enter a reason.';
+    errors.reason = t('team.exceptionDialog.enterAReason');
   } else if (reason.length > 200) {
-    errors.reason = 'Use 200 characters or fewer.';
+    errors.reason = t('team.exceptionDialog.use200CharactersOr');
   }
   return errors;
 }
@@ -90,7 +93,17 @@ export function validateException(value: FormValue, today: string): Errors {
 /** Add/Edit exception dialog (BR-12–BR-15): validation, inline 409, discard confirmation when dirty. */
 @Component({
   selector: 'app-exception-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, InputText, Message, Select, SpinnerIcon],
+  imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
+    FormsModule,
+    ButtonDirective,
+    Dialog,
+    InputText,
+    Message,
+    Select,
+    SpinnerIcon,
+  ],
   templateUrl: './exception-dialog.html',
   styleUrl: './exception-dialog.scss',
 })
@@ -165,7 +178,7 @@ export class ExceptionDialog {
     }
     this.confirmation.confirm(
       discardChangesConfirmation({
-        subject: 'this exception',
+        subject: t('team.exceptionDialog.thisException'),
         accept: () => this.visible.set(false),
       }),
     );
@@ -213,7 +226,9 @@ export class ExceptionDialog {
         this.visible.set(false);
         this.messages.add({
           severity: 'success',
-          summary: exception ? 'Exception updated.' : 'Exception added.',
+          summary: exception
+            ? t('team.exceptionDialog.exceptionUpdated')
+            : t('team.exceptionDialog.exceptionAdded'),
         });
         this.saved.emit();
       },

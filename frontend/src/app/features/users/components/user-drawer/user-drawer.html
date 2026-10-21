@@ -10,7 +10,7 @@
     <button
       type="button"
       class="user-drawer__close"
-      aria-label="Close user drawer"
+      [attr.aria-label]="'users.userDrawer.closeUserDrawer' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -29,7 +29,7 @@
 
       @if (isInvite()) {
         <app-form-field
-          label="Email address"
+          [label]="'users.userDrawer.emailAddress' | transloco"
           [controlId]="controlIds.email"
           [required]="true"
           [error]="error('email')"
@@ -53,7 +53,7 @@
 
         <div class="user-drawer__names">
           <app-form-field
-            label="First name"
+            [label]="'users.userDrawer.firstName' | transloco"
             [controlId]="controlIds.firstName"
             [required]="true"
             [error]="error('firstName')"
@@ -76,7 +76,7 @@
             />
           </app-form-field>
           <app-form-field
-            label="Last name"
+            [label]="'users.userDrawer.lastName' | transloco"
             [controlId]="controlIds.lastName"
             [required]="true"
             [error]="error('lastName')"
@@ -101,15 +101,15 @@
         </div>
       } @else if (row(); as person) {
         <dl class="user-drawer__identity">
-          <dt>Email address</dt>
+          <dt>{{ 'users.userDrawer.emailAddress' | transloco }}</dt>
           <dd>{{ person.email }}</dd>
-          <dt>Name</dt>
+          <dt>{{ 'common.name' | transloco }}</dt>
           <dd>{{ fullName(person) }}</dd>
         </dl>
       }
 
       <app-form-field
-        label="Role"
+        [label]="'common.role' | transloco"
         [controlId]="controlIds.roleCode"
         [required]="true"
         [error]="error('roleCode')"
@@ -124,8 +124,8 @@
             optionLabel="name"
             optionValue="code"
             optionDisabled="disabled"
-            placeholder="Select a role"
-            ariaLabel="Role"
+            [placeholder]="'users.userDrawer.selectARole' | transloco"
+            [ariaLabel]="'common.role' | transloco"
             appendTo="body"
             fluid
             [ngModel]="roleCode()"
@@ -143,7 +143,9 @@
       </app-form-field>
 
       <fieldset class="user-drawer__branches" [disabled]="submitting()">
-        <legend class="user-drawer__legend">Branch access <span aria-hidden="true">*</span></legend>
+        <legend class="user-drawer__legend">
+          {{ 'users.userDrawer.branchAccess' | transloco }} <span aria-hidden="true">*</span>
+        </legend>
         <div class="user-drawer__check">
           <p-checkbox
             [inputId]="controlIds.branchIds"
@@ -154,7 +156,9 @@
             [attr.aria-invalid]="error('branchIds') !== null ? 'true' : null"
             [attr.aria-describedby]="error('branchIds') !== null ? 'invite-branches-error' : null"
           />
-          <label [for]="controlIds.branchIds">All branches</label>
+          <label [for]="controlIds.branchIds">{{
+            'users.userDrawer.allBranches' | transloco
+          }}</label>
         </div>
         @for (branch of branches(); track branch.id) {
           <div class="user-drawer__check">
@@ -169,7 +173,7 @@
           </div>
         }
         @if (branchesForced()) {
-          <p class="user-drawer__helper">This role always has access to every branch.</p>
+          <p class="user-drawer__helper">{{ 'users.userDrawer.thisRoleAlwaysHas' | transloco }}</p>
         }
         @if (error('branchIds'); as message) {
           <p class="user-drawer__error" id="invite-branches-error">
@@ -183,7 +187,12 @@
           <section class="user-drawer__summary" aria-labelledby="user-drawer-summary-title">
             <i class="pi pi-users" aria-hidden="true"></i>
             <div>
-              <h3 id="user-drawer-summary-title">{{ role.name }} role summary</h3>
+              <h3 id="user-drawer-summary-title">
+                {{
+                  'users.userDrawer.roleSummary'
+                    | transloco: { name: role.name | codeLabel: 'roles' : role.code }
+                }}
+              </h3>
               <p>{{ role.summary }}</p>
             </div>
           </section>
@@ -194,27 +203,29 @@
         <div class="user-drawer__switch">
           <p-toggleswitch
             inputId="invite-team-link"
-            ariaLabel="Link operational team profile after acceptance"
+            [ariaLabel]="'users.userDrawer.linkOperationalTeamProfile' | transloco"
             [ngModel]="linkTeamProfile()"
             (ngModelChange)="linkTeamProfile.set($event)"
             [disabled]="submitting()"
           />
-          <label for="invite-team-link">Link operational team profile after acceptance</label>
+          <label for="invite-team-link">{{
+            'users.userDrawer.linkOperationalTeamProfile' | transloco
+          }}</label>
         </div>
       }
 
       @if (isInvite()) {
         <app-form-field
-          label="Invitation expires in"
+          [label]="'users.userDrawer.invitationExpiresIn' | transloco"
           [controlId]="controlIds.expiresInDays"
           [error]="error('expiresInDays')"
         >
           <p-select
             [inputId]="controlIds.expiresInDays"
-            [options]="expiryOptions"
+            [options]="expiryOptions | localizedRef"
             optionLabel="label"
             optionValue="days"
-            ariaLabel="Invitation expires in"
+            [ariaLabel]="'users.userDrawer.invitationExpiresIn' | transloco"
             appendTo="body"
             fluid
             [ngModel]="expiresInDays()"
@@ -231,13 +242,12 @@
 
       <p-message class="user-drawer__notes" severity="info" [closable]="false">
         <div>
-          <h3 class="user-drawer__notes-title">Safety notes</h3>
+          <h3 class="user-drawer__notes-title">{{ 'users.userDrawer.safetyNotes' | transloco }}</h3>
           <ul>
-            <li>The last Owner cannot be suspended or downgraded.</li>
-            <li>Suspending access preserves work orders and audit history.</li>
+            <li>{{ 'users.userDrawer.theLastOwnerCannot' | transloco }}</li>
+            <li>{{ 'users.userDrawer.suspendingAccessPreservesWork' | transloco }}</li>
             <li>
-              Viewers only see modules explicitly granted. Company settings and audit log stay
-              unavailable.
+              {{ 'users.userDrawer.viewersOnlySeeModules' | transloco }}
             </li>
           </ul>
         </div>
@@ -256,7 +266,7 @@
       [disabled]="submitting()"
       (click)="requestClose()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button
       pButton

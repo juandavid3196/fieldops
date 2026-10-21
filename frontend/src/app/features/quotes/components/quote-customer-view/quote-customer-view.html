@@ -1,8 +1,16 @@
-<article class="view" [attr.aria-label]="'Quote ' + view().number">
+<article
+  class="view"
+  [attr.aria-label]="'quotes.quoteCustomerView.quote' | transloco: { number: view().number }"
+>
   <header class="view__head">
     <div>
       <p class="view__org">{{ view().organizationName }}</p>
-      <h3 class="view__title">Quote {{ view().number }} · Version {{ view().versionNo }}</h3>
+      <h3 class="view__title">
+        {{
+          'quotes.quoteCustomerView.quoteVersion'
+            | transloco: { number: view().number, versionNo: view().versionNo }
+        }}
+      </h3>
     </div>
     <p class="view__date">{{ view().date }}</p>
   </header>
@@ -27,10 +35,10 @@
       </caption>
       <thead>
         <tr>
-          <th scope="col">Item</th>
-          <th scope="col">Qty</th>
-          <th scope="col">Unit price</th>
-          <th scope="col">Amount</th>
+          <th scope="col">{{ 'quotes.quoteCustomerView.item' | transloco }}</th>
+          <th scope="col">{{ 'quotes.quoteCustomerView.qty' | transloco }}</th>
+          <th scope="col">{{ 'quotes.quoteCustomerView.unitPrice' | transloco }}</th>
+          <th scope="col">{{ 'common.amount' | transloco }}</th>
         </tr>
       </thead>
       <tbody>
@@ -63,22 +71,24 @@
         context: { $implicit: view().optionalLines, caption: 'Optional items' }
       "
     />
-    <p class="view__muted">Not included in the total</p>
+    <p class="view__muted">{{ 'quotes.quoteCustomerView.notIncludedInThe' | transloco }}</p>
   }
 
   <div class="view__foot">
     <div class="view__terms-block">
       <p class="view__terms">{{ view().terms }}</p>
-      <p class="view__muted">Valid until {{ view().validUntil }}</p>
+      <p class="view__muted">
+        {{ 'quotes.quoteCustomerView.validUntil' | transloco: { validUntil: view().validUntil } }}
+      </p>
     </div>
     <dl class="view__totals">
       <div>
-        <dt>Subtotal</dt>
+        <dt>{{ 'quotes.quoteCustomerView.subtotal' | transloco }}</dt>
         <dd>{{ money(view().subtotal) }}</dd>
       </div>
       @if (view().discountTotal > 0) {
         <div>
-          <dt>Discount</dt>
+          <dt>{{ 'quotes.quoteCustomerView.discount' | transloco }}</dt>
           <dd>−{{ money(view().discountTotal) }}</dd>
         </div>
       }
@@ -87,7 +97,7 @@
         <dd>{{ money(view().taxTotal) }}</dd>
       </div>
       <div class="view__total">
-        <dt>Total</dt>
+        <dt>{{ 'common.total' | transloco }}</dt>
         <dd>{{ money(view().total) }}</dd>
       </div>
     </dl>

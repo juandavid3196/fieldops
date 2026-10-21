@@ -23,6 +23,7 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
 import { Observable, Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
@@ -48,11 +49,16 @@ import {
   validatePropertyField,
 } from './property-drawer.validators';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 export type PropertyDrawerMode = 'create' | 'edit' | 'view';
 
-export const PROPERTY_SAVE_FAILED_MESSAGE = "We couldn't save the property. Try again.";
-export const PROPERTY_UNAVAILABLE_MESSAGE = 'This property is no longer available.';
-export const PROPERTY_ARCHIVED_EDIT_MESSAGE = 'Reactivate this property to edit it.';
+export const PROPERTY_SAVE_FAILED_MESSAGE = (): string =>
+  t('customers.propertyDrawer.propertySaveFailedMessage');
+export const PROPERTY_UNAVAILABLE_MESSAGE = (): string =>
+  t('customers.propertyDrawer.propertyUnavailableMessage');
+export const PROPERTY_ARCHIVED_EDIT_MESSAGE = (): string =>
+  t('customers.propertyDrawer.propertyArchivedEditMessage');
 const TITLE_ID = 'property-drawer-title';
 const SUMMARY_ID = 'property-drawer-error-summary';
 const CONTROL_IDS: Readonly<Record<PropertyFieldKey, string>> = {
@@ -86,6 +92,8 @@ const text = (value: string): string | null => (value.trim() === '' ? null : val
 @Component({
   selector: 'app-property-drawer',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     InputText,
@@ -133,7 +141,11 @@ export class PropertyDrawer {
   readonly readOnly = computed(() => this.mode() === 'view');
   readonly isCreate = computed(() => this.mode() === 'create');
   readonly title = computed(() =>
-    this.isCreate() ? 'Add property' : this.readOnly() ? 'Property details' : 'Edit property',
+    this.isCreate()
+      ? t('customers.propertyDrawer.addProperty')
+      : this.readOnly()
+        ? t('customers.propertyDrawer.propertyDetails')
+        : t('customers.propertyDrawer.editProperty'),
   );
   readonly usesStateList = computed(() => {
     const country = this.countryCode();
@@ -162,7 +174,7 @@ export class PropertyDrawer {
   readonly lastService = computed(() => {
     const last = this.loaded()?.lastService;
     if (!last) {
-      return 'None';
+      return t('customers.propertyDrawer.none');
     }
     const summary = firstLine(last.summary);
     const date = formatDateTime(last.completedAt, this.timezone());
@@ -170,7 +182,9 @@ export class PropertyDrawer {
   });
   readonly nextAppointment = computed(() => {
     const next = this.loaded()?.nextAppointment;
-    return next ? formatDateTime(next.startsAt, this.timezone()) : 'None';
+    return next
+      ? formatDateTime(next.startsAt, this.timezone())
+      : t('customers.propertyDrawer.none');
   });
   readonly errorLinks = computed<readonly FieldErrorLink[]>(() =>
     PROPERTY_FIELD_KEYS.filter((field) => this.fieldErrors()[field] !== undefined).map((field) => ({
@@ -349,7 +363,10 @@ export class PropertyDrawer {
         this.submitting.set(false);
         this.messageService.add({
           severity: 'success',
-          summary: propertyId === null ? 'Property added.' : 'Property updated.',
+          summary:
+            propertyId === null
+              ? t('customers.propertyDrawer.propertyAdded')
+              : t('customers.propertyDrawer.propertyUpdated'),
         });
         this.closed.emit();
         this.saved.emit();
@@ -370,7 +387,7 @@ export class PropertyDrawer {
       return;
     }
     if (apiError?.kind === 'conflict') {
-      this.messageService.add({ severity: 'error', summary: PROPERTY_ARCHIVED_EDIT_MESSAGE });
+      this.messageService.add({ severity: 'error', summary: PROPERTY_ARCHIVED_EDIT_MESSAGE() });
       this.stale.emit();
       return;
     }
@@ -382,7 +399,7 @@ export class PropertyDrawer {
         return;
       }
     }
-    this.messageService.add({ severity: 'error', summary: PROPERTY_SAVE_FAILED_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: PROPERTY_SAVE_FAILED_MESSAGE() });
   }
 
   // Closing
@@ -399,7 +416,7 @@ export class PropertyDrawer {
     if (this.isDirty()) {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this property',
+          subject: t('customers.propertyDrawer.thisProperty'),
           accept: () => this.closed.emit(),
         }),
       );

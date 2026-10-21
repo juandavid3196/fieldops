@@ -6,7 +6,9 @@
   [draggable]="false"
   [style]="{ width: '30rem' }"
   [breakpoints]="{ '575px': '90vw' }"
-  [header]="'Link user account to ' + technicianName()"
+  [header]="
+    'team.linkAccountDialog.linkUserAccountTo' | transloco: { technicianName: technicianName() }
+  "
 >
   <div class="link-dialog">
     <input
@@ -14,8 +16,8 @@
       type="search"
       fluid
       maxlength="100"
-      aria-label="Search user accounts"
-      placeholder="Search by name or email"
+      [attr.aria-label]="'team.linkAccountDialog.searchUserAccounts' | transloco"
+      [attr.placeholder]="'team.linkAccountDialog.searchByNameOr' | transloco"
       [ngModel]="search()"
       (ngModelChange)="onSearch($event)"
       [disabled]="submitting()"
@@ -25,14 +27,20 @@
       @if (searching()) {
         <p class="link-dialog__status" role="status">
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-          Searching…
+          {{ 'team.linkAccountDialog.searching' | transloco }}
         </p>
       } @else if (loadFailed()) {
-        <p-message severity="error" [closable]="false">We couldn't load user accounts.</p-message>
+        <p-message severity="error" [closable]="false">{{
+          'team.linkAccountDialog.weCouldnTLoad' | transloco
+        }}</p-message>
       } @else if (accounts().length === 0) {
         <p class="link-dialog__status">{{ noAccountsMessage }}</p>
       } @else {
-        <ul class="link-dialog__list" role="radiogroup" aria-label="Eligible user accounts">
+        <ul
+          class="link-dialog__list"
+          role="radiogroup"
+          [attr.aria-label]="'team.linkAccountDialog.eligibleUserAccounts' | transloco"
+        >
           @for (account of accounts(); track account.organizationUserId) {
             <li>
               <label
@@ -69,7 +77,7 @@
       [disabled]="submitting()"
       (click)="close()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button
       pButton
@@ -80,7 +88,7 @@
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Link account
+      {{ 'team.linkAccountDialog.linkAccount' | transloco }}
     </button>
   </ng-template>
 </p-dialog>

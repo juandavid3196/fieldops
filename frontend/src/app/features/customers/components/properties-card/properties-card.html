@@ -1,6 +1,8 @@
 <section class="properties" aria-labelledby="properties-title">
   <header class="properties__head">
-    <h2 class="properties__title" id="properties-title">Properties ({{ active().length }})</h2>
+    <h2 class="properties__title" id="properties-title">
+      {{ 'customers.propertiesCard.properties' | transloco: { length: active().length } }}
+    </h2>
     @if (canMutate()) {
       <button
         pButton
@@ -10,7 +12,7 @@
         (click)="addRequested.emit()"
       >
         <i class="pi pi-plus" aria-hidden="true"></i>
-        Add property
+        {{ 'customers.propertiesCard.addProperty' | transloco }}
       </button>
     }
   </header>
@@ -18,9 +20,9 @@
   @if (state().status === 'error') {
     <p-message severity="error" [closable]="false">
       <span class="properties__retry">
-        We couldn't load properties.
+        {{ 'customers.propertiesCard.weCouldnTLoad' | transloco }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -32,10 +34,14 @@
   } @else {
     @if (active().length === 0) {
       <div class="properties__empty">
-        <p class="properties__empty-title">No properties yet</p>
-        <p>Add a property to schedule work at it.</p>
+        <p class="properties__empty-title">
+          {{ 'customers.propertiesCard.noPropertiesYet' | transloco }}
+        </p>
+        <p>{{ 'customers.propertiesCard.addAPropertyTo' | transloco }}</p>
         @if (canMutate()) {
-          <button pButton type="button" (click)="addRequested.emit()">Add property</button>
+          <button pButton type="button" (click)="addRequested.emit()">
+            {{ 'customers.propertiesCard.addProperty' | transloco }}
+          </button>
         }
       </div>
     } @else {
@@ -64,7 +70,9 @@
           [class.pi-chevron-right]="!archivedOpen()"
           aria-hidden="true"
         ></i>
-        Archived properties ({{ archived().length }})
+        {{
+          'customers.propertiesCard.archivedProperties' | transloco: { length: archived().length }
+        }}
       </button>
       @if (archivedOpen()) {
         <ul class="properties__list" id="archived-properties">
@@ -100,11 +108,11 @@
     </div>
     <dl class="properties__facts">
       <div>
-        <dt>Branch</dt>
+        <dt>{{ 'customers.propertiesCard.branch' | transloco }}</dt>
         <dd>{{ view.branch }}</dd>
       </div>
       <div>
-        <dt>Service instructions</dt>
+        <dt>{{ 'customers.propertiesCard.serviceInstructions' | transloco }}</dt>
         <dd>{{ view.instructions }}</dd>
       </div>
     </dl>
@@ -117,7 +125,7 @@
         size="small"
         (click)="viewRequested.emit(view.property)"
       >
-        View property
+        {{ 'customers.propertiesCard.viewProperty' | transloco }}
       </button>
       @if (canMutate()) {
         @if (!archived) {
@@ -129,7 +137,7 @@
             size="small"
             (click)="editRequested.emit(view.property)"
           >
-            Edit
+            {{ 'common.edit' | transloco }}
           </button>
         }
         @if (!view.property.isPrimary) {
@@ -137,7 +145,9 @@
             type="button"
             class="properties__menu"
             aria-haspopup="menu"
-            [attr.aria-label]="'Actions for ' + view.property.name"
+            [attr.aria-label]="
+              'customers.propertiesCard.actionsFor' | transloco: { name: view.property.name }
+            "
             [disabled]="busyId() !== null"
             (click)="menuRequested.emit({ event: $event, property: view.property })"
           >
@@ -146,13 +156,16 @@
         }
       }
     </div>
-    <dl class="properties__history" aria-label="Property history">
+    <dl
+      class="properties__history"
+      [attr.aria-label]="'customers.propertiesCard.propertyHistory' | transloco"
+    >
       <div>
-        <dt>Last service</dt>
+        <dt>{{ 'customers.propertiesCard.lastService' | transloco }}</dt>
         <dd>{{ view.lastService }}</dd>
       </div>
       <div>
-        <dt>Next appointment</dt>
+        <dt>{{ 'customers.propertiesCard.nextAppointment' | transloco }}</dt>
         <dd>{{ view.nextAppointment }}</dd>
       </div>
     </dl>

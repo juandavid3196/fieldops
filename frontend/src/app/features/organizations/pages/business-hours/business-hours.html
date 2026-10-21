@@ -7,14 +7,23 @@
   }
 
   <div class="business-hours__main">
-    <nav class="business-hours__breadcrumb" aria-label="Breadcrumb">
-      <a routerLink="/admin/company">Administration</a>
+    <nav
+      class="business-hours__breadcrumb"
+      [attr.aria-label]="'organizations.businessHours.breadcrumb' | transloco"
+    >
+      <a routerLink="/admin/company">{{
+        'organizations.businessHours.administration' | transloco
+      }}</a>
       <span aria-hidden="true">/</span>
-      <span class="business-hours__current" aria-current="page">Business hours</span>
+      <span class="business-hours__current" aria-current="page">{{
+        'organizations.businessHours.businessHours' | transloco
+      }}</span>
     </nav>
 
     <header class="business-hours__header">
-      <h1 class="business-hours__title">Business hours</h1>
+      <h1 class="business-hours__title">
+        {{ 'organizations.businessHours.businessHours' | transloco }}
+      </h1>
       @if (!forbidden()) {
         <p class="business-hours__description">{{ descriptionMessage }}</p>
       }
@@ -34,7 +43,9 @@
     } @else if (branchesError()) {
       <div class="business-hours__load-error" role="alert">
         <p>{{ branchesErrorMessage }}</p>
-        <button pButton type="button" severity="secondary" (click)="retryBranches()">Retry</button>
+        <button pButton type="button" severity="secondary" (click)="retryBranches()">
+          {{ 'common.retry' | transloco }}
+        </button>
       </div>
     } @else {
       @if (branchGone()) {
@@ -46,16 +57,21 @@
       @if (branches().length === 0) {
         <p class="business-hours__empty">{{ emptyMessage }}</p>
       } @else {
-        <section class="business-hours__card business-hours__branch" aria-label="Branch">
+        <section
+          class="business-hours__card business-hours__branch"
+          [attr.aria-label]="'organizations.businessHours.branch' | transloco"
+        >
           <div class="business-hours__field">
-            <label class="business-hours__label" for="business-hours-branch">Branch</label>
+            <label class="business-hours__label" for="business-hours-branch">{{
+              'organizations.businessHours.branch' | transloco
+            }}</label>
             <p-select
               inputId="business-hours-branch"
               [formControl]="branchControl"
               [options]="branchOptions()"
               optionLabel="label"
               optionValue="id"
-              ariaLabel="Branch"
+              [ariaLabel]="'organizations.businessHours.branch' | transloco"
               appendTo="body"
               fluid
               [readonly]="submitting()"
@@ -63,7 +79,9 @@
             />
           </div>
           <div class="business-hours__field">
-            <label class="business-hours__label" for="business-hours-timezone">Time zone</label>
+            <label class="business-hours__label" for="business-hours-timezone">{{
+              'organizations.businessHours.timeZone' | transloco
+            }}</label>
             <input
               pInputText
               id="business-hours-timezone"
@@ -74,7 +92,7 @@
               aria-describedby="business-hours-timezone-helper"
             />
             <p class="business-hours__helper" id="business-hours-timezone-helper">
-              Business hours follow the selected branch time zone.
+              {{ 'organizations.businessHours.businessHoursFollowThe' | transloco }}
             </p>
           </div>
         </section>
@@ -93,12 +111,18 @@
         } @else if (hoursError()) {
           <div class="business-hours__load-error" role="alert">
             <p>{{ hoursErrorMessage }}</p>
-            <button pButton type="button" severity="secondary" (click)="retryHours()">Retry</button>
+            <button pButton type="button" severity="secondary" (click)="retryHours()">
+              {{ 'common.retry' | transloco }}
+            </button>
           </div>
         } @else if (showEditor()) {
           <section class="business-hours__card" aria-labelledby="business-hours-weekly">
-            <h2 class="business-hours__section-title" id="business-hours-weekly">Weekly hours</h2>
-            <p class="business-hours__section-description">Set one opening period for each day.</p>
+            <h2 class="business-hours__section-title" id="business-hours-weekly">
+              {{ 'organizations.businessHours.weeklyHours' | transloco }}
+            </h2>
+            <p class="business-hours__section-description">
+              {{ 'organizations.businessHours.setOneOpeningPeriod' | transloco }}
+            </p>
 
             @if (!canManage()) {
               <p class="business-hours__readonly" role="status">
@@ -119,7 +143,7 @@
                 class="business-hours__reload"
                 (click)="reloadStale()"
               >
-                Reload
+                {{ 'organizations.businessHours.reload' | transloco }}
               </button>
             }
 
@@ -133,15 +157,23 @@
                       [ngModel]="row.isOpen"
                       (ngModelChange)="setOpen(row.day, $event)"
                       [disabled]="locked()"
-                      [ariaLabel]="dayLabel(row.day) + ' open'"
+                      [ariaLabel]="
+                        'organizations.businessHours.open' | transloco: { day: dayLabel(row.day) }
+                      "
                     />
-                    <span class="business-hours__state">{{ row.isOpen ? 'Open' : 'Closed' }}</span>
+                    <span class="business-hours__state">{{
+                      row.isOpen
+                        ? ('common.open' | transloco)
+                        : ('organizations.businessHours.closed' | transloco)
+                    }}</span>
                   </div>
 
                   <div class="business-hours__times">
                     @for (part of parts; track part) {
                       @if (part === 'closingTime') {
-                        <span class="business-hours__separator">to</span>
+                        <span class="business-hours__separator">{{
+                          'organizations.businessHours.to' | transloco
+                        }}</span>
                       }
                       <div class="business-hours__time">
                         <p-select
@@ -153,10 +185,12 @@
                           (ngModelChange)="setTime(row.day, part, $event)"
                           [disabled]="!row.isOpen || locked()"
                           [showClear]="row.isOpen && !locked()"
-                          [placeholder]="'Select time'"
+                          [placeholder]="'organizations.businessHours.selectTime' | transloco"
                           [ariaLabel]="
-                            dayLabel(row.day) +
-                            (part === 'openingTime' ? ' opening time' : ' closing time')
+                            (part === 'openingTime'
+                              ? 'organizations.businessHours.openingTimeLabel'
+                              : 'organizations.businessHours.closingTimeLabel'
+                            ) | transloco: { day: dayLabel(row.day) }
                           "
                           appendTo="body"
                           fluid
@@ -186,7 +220,11 @@
 
             <footer class="business-hours__footer">
               <p class="business-hours__status" role="status">
-                {{ dirty() ? 'Unsaved changes' : 'No unsaved changes' }}
+                {{
+                  dirty()
+                    ? ('organizations.businessHours.unsavedChanges' | transloco)
+                    : ('organizations.businessHours.noUnsavedChanges' | transloco)
+                }}
               </p>
               @if (canManage()) {
                 <div class="business-hours__actions">
@@ -198,13 +236,13 @@
                     [disabled]="!canSave()"
                     (click)="cancel()"
                   >
-                    Cancel
+                    {{ 'common.cancel' | transloco }}
                   </button>
                   <button pButton type="button" [disabled]="!canSave()" (click)="save()">
                     @if (submitting()) {
                       <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
                     }
-                    Save changes
+                    {{ 'organizations.businessHours.saveChanges' | transloco }}
                   </button>
                 </div>
               }

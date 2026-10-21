@@ -23,6 +23,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   CatalogItem,
@@ -53,7 +54,7 @@ interface MaterialRow {
 /** BR-17 Materials section: planned and additional quantities with steppers and Add material. */
 @Component({
   selector: 'app-job-materials',
-  imports: [ButtonDirective, Dialog],
+  imports: [TranslocoPipe, ButtonDirective, Dialog],
   templateUrl: './job-materials.html',
   styleUrls: ['./job-materials.scss', './job-material-add.scss'],
 })
@@ -186,7 +187,7 @@ export class JobMaterials {
   commitTyped(row: MaterialRow, text: string, trigger: HTMLElement): void {
     const value = parseQuantity(text);
     if (value === null) {
-      this.error.set(QUANTITY_INVALID_MESSAGE);
+      this.error.set(QUANTITY_INVALID_MESSAGE());
       return;
     }
     if (value === row.used) {
@@ -313,7 +314,7 @@ export class JobMaterials {
         this.visitChange.emit(visit);
       },
       error: (error: unknown) => {
-        const failure = classifyMutationFailure(error, { invalid: QUANTITY_INVALID_MESSAGE });
+        const failure = classifyMutationFailure(error, { invalid: QUANTITY_INVALID_MESSAGE() });
         this.pending.set(null);
         onError(failure.message);
         if (failure.reload) {

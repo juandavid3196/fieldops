@@ -87,6 +87,6 @@ describe('SignaturePad', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(fixture.componentInstance.strokes()).toEqual([]);
-    expect(text()).toContain(SIGNATURE_LOST_MESSAGE);
+    expect(text()).toContain(SIGNATURE_LOST_MESSAGE());
   });
 });

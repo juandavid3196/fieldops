@@ -2,6 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { comingSoonPath } from '../../../../core/config/coming-soon-modules';
 import { TechnicianDetail } from '../../models/team.model';
@@ -27,7 +28,7 @@ export const OWN_SCHEDULE_PATH = '/today/schedule';
  */
 @Component({
   selector: 'app-technician-profile',
-  imports: [RouterLink, ButtonDirective, Tag],
+  imports: [TranslocoPipe, RouterLink, ButtonDirective, Tag],
   templateUrl: './technician-profile.html',
   styleUrl: './technician-profile.scss',
 })

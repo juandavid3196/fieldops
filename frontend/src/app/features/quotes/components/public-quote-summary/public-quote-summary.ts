@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatMoney } from '../../../customers/utils/customer-detail-format';
 import {
@@ -18,7 +19,7 @@ export type PdfState = 'idle' | 'downloading' | 'failed';
 /** Quote total card of the quote link (BR-06): totals, approval controls and final states. */
 @Component({
   selector: 'app-public-quote-summary',
-  imports: [FormsModule, ButtonDirective, Checkbox, SpinnerIcon],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Checkbox, SpinnerIcon],
   templateUrl: './public-quote-summary.html',
   styleUrl: './public-quote-summary.scss',
 })
@@ -38,7 +39,9 @@ export class PublicQuoteSummary {
   readonly declined = output<void>();
   readonly pdfRequested = output<void>();
 
-  readonly hint = APPROVE_HINT;
+  get hint(): string {
+    return APPROVE_HINT();
+  }
   readonly open = computed(() => {
     const status = this.quote().quote.status;
     return status === 'sent' || status === 'clarification_requested';

@@ -15,6 +15,7 @@ import { MessageService } from 'primeng/api';
 import { ProgressBar } from 'primeng/progressbar';
 import { Skeleton } from 'primeng/skeleton';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { OrganizationLogoMetadata } from '../../models/company-settings.model';
@@ -27,8 +28,9 @@ import {
   validateLogoFile,
 } from '../../utils/logo-validation';
 
-export const LOGO_UPDATED_MESSAGE = 'Logo updated';
-export const LOGO_REMOVED_MESSAGE = 'Logo removed';
+import { t } from '../../../../core/i18n/translate';
+export const LOGO_UPDATED_MESSAGE = (): string => t('organizations.logoControl.logoUpdatedMessage');
+export const LOGO_REMOVED_MESSAGE = (): string => t('organizations.logoControl.logoRemovedMessage');
 
 /**
  * Company logo (FR-10): preview, **Change logo** (immediate upload with progress) and
@@ -37,7 +39,7 @@ export const LOGO_REMOVED_MESSAGE = 'Logo removed';
  */
 @Component({
   selector: 'app-logo-control',
-  imports: [ButtonDirective, ProgressBar, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, ProgressBar, Skeleton],
   templateUrl: './logo-control.html',
   styleUrl: './logo-control.scss',
 })
@@ -54,7 +56,9 @@ export class LogoControl {
   readonly unauthorized = output<void>();
 
   readonly accept = LOGO_ACCEPT;
-  readonly helper = LOGO_HELPER;
+  get helper(): string {
+    return LOGO_HELPER();
+  }
 
   readonly hasLogo = signal(false);
   readonly previewUrl = signal<string | null>(null);
@@ -65,7 +69,9 @@ export class LogoControl {
   readonly error = signal<string | null>(null);
 
   readonly busy = computed(() => this.uploading() || this.removing());
-  readonly altText = computed(() => `${this.displayName().trim()} logo`.trim());
+  readonly altText = computed(() =>
+    t('organizations.logoControl.logo', { trim: this.displayName().trim() }).trim(),
+  );
 
   private previewRequest: Subscription | null = null;
 
@@ -113,7 +119,7 @@ export class LogoControl {
           this.hasLogo.set(true);
           this.uploading.set(false);
           this.progress.set(null);
-          this.messageService.add({ severity: 'success', summary: LOGO_UPDATED_MESSAGE });
+          this.messageService.add({ severity: 'success', summary: LOGO_UPDATED_MESSAGE() });
         },
         error: (failure: unknown) => {
           this.uploading.set(false);
@@ -139,7 +145,7 @@ export class LogoControl {
           this.previewLoading.set(false);
           this.setPreview(null);
           this.hasLogo.set(false);
-          this.messageService.add({ severity: 'success', summary: LOGO_REMOVED_MESSAGE });
+          this.messageService.add({ severity: 'success', summary: LOGO_REMOVED_MESSAGE() });
         },
         error: (failure: unknown) => {
           this.removing.set(false);
@@ -181,11 +187,11 @@ export class LogoControl {
       return;
     }
     const fileMessage = apiError?.fieldErrors['file']?.[0];
-    if (fileMessage === LOGO_SIZE_MESSAGE || fileMessage === LOGO_TYPE_MESSAGE) {
+    if (fileMessage === LOGO_SIZE_MESSAGE() || fileMessage === LOGO_TYPE_MESSAGE()) {
       this.error.set(fileMessage);
       return;
     }
-    this.error.set(apiError?.message ?? 'An unexpected error occurred. Please try again.');
+    this.error.set(apiError?.message ?? t('organizations.logoControl.anUnexpectedErrorOccurred'));
   }
 
   /** Swaps the object URL, revoking the previous one. */

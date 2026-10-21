@@ -3,10 +3,12 @@ import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputNumber } from 'primeng/inputnumber';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { validateNextInvoiceNumber } from '../../pages/register-company/register-company.validators';
 import { FormField } from '../form-field/form-field';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 /** The three sequence values edited in the dialog (a subset of the organization form). */
 export interface SequenceValues {
   nextQuoteNumber: number | null;
@@ -23,7 +25,7 @@ type SequenceKey = keyof SequenceValues;
  */
 @Component({
   selector: 'app-sequences-dialog',
-  imports: [ReactiveFormsModule, ButtonDirective, Dialog, InputNumber, FormField],
+  imports: [TranslocoPipe, ReactiveFormsModule, ButtonDirective, Dialog, InputNumber, FormField],
   templateUrl: './sequences-dialog.html',
   styleUrl: './sequences-dialog.scss',
 })
@@ -45,11 +47,11 @@ export class SequencesDialog {
   });
   errors: Partial<Record<SequenceKey, string>> = {};
 
-  readonly fields: readonly { key: SequenceKey; label: string }[] = [
-    { key: 'nextQuoteNumber', label: 'Next quote number' },
-    { key: 'nextWorkOrderNumber', label: 'Next work order number' },
-    { key: 'nextInvoiceNumber', label: 'Next invoice number' },
-  ];
+  readonly fields: readonly { key: SequenceKey; label: string }[] = localizedList(() => [
+    { key: 'nextQuoteNumber', label: t('organizations.sequencesDialog.nextQuoteNumber') },
+    { key: 'nextWorkOrderNumber', label: t('organizations.sequencesDialog.nextWorkOrderNumber') },
+    { key: 'nextInvoiceNumber', label: t('organizations.sequencesDialog.nextInvoiceNumber') },
+  ]);
 
   constructor() {
     let wasVisible = false;

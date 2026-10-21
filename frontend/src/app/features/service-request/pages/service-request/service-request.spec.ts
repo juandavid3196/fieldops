@@ -58,7 +58,7 @@ describe('ServiceRequest page', () => {
       .flush({ title: 'Not found' }, { status: 404, statusText: 'Not Found' });
     await harness.fixture.whenStable();
 
-    expect(text()).toContain(UNAVAILABLE_MESSAGE);
+    expect(text()).toContain(UNAVAILABLE_MESSAGE());
     expect(host.querySelector('form')).toBeNull();
     expect(host.querySelector('app-contact-step')).toBeNull();
   });
@@ -66,7 +66,7 @@ describe('ServiceRequest page', () => {
   it('shows a configuration error with Retry on 500 and recovers (FR-15)', async () => {
     http.expectOne(FORM_URL).flush(null, { status: 500, statusText: 'Server Error' });
     await harness.fixture.whenStable();
-    expect(text()).toContain(LOAD_ERROR_MESSAGE);
+    expect(text()).toContain(LOAD_ERROR_MESSAGE());
     expect(host.querySelector('form')).toBeNull();
 
     host.querySelector<HTMLButtonElement>('button')?.click();

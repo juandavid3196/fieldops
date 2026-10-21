@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ReportFormat } from '../../models/reports.model';
 import { ReportMeta } from '../../utils/report-catalog';
@@ -7,7 +8,7 @@ import { ReportMeta } from '../../utils/report-catalog';
 /** BR-21: star, name, description, Export CSV and Download PDF; one export runs at a time (BR-22). */
 @Component({
   selector: 'app-report-header',
-  imports: [ButtonDirective],
+  imports: [TranslocoPipe, ButtonDirective],
   templateUrl: './report-header.html',
   styleUrl: './report-header.scss',
 })

@@ -4,6 +4,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { FormField } from '../../../organizations/components/form-field/form-field';
 import { EMAIL_LIMIT, emailMessageError } from '../../utils/quote-lines';
@@ -14,7 +15,7 @@ import { EMAIL_LIMIT, emailMessageError } from '../../utils/quote-lines';
  */
 @Component({
   selector: 'app-quote-resend-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, SpinnerIcon, Textarea, FormField],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Dialog, SpinnerIcon, Textarea, FormField],
   templateUrl: './quote-resend-dialog.html',
   styleUrl: './quote-resend-dialog.scss',
 })

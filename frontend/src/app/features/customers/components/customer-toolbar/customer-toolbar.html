@@ -1,4 +1,8 @@
-<div class="toolbar__tabs" role="tablist" aria-label="Customer lifecycle">
+<div
+  class="toolbar__tabs"
+  role="tablist"
+  [attr.aria-label]="'customers.customerToolbar.customerLifecycle' | transloco"
+>
   @for (item of tabs; track item.code; let index = $index) {
     <button
       type="button"
@@ -15,15 +19,19 @@
   }
 </div>
 
-<div class="toolbar__filters" role="search" aria-label="Filter customers">
+<div
+  class="toolbar__filters"
+  role="search"
+  [attr.aria-label]="'customers.customerToolbar.filterCustomers' | transloco"
+>
   <p-iconfield class="toolbar__search-field">
     <p-inputicon class="pi pi-search" />
     <input
       pInputText
       type="search"
       class="toolbar__control"
-      placeholder="Search customers..."
-      aria-label="Search customers"
+      [attr.placeholder]="'customers.customerToolbar.searchCustomers' | transloco"
+      [attr.aria-label]="'customers.customerToolbar.searchCustomers2' | transloco"
       maxlength="100"
       fluid
       [ngModel]="searchText()"
@@ -35,15 +43,19 @@
     class="toolbar__select"
     appendTo="body"
     fluid
-    ariaLabel="Customer type"
-    [options]="typeOptions"
+    [ariaLabel]="'customers.customerToolbar.customerType' | transloco"
+    [options]="typeOptions | localizedRef"
     optionLabel="label"
     optionValue="code"
     [ngModel]="type() ?? 'all'"
     (ngModelChange)="typeChange.emit($event === 'all' ? null : $event)"
   >
     <ng-template #selectedItem let-option>
-      {{ option.code === 'all' ? 'Customer type' : option.label }}
+      {{
+        option.code === 'all'
+          ? ('customers.customerToolbar.customerType' | transloco)
+          : option.label
+      }}
     </ng-template>
   </p-select>
 
@@ -51,7 +63,7 @@
     class="toolbar__select"
     appendTo="body"
     fluid
-    ariaLabel="Branch"
+    [ariaLabel]="'customers.customerToolbar.branch' | transloco"
     [options]="branchOptions()"
     optionLabel="label"
     optionValue="code"
@@ -59,7 +71,7 @@
     (ngModelChange)="branchChange.emit($event === 'all' ? null : $event)"
   >
     <ng-template #selectedItem let-option>
-      {{ option.code === 'all' ? 'Branch' : option.label }}
+      {{ option.code === 'all' ? ('customers.customerToolbar.branch' | transloco) : option.label }}
     </ng-template>
   </p-select>
 
@@ -67,10 +79,10 @@
     class="toolbar__select"
     appendTo="body"
     fluid
-    ariaLabel="Tags"
-    placeholder="Tags"
+    [ariaLabel]="'customers.customerToolbar.tags' | transloco"
+    [placeholder]="'customers.customerToolbar.tags' | transloco"
     display="comma"
-    selectedItemsLabel="{0} tags"
+    [selectedItemsLabel]="'customers.customerToolbar.n0Tags' | transloco"
     [maxSelectedLabels]="1"
     [showToggleAll]="false"
     [options]="tagOptions()"
@@ -84,15 +96,19 @@
     class="toolbar__select"
     appendTo="body"
     fluid
-    ariaLabel="Balance status"
-    [options]="balanceOptions"
+    [ariaLabel]="'customers.customerToolbar.balanceStatus' | transloco"
+    [options]="balanceOptions | localizedRef"
     optionLabel="label"
     optionValue="code"
     [ngModel]="balanceStatus()"
     (ngModelChange)="balanceChange.emit($event)"
   >
     <ng-template #selectedItem let-option>
-      {{ option.code === 'any' ? 'Balance status' : option.label }}
+      {{
+        option.code === 'any'
+          ? ('customers.customerToolbar.balanceStatus' | transloco)
+          : option.label
+      }}
     </ng-template>
   </p-select>
 
@@ -100,13 +116,15 @@
     class="toolbar__select toolbar__select--sort"
     appendTo="body"
     fluid
-    ariaLabel="Sort customers"
-    [options]="sortOptions"
+    [ariaLabel]="'customers.customerToolbar.sortCustomers' | transloco"
+    [options]="sortOptions | localizedRef"
     optionLabel="label"
     optionValue="code"
     [ngModel]="sort()"
     (ngModelChange)="sortChange.emit($event)"
   >
-    <ng-template #selectedItem let-option>Sort: {{ option.label }}</ng-template>
+    <ng-template #selectedItem let-option>{{
+      'customers.customerToolbar.sort' | transloco: { label: option.label }
+    }}</ng-template>
   </p-select>
 </div>

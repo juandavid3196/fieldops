@@ -1,4 +1,5 @@
 <div class="tshell">
+  <app-language-toast />
   <header class="tshell__topbar">
     @if (header(); as job) {
       <button
@@ -16,7 +17,7 @@
       </span>
       <span class="tshell__time">
         <i class="pi pi-clock" aria-hidden="true"></i>
-        <span class="tshell__sr">Work time</span>
+        <span class="tshell__sr">{{ 'technicianJobs.technicianShell.workTime' | transloco }}</span>
         {{ job.time }}
       </span>
     } @else if (back(); as backTarget) {
@@ -28,18 +29,31 @@
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
       </a>
     } @else {
-      <a class="tshell__logo" routerLink="/today" aria-label="FieldOps, Today's jobs">
+      <a
+        class="tshell__logo"
+        routerLink="/today"
+        [attr.aria-label]="'technicianJobs.technicianShell.fieldopsTodaySJobs' | transloco"
+      >
         <svg class="tshell__logo-mark" viewBox="0 0 48 40" aria-hidden="true" focusable="false">
           <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-300)" />
           <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-500)" />
         </svg>
-        <span aria-hidden="true">Field<span class="tshell__accent">Ops</span></span>
+        <span aria-hidden="true"
+          >{{ 'technicianJobs.technicianShell.field' | transloco
+          }}<span class="tshell__accent">{{
+            'technicianJobs.technicianShell.ops' | transloco
+          }}</span></span
+        >
       </a>
     }
     @if (header() === null) {
       <p class="tshell__title">{{ pageTitle() }}</p>
 
-      <a class="tshell__icon-button" [routerLink]="helpLink" aria-label="Help">
+      <a
+        class="tshell__icon-button"
+        [routerLink]="helpLink"
+        [attr.aria-label]="'technicianJobs.technicianShell.help' | transloco"
+      >
         <i class="pi pi-question-circle" aria-hidden="true"></i>
       </a>
 
@@ -72,16 +86,21 @@
       <div class="tshell__panel tshell__panel--more" id="tshell-more-panel">
         <a class="tshell__panel-item" [routerLink]="profileLink">
           <i class="pi pi-user" aria-hidden="true"></i>
-          My profile
+          {{ 'technicianJobs.technicianShell.myProfile' | transloco }}
         </a>
         <a class="tshell__panel-item" [routerLink]="accountLink">
           <i class="pi pi-cog" aria-hidden="true"></i>
-          Account settings
+          {{ 'technicianJobs.technicianShell.accountSettings' | transloco }}
         </a>
         <a class="tshell__panel-item" [routerLink]="helpLink">
           <i class="pi pi-question-circle" aria-hidden="true"></i>
-          Help &amp; support
+          {{ 'technicianJobs.technicianShell.helpSupport' | transloco }}
         </a>
+        <app-language-menu-item
+          surface="internal"
+          [menuRole]="null"
+          (chosen)="onLanguageChosen()"
+        />
         <button
           type="button"
           class="tshell__panel-item tshell__panel-item--danger"
@@ -89,7 +108,7 @@
           (click)="signOut()"
         >
           <i class="pi pi-sign-out" aria-hidden="true"></i>
-          Sign out
+          {{ 'technicianJobs.technicianShell.signOut' | transloco }}
         </button>
       </div>
     }
@@ -99,7 +118,7 @@
       <div
         class="tshell__progress"
         role="progressbar"
-        aria-label="Job progress"
+        [attr.aria-label]="'technicianJobs.technicianShell.jobProgress' | transloco"
         aria-valuemin="0"
         aria-valuemax="100"
         [attr.aria-valuenow]="percent"
@@ -110,7 +129,7 @@
     <nav
       class="tshell__nav"
       [class.tshell__nav--progress]="jobProgress() !== null"
-      aria-label="Primary"
+      [attr.aria-label]="'technicianJobs.technicianShell.primary' | transloco"
     >
       @for (item of nav; track item.label) {
         <a
@@ -128,6 +147,7 @@
         </a>
       }
       <button
+        #moreButton
         type="button"
         class="tshell__nav-item"
         aria-controls="tshell-more-panel"
@@ -135,7 +155,7 @@
         (click)="togglePanel('more')"
       >
         <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
-        <span>More</span>
+        <span>{{ 'technicianJobs.technicianShell.more' | transloco }}</span>
       </button>
     </nav>
   </div>

@@ -2,17 +2,21 @@
   <p class="sr-guest">
     <i class="pi pi-user sr-guest__icon" aria-hidden="true"></i>
     <span>
-      <strong>Continuing as guest</strong>
-      Tell us where the work is needed.
+      <strong>{{ 'serviceRequest.propertyStep.continuingAsGuest' | transloco }}</strong>
+      {{ 'serviceRequest.propertyStep.tellUsWhereThe' | transloco }}
     </span>
   </p>
 }
-<h2 class="sr-title" tabindex="-1" data-sr-heading>Property details</h2>
+<h2 class="sr-title" tabindex="-1" data-sr-heading>
+  {{ 'serviceRequest.propertyStep.propertyDetails' | transloco }}
+</h2>
 
 <form novalidate (submit)="$event.preventDefault(); store.next()">
   @if (store.portal(); as portal) {
     <fieldset class="sr-field">
-      <legend class="sr-label">Which property needs service?</legend>
+      <legend class="sr-label">
+        {{ 'serviceRequest.propertyStep.whichPropertyNeedsService' | transloco }}
+      </legend>
       <div class="sr-tiles">
         @for (known of portal.properties; track known.id) {
           <label class="sr-tile">
@@ -37,7 +41,7 @@
             (change)="store.choosePropertyOption(newChoice)"
           />
           <i class="pi sr-tile__icon pi-plus" aria-hidden="true"></i>
-          Add a new property
+          {{ 'serviceRequest.propertyStep.addANewProperty' | transloco }}
           <span class="sr-tile__check" aria-hidden="true"><i class="pi pi-check"></i></span>
         </label>
       </div>
@@ -49,7 +53,9 @@
 
   @if (store.portal() === null || store.newPropertyChosen()) {
     <fieldset class="sr-field">
-      <legend class="sr-label">Where do you need service?</legend>
+      <legend class="sr-label">
+        {{ 'serviceRequest.propertyStep.whereDoYouNeed' | transloco }}
+      </legend>
       <div class="sr-tiles sr-tiles--2">
         @for (type of types; track type.value) {
           <label class="sr-tile">
@@ -70,7 +76,8 @@
 
     <div class="sr-field">
       <label class="sr-label" for="sr-property-addressLine1"
-        >Address line 1 <span class="sr-required" aria-hidden="true">*</span></label
+        >{{ 'serviceRequest.propertyStep.addressLine1' | transloco }}
+        <span class="sr-required" aria-hidden="true">*</span></label
       >
       <input
         pInputText
@@ -94,14 +101,15 @@
 
     <div class="sr-field">
       <label class="sr-label" for="sr-property-addressLine2">
-        Address line 2 <span class="sr-optional">(optional)</span>
+        {{ 'serviceRequest.propertyStep.addressLine2' | transloco }}
+        <span class="sr-optional">{{ 'serviceRequest.propertyStep.optional' | transloco }}</span>
       </label>
       <input
         pInputText
         #line2
         id="sr-property-addressLine2"
         autocomplete="address-line2"
-        placeholder="Apt, suite, unit, building, etc."
+        [attr.placeholder]="'serviceRequest.propertyStep.aptSuiteUnitBuilding' | transloco"
         fluid
         [value]="property().addressLine2"
         [invalid]="store.error('property.addressLine2') !== null"
@@ -118,7 +126,8 @@
     <div class="sr-grid sr-grid--3">
       <div class="sr-field">
         <label class="sr-label" for="sr-property-city"
-          >City <span class="sr-required" aria-hidden="true">*</span></label
+          >{{ 'serviceRequest.propertyStep.city' | transloco }}
+          <span class="sr-required" aria-hidden="true">*</span></label
         >
         <input
           pInputText
@@ -142,15 +151,16 @@
 
       <div class="sr-field">
         <label class="sr-label" for="sr-property-state"
-          >State <span class="sr-required" aria-hidden="true">*</span></label
+          >{{ 'serviceRequest.propertyStep.state' | transloco }}
+          <span class="sr-required" aria-hidden="true">*</span></label
         >
         <p-select
           inputId="sr-property-state"
-          ariaLabel="State"
-          placeholder="Select"
+          [ariaLabel]="'serviceRequest.propertyStep.state' | transloco"
+          [placeholder]="'serviceRequest.propertyStep.select' | transloco"
           appendTo="body"
           fluid
-          [options]="states"
+          [options]="states | localizedRef"
           [ngModel]="property().state || null"
           [ngModelOptions]="standalone"
           [invalid]="store.error('property.state') !== null"
@@ -164,7 +174,8 @@
 
       <div class="sr-field">
         <label class="sr-label" for="sr-property-postalCode"
-          >ZIP code <span class="sr-required" aria-hidden="true">*</span></label
+          >{{ 'serviceRequest.propertyStep.zipCode' | transloco }}
+          <span class="sr-required" aria-hidden="true">*</span></label
         >
         <input
           pInputText
@@ -190,7 +201,8 @@
 
     <div class="sr-field">
       <label class="sr-label" for="sr-property-accessInstructions">
-        Access instructions <span class="sr-optional">(optional)</span>
+        {{ 'serviceRequest.propertyStep.accessInstructions' | transloco }}
+        <span class="sr-optional">{{ 'serviceRequest.propertyStep.optional' | transloco }}</span>
       </label>
       <textarea
         pTextarea
@@ -198,7 +210,7 @@
         id="sr-property-accessInstructions"
         rows="3"
         maxlength="1000"
-        placeholder="e.g., Gate code, where to park, unit number, pets on site, or other helpful details."
+        [attr.placeholder]="'serviceRequest.propertyStep.eGGateCode' | transloco"
         fluid
         [value]="property().accessInstructions"
         [invalid]="store.error('property.accessInstructions') !== null"
@@ -220,11 +232,11 @@
     @if (store.stepIndex() > 0) {
       <button pButton type="button" variant="outlined" class="sr-back" (click)="store.back()">
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
-        Back
+        {{ 'common.back' | transloco }}
       </button>
     }
     <button pButton type="submit">
-      Continue to service details
+      {{ 'serviceRequest.propertyStep.continueToServiceDetails' | transloco }}
       <i class="pi pi-arrow-right" aria-hidden="true"></i>
     </button>
   </div>

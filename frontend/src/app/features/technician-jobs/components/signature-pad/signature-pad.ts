@@ -13,14 +13,17 @@ import {
   viewChild,
 } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { t } from '../../../../core/i18n/translate';
 /** Point normalized to the drawing area (0..1), so a resize redraws the same signature. */
 export type SignaturePoint = readonly [number, number];
 export type SignatureStroke = readonly SignaturePoint[];
 
-export const SIGNATURE_CAPTURED = 'Signature captured';
-export const SIGNATURE_EMPTY = 'No signature';
-export const SIGNATURE_LOST_MESSAGE = 'Signature cleared. Ask the customer to sign again.';
+export const SIGNATURE_CAPTURED = (): string => t('technicianJobs.signaturePad.signatureCaptured');
+export const SIGNATURE_EMPTY = (): string => t('technicianJobs.signaturePad.signatureEmpty');
+export const SIGNATURE_LOST_MESSAGE = (): string =>
+  t('technicianJobs.signaturePad.signatureLostMessage');
 
 const LINE_WIDTH = 2.5;
 let nextId = 0;
@@ -28,7 +31,7 @@ let nextId = 0;
 /** BR-15 signature pad: native canvas with Pointer Events (touch, pen, mouse). */
 @Component({
   selector: 'app-signature-pad',
-  imports: [ButtonDirective],
+  imports: [TranslocoPipe, ButtonDirective],
   templateUrl: './signature-pad.html',
   styleUrl: './signature-pad.scss',
 })
@@ -47,7 +50,9 @@ export class SignaturePad {
 
   readonly statusId = `signature-status-${nextId++}`;
   readonly captured = computed(() => this.strokes().length > 0);
-  readonly statusText = computed(() => (this.captured() ? SIGNATURE_CAPTURED : SIGNATURE_EMPTY));
+  readonly statusText = computed(() =>
+    this.captured() ? SIGNATURE_CAPTURED() : SIGNATURE_EMPTY(),
+  );
   readonly describedBy = computed(() => [this.statusId, this.errorId()].filter(Boolean).join(' '));
   /** Polite announcement when a signature could not be kept. */
   readonly notice = signal('');
@@ -159,7 +164,7 @@ export class SignaturePad {
       // Redraw is impossible: the signature cannot be kept (BR-15).
       if (this.captured()) {
         this.strokes.set([]);
-        this.notice.set(SIGNATURE_LOST_MESSAGE);
+        this.notice.set(SIGNATURE_LOST_MESSAGE());
       }
       return;
     }

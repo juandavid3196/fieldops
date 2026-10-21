@@ -2,7 +2,7 @@
   class="filters"
   ngNoForm
   role="search"
-  aria-label="Report filters"
+  [attr.aria-label]="'reports.reportFilters.reportFilters' | transloco"
   (submit)="$event.preventDefault(); applied.emit()"
 >
   @for (field of fields(); track field.key) {
@@ -15,7 +15,7 @@
         optionValue="code"
         [ariaLabelledBy]="'report-filter-' + field.key"
         [disabled]="disabled()"
-        [options]="field.options"
+        [options]="field.options | localizedRef"
         [ngModel]="values()[field.key] ?? 'all'"
         [ngModelOptions]="{ standalone: true }"
         (ngModelChange)="changed.emit({ key: field.key, code: $event })"
@@ -23,7 +23,9 @@
     </div>
   }
   <div class="filters__buttons">
-    <button pButton type="submit" [disabled]="disabled()">Apply filters</button>
+    <button pButton type="submit" [disabled]="disabled()">
+      {{ 'reports.reportFilters.applyFilters' | transloco }}
+    </button>
     <button
       pButton
       type="button"
@@ -32,7 +34,7 @@
       [disabled]="disabled()"
       (click)="resetRequested.emit()"
     >
-      Reset
+      {{ 'common.reset' | transloco }}
     </button>
   </div>
 </form>

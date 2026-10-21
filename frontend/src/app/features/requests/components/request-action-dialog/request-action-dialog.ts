@@ -5,6 +5,7 @@ import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { FormField } from '../../../organizations/components/form-field/form-field';
 import {
@@ -15,6 +16,8 @@ import {
   Urgency,
 } from '../../models/requests.model';
 
+import { localized, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 export type DialogKind = Extract<
   RequestActionId,
   | 'assign'
@@ -50,26 +53,26 @@ interface Option {
   readonly label: string;
 }
 
-const TITLES: Readonly<Record<DialogKind, string>> = {
-  assign: 'Assign request',
-  'change-priority': 'Change priority',
-  'set-branch': 'Set branch',
-  'request-information': 'Request information',
-  'log-response': 'Log customer response',
-  'cancel-request': 'Cancel request',
-};
+const TITLES: Readonly<Record<DialogKind, string>> = localized(() => ({
+  assign: t('requests.requestActionDialog.assignRequest'),
+  'change-priority': t('requests.requestActionDialog.changePriority'),
+  'set-branch': t('requests.requestActionDialog.setBranch'),
+  'request-information': t('requests.requestActionDialog.requestInformation'),
+  'log-response': t('requests.requestActionDialog.logCustomerResponse'),
+  'cancel-request': t('requests.requestActionDialog.cancelRequest'),
+}));
 
-const SUBMIT_LABELS: Readonly<Record<DialogKind, string>> = {
-  assign: 'Assign',
-  'change-priority': 'Save priority',
-  'set-branch': 'Set branch',
-  'request-information': 'Send request',
-  'log-response': 'Log response',
-  'cancel-request': 'Cancel request',
-};
+const SUBMIT_LABELS: Readonly<Record<DialogKind, string>> = localized(() => ({
+  assign: t('requests.requestActionDialog.assign'),
+  'change-priority': t('requests.requestActionDialog.savePriority'),
+  'set-branch': t('requests.requestActionDialog.setBranch'),
+  'request-information': t('requests.requestActionDialog.sendRequest'),
+  'log-response': t('requests.requestActionDialog.logResponse'),
+  'cancel-request': t('requests.requestActionDialog.cancelRequest'),
+}));
 
 const UNASSIGNED = 'unassigned';
-const REQUIRED = 'This field is required.';
+const REQUIRED = (): string => t('requests.requestActionDialog.required');
 
 /**
  * Action dialogs of the request panel (BR-09 to BR-15): one form per kind with client checks and
@@ -78,7 +81,17 @@ const REQUIRED = 'This field is required.';
  */
 @Component({
   selector: 'app-request-action-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, Select, SpinnerIcon, Textarea, FormField],
+  imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
+    FormsModule,
+    ButtonDirective,
+    Dialog,
+    Select,
+    SpinnerIcon,
+    Textarea,
+    FormField,
+  ],
   templateUrl: './request-action-dialog.html',
   styleUrl: './request-action-dialog.scss',
 })
@@ -111,7 +124,7 @@ export class RequestActionDialog {
       return '';
     }
     return kind === 'cancel-request'
-      ? `Cancel ${this.detail()?.number ?? 'request'}?`
+      ? t('requests.requestActionDialog.cancel', { value: this.detail()?.number ?? 'request' })
       : TITLES[kind];
   });
   readonly submitLabel = computed(() => {
@@ -129,7 +142,7 @@ export class RequestActionDialog {
         branchId === null || member.branchIds === 'all' || member.branchIds.includes(branchId),
     );
     return [
-      { code: UNASSIGNED, label: 'Unassigned' },
+      { code: UNASSIGNED, label: t('requests.requestActionDialog.unassigned') },
       ...eligible.map((member) => ({ code: member.userId, label: member.name })),
     ];
   });
@@ -137,7 +150,9 @@ export class RequestActionDialog {
     (this.options()?.branches ?? []).map((branch) => ({ code: branch.id, label: branch.name })),
   );
   readonly messageLabel = computed(() =>
-    this.kind() === 'request-information' ? 'Message to the customer' : 'Customer response',
+    this.kind() === 'request-information'
+      ? t('requests.requestActionDialog.messageToTheCustomer')
+      : t('requests.requestActionDialog.customerResponse'),
   );
 
   constructor() {
@@ -185,7 +200,7 @@ export class RequestActionDialog {
         break;
       case 'set-branch':
         if (this.branchId() === '') {
-          errors['branchId'] = 'Choose a branch.';
+          errors['branchId'] = t('requests.requestActionDialog.chooseABranch');
         }
         payload = { kind, branchId: this.branchId() };
         break;
@@ -193,9 +208,9 @@ export class RequestActionDialog {
       case 'log-response': {
         const body = this.body().trim();
         if (body.length === 0) {
-          errors['body'] = REQUIRED;
+          errors['body'] = REQUIRED();
         } else if (body.length > 2000) {
-          errors['body'] = 'Use 2000 characters or fewer.';
+          errors['body'] = t('requests.requestActionDialog.use2000CharactersOr');
         }
         payload = { kind, body };
         break;
@@ -203,9 +218,9 @@ export class RequestActionDialog {
       case 'cancel-request': {
         const reason = this.body().trim();
         if (reason.length === 0) {
-          errors['reason'] = 'Enter a reason.';
+          errors['reason'] = t('requests.requestActionDialog.enterAReason');
         } else if (reason.length > 500) {
-          errors['reason'] = 'Use 500 characters or fewer.';
+          errors['reason'] = t('requests.requestActionDialog.use500CharactersOr');
         }
         payload = { kind, reason };
         break;

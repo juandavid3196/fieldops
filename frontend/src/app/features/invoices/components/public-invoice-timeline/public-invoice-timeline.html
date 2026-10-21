@@ -1,4 +1,7 @@
-<ol class="timeline" aria-label="Invoice progress">
+<ol
+  class="timeline"
+  [attr.aria-label]="'invoices.publicInvoiceTimeline.invoiceProgress' | transloco"
+>
   @for (step of steps(); track step.label) {
     <li class="timeline__step timeline__step--{{ step.state }}">
       <span class="timeline__dot" aria-hidden="true">

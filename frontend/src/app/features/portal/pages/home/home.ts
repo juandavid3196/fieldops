@@ -16,6 +16,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Observable, catchError, of, switchMap, throwError } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { PortalSessionService } from '../../../../core/services/portal-session.service';
@@ -43,8 +44,9 @@ import { PortalQuotesService } from '../../services/portal-quote.service';
 import { greeting } from '../../utils/portal-format';
 import { PortalResource } from '../../utils/portal-resource';
 
-export const DASHBOARD_ERROR_MESSAGE = "We couldn't load your dashboard.";
-export const ASK_SENT_MESSAGE = 'Question sent';
+import { t } from '../../../../core/i18n/translate';
+export const DASHBOARD_ERROR_MESSAGE = (): string => t('portal.home.dashboardErrorMessage');
+export const ASK_SENT_MESSAGE = (): string => t('portal.home.askSentMessage');
 
 /**
  * Home dashboard (BR-17 … BR-26). One `GET /portal/dashboard` feeds every card. Selector state
@@ -54,6 +56,7 @@ export const ASK_SENT_MESSAGE = 'Question sent';
 @Component({
   selector: 'app-portal-home',
   imports: [
+    TranslocoPipe,
     ActionQuoteCard,
     ActiveRequestsCard,
     ActivityCard,
@@ -100,7 +103,9 @@ export class PortalHome {
   readonly rescheduleTarget = signal<PortalAppointment | null>(null);
   readonly messageOpen = signal(false);
 
-  readonly errorMessage = DASHBOARD_ERROR_MESSAGE;
+  get errorMessage(): string {
+    return DASHBOARD_ERROR_MESSAGE();
+  }
   readonly loading = computed(() => this.resource.state() === 'loading');
   readonly failed = computed(
     () => this.resource.state() === 'error' || this.resource.state() === 'not-found',
@@ -255,11 +260,11 @@ export class PortalHome {
       this.askOpen.set(false);
       this.reload();
     } else if (apiError?.kind === 'validation') {
-      this.askFieldError.set(publicTextError('ask', text) ?? RESPONSE_ERROR);
+      this.askFieldError.set(publicTextError('ask', text) ?? RESPONSE_ERROR());
     } else if (apiError?.kind === 'rate-limited') {
-      this.askFailure.set(PUBLIC_RATE_LIMITED);
+      this.askFailure.set(PUBLIC_RATE_LIMITED());
     } else {
-      this.askFailure.set(RESPONSE_ERROR);
+      this.askFailure.set(RESPONSE_ERROR());
     }
   }
 

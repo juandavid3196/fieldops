@@ -1,5 +1,7 @@
 <div class="logo-control" role="group" aria-labelledby="logo-control-label">
-  <p class="logo-control__label" id="logo-control-label">Company logo</p>
+  <p class="logo-control__label" id="logo-control-label">
+    {{ 'organizations.logoControl.companyLogo' | transloco }}
+  </p>
 
   <div class="logo-control__row">
     <div class="logo-control__preview" [attr.aria-busy]="previewLoading()">
@@ -10,7 +12,7 @@
       } @else {
         <span class="logo-control__placeholder">
           <i class="pi pi-building" aria-hidden="true"></i>
-          No logo
+          {{ 'organizations.logoControl.noLogo' | transloco }}
         </span>
       }
     </div>
@@ -37,7 +39,7 @@
             (click)="fileInput.click()"
           >
             <i class="pi pi-upload" aria-hidden="true"></i>
-            Change logo
+            {{ 'organizations.logoControl.changeLogo' | transloco }}
           </button>
           @if (hasLogo()) {
             <button
@@ -48,7 +50,7 @@
               [disabled]="busy()"
               (click)="removeLogo()"
             >
-              Remove logo
+              {{ 'organizations.logoControl.removeLogo' | transloco }}
             </button>
           }
         </div>
@@ -61,9 +63,11 @@
             [value]="progress() ?? 0"
             [mode]="progress() === null ? 'indeterminate' : 'determinate'"
             [showValue]="false"
-            ariaLabel="Uploading logo"
+            [ariaLabel]="'organizations.logoControl.uploadingLogo' | transloco"
           />
-          <span class="logo-control__helper">Uploading…</span>
+          <span class="logo-control__helper">{{
+            'organizations.logoControl.uploading' | transloco
+          }}</span>
         </div>
       }
 

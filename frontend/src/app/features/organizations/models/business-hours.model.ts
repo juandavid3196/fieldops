@@ -1,3 +1,4 @@
+import { localized, t } from '../../../core/i18n/translate';
 export type BusinessHoursDayName =
   'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
@@ -12,15 +13,17 @@ export const BUSINESS_HOURS_DAYS: readonly BusinessHoursDayName[] = [
   'sunday',
 ];
 
-export const BUSINESS_HOURS_DAY_LABELS: Readonly<Record<BusinessHoursDayName, string>> = {
-  monday: 'Monday',
-  tuesday: 'Tuesday',
-  wednesday: 'Wednesday',
-  thursday: 'Thursday',
-  friday: 'Friday',
-  saturday: 'Saturday',
-  sunday: 'Sunday',
-};
+export const BUSINESS_HOURS_DAY_LABELS: Readonly<Record<BusinessHoursDayName, string>> = localized(
+  () => ({
+    monday: t('organizations.businessHoursModel.monday'),
+    tuesday: t('organizations.businessHoursModel.tuesday'),
+    wednesday: t('organizations.businessHoursModel.wednesday'),
+    thursday: t('organizations.businessHoursModel.thursday'),
+    friday: t('organizations.businessHoursModel.friday'),
+    saturday: t('organizations.businessHoursModel.saturday'),
+    sunday: t('organizations.businessHoursModel.sunday'),
+  }),
+);
 
 /** `GET`/`PUT /branches/{id}/business-hours` day; closed days carry `null` times. */
 export interface BusinessHoursDay {

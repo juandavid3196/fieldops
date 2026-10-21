@@ -15,6 +15,7 @@ import { ProgressBar } from 'primeng/progressbar';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 import { Toast } from 'primeng/toast';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { SessionService } from '../../../../core/services/session.service';
 import { TOAST_STATE_KEY, ToastHandoff } from '../../../requests/models/requests.model';
@@ -50,10 +51,11 @@ import {
   updatedText,
 } from '../../utils/technician-format';
 
-export const LOAD_ERROR_MESSAGE = "We couldn't load today's jobs. Try again.";
-export const NO_JOBS_MESSAGE = 'No jobs scheduled for today.';
-export const ALL_DONE_MESSAGE = 'All jobs completed for today.';
-export const NO_STARTABLE_MESSAGE = 'No more jobs to start today.';
+import { t } from '../../../../core/i18n/translate';
+export const LOAD_ERROR_MESSAGE = (): string => t('technicianJobs.today.loadErrorMessage');
+export const NO_JOBS_MESSAGE = (): string => t('technicianJobs.today.noJobsMessage');
+export const ALL_DONE_MESSAGE = (): string => t('technicianJobs.today.allDoneMessage');
+export const NO_STARTABLE_MESSAGE = (): string => t('technicianJobs.today.noStartableMessage');
 const TICK_MS = 30_000;
 const SKELETON_ROWS = [0, 1, 2];
 const IN_PROGRESS_GROUP = ['on_the_way', 'in_progress', 'paused'];
@@ -68,6 +70,7 @@ type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
 @Component({
   selector: 'app-today',
   imports: [
+    TranslocoPipe,
     RouterLink,
     ButtonDirective,
     Message,
@@ -91,7 +94,9 @@ export class Today {
   private readonly injector = inject(Injector);
   private readonly messageService = inject(MessageService);
 
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
   readonly statusLabels = STATUS_LABELS;
   readonly statusSeverities = STATUS_SEVERITIES;
   readonly skeletonRows = SKELETON_ROWS;
@@ -134,14 +139,26 @@ export class Today {
       {
         icon: 'pi-briefcase',
         value: String(metrics.jobs),
-        label: pluralLabel(metrics.jobs, 'job', 'jobs'),
+        label: pluralLabel(
+          metrics.jobs,
+          t('technicianJobs.plurals.job'),
+          t('technicianJobs.plurals.jobs'),
+        ),
       },
       {
         icon: 'pi-clock',
         value: hours,
-        label: pluralLabel(hours, 'scheduled hour', 'scheduled hours'),
+        label: pluralLabel(
+          hours,
+          t('technicianJobs.today.scheduledHour'),
+          t('technicianJobs.today.scheduledHours'),
+        ),
       },
-      { icon: 'pi-flag', value: String(metrics.remaining), label: 'remaining' },
+      {
+        icon: 'pi-flag',
+        value: String(metrics.remaining),
+        label: t('technicianJobs.today.remaining'),
+      },
     ];
   });
 
@@ -151,7 +168,10 @@ export class Today {
   });
   readonly progressText = computed(() => {
     const metrics = this.data()?.metrics;
-    return `${metrics?.completed ?? 0} of ${metrics?.jobs ?? 0} completed`;
+    return t('technicianJobs.today.ofCompleted', {
+      value: metrics?.completed ?? 0,
+      value2: metrics?.jobs ?? 0,
+    });
   });
 
   readonly nextVisit = computed(() => {
@@ -159,7 +179,9 @@ export class Today {
     return data?.visits.find((visit) => visit.visitId === data.nextVisitId) ?? null;
   });
   readonly nextLabel = computed(() =>
-    IN_PROGRESS_GROUP.includes(this.nextVisit()?.status ?? '') ? 'IN PROGRESS' : 'NEXT',
+    IN_PROGRESS_GROUP.includes(this.nextVisit()?.status ?? '')
+      ? t('technicianJobs.today.inProgress')
+      : t('technicianJobs.today.next'),
   );
   readonly emptyText = computed(() => {
     const metrics = this.data()?.metrics;
@@ -167,9 +189,9 @@ export class Today {
       return '';
     }
     if (metrics.jobs === 0) {
-      return NO_JOBS_MESSAGE;
+      return NO_JOBS_MESSAGE();
     }
-    return metrics.remaining === 0 ? ALL_DONE_MESSAGE : NO_STARTABLE_MESSAGE;
+    return metrics.remaining === 0 ? ALL_DONE_MESSAGE() : NO_STARTABLE_MESSAGE();
   });
 
   constructor() {
@@ -265,9 +287,9 @@ export class Today {
     if (text === null) {
       return null;
     }
-    const prefix = 'Arrival window: ';
+    const prefix = t('technicianJobs.today.arrivalWindow');
     return text.startsWith(prefix)
-      ? { main: text.slice(prefix.length), caption: 'Arrival window' }
+      ? { main: text.slice(prefix.length), caption: t('technicianJobs.today.arrivalWindow2') }
       : { main: text, caption: null };
   }
 
@@ -288,7 +310,7 @@ export class Today {
   }
 
   chipLabel(visit: TodayVisit): string {
-    return this.isNext(visit) ? 'Next' : STATUS_LABELS[visit.status];
+    return this.isNext(visit) ? t('common.next') : STATUS_LABELS[visit.status];
   }
 
   chipClass(visit: TodayVisit): string {
@@ -296,11 +318,20 @@ export class Today {
       return 'today__chip today__chip--next';
     }
     const severity = STATUS_SEVERITIES[visit.status];
-    return `today__chip today__chip--${severity === 'info' ? 'active' : severity}`;
+    return `today__chip today__chip--${severity === 'info' ? t('technicianJobs.today.active') : severity}`;
   }
 
   materialsText(visit: TodayVisit): string | null {
     const count = visit.plannedMaterialsCount;
-    return count > 0 ? `${count} planned ${pluralLabel(count, 'material', 'materials')}` : null;
+    return count > 0
+      ? t('technicianJobs.today.planned', {
+          count: count,
+          value: pluralLabel(
+            count,
+            t('technicianJobs.plurals.material'),
+            t('technicianJobs.plurals.materials'),
+          ),
+        })
+      : null;
   }
 }

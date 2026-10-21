@@ -12,20 +12,25 @@ import {
   QuotesView,
 } from '../models/quotes-list.model';
 
+import { localized, localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 export { fullDateTime, updatedText };
 
 /** BR-03: code -> fixed label and chip tone (the API never sends labels). */
 export const QUOTE_STATUS_CHIPS: Readonly<
   Record<QuoteDisplayStatus, { readonly label: string; readonly tone: ChipTone }>
-> = {
-  draft: { label: 'Draft', tone: 'neutral' },
-  awaiting_response: { label: 'Awaiting response', tone: 'info' },
-  clarification_requested: { label: 'Clarification requested', tone: 'warning' },
-  expired: { label: 'Expired', tone: 'neutral' },
-  approved: { label: 'Approved', tone: 'success' },
-  rejected: { label: 'Rejected', tone: 'danger' },
-  cancelled: { label: 'Cancelled', tone: 'neutral' },
-};
+> = localized(() => ({
+  draft: { label: t('quotes.quotesListFormat.draft'), tone: 'neutral' },
+  awaiting_response: { label: t('quotes.quotesListFormat.awaitingResponse'), tone: 'info' },
+  clarification_requested: {
+    label: t('quotes.quotesListFormat.clarificationRequested'),
+    tone: 'warning',
+  },
+  expired: { label: t('quotes.quotesListFormat.expired'), tone: 'neutral' },
+  approved: { label: t('quotes.quotesListFormat.approved'), tone: 'success' },
+  rejected: { label: t('quotes.quotesListFormat.rejected'), tone: 'danger' },
+  cancelled: { label: t('quotes.quotesListFormat.cancelled'), tone: 'neutral' },
+}));
 
 /** BR-06: status codes allowed per tab. */
 export const TAB_STATUSES: Readonly<Record<QuotesTab, readonly QuoteDisplayStatus[]>> = {
@@ -36,29 +41,32 @@ export const TAB_STATUSES: Readonly<Record<QuotesTab, readonly QuoteDisplayStatu
   closed: ['rejected', 'expired', 'cancelled'],
 };
 
-export const QUOTES_TABS: readonly { readonly code: QuotesTab; readonly label: string }[] = [
-  { code: 'all', label: 'All quotes' },
-  { code: 'drafts', label: 'Drafts' },
-  { code: 'sent', label: 'Sent' },
-  { code: 'approved', label: 'Approved' },
-  { code: 'closed', label: 'Closed' },
-];
+export const QUOTES_TABS: readonly { readonly code: QuotesTab; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'all', label: t('quotes.quotesListFormat.allQuotes') },
+    { code: 'drafts', label: t('quotes.quotesListFormat.drafts') },
+    { code: 'sent', label: t('quotes.quotesListFormat.sent') },
+    { code: 'approved', label: t('quotes.quotesListFormat.approved') },
+    { code: 'closed', label: t('quotes.quotesListFormat.closed') },
+  ]);
 
-export const QUOTES_DATES: readonly { readonly code: QuotesDate; readonly label: string }[] = [
-  { code: 'any', label: 'Any date' },
-  { code: 'today', label: 'Today' },
-  { code: '7d', label: 'Last 7 days' },
-  { code: '30d', label: 'Last 30 days' },
-  { code: '90d', label: 'Last 90 days' },
-];
+export const QUOTES_DATES: readonly { readonly code: QuotesDate; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'any', label: t('quotes.quotesListFormat.anyDate') },
+    { code: 'today', label: t('quotes.quotesListFormat.today') },
+    { code: '7d', label: t('quotes.quotesListFormat.last7Days') },
+    { code: '30d', label: t('quotes.quotesListFormat.last30Days') },
+    { code: '90d', label: t('quotes.quotesListFormat.last90Days') },
+  ]);
 
-export const QUOTES_SORTS: readonly { readonly code: QuotesSort; readonly label: string }[] = [
-  { code: 'updated', label: 'Recently updated' },
-  { code: 'newest', label: 'Newest' },
-  { code: 'oldest', label: 'Oldest' },
-  { code: 'total', label: 'Highest total' },
-  { code: 'expiring', label: 'Expiring soonest' },
-];
+export const QUOTES_SORTS: readonly { readonly code: QuotesSort; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'updated', label: t('quotes.quotesListFormat.recentlyUpdated') },
+    { code: 'newest', label: t('quotes.quotesListFormat.newest') },
+    { code: 'oldest', label: t('quotes.quotesListFormat.oldest') },
+    { code: 'total', label: t('quotes.quotesListFormat.highestTotal') },
+    { code: 'expiring', label: t('quotes.quotesListFormat.expiringSoonest') },
+  ]);
 
 const MAX_SEARCH_LENGTH = 100;
 
@@ -137,7 +145,7 @@ export function activeFilterCount(view: QuotesView): number {
 export function propertyText(row: QuoteRow): string {
   const property = row.property;
   if (property === null) {
-    return 'No property';
+    return t('quotes.quotesListFormat.noProperty');
   }
   const location = [property.postalCode, property.city]
     .filter((part) => part !== null && part !== '')
@@ -148,8 +156,11 @@ export function propertyText(row: QuoteRow): string {
 /** A yyyy-MM-dd calendar date as "MMM d" (", yyyy" outside the current organization year), with no zone shift. */
 function dateOnly(value: string, timeZone: string, now: Date): string {
   const [year, month, day] = value.slice(0, 10).split('-').map(Number);
-  const currentYear = new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric' }).format(now);
-  return new Intl.DateTimeFormat('en-US', {
+  const currentYear = new Intl.DateTimeFormat(activeIntlLocale(), {
+    timeZone,
+    year: 'numeric',
+  }).format(now);
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     timeZone: 'UTC',
     month: 'short',
     day: 'numeric',
@@ -165,18 +176,21 @@ export function sentText(row: QuoteRow, timeZone: string, now: Date): string {
     value === null ? '' : dateOnly(value, timeZone, now);
   switch (row.status) {
     case 'draft':
-      return 'Draft · Not sent';
+      return t('quotes.quotesListFormat.draftNotSent');
     case 'awaiting_response':
     case 'clarification_requested':
-      return `Sent ${date(row.sentAt)} · Valid until ${calendarDate(row.validUntil)}`;
+      return t('quotes.quotesListFormat.sentValidUntil', {
+        sentAt: date(row.sentAt),
+        validUntil: calendarDate(row.validUntil),
+      });
     case 'approved':
-      return `Approved ${date(row.respondedAt)}`;
+      return t('quotes.quotesListFormat.approved2', { respondedAt: date(row.respondedAt) });
     case 'rejected':
-      return `Rejected ${date(row.respondedAt)}`;
+      return t('quotes.quotesListFormat.rejected2', { respondedAt: date(row.respondedAt) });
     case 'expired':
-      return `Expired ${calendarDate(row.validUntil)}`;
+      return t('quotes.quotesListFormat.expired2', { validUntil: calendarDate(row.validUntil) });
     case 'cancelled':
-      return `Cancelled ${date(row.updatedAt)}`;
+      return t('quotes.quotesListFormat.cancelled2', { updatedAt: date(row.updatedAt) });
   }
 }
 
@@ -206,30 +220,36 @@ export function quoteActionTargets(row: QuoteRow): QuoteActionTarget[] {
   for (const code of row.actions) {
     switch (code) {
       case 'view':
-        add(code, 'View quote', ['/quotes', row.id]);
+        add(code, t('quotes.quotesListFormat.viewQuote'), ['/quotes', row.id]);
         break;
       case 'continue_draft':
-        add(code, 'Continue draft', ['/quotes', row.id, 'edit']);
+        add(code, t('quotes.quotesListFormat.continueDraft'), ['/quotes', row.id, 'edit']);
         break;
       case 'continue_revision':
-        add(code, 'Continue revision', ['/quotes', row.id, 'edit']);
+        add(code, t('quotes.quotesListFormat.continueRevision'), ['/quotes', row.id, 'edit']);
         break;
       case 'revise':
-        add(code, 'Revise quote', null);
+        add(code, t('quotes.quotesListFormat.reviseQuote'), null);
         break;
       case 'create_work_order':
-        add(code, 'Create work order', ['/quotes', row.id, 'work-order']);
+        add(code, t('quotes.quotesListFormat.createWorkOrder'), ['/quotes', row.id, 'work-order']);
         break;
       case 'continue_work_order':
-        add(code, 'Continue work order', ['/quotes', row.id, 'work-order']);
+        add(code, t('quotes.quotesListFormat.continueWorkOrder'), [
+          '/quotes',
+          row.id,
+          'work-order',
+        ]);
         break;
       case 'view_job':
         if (row.workOrderId !== null) {
-          add(code, 'View job', ['/jobs', row.workOrderId]);
+          add(code, t('quotes.quotesListFormat.viewJob'), ['/jobs', row.workOrderId]);
         }
         break;
       case 'open_request':
-        add(code, 'Open request', ['/requests'], { request: row.request.id });
+        add(code, t('quotes.quotesListFormat.openRequest'), ['/requests'], {
+          request: row.request.id,
+        });
         break;
     }
   }
@@ -243,7 +263,7 @@ export function inlineAction(row: QuoteRow): QuoteActionTarget {
     targets.find((target) => target.code === 'continue_draft') ??
     targets.find((target) => target.code === 'view') ?? {
       code: 'view',
-      label: 'View quote',
+      label: t('quotes.quotesListFormat.viewQuote'),
       commands: ['/quotes', row.id],
       queryParams: null,
     }
@@ -253,6 +273,6 @@ export function inlineAction(row: QuoteRow): QuoteActionTarget {
 /** BR-18 notice copy. */
 export function readyNoticeText(count: number): string {
   return count === 1
-    ? '1 service request is ready for a quote.'
-    : `${count} service requests are ready for a quote.`;
+    ? t('quotes.quotesListFormat.n1ServiceRequestIs')
+    : t('quotes.quotesListFormat.serviceRequestsAreReady', { count: count });
 }

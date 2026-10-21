@@ -3,23 +3,23 @@
 <p class="quotes__sr" role="status" aria-live="polite">{{ announcement() }}</p>
 
 <div class="quotes">
-  <nav aria-label="Breadcrumb">
+  <nav [attr.aria-label]="'quotes.quotes.breadcrumb' | transloco">
     <ol class="quotes__crumbs">
-      <li>Operations</li>
-      <li aria-current="page">Quotes</li>
+      <li>{{ 'quotes.quotes.operations' | transloco }}</li>
+      <li aria-current="page">{{ 'quotes.quotes.quotes' | transloco }}</li>
     </ol>
   </nav>
 
   <header class="quotes__header">
     <div>
-      <h1 class="quotes__title">Quotes</h1>
-      <p class="quotes__subtitle">Create, send and track customer estimates.</p>
+      <h1 class="quotes__title">{{ 'quotes.quotes.quotes' | transloco }}</h1>
+      <p class="quotes__subtitle">{{ 'quotes.quotes.createSendAndTrack' | transloco }}</p>
     </div>
     @if (!forbidden() && options().status === 'ready' && !noBranches()) {
       <div class="quotes__actions">
         <a pButton routerLink="/requests" [queryParams]="readyParams">
           <i class="pi pi-inbox" aria-hidden="true"></i>
-          View ready requests
+          {{ 'quotes.quotes.viewReadyRequests' | transloco }}
           @if (readyCount() > 0) {
             <span class="quotes__badge">{{ readyCount() }}</span>
           }
@@ -34,7 +34,7 @@
     <p class="quotes__message" role="alert">
       {{ errorMessage }}
       <button pButton type="button" severity="secondary" size="small" (click)="retryOptions()">
-        Retry
+        {{ 'common.retry' | transloco }}
       </button>
     </p>
   } @else if (noBranches()) {
@@ -44,26 +44,26 @@
       <div class="quotes__notice" role="status">
         <i class="pi pi-inbox" aria-hidden="true"></i>
         <span class="quotes__notice-text">{{ noticeText() }}</span>
-        <a class="quotes__link" routerLink="/requests" [queryParams]="readyParams"
-          >Review requests</a
-        >
+        <a class="quotes__link" routerLink="/requests" [queryParams]="readyParams">{{
+          'quotes.quotes.reviewRequests' | transloco
+        }}</a>
         <button type="button" class="quotes__dismiss" (click)="dismissNotice()">
           <i class="pi pi-times" aria-hidden="true"></i>
-          <span class="quotes__sr">Dismiss</span>
+          <span class="quotes__sr">{{ 'quotes.quotes.dismiss' | transloco }}</span>
         </button>
       </div>
     }
 
     <section
       class="quotes__metrics"
-      aria-label="Quote metrics"
+      [attr.aria-label]="'quotes.quotes.quoteMetrics' | transloco"
       [attr.aria-busy]="summary().status === 'loading'"
     >
       @if (summary().status === 'error') {
         <p class="quotes__message quotes__metrics-error" role="alert">
           {{ metricsErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retrySummary()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </p>
       } @else if (metrics(); as cards) {
@@ -89,8 +89,12 @@
       }
     </section>
 
-    <section class="quotes__card" aria-label="Quotes list">
-      <div class="quotes__tabs" role="tablist" aria-label="Quote groups">
+    <section class="quotes__card" [attr.aria-label]="'quotes.quotes.quotesList' | transloco">
+      <div
+        class="quotes__tabs"
+        role="tablist"
+        [attr.aria-label]="'quotes.quotes.quoteGroups' | transloco"
+      >
         @for (item of tabs; track item.code; let index = $index) {
           <button
             type="button"
@@ -113,7 +117,11 @@
       </div>
 
       <div id="quotes-panel" role="tabpanel" [attr.aria-labelledby]="'quotes-tab-' + view().tab">
-        <div class="quotes__filters" role="search" aria-label="Filter quotes">
+        <div
+          class="quotes__filters"
+          role="search"
+          [attr.aria-label]="'quotes.quotes.filterQuotes' | transloco"
+        >
           <div class="quotes__field quotes__field--search">
             <p-iconfield>
               <p-inputicon class="pi pi-search" />
@@ -123,8 +131,8 @@
                 fluid
                 autocomplete="off"
                 maxlength="100"
-                aria-label="Search quotes"
-                placeholder="Search quote, customer or request"
+                [attr.aria-label]="'quotes.quotes.searchQuotes' | transloco"
+                [attr.placeholder]="'quotes.quotes.searchQuoteCustomerOr' | transloco"
                 [disabled]="controlsDisabled()"
                 [ngModel]="searchText()"
                 (ngModelChange)="searchChanged($event)"
@@ -135,7 +143,7 @@
             <p-select
               appendTo="body"
               fluid
-              ariaLabel="Branch"
+              [ariaLabel]="'quotes.quotes.branch' | transloco"
               optionLabel="label"
               optionValue="code"
               [disabled]="controlsDisabled()"
@@ -154,7 +162,7 @@
             <p-select
               appendTo="body"
               fluid
-              ariaLabel="Status"
+              [ariaLabel]="'common.status' | transloco"
               optionLabel="label"
               optionValue="code"
               [disabled]="controlsDisabled()"
@@ -173,11 +181,11 @@
             <p-select
               appendTo="body"
               fluid
-              ariaLabel="Date"
+              [ariaLabel]="'common.date' | transloco"
               optionLabel="label"
               optionValue="code"
               [disabled]="controlsDisabled()"
-              [options]="dateOptions"
+              [options]="dateOptions | localizedRef"
               [ngModel]="view().date"
               (ngModelChange)="changeDate($event)"
             >
@@ -192,11 +200,11 @@
             <p-select
               appendTo="body"
               fluid
-              ariaLabel="Sort by"
+              [ariaLabel]="'quotes.quotes.sortBy' | transloco"
               optionLabel="label"
               optionValue="code"
               [disabled]="controlsDisabled()"
-              [options]="sortOptions"
+              [options]="sortOptions | localizedRef"
               [ngModel]="view().sort"
               (ngModelChange)="changeSort($event)"
             >
@@ -216,7 +224,7 @@
             (click)="clearFilters()"
           >
             <i class="pi pi-sliders-h" aria-hidden="true"></i>
-            Clear filters
+            {{ 'quotes.quotes.clearFilters' | transloco }}
             @if (filterCount() > 0) {
               <span class="quotes__count">{{ filterCount() }}</span>
             }
@@ -228,7 +236,7 @@
             <p class="quotes__message" role="alert">
               {{ errorMessage }}
               <button pButton type="button" severity="secondary" size="small" (click)="retryList()">
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </p>
           } @else if (list().status === 'idle' || list().status === 'loading') {
@@ -248,23 +256,28 @@
                   size="small"
                   (click)="clearFilters()"
                 >
-                  Clear filters
+                  {{ 'quotes.quotes.clearFilters' | transloco }}
                 </button>
               }
             </p>
           } @else {
-            <div class="quotes__scroll" tabindex="0" role="region" aria-label="Quotes table">
+            <div
+              class="quotes__scroll"
+              tabindex="0"
+              role="region"
+              [attr.aria-label]="'quotes.quotes.quotesTable' | transloco"
+            >
               <table class="quotes__table">
                 <thead>
                   <tr>
-                    <th scope="col">Quote</th>
-                    <th scope="col">Customer &amp; property</th>
-                    <th scope="col">Request</th>
-                    <th scope="col">Total</th>
-                    <th scope="col">Sent / valid until</th>
-                    <th scope="col">Status</th>
-                    <th scope="col">Updated</th>
-                    <th scope="col">Actions</th>
+                    <th scope="col">{{ 'quotes.quotes.quote' | transloco }}</th>
+                    <th scope="col">{{ 'quotes.quotes.customerProperty' | transloco }}</th>
+                    <th scope="col">{{ 'quotes.quotes.request' | transloco }}</th>
+                    <th scope="col">{{ 'common.total' | transloco }}</th>
+                    <th scope="col">{{ 'quotes.quotes.sentValidUntil' | transloco }}</th>
+                    <th scope="col">{{ 'common.status' | transloco }}</th>
+                    <th scope="col">{{ 'quotes.quotes.updated' | transloco }}</th>
+                    <th scope="col">{{ 'common.actions' | transloco }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -274,11 +287,14 @@
                         <a class="quotes__link" [routerLink]="['/quotes', item.row.id]">{{
                           item.row.displayNumber
                         }}</a>
-                        <span class="quotes__muted">Revision {{ item.row.revisionNo }}</span>
+                        <span class="quotes__muted">{{
+                          'quotes.quotes.revision' | transloco: { revisionNo: item.row.revisionNo }
+                        }}</span>
                         @if (item.row.revisionInProgress) {
-                          <span class="quotes__muted"
-                            >Revision {{ item.row.revisionNo + 1 }} in progress</span
-                          >
+                          <span class="quotes__muted">{{
+                            'quotes.quotes.revisionInProgress'
+                              | transloco: { value: item.row.revisionNo + 1 }
+                          }}</span>
                         }
                       </td>
                       <td>
@@ -328,7 +344,10 @@
                             type="button"
                             class="quotes__menu"
                             aria-haspopup="menu"
-                            [attr.aria-label]="'More actions for ' + item.row.displayNumber"
+                            [attr.aria-label]="
+                              'quotes.quotes.moreActionsFor'
+                                | transloco: { displayNumber: item.row.displayNumber }
+                            "
                             (click)="openRowMenu($event, item.row, rowMenuRef)"
                           >
                             <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
@@ -344,11 +363,11 @@
               <p class="quotes__range">{{ footer() }}</p>
               <div class="quotes__paging">
                 <div class="quotes__size">
-                  <span id="quotes-size-label">Rows per page</span>
+                  <span id="quotes-size-label">{{ 'quotes.quotes.rowsPerPage' | transloco }}</span>
                   <p-select
                     appendTo="body"
                     ariaLabelledBy="quotes-size-label"
-                    [options]="pageSizeOptions"
+                    [options]="pageSizeOptions | localizedRef"
                     [ngModel]="view().pageSize"
                     (ngModelChange)="changePageSize($event)"
                   />

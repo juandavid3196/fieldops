@@ -12,12 +12,13 @@ import {
 } from '../../models/organization-registration.model';
 
 import type { FormGroup } from '@angular/forms';
+import { TranslocoPipe } from '@jsverse/transloco';
 import type { SimpleFieldKey } from '../../models/organization-registration.model';
 
 /** "Company profile" section (FR-01): name, legal name, tax ID, email, phone, time zone. */
 @Component({
   selector: 'app-company-profile-section',
-  imports: [ReactiveFormsModule, InputText, Select, FormField, WizardCard],
+  imports: [TranslocoPipe, ReactiveFormsModule, InputText, Select, FormField, WizardCard],
   templateUrl: './company-profile-section.html',
   styleUrl: './company-profile-section.scss',
 })

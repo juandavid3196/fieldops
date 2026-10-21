@@ -10,7 +10,7 @@
     <button
       type="button"
       class="detail__back"
-      aria-label="Back to requests"
+      [attr.aria-label]="'requests.requestDetail.backToRequests' | transloco"
       (click)="closeRequested.emit()"
     >
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
@@ -31,7 +31,7 @@
       <button
         type="button"
         class="detail__icon-button"
-        aria-label="More actions"
+        [attr.aria-label]="'requests.requestDetail.moreActions' | transloco"
         aria-haspopup="menu"
         [disabled]="busy()"
         (click)="openMenu($event)"
@@ -42,7 +42,7 @@
     <button
       type="button"
       class="detail__icon-button detail__close"
-      aria-label="Close request details"
+      [attr.aria-label]="'requests.requestDetail.closeRequestDetails' | transloco"
       (click)="closeRequested.emit()"
     >
       <i class="pi pi-times" aria-hidden="true"></i>
@@ -69,7 +69,7 @@
             size="small"
             (click)="closeRequested.emit()"
           >
-            Close
+            {{ 'common.close' | transloco }}
           </button>
         </div>
       }
@@ -78,7 +78,7 @@
           <span class="detail__retry">
             {{ loadError }}
             <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-              Retry
+              {{ 'common.retry' | transloco }}
             </button>
           </span>
         </p-message>
@@ -87,10 +87,16 @@
         @if (detail(); as detail) {
           <div class="detail__sections">
             <section class="detail__section" aria-labelledby="request-customer-heading">
-              <h3 class="detail__heading" id="request-customer-heading">Customer</h3>
+              <h3 class="detail__heading" id="request-customer-heading">
+                {{ 'common.customer' | transloco }}
+              </h3>
               <p class="detail__customer">
                 <i class="pi pi-user" aria-hidden="true"></i>
-                {{ detail.customer?.name ?? detail.contact.name ?? 'Guest' }}
+                {{
+                  detail.customer?.name ??
+                    detail.contact.name ??
+                    ('requests.requestDetail.guest' | transloco)
+                }}
               </p>
               @if (detail.contact.phone) {
                 <p class="detail__line">
@@ -113,30 +119,43 @@
             </section>
 
             <section class="detail__section" aria-labelledby="request-info-heading">
-              <h3 class="detail__heading" id="request-info-heading">Request details</h3>
+              <h3 class="detail__heading" id="request-info-heading">
+                {{ 'requests.requestDetail.requestDetails' | transloco }}
+              </h3>
               <p class="detail__line">
                 <i class="pi pi-wrench" aria-hidden="true"></i>
-                {{ detail.category?.name ?? 'No category' }}
+                {{ detail.category?.name ?? ('requests.requestDetail.noCategory' | transloco) }}
                 @if (detail.service) {
                   · {{ detail.service.name }}
                 }
               </p>
               <p class="detail__line">
                 <i class="pi pi-building" aria-hidden="true"></i>
-                {{ detail.branch?.name ?? 'Unassigned branch' }}
+                {{ detail.branch?.name ?? ('requests.requestDetail.unassignedBranch' | transloco) }}
               </p>
               <p class="detail__line">
                 <i class="pi pi-id-card" aria-hidden="true"></i>
-                Assignee: {{ detail.assignee?.name ?? 'Unassigned' }}
+                {{
+                  'requests.requestDetail.assignee'
+                    | transloco
+                      : {
+                          name:
+                            detail.assignee?.name ??
+                            ('requests.requestDetail.unassigned' | transloco),
+                        }
+                }}
               </p>
               <p class="detail__line">
                 <i class="pi pi-globe" aria-hidden="true"></i>
-                Source: {{ sourceLabels[detail.source] }}
+                {{
+                  'requests.requestDetail.source'
+                    | transloco: { value: sourceLabels[detail.source] }
+                }}
               </p>
               @if (visit(); as visit) {
                 <p class="detail__line">
                   <i class="pi pi-calendar" aria-hidden="true"></i>
-                  Preferred visit: {{ visit }}
+                  {{ 'requests.requestDetail.preferredVisit' | transloco: { visit: visit } }}
                 </p>
                 @if (detail.availability?.schedulingNotes; as notes) {
                   <p class="detail__line detail__line--note">{{ notes }}</p>
@@ -145,7 +164,7 @@
               @if (detail.hasActiveDamage) {
                 <p class="detail__line detail__line--alert">
                   <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-                  Active damage reported
+                  {{ 'requests.requestDetail.activeDamageReported' | transloco }}
                 </p>
               }
               <p class="detail__description">{{ detail.description }}</p>
@@ -153,24 +172,31 @@
 
             @if (assessmentLine(); as assessment) {
               <section class="detail__section" aria-labelledby="request-assessment-heading">
-                <h3 class="detail__heading" id="request-assessment-heading">Assessment</h3>
+                <h3 class="detail__heading" id="request-assessment-heading">
+                  {{ 'requests.requestDetail.assessment' | transloco }}
+                </h3>
                 <p class="detail__line">
                   <i class="pi pi-calendar-clock" aria-hidden="true"></i>
                   {{ assessment.date }}, {{ assessment.time }}
                 </p>
                 <p class="detail__line">
                   <i class="pi pi-user" aria-hidden="true"></i>
-                  {{ assessment.technician ?? 'No technician' }}
+                  {{ assessment.technician ?? ('requests.requestDetail.noTechnician' | transloco) }}
                 </p>
                 @if (assessment.purpose) {
                   <p class="detail__line">
                     <i class="pi pi-file" aria-hidden="true"></i>
-                    Purpose: {{ assessment.purpose }}
+                    {{
+                      'requests.requestDetail.purpose' | transloco: { purpose: assessment.purpose }
+                    }}
                   </p>
                 }
                 @if (assessment.instructions) {
                   <p class="detail__line detail__line--note">
-                    Internal instructions (not visible to customer): {{ assessment.instructions }}
+                    {{
+                      'requests.requestDetail.internalInstructionsNotVisible'
+                        | transloco: { instructions: assessment.instructions }
+                    }}
                   </p>
                 }
               </section>
@@ -178,17 +204,24 @@
 
             @if (findings(); as findings) {
               <section class="detail__section" aria-labelledby="request-findings-heading">
-                <h3 class="detail__heading" id="request-findings-heading">Assessment findings</h3>
+                <h3 class="detail__heading" id="request-findings-heading">
+                  {{ 'requests.requestDetail.assessmentFindings' | transloco }}
+                </h3>
                 <p class="detail__line">
                   <i class="pi pi-user" aria-hidden="true"></i>
-                  {{ findings.technician ?? 'No technician' }} · {{ findings.completedAt }}
+                  {{ findings.technician ?? ('requests.requestDetail.noTechnician' | transloco) }} ·
+                  {{ findings.completedAt }}
                 </p>
-                <p class="detail__muted">Diagnosis</p>
+                <p class="detail__muted">{{ 'requests.requestDetail.diagnosis' | transloco }}</p>
                 <p class="detail__description">
-                  {{ findings.diagnosis ?? 'No diagnosis recorded.' }}
+                  {{
+                    findings.diagnosis ?? ('requests.requestDetail.noDiagnosisRecorded' | transloco)
+                  }}
                 </p>
                 @if (findings.scope) {
-                  <p class="detail__muted">Recommended scope</p>
+                  <p class="detail__muted">
+                    {{ 'requests.requestDetail.recommendedScope' | transloco }}
+                  </p>
                   <p class="detail__description">{{ findings.scope }}</p>
                 }
                 <app-assessment-photos
@@ -201,7 +234,9 @@
 
             @if (quoteLine(); as quote) {
               <section class="detail__section" aria-labelledby="request-quote-heading">
-                <h3 class="detail__heading" id="request-quote-heading">Quote</h3>
+                <h3 class="detail__heading" id="request-quote-heading">
+                  {{ 'requests.requestDetail.quote' | transloco }}
+                </h3>
                 <p class="detail__line">
                   <i class="pi pi-file" aria-hidden="true"></i>
                   {{ quote }}
@@ -219,7 +254,9 @@
             />
 
             <section class="detail__section" aria-labelledby="request-notes-heading">
-              <h3 class="detail__heading" id="request-notes-heading">Internal notes</h3>
+              <h3 class="detail__heading" id="request-notes-heading">
+                {{ 'requests.requestDetail.internalNotes' | transloco }}
+              </h3>
               @if (editable()) {
                 <form
                   class="detail__note-form"
@@ -233,7 +270,7 @@
                     rows="2"
                     maxlength="2000"
                     name="note"
-                    aria-label="Internal note"
+                    [attr.aria-label]="'requests.requestDetail.internalNote' | transloco"
                     [attr.aria-invalid]="noteError() || localNoteError() ? 'true' : null"
                     [placeholder]="notePlaceholder"
                     [disabled]="busy()"
@@ -249,19 +286,20 @@
                     severity="secondary"
                     [disabled]="busy() || noteText().trim().length === 0"
                   >
-                    Add note
+                    {{ 'requests.requestDetail.addNote' | transloco }}
                   </button>
                 </form>
               }
               @if (detail.notes.length === 0) {
-                <p class="detail__muted">No notes</p>
+                <p class="detail__muted">{{ 'requests.requestDetail.noNotes' | transloco }}</p>
               } @else {
                 <ul class="detail__notes">
                   @for (note of detail.notes; track note.id) {
                     <li class="detail__note">
                       <p class="detail__note-body">{{ note.body }}</p>
                       <p class="detail__muted">
-                        {{ note.authorName ?? 'Unknown' }} · {{ stamp(note.createdAt) }}
+                        {{ note.authorName ?? ('requests.requestDetail.unknown' | transloco) }} ·
+                        {{ stamp(note.createdAt) }}
                       </p>
                     </li>
                   }
@@ -270,7 +308,9 @@
             </section>
 
             <section class="detail__section" aria-labelledby="request-activity-heading">
-              <h3 class="detail__heading" id="request-activity-heading">Activity</h3>
+              <h3 class="detail__heading" id="request-activity-heading">
+                {{ 'requests.requestDetail.activity' | transloco }}
+              </h3>
               <ol class="detail__timeline">
                 @for (entry of detail.activity; track $index) {
                   <li class="detail__event">
@@ -279,7 +319,8 @@
                       <span class="detail__event-detail">{{ entry.detail }}</span>
                     }
                     <span class="detail__muted">
-                      {{ entry.actorName ?? 'System' }} · {{ stamp(entry.occurredAt) }}
+                      {{ entry.actorName ?? ('requests.requestDetail.system' | transloco) }} ·
+                      {{ stamp(entry.occurredAt) }}
                     </span>
                   </li>
                 }

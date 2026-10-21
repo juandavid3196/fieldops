@@ -1,5 +1,7 @@
 import { Component, input, output, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { t } from '../../../../core/i18n/translate';
 export interface VisitPhoto {
   readonly id: string;
   readonly url: string;
@@ -12,7 +14,11 @@ export function photoAlt(photos: readonly VisitPhoto[], index: number): string {
   const label = photos[index]?.label;
   const group = label === undefined ? photos : photos.filter((photo) => photo.label === label);
   const position = group.indexOf(photos[index]) + 1;
-  return `${label ?? 'Assessment'} photo ${position} of ${group.length}`;
+  return t('technicianJobs.visitPhotos.photoOf', {
+    value: label ?? t('technicianJobs.visitPhotos.assessment'),
+    position: position,
+    length: group.length,
+  });
 }
 
 export interface PhotoOpenRequest {
@@ -24,6 +30,7 @@ export interface PhotoOpenRequest {
 /** BR-17 read-only thumbnails of the assessment or job photos, with their Before/After label. */
 @Component({
   selector: 'app-visit-photos',
+  imports: [TranslocoPipe],
   templateUrl: './visit-photos.html',
   styleUrl: './visit-photos.scss',
 })

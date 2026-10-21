@@ -1,23 +1,23 @@
 <div class="pp">
   <header class="pp__head">
     <div>
-      <h1 class="pp__title">Properties</h1>
-      <p class="props__intro">Manage the service locations on your account.</p>
+      <h1 class="pp__title">{{ 'portal.properties.properties' | transloco }}</h1>
+      <p class="props__intro">{{ 'portal.properties.manageTheServiceLocations' | transloco }}</p>
     </div>
     <a pButton class="props__add-button" routerLink="/portal/properties/new">
       <i class="pi pi-plus" aria-hidden="true"></i>
-      Add property
+      {{ 'portal.properties.addProperty' | transloco }}
     </a>
   </header>
 
   <app-portal-state
     [state]="resource.state()"
-    label="Loading properties"
-    emptyText="No properties yet."
-    errorText="We couldn't load your properties."
+    [label]="'portal.properties.loadingProperties' | transloco"
+    [emptyText]="'portal.properties.noPropertiesYet' | transloco"
+    [errorText]="'portal.properties.weCouldnTLoad' | transloco"
     (retry)="load()"
   >
-    <ul class="props" aria-label="Properties">
+    <ul class="props" [attr.aria-label]="'portal.properties.properties' | transloco">
       @for (row of rows(); track row.property.id) {
         <li class="pcard props__card">
           <div class="props__top">
@@ -26,7 +26,7 @@
               <h2 class="props__name">
                 {{ row.property.name }}
                 @if (row.property.isPrimary) {
-                  <span class="pcard__tag">Primary</span>
+                  <span class="pcard__tag">{{ 'portal.properties.primary' | transloco }}</span>
                 }
               </h2>
               <p class="props__line">{{ row.street }}</p>
@@ -38,7 +38,7 @@
             @if (row.lastService; as date) {
               <p>
                 <i class="pi pi-calendar" aria-hidden="true"></i>
-                Last service: <strong>{{ date }}</strong>
+                {{ 'portal.properties.lastService' | transloco }} <strong>{{ date }}</strong>
               </p>
             }
             @if (row.property.accessInstructions; as access) {
@@ -55,19 +55,19 @@
             severity="secondary"
             [outlined]="true"
             size="small"
-            [attr.aria-label]="'Edit ' + row.property.name"
+            [attr.aria-label]="'portal.properties.edit' | transloco: { name: row.property.name }"
             [routerLink]="['/portal/properties', row.property.id, 'edit']"
           >
             <i class="pi pi-pencil" aria-hidden="true"></i>
-            Edit
+            {{ 'common.edit' | transloco }}
           </a>
         </li>
       }
       <li class="props__new">
         <a routerLink="/portal/properties/new">
           <span class="props__new-icon" aria-hidden="true"><i class="pi pi-plus"></i></span>
-          <strong>Add a property</strong>
-          <span>Add another service location to your account.</span>
+          <strong>{{ 'portal.properties.addAProperty' | transloco }}</strong>
+          <span>{{ 'portal.properties.addAnotherServiceLocation' | transloco }}</span>
         </a>
       </li>
     </ul>

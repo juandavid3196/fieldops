@@ -1,7 +1,9 @@
 <section class="matrix" aria-labelledby="matrix-heading">
-  <h2 class="matrix__heading" id="matrix-heading">Permission matrix</h2>
+  <h2 class="matrix__heading" id="matrix-heading">
+    {{ 'users.permissionMatrix.permissionMatrix' | transloco }}
+  </h2>
   <p class="matrix__subtitle">
-    Predefined roles. Access is also limited to each user's assigned branches.
+    {{ 'users.permissionMatrix.predefinedRolesAccessIs' | transloco }}
   </p>
 
   @if (failed()) {
@@ -9,7 +11,7 @@
       <span class="matrix__error">
         {{ errorMessage }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -26,9 +28,11 @@
       <table class="matrix__table">
         <thead>
           <tr>
-            <th scope="col" class="matrix__module-head">Module</th>
+            <th scope="col" class="matrix__module-head">
+              {{ 'users.permissionMatrix.module' | transloco }}
+            </th>
             @for (role of data.roles; track role.code) {
-              <th scope="col">{{ role.name }}</th>
+              <th scope="col">{{ role.name | codeLabel: 'roles' : role.code }}</th>
             }
           </tr>
         </thead>
@@ -53,13 +57,28 @@
     </div>
   }
 
-  <ul class="matrix__legend" aria-label="Legend">
+  <ul class="matrix__legend" [attr.aria-label]="'users.permissionMatrix.legend' | transloco">
     <li>
-      <span class="matrix__level matrix__level--primary">Full / Edit</span> create and change
-      records
+      <span class="matrix__level matrix__level--primary">{{
+        'users.permissionMatrix.fullEdit' | transloco
+      }}</span>
+      {{ 'users.permissionMatrix.createAndChangeRecords' | transloco }}
     </li>
-    <li><span class="matrix__level matrix__level--info">View</span> read only</li>
-    <li><span class="matrix__level matrix__level--warning">Limited</span> scoped subset</li>
-    <li><span class="matrix__level matrix__level--neutral">None</span> no access</li>
+    <li>
+      <span class="matrix__level matrix__level--info">{{ 'common.view' | transloco }}</span>
+      {{ 'users.permissionMatrix.readOnly' | transloco }}
+    </li>
+    <li>
+      <span class="matrix__level matrix__level--warning">{{
+        'users.permissionMatrix.limited' | transloco
+      }}</span>
+      {{ 'users.permissionMatrix.scopedSubset' | transloco }}
+    </li>
+    <li>
+      <span class="matrix__level matrix__level--neutral">{{
+        'users.permissionMatrix.none' | transloco
+      }}</span>
+      {{ 'users.permissionMatrix.noAccess' | transloco }}
+    </li>
   </ul>
 </section>

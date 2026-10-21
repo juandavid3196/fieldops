@@ -1,5 +1,8 @@
-<nav class="admin-nav" aria-label="Administration">
-  <p class="admin-nav__title">Administration</p>
+<nav
+  class="admin-nav"
+  [attr.aria-label]="'organizations.administrationNav.administration' | transloco"
+>
+  <p class="admin-nav__title">{{ 'organizations.administrationNav.administration' | transloco }}</p>
   <ul class="admin-nav__list">
     @for (item of items; track item.label) {
       <li>

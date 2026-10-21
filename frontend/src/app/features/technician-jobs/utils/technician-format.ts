@@ -1,5 +1,7 @@
 import { TodayVisit, TodayVisitStatus, VisitAddress } from '../models/technician-visits.model';
 
+import { localized, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 /** Every date and time is formatted in the response time zone, never the device zone. */
 
 function normalizeSpaces(value: string): string {
@@ -9,9 +11,11 @@ function normalizeSpaces(value: string): string {
 /** "h:mm a" */
 export function formatTime(iso: string, timeZone: string): string {
   return normalizeSpaces(
-    new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone }).format(
-      new Date(iso),
-    ),
+    new Intl.DateTimeFormat(activeIntlLocale(), {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone,
+    }).format(new Date(iso)),
   );
 }
 
@@ -26,12 +30,14 @@ export function arrivalWindowText(visit: TodayVisit, timeZone: string): string |
   }
   const start = formatTime(visit.arrivalWindowStart, timeZone);
   const end = formatTime(visit.arrivalWindowEnd, timeZone);
-  return start === end ? `Arrival at ${start}` : `Arrival window: ${start} – ${end}`;
+  return start === end
+    ? t('technicianJobs.technicianFormat.arrivalAt', { start: start })
+    : t('technicianJobs.technicianFormat.arrivalWindow', { start: start, end: end });
 }
 
 function formatCalendarDate(date: string, options: Intl.DateTimeFormatOptions): string {
   // `date` is already the local calendar day; noon UTC keeps it stable in any zone.
-  return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(
+  return new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: 'UTC' }).format(
     new Date(`${date}T12:00:00Z`),
   );
 }
@@ -53,7 +59,7 @@ export function formatShortDate(date: string): string {
 
 /** "EEE, MMM d" of an instant in the response time zone. */
 export function formatInstantShortDate(iso: string, timeZone: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -74,12 +80,18 @@ export function statusLabelOf(status: string): string {
 /** BR-06: 05:00-11:59 morning, 12:00-17:59 afternoon, otherwise evening, by local hour. */
 export function greetingFor(now: Date, timeZone: string): string {
   const hour = Number(
-    new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone }).format(now),
+    new Intl.DateTimeFormat(activeIntlLocale(), {
+      hour: 'numeric',
+      hourCycle: 'h23',
+      timeZone,
+    }).format(now),
   );
   if (hour >= 5 && hour < 12) {
-    return 'Good morning';
+    return t('technicianJobs.technicianFormat.goodMorning');
   }
-  return hour >= 12 && hour < 18 ? 'Good afternoon' : 'Good evening';
+  return hour >= 12 && hour < 18
+    ? t('technicianJobs.technicianFormat.goodAfternoon')
+    : t('technicianJobs.technicianFormat.goodEvening');
 }
 
 /** BR-07: one decimal, trailing ".0" dropped. */
@@ -99,15 +111,19 @@ export function progressPercent(completed: number, jobs: number): number {
 /** BR-14: "just now" under one minute, then "<n> min ago". */
 export function updatedText(updatedAt: number, now: number): string {
   const minutes = Math.max(0, Math.floor((now - updatedAt) / 60000));
-  return minutes < 1 ? 'Updated just now' : `Updated ${minutes} min ago`;
+  return minutes < 1
+    ? t('technicianJobs.technicianFormat.updatedJustNow')
+    : t('technicianJobs.technicianFormat.updatedMinAgo', { minutes: minutes });
 }
 
 /** BR-10: only Urgent and High show a chip. */
 export function priorityLabel(priority: number | string): string | null {
   if (priority === 1 || priority === 'urgent') {
-    return 'Urgent';
+    return t('technicianJobs.technicianFormat.urgent');
   }
-  return priority === 2 || priority === 'high' ? 'High priority' : null;
+  return priority === 2 || priority === 'high'
+    ? t('technicianJobs.technicianFormat.highPriority')
+    : null;
 }
 
 export function addressLine(address: VisitAddress): string {
@@ -134,17 +150,17 @@ export function telUrl(phone: string): string {
   return `tel:${phone.replace(/[^\d+]/g, '')}`;
 }
 
-export const STATUS_LABELS: Readonly<Record<TodayVisitStatus, string>> = {
-  completed: 'Completed',
-  approved: 'Completed',
-  scheduled: 'Scheduled',
-  assigned: 'Scheduled',
-  on_the_way: 'On the way',
-  in_progress: 'In progress',
-  paused: 'Paused',
-  needs_correction: 'Needs correction',
-  cancelled: 'Cancelled',
-};
+export const STATUS_LABELS: Readonly<Record<TodayVisitStatus, string>> = localized(() => ({
+  completed: t('technicianJobs.technicianFormat.completed'),
+  approved: t('technicianJobs.technicianFormat.completed'),
+  scheduled: t('technicianJobs.technicianFormat.scheduled'),
+  assigned: t('technicianJobs.technicianFormat.scheduled'),
+  on_the_way: t('technicianJobs.technicianFormat.onTheWay'),
+  in_progress: t('technicianJobs.technicianFormat.inProgress'),
+  paused: t('technicianJobs.technicianFormat.paused'),
+  needs_correction: t('technicianJobs.technicianFormat.needsCorrection'),
+  cancelled: t('technicianJobs.technicianFormat.cancelled'),
+}));
 
 export type StatusSeverity = 'success' | 'info' | 'warn' | 'secondary' | 'danger';
 

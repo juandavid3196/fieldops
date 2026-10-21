@@ -6,6 +6,7 @@ import { Menu } from 'primeng/menu';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
 import { formatDate, formatTime } from '../../../customers/utils/customer-format';
@@ -24,11 +25,12 @@ import { activityTime, addressLine, preferredVisit } from '../../utils/requests-
 import { AssessmentPhotos } from '../assessment-photos/assessment-photos';
 import { RequestAttachments } from '../request-attachments/request-attachments';
 
+import { t } from '../../../../core/i18n/translate';
 export type DetailState = 'loading' | 'ready' | 'not-found' | 'error';
 
-export const NOT_AVAILABLE_MESSAGE = "This request isn't available.";
-export const DETAIL_ERROR_MESSAGE = "We couldn't load this request.";
-export const NOTE_PLACEHOLDER = 'Add an internal note (not visible to customer)...';
+export const NOT_AVAILABLE_MESSAGE = (): string => t('requests.requestDetail.notAvailableMessage');
+export const DETAIL_ERROR_MESSAGE = (): string => t('requests.requestDetail.detailErrorMessage');
+export const NOTE_PLACEHOLDER = (): string => t('requests.requestDetail.notePlaceholder');
 
 /**
  * Request detail panel (BR-08, BR-03, BR-19) projected into the shared drawer shell: docked beside
@@ -38,6 +40,7 @@ export const NOTE_PLACEHOLDER = 'Add an internal note (not visible to customer).
 @Component({
   selector: 'app-request-detail',
   imports: [
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     Menu,
@@ -74,14 +77,20 @@ export class RequestDetailPanel {
   private readonly menu = viewChild(Menu);
 
   readonly titleId = 'request-detail-title';
-  readonly notAvailable = NOT_AVAILABLE_MESSAGE;
-  readonly loadError = DETAIL_ERROR_MESSAGE;
-  readonly notePlaceholder = NOTE_PLACEHOLDER;
+  get notAvailable(): string {
+    return NOT_AVAILABLE_MESSAGE();
+  }
+  get loadError(): string {
+    return DETAIL_ERROR_MESSAGE();
+  }
+  get notePlaceholder(): string {
+    return NOTE_PLACEHOLDER();
+  }
   readonly urgencyLabels = URGENCY_LABELS;
   readonly statusLabels = STATUS_LABELS;
   readonly sourceLabels = SOURCE_LABELS;
 
-  readonly title = computed(() => this.detail()?.title ?? 'Request');
+  readonly title = computed(() => this.detail()?.title ?? t('requests.requestDetail.request'));
   readonly footer = computed<RequestAction[]>(() => {
     const detail = this.detail();
     return detail === null
@@ -101,7 +110,7 @@ export class RequestDetailPanel {
     return detail !== null && canEditRequest(detail.status, this.canManage());
   });
   readonly localNoteError = computed(() =>
-    this.noteText().length > 2000 ? 'Use 2000 characters or fewer.' : null,
+    this.noteText().length > 2000 ? t('requests.requestDetail.use2000CharactersOr') : null,
   );
 
   readonly findings = computed(() => {
@@ -126,7 +135,9 @@ export class RequestDetailPanel {
     }
     const status = quote.status.replace(/_/g, ' ');
     const label = status.charAt(0).toUpperCase() + status.slice(1);
-    return quote.hasDraft && quote.status !== 'draft' ? `${label} (revision in progress)` : label;
+    return quote.hasDraft && quote.status !== 'draft'
+      ? t('requests.requestDetail.revisionInProgress', { label: label })
+      : label;
   });
 
   readonly address = computed(() => addressLine(this.detail()?.serviceAddress ?? null));

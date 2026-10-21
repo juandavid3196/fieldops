@@ -1,4 +1,4 @@
-<nav aria-label="Breadcrumb">
+<nav [attr.aria-label]="'help.helpBreadcrumb.breadcrumb' | transloco">
   <ol class="crumbs">
     @for (item of items(); track item.label; let last = $last) {
       <li [class.crumbs__current]="last" [attr.aria-current]="last ? 'page' : null">

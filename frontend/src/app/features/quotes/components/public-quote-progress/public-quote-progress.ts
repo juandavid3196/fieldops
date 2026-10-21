@@ -1,8 +1,10 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PublicQuote } from '../../models/public-quote.model';
 import { dateOnlyLabel } from '../../utils/quote-format';
 
+import { t } from '../../../../core/i18n/translate';
 type StepState = 'completed' | 'current' | 'upcoming';
 
 interface Step {
@@ -15,6 +17,7 @@ interface Step {
 /** Quote progress of the quote link (BR-09): state conveyed by icon and text, not color alone. */
 @Component({
   selector: 'app-public-quote-progress',
+  imports: [TranslocoPipe],
   templateUrl: './public-quote-progress.html',
   styleUrl: './public-quote-progress.scss',
 })
@@ -25,36 +28,41 @@ export class PublicQuoteProgress {
     const { progress, response, quote } = this.quote();
     const steps: Step[] = [
       {
-        label: 'Request submitted',
+        label: t('quotes.publicQuoteProgress.requestSubmitted'),
         date: dateOnlyLabel(progress.requestSubmittedOn),
         state: 'completed',
-        stateText: 'Completed',
+        stateText: t('quotes.publicQuoteProgress.completed'),
       },
     ];
     if (progress.assessmentCompletedOn !== null) {
       steps.push({
-        label: 'Assessment',
+        label: t('quotes.publicQuoteProgress.assessment'),
         date: dateOnlyLabel(progress.assessmentCompletedOn),
         state: 'completed',
-        stateText: 'Completed',
+        stateText: t('quotes.publicQuoteProgress.completed'),
       });
     }
     const answered = response === null ? '' : dateOnlyLabel(response.respondedOn);
     if (quote.status === 'approved' || quote.status === 'rejected') {
       steps.push({
-        label: 'Quote',
-        date: `${quote.status === 'approved' ? 'Approved' : 'Declined'} ${answered}`,
+        label: t('quotes.publicQuoteProgress.quote'),
+        date: `${quote.status === 'approved' ? t('quotes.publicQuoteProgress.approved') : t('quotes.publicQuoteProgress.declined')} ${answered}`,
         state: 'completed',
-        stateText: 'Completed',
+        stateText: t('quotes.publicQuoteProgress.completed'),
       });
     } else {
-      steps.push({ label: 'Quote', date: '', state: 'current', stateText: 'Current' });
+      steps.push({
+        label: t('quotes.publicQuoteProgress.quote'),
+        date: '',
+        state: 'current',
+        stateText: t('quotes.publicQuoteProgress.current'),
+      });
     }
     steps.push({
-      label: 'Schedule service',
-      date: 'After approval',
+      label: t('quotes.publicQuoteProgress.scheduleService'),
+      date: t('quotes.publicQuoteProgress.afterApproval'),
       state: 'upcoming',
-      stateText: 'Next',
+      stateText: t('common.next'),
     });
     return steps;
   });

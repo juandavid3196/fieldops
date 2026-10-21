@@ -24,6 +24,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Observable, Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -65,17 +66,20 @@ import {
 } from './item-drawer.validators';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 export type ItemDrawerMode = 'create' | 'edit' | 'view';
 
-export const ITEM_UNAVAILABLE_MESSAGE = 'This item is no longer available.';
-export const NO_CATEGORY_LABEL = 'No category';
-export const CATEGORIES_FAILED_MESSAGE = "Couldn't load categories.";
+export const ITEM_UNAVAILABLE_MESSAGE = (): string =>
+  t('productsServices.itemDrawer.itemUnavailableMessage');
+export const NO_CATEGORY_LABEL = (): string => t('productsServices.itemDrawer.noCategoryLabel');
+export const CATEGORIES_FAILED_MESSAGE = (): string =>
+  t('productsServices.itemDrawer.categoriesFailedMessage');
 
 interface CategoryOption {
   readonly id: string | null;
   readonly label: string;
 }
-const UNEXPECTED_MESSAGE = 'An unexpected error occurred. Please try again.';
+const UNEXPECTED_MESSAGE = (): string => t('productsServices.itemDrawer.unexpectedMessage');
 const TITLE_ID = 'item-drawer-title';
 const SUMMARY_ID = 'item-drawer-error-summary';
 const CONTROL_IDS: Readonly<Record<ItemFieldKey, string>> = {
@@ -95,6 +99,7 @@ const CONTROL_IDS: Readonly<Record<ItemFieldKey, string>> = {
 @Component({
   selector: 'app-item-drawer',
   imports: [
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     InputText,
@@ -143,10 +148,10 @@ export class ItemDrawer {
   readonly summaryId = SUMMARY_ID;
   readonly controlIds = CONTROL_IDS;
   readonly imageAccept = IMAGE_ACCEPT;
-  readonly typeOptions: readonly { value: CatalogType; label: string }[] = [
-    { value: 'service', label: 'Service' },
-    { value: 'product', label: 'Product' },
-  ];
+  readonly typeOptions: readonly { value: CatalogType; label: string }[] = localizedList(() => [
+    { value: 'service', label: t('productsServices.itemDrawer.service') },
+    { value: 'product', label: t('productsServices.itemDrawer.product') },
+  ]);
 
   /** Effective mode: a create that saved its item but failed its image continues as an edit. */
   private readonly savedId = signal<string | null>(null);
@@ -157,7 +162,11 @@ export class ItemDrawer {
   readonly isCreate = computed(() => this.currentMode() === 'create');
   readonly readOnly = computed(() => this.currentMode() === 'view');
   readonly title = computed(() =>
-    this.isCreate() ? 'Add item' : this.readOnly() ? 'Item details' : 'Edit item',
+    this.isCreate()
+      ? t('productsServices.itemDrawer.addItem')
+      : this.readOnly()
+        ? t('productsServices.itemDrawer.itemDetails')
+        : t('productsServices.itemDrawer.editItem'),
   );
 
   readonly type = signal<CatalogType | null>(null);
@@ -211,10 +220,12 @@ export class ItemDrawer {
     const detail = this.detail();
     return detail === null ? null : usageText(detail.usage);
   });
-  readonly categoryFailedMessage = CATEGORIES_FAILED_MESSAGE;
+  get categoryFailedMessage(): string {
+    return CATEGORIES_FAILED_MESSAGE();
+  }
   /** "No category", active categories by name, and the item's current category when not active. */
   readonly categoryOptions = computed<CategoryOption[]>(() => {
-    const options: CategoryOption[] = [{ id: null, label: NO_CATEGORY_LABEL }];
+    const options: CategoryOption[] = [{ id: null, label: NO_CATEGORY_LABEL() }];
     const active = this.categories().filter((category) => category.isActive);
     for (const category of active) {
       options.push({ id: category.id, label: category.name });
@@ -227,7 +238,9 @@ export class ItemDrawer {
       const inactive = detail.categoryIsActive === false;
       options.push({
         id: detail.categoryId,
-        label: inactive ? `${detail.categoryName ?? ''} (Inactive)` : (detail.categoryName ?? ''),
+        label: inactive
+          ? t('productsServices.itemDrawer.inactive', { value: detail.categoryName ?? '' })
+          : (detail.categoryName ?? ''),
       });
     }
     return options;
@@ -236,15 +249,15 @@ export class ItemDrawer {
   readonly categoryText = computed(() => {
     const detail = this.detail();
     if (detail?.categoryId == null) {
-      return NO_CATEGORY_LABEL;
+      return NO_CATEGORY_LABEL();
     }
     return detail.categoryIsActive === false
-      ? `${detail.categoryName ?? ''} (Inactive)`
+      ? t('productsServices.itemDrawer.inactive', { value: detail.categoryName ?? '' })
       : (detail.categoryName ?? '');
   });
   readonly currencyLabel = computed(() => {
     const code = this.money().currency;
-    return code === null ? '' : ` in ${code}`;
+    return code === null ? '' : t('productsServices.itemDrawer.in', { code: code });
   });
 
   readonly errorLinks = computed<readonly FieldErrorLink[]>(() =>
@@ -556,7 +569,9 @@ export class ItemDrawer {
     this.submitting.set(false);
     this.messageService.add({
       severity: 'success',
-      summary: created ? 'Item added' : 'Item updated',
+      summary: created
+        ? t('productsServices.itemDrawer.itemAdded')
+        : t('productsServices.itemDrawer.itemUpdated'),
     });
     this.closed.emit();
     this.saved.emit();
@@ -589,12 +604,12 @@ export class ItemDrawer {
   private imageMessage(apiError: ApiError | null): string {
     const fileMessage = apiError?.fieldErrors['file']?.[0];
     if (apiError?.status === 413) {
-      return IMAGE_SIZE_MESSAGE;
+      return IMAGE_SIZE_MESSAGE();
     }
     if (apiError?.status === 415) {
-      return IMAGE_TYPE_MESSAGE;
+      return IMAGE_TYPE_MESSAGE();
     }
-    return fileMessage ?? apiError?.message ?? UNEXPECTED_MESSAGE;
+    return fileMessage ?? apiError?.message ?? UNEXPECTED_MESSAGE();
   }
 
   private handleItemFailed(error: unknown): void {
@@ -609,7 +624,7 @@ export class ItemDrawer {
         this.unavailable.emit();
         return;
       case 'conflict':
-        this.fieldErrors.set({ name: DUPLICATE_NAME_MESSAGE });
+        this.fieldErrors.set({ name: DUPLICATE_NAME_MESSAGE() });
         this.focusFirstInvalid();
         return;
       case 'validation':
@@ -625,7 +640,7 @@ export class ItemDrawer {
         return;
       }
     }
-    this.pageMessage.set(apiError?.message ?? UNEXPECTED_MESSAGE);
+    this.pageMessage.set(apiError?.message ?? UNEXPECTED_MESSAGE());
     this.focusSummary();
   }
 
@@ -643,7 +658,7 @@ export class ItemDrawer {
     if (this.dirty()) {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this item',
+          subject: t('productsServices.itemDrawer.thisItem'),
           accept: () => this.closed.emit(),
         }),
       );

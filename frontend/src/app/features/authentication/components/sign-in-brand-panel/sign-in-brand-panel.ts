@@ -1,6 +1,8 @@
 import { NgOptimizedImage } from '@angular/common';
 import { Component } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 interface BrandItem {
   readonly title: string;
   readonly text: string;
@@ -21,47 +23,47 @@ interface StatusCard extends BrandItem {
  */
 @Component({
   selector: 'app-sign-in-brand-panel',
-  imports: [NgOptimizedImage],
+  imports: [TranslocoPipe, NgOptimizedImage],
   templateUrl: './sign-in-brand-panel.html',
   styleUrl: './sign-in-brand-panel.scss',
 })
 export class SignInBrandPanel {
-  readonly statusCards: readonly StatusCard[] = [
+  readonly statusCards: readonly StatusCard[] = localizedList(() => [
     {
-      title: 'Request approved',
-      text: 'Customer request in, ready to schedule.',
+      title: t('authentication.signInBrandPanel.requestApproved'),
+      text: t('authentication.signInBrandPanel.customerRequestInReady'),
       icon: 'pi-check',
       tone: 'green',
     },
     {
-      title: 'Technician assigned',
-      text: 'The right person for the job.',
+      title: t('authentication.signInBrandPanel.technicianAssigned'),
+      text: t('authentication.signInBrandPanel.theRightPersonFor'),
       icon: 'pi-user',
       tone: 'blue',
     },
     {
-      title: 'Invoice paid',
-      text: 'Work complete. Payment received.',
+      title: t('authentication.signInBrandPanel.invoicePaid'),
+      text: t('authentication.signInBrandPanel.workCompletePaymentReceived'),
       icon: 'pi-file',
       tone: 'purple',
     },
-  ];
+  ]);
 
-  readonly benefits: readonly BrandItem[] = [
+  readonly benefits: readonly BrandItem[] = localizedList(() => [
     {
-      title: 'Work runs smoother',
-      text: 'From requests to payments, all in one place.',
+      title: t('authentication.signInBrandPanel.workRunsSmoother'),
+      text: t('authentication.signInBrandPanel.fromRequestsToPayments'),
       icon: 'pi-calendar',
     },
     {
-      title: 'Happier customers',
-      text: 'Faster response times and clear communication.',
+      title: t('authentication.signInBrandPanel.happierCustomers'),
+      text: t('authentication.signInBrandPanel.fasterResponseTimesAnd'),
       icon: 'pi-users',
     },
     {
-      title: 'A more profitable business',
-      text: 'Less admin work. More time for what matters.',
+      title: t('authentication.signInBrandPanel.aMoreProfitableBusiness'),
+      text: t('authentication.signInBrandPanel.lessAdminWorkMore'),
       icon: 'pi-chart-bar',
     },
-  ];
+  ]);
 }

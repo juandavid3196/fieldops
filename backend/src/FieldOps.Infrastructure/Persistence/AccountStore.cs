@@ -98,6 +98,48 @@ internal sealed class AccountStore(FieldOpsDbContext dbContext) : IAccountStore
         return await GetProfileAsync(userId, organizationId, membershipId, cancellationToken);
     }
 
+    public async Task<string?> UpdateLanguageAsync(
+        Guid userId,
+        Guid organizationId,
+        string language,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Users.SingleOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        if (string.Equals(user.PreferredLanguage, language, StringComparison.Ordinal))
+        {
+            return user.PreferredLanguage;
+        }
+
+        var previous = user.PreferredLanguage;
+
+        user.UpdatePreferredLanguage(language, now);
+
+        dbContext.AuditLogs.Add(AuditLog.Create(
+            organizationId,
+            UpdateLanguageHandler.LanguageUpdatedAuditAction,
+            AuditEntity,
+            actorUserId: userId,
+            entityId: userId,
+            ipAddress: clientIp,
+            metadata: JsonSerializer.Serialize(new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["from"] = previous,
+                ["to"] = language,
+            })));
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return user.PreferredLanguage;
+    }
+
     public Task<AccountCredential?> FindCredentialAsync(Guid userId, CancellationToken cancellationToken) =>
         dbContext.Users.AsNoTracking()
             .Where(user => user.Id == userId)

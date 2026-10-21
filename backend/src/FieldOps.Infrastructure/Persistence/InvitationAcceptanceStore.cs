@@ -111,7 +111,7 @@ internal sealed class InvitationAcceptanceStore(FieldOpsDbContext dbContext, Tim
             return InvitationResult<AcceptedInvitation>.Failed(InvitationConflict.AccessUnavailable);
         }
 
-        var user = User.Create(invitation.Email, request.PasswordHash, request.FirstName, request.LastName);
+        var user = User.Create(invitation.Email, request.PasswordHash, request.FirstName, request.LastName, preferredLanguage: request.PreferredLanguage);
         user.Activate();
         user.MarkEmailVerified(now);
         user.RecordSignIn(now);
@@ -305,7 +305,7 @@ internal sealed class InvitationAcceptanceStore(FieldOpsDbContext dbContext, Tim
 
         return InvitationResult<AcceptedInvitation>.Ok(new AcceptedInvitation(
             new SessionView(
-                new SessionUser(user.Id, user.FirstName, user.LastName, user.Email, photoUpdatedAt),
+                new SessionUser(user.Id, user.FirstName, user.LastName, user.Email, photoUpdatedAt, user.PreferredLanguage),
                 new SessionOrganization(invitation.OrganizationId, organizationName),
                 new SessionRole(role.Code, role.Name)),
             membership.Id,

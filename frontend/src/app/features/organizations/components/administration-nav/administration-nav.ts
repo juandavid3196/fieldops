@@ -1,6 +1,8 @@
 import { Component, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 interface AdministrationItem {
   readonly label: string;
   readonly icon: string;
@@ -16,34 +18,59 @@ export type AdministrationPage = 'company' | 'users' | 'products' | 'business-ho
 const COMPANY_PATH = '/admin/company';
 
 /** BR-03: items in order. Anchors scroll to a section; the rest open their page or Coming soon page. */
-export const ADMINISTRATION_ITEMS: readonly AdministrationItem[] = [
-  { label: 'Company profile', icon: 'pi-building', section: 'company-profile', link: null },
-  { label: 'Branches', icon: 'pi-map-marker', section: 'branches', link: null },
+export const ADMINISTRATION_ITEMS: readonly AdministrationItem[] = localizedList(() => [
   {
-    label: 'Business hours',
+    label: t('organizations.administrationNav.companyProfile'),
+    icon: 'pi-building',
+    section: 'company-profile',
+    link: null,
+  },
+  {
+    label: t('organizations.administrationNav.branches'),
+    icon: 'pi-map-marker',
+    section: 'branches',
+    link: null,
+  },
+  {
+    label: t('organizations.administrationNav.businessHours'),
     icon: 'pi-clock',
     section: null,
     link: '/admin/business-hours',
     page: 'business-hours',
   },
   {
-    label: 'Users & permissions',
+    label: t('organizations.administrationNav.usersPermissions'),
     icon: 'pi-user-edit',
     section: null,
     link: '/admin/users',
     page: 'users',
   },
   {
-    label: 'Products & services',
+    label: t('organizations.administrationNav.productsServices'),
     icon: 'pi-box',
     section: null,
     link: '/admin/products-services',
     page: 'products',
   },
-  { label: 'Taxes & currency', icon: 'pi-dollar', section: 'taxes-currency', link: null },
-  { label: 'Document numbering', icon: 'pi-hashtag', section: 'document-numbering', link: null },
-  { label: 'Notifications', icon: 'pi-bell', section: null, link: '/notifications' },
-];
+  {
+    label: t('organizations.administrationNav.taxesCurrency'),
+    icon: 'pi-dollar',
+    section: 'taxes-currency',
+    link: null,
+  },
+  {
+    label: t('organizations.administrationNav.documentNumbering'),
+    icon: 'pi-hashtag',
+    section: 'document-numbering',
+    link: null,
+  },
+  {
+    label: t('organizations.administrationNav.notifications'),
+    icon: 'pi-bell',
+    section: null,
+    link: '/notifications',
+  },
+]);
 
 /**
  * Administration column (FR-05): 224px from 1100px, a horizontal scrollable link row below.
@@ -52,7 +79,7 @@ export const ADMINISTRATION_ITEMS: readonly AdministrationItem[] = [
  */
 @Component({
   selector: 'app-administration-nav',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './administration-nav.html',
   styleUrl: './administration-nav.scss',
 })

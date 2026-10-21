@@ -232,13 +232,13 @@ describe('Requests page', () => {
     await settle();
     call('GET', `/${ID_B}`).flush(null, { status: 404, statusText: 'Not Found' });
     await settle();
-    expect(text()).toContain(UNAVAILABLE_MESSAGE);
+    expect(text()).toContain(UNAVAILABLE_MESSAGE());
     expect(button('Close')).toBeDefined();
 
     // Invalid id: 404 panel without any detail request; Close removes the parameter.
     await harness.navigateByUrl('/requests?request=not-a-uuid');
     await settle();
-    expect(text()).toContain(UNAVAILABLE_MESSAGE);
+    expect(text()).toContain(UNAVAILABLE_MESSAGE());
     button('Close')!.click();
     await vi.waitFor(() => expect(router.url).toBe('/requests'));
     expect(page.selectedId()).toBeNull();
@@ -268,7 +268,7 @@ describe('Requests page', () => {
     latest.flush(EMPTY_PIPELINE);
     await settle();
 
-    expect(text()).toContain(EMPTY_FILTERED_MESSAGE);
+    expect(text()).toContain(EMPTY_FILTERED_MESSAGE());
     button('Clear filters')!.click();
     const cleared = call('GET', '/pipeline');
     expect(cleared.request.params.keys()).toEqual([]);
@@ -325,7 +325,7 @@ describe('Requests page', () => {
     cancel.flush({ title: 'ignored' }, { status: 409, statusText: 'Conflict' });
     await settle();
     expect(page.dialogKind()).toBeNull();
-    expect(text()).toContain(CONFLICT_MESSAGE);
+    expect(text()).toContain(CONFLICT_MESSAGE());
     call('GET', `/${ID_A}`).flush(detail({ status: 'cancelled' }));
     flushRefresh();
     await settle();
@@ -433,7 +433,7 @@ describe('Requests page', () => {
     async (role) => {
       await setup(role, { flush: false });
 
-      expect(text()).toContain(FORBIDDEN_MESSAGE);
+      expect(text()).toContain(FORBIDDEN_MESSAGE());
       expect(button('New request')).toBeUndefined();
       httpTesting.expectNone((r) => r.url.includes('/service-requests'));
     },

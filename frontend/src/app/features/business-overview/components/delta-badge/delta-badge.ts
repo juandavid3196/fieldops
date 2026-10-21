@@ -2,6 +2,7 @@ import { Component, computed, input } from '@angular/core';
 
 import { Delta } from '../../utils/business-view';
 
+import { t } from '../../../../core/i18n/translate';
 const ICONS = { up: 'pi-arrow-up', down: 'pi-arrow-down', flat: 'pi-minus' } as const;
 
 /** BR-11/BR-17: a change with an icon and text, never color alone. */
@@ -9,7 +10,7 @@ const ICONS = { up: 'pi-arrow-up', down: 'pi-arrow-down', flat: 'pi-minus' } as 
   selector: 'app-delta-badge',
   template: `<span class="delta" [attr.data-tone]="tone()"
     ><i class="pi" [class]="icon()" aria-hidden="true"></i>{{ delta().text }}
-    <span class="sr">{{ label() }}</span></span
+    <span class="sr">{{ labelValue() }}</span></span
   >`,
   styles: `
     :host {
@@ -48,7 +49,10 @@ const ICONS = { up: 'pi-arrow-up', down: 'pi-arrow-down', flat: 'pi-minus' } as 
 })
 export class DeltaBadge {
   readonly delta = input.required<Delta>();
-  readonly label = input('vs previous period');
+  readonly label = input<string | null>(null);
+  readonly labelValue = computed(
+    () => this.label() ?? t('businessOverview.deltaBadge.vsPreviousPeriod'),
+  );
   /** Overtime going up is unfavourable. */
   readonly badWhenUp = input(false);
   readonly tone = computed(() => {

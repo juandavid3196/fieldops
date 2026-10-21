@@ -7,11 +7,14 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ServiceRequestWizardStore } from '../../services/service-request-wizard.store';
 
+import { t } from '../../../../core/i18n/translate';
 @Component({
   selector: 'app-attachment-dropzone',
+  imports: [TranslocoPipe],
   templateUrl: './attachment-dropzone.html',
   styleUrl: './attachment-dropzone.scss',
 })
@@ -72,7 +75,7 @@ export class AttachmentDropzone {
 
   protected size(bytes: number): string {
     return bytes >= 1024 * 1024
-      ? `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-      : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+      ? t('serviceRequest.attachmentDropzone.mb', { value: (bytes / (1024 * 1024)).toFixed(1) })
+      : t('serviceRequest.attachmentDropzone.kb', { value: Math.max(1, Math.round(bytes / 1024)) });
   }
 }

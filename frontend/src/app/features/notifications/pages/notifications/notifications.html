@@ -3,17 +3,19 @@
 <p class="notif__sr" role="status" aria-live="polite">{{ announcement() }}</p>
 
 <div class="notif">
-  <nav aria-label="Breadcrumb">
+  <nav [attr.aria-label]="'notifications.notifications.breadcrumb' | transloco">
     <ol class="notif__crumbs">
-      <li>Administration</li>
-      <li aria-current="page">Notifications</li>
+      <li>{{ 'notifications.notifications.administration' | transloco }}</li>
+      <li aria-current="page">{{ 'notifications.notifications.notifications' | transloco }}</li>
     </ol>
   </nav>
 
   <header class="notif__header">
     <div>
-      <h1 class="notif__title">Notifications</h1>
-      <p class="notif__subtitle">Stay updated on activity that needs your attention.</p>
+      <h1 class="notif__title">{{ 'notifications.notifications.notifications' | transloco }}</h1>
+      <p class="notif__subtitle">
+        {{ 'notifications.notifications.stayUpdatedOnActivity' | transloco }}
+      </p>
     </div>
     @if (!forbidden()) {
       <div class="notif__actions">
@@ -26,7 +28,7 @@
           (click)="markAllRead()"
         >
           <i class="pi pi-check" aria-hidden="true"></i>
-          Mark all as read
+          {{ 'notifications.notifications.markAllAsRead' | transloco }}
         </button>
       </div>
     }
@@ -38,12 +40,16 @@
     <p class="notif__message" role="alert">
       {{ errorMessage }}
       <button pButton type="button" severity="secondary" size="small" (click)="retryOptions()">
-        Retry
+        {{ 'common.retry' | transloco }}
       </button>
     </p>
   } @else {
     <div class="notif__bar">
-      <div class="notif__tabs" role="tablist" aria-label="Notification groups">
+      <div
+        class="notif__tabs"
+        role="tablist"
+        [attr.aria-label]="'notifications.notifications.notificationGroups' | transloco"
+      >
         @for (item of tabs; track item.code; let index = $index) {
           <button
             type="button"
@@ -69,7 +75,7 @@
 
       <section
         class="notif__cards"
-        aria-label="Summary"
+        [attr.aria-label]="'notifications.notifications.summary' | transloco"
         [attr.aria-busy]="summary().status === 'loading'"
       >
         @for (card of cards(); track card.label) {
@@ -94,7 +100,11 @@
     </div>
 
     <div id="notif-panel" role="tabpanel" [attr.aria-labelledby]="'notif-tab-' + view().tab">
-      <div class="notif__filters" role="search" aria-label="Filter notifications">
+      <div
+        class="notif__filters"
+        role="search"
+        [attr.aria-label]="'notifications.notifications.filterNotifications' | transloco"
+      >
         <div class="notif__field notif__field--search">
           <p-iconfield>
             <p-inputicon class="pi pi-search" />
@@ -104,8 +114,8 @@
               fluid
               autocomplete="off"
               maxlength="100"
-              aria-label="Search notifications"
-              placeholder="Search notifications…"
+              [attr.aria-label]="'notifications.notifications.searchNotifications' | transloco"
+              [attr.placeholder]="'notifications.notifications.searchNotifications2' | transloco"
               [disabled]="controlsDisabled()"
               [ngModel]="searchText()"
               (ngModelChange)="searchChanged($event)"
@@ -116,11 +126,11 @@
           <p-select
             appendTo="body"
             fluid
-            ariaLabel="Type"
+            [ariaLabel]="'common.type' | transloco"
             optionLabel="label"
             optionValue="code"
             [disabled]="controlsDisabled()"
-            [options]="typeOptions"
+            [options]="typeOptions | localizedRef"
             [ngModel]="view().type ?? 'all'"
             (ngModelChange)="changeType($event)"
           />
@@ -130,7 +140,7 @@
             <p-select
               appendTo="body"
               fluid
-              ariaLabel="Branch"
+              [ariaLabel]="'notifications.notifications.branch' | transloco"
               optionLabel="label"
               optionValue="code"
               [disabled]="controlsDisabled()"
@@ -144,11 +154,11 @@
           <p-select
             appendTo="body"
             fluid
-            ariaLabel="Date"
+            [ariaLabel]="'common.date' | transloco"
             optionLabel="label"
             optionValue="code"
             [disabled]="controlsDisabled()"
-            [options]="dateOptions"
+            [options]="dateOptions | localizedRef"
             [ngModel]="view().date"
             (ngModelChange)="changeDate($event)"
           />
@@ -162,7 +172,7 @@
           (click)="clearFilters()"
         >
           <i class="pi pi-sliders-h" aria-hidden="true"></i>
-          Clear filters
+          {{ 'notifications.notifications.clearFilters' | transloco }}
           @if (filterCount() > 0) {
             <span class="notif__count">{{ filterCount() }}</span>
           }
@@ -172,8 +182,10 @@
       <div class="notif__notice" role="status" aria-live="polite">
         @if (newNotice()) {
           <p class="notif__message">
-            New notifications available
-            <button pButton type="button" size="small" (click)="refreshNew()">Refresh</button>
+            {{ 'notifications.notifications.newNotificationsAvailable' | transloco }}
+            <button pButton type="button" size="small" (click)="refreshNew()">
+              {{ 'common.refresh' | transloco }}
+            </button>
           </p>
         }
       </div>
@@ -183,7 +195,7 @@
           <p class="notif__message" role="alert">
             {{ errorMessage }}
             <button pButton type="button" severity="secondary" size="small" (click)="retryList()">
-              Retry
+              {{ 'common.retry' | transloco }}
             </button>
           </p>
         } @else if (
@@ -209,7 +221,7 @@
                   size="small"
                   (click)="resetView()"
                 >
-                  Clear filters
+                  {{ 'notifications.notifications.clearFilters' | transloco }}
                 </button>
               }
             }
@@ -235,8 +247,12 @@
                           <i class="pi {{ row.icon }}"></i>
                         </span>
                         <span class="notif__text">
-                          <span class="notif__row-title">{{ row.item.title }}</span>
-                          <span class="notif__desc">{{ row.item.description }}</span>
+                          <span class="notif__row-title">{{
+                            row.item.title | notificationText: row.item.eventCode : 'title'
+                          }}</span>
+                          <span class="notif__desc">{{
+                            row.item.description | notificationText: row.item.eventCode : 'body'
+                          }}</span>
                         </span>
                       </button>
                       <div class="notif__entity">
@@ -266,7 +282,10 @@
                         type="button"
                         class="notif__menu"
                         aria-haspopup="menu"
-                        [attr.aria-label]="'More actions for ' + row.item.title"
+                        [attr.aria-label]="
+                          'notifications.notifications.moreActionsFor'
+                            | transloco: { title: row.item.title }
+                        "
                         (click)="openRowMenu($event, row, rowMenuRef)"
                       >
                         <i class="pi pi-ellipsis-v" aria-hidden="true"></i>
@@ -280,11 +299,13 @@
               <p class="notif__range">{{ footer() }}</p>
               <div class="notif__paging">
                 <div class="notif__size">
-                  <span id="notif-size-label">Rows per page</span>
+                  <span id="notif-size-label">{{
+                    'notifications.notifications.rowsPerPage' | transloco
+                  }}</span>
                   <p-select
                     appendTo="body"
                     ariaLabelledBy="notif-size-label"
-                    [options]="pageSizeOptions"
+                    [options]="pageSizeOptions | localizedRef"
                     [ngModel]="view().pageSize"
                     (ngModelChange)="changePageSize($event)"
                   />

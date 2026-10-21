@@ -1,19 +1,21 @@
 import { addDays, isValidDate, todayInZone } from '../../schedule/utils/schedule-range';
 import { BusinessOptions, BusinessRoute, RangePreset } from '../models/business-overview.model';
 
+import { localizedList, t } from '../../../core/i18n/translate';
 /** BR-03: a period is at most 366 days long. */
 export const MAX_PERIOD_DAYS = 366;
 
 export const DEFAULT_RANGE = 'this_month' as const;
 
-export const RANGE_CHOICES: readonly { readonly id: RangePreset; readonly name: string }[] = [
-  { id: 'this_month', name: 'This month' },
-  { id: 'last_month', name: 'Last month' },
-  { id: 'last_30_days', name: 'Last 30 days' },
-  { id: 'this_quarter', name: 'This quarter' },
-  { id: 'this_year', name: 'This year' },
-  { id: 'custom', name: 'Custom' },
-];
+export const RANGE_CHOICES: readonly { readonly id: RangePreset; readonly name: string }[] =
+  localizedList(() => [
+    { id: 'this_month', name: t('businessOverview.businessParams.thisMonth') },
+    { id: 'last_month', name: t('businessOverview.businessParams.lastMonth') },
+    { id: 'last_30_days', name: t('businessOverview.businessParams.last30Days') },
+    { id: 'this_quarter', name: t('businessOverview.businessParams.thisQuarter') },
+    { id: 'this_year', name: t('businessOverview.businessParams.thisYear') },
+    { id: 'custom', name: t('businessOverview.businessParams.custom') },
+  ]);
 
 export interface ResolvedBusinessRoute {
   readonly route: BusinessRoute;
@@ -126,18 +128,18 @@ export function resolveBusinessRoute(
 /** BR-03 subtitle: "Sep 1 – 20, 2026" or "Aug 15, 2026 – Sep 20, 2026", then the branch. */
 export function periodLabel(from: string, to: string): string {
   const months = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
+    t('businessOverview.businessParams.jan'),
+    t('businessOverview.businessParams.feb'),
+    t('businessOverview.businessParams.mar'),
+    t('businessOverview.businessParams.apr'),
+    t('businessOverview.businessParams.may'),
+    t('businessOverview.businessParams.jun'),
+    t('businessOverview.businessParams.jul'),
+    t('businessOverview.businessParams.aug'),
+    t('businessOverview.businessParams.sep'),
+    t('businessOverview.businessParams.oct'),
+    t('businessOverview.businessParams.nov'),
+    t('businessOverview.businessParams.dec'),
   ];
   const part = (date: string): { m: string; d: number; y: string } => ({
     m: months[Number(date.slice(5, 7)) - 1],

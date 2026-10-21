@@ -8,6 +8,7 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { canSeeBusinessOverview } from '../../../../core/config/dashboard-roles';
 import { isApiError } from '../../../../core/models/api-error.model';
@@ -29,11 +30,18 @@ import { RangePreset } from '../../models/business-overview.model';
 import { BusinessOverviewStore } from '../../services/business-overview.store';
 import { RANGE_CHOICES, periodLabel, resolveBusinessRoute } from '../../utils/business-params';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to Dashboard.";
-export const NO_BRANCHES_MESSAGE = 'No branches available.';
-export const LOAD_ERROR_MESSAGE = "We couldn't load the business overview.";
-export const REFRESH_ERROR_MESSAGE = "Couldn't refresh.";
-export const EXPORT_ERROR_MESSAGE = "We couldn't export the report.";
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const FORBIDDEN_MESSAGE = (): string =>
+  t('businessOverview.businessOverview.forbiddenMessage');
+export const NO_BRANCHES_MESSAGE = (): string =>
+  t('businessOverview.businessOverview.noBranchesMessage');
+export const LOAD_ERROR_MESSAGE = (): string =>
+  t('businessOverview.businessOverview.loadErrorMessage');
+export const REFRESH_ERROR_MESSAGE = (): string =>
+  t('businessOverview.businessOverview.refreshErrorMessage');
+export const EXPORT_ERROR_MESSAGE = (): string =>
+  t('businessOverview.businessOverview.exportErrorMessage');
 
 const ALL = 'all';
 const TICK_MS = 10_000;
@@ -45,6 +53,8 @@ const TICK_MS = 10_000;
 @Component({
   selector: 'app-business-overview',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     BranchPerformance,
     BusinessKpisRow,
     CashFlowCard,
@@ -73,10 +83,18 @@ export class BusinessOverviewPage {
   private readonly messages = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly noBranchesMessage = NO_BRANCHES_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
-  readonly refreshErrorMessage = REFRESH_ERROR_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get noBranchesMessage(): string {
+    return NO_BRANCHES_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  get refreshErrorMessage(): string {
+    return REFRESH_ERROR_MESSAGE();
+  }
   readonly rangeChoices = [...RANGE_CHOICES];
   readonly kpiSkeletons = [0, 1, 2, 3, 4, 5];
 
@@ -106,7 +124,10 @@ export class BusinessOverviewPage {
 
   readonly branchChoices = computed(() => {
     const branches = this.store.options()?.branches ?? [];
-    const all = branches.length > 1 ? [{ id: ALL, name: 'All branches' }] : [];
+    const all =
+      branches.length > 1
+        ? [{ id: ALL, name: t('businessOverview.businessOverview.allBranches') }]
+        : [];
     return [...all, ...branches];
   });
   readonly branchValue = computed(() => this.selection()?.branchId ?? ALL);
@@ -116,7 +137,7 @@ export class BusinessOverviewPage {
       return '';
     }
     const branch = this.store.options()?.branches.find((item) => item.id === value.branchId);
-    return `${periodLabel(value.from, value.to)} · ${branch?.name ?? 'All branches'}`;
+    return `${periodLabel(value.from, value.to)} · ${branch?.name ?? t('businessOverview.businessOverview.allBranches')}`;
   });
   /** Range and comparison carried by the Owner attention branch links (BR-18). */
   readonly keptQuery = computed((): Readonly<Record<string, string>> => {
@@ -232,7 +253,7 @@ export class BusinessOverviewPage {
         if (isApiError(error) && error.kind === 'unauthorized') {
           handleUnauthorized(this.router, this.sessionExpired);
         } else {
-          this.messages.add({ severity: 'error', summary: EXPORT_ERROR_MESSAGE });
+          this.messages.add({ severity: 'error', summary: EXPORT_ERROR_MESSAGE() });
         }
       },
     });

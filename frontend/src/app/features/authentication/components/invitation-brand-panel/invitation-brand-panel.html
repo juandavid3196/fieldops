@@ -7,15 +7,19 @@
         <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-300)" />
         <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-500)" />
       </svg>
-      <span>Field</span><span class="brand__accent">Ops</span>
+      <span>{{ 'authentication.invitationBrandPanel.field' | transloco }}</span
+      ><span class="brand__accent">{{
+        'authentication.invitationBrandPanel.ops' | transloco
+      }}</span>
     </p>
   </div>
 
   <div class="brand__copy">
-    <h2 class="brand__heading" id="invitation-brand-heading">Your team, connected from day one.</h2>
+    <h2 class="brand__heading" id="invitation-brand-heading">
+      {{ 'authentication.invitationBrandPanel.yourTeamConnectedFrom' | transloco }}
+    </h2>
     <p class="brand__subhead">
-      Secure access for every person, in every field location, so you can get to work faster
-      together.
+      {{ 'authentication.invitationBrandPanel.secureAccessForEvery' | transloco }}
     </p>
     <span class="brand__rule" aria-hidden="true"></span>
   </div>

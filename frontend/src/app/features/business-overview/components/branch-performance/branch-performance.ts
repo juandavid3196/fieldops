@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { BranchRow, BranchTotals } from '../../models/business-overview.model';
 import {
@@ -11,12 +12,14 @@ import {
 } from '../../utils/business-view';
 import { InfoHint } from '../info-hint/info-hint';
 
-export const MARGIN_COLUMN_HINT = 'Estimated margin = estimated gross profit ÷ revenue.';
+import { t } from '../../../../core/i18n/translate';
+export const MARGIN_COLUMN_HINT = (): string =>
+  t('businessOverview.branchPerformance.marginColumnHint');
 
 /** BR-15, BR-09: one row per branch, a Total row from two rows and the below-target marking. */
 @Component({
   selector: 'app-branch-performance',
-  imports: [InfoHint],
+  imports: [TranslocoPipe, InfoHint],
   templateUrl: './branch-performance.html',
   styleUrl: './branch-performance.scss',
 })
@@ -26,13 +29,19 @@ export class BranchPerformance {
   readonly currency = input.required<string>();
   readonly target = input.required<number>();
 
-  readonly hint = MARGIN_COLUMN_HINT;
-  readonly warningText = BELOW_TARGET_TEXT;
+  get hint(): string {
+    return MARGIN_COLUMN_HINT();
+  }
+  get warningText(): string {
+    return BELOW_TARGET_TEXT();
+  }
 
   readonly rows = computed(() =>
     this.branches().map((branch) => ({
       id: branch.branchId,
-      name: branch.isActive ? branch.name : `${branch.name} (inactive)`,
+      name: branch.isActive
+        ? branch.name
+        : t('businessOverview.branchPerformance.inactive', { name: branch.name }),
       revenue: money(branch.revenue, this.currency()),
       margin: percentOne(branch.marginPercent),
       below: belowTarget(branch.marginPercent, this.target()),

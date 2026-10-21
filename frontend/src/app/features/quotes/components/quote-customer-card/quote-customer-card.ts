@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { QuoteDetail } from '../../models/quote.model';
 import { customerInitials } from '../../utils/quote-format';
@@ -10,7 +11,7 @@ import { customerInitials } from '../../utils/quote-format';
  */
 @Component({
   selector: 'app-quote-customer-card',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './quote-customer-card.html',
   styleUrl: './quote-customer-card.scss',
 })

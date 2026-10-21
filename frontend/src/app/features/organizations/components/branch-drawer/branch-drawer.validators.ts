@@ -31,19 +31,22 @@ import {
   parseServicePostalCodes,
 } from '../../models/company-settings.model';
 
-export const ZIP_CODES_INVALID_MESSAGE = 'Enter valid ZIP codes separated by commas.';
-export const ZIP_CODES_LIMIT_MESSAGE = 'Enter up to 200 ZIP codes.';
+export const ZIP_CODES_INVALID_MESSAGE = (): string =>
+  t('organizations.branchDrawerValidators.zipCodesInvalidMessage');
+export const ZIP_CODES_LIMIT_MESSAGE = (): string =>
+  t('organizations.branchDrawerValidators.zipCodesLimitMessage');
 
 /** BR-09: each code 1-30 letters, digits, spaces or hyphens; at most 200 after de-duplication. */
 export function validateServicePostalCodes(text: string): string | null {
   const codes = parseServicePostalCodes(text);
   if (!codes.every((code) => code.length <= 30 && /^[A-Za-z0-9 -]+$/.test(code))) {
-    return ZIP_CODES_INVALID_MESSAGE;
+    return ZIP_CODES_INVALID_MESSAGE();
   }
-  return codes.length > 200 ? ZIP_CODES_LIMIT_MESSAGE : null;
+  return codes.length > 200 ? ZIP_CODES_LIMIT_MESSAGE() : null;
 }
 import { WEEKDAYS, WEEKDAY_LABELS, Weekday } from '../../models/organization-registration.model';
 
+import { localized, t } from '../../../../core/i18n/translate';
 /** Every simple branch field, in Name / Code / contact / address section order. */
 export const BRANCH_SIMPLE_FIELD_KEYS: readonly BranchSimpleFieldKey[] = [
   'branch.name',
@@ -79,20 +82,22 @@ const REQUEST_KEYS: Readonly<Record<BranchSimpleFieldKey, keyof BranchDrawerForm
 /** Visible labels, shared by field labels and the error summary link text. */
 export const BRANCH_FIELD_LABELS: Readonly<Record<BranchFieldKey, string>> = buildFieldLabels();
 
-const ALLOWED_MESSAGES: Readonly<Record<BranchSimpleFieldKey, readonly string[]>> = {
-  'branch.name': [REQUIRED_MESSAGE, tooLongMessage(140)],
-  'branch.code': [REQUIRED_MESSAGE, BRANCH_CODE_MESSAGE, DUPLICATE_BRANCH_CODE_MESSAGE],
-  'branch.phone': [tooLongMessage(PHONE_MAX_LENGTH), PHONE_INVALID_MESSAGE],
-  'branch.email': [tooLongMessage(EMAIL_MAX_LENGTH), EMAIL_INVALID_MESSAGE],
-  'branch.timezone': [TIMEZONE_MESSAGE],
-  'branch.addressLine1': [REQUIRED_MESSAGE, tooLongMessage(180)],
-  'branch.addressLine2': [tooLongMessage(180)],
-  'branch.city': [REQUIRED_MESSAGE, tooLongMessage(100)],
-  'branch.stateRegion': [tooLongMessage(100)],
-  'branch.postalCode': [REQUIRED_MESSAGE, tooLongMessage(30)],
-  'branch.countryCode': [COUNTRY_MESSAGE],
-  'branch.servicePostalCodes': [ZIP_CODES_INVALID_MESSAGE, ZIP_CODES_LIMIT_MESSAGE],
-};
+const ALLOWED_MESSAGES: Readonly<Record<BranchSimpleFieldKey, readonly string[]>> = localized(
+  () => ({
+    'branch.name': [REQUIRED_MESSAGE(), tooLongMessage(140)],
+    'branch.code': [REQUIRED_MESSAGE(), BRANCH_CODE_MESSAGE(), DUPLICATE_BRANCH_CODE_MESSAGE()],
+    'branch.phone': [tooLongMessage(PHONE_MAX_LENGTH), PHONE_INVALID_MESSAGE()],
+    'branch.email': [tooLongMessage(EMAIL_MAX_LENGTH), EMAIL_INVALID_MESSAGE()],
+    'branch.timezone': [TIMEZONE_MESSAGE()],
+    'branch.addressLine1': [REQUIRED_MESSAGE(), tooLongMessage(180)],
+    'branch.addressLine2': [tooLongMessage(180)],
+    'branch.city': [REQUIRED_MESSAGE(), tooLongMessage(100)],
+    'branch.stateRegion': [tooLongMessage(100)],
+    'branch.postalCode': [REQUIRED_MESSAGE(), tooLongMessage(30)],
+    'branch.countryCode': [COUNTRY_MESSAGE()],
+    'branch.servicePostalCodes': [ZIP_CODES_INVALID_MESSAGE(), ZIP_CODES_LIMIT_MESSAGE()],
+  }),
+);
 
 /** First failing BR-03 rule for one simple field, or `null` when valid. */
 export function validateBranchField(
@@ -141,7 +146,9 @@ export function mapBranchServerFieldErrors(
   for (const field of BRANCH_SIMPLE_FIELD_KEYS) {
     const message = fieldErrors[REQUEST_KEYS[field]]?.[0];
     if (message !== undefined) {
-      result[field] = ALLOWED_MESSAGES[field].includes(message) ? message : FALLBACK_FIELD_MESSAGE;
+      result[field] = ALLOWED_MESSAGES[field].includes(message)
+        ? message
+        : FALLBACK_FIELD_MESSAGE();
     }
   }
 
@@ -152,15 +159,15 @@ export function mapBranchServerFieldErrors(
       if (message !== undefined) {
         const uiKey = part === 'start' ? businessHoursStartKey(day) : businessHoursEndKey(day);
         result[uiKey] =
-          message === REQUIRED_MESSAGE || message === END_NOT_AFTER_START_MESSAGE
+          message === REQUIRED_MESSAGE() || message === END_NOT_AFTER_START_MESSAGE()
             ? message
-            : FALLBACK_FIELD_MESSAGE;
+            : FALLBACK_FIELD_MESSAGE();
       }
     }
   }
 
   if (fieldErrors['businessHours']?.[0] !== undefined) {
-    result['branch.businessHours'] = FALLBACK_FIELD_MESSAGE;
+    result['branch.businessHours'] = FALLBACK_FIELD_MESSAGE();
   }
 
   return result;
@@ -168,24 +175,28 @@ export function mapBranchServerFieldErrors(
 
 function buildFieldLabels(): Record<BranchFieldKey, string> {
   const labels: Record<string, string> = {
-    'branch.name': 'Branch name',
-    'branch.code': 'Branch code',
-    'branch.phone': 'Contact phone',
-    'branch.email': 'Contact email',
-    'branch.timezone': 'Time zone',
-    'branch.addressLine1': 'Address line 1',
-    'branch.addressLine2': 'Address line 2',
-    'branch.city': 'City',
+    'branch.name': t('organizations.branchDrawerValidators.branchName'),
+    'branch.code': t('organizations.branchDrawerValidators.branchCode'),
+    'branch.phone': t('organizations.branchDrawerValidators.contactPhone'),
+    'branch.email': t('organizations.branchDrawerValidators.contactEmail'),
+    'branch.timezone': t('organizations.branchDrawerValidators.timeZone'),
+    'branch.addressLine1': t('organizations.branchDrawerValidators.addressLine1'),
+    'branch.addressLine2': t('organizations.branchDrawerValidators.addressLine2'),
+    'branch.city': t('organizations.branchDrawerValidators.city'),
     'branch.stateRegion': 'State/Region',
-    'branch.postalCode': 'Postal code',
-    'branch.countryCode': 'Country',
-    'branch.servicePostalCodes': 'Service area ZIP codes',
-    'branch.businessHours': 'Business hours',
+    'branch.postalCode': t('organizations.branchDrawerValidators.postalCode'),
+    'branch.countryCode': t('organizations.branchDrawerValidators.country'),
+    'branch.servicePostalCodes': t('organizations.branchDrawerValidators.serviceAreaZipCodes'),
+    'branch.businessHours': t('organizations.branchDrawerValidators.businessHours'),
   };
 
   for (const day of WEEKDAYS as readonly Weekday[]) {
-    labels[businessHoursStartKey(day)] = `${WEEKDAY_LABELS[day]} start time`;
-    labels[businessHoursEndKey(day)] = `${WEEKDAY_LABELS[day]} end time`;
+    labels[businessHoursStartKey(day)] = t('organizations.branchDrawerValidators.startTime', {
+      value: WEEKDAY_LABELS[day],
+    });
+    labels[businessHoursEndKey(day)] = t('organizations.branchDrawerValidators.endTime', {
+      value: WEEKDAY_LABELS[day],
+    });
   }
 
   return labels as Record<BranchFieldKey, string>;

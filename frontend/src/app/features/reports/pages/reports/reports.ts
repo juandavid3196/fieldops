@@ -18,6 +18,7 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { watchMedia } from '../../../../core/config/breakpoints';
 import { isApiError } from '../../../../core/models/api-error.model';
@@ -64,6 +65,8 @@ import {
 } from '../../utils/report-params';
 import { formatDate } from '../../utils/report-view';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 /** Period, branch and report filters held in the form until Apply filters (BR-19). */
 interface Draft {
   readonly range: RangePreset;
@@ -77,7 +80,7 @@ const ALL = 'all';
 const TICK_MS = 15_000;
 /** Catalog panel beside the report from 1280 px (BR-21). */
 const WIDE_QUERY = '(min-width: 80rem)';
-export const AGING_NOTE = 'Aging is calculated as of today.';
+export const AGING_NOTE = (): string => t('reports.reports.agingNote');
 
 function draftOf(route: ReportsRoute | null): Draft {
   return {
@@ -97,6 +100,8 @@ function draftOf(route: ReportsRoute | null): Draft {
 @Component({
   selector: 'app-reports',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     ButtonDirective,
     DrawerShell,
     ExportHistoryDrawer,
@@ -127,11 +132,21 @@ export class Reports {
   private readonly messages = inject(MessageService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly forbiddenMessage = REPORTS_FORBIDDEN_MESSAGE;
-  readonly noBranchesMessage = REPORTS_NO_BRANCHES_MESSAGE;
-  readonly loadErrorMessage = REPORTS_LOAD_ERROR_MESSAGE;
-  readonly refreshErrorMessage = REPORTS_REFRESH_ERROR_MESSAGE;
-  readonly agingNote = AGING_NOTE;
+  get forbiddenMessage(): string {
+    return REPORTS_FORBIDDEN_MESSAGE();
+  }
+  get noBranchesMessage(): string {
+    return REPORTS_NO_BRANCHES_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return REPORTS_LOAD_ERROR_MESSAGE();
+  }
+  get refreshErrorMessage(): string {
+    return REPORTS_REFRESH_ERROR_MESSAGE();
+  }
+  get agingNote(): string {
+    return AGING_NOTE();
+  }
   readonly rangeChoices = [...RANGE_CHOICES];
   readonly summarySkeletons = [0, 1, 2, 3, 4];
 
@@ -192,12 +207,12 @@ export class Reports {
 
   readonly branchChoices = computed(() => {
     const branches = this.options()?.branches ?? [];
-    const all = branches.length > 1 ? [{ id: ALL, name: 'All branches' }] : [];
+    const all = branches.length > 1 ? [{ id: ALL, name: t('reports.reports.allBranches') }] : [];
     return [
       ...all,
       ...branches.map((branch) => ({
         id: branch.id,
-        name: branch.isActive ? branch.name : `${branch.name} (Inactive)`,
+        name: branch.isActive ? branch.name : t('reports.reports.inactive', { name: branch.name }),
       })),
     ];
   });
@@ -504,9 +519,9 @@ export class Reports {
           summary:
             kind === 'conflict'
               ? format === 'csv'
-                ? REPORTS_CSV_TOO_LARGE_MESSAGE
-                : REPORTS_PDF_TOO_LARGE_MESSAGE
-              : REPORTS_EXPORT_FAILED_MESSAGE,
+                ? REPORTS_CSV_TOO_LARGE_MESSAGE()
+                : REPORTS_PDF_TOO_LARGE_MESSAGE()
+              : REPORTS_EXPORT_FAILED_MESSAGE(),
         });
       },
     });
@@ -514,5 +529,5 @@ export class Reports {
 }
 
 function choiceName(item: { readonly name: string; readonly isActive: boolean }): string {
-  return item.isActive ? item.name : `${item.name} (Inactive)`;
+  return item.isActive ? item.name : t('reports.reports.inactive', { name: item.name });
 }

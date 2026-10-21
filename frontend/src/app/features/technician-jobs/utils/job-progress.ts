@@ -2,19 +2,23 @@ import { isApiError } from '../../../core/models/api-error.model';
 import { TechnicianVisitDetail, VisitTask, VisitTime } from '../models/technician-visits.model';
 import { NOT_PRIMARY_JOB_MESSAGE, UPDATE_ERROR_MESSAGE } from './technician-errors';
 
-export const STATUS_EDIT_MESSAGE = "This job can't be updated in its current state.";
-export const PAUSE_INVALID_MESSAGE = "This job can't be paused or resumed in its current state.";
-export const NOTES_SAVE_ERROR_MESSAGE = "We couldn't save your notes. Try again.";
-export const PHOTO_INVALID_MESSAGE = 'Upload a JPEG or PNG image up to 10 MB.';
-export const QUANTITY_INVALID_MESSAGE =
-  'Enter a quantity from 0 to 99999.999 with up to 3 decimals.';
+import { localized, t } from '../../../core/i18n/translate';
+export const STATUS_EDIT_MESSAGE = (): string => t('technicianJobs.jobProgress.statusEditMessage');
+export const PAUSE_INVALID_MESSAGE = (): string =>
+  t('technicianJobs.jobProgress.pauseInvalidMessage');
+export const NOTES_SAVE_ERROR_MESSAGE = (): string =>
+  t('technicianJobs.jobProgress.notesSaveErrorMessage');
+export const PHOTO_INVALID_MESSAGE = (): string =>
+  t('technicianJobs.jobProgress.photoInvalidMessage');
+export const QUANTITY_INVALID_MESSAGE = (): string =>
+  t('technicianJobs.jobProgress.quantityInvalidMessage');
 export const MAX_QUANTITY = 99999.999;
 
-const LIMIT_MESSAGES: Readonly<Record<string, string>> = {
-  task_limit_reached: 'This job already has the maximum number of tasks.',
-  material_limit_reached: 'This job already has the maximum number of materials.',
-  evidence_limit_reached: 'This job already has the maximum number of photos.',
-};
+const LIMIT_MESSAGES: Readonly<Record<string, string>> = localized(() => ({
+  task_limit_reached: t('technicianJobs.jobProgress.thisJobAlreadyHas'),
+  material_limit_reached: t('technicianJobs.jobProgress.thisJobAlreadyHas2'),
+  evidence_limit_reached: t('technicianJobs.jobProgress.thisJobAlreadyHas3'),
+}));
 
 /** Whole seconds elapsed since an ISO instant, never negative (client clock skew). */
 export function elapsedSeconds(startedAt: string, now: number): number {
@@ -37,7 +41,9 @@ export function breakSeconds(time: VisitTime, now: number): number {
 export function formatLabor(seconds: number): string {
   const minutes = Math.floor(Math.max(0, seconds) / 60);
   const hours = Math.floor(minutes / 60);
-  return hours > 0 ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+  return hours > 0
+    ? t('technicianJobs.jobProgress.hM', { hours: hours, value: minutes % 60 })
+    : `${minutes}m`;
 }
 
 /** BR-18 estimate: "<h>h", "<h>h <m>m" or "<m>m". */
@@ -47,7 +53,9 @@ export function formatEstimate(minutes: number): string {
   if (hours === 0) {
     return `${rest}m`;
   }
-  return rest === 0 ? `${hours}h` : `${hours}h ${rest}m`;
+  return rest === 0
+    ? `${hours}h`
+    : t('technicianJobs.jobProgress.hM2', { hours: hours, rest: rest });
 }
 
 export type DeviationKind = 'under' | 'over' | 'on';
@@ -64,11 +72,19 @@ export function deviationFor(labor: number, estimatedMinutes: number | null): De
   }
   const minutes = Math.floor(Math.max(0, labor) / 60);
   if (minutes < estimatedMinutes) {
-    return { kind: 'under', text: `${estimatedMinutes - minutes} min under estimate` };
+    return {
+      kind: 'under',
+      text: t('technicianJobs.jobProgress.minUnderEstimate', { value: estimatedMinutes - minutes }),
+    };
   }
   return minutes > estimatedMinutes
-    ? { kind: 'over', text: `${minutes - estimatedMinutes} min over estimate` }
-    : { kind: 'on', text: 'On estimate' };
+    ? {
+        kind: 'over',
+        text: t('technicianJobs.jobProgress.minOverEstimate', {
+          value: minutes - estimatedMinutes,
+        }),
+      }
+    : { kind: 'on', text: t('technicianJobs.jobProgress.onEstimate') };
 }
 
 export interface MutationFailure {
@@ -92,18 +108,18 @@ export function classifyMutationFailure(
   if (isApiError(error)) {
     if (error.status === 409) {
       return {
-        message: LIMIT_MESSAGES[error.code ?? ''] ?? messages.conflict ?? STATUS_EDIT_MESSAGE,
+        message: LIMIT_MESSAGES[error.code ?? ''] ?? messages.conflict ?? STATUS_EDIT_MESSAGE(),
         reload: true,
       };
     }
     if (error.status === 403 && error.code === 'not_primary_technician') {
-      return { message: NOT_PRIMARY_JOB_MESSAGE, reload: true };
+      return { message: NOT_PRIMARY_JOB_MESSAGE(), reload: true };
     }
     if ((error.status === 400 || error.status === 413) && messages.invalid !== undefined) {
       return { message: messages.invalid, reload: false };
     }
   }
-  return { message: UPDATE_ERROR_MESSAGE, reload: false };
+  return { message: UPDATE_ERROR_MESSAGE(), reload: false };
 }
 
 /** Required tasks that are not complete yet. */
@@ -120,9 +136,11 @@ export function completionPercent(tasks: readonly VisitTask[]): number {
 /** BR-16 remaining text. */
 export function requiredText(remaining: number): string {
   if (remaining === 0) {
-    return 'All required tasks complete';
+    return t('technicianJobs.jobProgress.allRequiredTasksComplete');
   }
-  return remaining === 1 ? '1 required task remaining' : `${remaining} required tasks remaining`;
+  return remaining === 1
+    ? t('technicianJobs.jobProgress.n1RequiredTaskRemaining')
+    : t('technicianJobs.jobProgress.requiredTasksRemaining', { remaining: remaining });
 }
 
 export function hasEvidence(visit: TechnicianVisitDetail, type: 'before' | 'after'): boolean {

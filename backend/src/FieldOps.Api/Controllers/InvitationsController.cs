@@ -87,7 +87,8 @@ public sealed class InvitationsController(
                 request.FirstName,
                 request.LastName,
                 request.Password,
-                GetClientIpAddress()),
+                GetClientIpAddress(),
+                LanguageInput.AsString(request.PreferredLanguage)),
             cancellationToken);
 
         return await MapAcceptedAsync(result);

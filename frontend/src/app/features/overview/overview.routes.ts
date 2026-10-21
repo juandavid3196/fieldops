@@ -18,7 +18,7 @@ export const overviewRedirectGuard: CanActivateFn = () => {
 export default [
   {
     path: '',
-    title: 'Overview · FieldOps',
+    title: 'titles.overview',
     canActivate: [overviewRedirectGuard],
     loadComponent: () => import('./pages/overview/overview').then((m) => m.Overview),
   },

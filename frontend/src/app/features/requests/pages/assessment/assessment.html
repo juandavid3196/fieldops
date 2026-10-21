@@ -1,6 +1,6 @@
 <p-toast />
 <app-confirm-dialog
-  checkboxLabel="Notify customer by email"
+  [checkboxLabel]="'requests.assessment.notifyCustomerByEmail' | transloco"
   [checkboxDisabled]="!emailAvailable()"
   [checkboxHelper]="emailAvailable() ? undefined : noEmailMessage"
   [(checkboxChecked)]="cancelNotify"
@@ -10,9 +10,14 @@
 <div class="assessment">
   <header class="assessment__header">
     @if (detail(); as detail) {
-      <nav class="assessment__breadcrumb" aria-label="Breadcrumb">
+      <nav
+        class="assessment__breadcrumb"
+        [attr.aria-label]="'requests.assessment.breadcrumb' | transloco"
+      >
         <ol>
-          <li><a routerLink="/requests">Requests</a></li>
+          <li>
+            <a routerLink="/requests">{{ 'requests.assessment.requests' | transloco }}</a>
+          </li>
           <li>
             <a routerLink="/requests" [queryParams]="requestQueryParams">{{ detail.number }}</a>
           </li>
@@ -37,7 +42,7 @@
           [queryParams]="requestQueryParams"
         >
           <i class="pi pi-arrow-left" aria-hidden="true"></i>
-          Back to request
+          {{ 'requests.assessment.backToRequest' | transloco }}
         </a>
       }
     </div>
@@ -62,7 +67,9 @@
     @case ('not-available') {
       <div class="assessment__message" role="alert">
         <p>{{ unavailableMessage }}</p>
-        <a pButton severity="secondary" size="small" routerLink="/requests">Back to requests</a>
+        <a pButton severity="secondary" size="small" routerLink="/requests">{{
+          'requests.assessment.backToRequests' | transloco
+        }}</a>
       </div>
     }
     @case ('not-schedulable') {
@@ -75,7 +82,7 @@
           routerLink="/requests"
           [queryParams]="requestQueryParams"
         >
-          Back to request
+          {{ 'requests.assessment.backToRequest' | transloco }}
         </a>
       </div>
     }
@@ -84,7 +91,7 @@
         <span class="assessment__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retryLoad()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -96,9 +103,10 @@
             <span class="assessment__info">
               <i class="pi pi-info-circle" aria-hidden="true"></i>
               <span>
-                <strong>Assessment is optional.</strong>
-                If the request already contains enough information, return to the request and choose
-                <strong>Mark ready for quote</strong> instead.
+                <strong>{{ 'requests.assessment.assessmentIsOptional' | transloco }}</strong>
+                {{ 'requests.assessment.ifTheRequestAlready' | transloco }}
+                <strong>{{ 'requests.assessment.markReadyForQuote' | transloco }}</strong>
+                {{ 'requests.assessment.instead' | transloco }}
               </span>
             </span>
           </p-message>
@@ -108,16 +116,20 @@
           <section class="assessment__card" aria-labelledby="assessment-find-heading">
             <h2 class="assessment__card-title" id="assessment-find-heading">
               <i class="pi pi-calendar" aria-hidden="true"></i>
-              Find a time
+              {{ 'requests.assessment.findATime' | transloco }}
             </h2>
 
             <div class="assessment__availability">
               <i class="pi pi-user" aria-hidden="true"></i>
               <div>
-                <h3 class="assessment__availability-title">Customer availability from request</h3>
+                <h3 class="assessment__availability-title">
+                  {{ 'requests.assessment.customerAvailabilityFromRequest' | transloco }}
+                </h3>
                 <p class="assessment__availability-text">
                   @if (preferred().visit; as visit) {
-                    <span>Preferred visit: {{ visit }}</span>
+                    <span>{{
+                      'requests.assessment.preferredVisit' | transloco: { visit: visit }
+                    }}</span>
                   } @else if (!preferred().notes) {
                     <span>{{ noPreferredMessage }}</span>
                   }
@@ -129,7 +141,9 @@
               </div>
             </div>
 
-            <h3 class="assessment__subheading" id="assessment-picker-label">Select a technician</h3>
+            <h3 class="assessment__subheading" id="assessment-picker-label">
+              {{ 'requests.assessment.selectATechnician' | transloco }}
+            </h3>
             <app-assessment-technician-picker
               [technicians]="planner()?.technicians ?? null"
               [timezone]="plannerZone()"
@@ -159,25 +173,25 @@
           <section class="assessment__card" aria-labelledby="assessment-visit-heading">
             <h2 class="assessment__card-title" id="assessment-visit-heading">
               <i class="pi pi-file" aria-hidden="true"></i>
-              Assessment visit
+              {{ 'requests.assessment.assessmentVisit' | transloco }}
             </h2>
 
             @if (summary(); as summary) {
               <dl class="assessment__summary">
                 <div>
-                  <dt>Request</dt>
+                  <dt>{{ 'requests.assessment.request' | transloco }}</dt>
                   <dd>{{ summary.number }}</dd>
                 </div>
                 <div>
-                  <dt>Customer</dt>
+                  <dt>{{ 'common.customer' | transloco }}</dt>
                   <dd>{{ summary.customer }}</dd>
                 </div>
                 <div class="assessment__summary-wide">
-                  <dt>Property</dt>
+                  <dt>{{ 'requests.assessment.property' | transloco }}</dt>
                   <dd>{{ summary.property }}</dd>
                 </div>
                 <div class="assessment__summary-wide">
-                  <dt>Issue</dt>
+                  <dt>{{ 'requests.assessment.issue' | transloco }}</dt>
                   <dd>{{ summary.issue }}</dd>
                 </div>
               </dl>
@@ -202,7 +216,7 @@
 
             <section class="assessment__process" aria-labelledby="assessment-process-heading">
               <h3 class="assessment__subheading" id="assessment-process-heading">
-                Request process
+                {{ 'requests.assessment.requestProcess' | transloco }}
               </h3>
               <ol class="assessment__steps">
                 @for (step of steps(); track step.label) {
@@ -217,9 +231,13 @@
                     </span>
                     <span class="assessment__step-label">{{ step.label }}</span>
                     @if (step.status === 'done') {
-                      <span class="assessment__sr">(completed)</span>
+                      <span class="assessment__sr">{{
+                        'requests.assessment.completed' | transloco
+                      }}</span>
                     } @else if (step.status === 'current') {
-                      <span class="assessment__sr">(current step)</span>
+                      <span class="assessment__sr">{{
+                        'requests.assessment.currentStep' | transloco
+                      }}</span>
                     }
                   </li>
                 }

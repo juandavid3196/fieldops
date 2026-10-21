@@ -1,5 +1,6 @@
 import { FormControl, FormGroup } from '@angular/forms';
 
+import { localized, t } from '../../../core/i18n/translate';
 export type Weekday =
   'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
 
@@ -13,15 +14,15 @@ export const WEEKDAYS: readonly Weekday[] = [
   'sunday',
 ];
 
-export const WEEKDAY_LABELS: Readonly<Record<Weekday, string>> = {
-  monday: 'Monday',
-  tuesday: 'Tuesday',
-  wednesday: 'Wednesday',
-  thursday: 'Thursday',
-  friday: 'Friday',
-  saturday: 'Saturday',
-  sunday: 'Sunday',
-};
+export const WEEKDAY_LABELS: Readonly<Record<Weekday, string>> = localized(() => ({
+  monday: t('organizations.organizationRegistrationModel.monday'),
+  tuesday: t('organizations.organizationRegistrationModel.tuesday'),
+  wednesday: t('organizations.organizationRegistrationModel.wednesday'),
+  thursday: t('organizations.organizationRegistrationModel.thursday'),
+  friday: t('organizations.organizationRegistrationModel.friday'),
+  saturday: t('organizations.organizationRegistrationModel.saturday'),
+  sunday: t('organizations.organizationRegistrationModel.sunday'),
+}));
 
 /** `{ "start": "HH:mm", "end": "HH:mm" }` for one open day (BR-15). */
 export interface BusinessHoursDay {

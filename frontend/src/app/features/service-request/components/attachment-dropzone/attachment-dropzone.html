@@ -9,7 +9,7 @@
     <i class="pi pi-cloud-upload dropzone__icon" aria-hidden="true"></i>
     <div class="dropzone__copy">
       <p class="dropzone__text">
-        Drag and drop files here, or
+        {{ 'serviceRequest.attachmentDropzone.dragAndDropFiles' | transloco }}
         <button
           type="button"
           class="dropzone__browse"
@@ -19,10 +19,12 @@
           "
           (click)="browse()"
         >
-          click to browse
+          {{ 'serviceRequest.attachmentDropzone.clickToBrowse' | transloco }}
         </button>
       </p>
-      <p class="dropzone__hint" id="sr-attachments-hint">JPG, PNG, PDF up to 10 MB each</p>
+      <p class="dropzone__hint" id="sr-attachments-hint">
+        {{ 'serviceRequest.attachmentDropzone.jpgPngPdfUp' | transloco }}
+      </p>
     </div>
     <input
       #picker
@@ -49,7 +51,9 @@
             <button
               type="button"
               class="dropzone__remove"
-              [attr.aria-label]="'Remove ' + file.name"
+              [attr.aria-label]="
+                'serviceRequest.attachmentDropzone.remove' | transloco: { name: file.name }
+              "
               (click)="store.removeFile($index)"
             >
               <i class="pi pi-times" aria-hidden="true"></i>

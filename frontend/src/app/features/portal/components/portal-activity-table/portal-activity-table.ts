@@ -4,6 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { openBlob } from '../../../invoices/utils/blob-download';
 import { ActivityRow } from '../../models/portal.model';
@@ -13,7 +14,9 @@ import { dateLabel, money } from '../../utils/portal-format';
 import { activityChip } from '../../utils/portal-status';
 import { PortalStatusChip } from '../portal-status-chip/portal-status-chip';
 
-export const ACTIVITY_DOWNLOAD_ERROR = "We couldn't open the file. Try again.";
+import { t } from '../../../../core/i18n/translate';
+export const ACTIVITY_DOWNLOAD_ERROR = (): string =>
+  t('portal.portalActivityTable.activityDownloadError');
 
 /**
  * Activity rows (BR-26) shared by Home and the Activity page: Service, Date, Reference, Amount,
@@ -21,7 +24,7 @@ export const ACTIVITY_DOWNLOAD_ERROR = "We couldn't open the file. Try again.";
  */
 @Component({
   selector: 'app-portal-activity-table',
-  imports: [ButtonDirective, PortalStatusChip, RouterLink],
+  imports: [TranslocoPipe, ButtonDirective, PortalStatusChip, RouterLink],
   templateUrl: './portal-activity-table.html',
   styleUrls: ['../../portal.scss', '../../portal-table.scss'],
 })
@@ -78,7 +81,7 @@ export class PortalActivityTable {
       },
       error: () => {
         this.busy.set(null);
-        this.error.set(ACTIVITY_DOWNLOAD_ERROR);
+        this.error.set(ACTIVITY_DOWNLOAD_ERROR());
       },
     });
   }

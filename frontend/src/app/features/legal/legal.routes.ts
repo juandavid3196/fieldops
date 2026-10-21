@@ -12,13 +12,13 @@ export default [
     children: [
       {
         path: 'privacy',
-        title: 'Privacy Policy · FieldOps',
+        title: 'titles.privacyPolicy',
         loadComponent: () =>
           import('./pages/privacy-policy/privacy-policy').then((m) => m.PrivacyPolicy),
       },
       {
         path: 'terms',
-        title: 'Terms of Service · FieldOps',
+        title: 'titles.termsOfService',
         loadComponent: () =>
           import('./pages/terms-of-service/terms-of-service').then((m) => m.TermsOfService),
       },

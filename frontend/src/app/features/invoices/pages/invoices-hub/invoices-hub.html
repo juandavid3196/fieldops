@@ -1,6 +1,6 @@
 <p-toast />
 <app-discard-changes-dialog />
-<p-menu #exportMenuRef [popup]="true" appendTo="body" [model]="exportMenu" />
+<p-menu #exportMenuRef [popup]="true" appendTo="body" [model]="exportMenu | localizedRef" />
 <p-menu #rowMenuRef [popup]="true" appendTo="body" [model]="rowMenu()" />
 <p class="hub__sr" role="status" aria-live="polite">{{ announcement() }}</p>
 
@@ -8,9 +8,9 @@
   <div class="hub__main">
     <header class="hub__header">
       <div class="hub__heading">
-        <h1 class="hub__title">Invoices &amp; payments</h1>
+        <h1 class="hub__title">{{ 'invoices.invoicesHub.invoicesPayments' | transloco }}</h1>
         <p class="hub__subtitle">
-          Track invoices, outstanding balances, due dates, and customer payments.
+          {{ 'invoices.invoicesHub.trackInvoicesOutstandingBalances' | transloco }}
         </p>
       </div>
       @if (!forbidden()) {
@@ -26,12 +26,12 @@
             [attr.aria-busy]="exporting()"
             (click)="exportMenuRef.toggle($event)"
           >
-            Export
+            {{ 'invoices.invoicesHub.export' | transloco }}
             <i class="pi pi-chevron-down" aria-hidden="true"></i>
           </button>
           <button pButton type="button" (click)="selectTab('ready')">
             <i class="pi pi-plus" aria-hidden="true"></i>
-            New invoice
+            {{ 'invoices.invoicesHub.newInvoice' | transloco }}
           </button>
         </div>
       }
@@ -51,13 +51,20 @@
         <p class="hub__message" role="alert">
           {{ optionsMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retryOptions()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </p>
       }
 
-      <section class="hub__card" aria-label="Invoices and payments">
-        <div class="hub__tabs" role="tablist" aria-label="Invoices and payments views">
+      <section
+        class="hub__card"
+        [attr.aria-label]="'invoices.invoicesHub.invoicesAndPayments' | transloco"
+      >
+        <div
+          class="hub__tabs"
+          role="tablist"
+          [attr.aria-label]="'invoices.invoicesHub.invoicesAndPaymentsViews' | transloco"
+        >
           @for (item of tabs; track item.code; let index = $index) {
             <button
               type="button"
@@ -81,7 +88,11 @@
         <div id="hub-panel" role="tabpanel" [attr.aria-labelledby]="'hub-tab-' + tab()">
           @switch (tab()) {
             @case ('invoices') {
-              <div class="hub__filters" role="search" aria-label="Filter invoices">
+              <div
+                class="hub__filters"
+                role="search"
+                [attr.aria-label]="'invoices.invoicesHub.filterInvoices' | transloco"
+              >
                 <div class="hub__field hub__field--search">
                   <p-iconfield>
                     <p-inputicon class="pi pi-search" />
@@ -90,8 +101,10 @@
                       type="search"
                       fluid
                       autocomplete="off"
-                      aria-label="Search invoices"
-                      placeholder="Search invoices, customers, or work orders..."
+                      [attr.aria-label]="'invoices.invoicesHub.searchInvoices' | transloco"
+                      [attr.placeholder]="
+                        'invoices.invoicesHub.searchInvoicesCustomersOr' | transloco
+                      "
                       [ngModel]="invoiceSearchText()"
                       (ngModelChange)="invoiceSearchChanged($event)"
                     />
@@ -101,7 +114,7 @@
                   <input
                     pInputText
                     type="date"
-                    aria-label="Invoice date from"
+                    [attr.aria-label]="'invoices.invoicesHub.invoiceDateFrom' | transloco"
                     [max]="invoiceTo() || null"
                     [ngModel]="invoiceFrom()"
                     (ngModelChange)="changeInvoiceDates({ from: $event })"
@@ -110,27 +123,31 @@
                   <input
                     pInputText
                     type="date"
-                    aria-label="Invoice date to"
+                    [attr.aria-label]="'invoices.invoicesHub.invoiceDateTo' | transloco"
                     [min]="invoiceFrom() || null"
                     [ngModel]="invoiceTo()"
                     (ngModelChange)="changeInvoiceDates({ to: $event })"
                   />
                 </div>
                 <div class="hub__field">
-                  <span id="hub-status-label" class="hub__label">Status</span>
+                  <span id="hub-status-label" class="hub__label">{{
+                    'common.status' | transloco
+                  }}</span>
                   <p-select
                     appendTo="body"
                     fluid
                     ariaLabelledBy="hub-status-label"
                     optionLabel="label"
                     optionValue="code"
-                    [options]="statusOptions"
+                    [options]="statusOptions | localizedRef"
                     [ngModel]="status() ?? 'all'"
                     (ngModelChange)="changeStatus($event)"
                   />
                 </div>
                 <div class="hub__field">
-                  <span id="hub-customer-label" class="hub__label">Customer</span>
+                  <span id="hub-customer-label" class="hub__label">{{
+                    'common.customer' | transloco
+                  }}</span>
                   <p-select
                     appendTo="body"
                     fluid
@@ -159,7 +176,7 @@
                   [link]="true"
                   (click)="clearInvoiceFilters()"
                 >
-                  Clear filters
+                  {{ 'invoices.invoicesHub.clearFilters' | transloco }}
                 </button>
               </div>
               <app-invoices-table
@@ -175,7 +192,11 @@
               />
             }
             @case ('payments') {
-              <div class="hub__filters" role="search" aria-label="Filter payments">
+              <div
+                class="hub__filters"
+                role="search"
+                [attr.aria-label]="'invoices.invoicesHub.filterPayments' | transloco"
+              >
                 <div class="hub__field hub__field--search">
                   <p-iconfield>
                     <p-inputicon class="pi pi-search" />
@@ -184,8 +205,10 @@
                       type="search"
                       fluid
                       autocomplete="off"
-                      aria-label="Search payments"
-                      placeholder="Search payments, invoices, customers, or references..."
+                      [attr.aria-label]="'invoices.invoicesHub.searchPayments' | transloco"
+                      [attr.placeholder]="
+                        'invoices.invoicesHub.searchPaymentsInvoicesCustomers' | transloco
+                      "
                       [ngModel]="paymentSearchText()"
                       (ngModelChange)="paymentSearchChanged($event)"
                     />
@@ -195,7 +218,7 @@
                   <input
                     pInputText
                     type="date"
-                    aria-label="Payment date from"
+                    [attr.aria-label]="'invoices.invoicesHub.paymentDateFrom' | transloco"
                     [max]="paymentTo() || null"
                     [ngModel]="paymentFrom()"
                     (ngModelChange)="changePaymentDates({ from: $event })"
@@ -204,21 +227,23 @@
                   <input
                     pInputText
                     type="date"
-                    aria-label="Payment date to"
+                    [attr.aria-label]="'invoices.invoicesHub.paymentDateTo' | transloco"
                     [min]="paymentFrom() || null"
                     [ngModel]="paymentTo()"
                     (ngModelChange)="changePaymentDates({ to: $event })"
                   />
                 </div>
                 <div class="hub__field">
-                  <span id="hub-method-label" class="hub__label">Method</span>
+                  <span id="hub-method-label" class="hub__label">{{
+                    'invoices.invoicesHub.method' | transloco
+                  }}</span>
                   <p-select
                     appendTo="body"
                     fluid
                     ariaLabelledBy="hub-method-label"
                     optionLabel="label"
                     optionValue="code"
-                    [options]="methodOptions"
+                    [options]="methodOptions | localizedRef"
                     [ngModel]="paymentMethod() ?? 'all'"
                     (ngModelChange)="changeMethod($event)"
                   />
@@ -231,7 +256,7 @@
                   [link]="true"
                   (click)="clearPaymentFilters()"
                 >
-                  Clear filters
+                  {{ 'invoices.invoicesHub.clearFilters' | transloco }}
                 </button>
               </div>
               <app-payments-table
@@ -287,7 +312,9 @@
 <ng-template #branchField>
   @if (canChooseBranch()) {
     <div class="hub__field">
-      <span id="hub-branch-label" class="hub__label">Branch</span>
+      <span id="hub-branch-label" class="hub__label">{{
+        'invoices.invoicesHub.branch' | transloco
+      }}</span>
       <p-select
         appendTo="body"
         fluid

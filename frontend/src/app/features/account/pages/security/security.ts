@@ -9,6 +9,7 @@ import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Toast } from 'primeng/toast';
 import { Observable, map, startWith } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -26,7 +27,8 @@ import {
   validatePassword,
 } from '../../utils/account-validation';
 
-export const PASSWORD_ERROR = "We couldn't update your password. Try again.";
+import { localizedList, t } from '../../../../core/i18n/translate';
+export const PASSWORD_ERROR = (): string => t('account.security.passwordError');
 /** Fallback block when a `429` carries no readable `Retry-After`: the BR-06 window length. */
 const DEFAULT_RETRY_AFTER_SECONDS = 900;
 
@@ -38,21 +40,26 @@ interface PasswordFieldConfig {
   readonly autocomplete: string;
 }
 
-const FIELD_CONFIGS: readonly PasswordFieldConfig[] = [
+const FIELD_CONFIGS: readonly PasswordFieldConfig[] = localizedList(() => [
   {
     key: 'currentPassword',
-    label: 'Current password',
-    noun: 'current',
+    label: t('account.security.currentPassword'),
+    noun: t('account.security.nounCurrent'),
     autocomplete: 'current-password',
   },
-  { key: 'newPassword', label: 'New password', noun: 'new', autocomplete: 'new-password' },
   {
-    key: 'confirmPassword',
-    label: 'Confirm new password',
-    noun: 'confirmation',
+    key: 'newPassword',
+    label: t('account.security.newPassword'),
+    noun: t('account.security.nounNew'),
     autocomplete: 'new-password',
   },
-];
+  {
+    key: 'confirmPassword',
+    label: t('account.security.confirmNewPassword'),
+    noun: t('account.security.nounConfirmation'),
+    autocomplete: 'new-password',
+  },
+]);
 
 const EMPTY: PasswordValues = { currentPassword: '', newPassword: '', confirmPassword: '' };
 
@@ -60,6 +67,7 @@ const EMPTY: PasswordValues = { currentPassword: '', newPassword: '', confirmPas
 @Component({
   selector: 'app-security',
   imports: [
+    TranslocoPipe,
     ReactiveFormsModule,
     ButtonDirective,
     InputText,
@@ -82,7 +90,9 @@ export class Security {
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
   readonly fields = FIELD_CONFIGS;
-  readonly passwordErrorText = PASSWORD_ERROR;
+  get passwordErrorText(): string {
+    return PASSWORD_ERROR();
+  }
 
   readonly form = new FormGroup({
     currentPassword: new FormControl('', { nonNullable: true }),
@@ -136,7 +146,7 @@ export class Security {
       };
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'your password',
+          subject: t('account.security.yourPassword'),
           accept: () => settle(true),
           reject: () => settle(false),
         }),
@@ -175,7 +185,10 @@ export class Security {
           this.submitting.set(false);
           this.form.reset(EMPTY);
           this.fieldErrors.set({});
-          this.messageService.add({ severity: 'success', summary: 'Password updated' });
+          this.messageService.add({
+            severity: 'success',
+            summary: t('account.security.passwordUpdated'),
+          });
         },
         error: (failure: unknown) => {
           this.submitting.set(false);

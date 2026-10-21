@@ -103,7 +103,7 @@ describe('ServiceRequestWizardStore', () => {
     store.website.set('');
 
     store.submit();
-    expect(store.error('consent')).toBe(CONSENT_REQUIRED_MESSAGE);
+    expect(store.error('consent')).toBe(CONSENT_REQUIRED_MESSAGE());
     expect(store.submitting()).toBe(false);
 
     store.setConsent(true);
@@ -153,28 +153,28 @@ describe('ServiceRequestWizardStore', () => {
         title: 'Backend text',
         errors: { 'service.description': ['x'], 'contact.email': ['Backend text'] },
       },
-      { step: 'contact', field: ['contact.email', SERVER_FIELD_MESSAGE] },
+      { step: 'contact', field: ['contact.email', SERVER_FIELD_MESSAGE()] },
     ],
     [
       'generic bad request (honeypot/malformed)',
       400,
       { title: 'Backend text' },
-      { step: 'review', banner: SUBMIT_ERROR_MESSAGE },
+      { step: 'review', banner: SUBMIT_ERROR_MESSAGE() },
     ],
     [
       '413 → attachment size on Service details',
       413,
       null,
-      { step: 'service', field: ['attachments', ATTACHMENT_SIZE_MESSAGE] },
+      { step: 'service', field: ['attachments', ATTACHMENT_SIZE_MESSAGE()] },
     ],
-    ['429 → rate limit message', 429, null, { step: 'review', banner: RATE_LIMITED_MESSAGE }],
+    ['429 → rate limit message', 429, null, { step: 'review', banner: RATE_LIMITED_MESSAGE() }],
     [
       '500 → generic submit error',
       500,
       { title: 'Backend text' },
-      { step: 'review', banner: SUBMIT_ERROR_MESSAGE },
+      { step: 'review', banner: SUBMIT_ERROR_MESSAGE() },
     ],
-    ['network error', 0, null, { step: 'review', banner: SUBMIT_ERROR_MESSAGE }],
+    ['network error', 0, null, { step: 'review', banner: SUBMIT_ERROR_MESSAGE() }],
   ])('maps %s and retains data (AC-20, AC-23)', (_name, status, body, expected) => {
     reachReview();
     store.setConsent(true);

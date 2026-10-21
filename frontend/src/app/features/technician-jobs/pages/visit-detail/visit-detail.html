@@ -3,7 +3,12 @@
 
   @switch (state()) {
     @case ('loading') {
-      <div class="visit__skeletons" aria-busy="true" aria-label="Loading job" role="status">
+      <div
+        class="visit__skeletons"
+        aria-busy="true"
+        [attr.aria-label]="'technicianJobs.visitDetail.loadingJob' | transloco"
+        role="status"
+      >
         <p-skeleton height="4rem" />
         <p-skeleton height="3.5rem" />
         <p-skeleton height="11rem" />
@@ -16,7 +21,7 @@
         <span class="visit__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="load()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -30,7 +35,7 @@
         [outlined]="true"
         [routerLink]="todayPath"
       >
-        Back to Today's jobs
+        {{ 'technicianJobs.visitDetail.backToTodayS' | transloco }}
       </a>
     }
     @case ('ready') {
@@ -76,7 +81,9 @@
                     <i class="pi pi-calendar" aria-hidden="true"></i>
                     <span>
                       {{ schedule() }}
-                      <span class="visit__muted visit__caption">Scheduled window</span>
+                      <span class="visit__muted visit__caption">{{
+                        'technicianJobs.visitDetail.scheduledWindow' | transloco
+                      }}</span>
                       @if (arrival(); as arrivalText) {
                         <span class="visit__muted visit__caption">{{ arrivalText }}</span>
                       }
@@ -105,7 +112,7 @@
               type="button"
               severity="secondary"
               [outlined]="true"
-              aria-label="Message the team about this job"
+              [attr.aria-label]="'technicianJobs.visitDetail.messageTheTeamAbout' | transloco"
               [disabled]="messaging()"
               [loading]="messaging()"
               [attr.aria-busy]="messaging()"
@@ -114,7 +121,7 @@
               @if (!messaging()) {
                 <i class="pi pi-comments" aria-hidden="true"></i>
               }
-              Message
+              {{ 'technicianJobs.visitDetail.message' | transloco }}
             </button>
             @if (messageError(); as problem) {
               <p class="visit__message-error" role="alert">{{ problem }}</p>
@@ -135,15 +142,20 @@
           </app-job-progress>
           <ng-container [ngTemplateOutlet]="messageAction" />
         } @else if (cancelled()) {
-          <section class="visit__banner visit__banner--cancelled" aria-label="Job status">
+          <section
+            class="visit__banner visit__banner--cancelled"
+            [attr.aria-label]="'technicianJobs.visitDetail.jobStatus' | transloco"
+          >
             <i class="pi pi-ban" aria-hidden="true"></i>
             <p class="visit__banner-text">
-              <strong>Cancelled</strong>
+              <strong>{{ 'technicianJobs.visitDetail.cancelled' | transloco }}</strong>
               @if (cancelledText(); as text) {
                 <span class="visit__banner-note">{{ text }}</span>
               }
               @if (job.cancellation; as cancellation) {
-                <span class="visit__banner-note">Reason: {{ cancellation.reason }}</span>
+                <span class="visit__banner-note">{{
+                  'technicianJobs.visitDetail.reason' | transloco: { reason: cancellation.reason }
+                }}</span>
               }
             </p>
           </section>
@@ -151,7 +163,10 @@
           <ng-container [ngTemplateOutlet]="jobHeader" />
         } @else {
           @if (banner(); as status) {
-            <section class="visit__banner" aria-label="Job status">
+            <section
+              class="visit__banner"
+              [attr.aria-label]="'technicianJobs.visitDetail.jobStatus' | transloco"
+            >
               <i class="pi pi-car" aria-hidden="true"></i>
               <p class="visit__banner-text">
                 <strong>{{ status.title }}</strong>
@@ -170,7 +185,9 @@
 
           <section class="visit__card" aria-labelledby="visit-access-title">
             <div class="visit__head">
-              <h2 class="visit__section-title" id="visit-access-title">Access details</h2>
+              <h2 class="visit__section-title" id="visit-access-title">
+                {{ 'technicianJobs.visitDetail.accessDetails' | transloco }}
+              </h2>
               <p-tag
                 styleClass="visit__type"
                 severity="success"
@@ -194,11 +211,13 @@
             @if (job.access.activeDamage) {
               <p class="visit__warning">
                 <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-                Active damage reported by the customer. Check the site before starting.
+                {{ 'technicianJobs.visitDetail.activeDamageReportedBy' | transloco }}
               </p>
             }
             @if (!hasAccessLines()) {
-              <p class="visit__muted">No access details provided.</p>
+              <p class="visit__muted">
+                {{ 'technicianJobs.visitDetail.noAccessDetailsProvided' | transloco }}
+              </p>
             }
           </section>
 
@@ -266,7 +285,7 @@
                     @if (pending() !== 'start-job') {
                       <i class="pi pi-play" aria-hidden="true"></i>
                     }
-                    Start job
+                    {{ 'technicianJobs.visitDetail.startJob' | transloco }}
                   </button>
                 }
                 @if (actions.startJobHelper; as helper) {
@@ -280,7 +299,7 @@
                       aria-describedby="visit-start-job-help"
                     >
                       <i class="pi pi-play" aria-hidden="true"></i>
-                      Start job
+                      {{ 'technicianJobs.visitDetail.startJob' | transloco }}
                     </button>
                     <p class="bar__helper" id="visit-start-job-help">{{ helper }}</p>
                   </div>
@@ -292,7 +311,7 @@
                 (click)="openReport($any($event.currentTarget))"
               >
                 <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-                Report delay or issue
+                {{ 'technicianJobs.visitDetail.reportDelayOrIssue' | transloco }}
               </button>
             </div>
           }
@@ -307,9 +326,9 @@
 
 @if (state() === 'ready' && visit(); as job) {
   <p-dialog
-    header="Approved assessment"
+    [header]="'technicianJobs.visitDetail.approvedAssessment' | transloco"
     [modal]="true"
-    closeAriaLabel="Close"
+    [closeAriaLabel]="'common.close' | transloco"
     [draggable]="false"
     [resizable]="false"
     [visible]="assessmentOpen()"
@@ -321,13 +340,17 @@
         <p class="visit__muted">{{ completedText() }}</p>
         @if (assessment.diagnosis) {
           <section aria-labelledby="assessment-diagnosis">
-            <h3 class="visit__section-title" id="assessment-diagnosis">Diagnosis</h3>
+            <h3 class="visit__section-title" id="assessment-diagnosis">
+              {{ 'technicianJobs.visitDetail.diagnosis' | transloco }}
+            </h3>
             <p class="panel__text">{{ assessment.diagnosis }}</p>
           </section>
         }
         @if (assessment.recommendedScope) {
           <section aria-labelledby="assessment-scope">
-            <h3 class="visit__section-title" id="assessment-scope">Recommended scope</h3>
+            <h3 class="visit__section-title" id="assessment-scope">
+              {{ 'technicianJobs.visitDetail.recommendedScope' | transloco }}
+            </h3>
             <p class="panel__text">{{ assessment.recommendedScope }}</p>
           </section>
         }
@@ -349,9 +372,9 @@
   />
 
   <p-dialog
-    header="Delete this photo?"
+    [header]="'technicianJobs.visitDetail.deleteThisPhoto' | transloco"
     [modal]="true"
-    closeAriaLabel="Close"
+    [closeAriaLabel]="'common.close' | transloco"
     [draggable]="false"
     [resizable]="false"
     [visible]="deleteTarget() !== null"
@@ -370,7 +393,7 @@
         [loading]="deleting()"
         (click)="confirmDelete()"
       >
-        Delete
+        {{ 'common.delete' | transloco }}
       </button>
       <button
         pButton
@@ -380,7 +403,7 @@
         [disabled]="deleting()"
         (click)="cancelDelete()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
     </div></p-dialog
   >

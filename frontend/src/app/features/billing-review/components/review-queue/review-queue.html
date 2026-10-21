@@ -1,7 +1,13 @@
 <section class="queue" aria-labelledby="queue-title">
-  <h2 class="queue__title" id="queue-title">Needs review ({{ queue()?.tabs?.all ?? '—' }})</h2>
+  <h2 class="queue__title" id="queue-title">
+    {{ 'billingReview.reviewQueue.needsReview' | transloco: { value: queue()?.tabs?.all ?? '—' } }}
+  </h2>
 
-  <div class="queue__tabs" role="tablist" aria-label="Queue view">
+  <div
+    class="queue__tabs"
+    role="tablist"
+    [attr.aria-label]="'billingReview.reviewQueue.queueView' | transloco"
+  >
     @for (tab of tabs; track tab.code; let index = $index) {
       <button
         type="button"
@@ -23,7 +29,7 @@
       <p class="queue__message" role="alert">
         {{ errorMessage }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </p>
     } @else if (loading() && queue() === null) {
@@ -43,7 +49,7 @@
             size="small"
             (click)="clearFilters.emit()"
           >
-            Clear filters
+            {{ 'billingReview.reviewQueue.clearFilters' | transloco }}
           </button>
         }
       </p>
@@ -70,7 +76,9 @@
                   {{ row.badge }}
                 </span>
                 @if (row.item.followUp) {
-                  <span class="queue__badge queue__badge--follow-up">Follow-up</span>
+                  <span class="queue__badge queue__badge--follow-up">{{
+                    'billingReview.reviewQueue.followUp' | transloco
+                  }}</span>
                 }
               </span>
             </button>
@@ -78,7 +86,10 @@
         }
       </ul>
       @if (pageCount() > 1) {
-        <nav class="queue__pager" aria-label="Pagination">
+        <nav
+          class="queue__pager"
+          [attr.aria-label]="'billingReview.reviewQueue.pagination' | transloco"
+        >
           <button
             pButton
             type="button"
@@ -88,9 +99,12 @@
             [disabled]="filters().page <= 1"
             (click)="go(filters().page - 1)"
           >
-            Previous
+            {{ 'common.previous' | transloco }}
           </button>
-          <span>Page {{ filters().page }} of {{ pageCount() }}</span>
+          <span>{{
+            'billingReview.reviewQueue.pageOf'
+              | transloco: { page: filters().page, pageCount: pageCount() }
+          }}</span>
           <button
             pButton
             type="button"
@@ -100,7 +114,7 @@
             [disabled]="filters().page >= pageCount()"
             (click)="go(filters().page + 1)"
           >
-            Next
+            {{ 'common.next' | transloco }}
           </button>
         </nav>
       }

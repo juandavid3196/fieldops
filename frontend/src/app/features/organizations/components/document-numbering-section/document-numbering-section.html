@@ -1,13 +1,13 @@
 <app-wizard-card
   headingId="document-numbering-heading"
-  title="Document numbering"
-  description="Set the prefixes and starting number for your documents. This helps keep your records organized and consistent."
+  [title]="'organizations.documentNumberingSection.documentNumbering' | transloco"
+  [description]="'organizations.documentNumberingSection.setThePrefixesAnd' | transloco"
   icon="pi-file"
 >
   <div class="document-numbering__grid" [formGroup]="group()">
     <div class="document-numbering__prefixes">
       <app-form-field
-        label="Quote prefix"
+        [label]="'organizations.documentNumberingSection.quotePrefix' | transloco"
         controlId="organization-quotePrefix"
         [required]="true"
         [error]="error('organization.quotePrefix')"
@@ -30,7 +30,7 @@
       </app-form-field>
 
       <app-form-field
-        label="Work order prefix"
+        [label]="'organizations.documentNumberingSection.workOrderPrefix' | transloco"
         controlId="organization-workOrderPrefix"
         [required]="true"
         [error]="error('organization.workOrderPrefix')"
@@ -55,7 +55,7 @@
       </app-form-field>
 
       <app-form-field
-        label="Invoice prefix"
+        [label]="'organizations.documentNumberingSection.invoicePrefix' | transloco"
         controlId="organization-invoicePrefix"
         [required]="true"
         [error]="error('organization.invoicePrefix')"
@@ -79,7 +79,7 @@
     </div>
 
     <app-form-field
-      label="Next invoice number"
+      [label]="'organizations.documentNumberingSection.nextInvoiceNumber' | transloco"
       controlId="organization-nextInvoiceNumber"
       [required]="true"
       [error]="error('organization.nextInvoiceNumber')"
@@ -95,7 +95,7 @@
         fluid
         [invalid]="error('organization.nextInvoiceNumber') !== null"
         [readonly]="submitting()"
-        [ariaLabel]="'Next invoice number'"
+        [ariaLabel]="'organizations.documentNumberingSection.nextInvoiceNumber' | transloco"
         aria-required="true"
         [attr.aria-invalid]="error('organization.nextInvoiceNumber') !== null ? 'true' : null"
         [attr.aria-describedby]="

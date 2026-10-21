@@ -18,6 +18,7 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { Observable, map } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -62,6 +63,7 @@ import {
 } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
+import { t } from '../../../../core/i18n/translate';
 const ERROR_SUMMARY_ID = 'company-setup-error-summary';
 /** Server errors for these keys live in the sequences dialog, not on a card field. */
 const DIALOG_ONLY_KEYS: readonly OrganizationFieldKey[] = [
@@ -69,17 +71,15 @@ const DIALOG_ONLY_KEYS: readonly OrganizationFieldKey[] = [
   'organization.nextWorkOrderNumber',
 ];
 
-export const LOAD_ERROR_MESSAGE = "We couldn't load company settings.";
-export const BRANCH_LOAD_ERROR_MESSAGE =
-  "We couldn't load branches. Check your connection and try again.";
-export const FORBIDDEN_MESSAGE = "You don't have access to company settings.";
-export const READ_ONLY_MESSAGE =
-  'You have view-only access to company settings. Contact an Owner to request changes.';
-export const DESCRIPTION_MESSAGE =
-  'Manage your organization details, branches, billing defaults, and document numbering.';
-export const STALE_SETTINGS_MESSAGE =
-  'This record was changed by someone else. Reload to see the latest version.';
-export const SAVED_MESSAGE = 'Company settings saved';
+export const LOAD_ERROR_MESSAGE = (): string => t('organizations.companySetup.loadErrorMessage');
+export const BRANCH_LOAD_ERROR_MESSAGE = (): string =>
+  t('organizations.companySetup.branchLoadErrorMessage');
+export const FORBIDDEN_MESSAGE = (): string => t('organizations.companySetup.forbiddenMessage');
+export const READ_ONLY_MESSAGE = (): string => t('organizations.companySetup.readOnlyMessage');
+export const DESCRIPTION_MESSAGE = (): string => t('organizations.companySetup.descriptionMessage');
+export const STALE_SETTINGS_MESSAGE = (): string =>
+  t('organizations.companySetup.staleSettingsMessage');
+export const SAVED_MESSAGE = (): string => t('organizations.companySetup.savedMessage');
 /** Key of the currency confirmation, distinct from the un-keyed discard dialog. */
 export const CURRENCY_DIALOG_KEY = 'currency';
 
@@ -91,6 +91,7 @@ export const CURRENCY_DIALOG_KEY = 'currency';
 @Component({
   selector: 'app-company-setup',
   imports: [
+    TranslocoPipe,
     ConfirmDialog,
     DiscardChangesDialog,
     RouterLink,
@@ -130,10 +131,18 @@ export class CompanySetup {
   private submitAttempted = false;
 
   readonly errorSummaryId = ERROR_SUMMARY_ID;
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly readOnlyMessage = READ_ONLY_MESSAGE;
-  readonly descriptionMessage = DESCRIPTION_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get readOnlyMessage(): string {
+    return READ_ONLY_MESSAGE();
+  }
+  get descriptionMessage(): string {
+    return DESCRIPTION_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
   readonly currencyDialogKey = CURRENCY_DIALOG_KEY;
   readonly timezoneOptionsList = timezoneOptions();
   readonly countryOptionsList = countryOptions(SUPPORTED_COUNTRY_CODES);
@@ -222,7 +231,7 @@ export class CompanySetup {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this company profile',
+          subject: t('organizations.companySetup.thisCompanyProfile'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();
@@ -242,7 +251,7 @@ export class CompanySetup {
     }
     this.confirmationService.confirm(
       discardChangesConfirmation({
-        subject: 'this company profile',
+        subject: t('organizations.companySetup.thisCompanyProfile'),
         accept: () => this.resetFormToLoaded(),
       }),
     );
@@ -288,10 +297,10 @@ export class CompanySetup {
     const code = this.form.getRawValue().currency.trim().toUpperCase();
     this.confirmationService.confirm({
       key: CURRENCY_DIALOG_KEY,
-      header: 'Change currency',
-      message: `Change currency to ${code}? Existing invoices keep their original currency.`,
-      acceptButtonProps: { label: 'Change currency' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      header: t('organizations.companySetup.changeCurrency'),
+      message: t('organizations.companySetup.changeCurrencyToExisting', { code: code }),
+      acceptButtonProps: { label: t('organizations.companySetup.changeCurrency') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => this.send(true),
     });
   }
@@ -315,7 +324,7 @@ export class CompanySetup {
           const value = toFormValue(response);
           this.loadedFormValue.set(value);
           this.form.reset(value);
-          this.messageService.add({ severity: 'success', summary: SAVED_MESSAGE });
+          this.messageService.add({ severity: 'success', summary: SAVED_MESSAGE() });
           this.sessionService.loadCurrent().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
         },
         error: (error: unknown) => this.handleSaveFailed(error, confirmed),
@@ -376,7 +385,7 @@ export class CompanySetup {
     if (this.drawerOpen() && (this.drawer()?.isDirty() ?? false)) {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this branch',
+          subject: t('organizations.companySetup.thisBranch'),
           accept: () => this.showBranch(id),
         }),
       );
@@ -454,7 +463,7 @@ export class CompanySetup {
       return;
     }
     this.settingsError.set(
-      apiError ?? { kind: 'unknown', status: 0, message: LOAD_ERROR_MESSAGE, fieldErrors: {} },
+      apiError ?? { kind: 'unknown', status: 0, message: LOAD_ERROR_MESSAGE(), fieldErrors: {} },
     );
   }
 
@@ -469,7 +478,7 @@ export class CompanySetup {
       apiError ?? {
         kind: 'unknown',
         status: 0,
-        message: BRANCH_LOAD_ERROR_MESSAGE,
+        message: BRANCH_LOAD_ERROR_MESSAGE(),
         fieldErrors: {},
       },
     );
@@ -490,7 +499,7 @@ export class CompanySetup {
         return;
       }
       this.staleConflict.set(true);
-      this.pageMessage.set(STALE_SETTINGS_MESSAGE);
+      this.pageMessage.set(STALE_SETTINGS_MESSAGE());
       this.focusSummary();
       return;
     }
@@ -509,7 +518,9 @@ export class CompanySetup {
       return;
     }
 
-    this.pageMessage.set(apiError?.message ?? 'An unexpected error occurred. Please try again.');
+    this.pageMessage.set(
+      apiError?.message ?? t('organizations.companySetup.anUnexpectedErrorOccurred'),
+    );
     this.focusSummary();
   }
 

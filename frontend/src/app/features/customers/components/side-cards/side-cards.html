@@ -1,11 +1,13 @@
 <section class="card" aria-labelledby="contact-title">
   <header class="card__head">
-    <h2 class="card__title" id="contact-title">Contact details</h2>
+    <h2 class="card__title" id="contact-title">
+      {{ 'customers.sideCards.contactDetails' | transloco }}
+    </h2>
     @if (canMutate()) {
       <button
         type="button"
         class="card__pencil"
-        aria-label="Edit contact details"
+        [attr.aria-label]="'customers.sideCards.editContactDetails' | transloco"
         (click)="editContact.emit()"
       >
         <i class="pi pi-pencil" aria-hidden="true"></i>
@@ -22,14 +24,14 @@
       @if (view().phone; as phone) {
         <a class="card__link" [href]="view().phoneHref">{{ phone }}</a>
       } @else {
-        <span>No phone</span>
+        <span>{{ 'customers.sideCards.noPhone' | transloco }}</span>
       }
     </li>
     <li>
       <i class="pi pi-comment" aria-hidden="true"></i>
       <span>
         {{ view().preferred }}
-        <span class="card__caption">Preferred contact</span>
+        <span class="card__caption">{{ 'customers.sideCards.preferredContact' | transloco }}</span>
       </span>
     </li>
     @if (portal(); as portal) {
@@ -37,7 +39,7 @@
         <i class="pi pi-lock" aria-hidden="true"></i>
         <span>
           {{ portal.text }}
-          <span class="card__caption">Portal access</span>
+          <span class="card__caption">{{ 'customers.sideCards.portalAccess' | transloco }}</span>
         </span>
       </li>
     }
@@ -53,7 +55,11 @@
             (click)="invitePortal.emit()"
           >
             <i class="pi pi-send" aria-hidden="true"></i>
-            {{ portal.status === 'invited' ? 'Resend invitation' : 'Invite to portal' }}
+            {{
+              portal.status === 'invited'
+                ? ('customers.sideCards.resendInvitation' | transloco)
+                : ('customers.sideCards.inviteToPortal' | transloco)
+            }}
           </button>
         }
         @if (portal.status !== 'not_invited') {
@@ -64,7 +70,7 @@
             (click)="removePortal.emit()"
           >
             <i class="pi pi-user-minus" aria-hidden="true"></i>
-            Remove portal access
+            {{ 'customers.sideCards.removePortalAccess' | transloco }}
           </button>
         }
       </div>
@@ -76,60 +82,67 @@
 </section>
 
 <section class="card" aria-labelledby="summary-title">
-  <h2 class="card__title" id="summary-title">Customer summary</h2>
+  <h2 class="card__title" id="summary-title">
+    {{ 'customers.sideCards.customerSummary' | transloco }}
+  </h2>
   <dl class="card__stats">
     <div>
-      <dt>Total jobs</dt>
+      <dt>{{ 'customers.sideCards.totalJobs' | transloco }}</dt>
       <dd>{{ view().totalJobs }}</dd>
     </div>
     <div>
-      <dt>Lifetime value</dt>
+      <dt>{{ 'customers.sideCards.lifetimeValue' | transloco }}</dt>
       <dd>{{ view().lifetime }}</dd>
       <dd class="card__caption">{{ view().since }}</dd>
     </div>
     <div>
-      <dt>Last service</dt>
+      <dt>{{ 'customers.sideCards.lastService' | transloco }}</dt>
       <dd>{{ view().lastService }}</dd>
     </div>
   </dl>
 </section>
 
 <section class="card" aria-labelledby="billing-title">
-  <h2 class="card__title" id="billing-title">Billing</h2>
+  <h2 class="card__title" id="billing-title">{{ 'customers.sideCards.billing' | transloco }}</h2>
   <dl class="card__stats">
     <div>
-      <dt>Outstanding balance</dt>
+      <dt>{{ 'customers.sideCards.outstandingBalance' | transloco }}</dt>
       <dd>{{ view().balance }}</dd>
     </div>
     <div>
-      <dt>Last invoice</dt>
+      <dt>{{ 'customers.sideCards.lastInvoice' | transloco }}</dt>
       <dd>
         @if (view().invoice; as invoice) {
           <a class="card__link" [routerLink]="invoicesLink">{{ invoice.number }}</a>
           <p-tag [rounded]="true" [severity]="invoice.severity" [value]="invoice.status" />
         } @else {
-          None
+          {{ 'customers.sideCards.none' | transloco }}
         }
       </dd>
     </div>
   </dl>
   <a class="card__button" [routerLink]="invoicesLink">
     <i class="pi pi-file" aria-hidden="true"></i>
-    View invoices
+    {{ 'customers.sideCards.viewInvoices' | transloco }}
   </a>
 </section>
 
 <section class="card" aria-labelledby="tags-title">
   <header class="card__head">
-    <h2 class="card__title" id="tags-title">Tags</h2>
+    <h2 class="card__title" id="tags-title">{{ 'customers.sideCards.tags' | transloco }}</h2>
     @if (canMutate()) {
-      <button type="button" class="card__pencil" aria-label="Edit tags" (click)="editTags.emit()">
+      <button
+        type="button"
+        class="card__pencil"
+        [attr.aria-label]="'customers.sideCards.editTags' | transloco"
+        (click)="editTags.emit()"
+      >
         <i class="pi pi-pencil" aria-hidden="true"></i>
       </button>
     }
   </header>
   @if (view().tags.length === 0) {
-    <p class="card__caption">No tags</p>
+    <p class="card__caption">{{ 'customers.sideCards.noTags' | transloco }}</p>
   } @else {
     <ul class="card__tags">
       @for (tag of view().tags; track tag.id) {

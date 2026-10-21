@@ -4,6 +4,7 @@ import { statusLabel as invoiceStatusLabel } from '../../../features/invoices/ut
 import { STATUS_LABELS as WORK_ORDER_STATUS_LABELS } from '../../../features/jobs/utils/work-order-format';
 import { STATUS_LABELS as QUOTE_STATUS_LABELS } from '../../../features/quotes/utils/quote-format';
 
+import { localized, t } from '../../../core/i18n/translate';
 export type SearchTone =
   'success' | 'info' | 'warning' | 'danger' | 'neutral' | 'violet' | 'teal' | 'orange' | 'pink';
 
@@ -28,21 +29,21 @@ export interface SearchGroup {
   readonly rows: readonly SearchRow[];
 }
 
-const TYPE_LABELS: Readonly<Record<GlobalSearchEntityType, string>> = {
-  customer: 'Customers',
-  service_request: 'Requests',
-  quote: 'Quotes',
-  work_order: 'Jobs',
-  invoice: 'Invoices',
-};
+const TYPE_LABELS: Readonly<Record<GlobalSearchEntityType, string>> = localized(() => ({
+  customer: t('shell.globalSearchView.customers'),
+  service_request: t('shell.globalSearchView.requests'),
+  quote: t('shell.globalSearchView.quotes'),
+  work_order: t('shell.globalSearchView.jobs'),
+  invoice: t('shell.globalSearchView.invoices'),
+}));
 
-const TYPE_SINGULAR: Readonly<Record<GlobalSearchEntityType, string>> = {
-  customer: 'Customer',
-  service_request: 'Request',
-  quote: 'Quote',
-  work_order: 'Job',
-  invoice: 'Invoice',
-};
+const TYPE_SINGULAR: Readonly<Record<GlobalSearchEntityType, string>> = localized(() => ({
+  customer: t('common.customer'),
+  service_request: t('shell.globalSearchView.request'),
+  quote: t('shell.globalSearchView.quote'),
+  work_order: t('shell.globalSearchView.job'),
+  invoice: t('shell.globalSearchView.invoice'),
+}));
 
 const TYPE_ICONS: Readonly<Record<GlobalSearchEntityType, string>> = {
   customer: 'pi-users',
@@ -113,9 +114,9 @@ export function statusLabelOf(type: GlobalSearchEntityType, status: string | nul
   switch (type) {
     case 'customer':
       return status === 'active'
-        ? 'Customer'
+        ? t('common.customer')
         : status === 'inactive'
-          ? 'Inactive'
+          ? t('common.inactive')
           : humanize(status);
     case 'service_request':
       return lookup(REQUEST_STATUS_LABELS, status);

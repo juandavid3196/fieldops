@@ -3,6 +3,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -27,11 +28,10 @@ import {
   weekdayName,
 } from '../../utils/time-format';
 
-export const TIME_LOAD_ERROR_MESSAGE =
-  "We couldn't load your time. Check your connection and try again.";
-export const TIME_NOTICE = 'Time is recorded automatically while you travel, work or pause a job.';
-export const TIME_READ_ONLY_MESSAGE =
-  "Time entries can't be edited here. Contact your manager for corrections.";
+import { t } from '../../../../core/i18n/translate';
+export const TIME_LOAD_ERROR_MESSAGE = (): string => t('technicianJobs.time.timeLoadErrorMessage');
+export const TIME_NOTICE = (): string => t('technicianJobs.time.timeNotice');
+export const TIME_READ_ONLY_MESSAGE = (): string => t('technicianJobs.time.timeReadOnlyMessage');
 export const REFRESH_MS = 60_000;
 
 type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
@@ -47,7 +47,7 @@ interface TimeRequest {
  */
 @Component({
   selector: 'app-technician-time',
-  imports: [ButtonDirective, Message, Skeleton, TimeEntryDialog, TimeTypeIcon],
+  imports: [TranslocoPipe, ButtonDirective, Message, Skeleton, TimeEntryDialog, TimeTypeIcon],
   templateUrl: './time.html',
   styleUrl: './time.scss',
 })
@@ -60,9 +60,15 @@ export class TechnicianTime {
   private pending: TimeRequest | null = null;
   private lastTrigger: HTMLElement | null = null;
 
-  readonly loadErrorMessage = TIME_LOAD_ERROR_MESSAGE;
-  readonly notice = TIME_NOTICE;
-  readonly readOnlyMessage = TIME_READ_ONLY_MESSAGE;
+  get loadErrorMessage(): string {
+    return TIME_LOAD_ERROR_MESSAGE();
+  }
+  get notice(): string {
+    return TIME_NOTICE();
+  }
+  get readOnlyMessage(): string {
+    return TIME_READ_ONLY_MESSAGE();
+  }
   readonly skeletonRows = [0, 1, 2];
   readonly legend = [
     { type: 'work', label: TYPE_LABELS.work },
@@ -92,16 +98,26 @@ export class TechnicianTime {
   });
   readonly unit = computed(() => (this.view() === 'day' ? 'day' : 'week'));
   readonly emptyMessage = computed(() =>
-    this.view() === 'day' ? 'No time recorded for this day.' : 'No time recorded for this week.',
+    this.view() === 'day'
+      ? t('technicianJobs.time.noTimeRecordedFor')
+      : t('technicianJobs.time.noTimeRecordedFor2'),
   );
   readonly totals = computed(() => {
     const totals = this.data()?.totals;
     return {
       total: formatSeconds(totals?.totalSeconds ?? 0),
       tiles: [
-        { type: 'work', label: 'Work', seconds: totals?.workSeconds ?? 0 },
-        { type: 'travel', label: 'Travel', seconds: totals?.travelSeconds ?? 0 },
-        { type: 'break', label: 'Break', seconds: totals?.breakSeconds ?? 0 },
+        { type: 'work', label: t('technicianJobs.time.work'), seconds: totals?.workSeconds ?? 0 },
+        {
+          type: 'travel',
+          label: t('technicianJobs.time.travel'),
+          seconds: totals?.travelSeconds ?? 0,
+        },
+        {
+          type: 'break',
+          label: t('technicianJobs.time.break'),
+          seconds: totals?.breakSeconds ?? 0,
+        },
       ].map((tile) => ({
         ...tile,
         type: tile.type as TimeEntry['type'],
@@ -226,14 +242,14 @@ export class TechnicianTime {
     return {
       entry,
       typeLabel: TYPE_LABELS[entry.type],
-      title: isBreak ? 'Break' : entry.visit.title,
+      title: isBreak ? t('technicianJobs.time.break') : entry.visit.title,
       secondary: isBreak ? entry.visit.title : null,
       number: `#${entry.visit.displayNumber}`,
       range: `${start} – ${end ?? 'now'}`,
       startText: start,
-      endText: end ?? 'In progress',
+      endText: end ?? t('technicianJobs.time.inProgress'),
       date: detailDate(localDateOf(entry.startedAt, zone)),
-      visitText: `Visit ${entry.visit.visitNumber}`,
+      visitText: t('technicianJobs.time.visit', { visitNumber: entry.visit.visitNumber }),
       duration: formatSeconds(entry.durationSeconds),
     };
   }

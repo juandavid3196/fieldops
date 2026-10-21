@@ -6,6 +6,7 @@ import {
   PASSWORD_TOO_LONG_MESSAGE,
 } from './sign-in.messages';
 
+import { localized } from '../../../../core/i18n/translate';
 export const EMAIL_MAX_LENGTH = 254;
 export const PASSWORD_MAX_LENGTH = 128;
 
@@ -14,10 +15,10 @@ export type SignInField = 'email' | 'password';
 /** Field-level messages; a field is absent when valid. */
 export type SignInFieldErrors = Partial<Record<SignInField, string>>;
 
-const ALLOWED_MESSAGES: Readonly<Record<SignInField, readonly string[]>> = {
-  email: [EMAIL_REQUIRED_MESSAGE, EMAIL_INVALID_MESSAGE],
-  password: [PASSWORD_REQUIRED_MESSAGE, PASSWORD_TOO_LONG_MESSAGE],
-};
+const ALLOWED_MESSAGES: Readonly<Record<SignInField, readonly string[]>> = localized(() => ({
+  email: [EMAIL_REQUIRED_MESSAGE(), EMAIL_INVALID_MESSAGE()],
+  password: [PASSWORD_REQUIRED_MESSAGE(), PASSWORD_TOO_LONG_MESSAGE()],
+}));
 
 /** Trims and lowercases the email before any check (BR-01). */
 export function normalizeEmail(value: string): string {
@@ -32,17 +33,17 @@ export function normalizeEmail(value: string): string {
 export function validateEmail(value: string): string | null {
   const email = normalizeEmail(value);
   if (email.length === 0) {
-    return EMAIL_REQUIRED_MESSAGE;
+    return EMAIL_REQUIRED_MESSAGE();
   }
-  return isValidEmail(email) ? null : EMAIL_INVALID_MESSAGE;
+  return isValidEmail(email) ? null : EMAIL_INVALID_MESSAGE();
 }
 
 /** First failing BR-02/BR-03 rule for the password (never trimmed), or `null`. */
 export function validatePassword(value: string): string | null {
   if (value.length === 0) {
-    return PASSWORD_REQUIRED_MESSAGE;
+    return PASSWORD_REQUIRED_MESSAGE();
   }
-  return value.length > PASSWORD_MAX_LENGTH ? PASSWORD_TOO_LONG_MESSAGE : null;
+  return value.length > PASSWORD_MAX_LENGTH ? PASSWORD_TOO_LONG_MESSAGE() : null;
 }
 
 /**
@@ -57,7 +58,9 @@ export function mapServerFieldErrors(
   for (const field of ['email', 'password'] as const) {
     const message = fieldErrors[field]?.[0];
     if (message !== undefined) {
-      result[field] = ALLOWED_MESSAGES[field].includes(message) ? message : FALLBACK_FIELD_MESSAGE;
+      result[field] = ALLOWED_MESSAGES[field].includes(message)
+        ? message
+        : FALLBACK_FIELD_MESSAGE();
     }
   }
   return result;

@@ -15,15 +15,19 @@ import { MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, ApiRowError, isApiError } from '../../../../core/models/api-error.model';
 import { saveCsv } from '../../../../shared/utils/csv-file';
 import { CatalogItemsService } from '../../services/catalog-items.service';
 import { CSV_SIZE_MESSAGE, CSV_TYPE_MESSAGE, validateCsvFile } from '../../utils/catalog-format';
 
-export const TEMPLATE_FAILED_MESSAGE = "We couldn't download the template. Try again.";
-export const IMPORT_CONFLICT_MESSAGE = 'Some items already exist. Review the file and try again.';
-const UNEXPECTED_MESSAGE = 'An unexpected error occurred. Please try again.';
+import { t } from '../../../../core/i18n/translate';
+export const TEMPLATE_FAILED_MESSAGE = (): string =>
+  t('productsServices.importDialog.templateFailedMessage');
+export const IMPORT_CONFLICT_MESSAGE = (): string =>
+  t('productsServices.importDialog.importConflictMessage');
+const UNEXPECTED_MESSAGE = (): string => t('productsServices.importDialog.unexpectedMessage');
 
 /**
  * Import dialog (FR-14, Owner only): template link, CSV chooser, **Cancel** / **Import**. A
@@ -32,7 +36,7 @@ const UNEXPECTED_MESSAGE = 'An unexpected error occurred. Please try again.';
  */
 @Component({
   selector: 'app-import-dialog',
-  imports: [ButtonDirective, Dialog, SpinnerIcon],
+  imports: [TranslocoPipe, ButtonDirective, Dialog, SpinnerIcon],
   templateUrl: './import-dialog.html',
   styleUrl: './import-dialog.scss',
 })
@@ -89,7 +93,9 @@ export class ImportDialog {
   }
 
   sizeText(bytes: number): string {
-    return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
+    return bytes < 1024
+      ? t('productsServices.importDialog.b', { bytes: bytes })
+      : t('productsServices.importDialog.kb', { value: (bytes / 1024).toFixed(1) });
   }
 
   onDragOver(event: DragEvent): void {
@@ -141,7 +147,7 @@ export class ImportDialog {
             this.unauthorized.emit();
             return;
           }
-          this.messageService.add({ severity: 'error', summary: TEMPLATE_FAILED_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: TEMPLATE_FAILED_MESSAGE() });
         },
       });
   }
@@ -179,14 +185,14 @@ export class ImportDialog {
       return;
     }
     if (apiError?.status === 413) {
-      this.fileError.set(CSV_SIZE_MESSAGE);
+      this.fileError.set(CSV_SIZE_MESSAGE());
     } else if (apiError?.status === 415) {
-      this.fileError.set(CSV_TYPE_MESSAGE);
+      this.fileError.set(CSV_TYPE_MESSAGE());
     } else if (apiError?.kind === 'conflict') {
-      this.fileError.set(IMPORT_CONFLICT_MESSAGE);
+      this.fileError.set(IMPORT_CONFLICT_MESSAGE());
     } else {
       this.fileError.set(
-        apiError?.fieldErrors['file']?.[0] ?? apiError?.message ?? UNEXPECTED_MESSAGE,
+        apiError?.fieldErrors['file']?.[0] ?? apiError?.message ?? UNEXPECTED_MESSAGE(),
       );
     }
   }

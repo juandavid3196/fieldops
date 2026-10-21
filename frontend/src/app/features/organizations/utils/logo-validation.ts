@@ -1,8 +1,9 @@
+import { t } from '../../../core/i18n/translate';
 /** BR-07: 2 MB (2,097,152 bytes). */
 export const LOGO_MAX_BYTES = 2_097_152;
-export const LOGO_TYPE_MESSAGE = 'Choose a JPG, PNG or SVG file.';
-export const LOGO_SIZE_MESSAGE = 'Choose a file of 2 MB or smaller.';
-export const LOGO_HELPER = 'JPG, PNG or SVG. Max 2 MB.';
+export const LOGO_TYPE_MESSAGE = (): string => t('organizations.logoValidation.logoTypeMessage');
+export const LOGO_SIZE_MESSAGE = (): string => t('organizations.logoValidation.logoSizeMessage');
+export const LOGO_HELPER = (): string => t('organizations.logoValidation.logoHelper');
 
 const LOGO_EXTENSIONS: ReadonlySet<string> = new Set(['png', 'jpg', 'jpeg', 'svg']);
 const LOGO_MIME_TYPES: ReadonlySet<string> = new Set(['image/png', 'image/jpeg', 'image/svg+xml']);
@@ -22,7 +23,7 @@ export function validateLogoFile(file: {
   const extension = file.name.includes('.') ? file.name.split('.').pop()!.toLowerCase() : '';
   const typeAllowed = file.type === '' || LOGO_MIME_TYPES.has(file.type.toLowerCase());
   if (!LOGO_EXTENSIONS.has(extension) || !typeAllowed) {
-    return LOGO_TYPE_MESSAGE;
+    return LOGO_TYPE_MESSAGE();
   }
-  return file.size > LOGO_MAX_BYTES ? LOGO_SIZE_MESSAGE : null;
+  return file.size > LOGO_MAX_BYTES ? LOGO_SIZE_MESSAGE() : null;
 }

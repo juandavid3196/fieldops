@@ -1,6 +1,8 @@
 import { Component, ElementRef, computed, inject, input, signal } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { LanguageService } from '../../../../core/i18n/language.service';
 import { LEGAL_EFFECTIVE_DATE, legalMailto } from '../../data/legal-placeholders';
 import { LegalDocument, LegalListItem } from '../../models/legal.model';
 
@@ -10,7 +12,7 @@ const ACTIVE_OFFSET_PX = 120;
 /** Hero, "On this page" navigation and numbered sections of a public legal page. */
 @Component({
   selector: 'app-legal-document-view',
-  imports: [ButtonDirective],
+  imports: [TranslocoPipe, ButtonDirective],
   templateUrl: './legal-document-view.html',
   styleUrl: './legal-document-view.scss',
   host: { '(window:scroll)': 'syncActive()' },
@@ -18,9 +20,15 @@ const ACTIVE_OFFSET_PX = 120;
 export class LegalDocumentView {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  readonly content = input.required<LegalDocument>();
+  private readonly language = inject(LanguageService);
 
-  protected readonly lastUpdated = LEGAL_EFFECTIVE_DATE;
+  readonly content = input.required<LegalDocument>();
+  /** BR-17: the Spanish pages carry a pending-review note; English shows none. */
+  protected readonly showReviewNote = computed(() => this.language.lang() === 'es');
+
+  protected get lastUpdated(): string {
+    return LEGAL_EFFECTIVE_DATE();
+  }
   protected readonly mailto = computed(() => legalMailto(this.content().contact.subject));
   private readonly scrolledTo = signal<string | null>(null);
   protected readonly activeId = computed(

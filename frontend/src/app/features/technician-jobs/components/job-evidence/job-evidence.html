@@ -1,11 +1,11 @@
 <section class="ev" aria-labelledby="ev-title">
   <h2 class="ev__title" id="ev-title">
     <i class="pi pi-camera" aria-hidden="true"></i>
-    Photos &amp; evidence
+    {{ 'technicianJobs.jobEvidence.photosEvidence' | transloco }}
   </h2>
 
   @if (photos().length === 0 && upload() === null) {
-    <p class="ev__muted">No photos yet.</p>
+    <p class="ev__muted">{{ 'technicianJobs.jobEvidence.noPhotosYet' | transloco }}</p>
   }
   @if (photos().length > 0) {
     <app-visit-photos [photos]="photos()" (open)="openPhoto.emit($event)" />
@@ -14,11 +14,13 @@
     <div class="ev__upload">
       <img class="ev__preview" alt="" [src]="current.previewUrl" />
       <div class="ev__progress">
-        <span>Uploading {{ current.label }} photo</span>
+        <span>{{
+          'technicianJobs.jobEvidence.uploadingPhoto' | transloco: { label: current.label }
+        }}</span>
         <div
           class="ev__track"
           role="progressbar"
-          aria-label="Upload progress"
+          [attr.aria-label]="'technicianJobs.jobEvidence.uploadProgress' | transloco"
           aria-valuemin="0"
           aria-valuemax="100"
           [attr.aria-valuenow]="current.percent"
@@ -36,9 +38,17 @@
 
   @if (!readOnly()) {
     @if (chooserOpen()) {
-      <div class="ev__chooser" role="group" aria-label="Photo type">
-        <button pButton type="button" class="ev__button" (click)="choose('before')">Before</button>
-        <button pButton type="button" class="ev__button" (click)="choose('after')">After</button>
+      <div
+        class="ev__chooser"
+        role="group"
+        [attr.aria-label]="'technicianJobs.jobEvidence.photoType' | transloco"
+      >
+        <button pButton type="button" class="ev__button" (click)="choose('before')">
+          {{ 'technicianJobs.jobEvidence.before' | transloco }}
+        </button>
+        <button pButton type="button" class="ev__button" (click)="choose('after')">
+          {{ 'technicianJobs.jobEvidence.after' | transloco }}
+        </button>
         <button
           pButton
           type="button"
@@ -47,7 +57,7 @@
           [outlined]="true"
           (click)="chooserOpen.set(false)"
         >
-          Cancel
+          {{ 'common.cancel' | transloco }}
         </button>
       </div>
     } @else {
@@ -61,7 +71,7 @@
         (click)="openChooser()"
       >
         <i class="pi pi-camera" aria-hidden="true"></i>
-        Add photo
+        {{ 'technicianJobs.jobEvidence.addPhoto' | transloco }}
       </button>
     }
     <input
@@ -81,7 +91,9 @@
       aria-hidden="true"
     ></i>
     {{
-      complete() ? 'Before and after photos added' : 'Add at least one before and one after photo'
+      complete()
+        ? ('technicianJobs.jobEvidence.beforeAndAfterPhotos' | transloco)
+        : ('technicianJobs.jobEvidence.addAtLeastOne' | transloco)
     }}
   </p>
 </section>

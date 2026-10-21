@@ -1,4 +1,5 @@
 <div class="shell">
+  <app-language-toast />
   @if (!isDrawer()) {
     <app-shell-sidebar
       class="shell__sidebar"
@@ -16,7 +17,7 @@
         <button
           type="button"
           class="shell__icon-button"
-          aria-label="Close search"
+          [attr.aria-label]="'shell.appShell.closeSearch' | transloco"
           (click)="closeSearch()"
         >
           <i class="pi pi-arrow-left" aria-hidden="true"></i>
@@ -31,14 +32,15 @@
           (click)="openDrawer()"
         >
           <i class="pi pi-bars" aria-hidden="true"></i>
-          <span class="shell__hidden">Open navigation</span>
+          <span class="shell__hidden">{{ 'shell.appShell.openNavigation' | transloco }}</span>
         </button>
         <p class="shell__wordmark">
           <svg class="shell__mark" viewBox="0 0 48 40" aria-hidden="true" focusable="false">
             <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-400)" />
             <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-600)" />
           </svg>
-          <span>Field</span><span class="shell__accent">Ops</span>
+          <span>{{ 'shell.appShell.field' | transloco }}</span
+          ><span class="shell__accent">{{ 'shell.appShell.ops' | transloco }}</span>
         </p>
       } @else {
         <app-global-search class="shell__search" />
@@ -47,7 +49,12 @@
       <span class="shell__spacer"></span>
 
       @if (isDrawer() && !mobileSearch()) {
-        <button type="button" class="shell__icon-button" aria-label="Search" (click)="openSearch()">
+        <button
+          type="button"
+          class="shell__icon-button"
+          [attr.aria-label]="'common.search' | transloco"
+          (click)="openSearch()"
+        >
           <i class="pi pi-search" aria-hidden="true"></i>
         </button>
       }
@@ -64,7 +71,9 @@
             class="shell__org-button"
             aria-haspopup="menu"
             [attr.aria-expanded]="orgMenuOpen()"
-            [attr.aria-label]="'Organization, ' + organizationName()"
+            [attr.aria-label]="
+              'shell.appShell.organization' | transloco: { organizationName: organizationName() }
+            "
             (click)="toggleMenu('org')"
             (keydown)="onButtonKeydown($event, 'org')"
           >
@@ -74,7 +83,11 @@
           </button>
 
           @if (orgMenuOpen()) {
-            <div class="shell__menu" role="menu" aria-label="Organization">
+            <div
+              class="shell__menu"
+              role="menu"
+              [attr.aria-label]="'shell.appShell.organization2' | transloco"
+            >
               <button
                 type="button"
                 role="menuitem"
@@ -86,14 +99,19 @@
                 <i class="pi pi-building" aria-hidden="true"></i>
                 <span class="shell__menu-text">{{ organizationName() }}</span>
                 <span class="shell__menu-current">
-                  <i class="pi pi-check" aria-hidden="true"></i>Current
+                  <i class="pi pi-check" aria-hidden="true"></i
+                  >{{ 'shell.appShell.current' | transloco }}
                 </span>
               </button>
             </div>
           }
         </div>
 
-        <a class="shell__icon-button" [routerLink]="helpLink" aria-label="Help">
+        <a
+          class="shell__icon-button"
+          [routerLink]="helpLink"
+          [attr.aria-label]="'shell.appShell.help' | transloco"
+        >
           <i class="pi pi-question-circle" aria-hidden="true"></i>
         </a>
       }
@@ -146,13 +164,19 @@
           />
           <span class="shell__identity" aria-hidden="true">
             <span class="shell__name">{{ fullName() }}</span>
-            <span class="shell__role">{{ session()?.role.name }}</span>
+            <span class="shell__role">{{
+              session()?.role?.name | codeLabel: 'roles' : session()?.role?.code
+            }}</span>
           </span>
           <i class="pi pi-chevron-down shell__chevron shell__identity" aria-hidden="true"></i>
         </button>
 
         @if (menuOpen()) {
-          <div class="shell__menu" role="menu" aria-label="Account">
+          <div
+            class="shell__menu"
+            role="menu"
+            [attr.aria-label]="'shell.appShell.account' | transloco"
+          >
             <div class="shell__menu-header" role="presentation">
               <app-user-avatar
                 class="shell__avatar shell__avatar--large"
@@ -161,7 +185,9 @@
               />
               <span class="shell__menu-identity">
                 <span class="shell__name">{{ fullName() }}</span>
-                <span class="shell__role">{{ session()?.role.name }}</span>
+                <span class="shell__role">{{
+                  session()?.role?.name | codeLabel: 'roles' : session()?.role?.code
+                }}</span>
               </span>
             </div>
             <a
@@ -172,7 +198,7 @@
               (keydown)="onMenuKeydown($event)"
             >
               <i class="pi pi-user" aria-hidden="true"></i>
-              My profile
+              {{ 'shell.appShell.myProfile' | transloco }}
             </a>
             <a
               role="menuitem"
@@ -182,7 +208,7 @@
               (keydown)="onMenuKeydown($event)"
             >
               <i class="pi pi-cog" aria-hidden="true"></i>
-              Account settings
+              {{ 'shell.appShell.accountSettings' | transloco }}
             </a>
             <a
               role="menuitem"
@@ -192,8 +218,13 @@
               (keydown)="onMenuKeydown($event)"
             >
               <i class="pi pi-question-circle" aria-hidden="true"></i>
-              Help &amp; support
+              {{ 'shell.appShell.helpSupport' | transloco }}
             </a>
+            <app-language-menu-item
+              surface="internal"
+              (chosen)="onLanguageChosen()"
+              (keydown)="onMenuKeydown($event)"
+            />
             <div class="shell__menu-separator" role="separator"></div>
             <button
               type="button"
@@ -208,7 +239,7 @@
               } @else {
                 <i class="pi pi-sign-out" aria-hidden="true"></i>
               }
-              Sign out
+              {{ 'shell.appShell.signOut' | transloco }}
             </button>
           </div>
         }

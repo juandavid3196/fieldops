@@ -14,6 +14,8 @@
     <h1 class="notice__title" tabindex="-1">
       {{ kind() === 'rate-limited' ? rateLimited : loadError }}
     </h1>
-    <button pButton type="button" severity="secondary" (click)="retry.emit()">Retry</button>
+    <button pButton type="button" severity="secondary" (click)="retry.emit()">
+      {{ 'common.retry' | transloco }}
+    </button>
   }
 </section>

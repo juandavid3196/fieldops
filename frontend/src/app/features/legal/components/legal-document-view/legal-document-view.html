@@ -1,15 +1,22 @@
 @let doc = content();
 
 <header class="hero">
-  <p class="hero__eyebrow">Legal</p>
+  <p class="hero__eyebrow">{{ 'legal.legalDocumentView.legal' | transloco }}</p>
   <h1 class="hero__title">{{ doc.title }}</h1>
   <p class="hero__lead">{{ doc.lead }}</p>
-  <p class="hero__updated">Last updated: {{ lastUpdated }}</p>
+  <p class="hero__updated">
+    {{ 'legal.legalDocumentView.lastUpdated' | transloco: { lastUpdated: lastUpdated } }}
+  </p>
+  @if (showReviewNote()) {
+    <p class="hero__note">{{ 'legal.legalDocumentView.translationPending' | transloco }}</p>
+  }
 </header>
 
 <div class="layout">
   <nav class="toc" aria-labelledby="toc-heading">
-    <h2 class="toc__title" id="toc-heading">On this page</h2>
+    <h2 class="toc__title" id="toc-heading">
+      {{ 'legal.legalDocumentView.onThisPage' | transloco }}
+    </h2>
     <ul class="toc__list">
       @for (section of doc.sections; track section.id) {
         <li>
@@ -60,7 +67,9 @@
         <h2 class="contact__title" id="contact-heading">{{ doc.contact.title }}</h2>
         <p class="contact__text">{{ doc.contact.text }}</p>
       </div>
-      <a pButton class="contact__action" [href]="mailto()">Contact support</a>
+      <a pButton class="contact__action" [href]="mailto()">{{
+        'legal.legalDocumentView.contactSupport' | transloco
+      }}</a>
     </aside>
   </article>
 </div>

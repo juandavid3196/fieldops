@@ -9,7 +9,9 @@ import {
   RouterOutlet,
 } from '@angular/router';
 import { filter } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { t } from '../../../../core/i18n/translate';
 interface AccountSection {
   readonly label: string;
   readonly icon: string;
@@ -19,15 +21,15 @@ interface AccountSection {
 /** FR-02: exactly these two sections; there is no Preferences item. */
 function sectionsFor(base: string): readonly AccountSection[] {
   return [
-    { label: 'My profile', icon: 'pi-user', link: `${base}/profile` },
-    { label: 'Security', icon: 'pi-shield', link: `${base}/security` },
+    { label: t('account.accountLayout.myProfile'), icon: 'pi-user', link: `${base}/profile` },
+    { label: t('account.accountLayout.security'), icon: 'pi-shield', link: `${base}/security` },
   ];
 }
 
 /** Account settings frame: breadcrumb, heading, section navigation and the content card. */
 @Component({
   selector: 'app-account-layout',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [TranslocoPipe, RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './account-layout.html',
   styleUrl: './account-layout.scss',
 })

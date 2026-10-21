@@ -12,18 +12,23 @@
     <div class="import-head">
       <span class="import-head__tile" aria-hidden="true"><i class="pi pi-file-import"></i></span>
       <div>
-        <h2 class="import-head__title">Import customers</h2>
-        <p class="import-head__subtitle">Add up to 500 customers from a CSV file.</p>
+        <h2 class="import-head__title">
+          {{ 'customers.importDialog.importCustomers' | transloco }}
+        </h2>
+        <p class="import-head__subtitle">{{ 'customers.importDialog.addUpTo500' | transloco }}</p>
       </div>
     </div>
   </ng-template>
 
   <div class="import">
-    <section class="import__template" aria-label="Template">
+    <section
+      class="import__template"
+      [attr.aria-label]="'customers.importDialog.template' | transloco"
+    >
       <i class="pi pi-file import__template-icon" aria-hidden="true"></i>
       <div class="import__template-copy">
-        <strong>Start with the FieldOps template</strong>
-        <span>Use the required columns to avoid formatting errors.</span>
+        <strong>{{ 'customers.importDialog.startWithTheFieldops' | transloco }}</strong>
+        <span>{{ 'customers.importDialog.useTheRequiredColumns' | transloco }}</span>
       </div>
       <button
         pButton
@@ -39,7 +44,7 @@
         } @else {
           <i class="pi pi-download" aria-hidden="true"></i>
         }
-        Download CSV template
+        {{ 'customers.importDialog.downloadCsvTemplate' | transloco }}
       </button>
     </section>
 
@@ -58,7 +63,7 @@
         type="file"
         accept=".csv,text/csv"
         tabindex="-1"
-        aria-label="CSV file"
+        [attr.aria-label]="'customers.importDialog.csvFile' | transloco"
         [disabled]="busy()"
         [attr.aria-describedby]="fileError() !== null ? 'import-file-error' : null"
         [attr.aria-invalid]="fileError() !== null ? 'true' : null"
@@ -71,21 +76,21 @@
         <button
           type="button"
           class="import__link"
-          aria-label="Remove file"
+          [attr.aria-label]="'customers.importDialog.removeFile' | transloco"
           [disabled]="busy()"
           (click)="removeFile()"
         >
-          <i class="pi pi-times" aria-hidden="true"></i>Remove
+          <i class="pi pi-times" aria-hidden="true"></i>{{ 'common.remove' | transloco }}
         </button>
       } @else {
-        <p class="import__drop-title">Drop your CSV file here</p>
+        <p class="import__drop-title">{{ 'customers.importDialog.dropYourCsvFile' | transloco }}</p>
         <p class="import__drop-or">
-          or
+          {{ 'customers.importDialog.or' | transloco }}
           <button type="button" class="import__link" [disabled]="busy()" (click)="browse()">
-            browse files
+            {{ 'customers.importDialog.browseFiles' | transloco }}
           </button>
         </p>
-        <p class="import__hint">CSV only · Maximum 1 MB · Up to 500 rows</p>
+        <p class="import__hint">{{ 'customers.importDialog.csvOnlyMaximum1' | transloco }}</p>
       }
     </div>
 
@@ -97,20 +102,23 @@
 
     <div aria-live="polite">
       @if (checking()) {
-        <p class="import__status">Checking file…</p>
+        <p class="import__status">{{ 'customers.importDialog.checkingFile' | transloco }}</p>
       } @else if (importing()) {
-        <p class="import__status">Importing…</p>
+        <p class="import__status">{{ 'customers.importDialog.importing' | transloco }}</p>
       }
     </div>
 
     @if (rowErrors().length > 0) {
-      <section class="import__results" aria-label="Row errors">
+      <section
+        class="import__results"
+        [attr.aria-label]="'customers.importDialog.rowErrors' | transloco"
+      >
         <table class="import__table">
           <thead>
             <tr>
-              <th scope="col">Row</th>
-              <th scope="col">Column</th>
-              <th scope="col">Message</th>
+              <th scope="col">{{ 'customers.importDialog.row' | transloco }}</th>
+              <th scope="col">{{ 'customers.importDialog.column' | transloco }}</th>
+              <th scope="col">{{ 'customers.importDialog.message' | transloco }}</th>
             </tr>
           </thead>
           <tbody>
@@ -124,20 +132,36 @@
           </tbody>
         </table>
         @if (errorsCapped()) {
-          <p class="import__hint">Showing first 100 errors</p>
+          <p class="import__hint">
+            {{ 'customers.importDialog.showingFirst100Errors' | transloco }}
+          </p>
         }
       </section>
     } @else if (preview() !== null) {
-      <section class="import__ready" aria-label="Import summary" role="status">
+      <section
+        class="import__ready"
+        [attr.aria-label]="'customers.importDialog.importSummary' | transloco"
+        role="status"
+      >
         <p class="import__ready-title">
           <i class="pi pi-check-circle" aria-hidden="true"></i>{{ readyText() }}
         </p>
         @if (warnings().length > 0) {
-          <ul class="import__warnings" aria-label="Possible duplicates">
+          <ul
+            class="import__warnings"
+            [attr.aria-label]="'customers.importDialog.possibleDuplicates' | transloco"
+          >
             @for (warning of warnings(); track $index) {
               <li>
-                Row {{ warning.row }}: same {{ warning.matchedField }} as
-                {{ warning.existingDisplayName }}. Review before importing.
+                {{
+                  'customers.importDialog.rowSameAsReview'
+                    | transloco
+                      : {
+                          row: warning.row,
+                          matchedField: warning.matchedField,
+                          existingDisplayName: warning.existingDisplayName,
+                        }
+                }}
               </li>
             }
           </ul>
@@ -155,13 +179,13 @@
       [disabled]="importing()"
       (click)="close()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button pButton type="button" [disabled]="!canImport()" (click)="submit()">
       @if (importing()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Import customers
+      {{ 'customers.importDialog.importCustomers' | transloco }}
     </button>
   </ng-template>
 </p-dialog>

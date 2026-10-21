@@ -1,3 +1,4 @@
+import { t } from '../../../core/i18n/translate';
 /** Customer-facing quote of a token (customer-quote-approval API contracts); never internal data. */
 export type PublicQuoteStatus =
   | 'sent'
@@ -63,20 +64,19 @@ export interface PublicQuote {
 }
 
 /** Fixed copy (backend titles are never displayed). */
-export const UNAVAILABLE_TITLE = "This link isn't available.";
-export const UNAVAILABLE_BODY =
-  "This quote link isn't available. It may have expired or been replaced. Please contact the company that sent it.";
-export const SUPERSEDED_TITLE = 'A newer version of this quote is available.';
-export const SUPERSEDED_BODY = 'Check your email for the most recent link from the company.';
-export const PUBLIC_LOAD_ERROR = "We couldn't load this quote.";
-export const PUBLIC_RATE_LIMITED = 'Too many attempts. Please wait a few minutes and try again.';
-export const CALCULATE_ERROR = "We couldn't update the total. Please try again.";
-export const RESPONSE_ERROR = "We couldn't send your response. Please try again.";
-export const PDF_ERROR = "We couldn't download the PDF. Please try again.";
-export const ALREADY_ANSWERED = 'This quote has already been answered.';
-export const APPROVE_HINT = 'Check the box to approve.';
-export const OPTIONAL_SELECTION_ERROR = "One or more optional items aren't available.";
-export const ACCEPT_TERMS_ERROR =
-  'Confirm that you approve the scope of work and agree to the terms.';
+export const UNAVAILABLE_TITLE = (): string => t('quotes.publicQuoteModel.unavailableTitle');
+export const UNAVAILABLE_BODY = (): string => t('quotes.publicQuoteModel.unavailableBody');
+export const SUPERSEDED_TITLE = (): string => t('quotes.publicQuoteModel.supersededTitle');
+export const SUPERSEDED_BODY = (): string => t('quotes.publicQuoteModel.supersededBody');
+export const PUBLIC_LOAD_ERROR = (): string => t('quotes.publicQuoteModel.publicLoadError');
+export const PUBLIC_RATE_LIMITED = (): string => t('quotes.publicQuoteModel.publicRateLimited');
+export const CALCULATE_ERROR = (): string => t('quotes.publicQuoteModel.calculateError');
+export const RESPONSE_ERROR = (): string => t('quotes.publicQuoteModel.responseError');
+export const PDF_ERROR = (): string => t('quotes.publicQuoteModel.pdfError');
+export const ALREADY_ANSWERED = (): string => t('quotes.publicQuoteModel.alreadyAnswered');
+export const APPROVE_HINT = (): string => t('quotes.publicQuoteModel.approveHint');
+export const OPTIONAL_SELECTION_ERROR = (): string =>
+  t('quotes.publicQuoteModel.optionalSelectionError');
+export const ACCEPT_TERMS_ERROR = (): string => t('quotes.publicQuoteModel.acceptTermsError');
 export const QUOTE_EXPIRED_NOTICE = (organizationName: string): string =>
-  `This quote has expired. Contact ${organizationName} for an updated quote.`;
+  t('quotes.publicQuoteModel.thisQuoteHasExpired', { organizationName: organizationName });

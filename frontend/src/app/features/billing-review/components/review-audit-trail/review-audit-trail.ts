@@ -4,10 +4,12 @@ import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { BillingReviewDetail } from '../../models/billing-review.model';
 import { formatInstantDate, formatInstantTime } from '../../utils/billing-review-format';
 
+import { localized, t } from '../../../../core/i18n/translate';
 type Category =
   | 'status'
   | 'completion'
@@ -20,18 +22,18 @@ type Category =
   | 'billing'
   | 'other';
 
-const CATEGORY_LABELS: Readonly<Record<Category, string>> = {
-  status: 'Status',
-  completion: 'Completion',
-  evidence: 'Evidence',
-  materials: 'Materials',
-  time: 'Time',
-  travel: 'Travel',
-  schedule: 'Schedule',
-  creation: 'Creation',
-  billing: 'Billing',
-  other: 'Other',
-};
+const CATEGORY_LABELS: Readonly<Record<Category, string>> = localized(() => ({
+  status: t('common.status'),
+  completion: t('billingReview.reviewAuditTrail.completion'),
+  evidence: t('billingReview.reviewAuditTrail.evidence'),
+  materials: t('billingReview.reviewAuditTrail.materials'),
+  time: t('billingReview.reviewAuditTrail.time'),
+  travel: t('billingReview.reviewAuditTrail.travel'),
+  schedule: t('billingReview.reviewAuditTrail.schedule'),
+  creation: t('billingReview.reviewAuditTrail.creation'),
+  billing: t('billingReview.reviewAuditTrail.billing'),
+  other: t('billingReview.reviewAuditTrail.other'),
+}));
 
 /** Backend BR-12 audit labels → category and icon; unknown labels fall back to "Other". */
 const KNOWN: Readonly<Record<string, { readonly category: Category; readonly icon: string }>> = {
@@ -67,7 +69,7 @@ let nextId = 0;
 /** Audit trail tab (BR-12): read-only activity timeline grouped by organization date. */
 @Component({
   selector: 'app-review-audit-trail',
-  imports: [FormsModule, IconField, InputIcon, InputText, Select],
+  imports: [TranslocoPipe, FormsModule, IconField, InputIcon, InputText, Select],
   templateUrl: './review-audit-trail.html',
   styleUrl: './review-audit-trail.scss',
 })
@@ -94,7 +96,7 @@ export class ReviewAuditTrail {
   );
 
   protected readonly categoryOptions = computed(() => [
-    { code: 'all', label: 'All activity' },
+    { code: 'all', label: t('billingReview.reviewAuditTrail.allActivity') },
     ...[...new Set(this.rows().map((row) => row.category))].map((code) => ({
       code,
       label: CATEGORY_LABELS[code],

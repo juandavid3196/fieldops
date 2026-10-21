@@ -8,6 +8,7 @@ import {
   QuoteDraft,
 } from '../models/quote.model';
 
+import { t } from '../../../core/i18n/translate';
 /** A line in the editor: the contract fields (numbers may be blank while typing) plus a client-only `uid`. */
 export interface QuoteLine {
   readonly uid: string;
@@ -74,12 +75,12 @@ export function lineErrors(line: QuoteLine): LineErrors {
   const errors: Record<string, string> = {};
   const name = collapse(line.name);
   if (name.length === 0) {
-    errors['name'] = 'Enter an item name.';
+    errors['name'] = t('quotes.quoteLines.enterAnItemName');
   } else if (name.length > 160) {
-    errors['name'] = 'Item name must be 160 characters or fewer.';
+    errors['name'] = t('quotes.quoteLines.itemNameMustBe');
   }
   if (line.description.trim().length > 1000) {
-    errors['description'] = 'Description must be 1,000 characters or fewer.';
+    errors['description'] = t('quotes.quoteLines.descriptionMustBe1');
   }
   const quantity = line.quantity;
   if (
@@ -89,17 +90,17 @@ export function lineErrors(line: QuoteLine): LineErrors {
     quantity > MAX_QUANTITY ||
     !hasAtMostDecimals(quantity, 3)
   ) {
-    errors['quantity'] = 'Enter a quantity greater than 0.';
+    errors['quantity'] = t('quotes.quoteLines.enterAQuantityGreater');
   }
   const unit = line.unit.trim();
   if (unit.length === 0 || unit.length > 40) {
-    errors['unit'] = 'Enter a unit.';
+    errors['unit'] = t('quotes.quoteLines.enterAUnit');
   }
   if (!money(line.unitPrice)) {
-    errors['unitPrice'] = 'Enter a price of 0 or more.';
+    errors['unitPrice'] = t('quotes.quoteLines.enterAPriceOf');
   }
   if (!money(line.unitCost)) {
-    errors['unitCost'] = 'Enter a cost of 0 or more.';
+    errors['unitCost'] = t('quotes.quoteLines.enterACostOf');
   }
   return errors;
 }
@@ -117,7 +118,7 @@ export function draftErrors(state: DraftState): Record<string, string> {
     }
   }
   if (state.lines.length > MAX_LINES) {
-    errors['lines'] = `Add up to ${MAX_LINES} lines.`;
+    errors['lines'] = t('quotes.quoteLines.addUpToLines', { MAX_LINES: MAX_LINES });
   }
   const discount = state.discountTotal;
   if (
@@ -126,24 +127,24 @@ export function draftErrors(state: DraftState): Record<string, string> {
     discount < 0 ||
     !hasAtMostDecimals(discount, 2)
   ) {
-    errors['discountTotal'] = 'Enter a discount of 0 or more.';
+    errors['discountTotal'] = t('quotes.quoteLines.enterADiscountOf');
   }
   if (state.customerMessage.trim().length > MESSAGE_LIMIT) {
-    errors['customerMessage'] = 'Customer message must be 500 characters or fewer.';
+    errors['customerMessage'] = t('quotes.quoteLines.customerMessageMustBe');
   }
   if (state.internalNote.trim().length > MESSAGE_LIMIT) {
-    errors['internalNote'] = 'Internal note must be 500 characters or fewer.';
+    errors['internalNote'] = t('quotes.quoteLines.internalNoteMustBe');
   }
   if (state.terms.preset === 'custom') {
     const text = state.terms.customText.trim();
     if (text.length === 0) {
-      errors['terms.customText'] = 'Enter the terms.';
+      errors['terms.customText'] = t('quotes.quoteLines.enterTheTerms');
     } else if (text.length > TERMS_LIMIT) {
-      errors['terms.customText'] = 'Terms must be 2000 characters or fewer.';
+      errors['terms.customText'] = t('quotes.quoteLines.termsMustBe2000');
     }
   }
   if (!DATE_ONLY.test(state.validUntil)) {
-    errors['validUntil'] = 'Choose a date between tomorrow and one year from today.';
+    errors['validUntil'] = t('quotes.quoteLines.chooseADateBetween');
   }
   return errors;
 }
@@ -152,9 +153,9 @@ export function draftErrors(state: DraftState): Record<string, string> {
 export function emailMessageError(message: string): string | null {
   const text = message.trim();
   if (text.length === 0) {
-    return 'Enter a message.';
+    return t('quotes.quoteLines.enterAMessage');
   }
-  return text.length > EMAIL_LIMIT ? 'Message must be 320 characters or fewer.' : null;
+  return text.length > EMAIL_LIMIT ? t('quotes.quoteLines.messageMustBe320') : null;
 }
 
 /** Regular lines first, then optional lines, each section keeping its order (BR-11). */
@@ -299,5 +300,5 @@ export function canMove(lines: readonly QuoteLine[], index: number, direction: -
 
 export function lineName(line: { readonly name: string }, index: number): string {
   const name = line.name.trim();
-  return name.length > 0 ? name : `Line ${index + 1}`;
+  return name.length > 0 ? name : t('quotes.quoteLines.line', { value: index + 1 });
 }

@@ -1,216 +1,227 @@
 import { LegalDocument } from '../models/legal.model';
 import { LEGAL_COMPANY_NAME, LEGAL_JURISDICTION, LEGAL_SUPPORT_EMAIL } from './legal-placeholders';
 
-export const TERMS_OF_SERVICE: LegalDocument = {
-  title: 'Terms of Service',
-  lead: 'The rules for accessing and using FieldOps.',
-  highlight: 'By using FieldOps, you agree to these Terms.',
+import { localized, t } from '../../../core/i18n/translate';
+export const TERMS_OF_SERVICE: LegalDocument = localized(() => ({
+  title: t('legal.termsOfService.termsOfService'),
+  lead: t('legal.termsOfService.theRulesForAccessing'),
+  highlight: t('legal.termsOfService.byUsingFieldopsYou'),
   contact: {
-    title: 'Questions about these Terms?',
-    text: 'If you have questions about these Terms, please contact our support team.',
-    subject: 'FieldOps terms question',
+    title: t('legal.termsOfService.questionsAboutTheseTerms'),
+    text: t('legal.termsOfService.ifYouHaveQuestions'),
+    subject: t('legal.termsOfService.fieldopsTermsQuestion'),
   },
   sections: [
     {
       id: 'agreement',
-      title: 'Agreement',
+      title: t('legal.termsOfService.agreement'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'These Terms govern your access to and use of FieldOps. If you use FieldOps on behalf of an organization, you confirm that you have authority to accept these Terms for that organization.',
+          text: t('legal.termsOfService.theseTermsGovernYour'),
         },
       ],
     },
     {
       id: 'accounts',
-      title: 'Accounts',
+      title: t('legal.termsOfService.accounts'),
       blocks: [
-        { kind: 'paragraph', text: 'You must:' },
+        { kind: 'paragraph', text: t('legal.termsOfService.youMust') },
         {
           kind: 'list',
           items: [
-            'Provide accurate and current account information.',
-            'Keep your credentials secure.',
-            'Use only accounts you are authorized to access.',
-            'Promptly report unauthorized access or security incidents.',
-            'Accept responsibility for activity performed through your account.',
+            t('legal.termsOfService.provideAccurateAndCurrent'),
+            t('legal.termsOfService.keepYourCredentialsSecure'),
+            t('legal.termsOfService.useOnlyAccountsYou'),
+            t('legal.termsOfService.promptlyReportUnauthorizedAccess'),
+            t('legal.termsOfService.acceptResponsibilityForActivity'),
           ],
         },
       ],
     },
     {
       id: 'organization-responsibilities',
-      title: 'Organization responsibilities',
+      title: t('legal.termsOfService.organizationResponsibilities'),
       blocks: [
-        { kind: 'paragraph', text: 'Organizations are responsible for:' },
+        { kind: 'paragraph', text: t('legal.termsOfService.organizationsAreResponsibleFor') },
         {
           kind: 'list',
           items: [
-            'Managing users, roles, permissions, and branch access.',
-            'Ensuring that users access only appropriate information.',
-            'Collecting and using customer information lawfully.',
-            'Maintaining accurate customer, job, billing, and operational records.',
-            'Obtaining any permissions required for uploaded files, photos, or messages.',
+            t('legal.termsOfService.managingUsersRolesPermissions'),
+            t('legal.termsOfService.ensuringThatUsersAccess'),
+            t('legal.termsOfService.collectingAndUsingCustomer'),
+            t('legal.termsOfService.maintainingAccurateCustomerJob'),
+            t('legal.termsOfService.obtainingAnyPermissionsRequired'),
           ],
         },
       ],
     },
     {
       id: 'acceptable-use',
-      title: 'Acceptable use',
+      title: t('legal.termsOfService.acceptableUse'),
       blocks: [
-        { kind: 'paragraph', text: 'You must not:' },
+        { kind: 'paragraph', text: t('legal.termsOfService.youMustNot') },
         {
           kind: 'list',
           items: [
-            'Violate applicable laws or regulations.',
-            'Access another organization’s information without authorization.',
-            'Upload malicious code or attempt to disrupt the service.',
-            'Use FieldOps for fraudulent, abusive, or harmful activity.',
-            'Circumvent security or access controls.',
-            'Reverse engineer or attempt to extract FieldOps source code.',
-            'Use the service in a way that interferes with other users.',
+            t('legal.termsOfService.violateApplicableLawsOr'),
+            t('legal.termsOfService.accessAnotherOrganizationsInform'),
+            t('legal.termsOfService.uploadMaliciousCodeOr'),
+            t('legal.termsOfService.useFieldopsForFraudulent'),
+            t('legal.termsOfService.circumventSecurityOrAccess'),
+            t('legal.termsOfService.reverseEngineerOrAttempt'),
+            t('legal.termsOfService.useTheServiceIn'),
           ],
         },
       ],
     },
     {
       id: 'your-data',
-      title: 'Your data',
+      title: t('legal.termsOfService.yourData'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'You retain ownership of the information you or your organization submit to FieldOps.',
+          text: t('legal.termsOfService.youRetainOwnershipOf'),
         },
         {
           kind: 'paragraph',
-          text: `You grant ${LEGAL_COMPANY_NAME} permission to process that information only as needed to provide, secure, support, and improve the service or comply with legal obligations.`,
+          text: t('legal.termsOfService.youGrantPermissionTo', {
+            LEGAL_COMPANY_NAME: LEGAL_COMPANY_NAME(),
+          }),
         },
         {
           kind: 'paragraph',
-          text: 'You are responsible for ensuring that you have the right to submit and process this information.',
+          text: t('legal.termsOfService.youAreResponsibleFor'),
         },
       ],
     },
     {
       id: 'fieldops-ownership',
-      title: 'FieldOps ownership',
+      title: t('legal.termsOfService.fieldopsOwnership'),
       blocks: [
         {
           kind: 'paragraph',
-          text: `FieldOps, including its software, interface, documentation, branding, and original content, belongs to ${LEGAL_COMPANY_NAME} and its licensors.`,
+          text: t('legal.termsOfService.fieldopsIncludingItsSoftware', {
+            LEGAL_COMPANY_NAME: LEGAL_COMPANY_NAME(),
+          }),
         },
         {
           kind: 'paragraph',
-          text: 'These Terms do not transfer ownership of FieldOps or grant permission to copy, resell, or create unauthorized derivative products.',
+          text: t('legal.termsOfService.theseTermsDoNot'),
         },
       ],
     },
     {
       id: 'service-availability',
-      title: 'Service availability',
+      title: t('legal.termsOfService.serviceAvailability'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'We work to keep FieldOps reliable and secure, but uninterrupted availability is not guaranteed. Maintenance, security events, provider failures, or technical issues may temporarily affect access.',
+          text: t('legal.termsOfService.weWorkToKeep'),
         },
         {
           kind: 'paragraph',
-          text: 'Features may be improved, replaced, or discontinued when reasonably necessary.',
+          text: t('legal.termsOfService.featuresMayBeImproved'),
         },
       ],
     },
     {
       id: 'third-party-services',
-      title: 'Third-party services',
+      title: t('legal.termsOfService.thirdPartyServices'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'FieldOps may connect with third-party providers or services. Their products and privacy practices are governed by their own terms.',
+          text: t('legal.termsOfService.fieldopsMayConnectWith'),
         },
         {
           kind: 'paragraph',
-          text: 'FieldOps is not responsible for third-party services outside its control.',
+          text: t('legal.termsOfService.fieldopsIsNotResponsible'),
         },
       ],
     },
     {
       id: 'suspension-and-termination',
-      title: 'Suspension and termination',
+      title: t('legal.termsOfService.suspensionAndTermination'),
       blocks: [
-        { kind: 'paragraph', text: 'Access may be suspended or terminated when:' },
+        { kind: 'paragraph', text: t('legal.termsOfService.accessMayBeSuspended') },
         {
           kind: 'list',
           items: [
-            'These Terms are materially violated.',
-            'The service is used unlawfully or creates a security risk.',
-            'Required payments remain overdue, where applicable.',
-            'An organization or user requests account closure.',
+            t('legal.termsOfService.theseTermsAreMaterially'),
+            t('legal.termsOfService.theServiceIsUsed'),
+            t('legal.termsOfService.requiredPaymentsRemainOverdue'),
+            t('legal.termsOfService.anOrganizationOrUser'),
           ],
         },
         {
           kind: 'paragraph',
-          text: 'Where reasonable, notice and an opportunity to correct the issue will be provided.',
+          text: t('legal.termsOfService.whereReasonableNoticeAnd'),
         },
       ],
     },
     {
       id: 'disclaimers',
-      title: 'Disclaimers',
+      title: t('legal.termsOfService.disclaimers'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'FieldOps is provided on an “as available” basis. To the extent permitted by law, we disclaim warranties that are not expressly stated in these Terms.',
+          text: t('legal.termsOfService.fieldopsIsProvidedOn'),
         },
         {
           kind: 'paragraph',
-          text: 'Organizations remain responsible for their operational, employment, financial, tax, and customer-service decisions.',
+          text: t('legal.termsOfService.organizationsRemainResponsibleFo'),
         },
       ],
     },
     {
       id: 'limitation-of-liability',
-      title: 'Limitation of liability',
+      title: t('legal.termsOfService.limitationOfLiability'),
       blocks: [
         {
           kind: 'paragraph',
-          text: `To the extent permitted by law, ${LEGAL_COMPANY_NAME} will not be liable for indirect, incidental, special, or consequential losses resulting from the use or inability to use FieldOps.`,
+          text: t('legal.termsOfService.toTheExtentPermitted', {
+            LEGAL_COMPANY_NAME: LEGAL_COMPANY_NAME(),
+          }),
         },
         {
           kind: 'paragraph',
-          text: 'Nothing in these Terms excludes liability that cannot legally be limited.',
+          text: t('legal.termsOfService.nothingInTheseTerms'),
         },
       ],
     },
     {
       id: 'governing-law',
-      title: 'Governing law',
+      title: t('legal.termsOfService.governingLaw'),
       blocks: [
         {
           kind: 'paragraph',
-          text: `These Terms are governed by the laws of ${LEGAL_JURISDICTION}, without regard to conflict-of-law rules.`,
+          text: t('legal.termsOfService.theseTermsAreGoverned', {
+            LEGAL_JURISDICTION: LEGAL_JURISDICTION(),
+          }),
         },
       ],
     },
     {
       id: 'changes',
-      title: 'Changes to these Terms',
+      title: t('legal.termsOfService.changesToTheseTerms'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'We may update these Terms when the service or applicable requirements change. Continued use after an update means you accept the revised Terms.',
+          text: t('legal.termsOfService.weMayUpdateThese'),
         },
       ],
     },
     {
       id: 'contact',
-      title: 'Contact',
+      title: t('legal.termsOfService.contact'),
       blocks: [
         {
           kind: 'paragraph',
-          text: `Questions about these Terms may be sent to ${LEGAL_SUPPORT_EMAIL} or through Help & support.`,
+          text: t('legal.termsOfService.questionsAboutTheseTerms2', {
+            LEGAL_SUPPORT_EMAIL: LEGAL_SUPPORT_EMAIL,
+          }),
         },
       ],
     },
   ],
-};
+}));

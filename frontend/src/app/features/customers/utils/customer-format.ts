@@ -1,5 +1,7 @@
 import { DisplayStatus } from '../models/customer.model';
 
+import { localized, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_CHARACTERS = /^\+?[\d\s().-]*$/;
 
@@ -40,10 +42,10 @@ export function moneyFormat(currency: string | null): MoneyFormat {
     const options = { minimumFractionDigits: fraction, maximumFractionDigits: fraction };
     try {
       return currency === null
-        ? new Intl.NumberFormat('en-US', options)
-        : new Intl.NumberFormat('en-US', { style: 'currency', currency, ...options });
+        ? new Intl.NumberFormat(activeIntlLocale(), options)
+        : new Intl.NumberFormat(activeIntlLocale(), { style: 'currency', currency, ...options });
     } catch {
-      return new Intl.NumberFormat('en-US', options);
+      return new Intl.NumberFormat(activeIntlLocale(), options);
     }
   };
   const whole = build(0);
@@ -61,7 +63,7 @@ function formatterParts(
     return '';
   }
   const resolved = (zone: string): string =>
-    new Intl.DateTimeFormat('en-US', { ...options, timeZone: zone })
+    new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: zone })
       .format(date)
       .replace(/[\u202f\u00a0]/g, ' ');
   try {
@@ -81,12 +83,12 @@ export function formatTime(iso: string, timeZone: string): string {
   return formatterParts(iso, timeZone, { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-export const STATUS_LABELS: Readonly<Record<DisplayStatus, string>> = {
-  active: 'Active',
-  lead: 'Lead',
-  overdue: 'Overdue',
-  archived: 'Archived',
-};
+export const STATUS_LABELS: Readonly<Record<DisplayStatus, string>> = localized(() => ({
+  active: t('common.active'),
+  lead: t('customers.customerFormat.lead'),
+  overdue: t('customers.customerFormat.overdue'),
+  archived: t('customers.customerFormat.archived'),
+}));
 
 /** BR-04 tones: Active green, Overdue red, Lead and Archived grey. */
 export function statusSeverity(status: DisplayStatus): 'success' | 'danger' | 'secondary' {
@@ -94,7 +96,7 @@ export function statusSeverity(status: DisplayStatus): 'success' | 'danger' | 's
 }
 
 export function propertyCountText(count: number): string {
-  return `${count} ${count === 1 ? 'property' : 'properties'}`;
+  return `${count} ${count === 1 ? t('customers.customerFormat.property') : t('customers.customerFormat.properties')}`;
 }
 
 /** Page numbers with gaps (`null`) for the paginator: first pages, neighbours and the last page. */
@@ -119,8 +121,8 @@ export function pageItems(page: number, totalPages: number): readonly (number | 
 }
 
 export const CSV_MAX_BYTES = 1_048_576;
-export const CSV_SIZE_MESSAGE = 'Choose a CSV file of 1 MB or smaller.';
-export const CSV_TYPE_MESSAGE = 'Choose a CSV file.';
+export const CSV_SIZE_MESSAGE = (): string => t('customers.customerFormat.csvSizeMessage');
+export const CSV_TYPE_MESSAGE = (): string => t('customers.customerFormat.csvTypeMessage');
 
 /** Client mirror of the BR-17 extension and size checks; the server decides from content. */
 export function validateCsvFile(file: {
@@ -128,7 +130,7 @@ export function validateCsvFile(file: {
   readonly size: number;
 }): string | null {
   if (!file.name.toLowerCase().endsWith('.csv')) {
-    return CSV_TYPE_MESSAGE;
+    return CSV_TYPE_MESSAGE();
   }
-  return file.size > CSV_MAX_BYTES ? CSV_SIZE_MESSAGE : null;
+  return file.size > CSV_MAX_BYTES ? CSV_SIZE_MESSAGE() : null;
 }

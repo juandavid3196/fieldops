@@ -4,7 +4,7 @@
     class="pad__canvas"
     role="img"
     tabindex="0"
-    aria-label="Customer signature"
+    [attr.aria-label]="'technicianJobs.signaturePad.customerSignature' | transloco"
     [class.pad__canvas--invalid]="invalid()"
     [attr.aria-describedby]="describedBy()"
     [attr.aria-invalid]="invalid() ? 'true' : null"
@@ -23,7 +23,7 @@
       [disabled]="disabled() || !captured()"
       (click)="clear()"
     >
-      Clear
+      {{ 'common.clear' | transloco }}
     </button>
     <button
       pButton
@@ -35,7 +35,7 @@
       (click)="undo()"
     >
       <i class="pi pi-undo" aria-hidden="true"></i>
-      Redo
+      {{ 'technicianJobs.signaturePad.redo' | transloco }}
     </button>
   </div>
   <p class="pad__status" [id]="statusId" role="status">

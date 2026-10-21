@@ -4,15 +4,17 @@
 <div class="reports">
   <header class="reports__header">
     <div>
-      <h1 class="reports__title">Reports</h1>
-      <p class="reports__subtitle">Analyze operations, sales, billing, and team performance.</p>
+      <h1 class="reports__title">{{ 'reports.reports.reports' | transloco }}</h1>
+      <p class="reports__subtitle">
+        {{ 'reports.reports.analyzeOperationsSalesBilling' | transloco }}
+      </p>
     </div>
     @if (!forbidden()) {
       <div class="reports__tools">
         <button
           type="button"
           class="reports__refresh"
-          aria-label="Refresh report"
+          [attr.aria-label]="'reports.reports.refreshReport' | transloco"
           [disabled]="controlsDisabled() || store.loading() || store.refreshing()"
           (click)="store.refresh()"
         >
@@ -28,7 +30,7 @@
           (click)="historyOpen.set(true)"
         >
           <i class="pi pi-clock" aria-hidden="true"></i>
-          Export history
+          {{ 'reports.reports.exportHistory' | transloco }}
         </button>
       </div>
     }
@@ -40,22 +42,22 @@
     <p class="reports__message" role="alert">
       {{ loadErrorMessage }}
       <button pButton type="button" severity="secondary" size="small" (click)="store.retry()">
-        Try again
+        {{ 'common.tryAgain' | transloco }}
       </button>
     </p>
   } @else if (noBranches()) {
     <p class="reports__message">{{ noBranchesMessage }}</p>
   } @else {
-    <section class="reports__bar" aria-label="Period and branch">
+    <section class="reports__bar" [attr.aria-label]="'reports.reports.periodAndBranch' | transloco">
       <div class="reports__field">
-        <span id="reports-range-label">Date range</span>
+        <span id="reports-range-label">{{ 'reports.reports.dateRange' | transloco }}</span>
         <p-select
           appendTo="body"
           fluid
           optionLabel="name"
           optionValue="id"
           ariaLabelledBy="reports-range-label"
-          [options]="rangeChoices"
+          [options]="rangeChoices | localizedRef"
           [disabled]="controlsDisabled() || asOfToday()"
           [ngModel]="draft().range"
           (onChange)="setRange($event.value)"
@@ -66,7 +68,7 @@
           <input
             type="date"
             class="reports__date"
-            aria-label="From date"
+            [attr.aria-label]="'reports.reports.fromDate' | transloco"
             [max]="draft().to"
             [value]="draft().from"
             (change)="setDate('from', $any($event.target).value)"
@@ -74,7 +76,7 @@
           <input
             type="date"
             class="reports__date"
-            aria-label="To date"
+            [attr.aria-label]="'reports.reports.toDate' | transloco"
             [max]="today()"
             [value]="draft().to"
             (change)="setDate('to', $any($event.target).value)"
@@ -82,7 +84,7 @@
         </div>
       }
       <div class="reports__field">
-        <span id="reports-branch-label">Branch</span>
+        <span id="reports-branch-label">{{ 'reports.reports.branch' | transloco }}</span>
         <p-select
           appendTo="body"
           fluid
@@ -98,13 +100,15 @@
       <div class="reports__compare">
         <p-toggleswitch
           inputId="reports-compare"
-          ariaLabel="Compare to previous period"
+          [ariaLabel]="'reports.reports.compareToPreviousPeriod' | transloco"
           [disabled]="controlsDisabled() || asOfToday()"
           [ngModel]="compare()"
           (onChange)="onCompare($event.checked)"
         />
         <div>
-          <label for="reports-compare">Compare to previous period</label>
+          <label for="reports-compare">{{
+            'reports.reports.compareToPreviousPeriod' | transloco
+          }}</label>
           @if (asOfToday()) {
             <p class="reports__hint">{{ agingNote }}</p>
           } @else if (previousLabel() !== '') {
@@ -137,7 +141,7 @@
           (click)="catalogOpen.set(true)"
         >
           <i class="pi pi-list" aria-hidden="true"></i>
-          Reports
+          {{ 'reports.reports.reports' | transloco }}
         </button>
       }
 
@@ -172,7 +176,7 @@
                   size="small"
                   (click)="store.refresh()"
                 >
-                  Try again
+                  {{ 'common.tryAgain' | transloco }}
                 </button>
               </span>
             </p-message>
@@ -189,7 +193,7 @@
                   size="small"
                   (click)="store.retry()"
                 >
-                  Try again
+                  {{ 'common.tryAgain' | transloco }}
                 </button>
               </span>
             </p-message>
@@ -279,12 +283,14 @@
       (closeRequested)="catalogOpen.set(false)"
     >
       <ng-container ngProjectAs="[drawerHeader]">
-        <h2 class="rdrawer__title" id="reports-catalog-title" tabindex="-1">Reports</h2>
+        <h2 class="rdrawer__title" id="reports-catalog-title" tabindex="-1">
+          {{ 'reports.reports.reports' | transloco }}
+        </h2>
         <span class="rdrawer__spacer"></span>
         <button
           type="button"
           class="rdrawer__close"
-          aria-label="Close report catalog"
+          [attr.aria-label]="'reports.reports.closeReportCatalog' | transloco"
           (click)="catalogOpen.set(false)"
         >
           <i class="pi pi-times" aria-hidden="true"></i>

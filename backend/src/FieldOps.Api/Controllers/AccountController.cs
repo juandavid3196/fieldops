@@ -32,6 +32,7 @@ public sealed class AccountController(
     UploadUserPhotoHandler uploadPhotoHandler,
     RemoveUserPhotoHandler removePhotoHandler,
     ChangePasswordHandler changePasswordHandler,
+    UpdateLanguageHandler updateLanguageHandler,
     ILogger<AccountController> logger) : ControllerBase
 {
     public const int MaxJsonBodyBytes = 4 * 1024;
@@ -105,6 +106,45 @@ public sealed class AccountController(
             default:
                 throw new InvalidOperationException("Unknown update account profile result.");
         }
+    }
+
+    [HttpPut("language")]
+    [Consumes("application/json")]
+    [RequestSizeLimit(MaxJsonBodyBytes)]
+    [ProducesResponseType<UpdateLanguageView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status415UnsupportedMediaType)]
+    public async Task<IActionResult> UpdateLanguage(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] UpdateLanguageRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return HasUnsupportedContentType() ? new UnsupportedMediaTypeResult() : BadRequest();
+        }
+
+        // Only the language is read; any identifier the client sends is ignored.
+        var result = await updateLanguageHandler.HandleAsync(
+            ticket.UserId,
+            ticket.OrganizationId,
+            GetClientIpAddress(),
+            new UpdateLanguageCommand(request.LanguageText),
+            cancellationToken);
+
+        return result switch
+        {
+            UpdateLanguageResult.Succeeded succeeded => Ok(new UpdateLanguageView(succeeded.PreferredLanguage)),
+            UpdateLanguageResult.Invalid invalid => FieldProblem(invalid.Errors),
+            UpdateLanguageResult.NotFound => Unauthorized(),
+            _ => throw new InvalidOperationException("Unknown update language result."),
+        };
     }
 
     [HttpGet("photo")]

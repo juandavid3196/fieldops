@@ -6,7 +6,7 @@
           <button
             type="button"
             class="photos__button"
-            [attr.aria-label]="'Open ' + alt(index)"
+            [attr.aria-label]="'quotes.publicQuotePhotos.open' | transloco: { index: alt(index) }"
             (click)="open(index)"
           >
             <img class="photos__image" [src]="item.url" [alt]="alt(index)" />
@@ -14,7 +14,9 @@
           </button>
         }
         @case ('failed') {
-          <span class="photos__failed">Photo unavailable</span>
+          <span class="photos__failed">{{
+            'quotes.publicQuotePhotos.photoUnavailable' | transloco
+          }}</span>
         }
         @default {
           <p-skeleton height="100%" aria-hidden="true" />
@@ -25,7 +27,7 @@
 </ul>
 
 <p-dialog
-  header="Assessment photos"
+  [header]="'quotes.publicQuotePhotos.assessmentPhotos' | transloco"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
@@ -40,7 +42,7 @@
         type="button"
         severity="secondary"
         [outlined]="true"
-        aria-label="Previous photo"
+        [attr.aria-label]="'quotes.publicQuotePhotos.previousPhoto' | transloco"
         [disabled]="items().length < 2"
         (click)="step(-1)"
       >
@@ -52,7 +54,7 @@
         type="button"
         severity="secondary"
         [outlined]="true"
-        aria-label="Next photo"
+        [attr.aria-label]="'quotes.publicQuotePhotos.nextPhoto' | transloco"
         [disabled]="items().length < 2"
         (click)="step(1)"
       >

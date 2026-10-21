@@ -1,5 +1,6 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { SOURCE_LABELS } from '../../../jobs/utils/work-order-format';
 import { MaterialRow } from '../../utils/work-order-form';
@@ -8,7 +9,8 @@ import {
   WorkOrderMaterialDialog,
 } from '../work-order-material-dialog/work-order-material-dialog';
 
-export const MATERIALS_FOOTNOTE = 'Technician will record actual quantities used.';
+import { t } from '../../../../core/i18n/translate';
+export const MATERIALS_FOOTNOTE = (): string => t('quotes.workOrderMaterials.materialsFootnote');
 
 export interface MaterialSave {
   /** `null` adds a new row. */
@@ -19,7 +21,7 @@ export interface MaterialSave {
 /** Required materials card (BR-12). Presentational: the page owns the rows. */
 @Component({
   selector: 'app-work-order-materials',
-  imports: [ButtonDirective, WorkOrderMaterialDialog],
+  imports: [TranslocoPipe, ButtonDirective, WorkOrderMaterialDialog],
   templateUrl: './work-order-materials.html',
   styleUrl: './work-order-materials.scss',
 })
@@ -31,7 +33,9 @@ export class WorkOrderMaterials {
   readonly saved = output<MaterialSave>();
   readonly removed = output<string>();
 
-  readonly footnote = MATERIALS_FOOTNOTE;
+  get footnote(): string {
+    return MATERIALS_FOOTNOTE();
+  }
   readonly sourceLabels = SOURCE_LABELS;
   readonly dialogOpen = signal(false);
   private readonly editingUid = signal<string | null>(null);

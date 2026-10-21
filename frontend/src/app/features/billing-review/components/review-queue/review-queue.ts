@@ -1,6 +1,7 @@
 import { Component, ElementRef, computed, inject, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   QUEUE_EMPTY_MESSAGE,
@@ -12,16 +13,17 @@ import {
 } from '../../models/billing-review.model';
 import { formatDateTime, money, varianceBadge } from '../../utils/billing-review-format';
 
-const TABS: readonly { readonly code: QueueTab; readonly label: string }[] = [
-  { code: 'all', label: 'All' },
-  { code: 'variances', label: 'Variances' },
-  { code: 'ready', label: 'Ready' },
-];
+import { localizedList, t } from '../../../../core/i18n/translate';
+const TABS: readonly { readonly code: QueueTab; readonly label: string }[] = localizedList(() => [
+  { code: 'all', label: t('billingReview.reviewQueue.all') },
+  { code: 'variances', label: t('billingReview.reviewQueue.variances') },
+  { code: 'ready', label: t('billingReview.reviewQueue.ready') },
+]);
 
 /** Queue panel (BR-23): title, tabs with counts, selectable items, paging and its states. */
 @Component({
   selector: 'app-review-queue',
-  imports: [ButtonDirective, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, Skeleton],
   templateUrl: './review-queue.html',
   styleUrl: './review-queue.scss',
 })
@@ -43,7 +45,9 @@ export class ReviewQueue {
   readonly clearFilters = output<void>();
 
   readonly tabs = TABS;
-  readonly errorMessage = QUEUE_ERROR_MESSAGE;
+  get errorMessage(): string {
+    return QUEUE_ERROR_MESSAGE();
+  }
   readonly pageCount = computed(() => {
     const queue = this.queue();
     return queue === null ? 1 : Math.max(1, Math.ceil(queue.total / queue.pageSize));
@@ -52,15 +56,17 @@ export class ReviewQueue {
     (this.queue()?.items ?? []).map((item) => ({
       item,
       total: money(item.approvedTotal, item.currency),
-      completed: `Completed ${formatDateTime(item.completedAt, this.timezone())}`,
+      completed: t('billingReview.reviewQueue.completed', {
+        value: formatDateTime(item.completedAt, this.timezone()),
+      }),
       badge: varianceBadge(item.laborVariance, item.materialVariance),
       hasVariance: item.laborVariance !== 'none' || item.materialVariance,
     })),
   );
   readonly emptyMessage = computed(() =>
     this.filtered() || this.filters().tab !== 'all'
-      ? QUEUE_FILTERED_EMPTY_MESSAGE
-      : QUEUE_EMPTY_MESSAGE,
+      ? QUEUE_FILTERED_EMPTY_MESSAGE()
+      : QUEUE_EMPTY_MESSAGE(),
   );
 
   count(tab: QueueTab): string {

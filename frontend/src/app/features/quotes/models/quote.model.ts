@@ -1,6 +1,7 @@
 import { WorkOrderStatus } from '../../jobs/models/work-order.model';
 import { CompletedAssessment } from '../../requests/models/requests.model';
 
+import { localized, localizedList, t } from '../../../core/i18n/translate';
 export type LineType = 'service' | 'product';
 export type TermsPreset = 'due_on_completion' | 'net_15' | 'net_30' | 'custom';
 export type QuoteStatus =
@@ -10,32 +11,35 @@ export type EmailStatus = 'sent' | 'failed';
 export const QUOTE_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Fixed copy (backend titles are never displayed). */
-export const QUOTE_CHANGED_MESSAGE = 'This quote changed. Refresh to see the latest.';
-export const QUOTE_SAVE_FAILED_MESSAGE = "We couldn't save this quote. Please try again.";
-export const QUOTE_UNAVAILABLE_MESSAGE = "This quote isn't available.";
-export const QUOTE_LOAD_ERROR_MESSAGE = "We couldn't load this quote.";
-export const EDITOR_FORBIDDEN_MESSAGE = "You don't have access to edit quotes.";
-export const VIEW_FORBIDDEN_MESSAGE = "You don't have access to quotes.";
-export const CALC_ERROR_MESSAGE = "We couldn't update the totals.";
-export const PREVIEW_ERROR_MESSAGE = "We couldn't build the preview.";
-export const EMAIL_FAILED_MESSAGE =
-  "Quote sent, but we couldn't email it. Use Resend email to try again.";
-export const NO_RECIPIENT_MESSAGE = 'This customer has no email address.';
-export const SMS_UNAVAILABLE_MESSAGE = "SMS isn't available yet.";
+export const QUOTE_CHANGED_MESSAGE = (): string => t('quotes.quoteModel.quoteChangedMessage');
+export const QUOTE_SAVE_FAILED_MESSAGE = (): string =>
+  t('quotes.quoteModel.quoteSaveFailedMessage');
+export const QUOTE_UNAVAILABLE_MESSAGE = (): string =>
+  t('quotes.quoteModel.quoteUnavailableMessage');
+export const QUOTE_LOAD_ERROR_MESSAGE = (): string => t('quotes.quoteModel.quoteLoadErrorMessage');
+export const EDITOR_FORBIDDEN_MESSAGE = (): string => t('quotes.quoteModel.editorForbiddenMessage');
+export const VIEW_FORBIDDEN_MESSAGE = (): string => t('quotes.quoteModel.viewForbiddenMessage');
+export const CALC_ERROR_MESSAGE = (): string => t('quotes.quoteModel.calcErrorMessage');
+export const PREVIEW_ERROR_MESSAGE = (): string => t('quotes.quoteModel.previewErrorMessage');
+export const EMAIL_FAILED_MESSAGE = (): string => t('quotes.quoteModel.emailFailedMessage');
+export const NO_RECIPIENT_MESSAGE = (): string => t('quotes.quoteModel.noRecipientMessage');
+export const SMS_UNAVAILABLE_MESSAGE = (): string => t('quotes.quoteModel.smsUnavailableMessage');
 
-export const TERMS_PRESETS: { code: TermsPreset; label: string }[] = [
-  { code: 'due_on_completion', label: 'Payment due upon completion' },
-  { code: 'net_15', label: 'Net 15' },
-  { code: 'net_30', label: 'Net 30' },
-  { code: 'custom', label: 'Custom' },
-];
+export const TERMS_PRESETS: { code: TermsPreset; label: string }[] = localizedList(() => [
+  { code: 'due_on_completion', label: t('quotes.quoteModel.paymentDueUponCompletion') },
+  { code: 'net_15', label: t('quotes.quoteModel.net15') },
+  { code: 'net_30', label: t('quotes.quoteModel.net30') },
+  { code: 'custom', label: t('quotes.quoteModel.custom') },
+]);
 
 /** Frozen texts of the presets (BR-18). */
-export const TERMS_TEXTS: Readonly<Record<Exclude<TermsPreset, 'custom'>, string>> = {
-  due_on_completion: 'Payment due upon completion.',
-  net_15: 'Payment due within 15 days of the invoice date.',
-  net_30: 'Payment due within 30 days of the invoice date.',
-};
+export const TERMS_TEXTS: Readonly<Record<Exclude<TermsPreset, 'custom'>, string>> = localized(
+  () => ({
+    due_on_completion: t('quotes.quoteModel.paymentDueUponCompletion2'),
+    net_15: t('quotes.quoteModel.paymentDueWithin15'),
+    net_30: t('quotes.quoteModel.paymentDueWithin30'),
+  }),
+);
 
 export interface DraftLine {
   readonly catalogItemId: string | null;

@@ -1,10 +1,14 @@
-<section class="avail" aria-label="Team availability">
+<section class="avail" [attr.aria-label]="'team.availabilityTab.teamAvailability' | transloco">
   <app-team-tabs current="availability" [membersCount]="membersCount()">
-    <div class="avail__week" role="group" aria-label="Week">
+    <div
+      class="avail__week"
+      role="group"
+      [attr.aria-label]="'team.availabilityTab.week' | transloco"
+    >
       <button
         type="button"
         class="avail__week-button"
-        aria-label="Previous week"
+        [attr.aria-label]="'team.availabilityTab.previousWeek' | transloco"
         [disabled]="weekStart() === null"
         (click)="shiftWeek(-1)"
       >
@@ -14,25 +18,31 @@
       <button
         type="button"
         class="avail__week-button"
-        aria-label="Next week"
+        [attr.aria-label]="'team.availabilityTab.nextWeek' | transloco"
         [disabled]="weekStart() === null"
         (click)="shiftWeek(1)"
       >
         <i class="pi pi-angle-right" aria-hidden="true"></i>
       </button>
-      <button type="button" class="avail__week-button" (click)="thisWeek()">This week</button>
+      <button type="button" class="avail__week-button" (click)="thisWeek()">
+        {{ 'team.availabilityTab.thisWeek' | transloco }}
+      </button>
     </div>
   </app-team-tabs>
 
-  <div class="avail__filters" role="search" aria-label="Filter availability">
+  <div
+    class="avail__filters"
+    role="search"
+    [attr.aria-label]="'team.availabilityTab.filterAvailability' | transloco"
+  >
     <p-iconfield class="avail__search">
       <p-inputicon class="pi pi-search" />
       <input
         pInputText
         type="search"
         class="avail__control"
-        placeholder="Search technicians..."
-        aria-label="Search technicians"
+        [attr.placeholder]="'team.availabilityTab.searchTechnicians' | transloco"
+        [attr.aria-label]="'team.availabilityTab.searchTechnicians2' | transloco"
         maxlength="100"
         fluid
         [ngModel]="searchText()"
@@ -43,7 +53,7 @@
       class="avail__select"
       appendTo="body"
       fluid
-      ariaLabel="Branch"
+      [ariaLabel]="'team.availabilityTab.branch' | transloco"
       [loading]="branchesLoading()"
       [options]="branchChoices()"
       optionLabel="label"
@@ -52,22 +62,24 @@
       (ngModelChange)="onBranch($event)"
     >
       <ng-template #selectedItem let-option>
-        {{ option.code === 'all' ? 'Branch' : option.label }}
+        {{ option.code === 'all' ? ('team.availabilityTab.branch' | transloco) : option.label }}
       </ng-template>
     </p-select>
     <p-select
       class="avail__select"
       appendTo="body"
       fluid
-      ariaLabel="Availability"
-      [options]="availabilityOptions"
+      [ariaLabel]="'team.availabilityTab.availability' | transloco"
+      [options]="availabilityOptions | localizedRef"
       optionLabel="label"
       optionValue="code"
       [ngModel]="availability()"
       (ngModelChange)="onAvailability($event)"
     >
       <ng-template #selectedItem let-option>
-        {{ option.code === 'all' ? 'Availability' : option.label }}
+        {{
+          option.code === 'all' ? ('team.availabilityTab.availability' | transloco) : option.label
+        }}
       </ng-template>
     </p-select>
     @if (canMutate()) {
@@ -80,10 +92,10 @@
           [outlined]="true"
           (click)="open('timeOff')"
         >
-          Time off
+          {{ 'team.availabilityTab.timeOff' | transloco }}
         </button>
         <button pButton type="button" class="avail__action" (click)="open('edit')">
-          Edit availability
+          {{ 'team.availabilityTab.editAvailability' | transloco }}
         </button>
       </div>
     }
@@ -95,7 +107,7 @@
         <span class="avail__error">
           {{ errorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="load()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -110,7 +122,7 @@
         @if (hasFilters()) {
           <p class="avail__empty-text">{{ filteredEmptyMessage }}</p>
           <button pButton type="button" severity="secondary" (click)="clearFilters()">
-            Clear filters
+            {{ 'team.availabilityTab.clearFilters' | transloco }}
           </button>
         } @else {
           <p class="avail__empty-text">{{ emptyMessage }}</p>
@@ -120,18 +132,21 @@
       <div class="avail__scroll">
         <table class="avail__table">
           <caption class="avail__sr">
-            Weekly availability,
             {{
-              range()
+              'team.availabilityTab.weeklyAvailability' | transloco: { range: range() }
             }}
           </caption>
           <thead>
             <tr>
-              <th scope="col" class="avail__sticky">Technician</th>
+              <th scope="col" class="avail__sticky">
+                {{ 'team.availabilityTab.technician' | transloco }}
+              </th>
               @for (header of headers(); track $index) {
                 <th scope="col" class="avail__center">{{ header }}</th>
               }
-              <th scope="col" class="avail__center">Weekly hours</th>
+              <th scope="col" class="avail__center">
+                {{ 'team.availabilityTab.weeklyHours' | transloco }}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -163,7 +178,7 @@
           </tbody>
         </table>
       </div>
-      <ul class="avail__legend" aria-label="Legend">
+      <ul class="avail__legend" [attr.aria-label]="'team.availabilityTab.legend' | transloco">
         @for (item of legend; track item.key) {
           <li class="avail__legend-item">
             <span class="avail__dot avail__dot--{{ item.key }}" aria-hidden="true"></span>

@@ -3,10 +3,12 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Select, SelectFilterEvent } from 'primeng/select';
 import { Subject, catchError, debounceTime, of, switchMap, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TeamOption } from '../../models/team.model';
 import { TeamService } from '../../services/team.service';
 
+import { t } from '../../../../core/i18n/translate';
 const SEARCH_DEBOUNCE_MS = 300;
 
 /**
@@ -15,18 +17,18 @@ const SEARCH_DEBOUNCE_MS = 300;
  */
 @Component({
   selector: 'app-technician-picker',
-  imports: [FormsModule, Select],
+  imports: [TranslocoPipe, FormsModule, Select],
   template: `
     <p-select
       appendTo="body"
       fluid
-      placeholder="Select technician"
+      [placeholder]="'team.technicianPicker.selectTechnician' | transloco"
       filterPlaceholder="Search technicians"
       optionLabel="name"
       optionValue="id"
       filterBy="name"
       [inputId]="inputId()"
-      [ariaLabel]="label()"
+      [ariaLabel]="labelValue()"
       [filter]="true"
       [resetFilterOnHide]="true"
       [options]="choices()"
@@ -45,7 +47,8 @@ export class TechnicianPicker {
   private readonly searches = new Subject<string>();
 
   readonly inputId = input.required<string>();
-  readonly label = input('Technician');
+  readonly label = input<string | null>(null);
+  readonly labelValue = computed(() => this.label() ?? t('team.technicianPicker.technician'));
   readonly value = input<string | null>(null);
   /** Keeps the current technician selectable when it is not on the loaded page. */
   readonly current = input<TeamOption | null>(null);

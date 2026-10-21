@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   TIME_WINDOW_LABELS,
@@ -13,16 +14,17 @@ import { dateLabel } from '../../utils/portal-format';
 import { PortalResource } from '../../utils/portal-resource';
 import { quoteChip, requestChip } from '../../utils/portal-status';
 
+import { t } from '../../../../core/i18n/translate';
 export function availabilityText(availability: RequestAvailability | null): string {
   if (availability === null) {
     return '—';
   }
   const window = TIME_WINDOW_LABELS[availability.window];
   if (availability.mode === 'asap') {
-    return `As soon as possible · ${window}`;
+    return t('portal.requestDetail.asSoonAsPossible', { window: window });
   }
   if (availability.mode === 'flexible') {
-    return `I'm flexible · ${window}`;
+    return t('portal.requestDetail.imFlexible', { window: window });
   }
   const date = availability.dates[0];
   return date === undefined
@@ -33,7 +35,7 @@ export function availabilityText(availability: RequestAvailability | null): stri
 /** Request detail (BR-27): no attachments, internal notes, messages or assignees. */
 @Component({
   selector: 'app-portal-request-detail',
-  imports: [PortalState, PortalStatusChip, RouterLink],
+  imports: [TranslocoPipe, PortalState, PortalStatusChip, RouterLink],
   templateUrl: './request-detail.html',
   styleUrls: ['../../portal.scss', '../../portal-facts.scss', './request-detail.scss'],
 })

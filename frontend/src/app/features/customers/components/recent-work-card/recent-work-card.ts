@@ -4,16 +4,18 @@ import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { RecentWorkResponse, RecentWorkType, RegionState } from '../../models/customer.model';
 import { formatMoney, sentenceCase } from '../../utils/customer-detail-format';
 import { formatDate } from '../../utils/customer-format';
 
-const TYPE_LABELS: Readonly<Record<RecentWorkType, string>> = {
-  request: 'Request',
-  quote: 'Quote',
-  job: 'Job',
-};
+import { localized, t } from '../../../../core/i18n/translate';
+const TYPE_LABELS: Readonly<Record<RecentWorkType, string>> = localized(() => ({
+  request: t('customers.recentWorkCard.request'),
+  quote: t('customers.recentWorkCard.quote'),
+  job: t('customers.recentWorkCard.job'),
+}));
 const TYPE_LINKS: Readonly<Record<RecentWorkType, string>> = {
   request: '/requests',
   quote: '/quotes',
@@ -28,7 +30,7 @@ const TYPE_SEVERITY: Readonly<Record<RecentWorkType, 'success' | 'info' | 'secon
 /** Recent work table (BR-14). Presentational; request and quote links open their pages, job links go to Coming soon. */
 @Component({
   selector: 'app-recent-work-card',
-  imports: [RouterLink, ButtonDirective, Message, Skeleton, Tag],
+  imports: [TranslocoPipe, RouterLink, ButtonDirective, Message, Skeleton, Tag],
   templateUrl: './recent-work-card.html',
   styleUrl: './recent-work-card.scss',
 })

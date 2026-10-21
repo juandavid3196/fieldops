@@ -5,9 +5,11 @@ import { ChevronLeftIcon } from 'primeng/icons/chevronleft';
 import { ChevronRightIcon } from 'primeng/icons/chevronright';
 import { SearchIcon } from 'primeng/icons/search';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { QuoteLinkApi } from '../../services/quote-link-api';
 
+import { t } from '../../../../core/i18n/translate';
 type PhotoState = 'loading' | 'ready' | 'failed';
 
 interface PhotoItem {
@@ -22,7 +24,15 @@ interface PhotoItem {
  */
 @Component({
   selector: 'app-public-quote-photos',
-  imports: [ButtonDirective, Dialog, ChevronLeftIcon, ChevronRightIcon, SearchIcon, Skeleton],
+  imports: [
+    TranslocoPipe,
+    ButtonDirective,
+    Dialog,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    SearchIcon,
+    Skeleton,
+  ],
   templateUrl: './public-quote-photos.html',
   styleUrl: './public-quote-photos.scss',
 })
@@ -51,7 +61,10 @@ export class PublicQuotePhotos {
   }
 
   alt(index: number): string {
-    return `Assessment photo ${index + 1} of ${this.items().length}`;
+    return t('quotes.publicQuotePhotos.assessmentPhotoOf', {
+      value: index + 1,
+      length: this.items().length,
+    });
   }
 
   open(index: number): void {

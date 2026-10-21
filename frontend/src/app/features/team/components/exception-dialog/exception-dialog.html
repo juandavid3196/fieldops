@@ -6,11 +6,15 @@
   [draggable]="false"
   [style]="{ width: '30rem' }"
   [breakpoints]="{ '575px': '90vw' }"
-  [header]="editing() ? 'Edit exception' : 'Add exception'"
+  [header]="
+    editing()
+      ? ('team.exceptionDialog.editException' | transloco)
+      : ('team.exceptionDialog.addException' | transloco)
+  "
 >
   <form class="exception" novalidate (ngSubmit)="submit()">
     <div class="exception__field">
-      <label for="exception-date">Date</label>
+      <label for="exception-date">{{ 'common.date' | transloco }}</label>
       <input
         pInputText
         id="exception-date"
@@ -29,15 +33,15 @@
     </div>
 
     <div class="exception__field">
-      <label for="exception-kind">Availability type</label>
+      <label for="exception-kind">{{ 'team.exceptionDialog.availabilityType' | transloco }}</label>
       <p-select
         inputId="exception-kind"
-        placeholder="Choose a type"
+        [placeholder]="'team.exceptionDialog.chooseAType' | transloco"
         appendTo="body"
         optionLabel="label"
         optionValue="value"
         [fluid]="true"
-        [options]="kindOptions"
+        [options]="kindOptions | localizedRef"
         [ngModel]="form().kind"
         (ngModelChange)="patch({ kind: $event })"
         [ngModelOptions]="{ standalone: true }"
@@ -51,15 +55,15 @@
     @if (timed()) {
       <div class="exception__times">
         <div class="exception__field">
-          <label for="exception-start">Start time</label>
+          <label for="exception-start">{{ 'team.exceptionDialog.startTime' | transloco }}</label>
           <p-select
             inputId="exception-start"
-            placeholder="Start"
+            [placeholder]="'team.exceptionDialog.start' | transloco"
             appendTo="body"
             optionLabel="label"
             optionValue="value"
             [fluid]="true"
-            [options]="timeOptions"
+            [options]="timeOptions | localizedRef"
             [ngModel]="form().start"
             (ngModelChange)="patch({ start: $event })"
             [ngModelOptions]="{ standalone: true }"
@@ -70,15 +74,15 @@
           }
         </div>
         <div class="exception__field">
-          <label for="exception-end">End time</label>
+          <label for="exception-end">{{ 'team.exceptionDialog.endTime' | transloco }}</label>
           <p-select
             inputId="exception-end"
-            placeholder="End"
+            [placeholder]="'team.exceptionDialog.end' | transloco"
             appendTo="body"
             optionLabel="label"
             optionValue="value"
             [fluid]="true"
-            [options]="timeOptions"
+            [options]="timeOptions | localizedRef"
             [ngModel]="form().end"
             (ngModelChange)="patch({ end: $event })"
             [ngModelOptions]="{ standalone: true }"
@@ -94,7 +98,7 @@
     }
 
     <div class="exception__field">
-      <label for="exception-reason">Reason</label>
+      <label for="exception-reason">{{ 'team.exceptionDialog.reason' | transloco }}</label>
       <input
         pInputText
         id="exception-reason"
@@ -117,7 +121,7 @@
     }
     @if (failed()) {
       <p-message severity="error" [closable]="false">
-        We couldn't save the exception. Try again.
+        {{ 'team.exceptionDialog.weCouldnTSave' | transloco }}
       </p-message>
     }
   </form>
@@ -131,13 +135,17 @@
       [disabled]="submitting()"
       (click)="close()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button pButton type="button" [disabled]="submitting()" (click)="submit()">
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      {{ editing() ? 'Save exception' : 'Add exception' }}
+      {{
+        editing()
+          ? ('team.exceptionDialog.saveException' | transloco)
+          : ('team.exceptionDialog.addException' | transloco)
+      }}
     </button>
   </ng-template>
 </p-dialog>

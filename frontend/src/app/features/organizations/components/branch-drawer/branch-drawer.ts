@@ -23,6 +23,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -63,17 +64,22 @@ import {
 } from './branch-drawer.validators';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
+import { t } from '../../../../core/i18n/translate';
 const BUSINESS_HOURS_FIELD_PATTERN = /^branch\.businessHours\.(\w+)\.(start|end)$/;
 const DRAWER_ERROR_SUMMARY_ID = 'branch-drawer-error-summary';
 const DRAWER_TITLE_ID = 'branch-drawer-title';
 
 /** BR-15 copy shown for a branch load error (other than 401/404, handled separately). */
-export const BRANCH_LOAD_ERROR_MESSAGE = "We couldn't load this branch.";
-export const BRANCH_NOT_FOUND_MESSAGE = 'This branch is no longer available.';
-export const STALE_BRANCH_MESSAGE =
-  'This record was changed by someone else. Reload to see the latest version.';
-export const BRANCH_LIMIT_MESSAGE = 'Your organization has reached the limit of 100 branches.';
-export const ONLY_ACTIVE_BRANCH_TOOLTIP = 'At least one branch must stay active.';
+export const BRANCH_LOAD_ERROR_MESSAGE = (): string =>
+  t('organizations.branchDrawer.branchLoadErrorMessage');
+export const BRANCH_NOT_FOUND_MESSAGE = (): string =>
+  t('organizations.branchDrawer.branchNotFoundMessage');
+export const STALE_BRANCH_MESSAGE = (): string =>
+  t('organizations.branchDrawer.staleBranchMessage');
+export const BRANCH_LIMIT_MESSAGE = (): string =>
+  t('organizations.branchDrawer.branchLimitMessage');
+export const ONLY_ACTIVE_BRANCH_TOOLTIP = (): string =>
+  t('organizations.branchDrawer.onlyActiveBranchTooltip');
 
 /**
  * Create/edit/view branch drawer (FR-15, FR-16): a self-contained scrollable
@@ -84,6 +90,7 @@ export const ONLY_ACTIVE_BRANCH_TOOLTIP = 'At least one branch must stay active.
 @Component({
   selector: 'app-branch-drawer',
   imports: [
+    TranslocoPipe,
     ReactiveFormsModule,
     ButtonDirective,
     InputText,
@@ -124,8 +131,12 @@ export class BranchDrawer {
 
   readonly errorSummaryId = DRAWER_ERROR_SUMMARY_ID;
   readonly titleId = DRAWER_TITLE_ID;
-  readonly onlyActiveTooltip = ONLY_ACTIVE_BRANCH_TOOLTIP;
-  readonly loadErrorMessage = BRANCH_LOAD_ERROR_MESSAGE;
+  get onlyActiveTooltip(): string {
+    return ONLY_ACTIVE_BRANCH_TOOLTIP();
+  }
+  get loadErrorMessage(): string {
+    return BRANCH_LOAD_ERROR_MESSAGE();
+  }
   readonly form: FormGroup<BranchDrawerFormControls> = buildBranchDrawerForm('');
 
   private readonly shell = viewChild(DrawerShell);
@@ -145,10 +156,14 @@ export class BranchDrawer {
   private lastLoadedUpdatedAt: string | null = null;
 
   readonly isCreate = computed(() => this.branchId() === null);
-  readonly title = computed(() => (this.isCreate() ? 'New branch' : (this.detail()?.name ?? '')));
+  readonly title = computed(() =>
+    this.isCreate() ? t('organizations.branchDrawer.newBranch') : (this.detail()?.name ?? ''),
+  );
   readonly readOnly = computed(() => !this.canManage());
   readonly isMain = computed(() => this.detail()?.isMain ?? false);
-  readonly mainTooltip = MAIN_BRANCH_TOOLTIP;
+  get mainTooltip(): string {
+    return MAIN_BRANCH_TOOLTIP();
+  }
 
   readonly onlyActiveBranch = computed(() => {
     const id = this.branchId();
@@ -233,7 +248,7 @@ export class BranchDrawer {
     }
     if (apiError?.kind === 'not-found') {
       this.closed.emit();
-      this.messageService.add({ severity: 'error', summary: BRANCH_NOT_FOUND_MESSAGE });
+      this.messageService.add({ severity: 'error', summary: BRANCH_NOT_FOUND_MESSAGE() });
       this.saved.emit();
       return;
     }
@@ -241,7 +256,7 @@ export class BranchDrawer {
       apiError ?? {
         kind: 'unknown',
         status: 0,
-        message: BRANCH_LOAD_ERROR_MESSAGE,
+        message: BRANCH_LOAD_ERROR_MESSAGE(),
         fieldErrors: {},
       },
     );
@@ -320,7 +335,7 @@ export class BranchDrawer {
     }
     if (apiError?.kind === 'not-found') {
       this.closed.emit();
-      this.messageService.add({ severity: 'error', summary: BRANCH_NOT_FOUND_MESSAGE });
+      this.messageService.add({ severity: 'error', summary: BRANCH_NOT_FOUND_MESSAGE() });
       this.saved.emit();
       return;
     }
@@ -332,10 +347,10 @@ export class BranchDrawer {
         return;
       }
       if (this.isCreate()) {
-        this.pageMessage.set(BRANCH_LIMIT_MESSAGE);
+        this.pageMessage.set(BRANCH_LIMIT_MESSAGE());
       } else {
         this.staleConflict.set(true);
-        this.pageMessage.set(STALE_BRANCH_MESSAGE);
+        this.pageMessage.set(STALE_BRANCH_MESSAGE());
       }
       this.focusSummary();
       return;
@@ -352,7 +367,9 @@ export class BranchDrawer {
       return;
     }
 
-    this.pageMessage.set(apiError?.message ?? 'An unexpected error occurred. Please try again.');
+    this.pageMessage.set(
+      apiError?.message ?? t('organizations.branchDrawer.anUnexpectedErrorOccurred'),
+    );
     this.focusSummary();
   }
 
@@ -380,10 +397,10 @@ export class BranchDrawer {
     }
 
     this.confirmationService.confirm({
-      header: 'Deactivate branch',
-      message: `Deactivate ${branch.name}? No new requests, quotes or work orders can be created for this branch. Existing records stay available.`,
-      acceptButtonProps: { label: 'Deactivate', severity: 'danger' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      header: t('organizations.branchDrawer.deactivateBranch'),
+      message: t('organizations.branchDrawer.deactivateNoNewRequests', { name: branch.name }),
+      acceptButtonProps: { label: t('organizations.branchDrawer.deactivate'), severity: 'danger' },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => this.performStateChange(id, 'deactivate', branch.name),
     });
   }
@@ -417,20 +434,20 @@ export class BranchDrawer {
     }
     if (apiError?.kind === 'not-found') {
       this.closed.emit();
-      this.messageService.add({ severity: 'error', summary: BRANCH_NOT_FOUND_MESSAGE });
+      this.messageService.add({ severity: 'error', summary: BRANCH_NOT_FOUND_MESSAGE() });
       this.saved.emit();
       return;
     }
     if (apiError?.kind === 'conflict') {
       this.messageService.add({
         severity: 'error',
-        summary: this.isMain() ? MAIN_BRANCH_TOOLTIP : ONLY_ACTIVE_BRANCH_TOOLTIP,
+        summary: this.isMain() ? MAIN_BRANCH_TOOLTIP() : ONLY_ACTIVE_BRANCH_TOOLTIP(),
       });
       return;
     }
     this.messageService.add({
       severity: 'error',
-      summary: apiError?.message ?? 'An unexpected error occurred. Please try again.',
+      summary: apiError?.message ?? t('organizations.branchDrawer.anUnexpectedErrorOccurred'),
     });
   }
 
@@ -443,7 +460,7 @@ export class BranchDrawer {
     if (this.form.dirty && !this.readOnly()) {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this branch',
+          subject: t('organizations.branchDrawer.thisBranch'),
           accept: () => this.closed.emit(),
         }),
       );

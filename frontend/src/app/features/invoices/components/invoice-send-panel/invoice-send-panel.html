@@ -1,12 +1,19 @@
 <section class="panel" [attr.aria-labelledby]="id + '-title'">
-  <h2 class="panel__title" [id]="id + '-title'">{{ isDraft() ? 'Send invoice' : 'Delivery' }}</h2>
+  <h2 class="panel__title" [id]="id + '-title'">
+    {{
+      isDraft()
+        ? ('invoices.invoiceSendPanel.sendInvoice' | transloco)
+        : ('invoices.invoiceSendPanel.delivery' | transloco)
+    }}
+  </h2>
   @if (isDraft()) {
-    <p class="panel__subtitle">Send this invoice to your customer by email.</p>
+    <p class="panel__subtitle">{{ 'invoices.invoiceSendPanel.sendThisInvoiceTo' | transloco }}</p>
   }
 
   <div class="panel__field">
     <label [for]="id + '-recipient'"
-      ><i class="pi pi-envelope panel__icon" aria-hidden="true"></i>Recipient email</label
+      ><i class="pi pi-envelope panel__icon" aria-hidden="true"></i
+      >{{ 'invoices.invoiceSendPanel.recipientEmail' | transloco }}</label
     >
     <input
       #recipientField
@@ -33,10 +40,15 @@
       [inputId]="id + '-sms'"
       [ngModel]="false"
       [disabled]="true"
-      [ariaLabel]="'Send SMS notification. ' + smsUnavailable"
+      [ariaLabel]="
+        'invoices.invoiceSendPanel.sendSmsNotification'
+          | transloco: { smsUnavailable: smsUnavailable }
+      "
     />
     <div>
-      <label [for]="id + '-sms'">Send SMS notification</label>
+      <label [for]="id + '-sms'">{{
+        'invoices.invoiceSendPanel.sendSmsNotification2' | transloco
+      }}</label>
       <p class="panel__muted">{{ smsUnavailable }}</p>
     </div>
   </div>
@@ -44,13 +56,14 @@
   <div class="panel__row">
     <div class="panel__field">
       <span [id]="id + '-terms-label'"
-        ><i class="pi pi-calendar panel__icon" aria-hidden="true"></i>Payment terms</span
+        ><i class="pi pi-calendar panel__icon" aria-hidden="true"></i
+        >{{ 'invoices.invoiceSendPanel.paymentTerms' | transloco }}</span
       >
       <p-select
         appendTo="body"
         fluid
         [ariaLabelledBy]="id + '-terms-label'"
-        [options]="termsOptions"
+        [options]="termsOptions | localizedRef"
         optionLabel="label"
         optionValue="code"
         [readonly]="locked()"
@@ -65,7 +78,8 @@
     </div>
     <div class="panel__field">
       <label [for]="id + '-due'"
-        ><i class="pi pi-calendar panel__icon" aria-hidden="true"></i>Due date</label
+        ><i class="pi pi-calendar panel__icon" aria-hidden="true"></i
+        >{{ 'invoices.invoiceSendPanel.dueDate' | transloco }}</label
       >
       <input pInputText fluid readonly [id]="id + '-due'" [value]="dueText()" />
     </div>
@@ -73,7 +87,8 @@
 
   <fieldset class="panel__group" [attr.aria-describedby]="id + '-later'">
     <legend>
-      <i class="pi pi-credit-card panel__icon" aria-hidden="true"></i>Accepted payment methods
+      <i class="pi pi-credit-card panel__icon" aria-hidden="true"></i
+      >{{ 'invoices.invoiceSendPanel.acceptedPaymentMethods' | transloco }}
     </legend>
     <div class="panel__option">
       <p-checkbox
@@ -81,9 +96,11 @@
         [binary]="true"
         [ngModel]="false"
         [disabled]="true"
-        ariaLabel="Card (credit/debit). Not available yet."
+        [ariaLabel]="'invoices.invoiceSendPanel.cardCreditDebitNot' | transloco"
       />
-      <label [for]="id + '-card'">Card (credit/debit)</label>
+      <label [for]="id + '-card'">{{
+        'invoices.invoiceSendPanel.cardCreditDebit' | transloco
+      }}</label>
     </div>
     <div class="panel__option">
       <p-checkbox
@@ -91,9 +108,11 @@
         [binary]="true"
         [ngModel]="false"
         [disabled]="true"
-        ariaLabel="Bank transfer (ACH). Not available yet."
+        [ariaLabel]="'invoices.invoiceSendPanel.bankTransferAchNot' | transloco"
       />
-      <label [for]="id + '-ach'">Bank transfer (ACH)</label>
+      <label [for]="id + '-ach'">{{
+        'invoices.invoiceSendPanel.bankTransferAch' | transloco
+      }}</label>
     </div>
     <div class="panel__option">
       <p-checkbox
@@ -101,15 +120,16 @@
         [binary]="true"
         [ngModel]="false"
         [disabled]="true"
-        ariaLabel="Cash. Not available yet."
+        [ariaLabel]="'invoices.invoiceSendPanel.cashNotAvailableYet' | transloco"
       />
-      <label [for]="id + '-cash'">Cash</label>
+      <label [for]="id + '-cash'">{{ 'invoices.invoiceSendPanel.cash' | transloco }}</label>
     </div>
   </fieldset>
 
   <div class="panel__field">
     <label [for]="id + '-message'"
-      ><i class="pi pi-comments panel__icon" aria-hidden="true"></i>Message to customer</label
+      ><i class="pi pi-comments panel__icon" aria-hidden="true"></i
+      >{{ 'invoices.invoiceSendPanel.messageToCustomer' | transloco }}</label
     >
     <textarea
       #messageField
@@ -137,9 +157,11 @@
       [inputId]="id + '-report'"
       [ngModel]="false"
       [disabled]="true"
-      ariaLabel="Attach completion report. Not available yet."
+      [ariaLabel]="'invoices.invoiceSendPanel.attachCompletionReportNot' | transloco"
     />
-    <label [for]="id + '-report'">Attach completion report</label>
+    <label [for]="id + '-report'">{{
+      'invoices.invoiceSendPanel.attachCompletionReport' | transloco
+    }}</label>
   </div>
   <div class="panel__toggle">
     <i class="pi pi-image panel__icon" aria-hidden="true"></i>
@@ -147,13 +169,18 @@
       [inputId]="id + '-photos'"
       [ngModel]="false"
       [disabled]="true"
-      ariaLabel="Attach before & after photos. Not available yet."
+      [ariaLabel]="'invoices.invoiceSendPanel.attachBeforeAfterPhotos' | transloco"
     />
-    <label [for]="id + '-photos'">Attach before &amp; after photos</label>
+    <label [for]="id + '-photos'">{{
+      'invoices.invoiceSendPanel.attachBeforeAfterPhotos2' | transloco
+    }}</label>
   </div>
   <p class="panel__muted" [id]="id + '-later'">{{ laterMessage }}</p>
 
-  <ul class="panel__checks" aria-label="Readiness checks">
+  <ul
+    class="panel__checks"
+    [attr.aria-label]="'invoices.invoiceSendPanel.readinessChecks' | transloco"
+  >
     @for (check of invoice().checks; track check.key) {
       <li [class.panel__check--unmet]="!check.met">
         <i
@@ -162,7 +189,11 @@
           [class.pi-exclamation-circle]="!check.met"
           aria-hidden="true"
         ></i>
-        <span class="panel__sr">{{ check.met ? 'Done: ' : 'To do: ' }}</span
+        <span class="panel__sr">{{
+          check.met
+            ? ('invoices.invoiceSendPanel.done' | transloco)
+            : ('invoices.invoiceSendPanel.toDo' | transloco)
+        }}</span
         >{{ check.label }}
       </li>
     }
@@ -187,7 +218,7 @@
       @if (pending() === 'resend') {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Resend email
+      {{ 'invoices.invoiceSendPanel.resendEmail' | transloco }}
     </button>
   }
 </section>

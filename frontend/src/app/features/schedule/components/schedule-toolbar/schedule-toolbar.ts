@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   NamedOption,
@@ -11,19 +12,22 @@ import {
   VisitStatusFilter,
 } from '../../models/schedule.model';
 
-export const MAP_UNAVAILABLE_MESSAGE = "Map view isn't available yet.";
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const MAP_UNAVAILABLE_MESSAGE = (): string =>
+  t('schedule.scheduleToolbar.mapUnavailableMessage');
 
-const STATUS_CHOICES: { code: VisitStatusFilter; label: string }[] = [
-  { code: 'all', label: 'All' },
-  { code: 'unassigned', label: 'Unassigned' },
-  { code: 'assigned', label: 'Assigned' },
-  { code: 'conflicts', label: 'With conflicts' },
-];
+const STATUS_CHOICES: { code: VisitStatusFilter; label: string }[] = localizedList(() => [
+  { code: 'all', label: t('schedule.scheduleToolbar.all') },
+  { code: 'unassigned', label: t('schedule.scheduleToolbar.unassigned') },
+  { code: 'assigned', label: t('schedule.scheduleToolbar.assigned') },
+  { code: 'conflicts', label: t('schedule.scheduleToolbar.withConflicts') },
+]);
 
 /** Header, navigation, Day/Week toggle and the Branch/Team/Skills/Status filters (BR-20). */
 @Component({
   selector: 'app-schedule-toolbar',
-  imports: [FormsModule, ButtonDirective, MultiSelect, Select],
+  imports: [LocalizedRefPipe, TranslocoPipe, FormsModule, ButtonDirective, MultiSelect, Select],
   templateUrl: './schedule-toolbar.html',
   styleUrl: './schedule-toolbar.scss',
 })
@@ -49,7 +53,9 @@ export class ScheduleToolbar {
   readonly skillChange = output<string | null>();
   readonly statusChange = output<VisitStatusFilter>();
 
-  readonly mapMessage = MAP_UNAVAILABLE_MESSAGE;
+  get mapMessage(): string {
+    return MAP_UNAVAILABLE_MESSAGE();
+  }
   readonly statusChoices = STATUS_CHOICES;
   readonly filtersOpen = signal(false);
   readonly branchOptions = computed(() => [...this.branches()]);
@@ -63,7 +69,7 @@ export class ScheduleToolbar {
     const names = this.teamChoices()
       .filter((option) => ids?.includes(option.id))
       .map((option) => option.name);
-    return names.length > 0 ? names.join(', ') : 'All';
+    return names.length > 0 ? names.join(', ') : t('schedule.scheduleToolbar.all');
   }
 
   resetBranch(): void {

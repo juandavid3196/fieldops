@@ -21,6 +21,7 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { EMPTY, Observable, Subject, catchError, switchMap, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { saveCsv } from '../../../../shared/utils/csv-file';
@@ -58,6 +59,9 @@ import {
   tableTime,
 } from '../../utils/audit-log-format';
 
+import { localizedList, t, tCode } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+import { CodeLabelPipe } from '../../../../core/i18n/code-label.pipe';
 interface Region<T> {
   readonly status: 'idle' | 'loading' | 'ready' | 'error';
   readonly data: T | null;
@@ -132,6 +136,9 @@ function draftOf(view: AuditView): Draft {
 @Component({
   selector: 'app-audit-log',
   imports: [
+    CodeLabelPipe,
+    LocalizedRefPipe,
+    TranslocoPipe,
     AuditEventDrawer,
     ButtonDirective,
     FormsModule,
@@ -154,21 +161,27 @@ export class AuditLog {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly forbiddenMessage = AUDIT_FORBIDDEN_MESSAGE;
-  readonly errorMessage = AUDIT_LOAD_ERROR_MESSAGE;
-  readonly emptyMessage = AUDIT_EMPTY_MESSAGE;
+  get forbiddenMessage(): string {
+    return AUDIT_FORBIDDEN_MESSAGE();
+  }
+  get errorMessage(): string {
+    return AUDIT_LOAD_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return AUDIT_EMPTY_MESSAGE();
+  }
   readonly skeletonRows = [1, 2, 3, 4, 5];
   readonly metricSkeletons = [1, 2, 3, 4];
   readonly pageSizeOptions: Choice[] = AUDIT_PAGE_SIZES.map((size) => ({
     code: String(size),
-    label: `${size} / page`,
+    label: t('auditLog.auditLog.page', { size: size }),
   }));
-  readonly impactOptions: Choice[] = [
-    { code: ALL, label: 'All levels' },
+  readonly impactOptions: Choice[] = localizedList(() => [
+    { code: ALL, label: t('auditLog.auditLog.allLevels') },
     { code: 'high', label: IMPACT_LABELS.high },
     { code: 'medium', label: IMPACT_LABELS.medium },
     { code: 'low', label: IMPACT_LABELS.low },
-  ];
+  ]);
 
   readonly sessionExpired = signal(false);
   readonly forbidden = signal(false);
@@ -201,19 +214,22 @@ export class AuditLog {
   readonly toValue = computed(() => this.draft().to ?? this.today());
 
   readonly actorChoices = computed<Choice[]>(() => [
-    { code: ALL, label: 'All users' },
+    { code: ALL, label: t('auditLog.auditLog.allUsers') },
     ...(this.options().data?.users ?? []).map((user) => ({ code: user.id, label: user.name })),
   ]);
   readonly actionChoices = computed<Choice[]>(() => [
-    { code: ALL, label: 'All actions' },
-    ...(this.options().data?.actions ?? []),
+    { code: ALL, label: t('auditLog.auditLog.allActions') },
+    ...(this.options().data?.actions ?? []).map((action) => ({
+      code: action.code,
+      label: tCode('auditActions', action.code, action.label),
+    })),
   ]);
   readonly entityChoices = computed<Choice[]>(() => [
-    { code: ALL, label: 'All entities' },
+    { code: ALL, label: t('auditLog.auditLog.allEntities') },
     ...(this.options().data?.entityTypes ?? []),
   ]);
   readonly branchChoices = computed<Choice[]>(() => [
-    { code: ALL, label: AUDIT_ALL_BRANCHES },
+    { code: ALL, label: AUDIT_ALL_BRANCHES() },
     ...(this.options().data?.branches ?? []).map((branch) => ({
       code: branch.id,
       label: branch.name,
@@ -224,21 +240,26 @@ export class AuditLog {
     const data = this.summary().data;
     const show = (value: number | undefined): string => (value === undefined ? '—' : String(value));
     return [
-      { label: 'Events today', value: show(data?.eventsToday), icon: 'pi-file', tone: 'info' },
       {
-        label: 'Users active',
+        label: t('auditLog.auditLog.eventsToday'),
+        value: show(data?.eventsToday),
+        icon: 'pi-file',
+        tone: 'info',
+      },
+      {
+        label: t('auditLog.auditLog.usersActive'),
         value: show(data?.activeUsersToday),
         icon: 'pi-user',
         tone: 'success',
       },
       {
-        label: 'High-impact changes',
+        label: t('auditLog.auditLog.highImpactChanges'),
         value: show(data?.highImpactToday),
         icon: 'pi-exclamation-triangle',
         tone: 'warning',
       },
       {
-        label: 'Access changes',
+        label: t('auditLog.auditLog.accessChanges'),
         value: show(data?.accessChangesToday),
         icon: 'pi-shield',
         tone: 'danger',
@@ -256,7 +277,7 @@ export class AuditLog {
       item,
       date: tableDate(item.occurredAt, data.timeZone),
       time: tableTime(item.occurredAt, data.timeZone),
-      branch: item.branch?.name ?? AUDIT_ALL_BRANCHES,
+      branch: item.branch?.name ?? AUDIT_ALL_BRANCHES(),
       sourceIp: item.ipAddress ?? item.source,
       impactLabel: IMPACT_LABELS[item.impact],
       impactIcon: IMPACT_ICONS[item.impact],
@@ -265,10 +286,14 @@ export class AuditLog {
   readonly footer = computed(() => {
     const { page, pageSize } = this.view();
     const total = this.total();
-    return `Showing ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total} events`;
+    return t('auditLog.auditLog.showingOfEvents', {
+      value: (page - 1) * pageSize + 1,
+      value2: Math.min(page * pageSize, total),
+      total: total,
+    });
   });
   readonly announcement = computed(() =>
-    this.list().status === 'ready' ? `${this.total()} events` : '',
+    this.list().status === 'ready' ? t('auditLog.auditLog.events', { total: this.total() }) : '',
   );
   readonly pageSizeCode = computed(() => String(this.view().pageSize));
   readonly filteredToRecord = computed(() => this.view().entityId !== null);
@@ -565,7 +590,9 @@ export class AuditLog {
             this.messages.add({
               severity: 'error',
               summary:
-                kind === 'conflict' ? AUDIT_EXPORT_TOO_LARGE_MESSAGE : AUDIT_EXPORT_FAILED_MESSAGE,
+                kind === 'conflict'
+                  ? AUDIT_EXPORT_TOO_LARGE_MESSAGE()
+                  : AUDIT_EXPORT_FAILED_MESSAGE(),
             });
           }
         },

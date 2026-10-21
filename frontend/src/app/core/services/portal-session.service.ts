@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 
 import { API_CONFIG, buildApiUrl } from '../config/api.config';
+import { LanguageService } from '../i18n/language.service';
 import { isApiError } from '../models/api-error.model';
 import { PortalSession, PortalSignInRequest } from '../models/portal-session.model';
 
@@ -14,6 +15,7 @@ import { PortalSession, PortalSignInRequest } from '../models/portal-session.mod
 export class PortalSessionService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(API_CONFIG);
+  private readonly language = inject(LanguageService);
   private readonly currentSession = signal<PortalSession | null>(null);
   private readonly expired = signal(false);
 
@@ -33,6 +35,7 @@ export class PortalSessionService {
           this.currentSession.set(null);
         },
       }),
+      switchMap((session) => this.applyLanguage(session)),
     );
   }
 
@@ -42,9 +45,10 @@ export class PortalSessionService {
       password: request.password,
       rememberMe: request.rememberMe,
     };
-    return this.http
-      .post<PortalSession>(buildApiUrl(this.config, 'portal/sessions'), body)
-      .pipe(tap((session) => this.currentSession.set(session)));
+    return this.http.post<PortalSession>(buildApiUrl(this.config, 'portal/sessions'), body).pipe(
+      tap((session) => this.currentSession.set(session)),
+      switchMap((session) => this.applyLanguage(session)),
+    );
   }
 
   /** Stores a session body issued by another endpoint (invitation acceptance). */
@@ -58,7 +62,10 @@ export class PortalSessionService {
       .post<PortalSession>(buildApiUrl(this.config, 'portal/sessions/current/account'), {
         contactId,
       })
-      .pipe(tap((session) => this.currentSession.set(session)));
+      .pipe(
+        tap((session) => this.currentSession.set(session)),
+        switchMap((session) => this.applyLanguage(session)),
+      );
   }
 
   /** `204` and `401` clear the session; any other failure keeps it and is rethrown. */
@@ -80,5 +87,10 @@ export class PortalSessionService {
 
   clearExpiredNotice(): void {
     this.expired.set(false);
+  }
+
+  /** BR-02: the session `preferredLanguage` wins over the local value; unsupported values are ignored. */
+  private applyLanguage(session: PortalSession): Observable<PortalSession> {
+    return this.language.applyPreference(session.user.preferredLanguage).pipe(map(() => session));
   }
 }

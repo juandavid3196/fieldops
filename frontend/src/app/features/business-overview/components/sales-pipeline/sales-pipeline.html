@@ -1,5 +1,7 @@
 <section class="card" aria-labelledby="pipeline-title">
-  <h2 class="card__title" id="pipeline-title">Sales pipeline</h2>
+  <h2 class="card__title" id="pipeline-title">
+    {{ 'businessOverview.salesPipeline.salesPipeline' | transloco }}
+  </h2>
   <ol class="steps">
     @for (step of steps(); track step.id) {
       @if (!$first) {

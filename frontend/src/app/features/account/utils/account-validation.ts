@@ -7,11 +7,12 @@ import {
 } from '../../organizations/pages/register-company/register-company.messages';
 import { validateOptionalPhone } from '../../organizations/pages/register-company/register-company.validators';
 
+import { t } from '../../../core/i18n/translate';
 export const NAME_MAX_LENGTH = 100;
 export const PASSWORD_MIN_LENGTH = 12;
 export const PASSWORD_MAX_LENGTH = 128;
-export const PASSWORD_EQUALS_CURRENT_MESSAGE =
-  'Choose a password that is different from your current password.';
+export const PASSWORD_EQUALS_CURRENT_MESSAGE = (): string =>
+  t('account.accountValidation.passwordEqualsCurrentMessage');
 
 export type ProfileField = 'firstName' | 'lastName' | 'phone';
 export type ProfileErrors = Partial<Record<ProfileField, string>>;
@@ -22,7 +23,7 @@ export function validateProfile(value: Readonly<Record<ProfileField, string>>): 
   for (const field of ['firstName', 'lastName'] as const) {
     const trimmed = value[field].trim();
     if (trimmed.length === 0) {
-      errors[field] = REQUIRED_MESSAGE;
+      errors[field] = REQUIRED_MESSAGE();
     } else if (trimmed.length > NAME_MAX_LENGTH) {
       errors[field] = tooLongMessage(NAME_MAX_LENGTH);
     }
@@ -57,15 +58,15 @@ export function passwordRequirements(
   const typed = value.length > 0;
   return [
     {
-      label: '12–128 characters',
+      label: t('account.accountValidation.n12128Characters'),
       met: value.length >= PASSWORD_MIN_LENGTH && value.length <= PASSWORD_MAX_LENGTH,
     },
     {
-      label: 'Must not match your email',
+      label: t('account.accountValidation.mustNotMatchYour'),
       met: typed && value.toLowerCase() !== email.toLowerCase(),
     },
     {
-      label: 'Different from your current password',
+      label: t('account.accountValidation.differentFromYourCurrent'),
       met: typed && value !== values.currentPassword,
     },
   ];
@@ -77,25 +78,25 @@ export function validatePassword(values: PasswordValues, email: string): Passwor
   const { currentPassword, newPassword, confirmPassword } = values;
 
   if (currentPassword.length === 0) {
-    errors.currentPassword = REQUIRED_MESSAGE;
+    errors.currentPassword = REQUIRED_MESSAGE();
   } else if (currentPassword.length > PASSWORD_MAX_LENGTH) {
     errors.currentPassword = tooLongMessage(PASSWORD_MAX_LENGTH);
   }
 
   if (newPassword.length === 0) {
-    errors.newPassword = REQUIRED_MESSAGE;
+    errors.newPassword = REQUIRED_MESSAGE();
   } else if (newPassword.length < PASSWORD_MIN_LENGTH || newPassword.length > PASSWORD_MAX_LENGTH) {
-    errors.newPassword = PASSWORD_LENGTH_MESSAGE;
+    errors.newPassword = PASSWORD_LENGTH_MESSAGE();
   } else if (newPassword.toLowerCase() === email.toLowerCase()) {
-    errors.newPassword = PASSWORD_EQUALS_EMAIL_MESSAGE;
+    errors.newPassword = PASSWORD_EQUALS_EMAIL_MESSAGE();
   } else if (newPassword === currentPassword) {
-    errors.newPassword = PASSWORD_EQUALS_CURRENT_MESSAGE;
+    errors.newPassword = PASSWORD_EQUALS_CURRENT_MESSAGE();
   }
 
   if (confirmPassword.length === 0) {
-    errors.confirmPassword = REQUIRED_MESSAGE;
+    errors.confirmPassword = REQUIRED_MESSAGE();
   } else if (confirmPassword !== newPassword) {
-    errors.confirmPassword = PASSWORDS_DONT_MATCH_MESSAGE;
+    errors.confirmPassword = PASSWORDS_DONT_MATCH_MESSAGE();
   }
   return errors;
 }
@@ -103,13 +104,19 @@ export function validatePassword(values: PasswordValues, email: string): Passwor
 /** BR-10: "Too many attempts. Try again in {n} minutes." (`n` rounded up, never below 1). */
 export function tooManyAttemptsMessage(retryAfterSeconds: number): string {
   const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
-  return `Too many attempts. Try again in ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}.`;
+  return t('account.accountValidation.tooManyAttemptsTry', {
+    minutes: minutes,
+    value:
+      minutes === 1
+        ? t('account.accountValidation.minute')
+        : t('account.accountValidation.minutes'),
+  });
 }
 
 export const PHOTO_MAX_BYTES = 5_242_880;
-export const PHOTO_SIZE_MESSAGE = 'Choose a file of 5 MB or smaller.';
-export const PHOTO_TYPE_MESSAGE = 'Choose a JPG or PNG file.';
-export const PHOTO_HELPER = 'JPG or PNG. Max 5 MB.';
+export const PHOTO_SIZE_MESSAGE = (): string => t('account.accountValidation.photoSizeMessage');
+export const PHOTO_TYPE_MESSAGE = (): string => t('account.accountValidation.photoTypeMessage');
+export const PHOTO_HELPER = (): string => t('account.accountValidation.photoHelper');
 export const PHOTO_ACCEPT = '.png,.jpg,.jpeg,image/png,image/jpeg';
 
 const PNG_SIGNATURE = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
@@ -125,7 +132,7 @@ function startsWith(bytes: Uint8Array, signature: readonly number[]): boolean {
  */
 export async function validatePhotoFile(file: File): Promise<string | null> {
   if (file.size > PHOTO_MAX_BYTES) {
-    return PHOTO_SIZE_MESSAGE;
+    return PHOTO_SIZE_MESSAGE();
   }
   const head = new Uint8Array(await file.slice(0, PNG_SIGNATURE.length).arrayBuffer());
   const detected = startsWith(head, PNG_SIGNATURE)
@@ -135,6 +142,6 @@ export async function validatePhotoFile(file: File): Promise<string | null> {
       : null;
   const declared = file.type.toLowerCase();
   return detected === null || (declared !== '' && declared !== detected)
-    ? PHOTO_TYPE_MESSAGE
+    ? PHOTO_TYPE_MESSAGE()
     : null;
 }

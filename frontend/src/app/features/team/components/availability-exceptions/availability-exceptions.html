@@ -3,13 +3,17 @@
 <section class="exceptions" aria-labelledby="exceptions-heading">
   <div class="exceptions__header">
     <div>
-      <h2 class="exceptions__title" id="exceptions-heading">Availability exceptions</h2>
-      <p class="exceptions__muted">Exceptions override the weekly schedule for a specific date.</p>
+      <h2 class="exceptions__title" id="exceptions-heading">
+        {{ 'team.availabilityExceptions.availabilityExceptions' | transloco }}
+      </h2>
+      <p class="exceptions__muted">
+        {{ 'team.availabilityExceptions.exceptionsOverrideTheWeekly' | transloco }}
+      </p>
     </div>
     @if (!readOnly()) {
       <button pButton type="button" severity="secondary" [outlined]="true" (click)="openAdd()">
         <i class="pi pi-plus" aria-hidden="true"></i>
-        Add exception
+        {{ 'team.availabilityExceptions.addException' | transloco }}
       </button>
     }
   </div>
@@ -21,13 +25,13 @@
       <table class="exceptions__table">
         <thead>
           <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Availability</th>
-            <th scope="col">Time</th>
-            <th scope="col">Reason</th>
-            <th scope="col">Status</th>
+            <th scope="col">{{ 'common.date' | transloco }}</th>
+            <th scope="col">{{ 'team.availabilityExceptions.availability' | transloco }}</th>
+            <th scope="col">{{ 'team.availabilityExceptions.time' | transloco }}</th>
+            <th scope="col">{{ 'team.availabilityExceptions.reason' | transloco }}</th>
+            <th scope="col">{{ 'common.status' | transloco }}</th>
             @if (!readOnly()) {
-              <th scope="col">Actions</th>
+              <th scope="col">{{ 'common.actions' | transloco }}</th>
             }
           </tr>
         </thead>
@@ -54,7 +58,11 @@
               <td>
                 <span class="exceptions__status" [class.exceptions__status--active]="row.active">
                   <i class="pi pi-circle-fill" aria-hidden="true"></i>
-                  {{ row.active ? 'Active' : 'Cancelled' }}
+                  {{
+                    row.active
+                      ? ('common.active' | transloco)
+                      : ('team.availabilityExceptions.cancelled' | transloco)
+                  }}
                 </span>
               </td>
               @if (!readOnly()) {
@@ -63,7 +71,10 @@
                     type="button"
                     class="exceptions__menu-button"
                     aria-haspopup="menu"
-                    [attr.aria-label]="'Actions for exception on ' + row.date"
+                    [attr.aria-label]="
+                      'team.availabilityExceptions.actionsForExceptionOn'
+                        | transloco: { date: row.date }
+                    "
                     [disabled]="busyId() !== null"
                     (click)="openMenu($event, row.item)"
                   >

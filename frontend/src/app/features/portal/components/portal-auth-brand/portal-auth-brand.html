@@ -1,9 +1,16 @@
 <aside class="brand" aria-labelledby="portal-brand-heading">
-  <p class="brand__logo">Field<span>Ops</span></p>
-  <p class="brand__eyebrow">Customer portal</p>
+  <p class="brand__logo">
+    {{ 'portal.portalAuthBrand.field' | transloco
+    }}<span>{{ 'portal.portalAuthBrand.ops' | transloco }}</span>
+  </p>
+  <p class="brand__eyebrow">{{ 'portal.portalAuthBrand.customerPortal' | transloco }}</p>
 
-  <h2 class="brand__heading" id="portal-brand-heading">Your service,<br />all in one place.</h2>
-  <p class="brand__lead">Review quotes, pay invoices and follow your appointments.</p>
+  <h2 class="brand__heading" id="portal-brand-heading">
+    {{ 'portal.portalAuthBrand.yourService' | transloco }}<br />{{
+      'portal.portalAuthBrand.allInOnePlace' | transloco
+    }}
+  </h2>
+  <p class="brand__lead">{{ 'portal.portalAuthBrand.reviewQuotesPayInvoices' | transloco }}</p>
 
   <div class="brand__stage" aria-hidden="true">
     <span class="brand__frame brand__frame--a"></span>
@@ -28,8 +35,16 @@
   </div>
 
   <ul class="brand__modules">
-    <li><i class="pi pi-file" aria-hidden="true"></i>Quotes</li>
-    <li><i class="pi pi-calendar" aria-hidden="true"></i>Appointments</li>
-    <li><i class="pi pi-credit-card" aria-hidden="true"></i>Invoices</li>
+    <li>
+      <i class="pi pi-file" aria-hidden="true"></i>{{ 'portal.portalAuthBrand.quotes' | transloco }}
+    </li>
+    <li>
+      <i class="pi pi-calendar" aria-hidden="true"></i
+      >{{ 'portal.portalAuthBrand.appointments' | transloco }}
+    </li>
+    <li>
+      <i class="pi pi-credit-card" aria-hidden="true"></i
+      >{{ 'portal.portalAuthBrand.invoices' | transloco }}
+    </li>
   </ul>
 </aside>

@@ -2,11 +2,12 @@ import { Component, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import type { ButtonDirectiveOptions } from 'primeng/types/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /** "Report delay or issue" dialog: Call office (when the office has a phone) and coming-soon text. */
 @Component({
   selector: 'app-report-issue',
-  imports: [ButtonDirective, Dialog],
+  imports: [TranslocoPipe, ButtonDirective, Dialog],
   templateUrl: './report-issue.html',
   styleUrl: './report-issue.scss',
 })

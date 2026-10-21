@@ -1,47 +1,60 @@
 import { AccessRequest, BranchRef, MatrixRole, ROLE_CODES, UserRow } from '../models/users.model';
 
-export const LAST_OWNER_TOOLTIP = "The last Owner can't be suspended or downgraded.";
-export const SELF_SUSPEND_TOOLTIP = "You can't suspend your own access.";
-export const NOT_PENDING_MESSAGE = 'This invitation is no longer pending.';
-export const USER_UNAVAILABLE_MESSAGE = 'This user is no longer available.';
-export const DELIVERY_FAILED_MESSAGE = "We couldn't send the invitation. Try again.";
+import { localizedList, t } from '../../../core/i18n/translate';
+export const LAST_OWNER_TOOLTIP = (): string => t('users.userAccess.lastOwnerTooltip');
+export const SELF_SUSPEND_TOOLTIP = (): string => t('users.userAccess.selfSuspendTooltip');
+export const NOT_PENDING_MESSAGE = (): string => t('users.userAccess.notPendingMessage');
+export const USER_UNAVAILABLE_MESSAGE = (): string => t('users.userAccess.userUnavailableMessage');
+export const DELIVERY_FAILED_MESSAGE = (): string => t('users.userAccess.deliveryFailedMessage');
 
 /**
  * Structural role facts used only until (or without) `GET /permission-matrix`: role names and
  * flags are canonical (BR-06/BR-08). Summaries always come from the API.
  */
-export const FALLBACK_ROLES: readonly MatrixRole[] = [
-  { code: 'owner', name: 'Owner', summary: '', forcesAllBranches: true, hasTeamProfile: false },
+export const FALLBACK_ROLES: readonly MatrixRole[] = localizedList(() => [
+  {
+    code: 'owner',
+    name: t('users.userAccess.owner'),
+    summary: '',
+    forcesAllBranches: true,
+    hasTeamProfile: false,
+  },
   {
     code: 'operations_manager',
-    name: 'Operations Manager',
+    name: t('users.userAccess.operationsManager'),
     summary: '',
     forcesAllBranches: true,
     hasTeamProfile: true,
   },
   {
     code: 'dispatcher',
-    name: 'Dispatcher',
+    name: t('users.userAccess.dispatcher'),
     summary: '',
     forcesAllBranches: false,
     hasTeamProfile: true,
   },
   {
     code: 'technician',
-    name: 'Technician',
+    name: t('users.userAccess.technician'),
     summary: '',
     forcesAllBranches: false,
     hasTeamProfile: true,
   },
   {
     code: 'accounting',
-    name: 'Accounting',
+    name: t('users.userAccess.accounting'),
     summary: '',
     forcesAllBranches: false,
     hasTeamProfile: false,
   },
-  { code: 'viewer', name: 'Viewer', summary: '', forcesAllBranches: false, hasTeamProfile: false },
-];
+  {
+    code: 'viewer',
+    name: t('users.userAccess.viewer'),
+    summary: '',
+    forcesAllBranches: false,
+    hasTeamProfile: false,
+  },
+]);
 
 /** Position in the BR-06 order (Owner highest); unknown roles rank last. */
 export function roleRank(code: string): number {
@@ -66,9 +79,11 @@ export function isAccessReduced(row: UserRow, next: AccessRequest): boolean {
 
 function branchText(all: boolean, branches: readonly BranchRef[]): string {
   if (all) {
-    return 'All branches';
+    return t('users.userAccess.allBranches');
   }
-  return branches.length === 0 ? 'None' : branches.map((branch) => branch.name).join(', ');
+  return branches.length === 0
+    ? t('users.userAccess.none')
+    : branches.map((branch) => branch.name).join(', ');
 }
 
 /** BR-12 confirmation copy: "Change access for {name}? Role: {old} → {new}. Branches: {old} → {new}." */
@@ -81,8 +96,15 @@ export function changeAccessMessage(
 ): string {
   const selected = branchOptions.filter((branch) => next.branchIds.includes(branch.id));
   return (
-    `Change access for ${name}? Role: ${row.roleName} → ${newRoleName}. ` +
-    `Branches: ${branchText(row.isAllBranches, row.branches)} → ${branchText(next.isAllBranches, selected)}.`
+    t('users.userAccess.changeAccessForRole', {
+      name: name,
+      roleName: row.roleName,
+      newRoleName: newRoleName,
+    }) +
+    t('users.userAccess.branches', {
+      value: branchText(row.isAllBranches, row.branches),
+      value2: branchText(next.isAllBranches, selected),
+    })
   );
 }
 

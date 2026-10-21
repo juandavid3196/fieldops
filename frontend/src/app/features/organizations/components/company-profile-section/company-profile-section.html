@@ -1,12 +1,12 @@
 <app-wizard-card
   headingId="company-profile-heading"
-  title="Company profile"
-  description="This information identifies your company across FieldOps, invoices, and reports."
+  [title]="'organizations.companyProfileSection.companyProfile' | transloco"
+  [description]="'organizations.companyProfileSection.thisInformationIdentifiesYour' | transloco"
   icon="pi-building"
 >
   <div class="company-profile__grid" [formGroup]="group()">
     <app-form-field
-      label="Display name"
+      [label]="'organizations.companyProfileSection.displayName' | transloco"
       controlId="organization-name"
       [required]="true"
       [error]="error('organization.name')"
@@ -29,7 +29,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Legal business name"
+      [label]="'organizations.companyProfileSection.legalBusinessName' | transloco"
       controlId="organization-legalName"
       [required]="true"
       [error]="error('organization.legalName')"
@@ -52,7 +52,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Business email"
+      [label]="'organizations.companyProfileSection.businessEmail' | transloco"
       controlId="organization-email"
       [required]="true"
       [error]="error('organization.email')"
@@ -76,7 +76,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Business phone"
+      [label]="'organizations.companyProfileSection.businessPhone' | transloco"
       controlId="organization-phone"
       [required]="true"
       [error]="error('organization.phone')"
@@ -100,7 +100,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Tax ID"
+      [label]="'organizations.companyProfileSection.taxId' | transloco"
       controlId="organization-taxId"
       [error]="error('organization.taxId')"
     >
@@ -120,7 +120,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Company time zone"
+      [label]="'organizations.companyProfileSection.companyTimeZone' | transloco"
       controlId="organization-timezone"
       [required]="true"
       [error]="error('organization.timezone')"
@@ -133,7 +133,7 @@
         optionLabel="label"
         optionValue="code"
         [filter]="true"
-        [ariaLabel]="'Company time zone'"
+        [ariaLabel]="'organizations.companyProfileSection.companyTimeZone' | transloco"
         fluid
         [invalid]="error('organization.timezone') !== null"
         [readonly]="submitting()"

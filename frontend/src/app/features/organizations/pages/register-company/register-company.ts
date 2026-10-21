@@ -17,6 +17,7 @@ import { ConfirmationService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Observable, map } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { BusinessHoursSection } from '../../components/business-hours-section/business-hours-section';
@@ -72,30 +73,32 @@ import {
   discardChangesConfirmation,
 } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
+import { localized, t } from '../../../../core/i18n/translate';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 /** Retry lock after a `429` without a usable `Retry-After`. */
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
 const BUSINESS_HOURS_FIELD_PATTERN = /^branch\.businessHours\.(\w+)\.(start|end)$/;
 
-const STEP_HEADERS: Readonly<Record<WizardStep, { title: string; description: string }>> = {
-  1: {
-    title: 'Create your organization',
-    description:
-      'Tell us about your company and first location. You can change these details later.',
-  },
-  2: {
-    title: 'Business settings',
-    description: 'Set your operating hours, currency, taxes, and document numbering.',
-  },
-  3: {
-    title: 'Owner account',
-    description: "Create the account you'll use to manage this organization.",
-  },
-  4: {
-    title: 'Review and create',
-    description: 'Confirm your details before creating your FieldOps workspace.',
-  },
-};
+const STEP_HEADERS: Readonly<Record<WizardStep, { title: string; description: string }>> =
+  localized(() => ({
+    1: {
+      title: t('organizations.registerCompany.createYourOrganization'),
+      description: t('organizations.registerCompany.tellUsAboutYour'),
+    },
+    2: {
+      title: t('organizations.registerCompany.businessSettings'),
+      description: t('organizations.registerCompany.setYourOperatingHours'),
+    },
+    3: {
+      title: t('organizations.registerCompany.ownerAccount'),
+      description: t('organizations.registerCompany.createTheAccountYoull'),
+    },
+    4: {
+      title: t('organizations.registerCompany.reviewAndCreate'),
+      description: t('organizations.registerCompany.confirmYourDetailsBefore'),
+    },
+  }));
 
 type FocusTarget = 'title' | 'invalid' | 'summary';
 
@@ -106,6 +109,8 @@ type FocusTarget = 'title' | 'invalid' | 'summary';
 @Component({
   selector: 'app-register-company',
   imports: [
+    LanguageFooterSelector,
+    TranslocoPipe,
     DiscardChangesDialog,
     ReactiveFormsModule,
     RouterLink,
@@ -162,7 +167,9 @@ export class RegisterCompany {
   readonly header = computed(() => STEP_HEADERS[this.step()]);
   readonly reviewReached = computed(() => this.reached().has(4));
   readonly primaryLabel = computed(() =>
-    this.step() < 4 && this.reviewReached() ? 'Back to review' : 'Continue',
+    this.step() < 4 && this.reviewReached()
+      ? t('organizations.registerCompany.backToReview')
+      : t('common.continue'),
   );
   readonly createDisabled = computed(() => this.submitting() || this.retryLocked());
   readonly changed = computed(() => JSON.stringify(this.formValue()) !== this.initialValue);
@@ -213,7 +220,7 @@ export class RegisterCompany {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'your registration',
+          subject: t('organizations.registerCompany.yourRegistration'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();
@@ -353,7 +360,9 @@ export class RegisterCompany {
     }
 
     this.fieldErrors.set({});
-    this.pageMessage.set(apiError?.message ?? 'An unexpected error occurred. Please try again.');
+    this.pageMessage.set(
+      apiError?.message ?? t('organizations.registerCompany.anUnexpectedErrorOccurred'),
+    );
     if (apiError?.kind === 'rate-limited') {
       this.lockAfterRateLimit(apiError.retryAfterSeconds ?? DEFAULT_RETRY_AFTER_SECONDS);
     }

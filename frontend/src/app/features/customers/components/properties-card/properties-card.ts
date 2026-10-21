@@ -4,11 +4,13 @@ import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PropertiesResponse, PropertyItem, RegionState } from '../../models/customer.model';
 import { addressLine, firstLine, formatDateTime } from '../../utils/customer-detail-format';
 import { formatDate } from '../../utils/customer-format';
 
+import { t } from '../../../../core/i18n/translate';
 interface PropertyView {
   readonly property: PropertyItem;
   readonly address: string;
@@ -29,7 +31,7 @@ const byOrder = (a: PropertyItem, b: PropertyItem): number =>
  */
 @Component({
   selector: 'app-properties-card',
-  imports: [NgTemplateOutlet, ButtonDirective, Message, Skeleton, Tag],
+  imports: [TranslocoPipe, NgTemplateOutlet, ButtonDirective, Message, Skeleton, Tag],
   templateUrl: './properties-card.html',
   styleUrl: './properties-card.scss',
 })
@@ -54,7 +56,7 @@ export class PropertiesCard {
       property,
       address: addressLine(property),
       branch: property.branch?.name ?? '—',
-      instructions: property.serviceInstructions?.trim() || 'None',
+      instructions: property.serviceInstructions?.trim() || t('customers.propertiesCard.none'),
       lastService: property.lastService
         ? [
             formatDate(property.lastService.completedAt, zone),
@@ -62,10 +64,10 @@ export class PropertiesCard {
           ]
             .filter((part) => part.length > 0)
             .join(' · ')
-        : 'None',
+        : t('customers.propertiesCard.none'),
       nextAppointment: property.nextAppointment
         ? formatDateTime(property.nextAppointment.startsAt, zone)
-        : 'None',
+        : t('customers.propertiesCard.none'),
     });
     const items = data?.items ?? [];
     return {

@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { CheckIcon } from 'primeng/icons/check';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PublicQuote } from '../../models/public-quote.model';
 import { customerInitials } from '../../utils/quote-format';
@@ -9,7 +10,7 @@ import { PublicQuotePhotos } from '../public-quote-photos/public-quote-photos';
 /** Company card and job card (scope of work, assessment photos) of the quote link (BR-05). */
 @Component({
   selector: 'app-public-quote-details',
-  imports: [ButtonDirective, CheckIcon, PublicQuotePhotos],
+  imports: [TranslocoPipe, ButtonDirective, CheckIcon, PublicQuotePhotos],
   templateUrl: './public-quote-details.html',
   styleUrl: './public-quote-details.scss',
 })

@@ -3,7 +3,7 @@
     <p class="table__message" role="alert">
       {{ errorMessage }}
       <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-        Retry
+        {{ 'common.retry' | transloco }}
       </button>
     </p>
   } @else if (region().data === null) {
@@ -15,19 +15,23 @@
   } @else if (rows().length === 0) {
     <p class="table__message">
       {{ emptyMessage }}
-      <a class="table__link" routerLink="/invoices/review">Needs review</a>
+      <a class="table__link" routerLink="/invoices/review">{{
+        'invoices.readyTable.needsReview' | transloco
+      }}</a>
     </p>
   } @else {
     <div class="table__scroll" [class.table__scroll--loading]="region().status === 'loading'">
       <table class="table__table table__table--ready">
         <thead>
           <tr>
-            <th scope="col">Work order</th>
-            <th scope="col">Customer</th>
-            <th scope="col">Job</th>
-            <th scope="col">Completed</th>
-            <th scope="col" class="table__number">Approved total</th>
-            <th scope="col">Actions</th>
+            <th scope="col">{{ 'invoices.readyTable.workOrder' | transloco }}</th>
+            <th scope="col">{{ 'common.customer' | transloco }}</th>
+            <th scope="col">{{ 'invoices.readyTable.job' | transloco }}</th>
+            <th scope="col">{{ 'invoices.readyTable.completed' | transloco }}</th>
+            <th scope="col" class="table__number">
+              {{ 'invoices.readyTable.approvedTotal' | transloco }}
+            </th>
+            <th scope="col">{{ 'common.actions' | transloco }}</th>
           </tr>
         </thead>
         <tbody>
@@ -45,7 +49,7 @@
                   size="small"
                   routerLink="/invoices/review"
                   [queryParams]="{ workOrderId: row.item.workOrderId }"
-                  >Review and invoice</a
+                  >{{ 'invoices.readyTable.reviewAndInvoice' | transloco }}</a
                 >
               </td>
             </tr>
@@ -54,7 +58,7 @@
       </table>
     </div>
     <app-hub-pager
-      noun="jobs"
+      [noun]="'invoices.readyTable.jobs' | transloco"
       [page]="page()"
       [pageSize]="region().data?.pageSize ?? 20"
       [total]="region().data?.total ?? 0"

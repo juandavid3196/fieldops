@@ -1,9 +1,14 @@
 <header class="site__header">
   <div class="site__bar">
-    <a class="site__wordmark" routerLink="/auth/sign-in" aria-label="FieldOps, sign in">
-      <span>Field</span><span class="site__accent">Ops</span>
+    <a
+      class="site__wordmark"
+      routerLink="/auth/sign-in"
+      [attr.aria-label]="'legal.publicSiteShell.fieldopsSignIn' | transloco"
+    >
+      <span>{{ 'legal.publicSiteShell.field' | transloco }}</span
+      ><span class="site__accent">{{ 'legal.publicSiteShell.ops' | transloco }}</span>
     </a>
-    <nav class="site__nav" aria-label="Legal and help">
+    <nav class="site__nav" [attr.aria-label]="'legal.publicSiteShell.legalAndHelp' | transloco">
       @for (link of links; track link.path) {
         <a
           class="site__link"
@@ -13,7 +18,9 @@
           >{{ link.label }}</a
         >
       }
-      <a class="site__sign-in" routerLink="/auth/sign-in">Sign in</a>
+      <a class="site__sign-in" routerLink="/auth/sign-in">{{
+        'legal.publicSiteShell.signIn' | transloco
+      }}</a>
     </nav>
   </div>
 </header>
@@ -24,8 +31,8 @@
 
 <footer class="site__footer">
   <div class="site__bar site__bar--footer">
-    <p class="site__copy">© {{ year }} FieldOps</p>
-    <nav class="site__footer-nav" aria-label="Footer">
+    <p class="site__copy">{{ 'legal.publicSiteShell.fieldops' | transloco: { year: year } }}</p>
+    <nav class="site__footer-nav" [attr.aria-label]="'legal.publicSiteShell.footer' | transloco">
       @for (link of links; track link.path) {
         <a
           class="site__footer-link"
@@ -36,5 +43,6 @@
         >
       }
     </nav>
+    <app-language-footer-selector />
   </div>
 </footer>

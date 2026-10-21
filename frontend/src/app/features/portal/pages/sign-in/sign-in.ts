@@ -10,6 +10,7 @@ import { InputIcon } from 'primeng/inputicon';
 import { InputPassword } from 'primeng/inputpassword';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { PortalSessionService } from '../../../../core/services/portal-session.service';
@@ -26,6 +27,7 @@ import {
 } from '../../../authentication/pages/sign-in/sign-in.validators';
 import { PortalAuthBrand } from '../../components/portal-auth-brand/portal-auth-brand';
 import { SESSION_ENDED_MESSAGE } from '../../models/portal.model';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
@@ -33,6 +35,8 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
 @Component({
   selector: 'app-portal-sign-in',
   imports: [
+    LanguageFooterSelector,
+    TranslocoPipe,
     IconField,
     InputIcon,
     PortalAuthBrand,
@@ -75,7 +79,7 @@ export class PortalSignIn {
     this.destroyRef.onDestroy(() => clearTimeout(this.retryTimer));
     // "Your session ended" shows once, then the notice is cleared (a cold visit shows none).
     if (this.sessions.expiredNotice()) {
-      this.notice.set(SESSION_ENDED_MESSAGE);
+      this.notice.set(SESSION_ENDED_MESSAGE());
       this.sessions.clearExpiredNotice();
     }
   }
@@ -148,7 +152,7 @@ export class PortalSignIn {
         return;
       }
     } else if (apiError?.kind === 'unauthorized') {
-      this.pageMessage.set(INVALID_CREDENTIALS_MESSAGE);
+      this.pageMessage.set(INVALID_CREDENTIALS_MESSAGE());
       return;
     } else if (apiError?.kind === 'rate-limited') {
       const seconds = apiError.retryAfterSeconds ?? DEFAULT_RETRY_AFTER_SECONDS;
@@ -158,6 +162,6 @@ export class PortalSignIn {
       this.retryTimer = setTimeout(() => this.retryLocked.set(false), seconds * 1000);
       return;
     }
-    this.pageMessage.set(GENERIC_SIGN_IN_ERROR_MESSAGE);
+    this.pageMessage.set(GENERIC_SIGN_IN_ERROR_MESSAGE());
   }
 }

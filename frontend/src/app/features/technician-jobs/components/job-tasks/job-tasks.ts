@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TechnicianVisitDetail, VisitTask } from '../../models/technician-visits.model';
 import {
@@ -14,13 +15,15 @@ import { scopeLines } from '../../utils/visit-detail';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
 import { JobScope } from '../job-scope/job-scope';
 
-export const COMMENT_INVALID_MESSAGE = 'Enter a comment up to 1000 characters.';
-export const LABEL_INVALID_MESSAGE = 'Enter a task name up to 240 characters.';
+import { t } from '../../../../core/i18n/translate';
+export const COMMENT_INVALID_MESSAGE = (): string =>
+  t('technicianJobs.jobTasks.commentInvalidMessage');
+export const LABEL_INVALID_MESSAGE = (): string => t('technicianJobs.jobTasks.labelInvalidMessage');
 
 /** BR-16 Tasks section: completion card, checklist, comments, optional tasks and original scope. */
 @Component({
   selector: 'app-job-tasks',
-  imports: [ButtonDirective, JobScope],
+  imports: [TranslocoPipe, ButtonDirective, JobScope],
   templateUrl: './job-tasks.html',
   styleUrl: './job-tasks.scss',
 })
@@ -78,7 +81,7 @@ export class JobTasks {
     this.run(
       `comment:${task.id}`,
       this.visits.updateTask(this.visit().visitId, task.id, { notes }),
-      COMMENT_INVALID_MESSAGE,
+      COMMENT_INVALID_MESSAGE(),
       undefined,
       () => this.commentTaskId.set(null),
     );
@@ -103,7 +106,7 @@ export class JobTasks {
     this.run(
       'add',
       this.visits.addTask(this.visit().visitId, label),
-      LABEL_INVALID_MESSAGE,
+      LABEL_INVALID_MESSAGE(),
       undefined,
       () => this.addOpen.set(false),
     );

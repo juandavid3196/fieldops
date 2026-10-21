@@ -1,6 +1,8 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 export type DashboardView = 'business' | 'operations';
 
 /**
@@ -9,9 +11,12 @@ export type DashboardView = 'business' | 'operations';
  */
 @Component({
   selector: 'app-dashboard-view-switch',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   template: `
-    <nav class="switch" aria-label="Dashboard view">
+    <nav
+      class="switch"
+      [attr.aria-label]="'dashboard.dashboardViewSwitch.dashboardView' | transloco"
+    >
       @for (option of options; track option.id) {
         <a
           class="switch__option"
@@ -65,8 +70,9 @@ export type DashboardView = 'business' | 'operations';
 export class DashboardViewSwitch {
   readonly view = input.required<DashboardView>();
 
-  readonly options: readonly { readonly id: DashboardView; readonly name: string }[] = [
-    { id: 'business', name: 'Business' },
-    { id: 'operations', name: 'Operations' },
-  ];
+  readonly options: readonly { readonly id: DashboardView; readonly name: string }[] =
+    localizedList(() => [
+      { id: 'business', name: t('dashboard.dashboardViewSwitch.business') },
+      { id: 'operations', name: t('dashboard.dashboardViewSwitch.operations') },
+    ]);
 }

@@ -1,12 +1,12 @@
 <header class="hero">
-  <p class="hero__eyebrow">FieldOps help center</p>
-  <h1 class="hero__title">How can we help?</h1>
+  <p class="hero__eyebrow">{{ 'help.publicHelp.fieldopsHelpCenter' | transloco }}</p>
+  <h1 class="hero__title">{{ 'help.publicHelp.howCanWeHelp' | transloco }}</h1>
   <p class="hero__lead">
-    Find clear answers for setting up, managing, and completing work in FieldOps.
+    {{ 'help.publicHelp.findClearAnswersFor' | transloco }}
   </p>
   <app-help-search-field
     class="hero__search"
-    placeholder="Search help articles"
+    [placeholder]="'help.publicHelp.searchHelpArticles' | transloco"
     inputId="public-help-search"
     [(query)]="query"
   />
@@ -16,16 +16,22 @@
 <div class="body">
   @if (searching()) {
     <section class="body__section" aria-labelledby="public-help-results">
-      <h2 class="body__title" id="public-help-results">Search results</h2>
+      <h2 class="body__title" id="public-help-results">
+        {{ 'help.publicHelp.searchResults' | transloco }}
+      </h2>
       @if (results().length > 0) {
         <app-help-result-list [results]="results()" />
       } @else {
-        <p class="body__empty">No articles match "{{ trimmedQuery() }}"</p>
+        <p class="body__empty">
+          {{ 'help.publicHelp.noArticlesMatch' | transloco: { trimmedQuery: trimmedQuery() } }}
+        </p>
       }
     </section>
   } @else {
     <section class="body__section" aria-labelledby="public-help-topics">
-      <h2 class="body__title" id="public-help-topics">Browse by topic</h2>
+      <h2 class="body__title" id="public-help-topics">
+        {{ 'help.publicHelp.browseByTopic' | transloco }}
+      </h2>
       <ul class="topics">
         @for (entry of topics; track entry.topic.slug) {
           <li>
@@ -36,7 +42,12 @@
               <span class="topic__name">{{ entry.topic.title }}</span>
               <span class="topic__text">{{ entry.topic.cardSubtitle }}</span>
               <span class="topic__footer">
-                {{ entry.count }} {{ entry.count === 1 ? 'article' : 'articles' }}
+                {{ entry.count }}
+                {{
+                  entry.count === 1
+                    ? ('help.publicHelp.article' | transloco)
+                    : ('help.publicHelp.articles' | transloco)
+                }}
                 <i class="pi pi-arrow-right" aria-hidden="true"></i>
               </span>
             </a>
@@ -48,7 +59,9 @@
 
   <div class="body__columns">
     <section class="popular" aria-labelledby="public-help-popular">
-      <h2 class="popular__title" id="public-help-popular">Popular questions</h2>
+      <h2 class="popular__title" id="public-help-popular">
+        {{ 'help.publicHelp.popularQuestions' | transloco }}
+      </h2>
       <ul class="popular__list">
         @for (entry of questions; track entry.question) {
           <li>

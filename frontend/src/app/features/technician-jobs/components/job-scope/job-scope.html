@@ -1,6 +1,6 @@
 <p-dialog
   [modal]="true"
-  closeAriaLabel="Close"
+  [closeAriaLabel]="'common.close' | transloco"
   [closeButtonProps]="closeProps"
   [draggable]="false"
   [resizable]="false"
@@ -12,8 +12,10 @@
     <div class="scope__head">
       <span class="scope__tile" aria-hidden="true"><i class="pi pi-clipboard"></i></span>
       <div>
-        <h2 class="scope__title">Original scope</h2>
-        <p class="scope__subtitle">Scope captured when this job was created.</p>
+        <h2 class="scope__title">{{ 'technicianJobs.jobScope.originalScope' | transloco }}</h2>
+        <p class="scope__subtitle">
+          {{ 'technicianJobs.jobScope.scopeCapturedWhenThis' | transloco }}
+        </p>
       </div>
     </div>
   </ng-template>
@@ -21,7 +23,7 @@
   <div class="scope">
     <p class="scope__meta">
       {{ countText() }}
-      <span class="scope__pill">Read only</span>
+      <span class="scope__pill">{{ 'technicianJobs.jobScope.readOnly' | transloco }}</span>
     </p>
     <ol class="scope__list">
       @for (line of lines(); track $index) {
@@ -34,7 +36,7 @@
     </ol>
     <p class="scope__note">
       <i class="pi pi-info-circle" aria-hidden="true"></i>
-      Use the checklist to track the work completed on site.
+      {{ 'technicianJobs.jobScope.useTheChecklistTo' | transloco }}
     </p>
     <button
       pButton
@@ -44,7 +46,7 @@
       [outlined]="true"
       (click)="closed.emit()"
     >
-      Close
+      {{ 'common.close' | transloco }}
     </button>
   </div>
 </p-dialog>

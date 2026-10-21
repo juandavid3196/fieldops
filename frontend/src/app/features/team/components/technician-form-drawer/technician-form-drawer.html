@@ -10,7 +10,7 @@
     <button
       type="button"
       class="technician-form__close"
-      aria-label="Close technician form"
+      [attr.aria-label]="'team.technicianFormDrawer.closeTechnicianForm' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -30,9 +30,9 @@
     } @else if (detailFailed()) {
       <p-message severity="error" [closable]="false">
         <span class="technician-form__retry">
-          We couldn't load this technician profile.
+          {{ 'team.technicianFormDrawer.weCouldnTLoad' | transloco }}
           <button pButton type="button" severity="secondary" size="small" (click)="loadDetail()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -47,7 +47,7 @@
 
         <div class="technician-form__row">
           <app-form-field
-            label="First name"
+            [label]="'team.technicianFormDrawer.firstName' | transloco"
             [controlId]="controlIds.firstName"
             [required]="true"
             [error]="error('firstName')"
@@ -68,7 +68,7 @@
             />
           </app-form-field>
           <app-form-field
-            label="Last name"
+            [label]="'team.technicianFormDrawer.lastName' | transloco"
             [controlId]="controlIds.lastName"
             [required]="true"
             [error]="error('lastName')"
@@ -90,7 +90,11 @@
           </app-form-field>
         </div>
 
-        <app-form-field label="Email" [controlId]="controlIds.email" [error]="error('email')">
+        <app-form-field
+          [label]="'common.email' | transloco"
+          [controlId]="controlIds.email"
+          [error]="error('email')"
+        >
           <input
             pInputText
             fluid
@@ -109,7 +113,7 @@
 
         <div class="technician-form__row">
           <app-form-field
-            label="Mobile phone"
+            [label]="'team.technicianFormDrawer.mobilePhone' | transloco"
             [controlId]="controlIds.phone"
             [error]="error('phone')"
           >
@@ -129,7 +133,7 @@
             />
           </app-form-field>
           <app-form-field
-            label="Profile ID"
+            [label]="'team.technicianFormDrawer.profileId' | transloco"
             [controlId]="controlIds.employeeCode"
             [error]="error('employeeCode')"
           >
@@ -150,7 +154,7 @@
         </div>
 
         <app-form-field
-          label="Home branch"
+          [label]="'team.technicianFormDrawer.homeBranch' | transloco"
           [controlId]="controlIds.branchId"
           [required]="true"
           [error]="error('branchId')"
@@ -160,8 +164,8 @@
             [options]="branchOptions()"
             optionLabel="name"
             optionValue="id"
-            ariaLabel="Home branch"
-            placeholder="Select branch"
+            [ariaLabel]="'team.technicianFormDrawer.homeBranch' | transloco"
+            [placeholder]="'team.technicianFormDrawer.selectBranch' | transloco"
             appendTo="body"
             fluid
             [ngModel]="form().branchId"
@@ -172,7 +176,11 @@
           />
         </app-form-field>
 
-        <app-form-field label="Notes" [controlId]="controlIds.notes" [error]="error('notes')">
+        <app-form-field
+          [label]="'common.notes' | transloco"
+          [controlId]="controlIds.notes"
+          [error]="error('notes')"
+        >
           <textarea
             pTextarea
             rows="3"
@@ -202,7 +210,7 @@
       [disabled]="submitting()"
       (click)="requestClose()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button
       pButton
@@ -214,7 +222,11 @@
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      {{ isCreate() ? 'Add technician profile' : 'Save changes' }}
+      {{
+        isCreate()
+          ? ('team.technicianFormDrawer.addTechnicianProfile' | transloco)
+          : ('team.technicianFormDrawer.saveChanges' | transloco)
+      }}
     </button>
   </ng-container>
 </app-drawer-shell>

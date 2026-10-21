@@ -10,7 +10,7 @@ public sealed partial class AuditCatalogTests
     // Written independently of the catalog: every code the application writes today plus the two new ones.
     private static readonly string[] WrittenCodes =
     [
-        "auth.signed_in", "auth.signed_out", "auth.password_changed", "user.profile_updated", "user.photo_updated", "user.photo_removed", "export.generated",
+        "auth.signed_in", "auth.signed_out", "auth.password_changed", "user.profile_updated", "user.language_updated", "user.photo_updated", "user.photo_removed", "export.generated",
         "organization.registered", "organization.settings_updated", "organization.bank_details_updated", "organization.logo_updated", "organization.logo_removed",
         "branch.created", "branch.updated", "branch.business_hours_updated", "branch.set_as_main", "branch.deactivated", "branch.reactivated",
         "user.invited", "user.invitation_resent", "user.invitation_revoked", "user.invitation_accepted", "user.access_updated", "user.suspended", "user.reactivated",

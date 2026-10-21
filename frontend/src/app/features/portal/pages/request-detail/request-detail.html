@@ -1,15 +1,15 @@
 <div class="pp">
   <a class="pp__back" routerLink="/portal/requests">
     <i class="pi pi-arrow-left" aria-hidden="true"></i>
-    <span>Back to Requests</span>
+    <span>{{ 'portal.requestDetail.backToRequests' | transloco }}</span>
   </a>
 
   <app-portal-state
     [state]="resource.state()"
-    label="Loading request"
-    errorText="We couldn't load this request."
+    [label]="'portal.requestDetail.loadingRequest' | transloco"
+    [errorText]="'portal.requestDetail.weCouldnTLoad' | transloco"
     backLink="/portal/requests"
-    backLabel="Back to Requests"
+    [backLabel]="'portal.requestDetail.backToRequests' | transloco"
     (retry)="load()"
   >
     @if (view(); as v) {
@@ -23,35 +23,39 @@
         </header>
         <dl class="pp__facts">
           <div>
-            <dt>Category</dt>
+            <dt>{{ 'portal.requestDetail.category' | transloco }}</dt>
             <dd>{{ v.request.categoryName }}</dd>
           </div>
           <div>
-            <dt>Service</dt>
-            <dd>{{ v.request.serviceName ?? 'Not sure' }}</dd>
+            <dt>{{ 'portal.requestDetail.service' | transloco }}</dt>
+            <dd>{{ v.request.serviceName ?? ('portal.requestDetail.notSure' | transloco) }}</dd>
           </div>
           <div>
-            <dt>Urgency</dt>
+            <dt>{{ 'portal.requestDetail.urgency' | transloco }}</dt>
             <dd>{{ v.urgency }}</dd>
           </div>
           <div>
-            <dt>Active damage</dt>
-            <dd>{{ v.request.hasActiveDamage ? 'Yes' : 'No' }}</dd>
+            <dt>{{ 'portal.requestDetail.activeDamage' | transloco }}</dt>
+            <dd>
+              {{
+                v.request.hasActiveDamage ? ('common.yes' | transloco) : ('common.no' | transloco)
+              }}
+            </dd>
           </div>
           <div>
-            <dt>Property</dt>
+            <dt>{{ 'portal.requestDetail.property' | transloco }}</dt>
             <dd>{{ v.property }}</dd>
           </div>
           <div>
-            <dt>Preferred availability</dt>
+            <dt>{{ 'portal.requestDetail.preferredAvailability' | transloco }}</dt>
             <dd>{{ v.availability }}</dd>
           </div>
           <div>
-            <dt>Submitted</dt>
+            <dt>{{ 'portal.requestDetail.submitted' | transloco }}</dt>
             <dd>{{ v.submitted }}</dd>
           </div>
           <div>
-            <dt>Description</dt>
+            <dt>{{ 'common.description' | transloco }}</dt>
             <dd>{{ v.request.description }}</dd>
           </div>
         </dl>
@@ -59,7 +63,9 @@
 
       @if (v.request.quote; as quote) {
         <section class="pcard" aria-labelledby="request-quote-title">
-          <h2 class="pcard__title" id="request-quote-title">Quote</h2>
+          <h2 class="pcard__title" id="request-quote-title">
+            {{ 'portal.requestDetail.quote' | transloco }}
+          </h2>
           <p class="plist__main">
             <a class="pcard__link" [routerLink]="['/portal/quotes', quote.id]">{{
               quote.displayNumber

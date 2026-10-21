@@ -6,7 +6,7 @@
     autocomplete="off"
     aria-autocomplete="list"
     aria-haspopup="listbox"
-    placeholder="Select tags"
+    [attr.placeholder]="'customers.tagSelector.selectTags' | transloco"
     maxlength="40"
     [id]="inputId()"
     [disabled]="disabled()"
@@ -28,11 +28,13 @@
       class="tags__list"
       role="listbox"
       aria-multiselectable="true"
-      aria-label="Tags"
+      [attr.aria-label]="'customers.tagSelector.tags' | transloco"
       [id]="listId()"
     >
       @if (loading()) {
-        <li class="tags__status" role="presentation">Loading tags…</li>
+        <li class="tags__status" role="presentation">
+          {{ 'customers.tagSelector.loadingTags' | transloco }}
+        </li>
       } @else {
         @for (option of options(); track option.key; let index = $index) {
           <li
@@ -61,24 +63,28 @@
             {{ option.label }}
           </li>
         } @empty {
-          <li class="tags__status" role="presentation">No tags found.</li>
+          <li class="tags__status" role="presentation">
+            {{ 'customers.tagSelector.noTagsFound' | transloco }}
+          </li>
         }
         @if (atLimit()) {
-          <li class="tags__status" role="presentation">Choose up to {{ maxTags }} tags.</li>
+          <li class="tags__status" role="presentation">
+            {{ 'customers.tagSelector.chooseUpToTags' | transloco: { maxTags: maxTags } }}
+          </li>
         }
       }
     </ul>
   }
 
   @if (selected().length > 0) {
-    <ul class="tags__chips" aria-label="Selected tags">
+    <ul class="tags__chips" [attr.aria-label]="'customers.tagSelector.selectedTags' | transloco">
       @for (tag of selected(); track tag.id) {
         <li class="tags__chip">
           {{ tag.name }}
           @if (!disabled()) {
             <button
               type="button"
-              [attr.aria-label]="'Remove tag ' + tag.name"
+              [attr.aria-label]="'customers.tagSelector.removeTag' | transloco: { name: tag.name }"
               (click)="removed.emit(tag)"
             >
               <i class="pi pi-times" aria-hidden="true"></i>

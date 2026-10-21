@@ -1,0 +1,28 @@
+<div
+  class="lang-options"
+  role="menu"
+  tabindex="-1"
+  [attr.aria-label]="'selector.language' | transloco"
+  (keydown)="onKeydown($event)"
+>
+  @for (option of options; track option.code) {
+    <button
+      type="button"
+      role="menuitemradio"
+      class="lang-options__item"
+      tabindex="-1"
+      [class.lang-options__item--selected]="option.code === active()"
+      [attr.lang]="option.code"
+      [attr.aria-checked]="option.code === active()"
+      [attr.aria-disabled]="saving()"
+      (click)="choose(option.code)"
+    >
+      <span class="lang-options__check" aria-hidden="true">
+        @if (option.code === active()) {
+          <i class="pi pi-check"></i>
+        }
+      </span>
+      {{ option.name }}
+    </button>
+  }
+</div>

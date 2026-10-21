@@ -126,7 +126,7 @@ describe('help topic and article routes', () => {
       input.value = 'nonexistentterm';
       input.dispatchEvent(new Event('input'));
       await settle();
-      expect(host().querySelector('.topic__empty')?.textContent).toBe(
+      expect(host().querySelector('.topic__empty')?.textContent?.trim()).toBe(
         `No articles in ${topic.title} match "nonexistentterm"`,
       );
       expect(host().querySelector('.topic__section-label')).toBeNull();
@@ -149,7 +149,9 @@ describe('help topic and article routes', () => {
       /^\s*[1-9]\d* min read\s*$/,
     );
     expect(host().querySelectorAll('ol.article__steps > li')).toHaveLength(first.steps.length);
-    expect(host().querySelector('h2#article-next-title')?.textContent).toBe('What happens next?');
+    expect(host().querySelector('h2#article-next-title')?.textContent?.trim()).toBe(
+      'What happens next?',
+    );
     expect(host().querySelector('.article__callout')).not.toBeNull();
     expect(host().querySelector('img')).toBeNull();
     // First article: only Next, with the target title.
@@ -159,7 +161,7 @@ describe('help topic and article routes', () => {
     );
 
     // Feedback: Yes replaces the question; no request is sent.
-    expect(host().querySelector('.article__question')?.textContent).toBe(
+    expect(host().querySelector('.article__question')?.textContent?.trim()).toBe(
       'Was this article helpful?',
     );
     const buttons = Array.from(

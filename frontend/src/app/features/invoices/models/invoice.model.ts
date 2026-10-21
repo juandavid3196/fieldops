@@ -1,5 +1,6 @@
 import { PaymentTerms } from '../../billing-review/models/billing-review.model';
 
+import { localized, t } from '../../../core/i18n/translate';
 /** Contracts of specs/invoice-draft-delivery/spec.md (Final). */
 
 export interface InvoiceLine {
@@ -214,54 +215,64 @@ export const INVOICE_READ_ROLES: readonly string[] = [
 export const MESSAGE_MAX_LENGTH = 500;
 export const EMAIL_MAX_LENGTH = 254;
 
-export const FORBIDDEN_MESSAGE = "You don't have access to invoices.";
-export const UNAVAILABLE_MESSAGE = "This invoice isn't available.";
-export const LOAD_ERROR_MESSAGE = "We couldn't load this invoice. Try again.";
-export const READ_ONLY_MESSAGE = 'Only owners and accounting can edit and send invoices.';
-export const ACTION_FAILED_MESSAGE = "We couldn't complete this action. Try again.";
-export const PDF_FAILED_MESSAGE = "We couldn't download the PDF. Try again.";
-export const SMS_UNAVAILABLE_MESSAGE = "SMS isn't available yet.";
-export const LATER_MESSAGE = 'Online payments and attachments will be available later.';
-export const EMAIL_FAILED_MESSAGE =
-  "Invoice sent, but we couldn't email it. Use Resend email to try again.";
-export const TERMS_MESSAGE = 'Select payment terms.';
-export const RECIPIENT_REQUIRED_MESSAGE = "Enter the customer's email address.";
-export const RECIPIENT_INVALID_MESSAGE = 'Enter a valid email address.';
-export const MESSAGE_REQUIRED_MESSAGE = 'Enter a message.';
-export const MESSAGE_TOO_LONG_MESSAGE = 'Message must be 500 characters or fewer.';
+export const FORBIDDEN_MESSAGE = (): string => t('invoices.invoiceModel.forbiddenMessage');
+export const UNAVAILABLE_MESSAGE = (): string => t('invoices.invoiceModel.unavailableMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('invoices.invoiceModel.loadErrorMessage');
+export const READ_ONLY_MESSAGE = (): string => t('invoices.invoiceModel.readOnlyMessage');
+export const ACTION_FAILED_MESSAGE = (): string => t('invoices.invoiceModel.actionFailedMessage');
+export const PDF_FAILED_MESSAGE = (): string => t('invoices.invoiceModel.pdfFailedMessage');
+export const SMS_UNAVAILABLE_MESSAGE = (): string =>
+  t('invoices.invoiceModel.smsUnavailableMessage');
+export const LATER_MESSAGE = (): string => t('invoices.invoiceModel.laterMessage');
+export const EMAIL_FAILED_MESSAGE = (): string => t('invoices.invoiceModel.emailFailedMessage');
+export const TERMS_MESSAGE = (): string => t('invoices.invoiceModel.termsMessage');
+export const RECIPIENT_REQUIRED_MESSAGE = (): string =>
+  t('invoices.invoiceModel.recipientRequiredMessage');
+export const RECIPIENT_INVALID_MESSAGE = (): string =>
+  t('invoices.invoiceModel.recipientInvalidMessage');
+export const MESSAGE_REQUIRED_MESSAGE = (): string =>
+  t('invoices.invoiceModel.messageRequiredMessage');
+export const MESSAGE_TOO_LONG_MESSAGE = (): string =>
+  t('invoices.invoiceModel.messageTooLongMessage');
 
 /** Fixed copy for the `409` codes (backend titles are never displayed). */
-export const CONFLICT_MESSAGES: Readonly<Record<string, string>> = {
-  invoice_changed: 'This invoice changed. Refresh to see the latest.',
-  invoice_not_draft: "This invoice has already been sent and can't be edited.",
-  invoice_not_sent: 'Only sent invoices can be emailed again.',
-};
+export const CONFLICT_MESSAGES: Readonly<Record<string, string>> = localized(() => ({
+  invoice_changed: t('invoices.invoiceModel.thisInvoiceChangedRefresh'),
+  invoice_not_draft: t('invoices.invoiceModel.thisInvoiceHasAlready'),
+  invoice_not_sent: t('invoices.invoiceModel.onlySentInvoicesCan'),
+}));
 
 /** BR-34 neutral state. */
-export const PUBLIC_UNAVAILABLE_MESSAGE = 'This invoice is no longer available';
-export const PUBLIC_UNAVAILABLE_DETAIL =
-  'This link can no longer be used. Contact the company if you need a new invoice link.';
-export const PUBLIC_PROTECTION_MESSAGE = 'For your protection, invoice details are not shown.';
-export const PUBLIC_RATE_LIMITED_MESSAGE =
-  'Too many attempts. Please wait a few minutes and try again.';
-export const PUBLIC_DOWNLOAD_FAILED_MESSAGE = "We couldn't download the file. Please try again.";
+export const PUBLIC_UNAVAILABLE_MESSAGE = (): string =>
+  t('invoices.invoiceModel.publicUnavailableMessage');
+export const PUBLIC_UNAVAILABLE_DETAIL = (): string =>
+  t('invoices.invoiceModel.publicUnavailableDetail');
+export const PUBLIC_PROTECTION_MESSAGE = (): string =>
+  t('invoices.invoiceModel.publicProtectionMessage');
+export const PUBLIC_RATE_LIMITED_MESSAGE = (): string =>
+  t('invoices.invoiceModel.publicRateLimitedMessage');
+export const PUBLIC_DOWNLOAD_FAILED_MESSAGE = (): string =>
+  t('invoices.invoiceModel.publicDownloadFailedMessage');
 
 /** BR-29 card flow copy. */
-export const CARD_FAILURE_TITLE = "Payment wasn't completed";
-export const CARD_DECLINED_MESSAGE =
-  'Your card was declined. Check the details or try another payment method.';
-export const CARD_EXPIRED_MESSAGE = 'The payment session expired. Try again.';
-export const CARD_OTHER_FAILURE_MESSAGE =
-  "We couldn't process your payment. Try again or use another payment method.";
-export const CARD_STILL_CONFIRMING_MESSAGE =
-  "We're still confirming your payment. You can safely close this page; we'll email your receipt.";
-export const CARD_START_FAILED_MESSAGE = "We couldn't start the payment. Try again.";
-export const CARD_UNAVAILABLE_MESSAGE = "Card payments aren't available right now.";
-export const BANK_UNAVAILABLE_MESSAGE = "Bank transfer isn't available for this invoice.";
-export const BANK_NOTICE_FAILED_MESSAGE = "We couldn't send your notice. Try again.";
-export const REVIEW_FAILED_MESSAGE = "We couldn't send your review. Try again.";
-export const NAME_REQUIRED_MESSAGE = 'Enter the cardholder name.';
-export const NAME_TOO_LONG_MESSAGE = 'Use 120 characters or fewer.';
+export const CARD_FAILURE_TITLE = (): string => t('invoices.invoiceModel.cardFailureTitle');
+export const CARD_DECLINED_MESSAGE = (): string => t('invoices.invoiceModel.cardDeclinedMessage');
+export const CARD_EXPIRED_MESSAGE = (): string => t('invoices.invoiceModel.cardExpiredMessage');
+export const CARD_OTHER_FAILURE_MESSAGE = (): string =>
+  t('invoices.invoiceModel.cardOtherFailureMessage');
+export const CARD_STILL_CONFIRMING_MESSAGE = (): string =>
+  t('invoices.invoiceModel.cardStillConfirmingMessage');
+export const CARD_START_FAILED_MESSAGE = (): string =>
+  t('invoices.invoiceModel.cardStartFailedMessage');
+export const CARD_UNAVAILABLE_MESSAGE = (): string =>
+  t('invoices.invoiceModel.cardUnavailableMessage');
+export const BANK_UNAVAILABLE_MESSAGE = (): string =>
+  t('invoices.invoiceModel.bankUnavailableMessage');
+export const BANK_NOTICE_FAILED_MESSAGE = (): string =>
+  t('invoices.invoiceModel.bankNoticeFailedMessage');
+export const REVIEW_FAILED_MESSAGE = (): string => t('invoices.invoiceModel.reviewFailedMessage');
+export const NAME_REQUIRED_MESSAGE = (): string => t('invoices.invoiceModel.nameRequiredMessage');
+export const NAME_TOO_LONG_MESSAGE = (): string => t('invoices.invoiceModel.nameTooLongMessage');
 export const NAME_MAX_LENGTH = 120;
 export const REVIEW_COMMENT_MAX_LENGTH = 500;
 
@@ -276,10 +287,10 @@ const DECLINED_CATEGORIES: readonly string[] = [
 /** BR-29 message for a failed attempt, keyed by `failureCategory`. */
 export function failureMessage(category: string | null): string {
   if (category !== null && DECLINED_CATEGORIES.includes(category)) {
-    return CARD_DECLINED_MESSAGE;
+    return CARD_DECLINED_MESSAGE();
   }
   if (category === 'expired' || category === 'canceled') {
-    return CARD_EXPIRED_MESSAGE;
+    return CARD_EXPIRED_MESSAGE();
   }
-  return CARD_OTHER_FAILURE_MESSAGE;
+  return CARD_OTHER_FAILURE_MESSAGE();
 }

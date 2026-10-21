@@ -5,10 +5,12 @@
   </p>
   <p class="banner__line">{{ firstLine() }}</p>
   @if (more() > 0) {
-    <p class="banner__more">+{{ more() }} more unfinished jobs</p>
+    <p class="banner__more">
+      {{ 'technicianJobs.unresolvedBanner.moreUnfinishedJobs' | transloco: { more: more() } }}
+    </p>
   }
   <a class="banner__action" [routerLink]="['/today/visits', first().visitId]">
-    Open active visit
+    {{ 'technicianJobs.unresolvedBanner.openActiveVisit' | transloco }}
     <i class="pi pi-chevron-right" aria-hidden="true"></i>
   </a>
 </section>

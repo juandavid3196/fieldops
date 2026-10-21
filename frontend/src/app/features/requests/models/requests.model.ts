@@ -1,3 +1,4 @@
+import { localized, t } from '../../../core/i18n/translate';
 export type RequestStatus =
   | 'new'
   | 'needs_review'
@@ -24,12 +25,14 @@ export interface ToastHandoff {
 }
 
 /** Fixed copy of the `409` toast (the backend title is never displayed). */
-export const CONFLICT_MESSAGE = 'This request changed. Refresh to see the latest.';
-export const SAVE_FAILED_MESSAGE = "We couldn't save this change. Please try again.";
-export const UNAVAILABLE_MESSAGE = "This request isn't available.";
-export const COMPLETE_FAILED_MESSAGE = "We couldn't complete this assessment. Please try again.";
-export const QUOTE_DRAFT_EXISTS_MESSAGE = 'This request has a draft quote. Discard it first.';
-export const NO_EMAIL_MESSAGE = 'This customer has no email address.';
+export const CONFLICT_MESSAGE = (): string => t('requests.requestsModel.conflictMessage');
+export const SAVE_FAILED_MESSAGE = (): string => t('requests.requestsModel.saveFailedMessage');
+export const UNAVAILABLE_MESSAGE = (): string => t('requests.requestsModel.unavailableMessage');
+export const COMPLETE_FAILED_MESSAGE = (): string =>
+  t('requests.requestsModel.completeFailedMessage');
+export const QUOTE_DRAFT_EXISTS_MESSAGE = (): string =>
+  t('requests.requestsModel.quoteDraftExistsMessage');
+export const NO_EMAIL_MESSAGE = (): string => t('requests.requestsModel.noEmailMessage');
 export const REQUEST_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export const BOARD_STATUSES: readonly BoardStatus[] = [
@@ -39,42 +42,42 @@ export const BOARD_STATUSES: readonly BoardStatus[] = [
   'ready_for_quote',
 ];
 
-export const STATUS_LABELS: Readonly<Record<RequestStatus, string>> = {
-  new: 'New',
-  needs_review: 'Needs review',
-  assessment_scheduled: 'Assessment scheduled',
-  ready_for_quote: 'Ready for quote',
-  quoted: 'Quoted',
-  converted: 'Converted',
-  cancelled: 'Cancelled',
-};
+export const STATUS_LABELS: Readonly<Record<RequestStatus, string>> = localized(() => ({
+  new: t('requests.requestsModel.new'),
+  needs_review: t('requests.requestsModel.needsReview'),
+  assessment_scheduled: t('requests.requestsModel.assessmentScheduled'),
+  ready_for_quote: t('requests.requestsModel.readyForQuote'),
+  quoted: t('requests.requestsModel.quoted'),
+  converted: t('requests.requestsModel.converted'),
+  cancelled: t('requests.requestsModel.cancelled'),
+}));
 
 /** Column headings (BR-05). */
-export const COLUMN_LABELS: Readonly<Record<BoardStatus, string>> = {
-  new: 'New requests',
-  needs_review: 'Needs review',
-  assessment_scheduled: 'Assessment scheduled',
-  ready_for_quote: 'Ready for quote',
-};
+export const COLUMN_LABELS: Readonly<Record<BoardStatus, string>> = localized(() => ({
+  new: t('requests.requestsModel.newRequests'),
+  needs_review: t('requests.requestsModel.needsReview'),
+  assessment_scheduled: t('requests.requestsModel.assessmentScheduled'),
+  ready_for_quote: t('requests.requestsModel.readyForQuote'),
+}));
 
 /** BR-10. */
-export const URGENCY_LABELS: Readonly<Record<Urgency, string>> = {
-  standard: 'Standard',
-  urgent: 'Urgent',
-  emergency: 'Emergency',
-};
+export const URGENCY_LABELS: Readonly<Record<Urgency, string>> = localized(() => ({
+  standard: t('requests.requestsModel.standard'),
+  urgent: t('requests.requestsModel.urgent'),
+  emergency: t('requests.requestsModel.emergency'),
+}));
 
-export const SOURCE_LABELS: Readonly<Record<RequestSource, string>> = {
-  public_form: 'Online form',
-  internal: 'Internal',
-};
+export const SOURCE_LABELS: Readonly<Record<RequestSource, string>> = localized(() => ({
+  public_form: t('requests.requestsModel.onlineForm'),
+  internal: t('requests.requestsModel.internal'),
+}));
 
-export const TIME_WINDOW_LABELS: Readonly<Record<TimeWindow, string>> = {
-  morning: 'Morning (8 AM - 12 PM)',
-  afternoon: 'Afternoon (12 PM - 5 PM)',
-  evening: 'Evening (5 PM - 8 PM)',
-  any: 'Any time (8 AM - 8 PM)',
-};
+export const TIME_WINDOW_LABELS: Readonly<Record<TimeWindow, string>> = localized(() => ({
+  morning: t('requests.requestsModel.morning8Am12'),
+  afternoon: t('requests.requestsModel.afternoon12Pm5'),
+  evening: t('requests.requestsModel.evening5Pm8'),
+  any: t('requests.requestsModel.anyTime8Am'),
+}));
 
 export const MANAGER_ROLES: readonly string[] = ['owner', 'dispatcher'];
 export const READ_ROLES: readonly string[] = ['operations_manager', 'accounting', 'viewer'];
@@ -448,24 +451,24 @@ export interface RequestAction {
   readonly primary?: boolean;
 }
 
-const ACTION_LABELS: Readonly<Record<RequestActionId, string>> = {
-  'schedule-assessment': 'Schedule assessment',
-  'request-information': 'Request information',
-  'mark-ready': 'Mark ready for quote',
-  'complete-assessment': 'Complete assessment',
-  reschedule: 'Reschedule',
-  'create-quote': 'Create quote',
-  'continue-quote': 'Continue quote',
-  'view-quote': 'View quote',
-  assign: 'Assign',
-  'change-priority': 'Change priority',
-  'set-branch': 'Set branch',
-  'log-response': 'Log customer response',
-  'start-review': 'Start review',
-  'move-back': 'Move back to review',
-  'cancel-assessment': 'Cancel assessment',
-  'cancel-request': 'Cancel request',
-};
+const ACTION_LABELS: Readonly<Record<RequestActionId, string>> = localized(() => ({
+  'schedule-assessment': t('requests.requestsModel.scheduleAssessment'),
+  'request-information': t('requests.requestsModel.requestInformation'),
+  'mark-ready': t('requests.requestsModel.markReadyForQuote'),
+  'complete-assessment': t('requests.requestsModel.completeAssessment'),
+  reschedule: t('requests.requestsModel.reschedule'),
+  'create-quote': t('requests.requestsModel.createQuote'),
+  'continue-quote': t('requests.requestsModel.continueQuote'),
+  'view-quote': t('requests.requestsModel.viewQuote'),
+  assign: t('requests.requestsModel.assign'),
+  'change-priority': t('requests.requestsModel.changePriority'),
+  'set-branch': t('requests.requestsModel.setBranch'),
+  'log-response': t('requests.requestsModel.logCustomerResponse'),
+  'start-review': t('requests.requestsModel.startReview'),
+  'move-back': t('requests.requestsModel.moveBackToReview'),
+  'cancel-assessment': t('requests.requestsModel.cancelAssessment'),
+  'cancel-request': t('requests.requestsModel.cancelRequest'),
+}));
 
 function actions(ids: readonly RequestActionId[], primary?: RequestActionId): RequestAction[] {
   return ids.map((id) => ({

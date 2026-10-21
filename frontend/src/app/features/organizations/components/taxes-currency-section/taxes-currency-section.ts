@@ -13,12 +13,21 @@ import {
 } from '../../models/organization-registration.model';
 
 import type { FormGroup } from '@angular/forms';
+import { TranslocoPipe } from '@jsverse/transloco';
 import type { SimpleFieldKey } from '../../models/organization-registration.model';
 
 /** "Taxes & currency" section (FR-01): currency and default tax rate. */
 @Component({
   selector: 'app-taxes-currency-section',
-  imports: [ReactiveFormsModule, InputNumber, Select, FormField, WizardCard, WizardNote],
+  imports: [
+    TranslocoPipe,
+    ReactiveFormsModule,
+    InputNumber,
+    Select,
+    FormField,
+    WizardCard,
+    WizardNote,
+  ],
   templateUrl: './taxes-currency-section.html',
   styleUrl: './taxes-currency-section.scss',
 })

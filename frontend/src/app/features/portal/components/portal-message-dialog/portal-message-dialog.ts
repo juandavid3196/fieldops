@@ -18,33 +18,35 @@ import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { FormField } from '../../../organizations/components/form-field/form-field';
 import { GENERIC_ERROR_MESSAGE, RATE_LIMITED_MESSAGE } from '../../models/portal.model';
 import { PortalDashboardService } from '../../services/portal-dashboard.service';
 
+import { t } from '../../../../core/i18n/translate';
 export const MESSAGE_LIMIT = 1000;
-export const MESSAGE_REQUIRED = 'Enter your message.';
-export const MESSAGE_TOO_LONG = 'Message must be 1,000 characters or fewer.';
+export const MESSAGE_REQUIRED = (): string => t('portal.portalMessageDialog.messageRequired');
+export const MESSAGE_TOO_LONG = (): string => t('portal.portalMessageDialog.messageTooLong');
 
 export function messageSentText(organizationName: string): string {
-  return `Your message was sent. ${organizationName} will reply by email or phone.`;
+  return t('portal.portalMessageDialog.yourMessageWasSent', { organizationName: organizationName });
 }
 
 /** Validation of the message (BR-35): 1 to 1,000 characters after trim. */
 export function messageError(value: string): string | null {
   const length = value.trim().length;
   if (length === 0) {
-    return MESSAGE_REQUIRED;
+    return MESSAGE_REQUIRED();
   }
-  return length > MESSAGE_LIMIT ? MESSAGE_TOO_LONG : null;
+  return length > MESSAGE_LIMIT ? MESSAGE_TOO_LONG() : null;
 }
 
 /** "Send a message" dialog (BR-35): one submission; success replaces the form with a confirmation. */
 @Component({
   selector: 'app-portal-message-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, FormField, SpinnerIcon, Textarea],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Dialog, FormField, SpinnerIcon, Textarea],
   templateUrl: './portal-message-dialog.html',
   styles: `
     :host {
@@ -244,12 +246,12 @@ export class PortalMessageDialog {
       this.unavailable.emit();
     } else if (apiError?.kind === 'validation') {
       this.error.set(
-        this.message().trim().length > MESSAGE_LIMIT ? MESSAGE_TOO_LONG : MESSAGE_REQUIRED,
+        this.message().trim().length > MESSAGE_LIMIT ? MESSAGE_TOO_LONG() : MESSAGE_REQUIRED(),
       );
     } else if (apiError?.kind === 'rate-limited') {
-      this.failure.set(RATE_LIMITED_MESSAGE);
+      this.failure.set(RATE_LIMITED_MESSAGE());
     } else {
-      this.failure.set(GENERIC_ERROR_MESSAGE);
+      this.failure.set(GENERIC_ERROR_MESSAGE());
     }
   }
 }

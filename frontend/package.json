@@ -7,7 +7,9 @@
     "test": "ng test",
     "lint": "ng lint",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "i18n:check": "node scripts/i18n-check/cli.mjs",
+    "i18n:check:test": "node --test \"scripts/i18n-check/*.test.mjs\""
   },
   "private": true,
   "packageManager": "npm@9.7.1",
@@ -18,6 +20,7 @@
     "@angular/forms": "^22.1.0",
     "@angular/platform-browser": "^22.1.0",
     "@angular/router": "^22.1.0",
+    "@jsverse/transloco": "^8.4.0",
     "@primeuix/themes": "^3.0.1",
     "@stripe/stripe-js": "^10.0.0",
     "primeicons": "^7.0.0",

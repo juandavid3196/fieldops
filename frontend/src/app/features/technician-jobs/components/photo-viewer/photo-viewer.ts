@@ -1,9 +1,11 @@
 import { Component, computed, input, model, output, signal } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { VisitPhoto, photoAlt } from '../visit-photos/visit-photos';
 
+import { t } from '../../../../core/i18n/translate';
 export interface PhotoDeleteRequest {
   readonly id: string;
   /** Element to focus again when the confirmation closes. */
@@ -13,7 +15,7 @@ export interface PhotoDeleteRequest {
 /** BR-17 full-size viewer with close and previous/next; the page returns focus on `closed`. */
 @Component({
   selector: 'app-photo-viewer',
-  imports: [ButtonDirective, Dialog],
+  imports: [TranslocoPipe, ButtonDirective, Dialog],
   templateUrl: './photo-viewer.html',
   styleUrl: './photo-viewer.scss',
 })
@@ -36,7 +38,9 @@ export class PhotoViewer {
   readonly alt = computed(() => photoAlt(this.photos(), this.index() ?? 0));
   readonly header = computed(() => {
     const label = this.photo()?.label;
-    return label === undefined ? 'Assessment photo' : `${label} photo`;
+    return label === undefined
+      ? t('technicianJobs.photoViewer.assessmentPhoto')
+      : t('technicianJobs.photoViewer.photo', { label: label });
   });
   readonly unavailable = computed(() => {
     const photo = this.photo();

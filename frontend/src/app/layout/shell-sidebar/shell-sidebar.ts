@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { TooltipModule } from 'primeng/tooltip';
 import { filter, map, startWith } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { NavGroup, NavItem } from '../app-shell/app-shell.nav';
 
@@ -14,7 +15,7 @@ import { NavGroup, NavItem } from '../app-shell/app-shell.nav';
  */
 @Component({
   selector: 'app-shell-sidebar',
-  imports: [NgTemplateOutlet, RouterLink, TooltipModule],
+  imports: [TranslocoPipe, NgTemplateOutlet, RouterLink, TooltipModule],
   templateUrl: './shell-sidebar.html',
   styleUrl: './shell-sidebar.scss',
 })

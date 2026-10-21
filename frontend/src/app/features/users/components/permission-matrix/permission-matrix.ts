@@ -2,13 +2,15 @@ import { Component, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PermissionMatrix as PermissionMatrixData } from '../../models/users.model';
 
+import { t } from '../../../../core/i18n/translate';
+import { CodeLabelPipe } from '../../../../core/i18n/code-label.pipe';
 export type LevelTone = 'primary' | 'info' | 'warning' | 'neutral';
 
-export const MATRIX_ERROR_MESSAGE =
-  "We couldn't load the permission matrix. Check your connection and try again.";
+export const MATRIX_ERROR_MESSAGE = (): string => t('users.permissionMatrix.matrixErrorMessage');
 
 /** BR-07 tones: Full/Edit teal, View info, None neutral, every scoped level warning. */
 export function levelTone(level: string): LevelTone {
@@ -28,7 +30,7 @@ export function levelTone(level: string): LevelTone {
 /** Read-only permission matrix and legend; renders exactly the API catalog (FR-05). */
 @Component({
   selector: 'app-permission-matrix',
-  imports: [ButtonDirective, Message, Skeleton],
+  imports: [CodeLabelPipe, TranslocoPipe, ButtonDirective, Message, Skeleton],
   templateUrl: './permission-matrix.html',
   styleUrl: './permission-matrix.scss',
 })
@@ -39,6 +41,8 @@ export class PermissionMatrix {
 
   readonly retry = output<void>();
 
-  readonly errorMessage = MATRIX_ERROR_MESSAGE;
+  get errorMessage(): string {
+    return MATRIX_ERROR_MESSAGE();
+  }
   readonly tone = levelTone;
 }

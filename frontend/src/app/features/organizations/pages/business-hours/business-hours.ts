@@ -21,6 +21,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import {
@@ -57,19 +58,19 @@ import {
 } from '../../utils/business-hours-form';
 import { handleUnauthorized } from '../../utils/handle-unauthorized';
 
-export const DESCRIPTION_MESSAGE = 'Set the standard operating hours for each branch.';
-export const FORBIDDEN_MESSAGE = "You don't have access to business hours.";
-export const READ_ONLY_MESSAGE = 'You have view-only access to business hours.';
-export const BRANCHES_ERROR_MESSAGE = "We couldn't load branches.";
-export const HOURS_ERROR_MESSAGE = "We couldn't load business hours.";
-export const EMPTY_MESSAGE = 'No branches available.';
-export const STALE_MESSAGE =
-  'This record was changed by someone else. Reload to see the latest version.';
-export const BRANCH_GONE_MESSAGE = 'This branch is no longer available.';
-export const INFO_MESSAGE =
-  'Business hours define when this branch normally operates. Technician availability is managed separately.';
-export const SCHEDULING_NOTE =
-  'Visits can still be scheduled outside business hours, but Dispatch will see a warning.';
+import { t } from '../../../../core/i18n/translate';
+export const DESCRIPTION_MESSAGE = (): string =>
+  t('organizations.businessHours.descriptionMessage');
+export const FORBIDDEN_MESSAGE = (): string => t('organizations.businessHours.forbiddenMessage');
+export const READ_ONLY_MESSAGE = (): string => t('organizations.businessHours.readOnlyMessage');
+export const BRANCHES_ERROR_MESSAGE = (): string =>
+  t('organizations.businessHours.branchesErrorMessage');
+export const HOURS_ERROR_MESSAGE = (): string => t('organizations.businessHours.hoursErrorMessage');
+export const EMPTY_MESSAGE = (): string => t('organizations.businessHours.emptyMessage');
+export const STALE_MESSAGE = (): string => t('organizations.businessHours.staleMessage');
+export const BRANCH_GONE_MESSAGE = (): string => t('organizations.businessHours.branchGoneMessage');
+export const INFO_MESSAGE = (): string => t('organizations.businessHours.infoMessage');
+export const SCHEDULING_NOTE = (): string => t('organizations.businessHours.schedulingNote');
 
 const PARTS: readonly BusinessHoursPart[] = ['openingTime', 'closingTime'];
 
@@ -80,6 +81,7 @@ const PARTS: readonly BusinessHoursPart[] = ['openingTime', 'closingTime'];
 @Component({
   selector: 'app-business-hours',
   imports: [
+    TranslocoPipe,
     DiscardChangesDialog,
     FormsModule,
     ReactiveFormsModule,
@@ -110,15 +112,33 @@ export class BusinessHours {
 
   private submitAttempted = false;
 
-  readonly descriptionMessage = DESCRIPTION_MESSAGE;
-  readonly branchGoneMessage = BRANCH_GONE_MESSAGE;
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly readOnlyMessage = READ_ONLY_MESSAGE;
-  readonly branchesErrorMessage = BRANCHES_ERROR_MESSAGE;
-  readonly hoursErrorMessage = HOURS_ERROR_MESSAGE;
-  readonly emptyMessage = EMPTY_MESSAGE;
-  readonly infoMessage = INFO_MESSAGE;
-  readonly schedulingNote = SCHEDULING_NOTE;
+  get descriptionMessage(): string {
+    return DESCRIPTION_MESSAGE();
+  }
+  get branchGoneMessage(): string {
+    return BRANCH_GONE_MESSAGE();
+  }
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get readOnlyMessage(): string {
+    return READ_ONLY_MESSAGE();
+  }
+  get branchesErrorMessage(): string {
+    return BRANCHES_ERROR_MESSAGE();
+  }
+  get hoursErrorMessage(): string {
+    return HOURS_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return EMPTY_MESSAGE();
+  }
+  get infoMessage(): string {
+    return INFO_MESSAGE();
+  }
+  get schedulingNote(): string {
+    return SCHEDULING_NOTE();
+  }
   readonly days = BUSINESS_HOURS_DAYS;
   readonly parts = PARTS;
   readonly skeletonRows = BUSINESS_HOURS_DAYS;
@@ -158,7 +178,9 @@ export class BusinessHours {
   readonly branchOptions = computed(() =>
     this.branches().map((branch) => ({
       id: branch.id,
-      label: branch.isActive ? branch.name : `${branch.name} (Inactive)`,
+      label: branch.isActive
+        ? branch.name
+        : t('organizations.businessHours.inactive', { name: branch.name }),
     })),
   );
   readonly timezone = computed(() => {
@@ -217,7 +239,7 @@ export class BusinessHours {
       };
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'these business hours',
+          subject: t('organizations.businessHours.theseBusinessHours'),
           accept: () => answer(true),
           reject: () => answer(false),
         }),
@@ -237,7 +259,7 @@ export class BusinessHours {
     }
     this.confirmationService.confirm(
       discardChangesConfirmation({
-        subject: 'these business hours',
+        subject: t('organizations.businessHours.theseBusinessHours'),
         accept: () => {
           this.branchGone.set(false);
           this.selectBranch(branchId);
@@ -295,7 +317,9 @@ export class BusinessHours {
           this.adopt(response);
           this.messageService.add({
             severity: 'success',
-            summary: `Business hours saved for ${response.branchName}`,
+            summary: t('organizations.businessHours.businessHoursSavedFor', {
+              branchName: response.branchName,
+            }),
           });
         },
         error: (error: unknown) => this.handleSaveFailed(error),
@@ -381,7 +405,9 @@ export class BusinessHours {
           if (this.failedUnauthorized(error)) {
             return;
           }
-          this.branchesError.set(isApiError(error) ? error : unknownError(BRANCHES_ERROR_MESSAGE));
+          this.branchesError.set(
+            isApiError(error) ? error : unknownError(BRANCHES_ERROR_MESSAGE()),
+          );
         },
       });
   }
@@ -409,7 +435,7 @@ export class BusinessHours {
             this.loadBranches();
             return;
           }
-          this.hoursError.set(isApiError(error) ? error : unknownError(HOURS_ERROR_MESSAGE));
+          this.hoursError.set(isApiError(error) ? error : unknownError(HOURS_ERROR_MESSAGE()));
         },
       });
   }
@@ -422,7 +448,7 @@ export class BusinessHours {
     const apiError = isApiError(error) ? error : null;
     if (apiError?.kind === 'conflict') {
       this.staleConflict.set(true);
-      this.pageMessage.set(STALE_MESSAGE);
+      this.pageMessage.set(STALE_MESSAGE());
       return;
     }
     if (apiError?.kind === 'not-found') {
@@ -438,7 +464,9 @@ export class BusinessHours {
         return;
       }
     }
-    this.pageMessage.set(apiError?.message ?? 'An unexpected error occurred. Please try again.');
+    this.pageMessage.set(
+      apiError?.message ?? t('organizations.businessHours.anUnexpectedErrorOccurred'),
+    );
   }
 
   private failedUnauthorized(error: unknown): boolean {

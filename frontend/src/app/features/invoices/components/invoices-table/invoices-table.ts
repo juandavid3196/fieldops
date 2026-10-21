@@ -2,6 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   INVOICES_EMPTY_MESSAGE,
@@ -23,7 +24,7 @@ import { HubPager } from '../hub-pager/hub-pager';
 /** Invoices tab list (BR-22, BR-24): table, row actions trigger, footer and its own states. */
 @Component({
   selector: 'app-invoices-table',
-  imports: [ButtonDirective, HubPager, RouterLink, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, HubPager, RouterLink, Skeleton],
   templateUrl: './invoices-table.html',
   styleUrl: './invoices-table.scss',
 })
@@ -40,7 +41,9 @@ export class InvoicesTable {
   readonly openReady = output<void>();
   readonly menuRequested = output<{ event: Event; row: InvoiceRow }>();
 
-  readonly errorMessage = INVOICES_ERROR_MESSAGE;
+  get errorMessage(): string {
+    return INVOICES_ERROR_MESSAGE();
+  }
   readonly rows = computed(() =>
     (this.region().data?.items ?? []).map((row) => ({
       row,
@@ -54,6 +57,6 @@ export class InvoicesTable {
     })),
   );
   readonly emptyMessage = computed(() =>
-    this.filtered() ? INVOICES_FILTERED_EMPTY_MESSAGE : INVOICES_EMPTY_MESSAGE,
+    this.filtered() ? INVOICES_FILTERED_EMPTY_MESSAGE() : INVOICES_EMPTY_MESSAGE(),
   );
 }

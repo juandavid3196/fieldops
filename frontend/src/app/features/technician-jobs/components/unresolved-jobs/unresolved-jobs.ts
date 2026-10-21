@@ -14,6 +14,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { UnresolvedVisit } from '../../models/technician-visits.model';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
@@ -21,13 +22,14 @@ import { formatInstantShortDate, pluralLabel, statusLabelOf } from '../../utils/
 import { statusSinceText } from '../../utils/schedule-format';
 import { classifyResumeFailure } from '../../utils/technician-errors';
 
+import { localized, t } from '../../../../core/i18n/translate';
 /** Technician shell bottom nav (4rem) plus safe area; the sheet and backdrop end above it. */
 const NAV_OFFSET = 'calc(4rem + env(safe-area-inset-bottom, 0px))';
 
 /** BR-17: Unfinished jobs block on Schedule and the modal bottom sheet with its resolution actions. */
 @Component({
   selector: 'app-unresolved-jobs',
-  imports: [RouterLink, ButtonDirective, Dialog],
+  imports: [TranslocoPipe, RouterLink, ButtonDirective, Dialog],
   templateUrl: './unresolved-jobs.html',
   styleUrl: './unresolved-jobs.scss',
 })
@@ -42,13 +44,13 @@ export class UnresolvedJobs {
   readonly timezone = input.required<string>();
 
   /** Bottom sheet constrained to the technician column (480px), anchored to the bottom. */
-  protected readonly sheetStyle = {
+  protected readonly sheetStyle = localized(() => ({
     width: '100%',
     maxWidth: '30rem',
     maxHeight: `min(85vh, calc(100dvh - ${NAV_OFFSET} - 4rem))`,
     margin: '0',
     borderRadius: '1.5rem 1.5rem 0 0',
-  };
+  }));
   protected readonly maskStyle = {
     bottom: NAV_OFFSET,
     display: 'flex',
@@ -62,8 +64,15 @@ export class UnresolvedJobs {
   readonly errors = signal<Readonly<Record<string, string>>>({});
 
   readonly count = computed(() => this.visits().length);
-  readonly summary = computed(
-    () => `${this.count()} ${pluralLabel(this.count(), 'job', 'jobs')} from previous days`,
+  readonly summary = computed(() =>
+    t('technicianJobs.unresolvedJobs.fromPreviousDays', {
+      count: this.count(),
+      value: pluralLabel(
+        this.count(),
+        t('technicianJobs.plurals.job'),
+        t('technicianJobs.plurals.jobs'),
+      ),
+    }),
   );
   readonly cards = computed(() => {
     const now = new Date();

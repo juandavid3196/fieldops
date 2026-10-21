@@ -1,15 +1,19 @@
 <section class="work" aria-labelledby="work-title">
   <header class="work__head">
-    <h2 class="work__title" id="work-title">Recent work</h2>
-    <a class="work__link" [routerLink]="viewAllLink">View all</a>
+    <h2 class="work__title" id="work-title">
+      {{ 'customers.recentWorkCard.recentWork' | transloco }}
+    </h2>
+    <a class="work__link" [routerLink]="viewAllLink">{{
+      'customers.recentWorkCard.viewAll' | transloco
+    }}</a>
   </header>
 
   @if (state().status === 'error') {
     <p-message severity="error" [closable]="false">
       <span class="work__retry">
-        We couldn't load recent work.
+        {{ 'customers.recentWorkCard.weCouldnTLoad' | transloco }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -21,22 +25,22 @@
     </div>
   } @else if (rows().length === 0) {
     <div class="work__empty">
-      <p class="work__empty-title">No work yet</p>
-      <p>Requests, quotes and jobs for this customer will appear here.</p>
+      <p class="work__empty-title">{{ 'customers.recentWorkCard.noWorkYet' | transloco }}</p>
+      <p>{{ 'customers.recentWorkCard.requestsQuotesAndJobs' | transloco }}</p>
     </div>
   } @else {
     <div class="work__scroll">
       <table class="work__table">
         <thead>
           <tr>
-            <th scope="col">Type</th>
-            <th scope="col">ID</th>
-            <th scope="col">Title</th>
-            <th scope="col">Status</th>
-            <th scope="col">Date</th>
-            <th scope="col">Technician</th>
-            <th scope="col">Amount</th>
-            <th scope="col">Actions</th>
+            <th scope="col">{{ 'common.type' | transloco }}</th>
+            <th scope="col">{{ 'customers.recentWorkCard.id' | transloco }}</th>
+            <th scope="col">{{ 'customers.recentWorkCard.title' | transloco }}</th>
+            <th scope="col">{{ 'common.status' | transloco }}</th>
+            <th scope="col">{{ 'common.date' | transloco }}</th>
+            <th scope="col">{{ 'customers.recentWorkCard.technician' | transloco }}</th>
+            <th scope="col">{{ 'common.amount' | transloco }}</th>
+            <th scope="col">{{ 'common.actions' | transloco }}</th>
           </tr>
         </thead>
         <tbody>
@@ -61,9 +65,11 @@
                   [outlined]="true"
                   [routerLink]="row.link"
                   [queryParams]="row.queryParams"
-                  [attr.aria-label]="'View ' + row.number"
+                  [attr.aria-label]="
+                    'customers.recentWorkCard.view' | transloco: { number: row.number }
+                  "
                 >
-                  View
+                  {{ 'common.view' | transloco }}
                 </a>
               </td>
             </tr>

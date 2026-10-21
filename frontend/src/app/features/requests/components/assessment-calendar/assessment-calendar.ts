@@ -2,6 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { AssessmentCalendar } from '../../models/requests.model';
 import {
@@ -12,15 +13,20 @@ import {
   rangeLabel,
 } from '../../utils/assessment-calendar';
 
-export const CALENDAR_ERROR_MESSAGE = "We couldn't load the calendar.";
-export const CALENDAR_NO_TECHNICIAN_MESSAGE = 'Select a technician to see their schedule.';
-export const CALENDAR_EMPTY_AGENDA_MESSAGE = 'No commitments this week.';
+import { localizedList, t } from '../../../../core/i18n/translate';
+export const CALENDAR_ERROR_MESSAGE = (): string =>
+  t('requests.assessmentCalendar.calendarErrorMessage');
+export const CALENDAR_NO_TECHNICIAN_MESSAGE = (): string =>
+  t('requests.assessmentCalendar.calendarNoTechnicianMessage');
+export const CALENDAR_EMPTY_AGENDA_MESSAGE = (): string =>
+  t('requests.assessmentCalendar.calendarEmptyAgendaMessage');
 
-export const CALENDAR_VIEWS: readonly { readonly code: CalendarView; readonly label: string }[] = [
-  { code: 'week', label: 'Week' },
-  { code: 'day', label: 'Day' },
-  { code: 'agenda', label: 'Agenda' },
-];
+export const CALENDAR_VIEWS: readonly { readonly code: CalendarView; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'week', label: t('requests.assessmentCalendar.week') },
+    { code: 'day', label: t('requests.assessmentCalendar.day') },
+    { code: 'agenda', label: t('requests.assessmentCalendar.agenda') },
+  ]);
 
 /**
  * Read-only calendar of the selected technician (BR-07): Week, Day and Agenda views plus the
@@ -28,7 +34,7 @@ export const CALENDAR_VIEWS: readonly { readonly code: CalendarView; readonly la
  */
 @Component({
   selector: 'app-assessment-calendar',
-  imports: [ButtonDirective, Message, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, Message, Skeleton],
   templateUrl: './assessment-calendar.html',
   styleUrl: './assessment-calendar.scss',
 })
@@ -48,9 +54,15 @@ export class AssessmentCalendarView {
   readonly retry = output<void>();
 
   readonly views = CALENDAR_VIEWS;
-  readonly errorMessage = CALENDAR_ERROR_MESSAGE;
-  readonly noTechnicianMessage = CALENDAR_NO_TECHNICIAN_MESSAGE;
-  readonly emptyAgendaMessage = CALENDAR_EMPTY_AGENDA_MESSAGE;
+  get errorMessage(): string {
+    return CALENDAR_ERROR_MESSAGE();
+  }
+  get noTechnicianMessage(): string {
+    return CALENDAR_NO_TECHNICIAN_MESSAGE();
+  }
+  get emptyAgendaMessage(): string {
+    return CALENDAR_EMPTY_AGENDA_MESSAGE();
+  }
 
   readonly model = computed<CalendarViewModel | null>(() => {
     const calendar = this.calendar();

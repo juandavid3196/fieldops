@@ -20,6 +20,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { Subject, Subscription, catchError, debounceTime, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -49,8 +50,11 @@ import {
 } from '../../models/requests.model';
 import { RequestsService } from '../../services/requests.service';
 
-export const CREATE_FAILED_MESSAGE = "We couldn't save this request. Please try again.";
-export const NO_CUSTOMERS_MESSAGE = 'No customers found.';
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const CREATE_FAILED_MESSAGE = (): string =>
+  t('requests.newRequestDrawer.createFailedMessage');
+export const NO_CUSTOMERS_MESSAGE = (): string => t('requests.newRequestDrawer.noCustomersMessage');
 
 interface Choice<T extends string = string> {
   readonly code: T;
@@ -71,6 +75,8 @@ function fieldKey(path: string): string {
 @Component({
   selector: 'app-new-request-drawer',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     AutoComplete,
     ButtonDirective,
@@ -100,15 +106,17 @@ export class NewRequestDrawer {
   readonly unauthorized = output<void>();
 
   readonly titleId = 'new-request-title';
-  readonly noCustomers = NO_CUSTOMERS_MESSAGE;
+  get noCustomers(): string {
+    return NO_CUSTOMERS_MESSAGE();
+  }
   readonly urgencyChoices: Choice<Urgency>[] = (Object.keys(URGENCY_LABELS) as Urgency[]).map(
     (code) => ({ code, label: URGENCY_LABELS[code] }),
   );
-  readonly dateModes: Choice<DateMode>[] = [
-    { code: 'asap', label: 'As soon as possible' },
-    { code: 'date', label: 'Choose a date' },
-    { code: 'flexible', label: 'Flexible' },
-  ];
+  readonly dateModes: Choice<DateMode>[] = localizedList(() => [
+    { code: 'asap', label: t('requests.newRequestDrawer.asSoonAsPossible') },
+    { code: 'date', label: t('requests.newRequestDrawer.chooseADate') },
+    { code: 'flexible', label: t('requests.newRequestDrawer.flexible') },
+  ]);
   readonly windowChoices: Choice<TimeWindow>[] = (
     Object.keys(TIME_WINDOW_LABELS) as TimeWindow[]
   ).map((code) => ({ code, label: TIME_WINDOW_LABELS[code] }));
@@ -294,7 +302,10 @@ export class NewRequestDrawer {
     }
     if (this.dirty()) {
       this.confirmationService.confirm(
-        discardChangesConfirmation({ subject: 'this request', accept: () => this.closed.emit() }),
+        discardChangesConfirmation({
+          subject: t('requests.newRequestDrawer.thisRequest'),
+          accept: () => this.closed.emit(),
+        }),
       );
       return;
     }
@@ -304,23 +315,23 @@ export class NewRequestDrawer {
   private validate(): Record<string, string> {
     const errors: Record<string, string> = {};
     if (this.customer() === null) {
-      errors['customerId'] = REQUIRED_MESSAGE;
+      errors['customerId'] = REQUIRED_MESSAGE();
     }
     if (this.contactId() === '') {
-      errors['contactId'] = REQUIRED_MESSAGE;
+      errors['contactId'] = REQUIRED_MESSAGE();
     }
     if (this.propertyId() === '') {
-      errors['propertyId'] = REQUIRED_MESSAGE;
+      errors['propertyId'] = REQUIRED_MESSAGE();
     }
     if (this.categoryId() === '') {
-      errors['categoryId'] = CATEGORY_REQUIRED_MESSAGE;
+      errors['categoryId'] = CATEGORY_REQUIRED_MESSAGE();
     }
     if (!this.notSure() && this.serviceId() === '') {
-      errors['serviceId'] = SERVICE_REQUIRED_MESSAGE;
+      errors['serviceId'] = SERVICE_REQUIRED_MESSAGE();
     }
     const description = this.description().trim();
     if (description.length === 0) {
-      errors['description'] = DESCRIPTION_REQUIRED_MESSAGE;
+      errors['description'] = DESCRIPTION_REQUIRED_MESSAGE();
     } else if (description.length > 1000) {
       errors['description'] = maxLengthMessage(1000);
     }
@@ -388,7 +399,7 @@ export class NewRequestDrawer {
           );
           return;
         }
-        this.messageService.add({ severity: 'error', summary: CREATE_FAILED_MESSAGE });
+        this.messageService.add({ severity: 'error', summary: CREATE_FAILED_MESSAGE() });
       },
     });
   }

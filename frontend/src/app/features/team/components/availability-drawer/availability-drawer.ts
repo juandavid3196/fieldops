@@ -20,6 +20,7 @@ import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Observable, Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
@@ -49,14 +50,18 @@ import {
 } from '../../utils/team-planning';
 import { TechnicianPicker } from '../technician-picker/technician-picker';
 
-export const AVAILABILITY_SAVE_FAILED_MESSAGE = "We couldn't save availability. Try again.";
-export const AVAILABILITY_LOAD_FAILED_MESSAGE = "We couldn't load this technician's availability.";
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const AVAILABILITY_SAVE_FAILED_MESSAGE = (): string =>
+  t('team.availabilityDrawer.availabilitySaveFailedMessage');
+export const AVAILABILITY_LOAD_FAILED_MESSAGE = (): string =>
+  t('team.availabilityDrawer.availabilityLoadFailedMessage');
 const TITLE_ID = 'availability-drawer-title';
 const SUMMARY_ID = 'availability-drawer-summary';
-const STATUS_CHOICES = [
-  { value: true, label: 'Available' },
-  { value: false, label: 'Unavailable' },
-];
+const STATUS_CHOICES = localizedList(() => [
+  { value: true, label: t('team.availabilityDrawer.available') },
+  { value: false, label: t('team.availabilityDrawer.unavailable') },
+]);
 
 interface DayForm {
   readonly dayOfWeek: DayOfWeekName;
@@ -105,6 +110,8 @@ const toRequest = (days: readonly DayForm[]): AvailabilityDay[] =>
 @Component({
   selector: 'app-availability-drawer',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     Message,
@@ -137,9 +144,15 @@ export class AvailabilityDrawer {
   readonly titleId = TITLE_ID;
   readonly summaryId = SUMMARY_ID;
   readonly statusChoices = STATUS_CHOICES;
-  readonly staleMessage = STALE_MESSAGE;
-  readonly loadFailedMessage = AVAILABILITY_LOAD_FAILED_MESSAGE;
-  readonly unavailableMessage = UNAVAILABLE_TECHNICIAN_MESSAGE;
+  get staleMessage(): string {
+    return STALE_MESSAGE();
+  }
+  get loadFailedMessage(): string {
+    return AVAILABILITY_LOAD_FAILED_MESSAGE();
+  }
+  get unavailableMessage(): string {
+    return UNAVAILABLE_TECHNICIAN_MESSAGE();
+  }
 
   /** What the picker shows; `technicianId` is the technician whose data is loaded. */
   readonly selection = signal<string | null>(null);
@@ -167,8 +180,8 @@ export class AvailabilityDrawer {
     return detail === null
       ? ''
       : detail.usesBranchHours
-        ? `Using ${detail.branch.name} hours`
-        : 'Custom schedule';
+        ? t('team.availabilityDrawer.usingHours', { name: detail.branch.name })
+        : t('team.availabilityDrawer.customSchedule');
   });
   readonly rows = computed<readonly DayRowView[]>(() => {
     const loaded = this.detail()?.days ?? [];
@@ -180,7 +193,7 @@ export class AvailabilityDrawer {
         start: errors[`${key}.start`],
         end:
           (day.isAvailable && toMinutes(day.end) <= toMinutes(day.start)
-            ? END_BEFORE_START_MESSAGE
+            ? END_BEFORE_START_MESSAGE()
             : undefined) ?? errors[`${key}.end`],
         day: errors[key] ?? errors[`${key}.isavailable`],
       };
@@ -213,12 +226,16 @@ export class AvailabilityDrawer {
       if (row.error.start !== undefined) {
         links.push({
           fieldId: `${id}-start`,
-          label: `${row.label} start`,
+          label: t('team.availabilityDrawer.start', { label: row.label }),
           message: row.error.start,
         });
       }
       if (row.error.end !== undefined) {
-        links.push({ fieldId: `${id}-end`, label: `${row.label} end`, message: row.error.end });
+        links.push({
+          fieldId: `${id}-end`,
+          label: t('team.availabilityDrawer.end', { label: row.label }),
+          message: row.error.end,
+        });
       }
       return links;
     }),
@@ -271,7 +288,7 @@ export class AvailabilityDrawer {
     }
     this.confirmation.confirm(
       discardChangesConfirmation({
-        subject: 'this availability',
+        subject: t('team.availabilityDrawer.thisAvailability'),
         accept: () => this.load(id),
         reject: () => this.selection.set(this.technicianId()),
       }),
@@ -336,7 +353,7 @@ export class AvailabilityDrawer {
         updatedAt: detail.updatedAt,
         days: toRequest(this.days()),
       }),
-      'Availability saved.',
+      t('team.availabilityDrawer.availabilitySaved'),
     );
   }
 
@@ -346,15 +363,15 @@ export class AvailabilityDrawer {
       return;
     }
     this.confirmation.confirm({
-      header: `Use ${detail.branch.name} hours?`,
-      message: `This removes ${this.fullName()}'s custom schedule.`,
+      header: t('team.availabilityDrawer.useHours', { name: detail.branch.name }),
+      message: t('team.availabilityDrawer.thisRemovesSCustom', { fullName: this.fullName() }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Use branch hours' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('team.availabilityDrawer.useBranchHours') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () =>
         this.run(
           this.team.useBranchHours(detail.technicianId, detail.updatedAt),
-          'Branch hours applied.',
+          t('team.availabilityDrawer.branchHoursApplied'),
         ),
     });
   }
@@ -413,7 +430,7 @@ export class AvailabilityDrawer {
     if (this.dirty()) {
       this.confirmation.confirm(
         discardChangesConfirmation({
-          subject: 'this availability',
+          subject: t('team.availabilityDrawer.thisAvailability'),
           accept: () => this.closed.emit(),
         }),
       );

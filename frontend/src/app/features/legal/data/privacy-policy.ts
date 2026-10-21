@@ -1,56 +1,57 @@
 import { LegalDocument } from '../models/legal.model';
 import { LEGAL_SUPPORT_EMAIL } from './legal-placeholders';
 
-export const PRIVACY_POLICY: LegalDocument = {
-  title: 'Privacy Policy',
-  lead: 'How FieldOps collects, uses, and protects information.',
-  highlight: 'FieldOps does not sell personal information.',
+import { localized, t } from '../../../core/i18n/translate';
+export const PRIVACY_POLICY: LegalDocument = localized(() => ({
+  title: t('legal.privacyPolicy.privacyPolicy'),
+  lead: t('legal.privacyPolicy.howFieldopsCollectsUses'),
+  highlight: t('legal.privacyPolicy.fieldopsDoesNotSell'),
   contact: {
-    title: 'Privacy questions?',
-    text: 'If you have questions about this Privacy Policy or our data practices, please contact our support team.',
-    subject: 'FieldOps privacy request',
+    title: t('legal.privacyPolicy.privacyQuestions'),
+    text: t('legal.privacyPolicy.ifYouHaveQuestions'),
+    subject: t('legal.privacyPolicy.fieldopsPrivacyRequest'),
   },
   sections: [
     {
       id: 'overview',
-      title: 'Overview',
+      title: t('legal.privacyPolicy.overview'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'FieldOps is a field service management platform that helps service organizations manage customers, requests, quotes, jobs, visits, invoices, payments, and team communication.',
+          text: t('legal.privacyPolicy.fieldopsIsAField'),
         },
         {
           kind: 'paragraph',
-          text: 'When an organization uses FieldOps, that organization controls the customer and operational information entered by its users. FieldOps processes that information to provide the service.',
+          text: t('legal.privacyPolicy.whenAnOrganizationUses'),
         },
       ],
     },
     {
       id: 'information-we-collect',
-      title: 'Information we collect',
+      title: t('legal.privacyPolicy.informationWeCollect'),
       blocks: [
         {
           kind: 'list',
           items: [
             {
-              term: 'Account information',
-              text: 'Your name, email address, phone number, profile photo, role, branch access, account preferences, and authentication information.',
+              term: t('legal.privacyPolicy.accountInformation'),
+              text: t('legal.privacyPolicy.yourNameEmailAddress'),
             },
             {
-              term: 'Organization and operational data',
-              text: 'Organization settings, branches, team members, permissions, schedules, availability, skills, and operational activity.',
+              term: t('legal.privacyPolicy.organizationAndOperationalData'),
+              text: t('legal.privacyPolicy.organizationSettingsBranchesTeam'),
             },
             {
-              term: 'Customer and job data',
-              text: 'Customer records, properties, service requests, quotes, work orders, visits, checklists, notes, messages, attachments, materials, invoices, payments, and related information.',
+              term: t('legal.privacyPolicy.customerAndJobData'),
+              text: t('legal.privacyPolicy.customerRecordsPropertiesService'),
             },
             {
-              term: 'Usage and security data',
-              text: 'IP address, browser and device information, timestamps, audit events, error logs, and information about how FieldOps is used.',
+              term: t('legal.privacyPolicy.usageAndSecurityData'),
+              text: t('legal.privacyPolicy.ipAddressBrowserAnd'),
             },
             {
-              term: 'Support communications',
-              text: 'Information you provide when contacting our support team.',
+              term: t('legal.privacyPolicy.supportCommunications'),
+              text: t('legal.privacyPolicy.informationYouProvideWhen'),
             },
           ],
         },
@@ -58,131 +59,133 @@ export const PRIVACY_POLICY: LegalDocument = {
     },
     {
       id: 'how-we-use-information',
-      title: 'How we use information',
+      title: t('legal.privacyPolicy.howWeUseInformation'),
       blocks: [
-        { kind: 'paragraph', text: 'We use information to:' },
+        { kind: 'paragraph', text: t('legal.privacyPolicy.weUseInformationTo') },
         {
           kind: 'list',
           items: [
-            'Provide, operate, and improve FieldOps.',
-            'Authenticate users and protect accounts.',
-            'Process requests and transactions.',
-            'Enable communication between authorized users.',
-            'Provide customer support.',
-            'Monitor performance and prevent misuse.',
-            'Maintain audit and security records.',
-            'Comply with legal obligations.',
+            t('legal.privacyPolicy.provideOperateAndImprove'),
+            t('legal.privacyPolicy.authenticateUsersAndProtect'),
+            t('legal.privacyPolicy.processRequestsAndTransactions'),
+            t('legal.privacyPolicy.enableCommunicationBetweenAuthor'),
+            t('legal.privacyPolicy.provideCustomerSupport'),
+            t('legal.privacyPolicy.monitorPerformanceAndPrevent'),
+            t('legal.privacyPolicy.maintainAuditAndSecurity'),
+            t('legal.privacyPolicy.complyWithLegalObligations'),
           ],
         },
       ],
     },
     {
       id: 'how-information-is-shared',
-      title: 'How information is shared',
+      title: t('legal.privacyPolicy.howInformationIsShared'),
       blocks: [
-        { kind: 'paragraph', text: 'Information may be shared:' },
+        { kind: 'paragraph', text: t('legal.privacyPolicy.informationMayBeShared') },
         {
           kind: 'list',
           items: [
-            'With authorized members of your organization according to their roles and branch access.',
-            'With service providers that support hosting, email delivery, storage, security, and other platform operations.',
-            'With integrations enabled by your organization.',
-            'When required by law or necessary to protect users, FieldOps, or the public.',
-            'As part of a merger, acquisition, financing, or transfer of the service.',
+            t('legal.privacyPolicy.withAuthorizedMembersOf'),
+            t('legal.privacyPolicy.withServiceProvidersThat'),
+            t('legal.privacyPolicy.withIntegrationsEnabledBy'),
+            t('legal.privacyPolicy.whenRequiredByLaw'),
+            t('legal.privacyPolicy.asPartOfA'),
           ],
         },
-        { kind: 'paragraph', text: 'We do not sell personal information.' },
+        { kind: 'paragraph', text: t('legal.privacyPolicy.weDoNotSell') },
       ],
     },
     {
       id: 'data-retention',
-      title: 'Data retention',
+      title: t('legal.privacyPolicy.dataRetention'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'We retain information while it is needed to provide FieldOps, maintain security and audit records, resolve disputes, or comply with legal obligations.',
+          text: t('legal.privacyPolicy.weRetainInformationWhile'),
         },
         {
           kind: 'paragraph',
-          text: 'Organizations may retain or delete customer and operational records according to their own policies. Some security, billing, or audit information may be retained when legally required.',
+          text: t('legal.privacyPolicy.organizationsMayRetainOr'),
         },
       ],
     },
     {
       id: 'security',
-      title: 'Security',
+      title: t('legal.privacyPolicy.security'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'FieldOps uses reasonable technical and organizational safeguards to protect information. These measures include access controls, tenant isolation, secure authentication, audit logging, and encrypted communication.',
+          text: t('legal.privacyPolicy.fieldopsUsesReasonableTechnical'),
         },
         {
           kind: 'paragraph',
-          text: 'No system can guarantee absolute security. Users must protect their credentials and promptly report suspected unauthorized access.',
+          text: t('legal.privacyPolicy.noSystemCanGuarantee'),
         },
       ],
     },
     {
       id: 'your-rights',
-      title: 'Your rights',
+      title: t('legal.privacyPolicy.yourRights'),
       blocks: [
-        { kind: 'paragraph', text: 'Depending on your location, you may have the right to:' },
+        { kind: 'paragraph', text: t('legal.privacyPolicy.dependingOnYourLocation') },
         {
           kind: 'list',
           items: [
-            'Access your personal information.',
-            'Correct inaccurate information.',
-            'Request deletion.',
-            'Restrict or object to certain processing.',
-            'Request a portable copy of your information.',
-            'Withdraw consent where processing depends on consent.',
+            t('legal.privacyPolicy.accessYourPersonalInformation'),
+            t('legal.privacyPolicy.correctInaccurateInformation'),
+            t('legal.privacyPolicy.requestDeletion'),
+            t('legal.privacyPolicy.restrictOrObjectTo'),
+            t('legal.privacyPolicy.requestAPortableCopy'),
+            t('legal.privacyPolicy.withdrawConsentWhereProcessing'),
           ],
         },
         {
           kind: 'paragraph',
-          text: 'Requests involving customer or job information may need to be handled by the organization that collected it.',
+          text: t('legal.privacyPolicy.requestsInvolvingCustomerOr'),
         },
       ],
     },
     {
       id: 'cookies',
-      title: 'Cookies',
+      title: t('legal.privacyPolicy.cookies'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'FieldOps uses essential cookies or similar technologies for authentication, session security, and preferences. These technologies are necessary for the application to operate correctly.',
+          text: t('legal.privacyPolicy.fieldopsUsesEssentialCookies'),
         },
       ],
     },
     {
       id: 'childrens-privacy',
-      title: 'Children’s privacy',
+      title: t('legal.privacyPolicy.childrensPrivacy'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'FieldOps is intended for business use and is not directed to children under 18.',
+          text: t('legal.privacyPolicy.fieldopsIsIntendedFor'),
         },
       ],
     },
     {
       id: 'changes',
-      title: 'Changes to this policy',
+      title: t('legal.privacyPolicy.changesToThisPolicy'),
       blocks: [
         {
           kind: 'paragraph',
-          text: 'We may update this Privacy Policy when FieldOps or applicable requirements change. The updated date will appear at the top of this page.',
+          text: t('legal.privacyPolicy.weMayUpdateThis'),
         },
       ],
     },
     {
       id: 'contact',
-      title: 'Contact',
+      title: t('legal.privacyPolicy.contact'),
       blocks: [
         {
           kind: 'paragraph',
-          text: `For privacy questions or requests, contact us at ${LEGAL_SUPPORT_EMAIL} or use Help & support.`,
+          text: t('legal.privacyPolicy.forPrivacyQuestionsOr', {
+            LEGAL_SUPPORT_EMAIL: LEGAL_SUPPORT_EMAIL,
+          }),
         },
       ],
     },
   ],
-};
+}));

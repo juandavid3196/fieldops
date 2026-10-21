@@ -18,6 +18,7 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputPassword } from 'primeng/inputpassword';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { landingPath } from '../../../../core/config/landing';
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
@@ -37,6 +38,7 @@ import {
   validateEmail,
   validatePassword,
 } from './sign-in.validators';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 
 interface PageMessage {
   readonly severity: 'success' | 'error';
@@ -49,6 +51,8 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
 @Component({
   selector: 'app-sign-in',
   imports: [
+    LanguageFooterSelector,
+    TranslocoPipe,
     ReactiveFormsModule,
     ButtonDirective,
     Checkbox,
@@ -96,7 +100,7 @@ export class SignIn {
     this.destroyRef.onDestroy(() => clearTimeout(this.retryTimer));
 
     if (this.route.snapshot.queryParamMap.get('registered') === 'true') {
-      this.pageMessage.set({ severity: 'success', text: REGISTERED_MESSAGE });
+      this.pageMessage.set({ severity: 'success', text: REGISTERED_MESSAGE() });
       void this.router.navigate([], {
         relativeTo: this.route,
         queryParams: {},
@@ -182,7 +186,7 @@ export class SignIn {
         break;
       }
       case 'unauthorized':
-        this.showError(INVALID_CREDENTIALS_MESSAGE);
+        this.showError(INVALID_CREDENTIALS_MESSAGE());
         this.focusAfterRender(this.passwordInput);
         return;
       case 'rate-limited':
@@ -191,7 +195,7 @@ export class SignIn {
         return;
     }
 
-    this.showError(GENERIC_SIGN_IN_ERROR_MESSAGE);
+    this.showError(GENERIC_SIGN_IN_ERROR_MESSAGE());
     this.focusAfterRender(this.submitButton);
   }
 

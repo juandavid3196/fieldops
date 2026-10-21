@@ -4,6 +4,7 @@ import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   BillingReviewDetail,
@@ -19,12 +20,22 @@ import {
   taxJurisdiction,
 } from '../../utils/billing-review-format';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 let nextId = 0;
 
 /** Invoice panel (BR-25, BR-26): draft defaults, disabled delivery/payment sections, summary, actions. */
 @Component({
   selector: 'app-invoice-panel',
-  imports: [ButtonDirective, FormsModule, InputText, Select, SpinnerIcon],
+  imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
+    ButtonDirective,
+    FormsModule,
+    InputText,
+    Select,
+    SpinnerIcon,
+  ],
   templateUrl: './invoice-panel.html',
   styleUrl: './invoice-panel.scss',
 })
@@ -51,7 +62,9 @@ export class InvoicePanel {
 
   protected readonly id = `invoice-panel-${nextId++}`;
   protected readonly termsOptions = TERMS_OPTIONS.map((option) => ({ ...option }));
-  protected readonly readOnlyMessage = READ_ONLY_MESSAGE;
+  protected get readOnlyMessage(): string {
+    return READ_ONLY_MESSAGE();
+  }
 
   protected readonly view = computed(() => {
     const detail = this.detail();
@@ -67,7 +80,10 @@ export class InvoicePanel {
       followUp:
         followUp === null
           ? null
-          : `Follow-up marked by ${followUp.byName} on ${formatInstantDate(followUp.at, this.timezone())}`,
+          : t('billingReview.invoicePanel.followUpMarkedBy', {
+              byName: followUp.byName,
+              value: formatInstantDate(followUp.at, this.timezone()),
+            }),
     };
   });
 

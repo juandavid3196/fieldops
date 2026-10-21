@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PublicInvoicePage } from '../../../invoices/pages/public-invoice/public-invoice';
 import { InvoiceLinkApi } from '../../../invoices/services/invoice-link-api';
@@ -12,18 +13,18 @@ import { PortalInvoiceService } from '../../services/portal-invoice.service';
  */
 @Component({
   selector: 'app-portal-invoice',
-  imports: [PortalState, PublicInvoicePage, RouterLink],
+  imports: [TranslocoPipe, PortalState, PublicInvoicePage, RouterLink],
   providers: [PortalInvoiceService, { provide: InvoiceLinkApi, useExisting: PortalInvoiceService }],
   template: `
     <a class="back" routerLink="/portal/invoices">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      <span>Back to Invoices</span>
+      <span>{{ 'portal.portalInvoice.backToInvoices' | transloco }}</span>
     </a>
     @if (missing()) {
       <app-portal-state
         state="not-found"
         backLink="/portal/invoices"
-        backLabel="Back to Invoices"
+        [backLabel]="'portal.portalInvoice.backToInvoices' | transloco"
       />
     } @else {
       <app-public-invoice [embedded]="true" (missing)="missing.set(true)" />

@@ -61,10 +61,14 @@ Registered in `src/app/app.config.ts`, in order:
 2. `errorInterceptor`: converts failed API responses into `ApiError`
    (`src/app/core/models/api-error.model.ts`) using `ApiErrorService`.
 
+## Language
+
+English and Spanish, runtime switching and persistence: see [i18n-architecture.md](i18n-architecture.md). `app.config.ts` registers `provideI18n()` (spec-mandated; the frontend CLAUDE.md list predates it).
+
 ## Error handling
 
 The API returns RFC 9457 ProblemDetails. `ApiErrorService` maps each failure to
-a category and a fixed, user-friendly message chosen by HTTP status:
+a category and a fixed, user-friendly message chosen by HTTP status (localized through the translation resources, with known `403`/`404`/`409` codes mapped to their own text):
 
 - Backend `title` and `detail` are never shown, and `ApiErrorService` never
   depends on backend exception text.

@@ -15,7 +15,12 @@
           <i class="pi pi-exclamation-triangle"></i>
         </span>
         <h2 class="confirm-dialog__title" [id]="titleId">{{ confirmation?.header }}</h2>
-        <button type="button" class="confirm-dialog__close" aria-label="Close" (click)="onReject()">
+        <button
+          type="button"
+          class="confirm-dialog__close"
+          [attr.aria-label]="'common.close' | transloco"
+          (click)="onReject()"
+        >
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       </div>

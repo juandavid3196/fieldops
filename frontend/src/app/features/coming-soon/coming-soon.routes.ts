@@ -3,6 +3,7 @@ import { ActivatedRouteSnapshot, CanActivateFn, ResolveFn, Route, Router } from 
 
 import { comingSoonModuleName } from '../../core/config/coming-soon-modules';
 
+import { withI18n } from '../../core/i18n/i18n-scopes';
 /** Where the page returns and where an unknown slug redirects; configured through route `data`. */
 export interface ComingSoonTarget {
   readonly link: string;
@@ -11,7 +12,7 @@ export interface ComingSoonTarget {
 
 export const DEFAULT_COMING_SOON_TARGET: ComingSoonTarget = {
   link: '/overview',
-  label: 'Back to Overview',
+  label: 'shell.routeData.backToOverview',
 };
 
 export function comingSoonTarget(route: ActivatedRouteSnapshot): ComingSoonTarget {
@@ -31,10 +32,13 @@ export const moduleTitle: ResolveFn<string> = (route: ActivatedRouteSnapshot) =>
 };
 
 /** Shared "Coming soon" page for every future module and top-bar destination; mounted inside the app shell. */
-export const comingSoonRoute: Route = {
-  path: 'coming-soon/:module',
-  pathMatch: 'full',
-  canActivate: [knownModuleGuard],
-  title: moduleTitle,
-  loadComponent: () => import('./pages/coming-soon/coming-soon').then((m) => m.ComingSoon),
-};
+export const comingSoonRoute: Route = withI18n(
+  {
+    path: 'coming-soon/:module',
+    pathMatch: 'full',
+    canActivate: [knownModuleGuard],
+    title: moduleTitle,
+    loadComponent: () => import('./pages/coming-soon/coming-soon').then((m) => m.ComingSoon),
+  },
+  'coming-soon',
+);

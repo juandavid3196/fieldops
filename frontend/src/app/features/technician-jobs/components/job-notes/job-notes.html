@@ -1,7 +1,7 @@
 <section class="notes" aria-labelledby="notes-title">
   <h2 class="notes__title" id="notes-title">
     <i class="pi pi-file-edit" aria-hidden="true"></i>
-    Technician notes
+    {{ 'technicianJobs.jobNotes.technicianNotes' | transloco }}
   </h2>
   <textarea
     class="notes__field"
@@ -15,17 +15,19 @@
     (blur)="blurred.emit()"
   ></textarea>
   <div class="notes__foot">
-    <p class="notes__help" id="notes-help">Visible to office; include in completion report</p>
+    <p class="notes__help" id="notes-help">
+      {{ 'technicianJobs.jobNotes.visibleToOfficeInclude' | transloco }}
+    </p>
     <p class="notes__count">{{ value().length }}/{{ maxLength }}</p>
   </div>
   @if (pending()) {
-    <p class="notes__status" role="status">Saving…</p>
+    <p class="notes__status" role="status">{{ 'common.saving' | transloco }}</p>
   } @else if (error(); as message) {
     <p class="notes__error" role="alert">{{ message }}</p>
   } @else if (saved()) {
     <p class="notes__status" role="status">
       <i class="pi pi-check" aria-hidden="true"></i>
-      Saved
+      {{ 'technicianJobs.jobNotes.saved' | transloco }}
     </p>
   }
 </section>

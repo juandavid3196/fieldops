@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { HubPager } from '../../../invoices/components/hub-pager/hub-pager';
 import { PortalPropertyFilter } from '../../components/portal-property-filter/portal-property-filter';
@@ -12,10 +13,12 @@ import { dateLabel, timeRange } from '../../utils/portal-format';
 import { PortalList } from '../../utils/portal-list';
 import { visitChip } from '../../utils/portal-status';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../../core/i18n/active-locale';
 /** "Oct" of a `YYYY-MM-DD` date, read as a calendar date (no time-zone shift). */
 function monthShort(date: string): string {
   const [year, month] = date.split('-').map(Number);
-  return new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(
+  return new Intl.DateTimeFormat(activeIntlLocale(), { month: 'short', timeZone: 'UTC' }).format(
     new Date(Date.UTC(year, month - 1, 1)),
   );
 }
@@ -24,6 +27,7 @@ function monthShort(date: string): string {
 @Component({
   selector: 'app-portal-appointments',
   imports: [
+    TranslocoPipe,
     ButtonDirective,
     HubPager,
     PortalPropertyFilter,
@@ -38,10 +42,11 @@ export class PortalAppointments {
   private readonly appointments = inject(PortalAppointmentsService);
 
   readonly scope = signal<AppointmentScope>('upcoming');
-  readonly tabs: readonly { readonly scope: AppointmentScope; readonly label: string }[] = [
-    { scope: 'upcoming', label: 'Upcoming' },
-    { scope: 'past', label: 'Past' },
-  ];
+  readonly tabs: readonly { readonly scope: AppointmentScope; readonly label: string }[] =
+    localizedList(() => [
+      { scope: 'upcoming', label: t('portal.appointments.upcoming') },
+      { scope: 'past', label: t('portal.appointments.past') },
+    ]);
   readonly list = new PortalList((page, propertyId) =>
     this.appointments.list(this.scope(), page, propertyId),
   );

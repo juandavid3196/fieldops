@@ -26,7 +26,7 @@ public sealed record PortalInvitationDetails(
 
 public sealed record ValidatePortalInvitationCommand(string? Token);
 
-public sealed record AcceptPortalInvitationCommand(string? Token, string? Password, string? LastName, IPAddress? ClientIp);
+public sealed record AcceptPortalInvitationCommand(string? Token, string? Password, string? LastName, IPAddress? ClientIp, string? PreferredLanguage = null);
 
 public sealed record AcceptExistingPortalInvitationCommand(string? Token, string? Password, IPAddress? ClientIp);
 
@@ -105,7 +105,12 @@ public interface IPortalInvitationStore
     Task<PortalUsableInvitation?> FindUsableAsync(string tokenHash, CancellationToken cancellationToken);
 
     Task<PortalActivationResult> AcceptNewUserAsync(
-        string tokenHash, string passwordHash, string? lastName, IPAddress? clientIp, CancellationToken cancellationToken);
+        string tokenHash,
+        string passwordHash,
+        string? lastName,
+        IPAddress? clientIp,
+        string preferredLanguage,
+        CancellationToken cancellationToken);
 
     Task<PortalActivationResult> AcceptExistingUserAsync(
         string tokenHash, Guid userId, IPAddress? clientIp, CancellationToken cancellationToken);

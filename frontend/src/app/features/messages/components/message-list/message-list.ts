@@ -17,6 +17,7 @@ import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Observable, Subscription, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { MessageUnreadService } from '../../../../core/services/message-unread.service';
 import { createVisiblePoller } from '../../../../core/services/visible-poller';
@@ -37,9 +38,10 @@ import {
   unreadText,
 } from '../../utils/messages-format';
 
+import { localized, localizedList, t } from '../../../../core/i18n/translate';
 export const SEARCH_DEBOUNCE_MS = 300;
 const PAGE_SIZE = 30;
-export const LIST_NOTICE = 'Messages stay linked to the related job or team conversation.';
+export const LIST_NOTICE = (): string => t('messages.messageList.listNotice');
 
 type ListState = 'loading' | 'ready' | 'error' | 'forbidden' | 'inactive' | 'not-linked';
 
@@ -53,19 +55,21 @@ interface Row {
   readonly initials: string;
 }
 
-const FILTERS: readonly { readonly value: MessageFilter; readonly label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'unread', label: 'Unread' },
-  { value: 'jobs', label: 'Jobs' },
-  { value: 'team', label: 'Team' },
-];
+const FILTERS: readonly { readonly value: MessageFilter; readonly label: string }[] = localizedList(
+  () => [
+    { value: 'all', label: t('messages.messageList.all') },
+    { value: 'unread', label: t('messages.messageList.unread') },
+    { value: 'jobs', label: t('messages.messageList.jobs') },
+    { value: 'team', label: t('messages.messageList.team') },
+  ],
+);
 
-const EMPTY_TEXT: Readonly<Record<MessageFilter, string>> = {
-  all: 'No conversations yet.',
-  unread: 'No unread messages.',
-  jobs: 'No job conversations yet.',
-  team: 'No team conversations yet.',
-};
+const EMPTY_TEXT: Readonly<Record<MessageFilter, string>> = localized(() => ({
+  all: t('messages.messageList.noConversationsYet'),
+  unread: t('messages.messageList.noUnreadMessages'),
+  jobs: t('messages.messageList.noJobConversationsYet'),
+  team: t('messages.messageList.noTeamConversationsYet'),
+}));
 
 function keyOf(item: ConversationSummary): string {
   return item.id ?? `team-${item.branchId}`;
@@ -75,6 +79,7 @@ function keyOf(item: ConversationSummary): string {
 @Component({
   selector: 'app-message-list',
   imports: [
+    TranslocoPipe,
     NgTemplateOutlet,
     ButtonDirective,
     IconField,
@@ -100,9 +105,15 @@ export class MessageList {
   readonly basePath = input.required<string>();
   readonly selectedId = input<string | null>(null);
 
-  readonly notice = LIST_NOTICE;
-  readonly errorMessage = LIST_ERROR_MESSAGE;
-  readonly openErrorMessage = OPEN_ERROR_MESSAGE;
+  get notice(): string {
+    return LIST_NOTICE();
+  }
+  get errorMessage(): string {
+    return LIST_ERROR_MESSAGE();
+  }
+  get openErrorMessage(): string {
+    return OPEN_ERROR_MESSAGE();
+  }
   readonly filters = FILTERS;
   readonly skeletonRows = [0, 1, 2, 3];
 
@@ -125,17 +136,19 @@ export class MessageList {
   readonly accessText = computed(() => {
     switch (this.state()) {
       case 'forbidden':
-        return FORBIDDEN_MESSAGE;
+        return FORBIDDEN_MESSAGE();
       case 'inactive':
-        return INACTIVE_MESSAGE;
+        return INACTIVE_MESSAGE();
       case 'not-linked':
-        return NOT_LINKED_MESSAGE;
+        return NOT_LINKED_MESSAGE();
       default:
         return null;
     }
   });
   readonly emptyText = computed(() =>
-    this.search() === '' ? EMPTY_TEXT[this.filter()] : `No results for "${this.search()}".`,
+    this.search() === ''
+      ? EMPTY_TEXT[this.filter()]
+      : t('messages.messageList.noResultsFor', { search: this.search() }),
   );
   readonly rows = computed<Row[]>(() => {
     const now = new Date();
@@ -144,7 +157,10 @@ export class MessageList {
       item,
       preview: previewLine(item),
       time: item.lastMessage === null ? '' : relativeTime(item.lastMessage.createdAt, now),
-      chip: item.workOrder === null ? 'Team' : `#${item.workOrder.displayNumber}`,
+      chip:
+        item.workOrder === null
+          ? t('messages.messageList.team')
+          : `#${item.workOrder.displayNumber}`,
       unreadLabel: item.unreadCount > 0 ? unreadText(item.unreadCount) : null,
       initials: item.lastMessage?.authorInitials ?? '',
     }));

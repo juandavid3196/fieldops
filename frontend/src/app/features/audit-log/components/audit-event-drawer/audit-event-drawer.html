@@ -6,12 +6,14 @@
   (closeRequested)="closed.emit()"
 >
   <ng-container ngProjectAs="[drawerHeader]">
-    <h2 class="audit-drawer__title" [id]="titleId" tabindex="-1">Audit event</h2>
+    <h2 class="audit-drawer__title" [id]="titleId" tabindex="-1">
+      {{ 'auditLog.auditEventDrawer.auditEvent' | transloco }}
+    </h2>
     <span class="audit-drawer__spacer"></span>
     <button
       type="button"
       class="audit-drawer__close"
-      aria-label="Close audit event"
+      [attr.aria-label]="'auditLog.auditEventDrawer.closeAuditEvent' | transloco"
       (click)="closed.emit()"
     >
       <i class="pi pi-times" aria-hidden="true"></i>
@@ -25,7 +27,7 @@
         <p class="audit-drawer__message" role="alert">
           {{ errorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-            Try again
+            {{ 'common.tryAgain' | transloco }}
           </button>
         </p>
       }
@@ -37,7 +39,7 @@
           <div class="audit-drawer__content">
             <p class="audit-drawer__impact audit-drawer__impact--{{ v.detail.impact }}">
               <i class="pi {{ v.impactIcon }}" aria-hidden="true"></i>
-              {{ v.impactLabel }} impact
+              {{ 'auditLog.auditEventDrawer.impact' | transloco: { impactLabel: v.impactLabel } }}
             </p>
             <p class="audit-drawer__when">
               <time [attr.datetime]="v.detail.occurredAt">{{ v.when }}</time>
@@ -54,11 +56,13 @@
             </div>
 
             <dl class="audit-drawer__facts">
-              <dt>Action</dt>
+              <dt>{{ 'auditLog.auditEventDrawer.action' | transloco }}</dt>
               <dd>
-                <span class="audit-drawer__tag">{{ v.detail.action.label }}</span>
+                <span class="audit-drawer__tag">{{
+                  v.detail.action.label | codeLabel: 'auditActions' : v.detail.action.code
+                }}</span>
               </dd>
-              <dt>Entity</dt>
+              <dt>{{ 'auditLog.auditEventDrawer.entity' | transloco }}</dt>
               <dd>
                 {{ v.detail.entity.label }}
                 @if (v.detail.reference !== '—') {
@@ -71,28 +75,32 @@
                     [queryParams]="route.queryParams"
                   >
                     <i class="pi pi-external-link" aria-hidden="true"></i>
-                    Open {{ v.detail.entity.label }}
+                    {{
+                      'auditLog.auditEventDrawer.open' | transloco: { label: v.detail.entity.label }
+                    }}
                   </a>
                 }
               </dd>
-              <dt>Branch</dt>
+              <dt>{{ 'auditLog.auditEventDrawer.branch' | transloco }}</dt>
               <dd>{{ v.detail.branch?.name ?? allBranches }}</dd>
-              <dt>Source</dt>
+              <dt>{{ 'auditLog.auditEventDrawer.source' | transloco }}</dt>
               <dd>{{ v.detail.source }}</dd>
-              <dt>IP address</dt>
+              <dt>{{ 'auditLog.auditEventDrawer.ipAddress' | transloco }}</dt>
               <dd>{{ v.detail.ipAddress ?? '—' }}</dd>
             </dl>
 
             @if (v.detail.changes.length > 0) {
               <section class="audit-drawer__panel" aria-labelledby="audit-drawer-changes">
-                <h3 class="audit-drawer__heading" id="audit-drawer-changes">Change summary</h3>
+                <h3 class="audit-drawer__heading" id="audit-drawer-changes">
+                  {{ 'auditLog.auditEventDrawer.changeSummary' | transloco }}
+                </h3>
                 <div class="audit-drawer__scroll">
                   <table class="audit-drawer__table">
                     <thead>
                       <tr>
-                        <th scope="col">Field</th>
-                        <th scope="col">Before</th>
-                        <th scope="col">After</th>
+                        <th scope="col">{{ 'auditLog.auditEventDrawer.field' | transloco }}</th>
+                        <th scope="col">{{ 'auditLog.auditEventDrawer.before' | transloco }}</th>
+                        <th scope="col">{{ 'auditLog.auditEventDrawer.after' | transloco }}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -110,7 +118,9 @@
             }
 
             <section class="audit-drawer__panel" aria-labelledby="audit-drawer-metadata">
-              <h3 class="audit-drawer__heading" id="audit-drawer-metadata">Metadata</h3>
+              <h3 class="audit-drawer__heading" id="audit-drawer-metadata">
+                {{ 'auditLog.auditEventDrawer.metadata' | transloco }}
+              </h3>
               <dl class="audit-drawer__metadata">
                 @for (item of v.detail.metadata; track item.key) {
                   <dt>{{ item.key }}</dt>
@@ -128,7 +138,7 @@
                 (click)="copy(v.detail.eventId)"
               >
                 <i class="pi pi-copy" aria-hidden="true"></i>
-                Copy event ID
+                {{ 'auditLog.auditEventDrawer.copyEventId' | transloco }}
                 <span class="audit-drawer__muted">{{ v.detail.eventId }}</span>
               </button>
               @if (v.detail.entity.id !== null) {
@@ -140,17 +150,17 @@
                   (click)="relatedRequested.emit(v.detail)"
                 >
                   <i class="pi pi-link" aria-hidden="true"></i>
-                  View related activity
+                  {{ 'auditLog.auditEventDrawer.viewRelatedActivity' | transloco }}
                 </button>
               }
             </div>
 
             <p class="audit-drawer__note">
               <i class="pi pi-info-circle" aria-hidden="true"></i>
-              Audit events are read-only and cannot be edited or deleted.
+              {{ 'auditLog.auditEventDrawer.auditEventsAreRead' | transloco }}
             </p>
             <p class="audit-drawer__muted">
-              Events are retained according to your organization's data policy.
+              {{ 'auditLog.auditEventDrawer.eventsAreRetainedAccording' | transloco }}
             </p>
           </div>
         }

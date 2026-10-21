@@ -11,6 +11,7 @@ import {
 } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { EvidenceType, TechnicianVisitDetail } from '../../models/technician-visits.model';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
@@ -21,6 +22,7 @@ import {
 } from '../../utils/job-progress';
 import { PhotoOpenRequest, VisitPhoto, VisitPhotos } from '../visit-photos/visit-photos';
 
+import { t } from '../../../../core/i18n/translate';
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 const PHOTO_TYPES: readonly string[] = ['image/jpeg', 'image/png'];
 
@@ -34,7 +36,7 @@ interface UploadState {
 /** BR-17 Photos & evidence section: thumbnails, Add photo (Before or After) with progress. */
 @Component({
   selector: 'app-job-evidence',
-  imports: [ButtonDirective, VisitPhotos],
+  imports: [TranslocoPipe, ButtonDirective, VisitPhotos],
   templateUrl: './job-evidence.html',
   styleUrl: './job-evidence.scss',
 })
@@ -88,7 +90,7 @@ export class JobEvidence {
       return;
     }
     if (!PHOTO_TYPES.includes(file.type) || file.size < 1 || file.size > MAX_PHOTO_BYTES) {
-      this.error.set(PHOTO_INVALID_MESSAGE);
+      this.error.set(PHOTO_INVALID_MESSAGE());
       return;
     }
     this.start(file, this.choice);
@@ -98,7 +100,10 @@ export class JobEvidence {
     this.error.set(null);
     this.upload.set({
       previewUrl: URL.createObjectURL(file),
-      label: type === 'before' ? 'Before' : 'After',
+      label:
+        type === 'before'
+          ? t('technicianJobs.jobEvidence.before')
+          : t('technicianJobs.jobEvidence.after'),
       percent: 0,
     });
     this.subscription = this.visits.uploadEvidence(this.visit().visitId, file, type).subscribe({
@@ -108,11 +113,11 @@ export class JobEvidence {
           return;
         }
         this.revoke();
-        this.announce.emit('Photo added.');
+        this.announce.emit(t('technicianJobs.jobEvidence.photoAdded'));
         this.visitChange.emit(event.visit);
       },
       error: (error: unknown) => {
-        const failure = classifyMutationFailure(error, { invalid: PHOTO_INVALID_MESSAGE });
+        const failure = classifyMutationFailure(error, { invalid: PHOTO_INVALID_MESSAGE() });
         this.revoke();
         this.error.set(failure.message);
         if (failure.reload) {

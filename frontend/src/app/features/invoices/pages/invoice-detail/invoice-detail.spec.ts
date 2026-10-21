@@ -162,7 +162,7 @@ describe('InvoiceDetailPage', () => {
     await load(invoiceBody());
 
     // Header, metadata, preview, panel and checks (BR-03, BR-04, BR-24).
-    expect(host.querySelector('h1')?.textContent).toBe('Invoice INV-1048');
+    expect(host.querySelector('h1')?.textContent?.trim()).toBe('Invoice INV-1048');
     expect(host.querySelector('.page__chip')?.textContent?.trim()).toBe('Draft');
     expect(Array.from(host.querySelectorAll('nav li'), (li) => li.textContent?.trim())).toEqual([
       'Billing',
@@ -171,7 +171,7 @@ describe('InvoiceDetailPage', () => {
     ]);
     expect(host.querySelector('nav[aria-label="Breadcrumb"] a[href="/invoices"]')).not.toBeNull();
     expect(host.querySelector('.page__meta a[href="/jobs/wo-1"]')?.textContent).toBe('WO-1048');
-    expect(text()).toContain('Issue date:Oct 6, 2026');
+    expect(text()).toMatch(/Issue date:\s*Oct 6, 2026/);
     expect(text()).toContain('Invoice created from completed job WO-1048 · Not yet sent');
     expect(Array.from(host.querySelectorAll('th[scope="col"]'), (th) => th.textContent)).toEqual([
       'Description',

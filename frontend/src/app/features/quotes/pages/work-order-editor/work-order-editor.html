@@ -6,30 +6,35 @@
   <p class="wo__sr" role="status" aria-live="polite">{{ announcement() }}</p>
 
   <header class="wo__header">
-    <nav class="wo__breadcrumb" aria-label="Breadcrumb">
+    <nav class="wo__breadcrumb" [attr.aria-label]="'quotes.workOrderEditor.breadcrumb' | transloco">
       <ol>
-        <li>Quotes</li>
+        <li>{{ 'quotes.workOrderEditor.quotes' | transloco }}</li>
         @if (editor(); as editor) {
           <li>
             <a [routerLink]="['/quotes', quoteId]">{{ editor.quote.displayNumber }}</a>
           </li>
         }
-        <li aria-current="page">Create work order</li>
+        <li aria-current="page">{{ 'quotes.workOrderEditor.createWorkOrder' | transloco }}</li>
       </ol>
     </nav>
     <div class="wo__title-row">
       <div class="wo__title-group">
-        <h1 #heading class="wo__title" tabindex="-1">Create work order</h1>
+        <h1 #heading class="wo__title" tabindex="-1">
+          {{ 'quotes.workOrderEditor.createWorkOrder' | transloco }}
+        </h1>
         @if (state() === 'ready') {
           <span class="wo__chip wo__chip--success">
             <i class="pi pi-check-circle" aria-hidden="true"></i>
-            Quote approved
+            {{ 'quotes.workOrderEditor.quoteApproved' | transloco }}
           </span>
         }
       </div>
       @if (state() === 'ready' && editor(); as editor) {
         <div class="wo__tools">
-          <span class="wo__number">From quote #{{ editor.quote.displayNumber }}</span>
+          <span class="wo__number">{{
+            'quotes.workOrderEditor.fromQuote'
+              | transloco: { displayNumber: editor.quote.displayNumber }
+          }}</span>
           @if (saveState()) {
             <p class="wo__save-state">
               <i class="pi pi-save" aria-hidden="true"></i>
@@ -39,7 +44,7 @@
         </div>
       }
     </div>
-    <p class="wo__subtitle">Convert the approved scope into an executable job.</p>
+    <p class="wo__subtitle">{{ 'quotes.workOrderEditor.convertTheApprovedScope' | transloco }}</p>
   </header>
 
   @switch (state()) {
@@ -56,14 +61,16 @@
     @case ('not-available') {
       <div class="wo__message" role="alert">
         <p>{{ notAvailableMessage }}</p>
-        <a pButton severity="secondary" size="small" routerLink="/requests">Back to requests</a>
+        <a pButton severity="secondary" size="small" routerLink="/requests">{{
+          'quotes.workOrderEditor.backToRequests' | transloco
+        }}</a>
       </div>
     }
     @case ('not-approved') {
       <div class="wo__message" role="alert">
         <p>{{ notApprovedMessage }}</p>
         <a pButton severity="secondary" size="small" [routerLink]="['/quotes', quoteId]">
-          Back to quote
+          {{ 'quotes.workOrderEditor.backToQuote' | transloco }}
         </a>
       </div>
     }
@@ -71,7 +78,7 @@
       <div class="wo__message" role="alert">
         <p>{{ customerRequiredMessage }}</p>
         <a pButton severity="secondary" size="small" [routerLink]="['/quotes', quoteId]">
-          Back to quote
+          {{ 'quotes.workOrderEditor.backToQuote' | transloco }}
         </a>
       </div>
     }
@@ -80,7 +87,7 @@
         <span class="wo__row">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retryLoad()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -94,7 +101,7 @@
                 {{ banner.message }}
                 @if (banner.reload) {
                   <button pButton type="button" severity="secondary" (click)="reload()">
-                    Reload
+                    {{ 'quotes.workOrderEditor.reload' | transloco }}
                   </button>
                 }
               </span>
@@ -108,11 +115,14 @@
 
             <div class="wo__main">
               <section class="wo__card" aria-labelledby="wo-details-heading">
-                <h2 class="wo__card-title" id="wo-details-heading">Job details</h2>
+                <h2 class="wo__card-title" id="wo-details-heading">
+                  {{ 'quotes.workOrderEditor.jobDetails' | transloco }}
+                </h2>
                 <div class="wo__fields wo__fields--job">
                   <div class="wo__field">
                     <label class="wo__label" for="wo-title"
-                      >Work order title <span class="wo__req" aria-hidden="true">*</span></label
+                      >{{ 'quotes.workOrderEditor.workOrderTitle' | transloco }}
+                      <span class="wo__req" aria-hidden="true">*</span></label
                     >
                     <input
                       pInputText
@@ -132,7 +142,8 @@
 
                   <div class="wo__field">
                     <label class="wo__label" for="wo-job-type"
-                      >Job type <span class="wo__req" aria-hidden="true">*</span></label
+                      >{{ 'quotes.workOrderEditor.jobType' | transloco }}
+                      <span class="wo__req" aria-hidden="true">*</span></label
                     >
                     <p-select
                       inputId="wo-job-type"
@@ -141,7 +152,7 @@
                       optionLabel="label"
                       optionValue="code"
                       data-field-key="jobType"
-                      [options]="jobTypes"
+                      [options]="jobTypes | localizedRef"
                       [disabled]="busy()"
                       [ngModel]="form.jobType"
                       (ngModelChange)="onJobType($event)"
@@ -153,7 +164,8 @@
 
                   <div class="wo__field">
                     <label class="wo__label" for="wo-category"
-                      >Service category <span class="wo__req" aria-hidden="true">*</span></label
+                      >{{ 'quotes.workOrderEditor.serviceCategory' | transloco }}
+                      <span class="wo__req" aria-hidden="true">*</span></label
                     >
                     <p-select
                       inputId="wo-category"
@@ -162,7 +174,7 @@
                       optionLabel="name"
                       optionValue="id"
                       data-field-key="serviceCategoryId"
-                      [options]="editor.options.categories"
+                      [options]="editor.options.categories | localizedRef"
                       [disabled]="busy()"
                       [ngModel]="form.serviceCategoryId"
                       (ngModelChange)="update({ serviceCategoryId: $event }, 'serviceCategoryId')"
@@ -174,7 +186,8 @@
 
                   <div class="wo__field">
                     <label class="wo__label" for="wo-branch"
-                      >Branch <span class="wo__req" aria-hidden="true">*</span></label
+                      >{{ 'quotes.workOrderEditor.branch' | transloco }}
+                      <span class="wo__req" aria-hidden="true">*</span></label
                     >
                     <p-select
                       inputId="wo-branch"
@@ -183,7 +196,7 @@
                       optionLabel="name"
                       optionValue="id"
                       data-field-key="branchId"
-                      [options]="editor.options.branches"
+                      [options]="editor.options.branches | localizedRef"
                       [disabled]="busy()"
                       [ngModel]="form.branchId"
                       (ngModelChange)="update({ branchId: $event }, 'branchId', 'preferredDate')"
@@ -195,7 +208,8 @@
 
                   <div class="wo__field">
                     <label class="wo__label" for="wo-priority"
-                      >Priority <span class="wo__req" aria-hidden="true">*</span></label
+                      >{{ 'quotes.workOrderEditor.priority' | transloco }}
+                      <span class="wo__req" aria-hidden="true">*</span></label
                     >
                     <p-select
                       inputId="wo-priority"
@@ -204,7 +218,7 @@
                       optionLabel="label"
                       optionValue="code"
                       data-field-key="priority"
-                      [options]="priorities"
+                      [options]="priorities | localizedRef"
                       [disabled]="busy()"
                       [ngModel]="form.priority"
                       (ngModelChange)="onPriority($event)"
@@ -232,7 +246,9 @@
                   </div>
 
                   <div class="wo__field">
-                    <label class="wo__label" for="wo-duration">Estimated duration</label>
+                    <label class="wo__label" for="wo-duration">{{
+                      'quotes.workOrderEditor.estimatedDuration' | transloco
+                    }}</label>
                     <p-select
                       inputId="wo-duration"
                       appendTo="body"
@@ -240,7 +256,7 @@
                       optionLabel="label"
                       optionValue="code"
                       data-field-key="estimatedDurationMinutes"
-                      [options]="durations"
+                      [options]="durations | localizedRef"
                       [disabled]="busy()"
                       [ngModel]="form.durationMinutes"
                       (ngModelChange)="
@@ -253,7 +269,9 @@
                   </div>
 
                   <div class="wo__field wo__field--span">
-                    <label class="wo__label" for="wo-skills">Skills required</label>
+                    <label class="wo__label" for="wo-skills">{{
+                      'quotes.workOrderEditor.skillsRequired' | transloco
+                    }}</label>
                     <p-multiselect
                       inputId="wo-skills"
                       appendTo="body"
@@ -262,7 +280,7 @@
                       optionLabel="name"
                       optionValue="id"
                       data-field-key="skillIds"
-                      [options]="editor.options.skills"
+                      [options]="editor.options.skills | localizedRef"
                       [disabled]="busy()"
                       [ngModel]="form.skillIds"
                       (ngModelChange)="update({ skillIds: $event }, 'skillIds')"
@@ -273,12 +291,14 @@
                   </div>
 
                   <div class="wo__field">
-                    <span class="wo__label">Status</span>
+                    <span class="wo__label">{{ 'common.status' | transloco }}</span>
                     <span class="wo__chip wo__chip--warn">
                       <i class="pi pi-clock" aria-hidden="true"></i>
-                      Unscheduled
+                      {{ 'quotes.workOrderEditor.unscheduled' | transloco }}
                     </span>
-                    <p class="wo__muted">Will be available for scheduling after creation.</p>
+                    <p class="wo__muted">
+                      {{ 'quotes.workOrderEditor.willBeAvailableFor' | transloco }}
+                    </p>
                   </div>
                 </div>
               </section>
@@ -304,12 +324,16 @@
 
               <section class="wo__card" aria-labelledby="wo-instructions-heading">
                 <h2 class="wo__card-title" id="wo-instructions-heading">
-                  Instructions
-                  <span class="wo__hint">(visible to assigned technician)</span>
+                  {{ 'quotes.workOrderEditor.instructions' | transloco }}
+                  <span class="wo__hint">{{
+                    'quotes.workOrderEditor.visibleToAssignedTechnician' | transloco
+                  }}</span>
                 </h2>
                 <div class="wo__instructions">
                   <div class="wo__field">
-                    <label class="wo__label" for="wo-instructions">Technician instructions</label>
+                    <label class="wo__label" for="wo-instructions">{{
+                      'quotes.workOrderEditor.technicianInstructions' | transloco
+                    }}</label>
                     <textarea
                       pTextarea
                       id="wo-instructions"
@@ -335,17 +359,26 @@
                   </div>
                   <div class="wo__field">
                     <span class="wo__label">
-                      Attachments <span class="wo__hint">(from assessment)</span>
+                      {{ 'quotes.workOrderEditor.attachments' | transloco }}
+                      <span class="wo__hint">{{
+                        'quotes.workOrderEditor.fromAssessment' | transloco
+                      }}</span>
                     </span>
                     @if (photos().length > 0) {
                       <app-work-order-photos [items]="photos()" />
                     } @else {
-                      <p class="wo__muted">No attachments.</p>
+                      <p class="wo__muted">
+                        {{ 'quotes.workOrderEditor.noAttachments' | transloco }}
+                      </p>
                     }
                   </div>
                   <div class="wo__field">
-                    <span class="wo__label">Access note</span>
-                    <p class="wo__note">{{ editor.accessNote || 'No access note.' }}</p>
+                    <span class="wo__label">{{
+                      'quotes.workOrderEditor.accessNote' | transloco
+                    }}</span>
+                    <p class="wo__note">
+                      {{ editor.accessNote || ('quotes.workOrderEditor.noAccessNote' | transloco) }}
+                    </p>
                   </div>
                 </div>
               </section>
@@ -354,11 +387,14 @@
             <div class="wo__right">
               <section class="wo__card" aria-labelledby="wo-scheduling-heading">
                 <h2 class="wo__card-title" id="wo-scheduling-heading">
-                  <i class="pi pi-calendar" aria-hidden="true"></i> Scheduling requirements
+                  <i class="pi pi-calendar" aria-hidden="true"></i>
+                  {{ 'quotes.workOrderEditor.schedulingRequirements' | transloco }}
                 </h2>
                 <div class="wo__fields wo__fields--pair wo__fields--sched">
                   <div class="wo__field">
-                    <label class="wo__label" for="wo-date">Preferred date</label>
+                    <label class="wo__label" for="wo-date">{{
+                      'quotes.workOrderEditor.preferredDate' | transloco
+                    }}</label>
                     <input
                       pInputText
                       id="wo-date"
@@ -377,7 +413,9 @@
                     }
                   </div>
                   <div class="wo__field">
-                    <label class="wo__label" for="wo-window">Preferred arrival window</label>
+                    <label class="wo__label" for="wo-window">{{
+                      'quotes.workOrderEditor.preferredArrivalWindow' | transloco
+                    }}</label>
                     <p-select
                       class="wo__window"
                       inputId="wo-window"
@@ -386,7 +424,7 @@
                       optionLabel="label"
                       optionValue="code"
                       data-field-key="arrivalWindow"
-                      [options]="windows"
+                      [options]="windows | localizedRef"
                       [disabled]="busy() || form.preferredDate === ''"
                       [ngModel]="form.arrivalWindow"
                       (ngModelChange)="update({ arrivalWindow: $event }, 'arrivalWindow')"
@@ -398,7 +436,9 @@
                 </div>
 
                 <div class="wo__field">
-                  <label class="wo__label" for="wo-recurrence">Recurrence</label>
+                  <label class="wo__label" for="wo-recurrence">{{
+                    'quotes.workOrderEditor.recurrence' | transloco
+                  }}</label>
                   @if (form.jobType === 'recurring') {
                     <div class="wo__fields wo__fields--pair">
                       <p-select
@@ -407,9 +447,9 @@
                         fluid
                         optionLabel="label"
                         optionValue="code"
-                        placeholder="Select frequency"
+                        [placeholder]="'quotes.workOrderEditor.selectFrequency' | transloco"
                         data-field-key="recurrence"
-                        [options]="frequencies"
+                        [options]="frequencies | localizedRef"
                         [disabled]="busy()"
                         [ngModel]="form.frequency"
                         (ngModelChange)="onFrequency($event)"
@@ -421,8 +461,8 @@
                         max="24"
                         step="1"
                         fluid
-                        aria-label="Occurrences"
-                        placeholder="Occurrences"
+                        [attr.aria-label]="'quotes.workOrderEditor.occurrences' | transloco"
+                        [attr.placeholder]="'quotes.workOrderEditor.occurrences' | transloco"
                         [attr.aria-invalid]="errors()['recurrence'] ? 'true' : null"
                         [attr.aria-describedby]="
                           errors()['recurrence'] ? 'wo-recurrence-error' : null
@@ -439,7 +479,7 @@
                       fluid
                       optionLabel="label"
                       optionValue="code"
-                      [options]="oneTimeRecurrence"
+                      [options]="oneTimeRecurrence | localizedRef"
                       [disabled]="true"
                       [ngModel]="null"
                     />
@@ -450,7 +490,9 @@
                 </div>
 
                 <div class="wo__field">
-                  <label class="wo__label" for="wo-technician">Assigned technician</label>
+                  <label class="wo__label" for="wo-technician">{{
+                    'quotes.workOrderEditor.assignedTechnician' | transloco
+                  }}</label>
                   <p-select
                     class="wo__soft"
                     inputId="wo-technician"
@@ -470,7 +512,7 @@
                   </p-select>
                   <p class="wo__muted">
                     <i class="pi pi-info-circle" aria-hidden="true"></i>
-                    Assignment happens after the work order is created.
+                    {{ 'quotes.workOrderEditor.assignmentHappensAfterThe' | transloco }}
                   </p>
                 </div>
                 <button
@@ -483,13 +525,14 @@
                   disabled
                 >
                   <i class="pi pi-calendar" aria-hidden="true"></i>
-                  Check availability
+                  {{ 'quotes.workOrderEditor.checkAvailability' | transloco }}
                 </button>
               </section>
 
               <section class="wo__card" aria-labelledby="wo-communication-heading">
                 <h2 class="wo__card-title" id="wo-communication-heading">
-                  <i class="pi pi-envelope" aria-hidden="true"></i> Customer communication
+                  <i class="pi pi-envelope" aria-hidden="true"></i>
+                  {{ 'quotes.workOrderEditor.customerCommunication' | transloco }}
                 </h2>
                 <label class="wo__check">
                   <input
@@ -498,7 +541,7 @@
                     [checked]="form.communication.notifyCustomerWhenScheduled"
                     (change)="onCommunication('notifyCustomerWhenScheduled', $event)"
                   />
-                  Notify customer when scheduled
+                  {{ 'quotes.workOrderEditor.notifyCustomerWhenScheduled' | transloco }}
                 </label>
                 <label class="wo__check">
                   <input
@@ -507,7 +550,7 @@
                     [checked]="form.communication.sendTechnicianDetails"
                     (change)="onCommunication('sendTechnicianDetails', $event)"
                   />
-                  Send technician details
+                  {{ 'quotes.workOrderEditor.sendTechnicianDetails' | transloco }}
                 </label>
                 <label class="wo__check">
                   <input
@@ -516,38 +559,39 @@
                     [checked]="form.communication.sendArrivalReminder"
                     (change)="onCommunication('sendArrivalReminder', $event)"
                   />
-                  Send arrival reminder 2 hours before
+                  {{ 'quotes.workOrderEditor.sendArrivalReminder2' | transloco }}
                 </label>
               </section>
 
               <section class="wo__card" aria-labelledby="wo-summary-heading">
                 <h2 class="wo__card-title" id="wo-summary-heading">
-                  <i class="pi pi-file" aria-hidden="true"></i> Work order summary
+                  <i class="pi pi-file" aria-hidden="true"></i>
+                  {{ 'quotes.workOrderEditor.workOrderSummary' | transloco }}
                 </h2>
                 <dl class="wo__summary">
                   <div class="wo__summary-row">
-                    <dt>Status</dt>
+                    <dt>{{ 'common.status' | transloco }}</dt>
                     <dd>
                       <span class="wo__amber">
                         <i class="pi pi-clock" aria-hidden="true"></i>
-                        Unscheduled
+                        {{ 'quotes.workOrderEditor.unscheduled' | transloco }}
                       </span>
                     </dd>
                   </div>
                   <div class="wo__summary-row">
-                    <dt>Tasks</dt>
+                    <dt>{{ 'quotes.workOrderEditor.tasks' | transloco }}</dt>
                     <dd>{{ form.tasks.length }}</dd>
                   </div>
                   <div class="wo__summary-row">
-                    <dt>Planned materials</dt>
+                    <dt>{{ 'quotes.workOrderEditor.plannedMaterials' | transloco }}</dt>
                     <dd>{{ form.materials.length }}</dd>
                   </div>
                   <div class="wo__summary-row">
-                    <dt>Estimated duration</dt>
+                    <dt>{{ 'quotes.workOrderEditor.estimatedDuration' | transloco }}</dt>
                     <dd>{{ durationText() }}</dd>
                   </div>
                   <div class="wo__summary-row">
-                    <dt>Linked quote</dt>
+                    <dt>{{ 'quotes.workOrderEditor.linkedQuote' | transloco }}</dt>
                     <dd>{{ approvedTotal() }} (#{{ editor.quote.displayNumber }})</dd>
                   </div>
                 </dl>
@@ -555,8 +599,7 @@
                   <span class="wo__note-row">
                     <span class="wo__info-icon" aria-hidden="true"><i class="pi pi-info"></i></span>
                     <span>
-                      Pricing remains linked to the approved quote. Changes to billable items
-                      require customer approval.
+                      {{ 'quotes.workOrderEditor.pricingRemainsLinkedTo' | transloco }}
                     </span>
                   </span>
                 </p-message>
@@ -573,7 +616,7 @@
                 [disabled]="busy()"
                 (click)="cancel()"
               >
-                Cancel
+                {{ 'common.cancel' | transloco }}
               </button>
               <button
                 pButton
@@ -587,13 +630,13 @@
                 @if (submitting() === 'draft') {
                   <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
                 }
-                Save draft
+                {{ 'quotes.workOrderEditor.saveDraft' | transloco }}
               </button>
               <button pButton type="button" [disabled]="busy()" (click)="create()">
                 @if (submitting() === 'create') {
                   <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
                 }
-                Create work order
+                {{ 'quotes.workOrderEditor.createWorkOrder' | transloco }}
               </button>
             </div>
           </div>

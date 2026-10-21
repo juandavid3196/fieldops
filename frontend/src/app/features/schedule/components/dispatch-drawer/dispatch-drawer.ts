@@ -24,6 +24,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 import { Textarea } from 'primeng/textarea';
 import { Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -58,26 +59,31 @@ import {
 } from '../../utils/dispatch-form';
 import { clockMinutes } from '../../utils/schedule-range';
 
+import { t } from '../../../../core/i18n/translate';
 export const EVALUATION_DEBOUNCE_MS = 300;
-export const LOCKED_MESSAGE = "This visit has started or is closed and can't be changed.";
-export const CHANGED_MESSAGE =
-  'This visit was changed by someone else. Reload to see the latest version.';
-export const CANCEL_REASON_MESSAGE = 'Enter a reason between 10 and 500 characters.';
-export const CANCEL_FAILED_MESSAGE = "We couldn't cancel this visit. Try again.";
-export const NOT_CANCELLABLE_MESSAGE = "This visit can't be cancelled anymore.";
-export const CANCEL_ONE_TIME_TEXT =
-  'The visit stays in history. A new unscheduled visit will be created for pending work.';
-export const CANCEL_RECURRING_TEXT =
-  "The visit stays in history. This occurrence will be skipped; other occurrences don't change.";
-export const CANCELLED_ONE_TIME_TOAST = 'Visit cancelled. A new unscheduled visit was created.';
-export const CANCELLED_RECURRING_TOAST = 'Visit cancelled. This occurrence was skipped.';
-export const SAVE_FAILED_MESSAGE = "We couldn't save this visit. Try again.";
-export const LOAD_FAILED_MESSAGE = "We couldn't load this visit.";
-export const EVALUATION_FAILED_MESSAGE = "We couldn't check availability.";
-export const NO_TECHNICIANS_MESSAGE = 'No active technicians in this branch.';
-export const NEEDS_SCHEDULE_MESSAGE = 'Set a date and time before assigning technicians.';
-export const SMS_UNAVAILABLE_MESSAGE = "SMS isn't available yet.";
-export const NO_EMAIL_MESSAGE = 'This customer has no email address.';
+export const LOCKED_MESSAGE = (): string => t('schedule.dispatchDrawer.lockedMessage');
+export const CHANGED_MESSAGE = (): string => t('schedule.dispatchDrawer.changedMessage');
+export const CANCEL_REASON_MESSAGE = (): string => t('schedule.dispatchDrawer.cancelReasonMessage');
+export const CANCEL_FAILED_MESSAGE = (): string => t('schedule.dispatchDrawer.cancelFailedMessage');
+export const NOT_CANCELLABLE_MESSAGE = (): string =>
+  t('schedule.dispatchDrawer.notCancellableMessage');
+export const CANCEL_ONE_TIME_TEXT = (): string => t('schedule.dispatchDrawer.cancelOneTimeText');
+export const CANCEL_RECURRING_TEXT = (): string => t('schedule.dispatchDrawer.cancelRecurringText');
+export const CANCELLED_ONE_TIME_TOAST = (): string =>
+  t('schedule.dispatchDrawer.cancelledOneTimeToast');
+export const CANCELLED_RECURRING_TOAST = (): string =>
+  t('schedule.dispatchDrawer.cancelledRecurringToast');
+export const SAVE_FAILED_MESSAGE = (): string => t('schedule.dispatchDrawer.saveFailedMessage');
+export const LOAD_FAILED_MESSAGE = (): string => t('schedule.dispatchDrawer.loadFailedMessage');
+export const EVALUATION_FAILED_MESSAGE = (): string =>
+  t('schedule.dispatchDrawer.evaluationFailedMessage');
+export const NO_TECHNICIANS_MESSAGE = (): string =>
+  t('schedule.dispatchDrawer.noTechniciansMessage');
+export const NEEDS_SCHEDULE_MESSAGE = (): string =>
+  t('schedule.dispatchDrawer.needsScheduleMessage');
+export const SMS_UNAVAILABLE_MESSAGE = (): string =>
+  t('schedule.dispatchDrawer.smsUnavailableMessage');
+export const NO_EMAIL_MESSAGE = (): string => t('schedule.dispatchDrawer.noEmailMessage');
 
 type FieldKey =
   | 'date'
@@ -176,6 +182,7 @@ function formFrom(detail: VisitDispatchDetail): FormState {
 @Component({
   selector: 'app-dispatch-drawer',
   imports: [
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     Checkbox,
@@ -222,18 +229,40 @@ export class DispatchDrawer {
   readonly maxTechnicians = MAX_TECHNICIANS;
   readonly noteMax = MAX_NOTE;
   readonly reasonMax = MAX_REASON;
-  readonly smsMessage = SMS_UNAVAILABLE_MESSAGE;
-  readonly noEmailMessage = NO_EMAIL_MESSAGE;
-  readonly needsScheduleMessage = NEEDS_SCHEDULE_MESSAGE;
-  readonly noTechniciansMessage = NO_TECHNICIANS_MESSAGE;
+  get smsMessage(): string {
+    return SMS_UNAVAILABLE_MESSAGE();
+  }
+  get noEmailMessage(): string {
+    return NO_EMAIL_MESSAGE();
+  }
+  get needsScheduleMessage(): string {
+    return NEEDS_SCHEDULE_MESSAGE();
+  }
+  get noTechniciansMessage(): string {
+    return NO_TECHNICIANS_MESSAGE();
+  }
   readonly cancelReasonMax = MAX_REASON;
-  readonly cancelFailedMessage = CANCEL_FAILED_MESSAGE;
-  readonly cancelReasonMessage = CANCEL_REASON_MESSAGE;
-  readonly lockedMessage = LOCKED_MESSAGE;
-  readonly changedMessage = CHANGED_MESSAGE;
-  readonly saveFailedMessage = SAVE_FAILED_MESSAGE;
-  readonly loadFailedMessage = LOAD_FAILED_MESSAGE;
-  readonly evaluationFailedMessage = EVALUATION_FAILED_MESSAGE;
+  get cancelFailedMessage(): string {
+    return CANCEL_FAILED_MESSAGE();
+  }
+  get cancelReasonMessage(): string {
+    return CANCEL_REASON_MESSAGE();
+  }
+  get lockedMessage(): string {
+    return LOCKED_MESSAGE();
+  }
+  get changedMessage(): string {
+    return CHANGED_MESSAGE();
+  }
+  get saveFailedMessage(): string {
+    return SAVE_FAILED_MESSAGE();
+  }
+  get loadFailedMessage(): string {
+    return LOAD_FAILED_MESSAGE();
+  }
+  get evaluationFailedMessage(): string {
+    return EVALUATION_FAILED_MESSAGE();
+  }
   readonly statusLabel = visitStatusLabel;
   readonly impactIcons = ['pi-briefcase', 'pi-arrow-left', 'pi-arrow-right'] as const;
   readonly priorityText = PRIORITY_TEXT;
@@ -283,14 +312,17 @@ export class DispatchDrawer {
   });
   readonly cancelText = computed(() =>
     this.detail()?.cancelCreatesReplacement === false
-      ? CANCEL_RECURRING_TEXT
-      : CANCEL_ONE_TIME_TEXT,
+      ? CANCEL_RECURRING_TEXT()
+      : CANCEL_ONE_TIME_TEXT(),
   );
   readonly cancelTitle = computed(() => {
     const detail = this.detail();
     return detail === null
       ? ''
-      : `Cancel visit #${detail.workOrder.displayNumber.replace('#', '')} · Visit ${detail.visitNumber}?`;
+      : t('schedule.dispatchDrawer.cancelVisitVisit', {
+          value: detail.workOrder.displayNumber.replace('#', ''),
+          visitNumber: detail.visitNumber,
+        });
   });
   readonly cancelledText = computed(() => {
     const detail = this.detail();
@@ -298,8 +330,15 @@ export class DispatchDrawer {
     if (!detail || !cancellation) {
       return null;
     }
-    const when = `Cancelled on ${formatInstantDateTime(cancellation.cancelledAt, detail.timezone)}`;
-    return cancellation.cancelledByName ? `${when} by ${cancellation.cancelledByName}` : when;
+    const when = t('schedule.dispatchDrawer.cancelledOn', {
+      value: formatInstantDateTime(cancellation.cancelledAt, detail.timezone),
+    });
+    return cancellation.cancelledByName
+      ? t('schedule.dispatchDrawer.by', {
+          when: when,
+          cancelledByName: cancellation.cancelledByName,
+        })
+      : when;
   });
   readonly isDirty = computed(() => {
     const form = this.form();
@@ -335,14 +374,21 @@ export class DispatchDrawer {
       return null;
     }
     const day = check.dayOfWeek.charAt(0).toUpperCase() + check.dayOfWeek.slice(1);
-    const branch = this.branchName() ?? 'This branch';
+    const branch = this.branchName() ?? t('schedule.dispatchDrawer.thisBranch');
     return check.isOpen && check.openingTime !== null && check.closingTime !== null
-      ? `Outside business hours: ${branch} is open ${formatTime12(check.openingTime)}–${formatTime12(check.closingTime)} on ${day}.`
-      : `Outside business hours: ${branch} is closed on ${day}.`;
+      ? t('schedule.dispatchDrawer.outsideBusinessHoursIs', {
+          branch: branch,
+          openingTime: formatTime12(check.openingTime),
+          closingTime: formatTime12(check.closingTime),
+          day: day,
+        })
+      : t('schedule.dispatchDrawer.outsideBusinessHoursIs2', { branch: branch, day: day });
   });
   readonly bannerText = computed(() => {
     const count = this.conflictCount();
-    return count === 0 ? 'No scheduling conflicts' : `${count} scheduling conflicts`;
+    return count === 0
+      ? t('schedule.dispatchDrawer.noSchedulingConflicts')
+      : t('schedule.dispatchDrawer.schedulingConflicts', { count: count });
   });
   readonly emailDisabled = computed(
     () => this.readOnly() || this.saving() || !(this.detail()?.customer.hasEmail ?? false),
@@ -373,11 +419,11 @@ export class DispatchDrawer {
     const form = this.form();
     const base =
       detail !== null && detail.status !== 'unscheduled'
-        ? 'Update'
+        ? t('schedule.dispatchDrawer.update')
         : (form?.technicianIds.length ?? 0) > 0
-          ? 'Assign'
-          : 'Schedule';
-    return this.willNotify() ? `${base} & notify` : base;
+          ? t('schedule.dispatchDrawer.assign')
+          : t('schedule.dispatchDrawer.schedule');
+    return this.willNotify() ? t('schedule.dispatchDrawer.notify', { base: base }) : base;
   });
   readonly announcement = computed(() => {
     if (this.evaluating() || this.evaluation() === null) {
@@ -657,7 +703,7 @@ export class DispatchDrawer {
     }
     const reason = this.cancelReason().trim();
     if (reason.length < MIN_REASON || reason.length > MAX_REASON) {
-      this.cancelError.set(CANCEL_REASON_MESSAGE);
+      this.cancelError.set(CANCEL_REASON_MESSAGE());
       return;
     }
     this.cancelError.set(null);
@@ -667,7 +713,9 @@ export class DispatchDrawer {
         this.cancelling.set(false);
         this.cancelOpen.set(false);
         this.cancelled.emit(
-          result.replacementVisitId === null ? CANCELLED_RECURRING_TOAST : CANCELLED_ONE_TIME_TOAST,
+          result.replacementVisitId === null
+            ? CANCELLED_RECURRING_TOAST()
+            : CANCELLED_ONE_TIME_TOAST(),
         );
       },
       error: (error: unknown) => this.handleCancelError(error),
@@ -678,7 +726,7 @@ export class DispatchDrawer {
     this.cancelling.set(false);
     const apiError = isApiError(error) ? error : null;
     if (apiError?.kind === 'validation' || apiError?.kind === 'bad-request') {
-      this.cancelError.set(CANCEL_REASON_MESSAGE);
+      this.cancelError.set(CANCEL_REASON_MESSAGE());
     } else if (apiError?.kind === 'not-found') {
       this.cancelOpen.set(false);
       this.unavailable.emit();
@@ -688,9 +736,9 @@ export class DispatchDrawer {
     } else if (apiError?.code === 'visit_not_cancellable') {
       this.cancelOpen.set(false);
       this.reload();
-      this.reloadNotice.set(NOT_CANCELLABLE_MESSAGE);
+      this.reloadNotice.set(NOT_CANCELLABLE_MESSAGE());
     } else {
-      this.cancelError.set(CANCEL_FAILED_MESSAGE);
+      this.cancelError.set(CANCEL_FAILED_MESSAGE());
     }
   }
 
@@ -736,11 +784,13 @@ export class DispatchDrawer {
   private toast(detail: VisitDispatchDetail, result: VisitDispatchResult): string {
     const base =
       detail.status !== 'unscheduled'
-        ? 'Visit updated.'
+        ? t('schedule.dispatchDrawer.visitUpdated')
         : result.visit.status === 'assigned'
-          ? 'Visit assigned.'
-          : 'Visit scheduled.';
-    return result.notified ? `${base} Customer notified by email.` : base;
+          ? t('schedule.dispatchDrawer.visitAssigned')
+          : t('schedule.dispatchDrawer.visitScheduled');
+    return result.notified
+      ? t('schedule.dispatchDrawer.customerNotifiedByEmail', { base: base })
+      : base;
   }
 
   private validate(form: FormState): Partial<Record<FieldKey, string>> {

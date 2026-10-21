@@ -1,5 +1,7 @@
 <section class="progress" aria-labelledby="progress-heading">
-  <h2 class="progress__title" id="progress-heading">Quote progress</h2>
+  <h2 class="progress__title" id="progress-heading">
+    {{ 'quotes.publicQuoteProgress.quoteProgress' | transloco }}
+  </h2>
   <ol class="progress__list">
     @for (step of steps(); track step.label) {
       <li class="progress__step" [attr.data-state]="step.state">

@@ -1,28 +1,34 @@
 <table class="ptable">
   <caption class="sr">
-    Recent activity
+    {{
+      'portal.portalActivityTable.recentActivity' | transloco
+    }}
   </caption>
   <thead>
     <tr>
-      <th scope="col">Service / Description</th>
-      <th scope="col">Date</th>
-      <th scope="col">Reference</th>
-      <th scope="col">Amount</th>
-      <th scope="col">Status</th>
-      <th scope="col">Actions</th>
+      <th scope="col">{{ 'portal.portalActivityTable.serviceDescription' | transloco }}</th>
+      <th scope="col">{{ 'common.date' | transloco }}</th>
+      <th scope="col">{{ 'portal.portalActivityTable.reference' | transloco }}</th>
+      <th scope="col">{{ 'common.amount' | transloco }}</th>
+      <th scope="col">{{ 'common.status' | transloco }}</th>
+      <th scope="col">{{ 'common.actions' | transloco }}</th>
     </tr>
   </thead>
   <tbody>
     @for (item of view(); track item.key) {
       <tr>
-        <td data-label="Service">{{ item.row.title }}</td>
-        <td data-label="Date">{{ item.date }}</td>
-        <td data-label="Reference">{{ item.row.reference }}</td>
-        <td data-label="Amount">{{ item.amount }}</td>
-        <td data-label="Status">
+        <td [attr.data-label]="'portal.portalActivityTable.service' | transloco">
+          {{ item.row.title }}
+        </td>
+        <td [attr.data-label]="'common.date' | transloco">{{ item.date }}</td>
+        <td [attr.data-label]="'portal.portalActivityTable.reference' | transloco">
+          {{ item.row.reference }}
+        </td>
+        <td [attr.data-label]="'common.amount' | transloco">{{ item.amount }}</td>
+        <td [attr.data-label]="'common.status' | transloco">
           <app-portal-status-chip [label]="item.chip.label" [tone]="item.chip.tone" variant="dot" />
         </td>
-        <td data-label="Actions">
+        <td [attr.data-label]="'common.actions' | transloco">
           <div class="ptable__actions">
             @if (item.row.status === 'invoice_due' && item.row.invoiceId !== null) {
               <a
@@ -31,7 +37,7 @@
                 [outlined]="true"
                 size="small"
                 [routerLink]="['/portal/invoices', item.row.invoiceId]"
-                >View invoice</a
+                >{{ 'portal.portalActivityTable.viewInvoice' | transloco }}</a
               >
             } @else {
               <button
@@ -43,7 +49,7 @@
                 [disabled]="busy() !== null"
                 (click)="report(item.row)"
               >
-                View report
+                {{ 'portal.portalActivityTable.viewReport' | transloco }}
               </button>
               @if (item.row.status === 'paid' && item.row.receiptPaymentId !== null) {
                 <button
@@ -55,7 +61,7 @@
                   [disabled]="busy() !== null"
                   (click)="receipt(item.row)"
                 >
-                  Receipt
+                  {{ 'portal.portalActivityTable.receipt' | transloco }}
                 </button>
               }
             }

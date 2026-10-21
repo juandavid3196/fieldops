@@ -230,7 +230,12 @@ internal sealed class PortalInvitationStore(FieldOpsDbContext dbContext, TimePro
     }
 
     public async Task<PortalActivationResult> AcceptNewUserAsync(
-        string tokenHash, string passwordHash, string? lastName, IPAddress? clientIp, CancellationToken cancellationToken)
+        string tokenHash,
+        string passwordHash,
+        string? lastName,
+        IPAddress? clientIp,
+        string preferredLanguage,
+        CancellationToken cancellationToken)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
 
@@ -255,7 +260,7 @@ internal sealed class PortalInvitationStore(FieldOpsDbContext dbContext, TimePro
             return Failed(PortalActivationFailure.LastNameRequired);
         }
 
-        var user = User.Create(locked.Invitation.Email, passwordHash, locked.Contact.FirstName, effectiveLastName);
+        var user = User.Create(locked.Invitation.Email, passwordHash, locked.Contact.FirstName, effectiveLastName, preferredLanguage: preferredLanguage);
         user.Activate();
         user.MarkEmailVerified(now);
         user.RecordSignIn(now);
@@ -354,7 +359,7 @@ internal sealed class PortalInvitationStore(FieldOpsDbContext dbContext, TimePro
             ? Failed(PortalActivationFailure.Gone)
             : new PortalActivationResult.Activated(new PortalAcceptedInvitation(
                 new PortalSessionContext(
-                    PortalSessionViews.Build(user.FirstName, user.LastName, user.Email, current, links),
+                    PortalSessionViews.Build(user.FirstName, user.LastName, user.Email, user.PreferredLanguage, current, links),
                     new PortalScope(current.OrganizationId, current.CustomerId, current.ContactId, user.Id)),
                 now));
     }

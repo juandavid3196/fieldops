@@ -16,6 +16,7 @@ import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import {
@@ -26,9 +27,13 @@ import {
 import { WorkOrdersService } from '../../../jobs/services/work-orders.service';
 import { sortTemplates } from '../../utils/work-order-form';
 
-export const TEMPLATES_ERROR_MESSAGE = "We couldn't load templates.";
-export const NO_TEMPLATES_MESSAGE = 'No checklist templates yet.';
-export const TEMPLATE_SAVE_FAILED_MESSAGE = "We couldn't save the template. Try again.";
+import { t } from '../../../../core/i18n/translate';
+export const TEMPLATES_ERROR_MESSAGE = (): string =>
+  t('quotes.workOrderTemplateDialog.templatesErrorMessage');
+export const NO_TEMPLATES_MESSAGE = (): string =>
+  t('quotes.workOrderTemplateDialog.noTemplatesMessage');
+export const TEMPLATE_SAVE_FAILED_MESSAGE = (): string =>
+  t('quotes.workOrderTemplateDialog.templateSaveFailedMessage');
 
 type ListState = 'loading' | 'ready' | 'error';
 
@@ -39,7 +44,7 @@ type ListState = 'loading' | 'ready' | 'error';
  */
 @Component({
   selector: 'app-work-order-template-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, InputText, Message, Skeleton],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Dialog, InputText, Message, Skeleton],
   templateUrl: './work-order-template-dialog.html',
   styleUrl: './work-order-template-dialog.scss',
 })
@@ -67,8 +72,12 @@ export class WorkOrderTemplateDialog {
   readonly errors = signal<Readonly<Record<string, string>>>({});
   readonly saving = signal(false);
 
-  readonly errorMessage = TEMPLATES_ERROR_MESSAGE;
-  readonly emptyMessage = NO_TEMPLATES_MESSAGE;
+  get errorMessage(): string {
+    return TEMPLATES_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return NO_TEMPLATES_MESSAGE();
+  }
 
   constructor() {
     effect(() => {
@@ -100,7 +109,7 @@ export class WorkOrderTemplateDialog {
 
   taskCountLabel(template: ChecklistTemplate): string {
     const count = template.items.length;
-    return `${count} ${count === 1 ? 'task' : 'tasks'}`;
+    return `${count} ${count === 1 ? t('quotes.workOrderTemplateDialog.task') : t('quotes.workOrderTemplateDialog.tasks')}`;
   }
 
   select(id: string): void {
@@ -114,7 +123,7 @@ export class WorkOrderTemplateDialog {
       return;
     }
     if (this.taskCount() + template.items.length > MAX_TASKS) {
-      this.limitError.set(TASK_LIMIT_MESSAGE);
+      this.limitError.set(TASK_LIMIT_MESSAGE());
       return;
     }
     this.applied.emit(template.items.map((item) => item.label));
@@ -133,10 +142,10 @@ export class WorkOrderTemplateDialog {
     const items = this.labels();
     const errors: Record<string, string> = {};
     if (name.length === 0 || name.length > 120) {
-      errors['name'] = 'Enter a template name of 120 characters or fewer.';
+      errors['name'] = t('quotes.workOrderTemplateDialog.enterATemplateName');
     }
     if (items.length === 0 || items.length > MAX_TASKS) {
-      errors['items'] = 'Add between 1 and 50 tasks to save a template.';
+      errors['items'] = t('quotes.workOrderTemplateDialog.addBetween1And');
     }
     this.errors.set(errors);
     if (Object.keys(errors).length > 0) {
@@ -170,7 +179,7 @@ export class WorkOrderTemplateDialog {
             }
           }
           this.errors.set(
-            Object.keys(mapped).length > 0 ? mapped : { name: TEMPLATE_SAVE_FAILED_MESSAGE },
+            Object.keys(mapped).length > 0 ? mapped : { name: TEMPLATE_SAVE_FAILED_MESSAGE() },
           );
         },
       });

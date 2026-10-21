@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { map } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { HelpBreadcrumb } from '../../components/help-breadcrumb/help-breadcrumb';
 import { HelpSearchField } from '../../components/help-search-field/help-search-field';
@@ -13,10 +14,12 @@ import { findTopic, topicArticles, topicsFor } from '../../utils/help-content';
 import { effectiveQuery, searchArticles } from '../../utils/help-search';
 import { HelpNotFound } from '../help-not-found/help-not-found';
 
+import { t } from '../../../../core/i18n/translate';
 /** `/help/:topicSlug` (FR-07, FR-08): articles by section, topic search, popular and related. */
 @Component({
   selector: 'app-help-topic',
   imports: [
+    TranslocoPipe,
     HelpBreadcrumb,
     HelpNotFound,
     HelpSearchField,
@@ -44,7 +47,7 @@ export class HelpTopicPage {
   readonly searching = computed(() => effectiveQuery(this.query()) !== null);
 
   readonly crumbs = computed(() => [
-    { label: 'Help', link: this.base },
+    { label: t('help.helpTopic.help'), link: this.base },
     { label: this.topic()?.title ?? '' },
   ]);
 
@@ -79,14 +82,22 @@ export class HelpTopicPage {
     topicsFor(this.context.audience).filter((topic) => topic !== this.topic()),
   );
 
-  readonly searchPlaceholder = computed(() => `Search in ${this.topic()?.title ?? ''}...`);
+  readonly searchPlaceholder = computed(() =>
+    t('help.helpTopic.searchIn', { value: this.topic()?.title ?? '' }),
+  );
   readonly status = computed(() => {
     if (!this.searching()) {
       return '';
     }
     const count = this.sections().reduce((total, section) => total + section.articles.length, 0);
     return count === 0
-      ? `No articles in ${this.topic()?.title} match "${this.trimmedQuery()}"`
-      : `${count} ${count === 1 ? 'article' : 'articles'} found`;
+      ? t('help.helpTopic.noArticlesInMatch', {
+          title: this.topic()?.title,
+          trimmedQuery: this.trimmedQuery(),
+        })
+      : t('help.helpTopic.found', {
+          count: count,
+          value: count === 1 ? t('help.helpTopic.article') : t('help.helpTopic.articles2'),
+        });
   });
 }

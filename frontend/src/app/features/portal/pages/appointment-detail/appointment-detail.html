@@ -1,22 +1,27 @@
 <div class="pp">
   <a class="pp__back" routerLink="/portal/appointments">
     <i class="pi pi-arrow-left" aria-hidden="true"></i>
-    <span>Back to Appointments</span>
+    <span>{{ 'portal.appointmentDetail.backToAppointments' | transloco }}</span>
   </a>
 
   <app-portal-state
     [state]="resource.state()"
-    label="Loading appointment"
-    errorText="We couldn't load this appointment."
+    [label]="'portal.appointmentDetail.loadingAppointment' | transloco"
+    [errorText]="'portal.appointmentDetail.weCouldnTLoad' | transloco"
     backLink="/portal/appointments"
-    backLabel="Back to Appointments"
+    [backLabel]="'portal.appointmentDetail.backToAppointments' | transloco"
     (retry)="load()"
   >
     @if (view(); as v) {
       <section class="pcard ad" aria-labelledby="appointment-detail-title">
         <header class="ad__head">
           <div>
-            <p class="ad__number">Work order {{ v.visit.workOrderNumber }}</p>
+            <p class="ad__number">
+              {{
+                'portal.appointmentDetail.workOrder'
+                  | transloco: { workOrderNumber: v.visit.workOrderNumber }
+              }}
+            </p>
             <h1 class="pp__title" id="appointment-detail-title">{{ v.visit.title }}</h1>
           </div>
           <app-portal-status-chip [label]="v.chip.label" [tone]="v.chip.tone" />
@@ -24,35 +29,50 @@
 
         <dl class="pp__facts ad__facts">
           <div>
-            <dt><i class="pi pi-calendar" aria-hidden="true"></i>Date</dt>
+            <dt>
+              <i class="pi pi-calendar" aria-hidden="true"></i>{{ 'common.date' | transloco }}
+            </dt>
             <dd>{{ v.date }}</dd>
           </div>
           <div>
             <dt>
               <i class="pi pi-clock" aria-hidden="true"></i
-              >{{ v.isWindow ? 'Arrival window' : 'Time' }}
+              >{{
+                v.isWindow
+                  ? ('portal.appointmentDetail.arrivalWindow' | transloco)
+                  : ('portal.appointmentDetail.time' | transloco)
+              }}
             </dt>
             <dd>{{ v.time }}</dd>
           </div>
           <div>
-            <dt><i class="pi pi-user" aria-hidden="true"></i>Technician</dt>
+            <dt>
+              <i class="pi pi-user" aria-hidden="true"></i
+              >{{ 'portal.appointmentDetail.technician' | transloco }}
+            </dt>
             <dd>
               @if (v.visit.technician; as technician) {
-                {{ technician.fullName }} <span class="pcard__tag">Assigned</span>
+                {{ technician.fullName }}
+                <span class="pcard__tag">{{
+                  'portal.appointmentDetail.assigned' | transloco
+                }}</span>
               } @else {
-                Technician to be assigned
+                {{ 'portal.appointmentDetail.technicianToBeAssigned' | transloco }}
               }
             </dd>
           </div>
           <div>
-            <dt><i class="pi pi-map-marker" aria-hidden="true"></i>Property</dt>
+            <dt>
+              <i class="pi pi-map-marker" aria-hidden="true"></i
+              >{{ 'portal.appointmentDetail.property' | transloco }}
+            </dt>
             <dd>{{ v.visit.property.name }}, {{ v.visit.property.addressLine1 }}</dd>
           </div>
         </dl>
 
         @if (v.visit.status !== 'cancelled') {
           <div class="ad__progress">
-            <h2 class="ad__section">Progress</h2>
+            <h2 class="ad__section">{{ 'portal.appointmentDetail.progress' | transloco }}</h2>
             <app-portal-progress-stepper [progress]="v.visit.progressStep" />
           </div>
           @if (v.open) {
@@ -67,7 +87,7 @@
           @if (v.requestedOn; as date) {
             <span class="pcard__sent" role="status">
               <i class="pi pi-check-circle" aria-hidden="true"></i>
-              Reschedule requested · {{ date }}
+              {{ 'portal.appointmentDetail.rescheduleRequested' | transloco: { date: date } }}
             </span>
           } @else if (v.visit.canRequestReschedule) {
             <button
@@ -77,7 +97,7 @@
               [outlined]="true"
               (click)="rescheduleOpen.set(true)"
             >
-              Request reschedule
+              {{ 'portal.appointmentDetail.requestReschedule' | transloco }}
             </button>
           }
           @if (v.visit.reportAvailable) {
@@ -89,7 +109,7 @@
               [disabled]="reportBusy()"
               (click)="report()"
             >
-              View report
+              {{ 'portal.appointmentDetail.viewReport' | transloco }}
             </button>
           }
         </div>

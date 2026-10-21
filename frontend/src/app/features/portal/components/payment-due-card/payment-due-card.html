@@ -3,8 +3,14 @@
     <div class="pd">
       <span class="pd__alert" aria-hidden="true">!</span>
       <div class="pd__main">
-        <h2 class="pd__title" id="payment-due-title">Payment due</h2>
-        <p class="pd__lead">Invoice {{ payment.displayNumber }}</p>
+        <h2 class="pd__title" id="payment-due-title">
+          {{ 'portal.paymentDueCard.paymentDue' | transloco }}
+        </h2>
+        <p class="pd__lead">
+          {{
+            'portal.paymentDueCard.invoice' | transloco: { displayNumber: payment.displayNumber }
+          }}
+        </p>
         <p class="pd__service">{{ payment.title }}</p>
         <div class="pd__row">
           <div>
@@ -13,15 +19,15 @@
               <p class="pd__due">
                 @if (payment.isOverdue) {
                   <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-                  Overdue · Due {{ date }}
+                  {{ 'portal.paymentDueCard.overdueDue' | transloco: { date: date } }}
                 } @else {
-                  Due {{ date }}
+                  {{ 'portal.paymentDueCard.due' | transloco: { date: date } }}
                 }
               </p>
             } @else if (payment.isOverdue) {
               <p class="pd__due">
                 <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-                Overdue
+                {{ 'portal.paymentDueCard.overdue' | transloco }}
               </p>
             }
           </div>
@@ -32,21 +38,21 @@
             [outlined]="true"
             [routerLink]="['/portal/invoices', payment.id]"
           >
-            View invoice
+            {{ 'portal.paymentDueCard.viewInvoice' | transloco }}
           </a>
         </div>
         @if (payment.moreCount > 0) {
-          <a class="pcard__link" routerLink="/portal/invoices"
-            >+{{ payment.moreCount }} more invoices</a
-          >
+          <a class="pcard__link" routerLink="/portal/invoices">{{
+            'portal.paymentDueCard.moreInvoices' | transloco: { moreCount: payment.moreCount }
+          }}</a>
         }
       </div>
     </div>
   } @else {
     <h2 class="pcard__title" id="payment-due-title">
       <i class="pi pi-wallet pcard__icon" aria-hidden="true"></i>
-      Payment due
+      {{ 'portal.paymentDueCard.paymentDue' | transloco }}
     </h2>
-    <p class="pcard__empty">You're all paid up.</p>
+    <p class="pcard__empty">{{ 'portal.paymentDueCard.youReAllPaid' | transloco }}</p>
   }
 </section>

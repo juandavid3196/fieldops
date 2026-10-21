@@ -9,23 +9,31 @@
       <div class="team__heading">
         @if (isTechnician() && !forbidden()) {
           @if (showCrumbs) {
-            <nav class="team__crumbs" aria-label="Breadcrumb">
+            <nav class="team__crumbs" [attr.aria-label]="'team.team.breadcrumb' | transloco">
               <ol>
-                <li><a routerLink="/team">Team</a></li>
+                <li>
+                  <a routerLink="/team">{{ 'team.team.team' | transloco }}</a>
+                </li>
                 <li aria-current="page">
-                  {{ own() ? own()?.firstName + ' ' + own()?.lastName : 'My profile' }}
+                  {{
+                    own()
+                      ? own()?.firstName + ' ' + own()?.lastName
+                      : ('team.team.myProfile' | transloco)
+                  }}
                 </li>
               </ol>
             </nav>
           }
-          <h1 class="team__title">Technician profile</h1>
-          <p class="team__description">Contact details, availability, skills, and workload.</p>
+          <h1 class="team__title">{{ 'team.team.technicianProfile' | transloco }}</h1>
+          <p class="team__description">
+            {{ 'team.team.contactDetailsAvailabilitySkills' | transloco }}
+          </p>
         } @else {
           <a class="team__back" routerLink="/overview">
             <i class="pi pi-arrow-left" aria-hidden="true"></i>
-            Team
+            {{ 'team.team.team' | transloco }}
           </a>
-          <h1 class="team__title">Team</h1>
+          <h1 class="team__title">{{ 'team.team.team' | transloco }}</h1>
           @if (!forbidden()) {
             <p class="team__description">{{ descriptionMessage }}</p>
           }
@@ -43,12 +51,12 @@
               [routerLink]="skillsPath"
             >
               <i class="pi pi-cog" aria-hidden="true"></i>
-              Manage skills
+              {{ 'team.team.manageSkills' | transloco }}
             </a>
             @if (canMutate()) {
               <button pButton type="button" class="team__action" (click)="openCreate()">
                 <i class="pi pi-plus" aria-hidden="true"></i>
-                Add technician profile
+                {{ 'team.team.addTechnicianProfile' | transloco }}
               </button>
             }
           </div>
@@ -63,7 +71,7 @@
     @if (forbidden()) {
       <p class="team__forbidden">{{ forbiddenMessage }}</p>
     } @else if (isTechnician()) {
-      <section class="team__own" aria-label="Your technician profile">
+      <section class="team__own" [attr.aria-label]="'team.team.yourTechnicianProfile' | transloco">
         @if (ownLoading()) {
           <div class="team__skeletons" aria-busy="true">
             <p-skeleton height="6rem" />
@@ -77,7 +85,7 @@
             <span class="team__error">
               {{ loadErrorMessage }}
               <button pButton type="button" severity="secondary" size="small" (click)="loadOwn()">
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
@@ -87,7 +95,7 @@
       </section>
     } @else {
       <div class="team__sections">
-        <section aria-label="Team metrics">
+        <section [attr.aria-label]="'team.team.teamMetrics' | transloco">
           @if (metricsFailed()) {
             <p-message severity="error" [closable]="false">
               <span class="team__error">
@@ -99,12 +107,12 @@
                   size="small"
                   (click)="loadMetrics()"
                 >
-                  Retry
+                  {{ 'common.retry' | transloco }}
                 </button>
               </span>
             </p-message>
           } @else {
-            <ul class="team__metrics" aria-label="Team metrics">
+            <ul class="team__metrics" [attr.aria-label]="'team.team.teamMetrics' | transloco">
               @for (metric of metricCards; track metric.key) {
                 <li class="team__metric team__metric--{{ metric.tone }}">
                   <span class="team__metric-icon" aria-hidden="true">
@@ -121,7 +129,11 @@
                   @if (
                     metric.key === 'unlinkedAccounts' && (metrics()?.unlinkedAccounts ?? 0) > 0
                   ) {
-                    <span class="team__dot" role="img" aria-label="Needs attention"></span>
+                    <span
+                      class="team__dot"
+                      role="img"
+                      [attr.aria-label]="'team.team.needsAttention' | transloco"
+                    ></span>
                   }
                 </li>
               }
@@ -148,16 +160,20 @@
             (forbidden)="onTabForbidden()"
           />
         } @else {
-          <section class="team__card" aria-label="Team members">
+          <section class="team__card" [attr.aria-label]="'team.team.teamMembers' | transloco">
             <app-team-tabs current="members" [membersCount]="teamMembersCount()">
-              <div class="team__period" role="group" aria-label="Period">
+              <div
+                class="team__period"
+                role="group"
+                [attr.aria-label]="'team.team.period' | transloco"
+              >
                 <button
                   type="button"
                   class="team__period-button"
                   [attr.aria-pressed]="period() === 'today'"
                   (click)="onPeriod('today')"
                 >
-                  Today
+                  {{ 'team.team.today' | transloco }}
                 </button>
                 <button
                   type="button"
@@ -165,20 +181,24 @@
                   [attr.aria-pressed]="period() === 'week'"
                   (click)="onPeriod('week')"
                 >
-                  This week
+                  {{ 'team.team.thisWeek' | transloco }}
                 </button>
               </div>
             </app-team-tabs>
 
-            <div class="team__filters" role="search" aria-label="Filter technicians">
+            <div
+              class="team__filters"
+              role="search"
+              [attr.aria-label]="'team.team.filterTechnicians' | transloco"
+            >
               <p-iconfield class="team__search">
                 <p-inputicon class="pi pi-search" />
                 <input
                   pInputText
                   type="search"
                   class="team__control"
-                  placeholder="Search technicians..."
-                  aria-label="Search technicians"
+                  [attr.placeholder]="'team.team.searchTechnicians' | transloco"
+                  [attr.aria-label]="'team.team.searchTechnicians2' | transloco"
                   maxlength="100"
                   fluid
                   [ngModel]="searchText()"
@@ -189,7 +209,7 @@
                 class="team__select"
                 appendTo="body"
                 fluid
-                ariaLabel="Branch"
+                [ariaLabel]="'team.team.branch' | transloco"
                 [loading]="optionsLoading()"
                 [options]="branchChoices()"
                 optionLabel="label"
@@ -198,14 +218,14 @@
                 (ngModelChange)="onBranch($event)"
               >
                 <ng-template #selectedItem let-option>
-                  {{ option.code === 'all' ? 'Branch' : option.label }}
+                  {{ option.code === 'all' ? ('team.team.branch' | transloco) : option.label }}
                 </ng-template>
               </p-select>
               <p-select
                 class="team__select"
                 appendTo="body"
                 fluid
-                ariaLabel="Skill"
+                [ariaLabel]="'team.team.skill' | transloco"
                 [loading]="optionsLoading()"
                 [options]="skillChoices()"
                 optionLabel="label"
@@ -214,37 +234,41 @@
                 (ngModelChange)="onSkill($event)"
               >
                 <ng-template #selectedItem let-option>
-                  {{ option.code === 'all' ? 'Skill' : option.label }}
+                  {{ option.code === 'all' ? ('team.team.skill' | transloco) : option.label }}
                 </ng-template>
               </p-select>
               <p-select
                 class="team__select"
                 appendTo="body"
                 fluid
-                ariaLabel="Current status"
-                [options]="statusOptions"
+                [ariaLabel]="'team.team.currentStatus' | transloco"
+                [options]="statusOptions | localizedRef"
                 optionLabel="label"
                 optionValue="code"
                 [ngModel]="status()"
                 (ngModelChange)="onStatus($event)"
               >
                 <ng-template #selectedItem let-option>
-                  {{ option.code === 'all_active' ? 'Current status' : option.label }}
+                  {{
+                    option.code === 'all_active'
+                      ? ('team.team.currentStatus' | transloco)
+                      : option.label
+                  }}
                 </ng-template>
               </p-select>
               <p-select
                 class="team__select"
                 appendTo="body"
                 fluid
-                ariaLabel="Account link"
-                [options]="linkOptions"
+                [ariaLabel]="'team.team.accountLink' | transloco"
+                [options]="linkOptions | localizedRef"
                 optionLabel="label"
                 optionValue="code"
                 [ngModel]="accountLink()"
                 (ngModelChange)="onAccountLink($event)"
               >
                 <ng-template #selectedItem let-option>
-                  {{ option.code === 'all' ? 'Account link' : option.label }}
+                  {{ option.code === 'all' ? ('team.team.accountLink' | transloco) : option.label }}
                 </ng-template>
               </p-select>
             </div>
@@ -261,7 +285,7 @@
                       size="small"
                       (click)="loadList()"
                     >
-                      Retry
+                      {{ 'common.retry' | transloco }}
                     </button>
                   </span>
                 </p-message>
@@ -276,14 +300,14 @@
                   @if (hasFilters()) {
                     <p class="team__empty-text">{{ emptyFilteredMessage }}</p>
                     <button pButton type="button" severity="secondary" (click)="clearFilters()">
-                      Clear filters
+                      {{ 'team.team.clearFilters' | transloco }}
                     </button>
                   } @else {
                     <p class="team__empty-text">{{ emptyInitialMessage }}</p>
                     @if (canMutate()) {
                       <button pButton type="button" (click)="openCreate()">
                         <i class="pi pi-plus" aria-hidden="true"></i>
-                        Add technician profile
+                        {{ 'team.team.addTechnicianProfile' | transloco }}
                       </button>
                     }
                   }
@@ -322,19 +346,25 @@
                   <span class="team__alert-text">
                     {{ capacityText() }}
                     @if (alert.moreCount > 0) {
-                      <span class="team__alert-more">+{{ alert.moreCount }} more</span>
+                      <span class="team__alert-more">{{
+                        'team.team.more' | transloco: { moreCount: alert.moreCount }
+                      }}</span>
                     }
                   </span>
-                  <a class="team__alert-action" [routerLink]="schedulePath">View schedule</a>
+                  <a class="team__alert-action" [routerLink]="schedulePath">{{
+                    'team.team.viewSchedule' | transloco
+                  }}</a>
                 </p>
               }
               @if (current.unlinkedAlert; as alert) {
                 <p class="team__alert team__alert--warning" role="status">
                   <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
                   <span class="team__alert-text">
-                    {{ alert.name }} has no linked user account.
+                    {{ 'team.team.hasNoLinkedUser' | transloco: { name: alert.name } }}
                     @if (alert.moreCount > 0) {
-                      <span class="team__alert-more">+{{ alert.moreCount }} more</span>
+                      <span class="team__alert-more">{{
+                        'team.team.more' | transloco: { moreCount: alert.moreCount }
+                      }}</span>
                     }
                   </span>
                   @if (canMutate()) {
@@ -343,7 +373,7 @@
                       class="team__alert-action"
                       (click)="openLink(alert.technicianId, alert.name)"
                     >
-                      Link account
+                      {{ 'team.team.linkAccount' | transloco }}
                     </button>
                   }
                 </p>
@@ -355,8 +385,10 @@
         <section class="team__card" aria-labelledby="coverage-heading">
           <div class="team__coverage-head">
             <div>
-              <h2 class="team__section-title" id="coverage-heading">Skill coverage</h2>
-              <p class="team__muted">Number of active technicians with each skill</p>
+              <h2 class="team__section-title" id="coverage-heading">
+                {{ 'team.team.skillCoverage' | transloco }}
+              </h2>
+              <p class="team__muted">{{ 'team.team.numberOfActiveTechnicians' | transloco }}</p>
             </div>
             <a
               pButton
@@ -365,7 +397,7 @@
               [outlined]="true"
               [routerLink]="skillsPath"
             >
-              Manage skills
+              {{ 'team.team.manageSkills' | transloco }}
             </a>
           </div>
           @if (coverageFailed()) {
@@ -379,7 +411,7 @@
                   size="small"
                   (click)="loadCoverage()"
                 >
-                  Retry
+                  {{ 'common.retry' | transloco }}
                 </button>
               </span>
             </p-message>
@@ -391,8 +423,10 @@
             </div>
           } @else if (coverage().length === 0) {
             <div class="team__empty">
-              <p class="team__empty-text">No skills defined yet.</p>
-              <a pButton severity="secondary" [routerLink]="skillsPath">Manage skills</a>
+              <p class="team__empty-text">{{ 'team.team.noSkillsDefinedYet' | transloco }}</p>
+              <a pButton severity="secondary" [routerLink]="skillsPath">{{
+                'team.team.manageSkills' | transloco
+              }}</a>
             </div>
           } @else {
             <ul class="team__coverage">

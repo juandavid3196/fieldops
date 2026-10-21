@@ -3,6 +3,7 @@ import { Component, DestroyRef, computed, inject, input, output, signal } from '
 import { AccordionModule } from 'primeng/accordion';
 import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { MD_QUERY, watchMedia } from '../../../../core/config/breakpoints';
 import { PublicInvoice } from '../../models/invoice.model';
@@ -17,6 +18,7 @@ import {
 import { PublicInvoiceTimeline } from '../public-invoice-timeline/public-invoice-timeline';
 import { PublicPaymentSummary } from '../public-payment-summary/public-payment-summary';
 
+import { t } from '../../../../core/i18n/translate';
 /**
  * Title, status, timeline and, in the payable layout, the invoice card (BR-27). The payment panel
  * or the success view is projected beside/below it. Presentational: actions are outputs.
@@ -24,6 +26,7 @@ import { PublicPaymentSummary } from '../public-payment-summary/public-payment-s
 @Component({
   selector: 'app-public-invoice-summary',
   imports: [
+    TranslocoPipe,
     AccordionModule,
     ButtonDirective,
     NgTemplateOutlet,
@@ -60,7 +63,10 @@ export class PublicInvoiceSummary {
       subtitle:
         completed === null
           ? invoice.service.title
-          : `${invoice.service.title} · Completed ${formatCalendarDate(completed)}`,
+          : t('invoices.publicInvoiceSummary.completed', {
+              title: invoice.service.title,
+              completed: formatCalendarDate(completed),
+            }),
       initials: organizationInitials(invoice.organization.name),
       balance: money(invoice.balanceDue, currency),
       dueDate: formatCalendarDate(invoice.dueDate),

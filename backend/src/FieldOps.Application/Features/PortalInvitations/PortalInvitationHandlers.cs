@@ -1,5 +1,6 @@
 using System.Net;
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Account;
 using FieldOps.Application.Features.Access;
 using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.Invitations;
@@ -173,7 +174,12 @@ public sealed class AcceptPortalInvitationHandler(
         }
 
         var result = await store.AcceptNewUserAsync(
-            tokenHash, passwordHasher.Hash(password), lastName, command.ClientIp, cancellationToken);
+            tokenHash,
+            passwordHasher.Hash(password),
+            lastName,
+            command.ClientIp,
+            SupportedLanguages.Normalize(command.PreferredLanguage),
+            cancellationToken);
 
         return result switch
         {

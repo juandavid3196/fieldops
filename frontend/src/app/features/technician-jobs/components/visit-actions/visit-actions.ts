@@ -1,20 +1,25 @@
 import { Component, computed, input } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TodayVisit } from '../../models/technician-visits.model';
 import { directionsUrl, telUrl } from '../../utils/technician-format';
 
+import { t } from '../../../../core/i18n/translate';
 /** BR-12: Call (`tel:`, hidden without a phone) and Directions (external Google Maps, new tab). */
 @Component({
   selector: 'app-visit-actions',
-  imports: [ButtonDirective],
+  imports: [TranslocoPipe, ButtonDirective],
   templateUrl: './visit-actions.html',
   styleUrl: './visit-actions.scss',
 })
 export class VisitActions {
   readonly visit = input.required<TodayVisit>();
   /** Design 7 shows "Directions"; the job page shows "Open directions". */
-  readonly directionsLabel = input('Directions');
+  readonly directionsLabel = input<string | null>(null);
+  readonly directionsLabelValue = computed(
+    () => this.directionsLabel() ?? t('technicianJobs.visitActions.directions'),
+  );
   /** Job page: Open directions leads as the primary teal action, Call follows. */
   readonly featured = input(false);
   /** Design 9 header shows only Open directions. */

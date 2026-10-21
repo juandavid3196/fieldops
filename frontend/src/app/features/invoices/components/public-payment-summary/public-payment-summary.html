@@ -3,28 +3,30 @@
   [class.summary--detailed]="detailed()"
   aria-labelledby="payment-summary-title"
 >
-  <h2 id="payment-summary-title" class="summary__title">Payment summary</h2>
+  <h2 id="payment-summary-title" class="summary__title">
+    {{ 'invoices.publicPaymentSummary.paymentSummary' | transloco }}
+  </h2>
   <dl class="summary__rows">
     @if (detailed()) {
       <div>
-        <dt>Invoice</dt>
+        <dt>{{ 'invoices.publicPaymentSummary.invoice' | transloco }}</dt>
         <dd>{{ invoice().number }}</dd>
       </div>
       <div>
-        <dt>Service</dt>
+        <dt>{{ 'invoices.publicPaymentSummary.service' | transloco }}</dt>
         <dd>{{ invoice().service.title }}</dd>
       </div>
       <div>
-        <dt>Work order</dt>
+        <dt>{{ 'invoices.publicPaymentSummary.workOrder' | transloco }}</dt>
         <dd class="summary__work-order">{{ invoice().service.workOrderNumber }}</dd>
       </div>
       <div class="summary__rule">
-        <dt>Subtotal</dt>
+        <dt>{{ 'invoices.publicPaymentSummary.subtotal' | transloco }}</dt>
         <dd>{{ view().subtotal }}</dd>
       </div>
       @if (view().discount; as discount) {
         <div>
-          <dt>Discount</dt>
+          <dt>{{ 'invoices.publicPaymentSummary.discount' | transloco }}</dt>
           <dd>−{{ discount }}</dd>
         </div>
       }
@@ -51,11 +53,11 @@
       }
     }
     <div class="summary__total">
-      <dt>Total paid</dt>
+      <dt>{{ 'invoices.publicPaymentSummary.totalPaid' | transloco }}</dt>
       <dd>{{ view().paid }}</dd>
     </div>
     <div>
-      <dt>Balance</dt>
+      <dt>{{ 'invoices.publicPaymentSummary.balance' | transloco }}</dt>
       <dd>{{ view().balance }}</dd>
     </div>
   </dl>

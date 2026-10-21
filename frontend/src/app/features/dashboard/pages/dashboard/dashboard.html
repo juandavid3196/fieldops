@@ -1,9 +1,9 @@
 <div class="dash">
   @if (forbidden()) {
-    <h1 class="dash__title">Dashboard</h1>
+    <h1 class="dash__title">{{ 'dashboard.dashboard.dashboard' | transloco }}</h1>
     <p class="dash__muted">{{ forbiddenMessage }}</p>
   } @else if (noBranches()) {
-    <h1 class="dash__title">Operations Dashboard</h1>
+    <h1 class="dash__title">{{ 'dashboard.dashboard.operationsDashboard' | transloco }}</h1>
     @if (isOwner()) {
       <app-dashboard-view-switch view="operations" />
     }
@@ -12,12 +12,12 @@
     <header class="dash__header">
       <div class="dash__heading">
         <div class="dash__heading-row">
-          <h1 class="dash__title">Operations Dashboard</h1>
+          <h1 class="dash__title">{{ 'dashboard.dashboard.operationsDashboard' | transloco }}</h1>
           <span class="dash__updated" aria-live="polite">{{ agoLabel() }}</span>
           <button
             type="button"
             class="dash__refresh"
-            aria-label="Refresh dashboard"
+            [attr.aria-label]="'dashboard.dashboard.refreshDashboard' | transloco"
             [disabled]="!ready() || store.loading() || store.refreshing()"
             (click)="store.refresh()"
           >
@@ -32,13 +32,15 @@
           <app-dashboard-view-switch view="operations" />
         }
         <div class="dash__control">
-          <label class="dash__sr" for="dash-branch">Branch</label>
+          <label class="dash__sr" for="dash-branch">{{
+            'dashboard.dashboard.branch' | transloco
+          }}</label>
           <p-select
             [options]="branchChoices()"
             optionLabel="name"
             optionValue="id"
             inputId="dash-branch"
-            ariaLabel="Branch"
+            [ariaLabel]="'dashboard.dashboard.branch' | transloco"
             [fluid]="true"
             appendTo="body"
             [disabled]="!ready()"
@@ -47,7 +49,7 @@
           />
         </div>
         <div class="dash__date">
-          <label class="dash__sr" for="dash-date">Date</label>
+          <label class="dash__sr" for="dash-date">{{ 'common.date' | transloco }}</label>
           <input
             id="dash-date"
             type="date"
@@ -59,7 +61,7 @@
             (change)="onDate($any($event.target).value)"
           />
           <button type="button" class="dash__btn" [disabled]="!ready()" (click)="onToday()">
-            Today
+            {{ 'dashboard.dashboard.today' | transloco }}
           </button>
         </div>
         <button
@@ -71,10 +73,11 @@
           (click)="filtersOpen.set(!filtersOpen())"
         >
           <i class="pi pi-filter" aria-hidden="true"></i>
-          Filters
+          {{ 'common.filters' | transloco }}
           @if (filterCount() > 0) {
             <span class="dash__count"
-              >{{ filterCount() }}<span class="dash__sr"> active</span></span
+              >{{ filterCount()
+              }}<span class="dash__sr"> {{ 'dashboard.dashboard.active' | transloco }}</span></span
             >
           }
           <i
@@ -89,7 +92,7 @@
           [queryParams]="board().queryParams"
         >
           <i class="pi pi-map" aria-hidden="true"></i>
-          Open dispatch board
+          {{ 'dashboard.dashboard.openDispatchBoard' | transloco }}
         </a>
       </div>
     </header>
@@ -97,15 +100,17 @@
     @if (filtersOpen() && ready()) {
       <div class="dash__filters" id="dash-filters">
         <div class="dash__control">
-          <label class="dash__label" for="dash-technician">Technician</label>
+          <label class="dash__label" for="dash-technician">{{
+            'dashboard.dashboard.technician' | transloco
+          }}</label>
           <p-select
             [options]="technicianChoices()"
             optionLabel="name"
             optionValue="id"
             inputId="dash-technician"
             [fluid]="true"
-            ariaLabel="Technician"
-            placeholder="All"
+            [ariaLabel]="'dashboard.dashboard.technician' | transloco"
+            [placeholder]="'dashboard.dashboard.all' | transloco"
             [showClear]="true"
             appendTo="body"
             [ngModel]="dashboardRoute()?.technicianId ?? null"
@@ -113,15 +118,17 @@
           />
         </div>
         <div class="dash__control">
-          <label class="dash__label" for="dash-category">Service category</label>
+          <label class="dash__label" for="dash-category">{{
+            'dashboard.dashboard.serviceCategory' | transloco
+          }}</label>
           <p-select
             [options]="categoryChoices()"
             optionLabel="name"
             optionValue="id"
             inputId="dash-category"
             [fluid]="true"
-            ariaLabel="Service category"
-            placeholder="All"
+            [ariaLabel]="'dashboard.dashboard.serviceCategory' | transloco"
+            [placeholder]="'dashboard.dashboard.all' | transloco"
             [showClear]="true"
             appendTo="body"
             [ngModel]="dashboardRoute()?.categoryId ?? null"
@@ -129,7 +136,7 @@
           />
         </div>
         <button type="button" class="dash__btn dash__btn--link" (click)="onClearFilters()">
-          Clear filters
+          {{ 'dashboard.dashboard.clearFilters' | transloco }}
         </button>
       </div>
     }
@@ -138,7 +145,9 @@
       <p-message severity="warn" [closable]="false">
         <span class="dash__inline">
           {{ refreshErrorMessage }}
-          <button type="button" class="dash__btn" (click)="store.refresh()">Try again</button>
+          <button type="button" class="dash__btn" (click)="store.refresh()">
+            {{ 'common.tryAgain' | transloco }}
+          </button>
         </span>
       </p-message>
     }
@@ -147,7 +156,9 @@
       <p-message severity="error" [closable]="false">
         <span class="dash__inline">
           {{ loadErrorMessage }}
-          <button type="button" class="dash__btn" (click)="store.retry()">Try again</button>
+          <button type="button" class="dash__btn" (click)="store.retry()">
+            {{ 'common.tryAgain' | transloco }}
+          </button>
         </span>
       </p-message>
     } @else if (store.data(); as data) {

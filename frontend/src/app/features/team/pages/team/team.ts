@@ -25,6 +25,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -67,17 +68,17 @@ import {
 import { TeamService } from '../../services/team.service';
 import { HEALTH_LABELS, HEALTH_SEVERITIES } from '../../utils/team-format';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to Team.";
-export const NOT_LINKED_MESSAGE = "Your team profile isn't linked yet. Contact your manager.";
-export const DESCRIPTION_MESSAGE =
-  'Manage technician profiles, skills, availability, and operational workload.';
-export const SETTINGS_NOTE = 'Sign-in access and permissions are managed in Settings.';
-export const LOAD_ERROR_MESSAGE = "We couldn't load this section.";
-export const EMPTY_INITIAL_MESSAGE = 'No technician profiles yet.';
-export const EMPTY_FILTERED_MESSAGE = 'No technicians match your filters.';
-export const DEACTIVATE_CONFLICT_MESSAGE =
-  "Reassign this technician's upcoming visits before deactivating the profile.";
-export const ACTION_FAILED_MESSAGE = "We couldn't update the technician profile. Try again.";
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const FORBIDDEN_MESSAGE = (): string => t('team.team.forbiddenMessage');
+export const NOT_LINKED_MESSAGE = (): string => t('team.team.notLinkedMessage');
+export const DESCRIPTION_MESSAGE = (): string => t('team.team.descriptionMessage');
+export const SETTINGS_NOTE = (): string => t('team.team.settingsNote');
+export const LOAD_ERROR_MESSAGE = (): string => t('team.team.loadErrorMessage');
+export const EMPTY_INITIAL_MESSAGE = (): string => t('team.team.emptyInitialMessage');
+export const EMPTY_FILTERED_MESSAGE = (): string => t('team.team.emptyFilteredMessage');
+export const DEACTIVATE_CONFLICT_MESSAGE = (): string => t('team.team.deactivateConflictMessage');
+export const ACTION_FAILED_MESSAGE = (): string => t('team.team.actionFailedMessage');
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5];
 const SKELETON_CARDS = [0, 1, 2, 3, 4];
@@ -88,21 +89,21 @@ interface Choice<T> {
   readonly label: string;
 }
 
-const STATUS_OPTIONS: Choice<StatusFilter>[] = [
-  { code: 'all_active', label: 'All active' },
-  { code: 'available', label: 'Available' },
-  { code: 'on_job', label: 'On job' },
-  { code: 'break', label: 'Break' },
-  { code: 'time_off', label: 'Time off' },
-  { code: 'off', label: 'Off' },
-  { code: 'inactive', label: 'Inactive' },
-  { code: 'suspended', label: 'Suspended' },
-];
-const LINK_OPTIONS: Choice<AccountLinkFilter>[] = [
-  { code: 'all', label: 'All accounts' },
-  { code: 'linked', label: 'Linked' },
-  { code: 'not_linked', label: 'Not linked' },
-];
+const STATUS_OPTIONS: Choice<StatusFilter>[] = localizedList(() => [
+  { code: 'all_active', label: t('team.team.allActive') },
+  { code: 'available', label: t('team.team.available') },
+  { code: 'on_job', label: t('team.team.onJob') },
+  { code: 'break', label: t('team.team.break') },
+  { code: 'time_off', label: t('team.team.timeOff') },
+  { code: 'off', label: t('team.team.off') },
+  { code: 'inactive', label: t('common.inactive') },
+  { code: 'suspended', label: t('team.team.suspended') },
+]);
+const LINK_OPTIONS: Choice<AccountLinkFilter>[] = localizedList(() => [
+  { code: 'all', label: t('team.team.allAccounts') },
+  { code: 'linked', label: t('team.team.linked') },
+  { code: 'not_linked', label: t('team.team.notLinked') },
+]);
 
 type MetricKey = 'activeProfiles' | 'availableNow' | 'onJobs' | 'atCapacity' | 'unlinkedAccounts';
 
@@ -111,13 +112,23 @@ const METRIC_CARDS: readonly {
   readonly label: string;
   readonly icon: string;
   readonly tone: string;
-}[] = [
-  { key: 'activeProfiles', label: 'Active profiles', icon: 'pi-users', tone: 'primary' },
-  { key: 'availableNow', label: 'Available now', icon: 'pi-user', tone: 'success' },
-  { key: 'onJobs', label: 'On jobs', icon: 'pi-briefcase', tone: 'info' },
-  { key: 'atCapacity', label: 'At capacity', icon: 'pi-clock', tone: 'danger' },
-  { key: 'unlinkedAccounts', label: 'Unlinked accounts', icon: 'pi-link', tone: 'warning' },
-];
+}[] = localizedList(() => [
+  {
+    key: 'activeProfiles',
+    label: t('team.team.activeProfiles'),
+    icon: 'pi-users',
+    tone: 'primary',
+  },
+  { key: 'availableNow', label: t('team.team.availableNow'), icon: 'pi-user', tone: 'success' },
+  { key: 'onJobs', label: t('team.team.onJobs'), icon: 'pi-briefcase', tone: 'info' },
+  { key: 'atCapacity', label: t('team.team.atCapacity'), icon: 'pi-clock', tone: 'danger' },
+  {
+    key: 'unlinkedAccounts',
+    label: t('team.team.unlinkedAccounts'),
+    icon: 'pi-link',
+    tone: 'warning',
+  },
+]);
 
 type ListResult =
   | { readonly ok: true; readonly response: TechnicianListResponse }
@@ -134,6 +145,8 @@ type Panel = 'none' | 'detail' | 'form';
 @Component({
   selector: 'app-team',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     RouterLink,
     ButtonDirective,
@@ -177,13 +190,27 @@ export class Team {
   private readonly listRequests = new Subject<TechnicianListQuery>();
   private readonly searchInput = new Subject<string>();
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly notLinkedMessage = NOT_LINKED_MESSAGE;
-  readonly descriptionMessage = DESCRIPTION_MESSAGE;
-  readonly settingsNote = SETTINGS_NOTE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
-  readonly emptyInitialMessage = EMPTY_INITIAL_MESSAGE;
-  readonly emptyFilteredMessage = EMPTY_FILTERED_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get notLinkedMessage(): string {
+    return NOT_LINKED_MESSAGE();
+  }
+  get descriptionMessage(): string {
+    return DESCRIPTION_MESSAGE();
+  }
+  get settingsNote(): string {
+    return SETTINGS_NOTE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  get emptyInitialMessage(): string {
+    return EMPTY_INITIAL_MESSAGE();
+  }
+  get emptyFilteredMessage(): string {
+    return EMPTY_FILTERED_MESSAGE();
+  }
   readonly pageSize = TEAM_PAGE_SIZE;
   readonly metricCards = METRIC_CARDS;
   readonly skeletonRows = SKELETON_ROWS;
@@ -248,7 +275,7 @@ export class Team {
     const total = this.totalCount();
     const from = total === 0 ? 0 : this.first() + 1;
     const to = Math.min(this.first() + TEAM_PAGE_SIZE, total);
-    return `Showing ${from} – ${to} of ${total} technicians`;
+    return t('team.team.showingOfTechnicians', { from: from, to: to, total: total });
   });
 
   readonly metrics = signal<TeamMetrics | null>(null);
@@ -267,17 +294,21 @@ export class Team {
     if (!alert) {
       return null;
     }
-    const when = this.period() === 'today' ? 'today' : 'this week';
+    const when = this.period() === 'today' ? 'today' : t('team.team.thisWeek2');
     return alert.noAvailability || alert.workloadPercent == null
-      ? `${alert.name} has no availability ${when}.`
-      : `${alert.name} is at ${alert.workloadPercent}% capacity ${when}.`;
+      ? t('team.team.hasNoAvailability', { name: alert.name, when: when })
+      : t('team.team.isAtCapacity', {
+          name: alert.name,
+          workloadPercent: alert.workloadPercent,
+          when: when,
+        });
   });
   readonly branchChoices = computed<Choice<string>[]>(() => [
-    { code: 'all', label: 'All branches' },
+    { code: 'all', label: t('team.team.allBranches') },
     ...this.branches().map((branch) => ({ code: branch.id, label: branch.name })),
   ]);
   readonly skillChoices = computed<Choice<string>[]>(() => [
-    { code: 'all', label: 'All skills' },
+    { code: 'all', label: t('team.team.allSkills') },
     ...this.skills().map((skill) => ({ code: skill.id, label: skill.name })),
   ]);
 
@@ -386,7 +417,7 @@ export class Team {
       result.error ?? {
         kind: 'unknown',
         status: 0,
-        message: LOAD_ERROR_MESSAGE,
+        message: LOAD_ERROR_MESSAGE(),
         fieldErrors: {},
       },
     );
@@ -634,7 +665,7 @@ export class Team {
   onTechnicianUnavailable(): void {
     this.messageService.add({
       severity: 'error',
-      summary: "This technician profile isn't available.",
+      summary: t('team.team.thisTechnicianProfileIsnt'),
     });
     this.formReturnTo = null;
     this.panel.set('none');
@@ -655,7 +686,7 @@ export class Team {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this technician profile',
+          subject: t('team.team.thisTechnicianProfile'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();
@@ -686,7 +717,8 @@ export class Team {
   }
 
   openLinkFromDrawer(id: string): void {
-    const name = this.rows().find((row) => row.id === id)?.fullName ?? 'this technician';
+    const name =
+      this.rows().find((row) => row.id === id)?.fullName ?? t('team.team.thisTechnician');
     this.openLink(id, name);
   }
 
@@ -696,36 +728,34 @@ export class Team {
   }
 
   openUnlinkFromDrawer(id: string): void {
-    const name = this.rows().find((row) => row.id === id)?.fullName ?? 'this technician';
+    const name =
+      this.rows().find((row) => row.id === id)?.fullName ?? t('team.team.thisTechnician');
     this.confirmUnlink(id, name);
   }
 
   private confirmUnlink(id: string, name: string): void {
     this.confirmationService.confirm({
-      header: `Unlink ${name}'s user account?`,
-      message:
-        'The profile stays active. The user keeps their role, permissions and branch access.',
+      header: t('team.team.unlinkSUserAccount', { name: name }),
+      message: t('team.team.theProfileStaysActive'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Unlink account' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
-      accept: () => this.mutate(id, this.team.unlink(id), 'User account unlinked.'),
+      acceptButtonProps: { label: t('team.team.unlinkAccount') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
+      accept: () => this.mutate(id, this.team.unlink(id), t('team.team.userAccountUnlinked')),
     });
   }
 
   private confirmStatus(row: TechnicianRow, activate: boolean): void {
     this.confirmationService.confirm({
-      header: `${activate ? 'Activate' : 'Deactivate'} ${row.fullName}?`,
-      message: activate
-        ? 'The profile will return to active lists. Links, skills and availability are kept.'
-        : 'The profile will leave active lists. Links, skills, availability and history are kept.',
+      header: `${activate ? t('team.team.activate') : t('team.team.deactivate')} ${row.fullName}?`,
+      message: activate ? t('team.team.theProfileWillReturn') : t('team.team.theProfileWillLeave'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: activate ? 'Activate' : 'Deactivate' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: activate ? t('team.team.activate') : t('team.team.deactivate') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () =>
         this.mutate(
           row.id,
           activate ? this.team.activate(row.id) : this.team.deactivate(row.id),
-          activate ? 'Profile activated.' : 'Profile deactivated.',
+          activate ? t('team.team.profileActivated') : t('team.team.profileDeactivated'),
         ),
     });
   }
@@ -751,17 +781,20 @@ export class Team {
           const count = apiError.upcomingVisitCount;
           this.messageService.add({
             severity: 'error',
-            summary: DEACTIVATE_CONFLICT_MESSAGE,
+            summary: DEACTIVATE_CONFLICT_MESSAGE(),
             detail:
               count === undefined
                 ? undefined
-                : `${count} upcoming ${count === 1 ? 'visit is' : 'visits are'} assigned.`,
+                : t('team.team.upcomingAssigned', {
+                    count: count,
+                    value: count === 1 ? t('team.team.visitIs') : t('team.team.visitsAre'),
+                  }),
           });
           this.refresh();
         } else if (apiError?.kind === 'not-found') {
           this.onTechnicianUnavailable();
         } else {
-          this.messageService.add({ severity: 'error', summary: ACTION_FAILED_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: ACTION_FAILED_MESSAGE() });
         }
       },
     });
@@ -776,7 +809,7 @@ export class Team {
 
   buildMenu(row: TechnicianRow): MenuItem[] {
     const view: MenuItem = {
-      label: 'View',
+      label: t('common.view'),
       icon: 'pi pi-eye',
       command: () => this.openDetail(row.id),
     };
@@ -786,29 +819,29 @@ export class Team {
     const busy = this.mutatingId() !== null;
     return [
       view,
-      { label: 'Edit', icon: 'pi pi-pencil', command: () => this.openEdit(row.id) },
+      { label: t('common.edit'), icon: 'pi pi-pencil', command: () => this.openEdit(row.id) },
       row.isLinked
         ? {
-            label: 'Unlink account',
+            label: t('team.team.unlinkAccount'),
             icon: 'pi pi-link',
             disabled: busy,
             command: () => this.confirmUnlink(row.id, row.fullName),
           }
         : {
-            label: 'Link account',
+            label: t('team.team.linkAccount'),
             icon: 'pi pi-link',
             disabled: busy,
             command: () => this.openLink(row.id, row.fullName),
           },
       row.profileStatus === 'active'
         ? {
-            label: 'Deactivate',
+            label: t('team.team.deactivate'),
             icon: 'pi pi-ban',
             disabled: busy,
             command: () => this.confirmStatus(row, false),
           }
         : {
-            label: 'Activate',
+            label: t('team.team.activate'),
             icon: 'pi pi-replay',
             disabled: busy,
             command: () => this.confirmStatus(row, true),

@@ -6,22 +6,27 @@ import {
 } from '../../models/catalog.model';
 import { normalizeName, parseMoneyCents } from '../../utils/catalog-format';
 
-export const TYPE_MESSAGE = 'Select a type.';
-export const NAME_REQUIRED_MESSAGE = 'Enter a name.';
-export const NAME_LENGTH_MESSAGE = 'Name must be 160 characters or fewer.';
-export const DESCRIPTION_MESSAGE = 'Description must be 1,000 characters or fewer.';
-export const COST_MESSAGE = 'Enter a unit cost of 0 or more.';
-export const PRICE_MESSAGE = 'Enter a unit price of 0 or more.';
-export const DUPLICATE_NAME_MESSAGE = 'An item with this name already exists for this type.';
+import { localized, t } from '../../../../core/i18n/translate';
+export const TYPE_MESSAGE = (): string => t('productsServices.itemDrawerValidators.typeMessage');
+export const NAME_REQUIRED_MESSAGE = (): string =>
+  t('productsServices.itemDrawerValidators.nameRequiredMessage');
+export const NAME_LENGTH_MESSAGE = (): string =>
+  t('productsServices.itemDrawerValidators.nameLengthMessage');
+export const DESCRIPTION_MESSAGE = (): string =>
+  t('productsServices.itemDrawerValidators.descriptionMessage');
+export const COST_MESSAGE = (): string => t('productsServices.itemDrawerValidators.costMessage');
+export const PRICE_MESSAGE = (): string => t('productsServices.itemDrawerValidators.priceMessage');
+export const DUPLICATE_NAME_MESSAGE = (): string =>
+  t('productsServices.itemDrawerValidators.duplicateNameMessage');
 
-export const FIELD_LABELS: Readonly<Record<ItemFieldKey, string>> = {
-  type: 'Type',
-  name: 'Name',
-  description: 'Description',
-  category: 'Category',
-  unitCost: 'Unit cost',
-  unitPrice: 'Unit price',
-};
+export const FIELD_LABELS: Readonly<Record<ItemFieldKey, string>> = localized(() => ({
+  type: t('common.type'),
+  name: t('common.name'),
+  description: t('common.description'),
+  category: t('productsServices.itemDrawerValidators.category'),
+  unitCost: t('productsServices.itemDrawerValidators.unitCost'),
+  unitPrice: t('productsServices.itemDrawerValidators.unitPrice'),
+}));
 
 export interface ItemFormValue {
   readonly type: CatalogType | null;
@@ -35,22 +40,22 @@ export interface ItemFormValue {
 export function validateItemField(field: ItemFieldKey, value: ItemFormValue): string | null {
   switch (field) {
     case 'type':
-      return value.type === null ? TYPE_MESSAGE : null;
+      return value.type === null ? TYPE_MESSAGE() : null;
     case 'name': {
       const name = normalizeName(value.name);
       if (name.length === 0) {
-        return NAME_REQUIRED_MESSAGE;
+        return NAME_REQUIRED_MESSAGE();
       }
-      return name.length > 160 ? NAME_LENGTH_MESSAGE : null;
+      return name.length > 160 ? NAME_LENGTH_MESSAGE() : null;
     }
     case 'description':
-      return value.description.trim().length > 1000 ? DESCRIPTION_MESSAGE : null;
+      return value.description.trim().length > 1000 ? DESCRIPTION_MESSAGE() : null;
     case 'category':
       return null;
     case 'unitCost':
-      return parseMoneyCents(value.unitCost) === null ? COST_MESSAGE : null;
+      return parseMoneyCents(value.unitCost) === null ? COST_MESSAGE() : null;
     case 'unitPrice':
-      return parseMoneyCents(value.unitPrice) === null ? PRICE_MESSAGE : null;
+      return parseMoneyCents(value.unitPrice) === null ? PRICE_MESSAGE() : null;
   }
 }
 

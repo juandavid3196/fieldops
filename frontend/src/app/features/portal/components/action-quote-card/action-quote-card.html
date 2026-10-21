@@ -3,33 +3,38 @@
     <div class="aq">
       <span class="aq__alert" aria-hidden="true">!</span>
       <div class="aq__main">
-        <h2 class="aq__title" id="action-quote-title">Action required</h2>
-        <p class="aq__lead">Quote ready</p>
+        <h2 class="aq__title" id="action-quote-title">
+          {{ 'portal.actionQuoteCard.actionRequired' | transloco }}
+        </h2>
+        <p class="aq__lead">{{ 'portal.actionQuoteCard.quoteReady' | transloco }}</p>
         <p class="aq__scope">{{ quote.scope }}</p>
         <p class="aq__meta">
           <span>{{ quote.displayNumber }}</span>
           <span
-            >Total <strong>{{ total() }}</strong></span
+            >{{ 'common.total' | transloco }} <strong>{{ total() }}</strong></span
           >
           @if (expires(); as date) {
-            <span>Expires {{ date }}</span>
+            <span>{{ 'portal.actionQuoteCard.expires' | transloco: { date: date } }}</span>
           }
         </p>
         <p class="aq__notice">
           <span class="aq__info" aria-hidden="true"><i class="pi pi-info"></i></span>
-          Approving this quote does not confirm an appointment. Our team will contact you to
-          schedule the work.
+          {{ 'portal.actionQuoteCard.approvingThisQuoteDoes' | transloco }}
         </p>
         @if (quote.moreCount > 0) {
-          <a class="pcard__link" routerLink="/portal/quotes">+{{ quote.moreCount }} more quotes</a>
+          <a class="pcard__link" routerLink="/portal/quotes">{{
+            'portal.actionQuoteCard.moreQuotes' | transloco: { moreCount: quote.moreCount }
+          }}</a>
         }
       </div>
       <div class="aq__actions">
-        <a pButton [routerLink]="['/portal/quotes', quote.id]">Review quote</a>
+        <a pButton [routerLink]="['/portal/quotes', quote.id]">{{
+          'portal.actionQuoteCard.reviewQuote' | transloco
+        }}</a>
         @if (quote.status === 'clarification_requested') {
           <span class="pcard__sent" role="status">
             <i class="pi pi-check-circle" aria-hidden="true"></i>
-            Question sent
+            {{ 'portal.actionQuoteCard.questionSent' | transloco }}
           </span>
         } @else {
           <button
@@ -39,7 +44,7 @@
             [outlined]="true"
             (click)="asked.emit()"
           >
-            Ask a question
+            {{ 'portal.actionQuoteCard.askAQuestion' | transloco }}
           </button>
         }
       </div>
@@ -47,8 +52,8 @@
   } @else {
     <h2 class="pcard__title" id="action-quote-title">
       <i class="pi pi-file-edit pcard__icon" aria-hidden="true"></i>
-      Action required
+      {{ 'portal.actionQuoteCard.actionRequired' | transloco }}
     </h2>
-    <p class="pcard__empty">No quotes need your attention.</p>
+    <p class="pcard__empty">{{ 'portal.actionQuoteCard.noQuotesNeedYour' | transloco }}</p>
   }
 </section>

@@ -23,6 +23,8 @@ import {
 } from '../../pages/register-company/register-company.validators';
 
 import type { FormGroup } from '@angular/forms';
+import { TranslocoPipe } from '@jsverse/transloco';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 
 /**
  * Wizard "Business hours" card (FR-05): one row per day with an open switch and 30-minute
@@ -31,6 +33,8 @@ import type { FormGroup } from '@angular/forms';
 @Component({
   selector: 'app-business-hours-section',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     ReactiveFormsModule,
     ButtonDirective,
     Select,

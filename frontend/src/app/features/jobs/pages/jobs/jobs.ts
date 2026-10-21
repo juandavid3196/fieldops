@@ -30,6 +30,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -70,6 +71,8 @@ import {
 } from '../../utils/jobs-format';
 import { PRIORITY_LABELS } from '../../utils/work-order-format';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 interface Region<T> {
   readonly status: 'idle' | 'loading' | 'ready' | 'error';
   readonly data: T | null;
@@ -105,6 +108,8 @@ const FIELD_PARAMS = ['tab', 'q', 'status', 'priority', 'sort', 'page', 'pageSiz
 @Component({
   selector: 'app-jobs',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     ButtonDirective,
     FormsModule,
     IconField,
@@ -126,15 +131,23 @@ export class Jobs {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly forbiddenMessage = WO_FORBIDDEN_MESSAGE;
-  readonly errorMessage = JOBS_LOAD_ERROR_MESSAGE;
-  readonly metricsErrorMessage = JOBS_METRICS_ERROR_MESSAGE;
-  readonly noBranchesMessage = JOBS_NO_BRANCHES_MESSAGE;
+  get forbiddenMessage(): string {
+    return WO_FORBIDDEN_MESSAGE();
+  }
+  get errorMessage(): string {
+    return JOBS_LOAD_ERROR_MESSAGE();
+  }
+  get metricsErrorMessage(): string {
+    return JOBS_METRICS_ERROR_MESSAGE();
+  }
+  get noBranchesMessage(): string {
+    return JOBS_NO_BRANCHES_MESSAGE();
+  }
   readonly tabs = JOBS_TABS;
-  readonly priorityOptions: Choice[] = [
-    { code: ALL, label: 'All priorities' },
+  readonly priorityOptions: Choice[] = localizedList(() => [
+    { code: ALL, label: t('jobs.jobs.allPriorities') },
     ...JOBS_PRIORITIES.map(({ code }) => ({ code, label: PRIORITY_LABELS[code] })),
-  ];
+  ]);
   readonly sortOptions: Choice[] = JOBS_SORTS.map(({ code, label }) => ({ code, label }));
   readonly pageSizeOptions: number[] = [...JOBS_PAGE_SIZES];
   readonly skeletonRows = [1, 2, 3, 4, 5];
@@ -179,14 +192,14 @@ export class Jobs {
   readonly counted = computed(() => this.counts());
   readonly canChooseBranch = computed(() => this.branches().length > 1);
   readonly branchChoices = computed<Choice[]>(() => [
-    ...(this.canChooseBranch() ? [{ code: ALL, label: 'All branches' }] : []),
+    ...(this.canChooseBranch() ? [{ code: ALL, label: t('jobs.jobs.allBranches') }] : []),
     ...this.branches().map((branch) => ({ code: branch.id, label: branch.name })),
   ]);
   readonly branchValue = computed(
     () => this.branchId() ?? (this.canChooseBranch() ? ALL : (this.branches()[0]?.id ?? ALL)),
   );
   readonly statusChoices = computed<Choice[]>(() => [
-    { code: ALL, label: 'All statuses' },
+    { code: ALL, label: t('jobs.jobs.allStatuses') },
     ...TAB_STATUSES[this.view().tab].map((code) => ({
       code,
       label: JOB_STATUS_CHIPS[code].label,
@@ -198,7 +211,7 @@ export class Jobs {
 
   readonly total = computed(() => this.list().data?.total ?? 0);
   readonly announcement = computed(() =>
-    this.list().status === 'ready' ? `${this.total()} jobs` : '',
+    this.list().status === 'ready' ? t('jobs.jobs.jobs2', { total: this.total() }) : '',
   );
   readonly rows = computed<RowView[]>(() => {
     const now = this.now();
@@ -222,14 +235,18 @@ export class Jobs {
   });
   readonly emptyMessage = computed(() =>
     this.view().tab === 'all' && this.filterCount() === 0 && this.total() === 0
-      ? JOBS_EMPTY_MESSAGE
-      : JOBS_FILTERED_EMPTY_MESSAGE,
+      ? JOBS_EMPTY_MESSAGE()
+      : JOBS_FILTERED_EMPTY_MESSAGE(),
   );
-  readonly showClearInEmpty = computed(() => this.emptyMessage() === JOBS_FILTERED_EMPTY_MESSAGE);
+  readonly showClearInEmpty = computed(() => this.emptyMessage() === JOBS_FILTERED_EMPTY_MESSAGE());
   readonly footer = computed(() => {
     const { page, pageSize } = this.view();
     const total = this.total();
-    return `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}`;
+    return t('jobs.jobs.of', {
+      value: (page - 1) * pageSize + 1,
+      value2: Math.min(page * pageSize, total),
+      total: total,
+    });
   });
 
   /** Request gates: null until the options are known and the URL is canonical. */

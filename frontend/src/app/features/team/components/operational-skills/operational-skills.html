@@ -1,15 +1,17 @@
 <section class="skills" aria-labelledby="skills-heading">
-  <h2 class="skills__title" id="skills-heading">Operational skills</h2>
+  <h2 class="skills__title" id="skills-heading">
+    {{ 'team.operationalSkills.operationalSkills' | transloco }}
+  </h2>
   <p class="skills__muted">
-    Skills help dispatchers compare technicians with requirements entered on a work order.
+    {{ 'team.operationalSkills.skillsHelpDispatchersCompare' | transloco }}
   </p>
 
   @if (!readOnly()) {
     <p-select
       class="skills__picker"
       inputId="skill-picker"
-      ariaLabel="Search and add a skill"
-      placeholder="Search and add a skill…"
+      [ariaLabel]="'team.operationalSkills.searchAndAddA' | transloco"
+      [placeholder]="'team.operationalSkills.searchAndAddA2' | transloco"
       appendTo="body"
       optionLabel="name"
       optionValue="id"
@@ -38,11 +40,11 @@
               appendTo="body"
               optionLabel="label"
               optionValue="value"
-              [options]="levels"
+              [options]="levels | localizedRef"
               [ngModel]="row.proficiency"
               (ngModelChange)="level(row.skillId, $event)"
               [disabled]="disabled()"
-              [ariaLabel]="row.name + ' level'"
+              [ariaLabel]="'team.operationalSkills.level' | transloco: { name: row.name }"
             />
           }
           <span class="skills__actions">
@@ -56,10 +58,12 @@
                 severity="secondary"
                 [text]="true"
                 [disabled]="disabled()"
-                [attr.aria-label]="'Set ' + row.name + ' as primary'"
+                [attr.aria-label]="
+                  'team.operationalSkills.setAsPrimary' | transloco: { name: row.name }
+                "
                 (click)="primary(row.skillId)"
               >
-                Set as primary
+                {{ 'team.operationalSkills.setAsPrimary2' | transloco }}
               </button>
             }
             @if (!readOnly()) {
@@ -70,7 +74,7 @@
                 severity="secondary"
                 [text]="true"
                 [disabled]="disabled()"
-                [attr.aria-label]="'Remove ' + row.name"
+                [attr.aria-label]="'team.operationalSkills.remove' | transloco: { name: row.name }"
                 (click)="remove(row.skillId)"
               >
                 <i class="pi pi-times" aria-hidden="true"></i>
@@ -89,7 +93,7 @@
   @if (!readOnly()) {
     <div class="skills__footer">
       <button type="button" class="skills__link" (click)="manageRequested.emit()">
-        Manage skill list
+        {{ 'team.operationalSkills.manageSkillList' | transloco }}
       </button>
     </div>
   }

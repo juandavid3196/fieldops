@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { QuoteApproval } from '../../../quotes/pages/quote-approval/quote-approval';
 import { QuoteLinkApi } from '../../../quotes/services/quote-link-api';
@@ -12,15 +13,19 @@ import { PortalQuoteService } from '../../services/portal-quote.service';
  */
 @Component({
   selector: 'app-portal-quote',
-  imports: [PortalState, QuoteApproval, RouterLink],
+  imports: [TranslocoPipe, PortalState, QuoteApproval, RouterLink],
   providers: [PortalQuoteService, { provide: QuoteLinkApi, useExisting: PortalQuoteService }],
   template: `
     <a class="back" routerLink="/portal/quotes">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      <span>Back to Quotes</span>
+      <span>{{ 'portal.portalQuote.backToQuotes' | transloco }}</span>
     </a>
     @if (missing()) {
-      <app-portal-state state="not-found" backLink="/portal/quotes" backLabel="Back to Quotes" />
+      <app-portal-state
+        state="not-found"
+        backLink="/portal/quotes"
+        [backLabel]="'portal.portalQuote.backToQuotes' | transloco"
+      />
     } @else {
       <app-quote-approval [embedded]="true" (missing)="missing.set(true)" />
     }

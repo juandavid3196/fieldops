@@ -6,6 +6,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { FormField } from '../../../organizations/components/form-field/form-field';
 import { NO_EMAIL_MESSAGE } from '../../models/requests.model';
@@ -17,8 +18,11 @@ import {
   WINDOW_OPTIONS,
 } from '../../utils/assessment-schedule';
 
-export const PREVIEW_PLACEHOLDER = 'Complete the date, time and technician to preview the message.';
-export const SMS_UNAVAILABLE_MESSAGE = "SMS isn't available yet.";
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const PREVIEW_PLACEHOLDER = (): string => t('requests.assessmentForm.previewPlaceholder');
+export const SMS_UNAVAILABLE_MESSAGE = (): string =>
+  t('requests.assessmentForm.smsUnavailableMessage');
 
 /**
  * Assessment visit fields (BR-08 to BR-14, BR-18, BR-20): branch (branchless requests only), date,
@@ -28,6 +32,8 @@ export const SMS_UNAVAILABLE_MESSAGE = "SMS isn't available yet.";
 @Component({
   selector: 'app-assessment-form',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     InputText,
@@ -62,12 +68,20 @@ export class AssessmentForm {
 
   readonly windowOptions = WINDOW_OPTIONS;
   readonly durationOptions = DURATION_OPTIONS;
-  readonly previewPlaceholder = PREVIEW_PLACEHOLDER;
-  readonly noEmailMessage = NO_EMAIL_MESSAGE;
-  readonly smsMessage = SMS_UNAVAILABLE_MESSAGE;
+  get previewPlaceholder(): string {
+    return PREVIEW_PLACEHOLDER();
+  }
+  get noEmailMessage(): string {
+    return NO_EMAIL_MESSAGE();
+  }
+  get smsMessage(): string {
+    return SMS_UNAVAILABLE_MESSAGE();
+  }
 
   readonly primaryLabel = computed(() =>
-    this.mode() === 'reschedule' ? 'Save changes' : 'Schedule assessment',
+    this.mode() === 'reschedule'
+      ? t('requests.assessmentForm.saveChanges')
+      : t('requests.assessmentForm.scheduleAssessment'),
   );
 
   /** The disabled Email toggle exposes its helper text through its accessible name. */

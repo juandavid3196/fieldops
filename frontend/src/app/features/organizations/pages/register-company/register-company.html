@@ -11,7 +11,9 @@
   <form class="wizard__main" novalidate [formGroup]="form" (ngSubmit)="primaryAction()">
     <main class="wizard__scroll">
       <header class="wizard__header">
-        <p class="wizard__eyebrow">STEP {{ step() }} OF 4</p>
+        <p class="wizard__eyebrow">
+          {{ 'organizations.registerCompany.stepOf4' | transloco: { step: step() } }}
+        </p>
         <h1 id="register-company-title" class="wizard__title" tabindex="-1">
           {{ header().title }}
         </h1>
@@ -97,20 +99,22 @@
       <div class="wizard__footer-links">
         <p class="wizard__secure">
           <i class="pi pi-lock" aria-hidden="true"></i>
-          Your information is secure and encrypted.
+          {{ 'organizations.registerCompany.yourInformationIsSecure' | transloco }}
         </p>
         <p class="wizard__signin">
-          Already have an account? <a routerLink="/auth/sign-in">Sign in</a>
+          {{ 'organizations.registerCompany.alreadyHaveAnAccount' | transloco }}
+          <a routerLink="/auth/sign-in">{{ 'organizations.registerCompany.signIn' | transloco }}</a>
         </p>
+        <app-language-footer-selector />
       </div>
     </main>
 
     <div class="wizard__actions">
       <p class="wizard__note">
         @if (step() === 4) {
-          By creating this organization, you confirm that the information is correct.
+          {{ 'organizations.registerCompany.byCreatingThisOrganization' | transloco }}
         } @else {
-          You can review everything before creating.
+          {{ 'organizations.registerCompany.youCanReviewEverything' | transloco }}
         }
       </p>
 
@@ -125,7 +129,7 @@
             [disabled]="submitting()"
             (click)="back()"
           >
-            Back
+            {{ 'common.back' | transloco }}
           </button>
         }
 
@@ -134,13 +138,15 @@
             <button pButton type="submit" class="wizard__button" [disabled]="createDisabled()">
               @if (submitting()) {
                 <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-                Creating organization…
+                {{ 'organizations.registerCompany.creatingOrganization' | transloco }}
               } @else {
-                Create organization
+                {{ 'organizations.registerCompany.createOrganization' | transloco }}
                 <i class="pi pi-arrow-right" aria-hidden="true"></i>
               }
             </button>
-            <p class="wizard__hint">This may take a few seconds.</p>
+            <p class="wizard__hint">
+              {{ 'organizations.registerCompany.thisMayTakeA' | transloco }}
+            </p>
           </div>
         } @else {
           <button pButton type="submit" class="wizard__button" [disabled]="submitting()">

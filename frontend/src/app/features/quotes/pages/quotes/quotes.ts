@@ -31,6 +31,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -79,6 +80,8 @@ import {
   updatedText,
 } from '../../utils/quotes-list-format';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 interface Region<T> {
   readonly status: 'idle' | 'loading' | 'ready' | 'error';
   readonly data: T | null;
@@ -122,6 +125,8 @@ function noticeDismissed(): boolean {
 @Component({
   selector: 'app-quotes',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     ButtonDirective,
     FormsModule,
     IconField,
@@ -146,10 +151,18 @@ export class Quotes {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly forbiddenMessage = VIEW_FORBIDDEN_MESSAGE;
-  readonly errorMessage = QUOTES_LOAD_ERROR_MESSAGE;
-  readonly metricsErrorMessage = QUOTES_METRICS_ERROR_MESSAGE;
-  readonly noBranchesMessage = QUOTES_NO_BRANCHES_MESSAGE;
+  get forbiddenMessage(): string {
+    return VIEW_FORBIDDEN_MESSAGE();
+  }
+  get errorMessage(): string {
+    return QUOTES_LOAD_ERROR_MESSAGE();
+  }
+  get metricsErrorMessage(): string {
+    return QUOTES_METRICS_ERROR_MESSAGE();
+  }
+  get noBranchesMessage(): string {
+    return QUOTES_NO_BRANCHES_MESSAGE();
+  }
   readonly tabs = QUOTES_TABS;
   readonly dateOptions: Choice[] = QUOTES_DATES.map(({ code, label }) => ({ code, label }));
   readonly sortOptions: Choice[] = QUOTES_SORTS.map(({ code, label }) => ({ code, label }));
@@ -198,14 +211,14 @@ export class Quotes {
   readonly counted = computed(() => this.counts());
   readonly canChooseBranch = computed(() => this.branches().length > 1);
   readonly branchChoices = computed<Choice[]>(() => [
-    ...(this.canChooseBranch() ? [{ code: ALL, label: 'All branches' }] : []),
+    ...(this.canChooseBranch() ? [{ code: ALL, label: t('quotes.quotes.allBranches') }] : []),
     ...this.branches().map((branch) => ({ code: branch.id, label: branch.name })),
   ]);
   readonly branchValue = computed(
     () => this.branchId() ?? (this.canChooseBranch() ? ALL : (this.branches()[0]?.id ?? ALL)),
   );
   readonly statusChoices = computed<Choice[]>(() => [
-    { code: ALL, label: 'All statuses' },
+    { code: ALL, label: t('quotes.quotes.allStatuses') },
     ...TAB_STATUSES[this.view().tab].map((code) => ({
       code,
       label: QUOTE_STATUS_CHIPS[code].label,
@@ -229,30 +242,30 @@ export class Quotes {
     const money = (amount: number): string => formatMoney(amount, data.currency);
     return [
       {
-        label: 'Drafts',
+        label: t('quotes.quotes.drafts'),
         value: data.drafts.count,
-        caption: `${money(data.drafts.amount)} total`,
+        caption: t('quotes.quotes.total', { amount: money(data.drafts.amount) }),
         icon: 'pi-file-edit',
         tone: '',
       },
       {
-        label: 'Awaiting response',
+        label: t('quotes.quotes.awaitingResponse'),
         value: data.awaitingResponse.count,
-        caption: `${money(data.awaitingResponse.amount)} sent`,
+        caption: t('quotes.quotes.sent', { amount: money(data.awaitingResponse.amount) }),
         icon: 'pi-send',
         tone: 'info',
       },
       {
-        label: 'Approved',
+        label: t('quotes.quotes.approved'),
         value: data.approvedThisMonth.count,
-        caption: `${money(data.approvedThisMonth.amount)} this month`,
+        caption: t('quotes.quotes.thisMonth', { amount: money(data.approvedThisMonth.amount) }),
         icon: 'pi-check-circle',
         tone: 'success',
       },
       {
-        label: 'Needs attention',
+        label: t('quotes.quotes.needsAttention'),
         value: data.needsAttention.count,
-        caption: 'Questions or expiring soon',
+        caption: t('quotes.quotes.questionsOrExpiringSoon'),
         icon: 'pi-exclamation-triangle',
         tone: 'warning',
       },
@@ -261,7 +274,7 @@ export class Quotes {
 
   readonly total = computed(() => this.list().data?.total ?? 0);
   readonly announcement = computed(() =>
-    this.list().status === 'ready' ? `${this.total()} quotes` : '',
+    this.list().status === 'ready' ? t('quotes.quotes.quotes2', { total: this.total() }) : '',
   );
   readonly rows = computed<RowView[]>(() => {
     const now = this.now();
@@ -277,7 +290,7 @@ export class Quotes {
         updated: updatedText(row.updatedAt, zone, now),
         updatedFull: fullDateTime(row.updatedAt, zone),
         inline: {
-          label: inline.label === 'Continue draft' ? 'Continue' : 'View',
+          label: inline.label === 'Continue draft' ? t('common.continue') : t('common.view'),
           commands: inline.commands ?? [],
         },
       };
@@ -285,14 +298,20 @@ export class Quotes {
   });
   readonly emptyMessage = computed(() =>
     this.view().tab === 'all' && this.filterCount() === 0 && this.total() === 0
-      ? QUOTES_EMPTY_MESSAGE
-      : QUOTES_FILTERED_EMPTY_MESSAGE,
+      ? QUOTES_EMPTY_MESSAGE()
+      : QUOTES_FILTERED_EMPTY_MESSAGE(),
   );
-  readonly showClearInEmpty = computed(() => this.emptyMessage() === QUOTES_FILTERED_EMPTY_MESSAGE);
+  readonly showClearInEmpty = computed(
+    () => this.emptyMessage() === QUOTES_FILTERED_EMPTY_MESSAGE(),
+  );
   readonly footer = computed(() => {
     const { page, pageSize } = this.view();
     const total = this.total();
-    return `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}`;
+    return t('quotes.quotes.of', {
+      value: (page - 1) * pageSize + 1,
+      value2: Math.min(page * pageSize, total),
+      total: total,
+    });
   });
 
   /** Request gates: null until the options are known and the URL is canonical. */
@@ -620,17 +639,17 @@ export class Quotes {
         handleUnauthorized(this.router, this.sessionExpired);
         return;
       case 'conflict':
-        this.messageService.add({ severity: 'warn', summary: QUOTE_CHANGED_MESSAGE });
+        this.messageService.add({ severity: 'warn', summary: QUOTE_CHANGED_MESSAGE() });
         this.retryList();
         this.retrySummary();
         return;
       case 'forbidden':
       case 'not-found':
-        this.messageService.add({ severity: 'error', summary: QUOTE_UNAVAILABLE_MESSAGE });
+        this.messageService.add({ severity: 'error', summary: QUOTE_UNAVAILABLE_MESSAGE() });
         this.retryList();
         return;
       default:
-        this.messageService.add({ severity: 'error', summary: QUOTE_SAVE_FAILED_MESSAGE });
+        this.messageService.add({ severity: 'error', summary: QUOTE_SAVE_FAILED_MESSAGE() });
     }
   }
 }

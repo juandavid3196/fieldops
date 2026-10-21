@@ -12,10 +12,12 @@ import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatMoney } from '../../../customers/utils/customer-detail-format';
 import { CALC_ERROR_MESSAGE, Calculation } from '../../models/quote.model';
 
+import { t } from '../../../../core/i18n/translate';
 export type CalcStatus = 'idle' | 'loading' | 'ready' | 'error';
 
 /**
@@ -25,7 +27,7 @@ export type CalcStatus = 'idle' | 'loading' | 'ready' | 'error';
  */
 @Component({
   selector: 'app-quote-summary',
-  imports: [FormsModule, ButtonDirective, InputText, Message],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, InputText, Message],
   templateUrl: './quote-summary.html',
   styleUrl: './quote-summary.scss',
 })
@@ -42,7 +44,9 @@ export class QuoteSummary {
 
   readonly retry = output<void>();
 
-  readonly errorMessage = CALC_ERROR_MESSAGE;
+  get errorMessage(): string {
+    return CALC_ERROR_MESSAGE();
+  }
   private readonly revealed = signal(false);
   readonly discountOpen = computed(
     () => !this.readOnly() && (this.revealed() || (this.discount() ?? 0) > 0),
@@ -65,7 +69,7 @@ export class QuoteSummary {
     return {
       subtotal: data === null ? '—' : this.money(data.subtotal),
       discount: data === null ? '—' : `−${this.money(data.discountTotal)}`,
-      taxLabel: data?.taxLabel ?? 'Tax',
+      taxLabel: data?.taxLabel ?? t('quotes.quoteSummary.tax'),
       tax: data === null ? '—' : this.money(data.taxTotal),
       total: data === null ? '—' : this.money(data.total),
       margin:

@@ -1,5 +1,6 @@
 import { RangePreset } from '../../business-overview/models/business-overview.model';
 
+import { t } from '../../../core/i18n/translate';
 /** Reports workspace contracts (Final: specs/reports-workspace/spec.md, API contracts). */
 
 export type { RangePreset };
@@ -24,15 +25,24 @@ export type ReportFilterValues = Readonly<Partial<Record<FilterKey, string>>>;
 export const REPORT_PAGE_SIZES: readonly number[] = [10, 25, 50];
 export const DEFAULT_PAGE_SIZE = 10;
 
-export const REPORTS_FORBIDDEN_MESSAGE = "You don't have access to Reports.";
-export const REPORTS_NO_BRANCHES_MESSAGE = 'No branches available.';
-export const REPORTS_LOAD_ERROR_MESSAGE = "We couldn't load this report.";
-export const REPORTS_REFRESH_ERROR_MESSAGE = "Couldn't refresh.";
-export const REPORTS_EXPORT_FAILED_MESSAGE = "We couldn't export the report. Try again.";
-export const REPORTS_CSV_TOO_LARGE_MESSAGE = 'Narrow the filters to export 5,000 rows or fewer.';
-export const REPORTS_PDF_TOO_LARGE_MESSAGE = 'Narrow the filters to export 1,000 rows or fewer.';
-export const REPORTS_HISTORY_ERROR_MESSAGE = "We couldn't load export history.";
-export const REPORTS_HISTORY_EMPTY_MESSAGE = 'No report exports in the last 90 days.';
+export const REPORTS_FORBIDDEN_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsForbiddenMessage');
+export const REPORTS_NO_BRANCHES_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsNoBranchesMessage');
+export const REPORTS_LOAD_ERROR_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsLoadErrorMessage');
+export const REPORTS_REFRESH_ERROR_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsRefreshErrorMessage');
+export const REPORTS_EXPORT_FAILED_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsExportFailedMessage');
+export const REPORTS_CSV_TOO_LARGE_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsCsvTooLargeMessage');
+export const REPORTS_PDF_TOO_LARGE_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsPdfTooLargeMessage');
+export const REPORTS_HISTORY_ERROR_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsHistoryErrorMessage');
+export const REPORTS_HISTORY_EMPTY_MESSAGE = (): string =>
+  t('reports.reportsModel.reportsHistoryEmptyMessage');
 
 export interface ReportInfo {
   readonly key: ReportKey;

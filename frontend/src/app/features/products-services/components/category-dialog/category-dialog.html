@@ -5,7 +5,7 @@
   [closable]="true"
   [style]="{ width: '40rem' }"
   [breakpoints]="{ '575px': '100vw' }"
-  header="Manage categories"
+  [header]="'productsServices.categoryDialog.manageCategories' | transloco"
 >
   <div class="categories">
     <form
@@ -15,7 +15,9 @@
       (submit)="$event.preventDefault(); create()"
     >
       <div class="categories__field">
-        <label for="category-name">Category name</label>
+        <label for="category-name">{{
+          'productsServices.categoryDialog.categoryName' | transloco
+        }}</label>
         <input
           pInputText
           id="category-name"
@@ -35,7 +37,7 @@
         } @else {
           <i class="pi pi-plus" aria-hidden="true"></i>
         }
-        Add category
+        {{ 'productsServices.categoryDialog.addCategory' | transloco }}
       </button>
       @if (createError(); as message) {
         <p class="categories__error" id="category-name-error" role="alert">{{ message }}</p>
@@ -53,7 +55,7 @@
         <span class="categories__retry">
           {{ loadErrorMessage }}
           <button pButton type="button" size="small" severity="secondary" (click)="retry.emit()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -72,7 +74,10 @@
               >
                 <div class="categories__field">
                   <label class="categories__sr" for="category-rename-input">
-                    New name for {{ category.name }}
+                    {{
+                      'productsServices.categoryDialog.newNameFor'
+                        | transloco: { name: category.name }
+                    }}
                   </label>
                   <input
                     pInputText
@@ -92,7 +97,7 @@
                   @if (renaming()) {
                     <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
                   }
-                  Save
+                  {{ 'common.save' | transloco }}
                 </button>
                 <button
                   pButton
@@ -103,7 +108,7 @@
                   [disabled]="renaming()"
                   (click)="cancelRename()"
                 >
-                  Cancel
+                  {{ 'common.cancel' | transloco }}
                 </button>
                 @if (renameError(); as message) {
                   <p class="categories__error" id="category-rename-error" role="alert">
@@ -130,10 +135,12 @@
                   [text]="true"
                   [id]="'category-rename-' + category.id"
                   [disabled]="toggleId() !== null || renamingId() !== null"
-                  [attr.aria-label]="'Rename ' + category.name"
+                  [attr.aria-label]="
+                    'productsServices.categoryDialog.rename' | transloco: { name: category.name }
+                  "
                   (click)="startRename(category)"
                 >
-                  Rename
+                  {{ 'productsServices.categoryDialog.rename2' | transloco }}
                 </button>
                 @if (category.isActive) {
                   <button
@@ -143,13 +150,16 @@
                     severity="secondary"
                     [text]="true"
                     [disabled]="toggleId() !== null"
-                    [attr.aria-label]="'Deactivate ' + category.name"
+                    [attr.aria-label]="
+                      'productsServices.categoryDialog.deactivate'
+                        | transloco: { name: category.name }
+                    "
                     (click)="confirmDeactivate(category)"
                   >
                     @if (toggleId() === category.id) {
                       <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
                     }
-                    Deactivate
+                    {{ 'productsServices.categoryDialog.deactivate2' | transloco }}
                   </button>
                 } @else {
                   <button
@@ -159,13 +169,16 @@
                     severity="secondary"
                     [text]="true"
                     [disabled]="toggleId() !== null"
-                    [attr.aria-label]="'Reactivate ' + category.name"
+                    [attr.aria-label]="
+                      'productsServices.categoryDialog.reactivate'
+                        | transloco: { name: category.name }
+                    "
                     (click)="reactivate(category)"
                   >
                     @if (toggleId() === category.id) {
                       <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
                     }
-                    Reactivate
+                    {{ 'productsServices.categoryDialog.reactivate2' | transloco }}
                   </button>
                 }
               </span>
@@ -184,7 +197,7 @@
       [outlined]="true"
       (click)="visible.set(false)"
     >
-      Close
+      {{ 'common.close' | transloco }}
     </button>
   </ng-template>
 </p-dialog>

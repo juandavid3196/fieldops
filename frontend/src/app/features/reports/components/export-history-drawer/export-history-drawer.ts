@@ -12,6 +12,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
 import { Subject, catchError, of, switchMap, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -24,6 +25,7 @@ import {
 import { ReportsService } from '../../services/reports.service';
 import { formatDate, formatDateTime } from '../../utils/report-view';
 
+import { t } from '../../../../core/i18n/translate';
 type HistoryState =
   | { readonly status: 'idle' | 'loading' | 'error' }
   | { readonly status: 'ready'; readonly items: readonly ReportExportItem[] };
@@ -36,7 +38,7 @@ interface HistoryRow {
   readonly branch: string;
 }
 
-const UNAVAILABLE_BRANCH = 'Unavailable branch';
+const UNAVAILABLE_BRANCH = (): string => t('reports.exportHistoryDrawer.unavailableBranch');
 
 /**
  * BR-17: the caller's own recent report exports from the audit trail, with Open report. A modal
@@ -44,7 +46,7 @@ const UNAVAILABLE_BRANCH = 'Unavailable branch';
  */
 @Component({
   selector: 'app-export-history-drawer',
-  imports: [ButtonDirective, DrawerShell, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, DrawerShell, Skeleton],
   templateUrl: './export-history-drawer.html',
   styleUrl: './export-history-drawer.scss',
 })
@@ -62,8 +64,12 @@ export class ExportHistoryDrawer {
   readonly sessionExpired = output<void>();
 
   readonly titleId = 'export-history-title';
-  readonly errorMessage = REPORTS_HISTORY_ERROR_MESSAGE;
-  readonly emptyMessage = REPORTS_HISTORY_EMPTY_MESSAGE;
+  get errorMessage(): string {
+    return REPORTS_HISTORY_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return REPORTS_HISTORY_EMPTY_MESSAGE();
+  }
   readonly skeletons = [1, 2, 3];
   readonly state = signal<HistoryState>({ status: 'idle' });
 
@@ -119,14 +125,14 @@ export class ExportHistoryDrawer {
     if (from && to) {
       return `${formatDate(from)} – ${formatDate(to)}`;
     }
-    return asOf ? `As of ${formatDate(asOf)}` : '';
+    return asOf ? t('reports.exportHistoryDrawer.asOf', { asOf: formatDate(asOf) }) : '';
   }
 
   private branch(item: ReportExportItem): string {
     const id = item.filters.branchId;
     if (!id) {
-      return 'All branches';
+      return t('reports.exportHistoryDrawer.allBranches');
     }
-    return this.branches().find((branch) => branch.id === id)?.name ?? UNAVAILABLE_BRANCH;
+    return this.branches().find((branch) => branch.id === id)?.name ?? UNAVAILABLE_BRANCH();
   }
 }

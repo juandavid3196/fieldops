@@ -4,7 +4,7 @@
       <tr>
         <th scope="col" [attr.aria-sort]="ariaSort()">
           <button type="button" class="customer-table__sort" (click)="sortRequested.emit()">
-            Name
+            {{ 'common.name' | transloco }}
             <i
               class="pi"
               [class.pi-sort-alt]="ariaSort() === 'none'"
@@ -17,7 +17,7 @@
         @for (column of columns; track column) {
           <th scope="col">{{ column }}</th>
         }
-        <th scope="col">Actions</th>
+        <th scope="col">{{ 'common.actions' | transloco }}</th>
       </tr>
     </thead>
     <tbody>
@@ -28,7 +28,13 @@
               {{ view.row.displayName }}
             </button>
           </td>
-          <td>{{ view.row.type === 'commercial' ? 'Commercial' : 'Residential' }}</td>
+          <td>
+            {{
+              view.row.type === 'commercial'
+                ? ('customers.customerTable.commercial' | transloco)
+                : ('customers.customerTable.residential' | transloco)
+            }}
+          </td>
           <td class="customer-table__contact">
             @for (line of view.contact; track line) {
               <span class="customer-table__line">{{ line }}</span>
@@ -71,7 +77,10 @@
               type="button"
               class="customer-table__menu-button"
               aria-haspopup="menu"
-              [attr.aria-label]="'Actions for ' + view.row.displayName"
+              [attr.aria-label]="
+                'customers.customerTable.actionsFor'
+                  | transloco: { displayName: view.row.displayName }
+              "
               [disabled]="busyId() === view.row.id"
               (click)="menuRequested.emit({ event: $event, row: view.row })"
             >

@@ -8,12 +8,15 @@ import {
   BusinessHoursRow,
 } from '../models/business-hours.model';
 
+import { t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 /** BR-10: a reopened or closed row proposes 08:00-17:00. */
 export const DEFAULT_OPENING = '08:00';
 export const DEFAULT_CLOSING = '17:00';
 
-export const REQUIRED_MESSAGE = 'This field is required.';
-export const CLOSING_AFTER_OPENING_MESSAGE = 'Closing time must be after opening time.';
+export const REQUIRED_MESSAGE = (): string => t('organizations.businessHoursForm.requiredMessage');
+export const CLOSING_AFTER_OPENING_MESSAGE = (): string =>
+  t('organizations.businessHoursForm.closingAfterOpeningMessage');
 
 export type BusinessHoursPart = 'openingTime' | 'closingTime';
 
@@ -76,12 +79,12 @@ export function validateRow(row: BusinessHoursRow): BusinessHoursErrors {
   }
   const errors: Record<string, string> = {};
   if (!row.opening) {
-    errors[errorKey(row.day, 'openingTime')] = REQUIRED_MESSAGE;
+    errors[errorKey(row.day, 'openingTime')] = REQUIRED_MESSAGE();
   }
   if (!row.closing) {
-    errors[errorKey(row.day, 'closingTime')] = REQUIRED_MESSAGE;
+    errors[errorKey(row.day, 'closingTime')] = REQUIRED_MESSAGE();
   } else if (row.opening && row.closing <= row.opening) {
-    errors[errorKey(row.day, 'closingTime')] = CLOSING_AFTER_OPENING_MESSAGE;
+    errors[errorKey(row.day, 'closingTime')] = CLOSING_AFTER_OPENING_MESSAGE();
   }
   return errors;
 }
@@ -129,10 +132,10 @@ export function mapServerErrors(
 /** BR-13: `{IANA id} (GMT±H[:MM])` with the current offset, or "Not set". */
 export function timezoneLabel(timezone: string | null, now: Date = new Date()): string {
   if (timezone === null || timezone === '') {
-    return 'Not set';
+    return t('organizations.businessHoursForm.notSet');
   }
   try {
-    const part = new Intl.DateTimeFormat('en-US', {
+    const part = new Intl.DateTimeFormat(activeIntlLocale(), {
       timeZone: timezone,
       timeZoneName: 'longOffset',
     })
@@ -145,7 +148,12 @@ export function timezoneLabel(timezone: string | null, now: Date = new Date()): 
     const sign = match[1] ?? '+';
     const hours = Number(match[2] ?? '0');
     const minutes = match[3] === undefined || match[3] === '00' ? '' : `:${match[3]}`;
-    return `${timezone} (GMT${sign}${hours}${minutes})`;
+    return t('organizations.businessHoursForm.gmt', {
+      timezone: timezone,
+      sign: sign,
+      hours: hours,
+      minutes: minutes,
+    });
   } catch {
     return timezone;
   }

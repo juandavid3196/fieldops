@@ -31,6 +31,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { NotificationUnreadService } from '../../../../core/services/notification-unread.service';
@@ -70,6 +71,9 @@ import {
   targetRoute,
 } from '../../utils/notifications-format';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+import { NotificationTextPipe } from '../../utils/notification-text.pipe';
 interface Region<T> {
   readonly status: 'idle' | 'loading' | 'ready' | 'error';
   readonly data: T | null;
@@ -109,6 +113,9 @@ const FIELD_PARAMS = ['tab', 'q', 'type', 'date', 'page', 'pageSize'];
 @Component({
   selector: 'app-notifications',
   imports: [
+    NotificationTextPipe,
+    LocalizedRefPipe,
+    TranslocoPipe,
     ButtonDirective,
     FormsModule,
     IconField,
@@ -133,16 +140,26 @@ export class Notifications {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly forbiddenMessage = NOTIFICATIONS_FORBIDDEN_MESSAGE;
-  readonly errorMessage = NOTIFICATIONS_LOAD_ERROR_MESSAGE;
-  readonly emptyTitle = NOTIFICATIONS_EMPTY_TITLE;
-  readonly emptyText = NOTIFICATIONS_EMPTY_TEXT;
-  readonly filteredEmptyMessage = NOTIFICATIONS_FILTERED_EMPTY_MESSAGE;
+  get forbiddenMessage(): string {
+    return NOTIFICATIONS_FORBIDDEN_MESSAGE();
+  }
+  get errorMessage(): string {
+    return NOTIFICATIONS_LOAD_ERROR_MESSAGE();
+  }
+  get emptyTitle(): string {
+    return NOTIFICATIONS_EMPTY_TITLE();
+  }
+  get emptyText(): string {
+    return NOTIFICATIONS_EMPTY_TEXT();
+  }
+  get filteredEmptyMessage(): string {
+    return NOTIFICATIONS_FILTERED_EMPTY_MESSAGE();
+  }
   readonly tabs = NOTIFICATION_TABS;
-  readonly typeOptions: Choice[] = [
-    { code: ALL, label: 'All types' },
+  readonly typeOptions: Choice[] = localizedList(() => [
+    { code: ALL, label: t('notifications.notifications.allTypes') },
     ...NOTIFICATION_TYPES.map(({ code, label }) => ({ code, label })),
-  ];
+  ]);
   readonly dateOptions: Choice[] = NOTIFICATION_DATES.map(({ code, label }) => ({ code, label }));
   readonly pageSizeOptions: number[] = [...NOTIFICATIONS_PAGE_SIZES];
   readonly skeletonRows = [1, 2, 3, 4, 5];
@@ -178,7 +195,7 @@ export class Notifications {
   /** BR-21: the branch dropdown is hidden with fewer than two branches. */
   readonly canChooseBranch = computed(() => this.branches().length > 1);
   readonly branchChoices = computed<Choice[]>(() => [
-    { code: ALL, label: 'All branches' },
+    { code: ALL, label: t('notifications.notifications.allBranches') },
     ...this.branches().map((branch) => ({ code: branch.id, label: branch.name })),
   ]);
   readonly controlsDisabled = computed(() => this.options().status !== 'ready');
@@ -188,8 +205,16 @@ export class Notifications {
     const show = (value: number | undefined): string =>
       this.summary().status === 'error' || value === undefined ? '—' : String(value);
     return [
-      { label: 'Unread', value: show(data?.unread), icon: 'pi-envelope' },
-      { label: 'Today', value: show(data?.today), icon: 'pi-calendar' },
+      {
+        label: t('notifications.notifications.unread'),
+        value: show(data?.unread),
+        icon: 'pi-envelope',
+      },
+      {
+        label: t('notifications.notifications.today'),
+        value: show(data?.today),
+        icon: 'pi-calendar',
+      },
     ];
   });
   readonly markAllDisabled = computed(
@@ -201,7 +226,9 @@ export class Notifications {
 
   readonly total = computed(() => this.list().data?.total ?? 0);
   readonly announcement = computed(() =>
-    this.list().status === 'ready' ? `${this.total()} notifications` : '',
+    this.list().status === 'ready'
+      ? t('notifications.notifications.notifications2', { total: this.total() })
+      : '',
   );
   readonly groups = computed<GroupView[]>(() => {
     const data = this.list().data;
@@ -224,15 +251,15 @@ export class Notifications {
         tone,
         relative,
         full: fullDateTime(item.createdAt, zone),
-        name: `${item.title}, ${item.isRead ? 'read' : 'unread'}, ${relative}`,
+        name: `${item.title}, ${item.isRead ? t('notifications.notifications.read') : t('notifications.notifications.unread2')}, ${relative}`,
         detail,
         route: item.target === null ? null : targetRoute(item.target.kind, item.target.id),
       };
       (isToday(item.createdAt, zone, now) ? today : earlier).push(row);
     }
     return [
-      { label: 'Today', rows: today },
-      { label: 'Earlier', rows: earlier },
+      { label: t('notifications.notifications.today'), rows: today },
+      { label: t('notifications.notifications.earlier'), rows: earlier },
     ].filter((group) => group.rows.length > 0);
   });
   /** BR-18/UI table: the inbox-empty copy shows only with no filters and no tab narrowing. */
@@ -243,7 +270,11 @@ export class Notifications {
   readonly footer = computed(() => {
     const { page, pageSize } = this.view();
     const total = this.total();
-    return `${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total}`;
+    return t('notifications.notifications.of', {
+      value: (page - 1) * pageSize + 1,
+      value2: Math.min(page * pageSize, total),
+      total: total,
+    });
   });
 
   /** Request gates: null until the options are known and the URL is canonical. */
@@ -527,7 +558,7 @@ export class Notifications {
       this.markRead(row.item);
     }
     if (row.route === null) {
-      this.messageService.add({ severity: 'info', summary: NOTIFICATION_TARGET_GONE_MESSAGE });
+      this.messageService.add({ severity: 'info', summary: NOTIFICATION_TARGET_GONE_MESSAGE() });
       return;
     }
     void this.router.navigate(row.route.commands, {
@@ -546,7 +577,9 @@ export class Notifications {
     const read = row.item.isRead;
     this.rowMenu.set([
       {
-        label: read ? 'Mark as unread' : 'Mark as read',
+        label: read
+          ? t('notifications.notifications.markAsUnread')
+          : t('notifications.notifications.markAsRead'),
         command: () => (read ? this.markUnread(row.item) : this.markRead(row.item)),
       },
     ]);
@@ -605,14 +638,17 @@ export class Notifications {
         if (api?.kind === 'unauthorized') {
           handleUnauthorized(this.router, this.sessionExpired);
         } else if (api?.kind === 'not-found') {
-          this.messageService.add({ severity: 'error', summary: NOTIFICATION_UNAVAILABLE_MESSAGE });
+          this.messageService.add({
+            severity: 'error',
+            summary: NOTIFICATION_UNAVAILABLE_MESSAGE(),
+          });
           this.reload();
         } else {
           this.list.set(previousList);
           this.summary.set(previousSummary);
           this.messageService.add({
             severity: 'error',
-            summary: NOTIFICATION_UPDATE_FAILED_MESSAGE,
+            summary: NOTIFICATION_UPDATE_FAILED_MESSAGE(),
           });
         }
       },
@@ -648,7 +684,7 @@ export class Notifications {
           }
           this.messageService.add({
             severity: 'error',
-            summary: NOTIFICATION_UPDATE_FAILED_MESSAGE,
+            summary: NOTIFICATION_UPDATE_FAILED_MESSAGE(),
           });
         },
       });

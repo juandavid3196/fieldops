@@ -9,6 +9,7 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   BANK_UNAVAILABLE_MESSAGE,
@@ -21,12 +22,13 @@ import { PublicPaymentFlow } from '../../services/public-payment-flow';
 import { PublicBankTransfer } from '../public-bank-transfer/public-bank-transfer';
 import { PublicCardForm } from '../public-card-form/public-card-form';
 
+import { t } from '../../../../core/i18n/translate';
 type Method = 'card' | 'bank' | 'cash';
 
 /** "Pay invoice" panel (BR-28): method selector, the three method panels, overlay and alerts. */
 @Component({
   selector: 'app-public-payment-panel',
-  imports: [PublicBankTransfer, PublicCardForm],
+  imports: [TranslocoPipe, PublicBankTransfer, PublicCardForm],
   templateUrl: './public-payment-panel.html',
   styleUrl: './public-payment-panel.scss',
 })
@@ -40,10 +42,18 @@ export class PublicPaymentPanel {
   readonly reload = output<void>();
   readonly unavailable = output<void>();
 
-  protected readonly failureTitle = CARD_FAILURE_TITLE;
-  protected readonly stillConfirming = CARD_STILL_CONFIRMING_MESSAGE;
-  protected readonly cardReason = CARD_UNAVAILABLE_MESSAGE;
-  protected readonly bankReason = BANK_UNAVAILABLE_MESSAGE;
+  protected get failureTitle(): string {
+    return CARD_FAILURE_TITLE();
+  }
+  protected get stillConfirming(): string {
+    return CARD_STILL_CONFIRMING_MESSAGE();
+  }
+  protected get cardReason(): string {
+    return CARD_UNAVAILABLE_MESSAGE();
+  }
+  protected get bankReason(): string {
+    return BANK_UNAVAILABLE_MESSAGE();
+  }
 
   private readonly chosen = signal<Method | null>(null);
 
@@ -70,7 +80,7 @@ export class PublicPaymentPanel {
     const email = invoice.organization.email;
     return email === null
       ? null
-      : `mailto:${email}?subject=${encodeURIComponent(`Invoice ${invoice.number}`)}`;
+      : `mailto:${email}?subject=${encodeURIComponent(t('invoices.publicPaymentPanel.invoice', { number: invoice.number }))}`;
   });
 
   protected select(method: Method): void {

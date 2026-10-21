@@ -1,9 +1,13 @@
 <section class="invoice" aria-labelledby="invoice-title">
-  <h2 class="invoice__title" id="invoice-title">Invoice details</h2>
+  <h2 class="invoice__title" id="invoice-title">
+    {{ 'billingReview.invoicePanel.invoiceDetails' | transloco }}
+  </h2>
 
   <div class="invoice__grid">
     <div class="invoice__field">
-      <label [for]="id + '-number'">Invoice number (preview)</label>
+      <label [for]="id + '-number'">{{
+        'billingReview.invoicePanel.invoiceNumberPreview' | transloco
+      }}</label>
       <input
         pInputText
         fluid
@@ -13,7 +17,7 @@
       />
     </div>
     <div class="invoice__field">
-      <label [for]="id + '-issue'">Issue date</label>
+      <label [for]="id + '-issue'">{{ 'billingReview.invoicePanel.issueDate' | transloco }}</label>
       <input
         #issueDateField
         pInputText
@@ -34,12 +38,14 @@
       }
     </div>
     <div class="invoice__field">
-      <span [id]="id + '-terms-label'">Payment terms</span>
+      <span [id]="id + '-terms-label'">{{
+        'billingReview.invoicePanel.paymentTerms' | transloco
+      }}</span>
       <p-select
         appendTo="body"
         fluid
         [ariaLabelledBy]="id + '-terms-label'"
-        [options]="termsOptions"
+        [options]="termsOptions | localizedRef"
         optionLabel="label"
         optionValue="code"
         [readonly]="readOnly()"
@@ -52,15 +58,19 @@
       }
     </div>
     <div class="invoice__field">
-      <label [for]="id + '-due'">Due date</label>
+      <label [for]="id + '-due'">{{ 'billingReview.invoicePanel.dueDate' | transloco }}</label>
       <input pInputText fluid readonly [id]="id + '-due'" [value]="view().due" />
     </div>
     <div class="invoice__field">
-      <label [for]="id + '-tax'">Tax jurisdiction</label>
+      <label [for]="id + '-tax'">{{
+        'billingReview.invoicePanel.taxJurisdiction' | transloco
+      }}</label>
       <input pInputText fluid readonly [id]="id + '-tax'" [value]="view().jurisdiction" />
     </div>
     <div class="invoice__field">
-      <label [for]="id + '-currency'">Currency</label>
+      <label [for]="id + '-currency'">{{
+        'billingReview.invoicePanel.currency' | transloco
+      }}</label>
       <input
         pInputText
         fluid
@@ -72,31 +82,51 @@
   </div>
 
   <fieldset class="invoice__group" disabled>
-    <legend>Delivery after generation</legend>
-    <label><input type="checkbox" /> Email invoice to customer</label>
-    <label><input type="checkbox" /> SMS link to invoice</label>
+    <legend>{{ 'billingReview.invoicePanel.deliveryAfterGeneration' | transloco }}</legend>
+    <label
+      ><input type="checkbox" />
+      {{ 'billingReview.invoicePanel.emailInvoiceToCustomer' | transloco }}</label
+    >
+    <label
+      ><input type="checkbox" />
+      {{ 'billingReview.invoicePanel.smsLinkToInvoice' | transloco }}</label
+    >
     <label>
-      Recipient email
+      {{ 'billingReview.invoicePanel.recipientEmail' | transloco }}
       <input pInputText fluid disabled value="" />
     </label>
-    <label><input type="checkbox" /> Attach completion report</label>
+    <label
+      ><input type="checkbox" />
+      {{ 'billingReview.invoicePanel.attachCompletionReport' | transloco }}</label
+    >
   </fieldset>
   <fieldset class="invoice__group" disabled>
-    <legend>Payment options (on invoice)</legend>
-    <label><input type="checkbox" /> Card (credit/debit)</label>
-    <label><input type="checkbox" /> ACH (bank transfer)</label>
-    <label><input type="checkbox" /> Cash or check (Record manually)</label>
+    <legend>{{ 'billingReview.invoicePanel.paymentOptionsOnInvoice' | transloco }}</legend>
+    <label
+      ><input type="checkbox" />
+      {{ 'billingReview.invoicePanel.cardCreditDebit' | transloco }}</label
+    >
+    <label
+      ><input type="checkbox" />
+      {{ 'billingReview.invoicePanel.achBankTransfer' | transloco }}</label
+    >
+    <label
+      ><input type="checkbox" />
+      {{ 'billingReview.invoicePanel.cashOrCheckRecord' | transloco }}</label
+    >
   </fieldset>
-  <p class="invoice__muted">Sending and online payments will be available later.</p>
+  <p class="invoice__muted">
+    {{ 'billingReview.invoicePanel.sendingAndOnlinePayments' | transloco }}
+  </p>
 
   <dl class="invoice__summary">
     <div>
-      <dt>Subtotal</dt>
+      <dt>{{ 'billingReview.invoicePanel.subtotal' | transloco }}</dt>
       <dd>{{ view().subtotal }}</dd>
     </div>
     @if (view().discount; as discount) {
       <div>
-        <dt>Discount</dt>
+        <dt>{{ 'billingReview.invoicePanel.discount' | transloco }}</dt>
         <dd>{{ discount }}</dd>
       </div>
     }
@@ -105,14 +135,14 @@
       <dd>{{ view().tax }}</dd>
     </div>
     <div class="invoice__total">
-      <dt>Total</dt>
+      <dt>{{ 'common.total' | transloco }}</dt>
       <dd>{{ view().total }}</dd>
     </div>
   </dl>
 
   <p class="invoice__info">
     <i class="pi pi-info-circle" aria-hidden="true"></i>
-    Generating creates a draft invoice. Review it before sending.
+    {{ 'billingReview.invoicePanel.generatingCreatesADraft' | transloco }}
   </p>
 
   @if (view().followUp; as followUp) {
@@ -135,7 +165,7 @@
         @if (pending() === 'return') {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        Return to quote
+        {{ 'billingReview.invoicePanel.returnToQuote' | transloco }}
       </button>
       <button
         pButton
@@ -149,7 +179,11 @@
         @if (pending() === 'follow-up') {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        {{ detail().followUp === null ? 'Mark for follow-up' : 'Remove follow-up' }}
+        {{
+          detail().followUp === null
+            ? ('billingReview.invoicePanel.markForFollowUp' | transloco)
+            : ('billingReview.invoicePanel.removeFollowUp' | transloco)
+        }}
       </button>
       <button
         pButton
@@ -161,7 +195,7 @@
         @if (pending() === 'generate') {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        Generate invoice
+        {{ 'billingReview.invoicePanel.generateInvoice' | transloco }}
       </button>
     </div>
   }

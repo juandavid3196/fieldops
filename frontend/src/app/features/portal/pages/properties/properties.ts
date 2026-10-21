@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PortalState } from '../../components/portal-state/portal-state';
 import { PortalProperty } from '../../models/portal.model';
@@ -11,7 +12,7 @@ import { PortalResource } from '../../utils/portal-resource';
 /** Properties list (BR-33): active properties, primary first, with Edit and Add property. */
 @Component({
   selector: 'app-portal-properties',
-  imports: [ButtonDirective, PortalState, RouterLink],
+  imports: [TranslocoPipe, ButtonDirective, PortalState, RouterLink],
   templateUrl: './properties.html',
   styleUrls: ['../../portal.scss', '../../portal-card.scss', './properties.scss'],
 })

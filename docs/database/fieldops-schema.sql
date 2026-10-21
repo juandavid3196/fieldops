@@ -65,9 +65,11 @@ CREATE TABLE branches (
   CONSTRAINT ck_branches_main_active CHECK (NOT is_main OR is_active),
   UNIQUE (organization_id, code), UNIQUE (organization_id, id)
 );
+-- SA-24 (app-i18n-en-es): users.preferred_language is the user's UI language code; supported codes are enforced by the
+-- application, not by a CHECK, so adding a language needs no migration.
 CREATE TABLE users (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email varchar(254) NOT NULL, password_hash text NOT NULL,
-  first_name varchar(100) NOT NULL, last_name varchar(100) NOT NULL, phone varchar(40), status user_status NOT NULL DEFAULT 'pending',
+  first_name varchar(100) NOT NULL, last_name varchar(100) NOT NULL, phone varchar(40), preferred_language varchar(10) NOT NULL DEFAULT 'en', status user_status NOT NULL DEFAULT 'pending',
   email_verified_at timestamptz, last_login_at timestamptz, password_changed_at timestamptz, created_at timestamptz NOT NULL DEFAULT now(), updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (email)
 );

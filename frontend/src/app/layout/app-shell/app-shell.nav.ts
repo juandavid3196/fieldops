@@ -1,3 +1,4 @@
+import { localizedList, t } from '../../core/i18n/translate';
 /** One sidebar link. `exact` links match only their own URL (`aria-current="page"`). */
 export interface NavItem {
   readonly label: string;
@@ -84,53 +85,80 @@ export const TEAM_ROLE_CODES: readonly string[] = [
 ];
 
 /** BR-01: sidebar structure, order and icons. */
-export const NAV_GROUPS: readonly NavGroup[] = [
+export const NAV_GROUPS: readonly NavGroup[] = localizedList((): readonly NavGroup[] => [
   {
     id: 'dashboard',
     heading: null,
     manageOnly: true,
-    items: [{ label: 'Dashboard', icon: 'pi-th-large', link: '/dashboard', exact: true }],
+    items: [
+      {
+        label: t('shell.appShellNav.dashboard'),
+        icon: 'pi-th-large',
+        link: '/dashboard',
+        exact: true,
+      },
+    ],
   },
   {
     id: 'overview',
     heading: null,
     hiddenForManage: true,
-    items: [{ label: 'Overview', icon: 'pi-th-large', link: '/overview', exact: true }],
+    items: [
+      {
+        label: t('shell.appShellNav.overview'),
+        icon: 'pi-th-large',
+        link: '/overview',
+        exact: true,
+      },
+    ],
   },
   {
     id: 'technician',
     heading: null,
     technicianOnly: true,
-    items: [{ label: "Today's jobs", icon: 'pi-briefcase', link: '/today', exact: true }],
+    items: [
+      {
+        label: t('shell.appShellNav.todaysJobs'),
+        icon: 'pi-briefcase',
+        link: '/today',
+        exact: true,
+      },
+    ],
   },
   {
     id: 'operations',
-    heading: 'Operations',
+    heading: t('shell.appShellNav.operations'),
     items: [
       {
-        label: 'Requests',
+        label: t('shell.appShellNav.requests'),
         icon: 'pi-inbox',
         link: '/requests',
         exact: false,
         roles: INTERNAL_ROLE_CODES,
       },
       {
-        label: 'Quotes',
+        label: t('shell.appShellNav.quotes'),
         icon: 'pi-file-edit',
         link: '/quotes',
         exact: false,
         roles: INTERNAL_ROLE_CODES,
       },
-      { label: 'Jobs', icon: 'pi-wrench', link: '/jobs', exact: false, roles: WORK_ROLE_CODES },
       {
-        label: 'Schedule',
+        label: t('shell.appShellNav.jobs'),
+        icon: 'pi-wrench',
+        link: '/jobs',
+        exact: false,
+        roles: WORK_ROLE_CODES,
+      },
+      {
+        label: t('shell.appShellNav.schedule'),
         icon: 'pi-calendar',
         link: '/schedule',
         exact: false,
         roles: WORK_ROLE_CODES,
       },
       {
-        label: 'Messages',
+        label: t('shell.appShellNav.messages'),
         icon: 'pi-comments',
         link: '/messages',
         exact: false,
@@ -141,31 +169,37 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
   {
     id: 'people',
-    heading: 'People',
+    heading: t('shell.appShellNav.people'),
     items: [
       {
-        label: 'Customers',
+        label: t('shell.appShellNav.customers'),
         icon: 'pi-users',
         link: '/customers',
         exact: false,
         roles: INTERNAL_ROLE_CODES,
       },
-      { label: 'Team', icon: 'pi-id-card', link: '/team', exact: false, roles: TEAM_ROLE_CODES },
+      {
+        label: t('shell.appShellNav.team'),
+        icon: 'pi-id-card',
+        link: '/team',
+        exact: false,
+        roles: TEAM_ROLE_CODES,
+      },
     ],
   },
   {
     id: 'finance',
-    heading: 'Finance',
+    heading: t('shell.appShellNav.finance'),
     items: [
       {
-        label: 'Products and services',
+        label: t('shell.appShellNav.productsAndServices'),
         icon: 'pi-box',
         link: '/admin/products-services',
         exact: true,
         roles: INTERNAL_ROLE_CODES,
       },
       {
-        label: 'Invoices',
+        label: t('shell.appShellNav.invoices'),
         icon: 'pi-receipt',
         link: '/invoices',
         exact: false,
@@ -173,36 +207,41 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         roles: INTERNAL_ROLE_CODES,
         children: [
           {
-            label: 'All invoices',
+            label: t('shell.appShellNav.allInvoices'),
             icon: 'pi-receipt',
             link: '/invoices',
             exact: false,
             queryParams: {},
           },
-          { label: 'Needs review', icon: 'pi-list-check', link: '/invoices/review', exact: false },
           {
-            label: 'Drafts',
+            label: t('shell.appShellNav.needsReview'),
+            icon: 'pi-list-check',
+            link: '/invoices/review',
+            exact: false,
+          },
+          {
+            label: t('shell.appShellNav.drafts'),
             icon: 'pi-file-edit',
             link: '/invoices',
             exact: false,
             queryParams: { status: 'draft' },
           },
           {
-            label: 'Sent',
+            label: t('shell.appShellNav.sent'),
             icon: 'pi-send',
             link: '/invoices',
             exact: false,
             queryParams: { status: 'sent' },
           },
           {
-            label: 'Payments',
+            label: t('shell.appShellNav.payments'),
             icon: 'pi-wallet',
             link: '/invoices',
             exact: false,
             queryParams: { tab: 'payments' },
           },
           {
-            label: 'Overdue',
+            label: t('shell.appShellNav.overdue'),
             icon: 'pi-clock',
             link: '/invoices',
             exact: false,
@@ -211,14 +250,14 @@ export const NAV_GROUPS: readonly NavGroup[] = [
         ],
       },
       {
-        label: 'Reports',
+        label: t('shell.appShellNav.reports'),
         icon: 'pi-chart-bar',
         link: '/reports',
         exact: false,
         roles: REPORTS_ROLE_CODES,
       },
       {
-        label: 'Audit log',
+        label: t('shell.appShellNav.auditLog'),
         icon: 'pi-history',
         link: '/audit-log',
         exact: false,
@@ -231,7 +270,14 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     heading: null,
     divider: true,
     internalOnly: true,
-    items: [{ label: 'Notifications', icon: 'pi-bell', link: '/notifications', exact: false }],
+    items: [
+      {
+        label: t('shell.appShellNav.notifications'),
+        icon: 'pi-bell',
+        link: '/notifications',
+        exact: false,
+      },
+    ],
   },
   {
     id: 'administration',
@@ -240,7 +286,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
     adminOnly: true,
     items: [
       {
-        label: 'Administration',
+        label: t('shell.appShellNav.administration'),
         icon: 'pi-cog',
         link: '/admin/company',
         exact: false,
@@ -248,7 +294,7 @@ export const NAV_GROUPS: readonly NavGroup[] = [
       },
     ],
   },
-];
+]);
 
 /** BR-01: role codes allowed to see Administration. */
 export const ADMINISTRATION_ROLE_CODES: readonly string[] = ['owner', 'viewer'];

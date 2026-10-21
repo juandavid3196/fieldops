@@ -1,6 +1,6 @@
 <div class="pp">
   <header class="pp__head">
-    <h1 class="pp__title">Invoices</h1>
+    <h1 class="pp__title">{{ 'portal.invoices.invoices' | transloco }}</h1>
     @if (list.properties().length > 0) {
       <app-portal-property-filter
         [properties]="list.properties()"
@@ -12,39 +12,49 @@
 
   <app-portal-state
     [state]="list.resource.state()"
-    label="Loading invoices"
-    emptyText="No invoices yet."
-    errorText="We couldn't load your invoices."
+    [label]="'portal.invoices.loadingInvoices' | transloco"
+    [emptyText]="'portal.invoices.noInvoicesYet' | transloco"
+    [errorText]="'portal.invoices.weCouldnTLoad' | transloco"
     (retry)="list.reload()"
   >
     @if (list.resource.data(); as page) {
       <div class="pcard">
         <table class="ptable">
           <caption class="sr">
-            Invoices
+            {{
+              'portal.invoices.invoices' | transloco
+            }}
           </caption>
           <thead>
             <tr>
-              <th scope="col">Invoice</th>
-              <th scope="col">Service</th>
-              <th scope="col">Issued</th>
-              <th scope="col">Due</th>
-              <th scope="col">Total</th>
-              <th scope="col">Balance due</th>
-              <th scope="col">Status</th>
-              <th scope="col"><span class="sr">Actions</span></th>
+              <th scope="col">{{ 'portal.invoices.invoice' | transloco }}</th>
+              <th scope="col">{{ 'portal.invoices.service' | transloco }}</th>
+              <th scope="col">{{ 'portal.invoices.issued' | transloco }}</th>
+              <th scope="col">{{ 'portal.invoices.due' | transloco }}</th>
+              <th scope="col">{{ 'common.total' | transloco }}</th>
+              <th scope="col">{{ 'portal.invoices.balanceDue' | transloco }}</th>
+              <th scope="col">{{ 'common.status' | transloco }}</th>
+              <th scope="col">
+                <span class="sr">{{ 'common.actions' | transloco }}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             @for (row of rows(); track row.invoice.id) {
               <tr>
-                <td data-label="Invoice">{{ row.invoice.displayNumber }}</td>
-                <td data-label="Service">{{ row.invoice.title }}</td>
-                <td data-label="Issued">{{ row.issued }}</td>
-                <td data-label="Due">{{ row.due }}</td>
-                <td data-label="Total">{{ row.total }}</td>
-                <td data-label="Balance due">{{ row.balance }}</td>
-                <td data-label="Status">
+                <td [attr.data-label]="'portal.invoices.invoice' | transloco">
+                  {{ row.invoice.displayNumber }}
+                </td>
+                <td [attr.data-label]="'portal.invoices.service' | transloco">
+                  {{ row.invoice.title }}
+                </td>
+                <td [attr.data-label]="'portal.invoices.issued' | transloco">{{ row.issued }}</td>
+                <td [attr.data-label]="'portal.invoices.due' | transloco">{{ row.due }}</td>
+                <td [attr.data-label]="'common.total' | transloco">{{ row.total }}</td>
+                <td [attr.data-label]="'portal.invoices.balanceDue' | transloco">
+                  {{ row.balance }}
+                </td>
+                <td [attr.data-label]="'common.status' | transloco">
                   <app-portal-status-chip [label]="row.chip.label" [tone]="row.chip.tone" />
                 </td>
                 <td>
@@ -53,9 +63,12 @@
                     severity="secondary"
                     [outlined]="true"
                     size="small"
-                    [attr.aria-label]="'View invoice ' + row.invoice.displayNumber"
+                    [attr.aria-label]="
+                      'portal.invoices.viewInvoice'
+                        | transloco: { displayNumber: row.invoice.displayNumber }
+                    "
                     [routerLink]="['/portal/invoices', row.invoice.id]"
-                    >View</a
+                    >{{ 'common.view' | transloco }}</a
                   >
                 </td>
               </tr>
@@ -66,7 +79,7 @@
           [page]="page.page"
           [pageSize]="page.pageSize"
           [total]="page.total"
-          noun="invoices"
+          [noun]="'portal.invoices.invoices2' | transloco"
           (pageChange)="list.goTo($event)"
         />
       </div>

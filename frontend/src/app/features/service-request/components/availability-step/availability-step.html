@@ -1,11 +1,15 @@
-<h2 class="sr-title" tabindex="-1" data-sr-heading>Availability</h2>
+<h2 class="sr-title" tabindex="-1" data-sr-heading>
+  {{ 'serviceRequest.availabilityStep.availability' | transloco }}
+</h2>
 <p class="sr-lead">
-  Tell us what works for you. This is a preference, not a confirmed appointment.
+  {{ 'serviceRequest.availabilityStep.tellUsWhatWorks' | transloco }}
 </p>
 
 <form novalidate (submit)="$event.preventDefault(); store.next()">
   <fieldset class="sr-field">
-    <legend class="sr-subtitle">Preferred date</legend>
+    <legend class="sr-subtitle">
+      {{ 'serviceRequest.availabilityStep.preferredDate' | transloco }}
+    </legend>
     <div class="sr-tiles sr-tiles--3">
       @for (mode of modes; track mode.value) {
         <label class="sr-tile">
@@ -27,7 +31,8 @@
   @if (availability().dateMode === 'date') {
     <div class="sr-field">
       <label class="sr-label" for="sr-availability-preferredDate"
-        >Date <span class="sr-required" aria-hidden="true">*</span></label
+        >{{ 'common.date' | transloco }}
+        <span class="sr-required" aria-hidden="true">*</span></label
       >
       <input
         pInputText
@@ -52,7 +57,9 @@
   }
 
   <fieldset class="sr-field">
-    <legend class="sr-subtitle">Preferred time</legend>
+    <legend class="sr-subtitle">
+      {{ 'serviceRequest.availabilityStep.preferredTime' | transloco }}
+    </legend>
     <div class="sr-tiles sr-tiles--4">
       @for (window of windows; track window.value) {
         <label class="sr-tile">
@@ -76,7 +83,8 @@
 
   <div class="sr-field">
     <label class="sr-label" for="sr-availability-schedulingNotes">
-      Scheduling notes <span class="sr-optional">(optional)</span>
+      {{ 'serviceRequest.availabilityStep.schedulingNotes' | transloco }}
+      <span class="sr-optional">{{ 'serviceRequest.availabilityStep.optional' | transloco }}</span>
     </label>
     <textarea
       pTextarea
@@ -84,7 +92,7 @@
       id="sr-availability-schedulingNotes"
       rows="3"
       maxlength="1000"
-      placeholder="Share any access details, timing preferences, or other notes for the technician…"
+      [attr.placeholder]="'serviceRequest.availabilityStep.shareAnyAccessDetails' | transloco"
       fluid
       [value]="availability().schedulingNotes"
       [invalid]="store.error('availability.schedulingNotes') !== null"
@@ -103,16 +111,16 @@
 
   <p class="sr-band">
     <i class="pi pi-info-circle" aria-hidden="true"></i>
-    We'll confirm the appointment time after reviewing your request.
+    {{ 'serviceRequest.availabilityStep.weLlConfirmThe' | transloco }}
   </p>
 
   <div class="sr-actions">
     <button pButton type="button" variant="outlined" class="sr-back" (click)="store.back()">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      Back
+      {{ 'common.back' | transloco }}
     </button>
     <button pButton type="submit">
-      Continue to review
+      {{ 'serviceRequest.availabilityStep.continueToReview' | transloco }}
       <i class="pi pi-arrow-right" aria-hidden="true"></i>
     </button>
   </div>

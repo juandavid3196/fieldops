@@ -2,7 +2,7 @@
   <div class="rtable__empty">
     <strong>{{ emptyMessage }}</strong>
     <button pButton type="button" severity="secondary" size="small" (click)="resetRequested.emit()">
-      Reset
+      {{ 'common.reset' | transloco }}
     </button>
   </div>
 } @else {
@@ -56,7 +56,7 @@
               @for (cell of totalCells(); track $index) {
                 <td [class.rtable__end]="isMoney($index)">
                   @if ($index === 0) {
-                    <strong>Total</strong>
+                    <strong>{{ 'common.total' | transloco }}</strong>
                   }
                   @if (cell) {
                     <ng-container *ngTemplateOutlet="content; context: { $implicit: cell }" />
@@ -81,10 +81,10 @@
         />
         <p-select
           appendTo="body"
-          ariaLabel="Rows per page"
+          [ariaLabel]="'reports.reportTable.rowsPerPage' | transloco"
           optionLabel="label"
           optionValue="code"
-          [options]="pageSizeOptions"
+          [options]="pageSizeOptions | localizedRef"
           [ngModel]="pageSizeCode()"
           (ngModelChange)="pageSizeRequested.emit(+$event)"
         />

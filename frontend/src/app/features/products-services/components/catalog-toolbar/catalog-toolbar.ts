@@ -4,6 +4,7 @@ import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   CatalogSummary,
@@ -13,6 +14,8 @@ import {
 } from '../../models/catalog.model';
 import { METRICS_ERROR_TOOLTIP } from '../catalog-metrics/catalog-metrics';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 interface Option<T> {
   readonly code: T;
   readonly label: string;
@@ -24,28 +27,28 @@ interface Tab {
   readonly count: 'allItems' | 'services' | 'products';
 }
 
-const TABS: readonly Tab[] = [
-  { type: null, label: 'All items', count: 'allItems' },
-  { type: 'service', label: 'Services', count: 'services' },
-  { type: 'product', label: 'Products', count: 'products' },
-];
+const TABS: readonly Tab[] = localizedList(() => [
+  { type: null, label: t('productsServices.catalogToolbar.allItems'), count: 'allItems' },
+  { type: 'service', label: t('productsServices.catalogToolbar.services'), count: 'services' },
+  { type: 'product', label: t('productsServices.catalogToolbar.products'), count: 'products' },
+]);
 
 // Not `readonly`: PrimeNG's `p-select` `[options]` input requires a mutable array type.
-const TYPE_OPTIONS: Option<CatalogType | null>[] = [
-  { code: null, label: 'All types' },
-  { code: 'service', label: 'Service' },
-  { code: 'product', label: 'Product' },
-];
-const TAX_OPTIONS: Option<TaxStatusFilter | null>[] = [
-  { code: null, label: 'All' },
-  { code: 'taxable', label: 'Taxable' },
-  { code: 'non_taxable', label: 'Non-taxable' },
-];
-const STATUS_OPTIONS: Option<StatusFilter | null>[] = [
-  { code: null, label: 'All' },
-  { code: 'active', label: 'Active' },
-  { code: 'inactive', label: 'Inactive' },
-];
+const TYPE_OPTIONS: Option<CatalogType | null>[] = localizedList(() => [
+  { code: null, label: t('productsServices.catalogToolbar.allTypes') },
+  { code: 'service', label: t('productsServices.catalogToolbar.service') },
+  { code: 'product', label: t('productsServices.catalogToolbar.product') },
+]);
+const TAX_OPTIONS: Option<TaxStatusFilter | null>[] = localizedList(() => [
+  { code: null, label: t('productsServices.catalogToolbar.all') },
+  { code: 'taxable', label: t('productsServices.catalogToolbar.taxable') },
+  { code: 'non_taxable', label: t('productsServices.catalogToolbar.nonTaxable') },
+]);
+const STATUS_OPTIONS: Option<StatusFilter | null>[] = localizedList(() => [
+  { code: null, label: t('productsServices.catalogToolbar.all') },
+  { code: 'active', label: t('common.active') },
+  { code: 'inactive', label: t('common.inactive') },
+]);
 
 /**
  * Tabs, search and Type/Tax status/Status filters (FR-04). Tabs and the Type filter are one
@@ -53,7 +56,7 @@ const STATUS_OPTIONS: Option<StatusFilter | null>[] = [
  */
 @Component({
   selector: 'app-catalog-toolbar',
-  imports: [FormsModule, IconField, InputIcon, InputText, Select],
+  imports: [LocalizedRefPipe, TranslocoPipe, FormsModule, IconField, InputIcon, InputText, Select],
   templateUrl: './catalog-toolbar.html',
   styleUrl: './catalog-toolbar.scss',
 })
@@ -76,7 +79,9 @@ export class CatalogToolbar {
   readonly typeOptions = TYPE_OPTIONS;
   readonly taxOptions = TAX_OPTIONS;
   readonly statusOptions = STATUS_OPTIONS;
-  readonly errorTooltip = METRICS_ERROR_TOOLTIP;
+  get errorTooltip(): string {
+    return METRICS_ERROR_TOOLTIP();
+  }
 
   count(tab: Tab): string {
     const summary = this.summary();

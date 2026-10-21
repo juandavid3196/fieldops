@@ -1,7 +1,12 @@
 <div class="time">
   @switch (state()) {
     @case ('loading') {
-      <div class="time__skeletons" aria-busy="true" aria-label="Loading your time" role="status">
+      <div
+        class="time__skeletons"
+        aria-busy="true"
+        [attr.aria-label]="'technicianJobs.time.loadingYourTime' | transloco"
+        role="status"
+      >
         <p-skeleton height="2.5rem" width="60%" />
         <p-skeleton height="2.75rem" width="70%" />
         <p-skeleton height="14rem" />
@@ -15,7 +20,7 @@
         <span class="time__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -23,15 +28,19 @@
     @case ('ready') {
       @if (data(); as summary) {
         <header class="time__header">
-          <h1 class="time__title">Time summary</h1>
-          <div class="time__toggle" role="group" aria-label="Time view">
+          <h1 class="time__title">{{ 'technicianJobs.time.timeSummary' | transloco }}</h1>
+          <div
+            class="time__toggle"
+            role="group"
+            [attr.aria-label]="'technicianJobs.time.timeView' | transloco"
+          >
             <button
               type="button"
               class="time__toggle-button"
               [attr.aria-pressed]="view() === 'day'"
               (click)="setView('day')"
             >
-              Day
+              {{ 'technicianJobs.time.day' | transloco }}
             </button>
             <button
               type="button"
@@ -39,7 +48,7 @@
               [attr.aria-pressed]="view() === 'week'"
               (click)="setView('week')"
             >
-              Week
+              {{ 'technicianJobs.time.week' | transloco }}
             </button>
           </div>
         </header>
@@ -48,7 +57,7 @@
           <button
             type="button"
             class="time__nav"
-            [attr.aria-label]="'Previous ' + unit()"
+            [attr.aria-label]="'technicianJobs.time.previous' | transloco: { unit: unit() }"
             (click)="move(-1)"
           >
             <i class="pi pi-chevron-left" aria-hidden="true"></i>
@@ -57,7 +66,7 @@
           <button
             type="button"
             class="time__nav"
-            [attr.aria-label]="'Next ' + unit()"
+            [attr.aria-label]="'technicianJobs.time.next' | transloco: { unit: unit() }"
             (click)="move(1)"
           >
             <i class="pi pi-chevron-right" aria-hidden="true"></i>
@@ -69,15 +78,19 @@
             <span class="time__error">
               {{ loadErrorMessage }}
               <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
         }
 
-        <section class="time__card" [attr.aria-busy]="changing()" aria-label="Totals">
+        <section
+          class="time__card"
+          [attr.aria-busy]="changing()"
+          [attr.aria-label]="'technicianJobs.time.totals' | transloco"
+        >
           <p class="time__total">{{ totals().total }}</p>
-          <p class="time__total-label">Total recorded</p>
+          <p class="time__total-label">{{ 'technicianJobs.time.totalRecorded' | transloco }}</p>
           <ul class="time__tiles">
             @for (tile of totals().tiles; track tile.type) {
               <li class="time__tile">
@@ -93,7 +106,10 @@
           </ul>
 
           @if (bars().length > 0) {
-            <ul class="time__chart" aria-label="Time per day">
+            <ul
+              class="time__chart"
+              [attr.aria-label]="'technicianJobs.time.timePerDay' | transloco"
+            >
               @for (bar of bars(); track bar.day.date) {
                 <li class="time__bar">
                   <span class="time__sr">{{ bar.alternative }}</span>
@@ -121,7 +137,10 @@
                 </li>
               }
             </ul>
-            <ul class="time__legend" aria-label="Chart legend">
+            <ul
+              class="time__legend"
+              [attr.aria-label]="'technicianJobs.time.chartLegend' | transloco"
+            >
               @for (item of legend; track item.type) {
                 <li class="time__legend-item">
                   <span class="time__swatch" [attr.data-type]="item.type" aria-hidden="true"></span>
@@ -162,7 +181,9 @@
                           row.typeLabel
                         }}</span>
                         @if (row.entry.isOpen) {
-                          <span class="time__chip time__chip--open">In progress</span>
+                          <span class="time__chip time__chip--open">{{
+                            'technicianJobs.time.inProgress' | transloco
+                          }}</span>
                         }
                       </span>
                       @if (row.secondary) {

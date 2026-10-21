@@ -3,6 +3,8 @@ import { AssessmentCalendar, CalendarDay, TimeRange } from '../models/requests.m
 import { clock, minutesOf, rangeText } from './assessment-schedule';
 import { toLocalInput } from './requests-format';
 
+import { t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 export type CalendarView = 'week' | 'day' | 'agenda';
 
 /** The proposed block (BR-07): form date, window start and duration. */
@@ -83,7 +85,9 @@ export function shiftDate(view: CalendarView, date: string, direction: -1 | 1): 
 }
 
 function format(date: string, options: Intl.DateTimeFormatOptions): string {
-  return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(utc(date));
+  return new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: 'UTC' }).format(
+    utc(date),
+  );
 }
 
 /** Toolbar label: "Sep 21 – 25, 2026", "Tue, Sep 22, 2026". */
@@ -280,7 +284,9 @@ export function buildCalendarView(input: CalendarViewInput): CalendarViewModel {
       .filter((c) => c.date === date)
       .map((c, index) => ({
         key: `${date}-${index}-${c.event.start}`,
-        label: c.event.isCurrent ? 'Current assessment' : c.event.label,
+        label: c.event.isCurrent
+          ? t('requests.assessmentCalendar.currentAssessment')
+          : c.event.label,
         kind: c.event.kind,
         isCurrent: c.event.isCurrent,
         from: c.from,
@@ -289,7 +295,7 @@ export function buildCalendarView(input: CalendarViewInput): CalendarViewModel {
     if (proposed?.date === date) {
       raw.push({
         key: `${date}-proposed`,
-        label: 'Proposed assessment',
+        label: t('requests.assessmentCalendar.proposedAssessment'),
         kind: 'proposed',
         isCurrent: false,
         from: proposed.startMinutes,
@@ -312,7 +318,9 @@ export function buildCalendarView(input: CalendarViewInput): CalendarViewModel {
       .filter((c) => c.date === date)
       .map((c) => ({
         range: rangeText(c.from, c.to),
-        label: c.event.isCurrent ? 'Current assessment' : c.event.label,
+        label: c.event.isCurrent
+          ? t('requests.assessmentCalendar.currentAssessment')
+          : c.event.label,
       }));
     return events.length === 0
       ? []
@@ -326,9 +334,15 @@ export function buildCalendarView(input: CalendarViewInput): CalendarViewModel {
   });
   const listing = ordered
     .filter((c) => dates.includes(c.date))
-    .map(
-      (c) =>
-        `${format(c.date, { weekday: 'long', month: 'long', day: 'numeric' })}, ${clock(c.from)} to ${clock(c.to)}: ${c.event.isCurrent ? 'Current assessment' : c.event.label}`,
+    .map((c) =>
+      t('requests.assessmentCalendar.to', {
+        value: format(c.date, { weekday: 'long', month: 'long', day: 'numeric' }),
+        from: clock(c.from),
+        to: clock(c.to),
+        value2: c.event.isCurrent
+          ? t('requests.assessmentCalendar.currentAssessment')
+          : c.event.label,
+      }),
     );
 
   return {

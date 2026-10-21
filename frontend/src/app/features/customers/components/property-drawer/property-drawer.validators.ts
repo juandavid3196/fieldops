@@ -1,5 +1,6 @@
 import { US_STATE_OPTIONS } from '../../../organizations/data/us-states';
 
+import { localized, t } from '../../../../core/i18n/translate';
 export const PROPERTY_FIELD_KEYS = [
   'name',
   'addressLine1',
@@ -13,16 +14,16 @@ export const PROPERTY_FIELD_KEYS = [
 export type PropertyFieldKey = (typeof PROPERTY_FIELD_KEYS)[number];
 export type PropertyFieldErrors = Partial<Record<PropertyFieldKey, string>>;
 
-export const PROPERTY_FIELD_LABELS: Readonly<Record<PropertyFieldKey, string>> = {
-  name: 'Property name',
-  addressLine1: 'Address line 1',
-  addressLine2: 'Address line 2',
-  city: 'City',
-  stateRegion: 'State',
-  postalCode: 'ZIP code',
-  branchId: 'Branch',
-  serviceInstructions: 'Service instructions',
-};
+export const PROPERTY_FIELD_LABELS: Readonly<Record<PropertyFieldKey, string>> = localized(() => ({
+  name: t('customers.propertyDrawerValidators.propertyName'),
+  addressLine1: t('customers.propertyDrawerValidators.addressLine1'),
+  addressLine2: t('customers.propertyDrawerValidators.addressLine2'),
+  city: t('customers.propertyDrawerValidators.city'),
+  stateRegion: t('customers.propertyDrawerValidators.state'),
+  postalCode: t('customers.propertyDrawerValidators.zipCode'),
+  branchId: t('customers.propertyDrawerValidators.branch'),
+  serviceInstructions: t('customers.propertyDrawerValidators.serviceInstructions'),
+}));
 
 export interface PropertyFormValue {
   readonly name: string;
@@ -37,7 +38,7 @@ export interface PropertyFormValue {
 
 const STATE_CODES = new Set(US_STATE_OPTIONS.map((option) => option.code));
 const US_ZIP = /^\d{5}(-\d{4})?$/;
-const FEW_180 = 'Use 180 characters or fewer.';
+const FEW_180 = (): string => t('customers.propertyDrawerValidators.few180');
 
 function required(value: string, requiredMessage: string, max: number, maxMessage: string) {
   const text = value.trim();
@@ -58,20 +59,35 @@ export function validatePropertyField(
 ): string | null {
   switch (field) {
     case 'name':
-      return required(value.name, 'Enter a property name.', 140, 'Use 140 characters or fewer.');
+      return required(
+        value.name,
+        t('customers.propertyDrawerValidators.enterAPropertyName'),
+        140,
+        t('customers.propertyDrawerValidators.use140CharactersOr'),
+      );
     case 'addressLine1':
-      return required(value.addressLine1, 'Enter an address.', 180, FEW_180);
+      return required(
+        value.addressLine1,
+        t('customers.propertyDrawerValidators.enterAnAddress'),
+        180,
+        FEW_180(),
+      );
     case 'addressLine2':
-      return within(value.addressLine2, 180, FEW_180);
+      return within(value.addressLine2, 180, FEW_180());
     case 'city':
-      return required(value.city, 'Enter a city.', 100, 'Use 100 characters or fewer.');
+      return required(
+        value.city,
+        t('customers.propertyDrawerValidators.enterACity'),
+        100,
+        t('customers.propertyDrawerValidators.use100CharactersOr'),
+      );
     case 'stateRegion': {
       const state = value.stateRegion.trim();
       if (state.length === 0) {
         return null;
       }
       return (usesStateList ? !STATE_CODES.has(state) : state.length > 100)
-        ? 'Choose a valid state.'
+        ? t('customers.propertyDrawerValidators.chooseAValidState')
         : null;
     }
     case 'postalCode': {
@@ -80,13 +96,19 @@ export function validatePropertyField(
         return null;
       }
       return (usesStateList ? !US_ZIP.test(zip) : zip.length > 30)
-        ? 'Enter a valid ZIP code.'
+        ? t('customers.propertyDrawerValidators.enterAValidZip')
         : null;
     }
     case 'branchId':
-      return value.branchId === null || value.branchId === '' ? 'Choose a branch.' : null;
+      return value.branchId === null || value.branchId === ''
+        ? t('customers.propertyDrawerValidators.chooseABranch')
+        : null;
     case 'serviceInstructions':
-      return within(value.serviceInstructions, 2000, 'Use 2,000 characters or fewer.');
+      return within(
+        value.serviceInstructions,
+        2000,
+        t('customers.propertyDrawerValidators.use2000Characters'),
+      );
   }
 }
 

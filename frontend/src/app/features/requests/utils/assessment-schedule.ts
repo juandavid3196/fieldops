@@ -2,6 +2,8 @@ import { addDays, todayInTimeZone } from '../../service-request/service-request.
 import { PlannerTechnician, RequestDetail, TimeWindow } from '../models/requests.model';
 import { toLocalInput } from './requests-format';
 
+import { t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 /** Editable values of the Assessment visit form (BR-08 to BR-12, BR-14, BR-20). */
 export interface AssessmentFormValue {
   readonly branchId: string;
@@ -61,12 +63,15 @@ export const WINDOW_OPTIONS: Option<string>[] = Array.from({ length: 14 }, (_, i
 /** BR-11 labels: "<n> minutes" below 120, "<h> hours" from 120. */
 export const DURATION_OPTIONS: Option<number>[] = DURATIONS.map((code) => ({
   code,
-  label: code < 120 ? `${code} minutes` : `${code / 60} hours`,
+  label:
+    code < 120
+      ? t('requests.assessmentSchedule.minutes', { code: code })
+      : t('requests.assessmentSchedule.hours', { value: code / 60 }),
 }));
 
 /** `Tue, Sep 22` of a local `YYYY-MM-DD` date (BR-13). */
 export function previewDate(date: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -163,9 +168,14 @@ export function previewMessage(
   const to = clock(minutesOf(value.window) + 60);
   const lead =
     mode === 'reschedule'
-      ? `Your assessment visit has been rescheduled to ${date}`
-      : `Your assessment visit is scheduled for ${date}`;
-  return `${lead} between ${from} and ${to}. ${technicianName} will inspect the issue before we prepare your quote.`;
+      ? t('requests.assessmentSchedule.yourAssessmentVisitHas', { date: date })
+      : t('requests.assessmentSchedule.yourAssessmentVisitIs', { date: date });
+  return t('requests.assessmentSchedule.betweenAndWillInspect', {
+    lead: lead,
+    from: from,
+    to: to,
+    technicianName: technicianName,
+  });
 }
 
 /** Wall-clock minutes of an instant (or an `HH:mm` string) in the organization time zone. */
@@ -182,20 +192,24 @@ export function slotChipText(technician: PlannerTechnician, timeZone: string): s
   const slot = technician.slot;
   switch (slot.state) {
     case 'available':
-      return 'Available';
+      return t('requests.assessmentSchedule.available');
     case 'available_after':
       return slot.availableAfter === null
-        ? 'Available later'
-        : `Available after ${clock(localMinutes(slot.availableAfter, timeZone))}`;
+        ? t('requests.assessmentSchedule.availableLater')
+        : t('requests.assessmentSchedule.availableAfter', {
+            value: clock(localMinutes(slot.availableAfter, timeZone)),
+          });
     case 'outside_availability':
-      return 'Outside availability';
+      return t('requests.assessmentSchedule.outsideAvailability');
     case 'time_off':
-      return 'Time off';
+      return t('requests.assessmentSchedule.timeOff');
     case 'conflict': {
       if (slot.from === null || slot.to === null) {
-        return 'Conflict';
+        return t('requests.assessmentSchedule.conflict');
       }
-      return `Conflict ${rangeText(localMinutes(slot.from, timeZone), localMinutes(slot.to, timeZone))}`;
+      return t('requests.assessmentSchedule.conflict2', {
+        value: rangeText(localMinutes(slot.from, timeZone), localMinutes(slot.to, timeZone)),
+      });
     }
   }
 }
@@ -213,5 +227,7 @@ export function workloadText(technician: PlannerTechnician): string {
   if (workload.state === 'percent' && workload.percent !== null) {
     return `${workload.percent}%`;
   }
-  return workload.state === 'no_availability' ? 'No availability' : '—';
+  return workload.state === 'no_availability'
+    ? t('requests.assessmentSchedule.noAvailability')
+    : '—';
 }

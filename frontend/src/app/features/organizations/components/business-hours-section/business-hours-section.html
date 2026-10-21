@@ -1,7 +1,7 @@
 <app-wizard-card
   headingId="business-hours-heading"
-  title="Business hours"
-  description="Set the days and times your work is available. These hours will be shown on quotes and customer communications."
+  [title]="'organizations.businessHoursSection.businessHours' | transloco"
+  [description]="'organizations.businessHoursSection.setTheDaysAnd' | transloco"
   icon="pi-clock"
 >
   @if (rootError(); as message) {
@@ -19,10 +19,16 @@
           <p-toggleswitch
             [inputId]="controlId(day, 'open')"
             [formControl]="dayGroup(day).controls.open"
-            [ariaLabel]="dayLabel(day) + ' open'"
+            [ariaLabel]="
+              'organizations.businessHoursSection.open' | transloco: { day: dayLabel(day) }
+            "
             [readonly]="submitting()"
           />
-          <span class="business-hours__state">{{ isOpen(day) ? 'Open' : 'Closed' }}</span>
+          <span class="business-hours__state">{{
+            isOpen(day)
+              ? ('common.open' | transloco)
+              : ('organizations.businessHoursSection.closed' | transloco)
+          }}</span>
         </div>
 
         <div class="business-hours__times">
@@ -31,10 +37,12 @@
               [inputId]="controlId(day, 'start')"
               appendTo="body"
               [formControl]="dayGroup(day).controls.start"
-              [options]="timeOptions"
+              [options]="timeOptions | localizedRef"
               optionLabel="label"
               optionValue="code"
-              [ariaLabel]="dayLabel(day) + ' start time'"
+              [ariaLabel]="
+                'organizations.businessHoursSection.startTime' | transloco: { day: dayLabel(day) }
+              "
               fluid
               [readonly]="submitting()"
               [invalid]="startError(day) !== null"
@@ -59,10 +67,12 @@
               [inputId]="controlId(day, 'end')"
               appendTo="body"
               [formControl]="dayGroup(day).controls.end"
-              [options]="timeOptions"
+              [options]="timeOptions | localizedRef"
               optionLabel="label"
               optionValue="code"
-              [ariaLabel]="dayLabel(day) + ' end time'"
+              [ariaLabel]="
+                'organizations.businessHoursSection.endTime' | transloco: { day: dayLabel(day) }
+              "
               fluid
               [readonly]="submitting()"
               [invalid]="endError(day) !== null"
@@ -94,6 +104,6 @@
     (click)="copyMonday.emit()"
   >
     <i class="pi pi-copy" aria-hidden="true"></i>
-    Copy Monday to weekdays
+    {{ 'organizations.businessHoursSection.copyMondayToWeekdays' | transloco }}
   </button>
 </app-wizard-card>

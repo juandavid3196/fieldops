@@ -1,11 +1,13 @@
 import { Priority } from './work-order.model';
 
+import { t } from '../../../core/i18n/translate';
 /** Fixed copy of the jobs workspace (specs/jobs-management/spec.md UI states; backend text is never shown). */
-export const JOBS_LOAD_ERROR_MESSAGE = "We couldn't load jobs. Try again.";
-export const JOBS_METRICS_ERROR_MESSAGE = "We couldn't load job metrics. Try again.";
-export const JOBS_EMPTY_MESSAGE = 'No jobs yet. Jobs are created from approved quotes.';
-export const JOBS_FILTERED_EMPTY_MESSAGE = 'No jobs match the current view.';
-export const JOBS_NO_BRANCHES_MESSAGE = 'No branches available.';
+export const JOBS_LOAD_ERROR_MESSAGE = (): string => t('jobs.jobsModel.jobsLoadErrorMessage');
+export const JOBS_METRICS_ERROR_MESSAGE = (): string => t('jobs.jobsModel.jobsMetricsErrorMessage');
+export const JOBS_EMPTY_MESSAGE = (): string => t('jobs.jobsModel.jobsEmptyMessage');
+export const JOBS_FILTERED_EMPTY_MESSAGE = (): string =>
+  t('jobs.jobsModel.jobsFilteredEmptyMessage');
+export const JOBS_NO_BRANCHES_MESSAGE = (): string => t('jobs.jobsModel.jobsNoBranchesMessage');
 
 /** BR-10: rows per page offered by the UI (the first is the default). */
 export const JOBS_PAGE_SIZES: readonly number[] = [10, 25, 50];

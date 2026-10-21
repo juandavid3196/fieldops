@@ -26,6 +26,7 @@ import {
   of,
   switchMap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -75,39 +76,39 @@ import { RequestsService } from '../../services/requests.service';
 import { PHOTO_TYPE_MESSAGE } from '../../components/complete-assessment-dialog/complete-assessment-dialog';
 import { fieldKey } from '../../utils/requests-format';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to requests.";
-export const DESCRIPTION_MESSAGE =
-  'Manage incoming service requests and move them through your workflow.';
-export const LOAD_ERROR_MESSAGE = "We couldn't load requests.";
-export const EMPTY_INITIAL_TITLE = 'No requests yet';
-export const EMPTY_INITIAL_MESSAGE =
-  'New requests from your public form and your team will appear here.';
-export const EMPTY_FILTERED_MESSAGE = 'No requests match your filters.';
-export const QUOTE_CREATE_FAILED_MESSAGE = "We couldn't create this quote. Please try again.";
-export const NOT_STARTED_MESSAGE = "This assessment hasn't started yet.";
+import { localized, t } from '../../../../core/i18n/translate';
+export const FORBIDDEN_MESSAGE = (): string => t('requests.requests.forbiddenMessage');
+export const DESCRIPTION_MESSAGE = (): string => t('requests.requests.descriptionMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('requests.requests.loadErrorMessage');
+export const EMPTY_INITIAL_TITLE = (): string => t('requests.requests.emptyInitialTitle');
+export const EMPTY_INITIAL_MESSAGE = (): string => t('requests.requests.emptyInitialMessage');
+export const EMPTY_FILTERED_MESSAGE = (): string => t('requests.requests.emptyFilteredMessage');
+export const QUOTE_CREATE_FAILED_MESSAGE = (): string =>
+  t('requests.requests.quoteCreateFailedMessage');
+export const NOT_STARTED_MESSAGE = (): string => t('requests.requests.notStartedMessage');
 const SEARCH_DEBOUNCE_MS = 300;
 
 type MutationKey =
   Exclude<RequestActionId, 'schedule-assessment' | 'reschedule'> | 'note' | 'upload';
 
-const SUCCESS_MESSAGES: Readonly<Record<MutationKey, string>> = {
-  'request-information': 'Information request sent.',
-  'mark-ready': 'Request marked ready for quote.',
-  'complete-assessment': 'Assessment completed.',
+const SUCCESS_MESSAGES: Readonly<Record<MutationKey, string>> = localized(() => ({
+  'request-information': t('requests.requests.informationRequestSent'),
+  'mark-ready': t('requests.requests.requestMarkedReadyFor'),
+  'complete-assessment': t('requests.requests.assessmentCompleted'),
   'create-quote': '',
   'continue-quote': '',
   'view-quote': '',
-  assign: 'Assignment updated.',
-  'change-priority': 'Priority updated.',
-  'set-branch': 'Branch updated.',
-  'log-response': 'Customer response logged.',
-  'start-review': 'Request moved to Needs review.',
-  'move-back': 'Request moved back to Needs review.',
-  'cancel-assessment': 'Assessment cancelled.',
-  'cancel-request': 'Request cancelled.',
-  note: 'Note added.',
-  upload: 'Files added.',
-};
+  assign: t('requests.requests.assignmentUpdated'),
+  'change-priority': t('requests.requests.priorityUpdated'),
+  'set-branch': t('requests.requests.branchUpdated'),
+  'log-response': t('requests.requests.customerResponseLogged'),
+  'start-review': t('requests.requests.requestMovedToNeeds'),
+  'move-back': t('requests.requests.requestMovedBackTo'),
+  'cancel-assessment': t('requests.requests.assessmentCancelled'),
+  'cancel-request': t('requests.requests.requestCancelled'),
+  note: t('requests.requests.noteAdded'),
+  upload: t('requests.requests.filesAdded'),
+}));
 
 type BoardResult =
   | { readonly ok: true; readonly response: PipelineResponse }
@@ -136,6 +137,7 @@ function emptyColumns(): Record<BoardStatus, ColumnState> {
 @Component({
   selector: 'app-requests',
   imports: [
+    TranslocoPipe,
     ButtonDirective,
     ConfirmDialog,
     DiscardChangesDialog,
@@ -165,13 +167,27 @@ export class Requests {
   private readonly injector = inject(Injector);
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
-  readonly noEmailMessage = NO_EMAIL_MESSAGE;
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly descriptionMessage = DESCRIPTION_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
-  readonly emptyInitialTitle = EMPTY_INITIAL_TITLE;
-  readonly emptyInitialMessage = EMPTY_INITIAL_MESSAGE;
-  readonly emptyFilteredMessage = EMPTY_FILTERED_MESSAGE;
+  get noEmailMessage(): string {
+    return NO_EMAIL_MESSAGE();
+  }
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get descriptionMessage(): string {
+    return DESCRIPTION_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  get emptyInitialTitle(): string {
+    return EMPTY_INITIAL_TITLE();
+  }
+  get emptyInitialMessage(): string {
+    return EMPTY_INITIAL_MESSAGE();
+  }
+  get emptyFilteredMessage(): string {
+    return EMPTY_FILTERED_MESSAGE();
+  }
 
   private readonly roleCode = computed(() => this.sessionService.session()?.role.code ?? '');
   /** UX only: the backend decides (BR-01). */
@@ -370,7 +386,7 @@ export class Requests {
         result.error ?? {
           kind: 'unknown',
           status: 0,
-          message: LOAD_ERROR_MESSAGE,
+          message: LOAD_ERROR_MESSAGE(),
           fieldErrors: {},
         },
       );
@@ -654,11 +670,15 @@ export class Requests {
     this.cancelNotify.set(false);
     this.confirmOpen = true;
     this.confirmationService.confirm({
-      header: 'Cancel assessment?',
-      message: 'The request returns to Needs review.',
+      header: t('requests.requests.cancelAssessment'),
+      message: t('requests.requests.theRequestReturnsTo'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Cancel assessment', severity: 'danger' },
-      rejectButtonProps: { label: 'Keep', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('requests.requests.cancelAssessment2'), severity: 'danger' },
+      rejectButtonProps: {
+        label: t('requests.requests.keep'),
+        severity: 'secondary',
+        outlined: true,
+      },
       accept: () => {
         this.confirmOpen = false;
         this.run(
@@ -767,7 +787,7 @@ export class Requests {
       case 'not-found':
         this.dialogKind.set(null);
         this.completeOpen.set(false);
-        this.messageService.add({ severity: 'error', summary: UNAVAILABLE_MESSAGE });
+        this.messageService.add({ severity: 'error', summary: UNAVAILABLE_MESSAGE() });
         this.reloadAll();
         return;
       case 'validation':
@@ -781,10 +801,10 @@ export class Requests {
       severity: 'error',
       summary:
         key === 'complete-assessment'
-          ? COMPLETE_FAILED_MESSAGE
+          ? COMPLETE_FAILED_MESSAGE()
           : key === 'create-quote'
-            ? QUOTE_CREATE_FAILED_MESSAGE
-            : SAVE_FAILED_MESSAGE,
+            ? QUOTE_CREATE_FAILED_MESSAGE()
+            : SAVE_FAILED_MESSAGE(),
     });
   }
 
@@ -797,14 +817,14 @@ export class Requests {
           ? entries.flatMap(([, messages]) => messages)
           : [
               error.status === 413
-                ? 'These files are too large to send.'
-                : "One or more files can't be accepted.",
+                ? t('requests.requests.theseFilesAreToo')
+                : t('requests.requests.oneOrMoreFiles'),
             ],
       );
       return true;
     }
     if (key === 'complete-assessment' && (error.status === 413 || error.status === 415)) {
-      this.completeErrors.set({ photos: PHOTO_TYPE_MESSAGE });
+      this.completeErrors.set({ photos: PHOTO_TYPE_MESSAGE() });
       return true;
     }
     if (error.status === 413 || error.status === 415) {
@@ -840,10 +860,10 @@ export class Requests {
     this.messageService.add({
       severity: 'error',
       summary: draftExists
-        ? QUOTE_DRAFT_EXISTS_MESSAGE
+        ? QUOTE_DRAFT_EXISTS_MESSAGE()
         : notStarted
-          ? NOT_STARTED_MESSAGE
-          : CONFLICT_MESSAGE,
+          ? NOT_STARTED_MESSAGE()
+          : CONFLICT_MESSAGE(),
     });
     this.reloadAll();
   }
@@ -869,7 +889,10 @@ export class Requests {
   onCreated(detail: RequestDetail): void {
     this.newOpen.set(false);
     this.originCardId = null;
-    this.messageService.add({ severity: 'success', summary: 'Request created.' });
+    this.messageService.add({
+      severity: 'success',
+      summary: t('requests.requests.requestCreated'),
+    });
     this.detail.set(detail);
     this.detailState.set('ready');
     void this.router.navigate([], {

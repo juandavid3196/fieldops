@@ -8,7 +8,9 @@
   [style]="{ width: '34rem', maxWidth: '94vw' }"
 >
   <div class="material">
-    <label class="material__label" for="wo-material-search">Search catalog products</label>
+    <label class="material__label" for="wo-material-search">{{
+      'quotes.workOrderMaterialDialog.searchCatalogProducts' | transloco
+    }}</label>
     <input
       pInputText
       id="wo-material-search"
@@ -22,10 +24,12 @@
       @if (searching()) {
         <p class="material__muted" role="status">
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-          Searching…
+          {{ 'quotes.workOrderMaterialDialog.searching' | transloco }}
         </p>
       } @else if (products().length === 0) {
-        <p class="material__muted">No products found.</p>
+        <p class="material__muted">
+          {{ 'quotes.workOrderMaterialDialog.noProductsFound' | transloco }}
+        </p>
       } @else {
         <ul class="material__list">
           @for (product of products(); track product.id) {
@@ -39,7 +43,9 @@
       }
     </div>
 
-    <label class="material__label" for="wo-material-description">Material</label>
+    <label class="material__label" for="wo-material-description">{{
+      'quotes.workOrderMaterialDialog.material' | transloco
+    }}</label>
     <input
       pInputText
       id="wo-material-description"
@@ -55,7 +61,9 @@
 
     <div class="material__row">
       <div>
-        <label class="material__label" for="wo-material-quantity">Planned qty</label>
+        <label class="material__label" for="wo-material-quantity">{{
+          'quotes.workOrderMaterialDialog.plannedQty' | transloco
+        }}</label>
         <input
           pInputText
           id="wo-material-quantity"
@@ -74,7 +82,9 @@
         }
       </div>
       <div>
-        <label class="material__label" for="wo-material-unit">Unit</label>
+        <label class="material__label" for="wo-material-unit">{{
+          'quotes.workOrderMaterialDialog.unit' | transloco
+        }}</label>
         <input
           pInputText
           id="wo-material-unit"
@@ -90,14 +100,16 @@
       </div>
     </div>
 
-    <label class="material__label" for="wo-material-source">Source</label>
+    <label class="material__label" for="wo-material-source">{{
+      'quotes.workOrderMaterialDialog.source' | transloco
+    }}</label>
     <p-select
       inputId="wo-material-source"
       appendTo="body"
       fluid
       optionLabel="label"
       optionValue="code"
-      [options]="sources"
+      [options]="sources | localizedRef"
       [ngModel]="source()"
       (ngModelChange)="source.set($event)"
     />
@@ -113,9 +125,11 @@
         [outlined]="true"
         (click)="dismissed.emit()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
-      <button pButton type="button" (click)="save()">Save material</button>
+      <button pButton type="button" (click)="save()">
+        {{ 'quotes.workOrderMaterialDialog.saveMaterial' | transloco }}
+      </button>
     </div>
   </div>
 </p-dialog>

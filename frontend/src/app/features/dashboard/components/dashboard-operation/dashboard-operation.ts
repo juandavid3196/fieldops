@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { Menu } from 'primeng/menu';
 import { Paginator, PaginatorState } from 'primeng/paginator';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatInstant, monthDay } from '../../../schedule/utils/schedule-range';
 import { DayVisit } from '../../models/dashboard.model';
@@ -15,12 +16,13 @@ import {
   timing,
 } from '../../utils/dashboard-view';
 
+import { t } from '../../../../core/i18n/translate';
 export const OPERATION_PAGE_SIZE = 8;
 
 /** BR-10: the selected day's visits with status, time, job, customer, technician, timing, actions. */
 @Component({
   selector: 'app-dashboard-operation',
-  imports: [Menu, Paginator, RouterLink],
+  imports: [TranslocoPipe, Menu, Paginator, RouterLink],
   templateUrl: './dashboard-operation.html',
   styleUrl: './dashboard-operation.scss',
 })
@@ -41,7 +43,9 @@ export class DashboardOperation {
   private readonly menu = viewChild.required<Menu>('menu');
 
   readonly title = computed(() =>
-    this.isToday() ? "Today's operation" : `Operation · ${monthDay(this.date())}`,
+    this.isToday()
+      ? t('dashboard.dashboardOperation.todaysOperation')
+      : t('dashboard.dashboardOperation.operation', { date: monthDay(this.date()) }),
   );
   readonly rows = computed(() => {
     const zone = this.timezone();
@@ -72,9 +76,13 @@ export class DashboardOperation {
     const go = (link: AppLink) => () =>
       void this.router.navigate([...link.path], { queryParams: link.queryParams });
     this.menuModel.set([
-      { label: 'View job', icon: 'pi pi-eye', command: go(jobLink(visit.workOrderId)) },
       {
-        label: 'Open in schedule',
+        label: t('dashboard.dashboardOperation.viewJob'),
+        icon: 'pi pi-eye',
+        command: go(jobLink(visit.workOrderId)),
+      },
+      {
+        label: t('dashboard.dashboardOperation.openInSchedule'),
         icon: 'pi pi-calendar',
         command: go(visitLink(visit.branchId, this.date(), visit.visitId)),
       },

@@ -17,6 +17,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { saveCsv } from '../../../../shared/utils/csv-file';
@@ -24,9 +25,12 @@ import { ImportPreview, ImportRowError } from '../../models/customer.model';
 import { CustomersService } from '../../services/customers.service';
 import { CSV_SIZE_MESSAGE, CSV_TYPE_MESSAGE, validateCsvFile } from '../../utils/customer-format';
 
-export const TEMPLATE_FAILED_MESSAGE = "We couldn't download the template. Try again.";
-export const IMPORT_FAILED_MESSAGE = "We couldn't import the file. Try again.";
-const CHECK_FAILED_MESSAGE = "We couldn't check the file. Try again.";
+import { t } from '../../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../../core/i18n/active-locale';
+export const TEMPLATE_FAILED_MESSAGE = (): string =>
+  t('customers.importDialog.templateFailedMessage');
+export const IMPORT_FAILED_MESSAGE = (): string => t('customers.importDialog.importFailedMessage');
+const CHECK_FAILED_MESSAGE = (): string => t('customers.importDialog.checkFailedMessage');
 const MAX_SHOWN_ERRORS = 100;
 
 /**
@@ -36,7 +40,7 @@ const MAX_SHOWN_ERRORS = 100;
  */
 @Component({
   selector: 'app-import-dialog',
-  imports: [ButtonDirective, Dialog, SpinnerIcon],
+  imports: [TranslocoPipe, ButtonDirective, Dialog, SpinnerIcon],
   templateUrl: './import-dialog.html',
   styleUrl: './import-dialog.scss',
 })
@@ -78,7 +82,11 @@ export class ImportDialog {
   );
   readonly readyText = computed(() => {
     const count = this.preview()?.validRowCount ?? 0;
-    return `${count.toLocaleString('en-US')} ${count === 1 ? 'customer' : 'customers'} ready to import`;
+    return t('customers.importDialog.readyToImport', {
+      value: count.toLocaleString(activeIntlLocale()),
+      value2:
+        count === 1 ? t('customers.importDialog.customer') : t('customers.importDialog.customers'),
+    });
   });
   readonly errorsCapped = computed(() => {
     const total = this.confirmErrors().length || (this.preview()?.rowErrors.length ?? 0);
@@ -120,7 +128,9 @@ export class ImportDialog {
   }
 
   sizeText(bytes: number): string {
-    return bytes < 1024 ? `${bytes} B` : `${(bytes / 1024).toFixed(1)} KB`;
+    return bytes < 1024
+      ? t('customers.importDialog.b', { bytes: bytes })
+      : t('customers.importDialog.kb', { value: (bytes / 1024).toFixed(1) });
   }
 
   onDragOver(event: DragEvent): void {
@@ -170,7 +180,7 @@ export class ImportDialog {
       },
       error: (error: unknown) => {
         this.checking.set(false);
-        this.handleFailed(error, CHECK_FAILED_MESSAGE);
+        this.handleFailed(error, CHECK_FAILED_MESSAGE());
       },
     });
   }
@@ -194,7 +204,7 @@ export class ImportDialog {
             this.unauthorized.emit();
             return;
           }
-          this.messageService.add({ severity: 'error', summary: TEMPLATE_FAILED_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: TEMPLATE_FAILED_MESSAGE() });
         },
       });
   }
@@ -217,7 +227,7 @@ export class ImportDialog {
         },
         error: (error: unknown) => {
           this.importing.set(false);
-          this.handleFailed(error, IMPORT_FAILED_MESSAGE);
+          this.handleFailed(error, IMPORT_FAILED_MESSAGE());
         },
       });
   }
@@ -233,9 +243,9 @@ export class ImportDialog {
       return;
     }
     if (apiError?.status === 413) {
-      this.fileError.set(CSV_SIZE_MESSAGE);
+      this.fileError.set(CSV_SIZE_MESSAGE());
     } else if (apiError?.status === 415) {
-      this.fileError.set(CSV_TYPE_MESSAGE);
+      this.fileError.set(CSV_TYPE_MESSAGE());
     } else if (apiError?.fieldErrors['file']?.[0] !== undefined) {
       this.fileError.set(apiError.fieldErrors['file'][0]);
     } else {

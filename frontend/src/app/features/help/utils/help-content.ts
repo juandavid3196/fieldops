@@ -12,8 +12,9 @@ import {
   HelpTopic,
 } from '../models/help.model';
 
+import { t } from '../../../core/i18n/translate';
 const WORDS_PER_MINUTE = 200;
-const SUPPORT_SUBJECT = 'FieldOps support request';
+const SUPPORT_SUBJECT = (): string => t('help.helpContent.supportSubject');
 
 /** Base path of the help center for an audience; every help link stays inside it (FR-16). */
 export function helpBasePath(audience: HelpAudience): string {
@@ -81,6 +82,6 @@ export function readingMinutes(article: HelpArticle): number {
 /** FR-11: no body and no user or organization data; the article title only from an article. */
 export function supportMailto(articleTitle?: string): string {
   const subject =
-    articleTitle === undefined ? SUPPORT_SUBJECT : `${SUPPORT_SUBJECT} – ${articleTitle}`;
+    articleTitle === undefined ? SUPPORT_SUBJECT() : `${SUPPORT_SUBJECT()} – ${articleTitle}`;
   return `mailto:${environment.supportEmail}?subject=${encodeURIComponent(subject)}`;
 }

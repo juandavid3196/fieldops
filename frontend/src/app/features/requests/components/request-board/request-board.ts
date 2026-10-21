@@ -1,6 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   BOARD_STATUSES,
@@ -21,7 +22,7 @@ const SKELETON_CARDS = [0, 1, 2];
  */
 @Component({
   selector: 'app-request-board',
-  imports: [ButtonDirective, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, Skeleton],
   templateUrl: './request-board.html',
   styleUrl: './request-board.scss',
 })

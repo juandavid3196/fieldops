@@ -9,10 +9,10 @@
         }
         <span class="page__brand">{{ invoice.organization.name }}</span>
       } @else {
-        <span class="page__brand">FieldOps</span>
+        <span class="page__brand">{{ 'invoices.publicInvoice.fieldops' | transloco }}</span>
       }
       <button type="button" role="link" class="page__portal" (click)="openPortal()">
-        Sign in to your portal
+        {{ 'invoices.publicInvoice.signInToYour' | transloco }}
       </button>
     </header>
   }
@@ -20,7 +20,11 @@
   <main class="page__main">
     @switch (state()) {
       @case ('loading') {
-        <div class="page__skeletons" aria-busy="true" aria-label="Loading invoice">
+        <div
+          class="page__skeletons"
+          aria-busy="true"
+          [attr.aria-label]="'invoices.publicInvoice.loadingInvoice' | transloco"
+        >
           <p-skeleton height="2.5rem" width="60%" />
           <p-skeleton height="4rem" />
           <div class="page__skeleton-body">
@@ -76,6 +80,8 @@
   </main>
 
   @if (!embedded()) {
-    <footer class="page__footer">Powered by FieldOps</footer>
+    <footer class="page__footer">
+      {{ 'invoices.publicInvoice.poweredByFieldops' | transloco }}
+    </footer>
   }
 </div>

@@ -5,7 +5,7 @@
       <div
         class="today__skeletons"
         aria-busy="true"
-        aria-label="Loading today's jobs"
+        [attr.aria-label]="'technicianJobs.today.loadingTodaySJobs' | transloco"
         role="status"
       >
         <p-skeleton height="2rem" width="70%" />
@@ -26,7 +26,7 @@
         <span class="today__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="load()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -46,7 +46,7 @@
             <button
               type="button"
               class="today__refresh"
-              aria-label="Refresh today's jobs"
+              [attr.aria-label]="'technicianJobs.today.refreshTodaySJobs' | transloco"
               [attr.aria-disabled]="refreshing()"
               [attr.aria-busy]="refreshing()"
               (click)="load()"
@@ -61,7 +61,10 @@
           }
         </header>
 
-        <ul class="today__metrics" aria-label="Today's summary">
+        <ul
+          class="today__metrics"
+          [attr.aria-label]="'technicianJobs.today.todaySSummary' | transloco"
+        >
           @for (metric of metrics(); track metric.label) {
             <li class="today__metric">
               <i class="pi today__metric-icon" [class]="metric.icon" aria-hidden="true"></i>
@@ -74,14 +77,17 @@
         </ul>
 
         @if (today.metrics.jobs > 0) {
-          <section class="today__progress" aria-label="Progress">
+          <section
+            class="today__progress"
+            [attr.aria-label]="'technicianJobs.today.progress' | transloco"
+          >
             <div class="today__progress-text">
               <span>{{ progressText() }}</span>
               <p-progressbar
                 class="today__bar"
                 [value]="percent()"
                 [showValue]="false"
-                aria-label="Jobs completed"
+                [attr.aria-label]="'technicianJobs.today.jobsCompleted' | transloco"
                 [attr.aria-valuetext]="progressText() + ', ' + percent() + '%'"
               />
               <span>{{ percent() }}%</span>
@@ -167,7 +173,7 @@
                   @if (!starting()) {
                     <i class="pi pi-send" aria-hidden="true"></i>
                   }
-                  Start travel
+                  {{ 'technicianJobs.today.startTravel' | transloco }}
                 </button>
               }
               <a
@@ -177,7 +183,7 @@
                 [text]="true"
                 [routerLink]="['/today/visits', next.visitId]"
               >
-                View job details
+                {{ 'technicianJobs.today.viewJobDetails' | transloco }}
                 <i class="pi pi-chevron-right" aria-hidden="true"></i>
               </a>
             </div>
@@ -188,7 +194,9 @@
 
         @if (today.metrics.jobs > 0) {
           <section class="today__route" aria-labelledby="today-route-title">
-            <h2 class="today__route-title" id="today-route-title">Today's route</h2>
+            <h2 class="today__route-title" id="today-route-title">
+              {{ 'technicianJobs.today.todaySRoute' | transloco }}
+            </h2>
             <ol class="today__route-list">
               @for (visit of today.visits; track visit.visitId; let index = $index) {
                 <li>

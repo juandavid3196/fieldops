@@ -1,18 +1,22 @@
 <p-toast />
 <div class="bo">
   @if (forbidden()) {
-    <h1 class="bo__title">Dashboard</h1>
+    <h1 class="bo__title">{{ 'businessOverview.businessOverview.dashboard' | transloco }}</h1>
     <p class="bo__muted">{{ forbiddenMessage }}</p>
   } @else {
     <header class="bo__header">
       <div class="bo__heading">
         <div class="bo__heading-row">
-          <h1 class="bo__title">Business Overview</h1>
+          <h1 class="bo__title">
+            {{ 'businessOverview.businessOverview.businessOverview' | transloco }}
+          </h1>
           <span class="bo__updated" aria-live="polite">{{ agoLabel() }}</span>
           <button
             type="button"
             class="bo__refresh"
-            aria-label="Refresh business overview"
+            [attr.aria-label]="
+              'businessOverview.businessOverview.refreshBusinessOverview' | transloco
+            "
             [disabled]="!ready() || noBranches() || store.loading() || store.refreshing()"
             (click)="store.refresh()"
           >
@@ -25,13 +29,15 @@
       <div class="bo__controls">
         <app-dashboard-view-switch view="business" />
         <div class="bo__control">
-          <label class="bo__sr" for="bo-branch">Branch</label>
+          <label class="bo__sr" for="bo-branch">{{
+            'businessOverview.businessOverview.branch' | transloco
+          }}</label>
           <p-select
             [options]="branchChoices()"
             optionLabel="name"
             optionValue="id"
             inputId="bo-branch"
-            ariaLabel="Branch"
+            [ariaLabel]="'businessOverview.businessOverview.branch' | transloco"
             [fluid]="true"
             appendTo="body"
             [disabled]="!ready()"
@@ -40,13 +46,15 @@
           />
         </div>
         <div class="bo__control">
-          <label class="bo__sr" for="bo-range">Date range</label>
+          <label class="bo__sr" for="bo-range">{{
+            'businessOverview.businessOverview.dateRange' | transloco
+          }}</label>
           <p-select
-            [options]="rangeChoices"
+            [options]="rangeChoices | localizedRef"
             optionLabel="name"
             optionValue="id"
             inputId="bo-range"
-            ariaLabel="Date range"
+            [ariaLabel]="'businessOverview.businessOverview.dateRange' | transloco"
             [fluid]="true"
             appendTo="body"
             [disabled]="!ready() || noBranches()"
@@ -58,22 +66,24 @@
           @if (value.range === 'custom') {
             <div class="bo__dates">
               <label class="bo__date">
-                <span class="bo__sr">From</span>
+                <span class="bo__sr">{{
+                  'businessOverview.businessOverview.from' | transloco
+                }}</span>
                 <input
                   type="date"
                   class="bo__input"
-                  aria-label="From"
+                  [attr.aria-label]="'businessOverview.businessOverview.from' | transloco"
                   [max]="value.to"
                   [value]="value.from"
                   (change)="onCustomDate('from', $any($event.target).value)"
                 />
               </label>
               <label class="bo__date">
-                <span class="bo__sr">To</span>
+                <span class="bo__sr">{{ 'businessOverview.businessOverview.to' | transloco }}</span>
                 <input
                   type="date"
                   class="bo__input"
-                  aria-label="To"
+                  [attr.aria-label]="'businessOverview.businessOverview.to' | transloco"
                   [max]="today()"
                   [value]="value.to"
                   (change)="onCustomDate('to', $any($event.target).value)"
@@ -85,12 +95,14 @@
         <div class="bo__compare">
           <p-toggleswitch
             inputId="bo-compare"
-            ariaLabel="Compare to previous period"
+            [ariaLabel]="'businessOverview.businessOverview.compareToPreviousPeriod' | transloco"
             [disabled]="!ready() || noBranches()"
             [ngModel]="compare()"
             (onChange)="onCompare($event.checked)"
           />
-          <label for="bo-compare">Compare to previous period</label>
+          <label for="bo-compare">{{
+            'businessOverview.businessOverview.compareToPreviousPeriod' | transloco
+          }}</label>
         </div>
         <button
           type="button"
@@ -106,7 +118,7 @@
             [class.pi-refresh]="exporting()"
             aria-hidden="true"
           ></i>
-          Export report
+          {{ 'businessOverview.businessOverview.exportReport' | transloco }}
         </button>
       </div>
     </header>
@@ -118,7 +130,9 @@
         <p-message severity="warn" [closable]="false">
           <span class="bo__inline">
             {{ refreshErrorMessage }}
-            <button type="button" class="bo__btn" (click)="store.refresh()">Try again</button>
+            <button type="button" class="bo__btn" (click)="store.refresh()">
+              {{ 'common.tryAgain' | transloco }}
+            </button>
           </span>
         </p-message>
       }
@@ -127,7 +141,9 @@
         <p-message severity="error" [closable]="false">
           <span class="bo__inline">
             {{ loadErrorMessage }}
-            <button type="button" class="bo__btn" (click)="store.retry()">Try again</button>
+            <button type="button" class="bo__btn" (click)="store.retry()">
+              {{ 'common.tryAgain' | transloco }}
+            </button>
           </span>
         </p-message>
       } @else if (store.data(); as data) {

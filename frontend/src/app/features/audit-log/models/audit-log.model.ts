@@ -1,14 +1,21 @@
+import { t } from '../../../core/i18n/translate';
 /** Audit trail contracts (Final: specs/audit-trail/spec.md). */
 
-export const AUDIT_FORBIDDEN_MESSAGE = "You don't have access to the audit trail.";
-export const AUDIT_LOAD_ERROR_MESSAGE = "We couldn't load audit events.";
-export const AUDIT_EMPTY_MESSAGE = 'No audit events match these filters.';
-export const AUDIT_EXPORT_TOO_LARGE_MESSAGE = 'Narrow the filters to export 5,000 rows or fewer.';
-export const AUDIT_EXPORT_FAILED_MESSAGE = "We couldn't export the audit log. Try again.";
-export const AUDIT_DETAIL_ERROR_MESSAGE = "We couldn't load this event.";
-export const AUDIT_DETAIL_GONE_MESSAGE = 'This event is no longer available.';
-export const AUDIT_COPIED_MESSAGE = 'Event ID copied';
-export const AUDIT_ALL_BRANCHES = 'All branches';
+export const AUDIT_FORBIDDEN_MESSAGE = (): string =>
+  t('auditLog.auditLogModel.auditForbiddenMessage');
+export const AUDIT_LOAD_ERROR_MESSAGE = (): string =>
+  t('auditLog.auditLogModel.auditLoadErrorMessage');
+export const AUDIT_EMPTY_MESSAGE = (): string => t('auditLog.auditLogModel.auditEmptyMessage');
+export const AUDIT_EXPORT_TOO_LARGE_MESSAGE = (): string =>
+  t('auditLog.auditLogModel.auditExportTooLargeMessage');
+export const AUDIT_EXPORT_FAILED_MESSAGE = (): string =>
+  t('auditLog.auditLogModel.auditExportFailedMessage');
+export const AUDIT_DETAIL_ERROR_MESSAGE = (): string =>
+  t('auditLog.auditLogModel.auditDetailErrorMessage');
+export const AUDIT_DETAIL_GONE_MESSAGE = (): string =>
+  t('auditLog.auditLogModel.auditDetailGoneMessage');
+export const AUDIT_COPIED_MESSAGE = (): string => t('auditLog.auditLogModel.auditCopiedMessage');
+export const AUDIT_ALL_BRANCHES = (): string => t('auditLog.auditLogModel.auditAllBranches');
 
 export const AUDIT_PAGE_SIZES: readonly number[] = [25, 50, 100];
 export const AUDIT_MAX_SEARCH_LENGTH = 100;

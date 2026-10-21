@@ -1,11 +1,13 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Tag } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { CatalogRow, CatalogSort, CatalogSortKey } from '../../models/catalog.model';
 import { MoneyFormat, marginText } from '../../utils/catalog-format';
 
-export const MARGIN_TOOLTIP = '(Unit price – unit cost) ÷ unit price';
+import { localizedList, t } from '../../../../core/i18n/translate';
+export const MARGIN_TOOLTIP = (): string => t('productsServices.catalogTable.marginTooltip');
 
 interface Column {
   readonly key: CatalogSortKey | null;
@@ -13,17 +15,17 @@ interface Column {
   readonly cardHidden?: boolean;
 }
 
-const COLUMNS: readonly Column[] = [
-  { key: 'name', label: 'Name' },
-  { key: 'type', label: 'Type' },
-  { key: null, label: 'Description', cardHidden: true },
-  { key: 'unitCost', label: 'Unit cost', cardHidden: true },
-  { key: 'unitPrice', label: 'Unit price' },
-  { key: null, label: 'Estimated margin' },
-  { key: 'taxable', label: 'Taxable' },
-  { key: 'status', label: 'Status' },
-  { key: null, label: 'Actions' },
-];
+const COLUMNS: readonly Column[] = localizedList(() => [
+  { key: 'name', label: t('common.name') },
+  { key: 'type', label: t('common.type') },
+  { key: null, label: t('common.description'), cardHidden: true },
+  { key: 'unitCost', label: t('productsServices.catalogTable.unitCost'), cardHidden: true },
+  { key: 'unitPrice', label: t('productsServices.catalogTable.unitPrice') },
+  { key: null, label: t('productsServices.catalogTable.estimatedMargin') },
+  { key: 'taxable', label: t('productsServices.catalogTable.taxable') },
+  { key: 'status', label: t('common.status') },
+  { key: null, label: t('common.actions') },
+]);
 
 /**
  * Catalog table (FR-04): nine columns from md, item cards below. Presentational: the page
@@ -31,7 +33,7 @@ const COLUMNS: readonly Column[] = [
  */
 @Component({
   selector: 'app-catalog-table',
-  imports: [Tag, TooltipModule],
+  imports: [TranslocoPipe, Tag, TooltipModule],
   templateUrl: './catalog-table.html',
   styleUrl: './catalog-table.scss',
 })
@@ -46,7 +48,9 @@ export class CatalogTable {
   readonly menuRequested = output<{ event: Event; row: CatalogRow }>();
 
   readonly columns = COLUMNS;
-  readonly marginTooltip = MARGIN_TOOLTIP;
+  get marginTooltip(): string {
+    return MARGIN_TOOLTIP();
+  }
   readonly marginText = (row: CatalogRow): string => marginText(row.estimatedMarginPercent);
 
   readonly sortKey = computed(() => this.sort().replace(/^-/, ''));

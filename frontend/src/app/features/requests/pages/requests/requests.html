@@ -1,6 +1,6 @@
 <p-toast />
 <app-confirm-dialog
-  checkboxLabel="Notify customer by email"
+  [checkboxLabel]="'requests.requests.notifyCustomerByEmail' | transloco"
   [checkboxDisabled]="!cancelNotifyAvailable()"
   [checkboxHelper]="cancelNotifyAvailable() ? undefined : noEmailMessage"
   [(checkboxChecked)]="cancelNotify"
@@ -10,7 +10,7 @@
 <div class="requests">
   <div class="requests__main">
     <header class="requests__header">
-      <h1 class="requests__title">Requests</h1>
+      <h1 class="requests__title">{{ 'requests.requests.requests' | transloco }}</h1>
       @if (!forbidden()) {
         <p class="requests__description">{{ descriptionMessage }}</p>
       }
@@ -36,7 +36,7 @@
                 size="small"
                 (click)="loadMetrics()"
               >
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
@@ -58,10 +58,10 @@
             <button
               type="button"
               class="requests__chip"
-              aria-label="Remove filter: Ready for quote"
+              [attr.aria-label]="'requests.requests.removeFilterReadyFor' | transloco"
               (click)="removeStatusFilter()"
             >
-              Ready for quote
+              {{ 'requests.requests.readyForQuote' | transloco }}
               <i class="pi pi-times" aria-hidden="true"></i>
             </button>
           </div>
@@ -72,7 +72,7 @@
             <span class="requests__error">
               {{ loadErrorMessage }}
               <button pButton type="button" severity="secondary" size="small" (click)="loadBoard()">
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
@@ -81,7 +81,7 @@
             @if (hasFilters()) {
               <p>{{ emptyFilteredMessage }}</p>
               <button pButton type="button" severity="secondary" (click)="clearFilters()">
-                Clear filters
+                {{ 'requests.requests.clearFilters' | transloco }}
               </button>
             } @else {
               <p class="requests__empty-title">{{ emptyInitialTitle }}</p>
@@ -89,7 +89,7 @@
               @if (canManage()) {
                 <button pButton type="button" (click)="openNewRequest()">
                   <i class="pi pi-plus" aria-hidden="true"></i>
-                  New request
+                  {{ 'requests.requests.newRequest' | transloco }}
                 </button>
               }
             }

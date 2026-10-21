@@ -1,17 +1,19 @@
 import { isApiError } from '../../../core/models/api-error.model';
 import { ConversationSummary } from '../models/messages.model';
 
+import { t } from '../../../core/i18n/translate';
 export const MAX_BODY_LENGTH = 2000;
 export const COUNTER_FROM = 1800;
 export const SEARCH_MIN_LENGTH = 2;
 
-export const LIST_ERROR_MESSAGE = "We couldn't load your messages. Try again.";
-export const CONVERSATION_ERROR_MESSAGE = "We couldn't load this conversation. Try again.";
-export const NOT_AVAILABLE_MESSAGE = "This conversation isn't available.";
-export const OPEN_ERROR_MESSAGE = "We couldn't open the conversation. Try again.";
-export const FORBIDDEN_MESSAGE = "You don't have access to Messages.";
-export const BODY_ERROR_MESSAGE = 'Enter a message of up to 2000 characters.';
-export const RATE_LIMIT_MESSAGE = "You're sending messages too quickly. Try again in a moment.";
+export const LIST_ERROR_MESSAGE = (): string => t('messages.messagesFormat.listErrorMessage');
+export const CONVERSATION_ERROR_MESSAGE = (): string =>
+  t('messages.messagesFormat.conversationErrorMessage');
+export const NOT_AVAILABLE_MESSAGE = (): string => t('messages.messagesFormat.notAvailableMessage');
+export const OPEN_ERROR_MESSAGE = (): string => t('messages.messagesFormat.openErrorMessage');
+export const FORBIDDEN_MESSAGE = (): string => t('messages.messagesFormat.forbiddenMessage');
+export const BODY_ERROR_MESSAGE = (): string => t('messages.messagesFormat.bodyErrorMessage');
+export const RATE_LIMIT_MESSAGE = (): string => t('messages.messagesFormat.rateLimitMessage');
 
 /** Roles with the Messaging policy (UX only; the backend decides). */
 export const MESSAGING_ROLES: readonly string[] = [
@@ -22,16 +24,22 @@ export const MESSAGING_ROLES: readonly string[] = [
 ];
 
 export function unreadText(count: number): string {
-  return `${count} unread ${count === 1 ? 'message' : 'messages'}`;
+  return t('messages.messagesFormat.unread', {
+    count: count,
+    value:
+      count === 1 ? t('messages.messagesFormat.message') : t('messages.messagesFormat.messages'),
+  });
 }
 
 /** "<first name>: <text>", "You: <text>" or "No messages yet" (BR-16). */
 export function previewLine(conversation: ConversationSummary): string {
   const last = conversation.lastMessage;
   if (last === null) {
-    return 'No messages yet';
+    return t('messages.messagesFormat.noMessagesYet');
   }
-  const who = last.isMine ? 'You' : (last.authorName.trim().split(/\s+/)[0] ?? '');
+  const who = last.isMine
+    ? t('messages.messagesFormat.you')
+    : (last.authorName.trim().split(/\s+/)[0] ?? '');
   return `${who}: ${last.preview}`;
 }
 
@@ -52,11 +60,13 @@ export function relativeTime(iso: string, now: Date = new Date()): string {
   const days = Math.round((startOfDay(now) - startOfDay(date)) / DAY_MS);
   if (days <= 0) {
     if (minutes < 1) {
-      return 'Now';
+      return t('messages.messagesFormat.now');
     }
-    return minutes < 60 ? `${minutes} min` : `${Math.floor(minutes / 60)}h`;
+    return minutes < 60
+      ? t('messages.messagesFormat.min', { minutes: minutes })
+      : `${Math.floor(minutes / 60)}h`;
   }
-  return days === 1 ? 'Yesterday' : shortDate(date);
+  return days === 1 ? t('messages.messagesFormat.yesterday') : shortDate(date);
 }
 
 /** Day separator: "Today", "Yesterday" or "EEE, MMM d" (BR-12). */
@@ -64,10 +74,10 @@ export function dayLabel(iso: string, now: Date = new Date()): string {
   const date = new Date(iso);
   const days = Math.round((startOfDay(now) - startOfDay(date)) / DAY_MS);
   if (days === 0) {
-    return 'Today';
+    return t('messages.messagesFormat.today');
   }
   return days === 1
-    ? 'Yesterday'
+    ? t('messages.messagesFormat.yesterday')
     : date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
@@ -84,10 +94,10 @@ export function timeLabel(iso: string): string {
 /** Fixed copy of a failed send by status (never the backend text). */
 export function sendFailure(error: unknown): { bodyRejected: boolean; message: string } {
   if (isApiError(error) && error.status === 400) {
-    return { bodyRejected: true, message: BODY_ERROR_MESSAGE };
+    return { bodyRejected: true, message: BODY_ERROR_MESSAGE() };
   }
   if (isApiError(error) && error.status === 429) {
-    return { bodyRejected: false, message: RATE_LIMIT_MESSAGE };
+    return { bodyRejected: false, message: RATE_LIMIT_MESSAGE() };
   }
-  return { bodyRejected: false, message: "Couldn't send. Check your connection." };
+  return { bodyRejected: false, message: t('messages.messagesFormat.couldntSendCheckYour') };
 }

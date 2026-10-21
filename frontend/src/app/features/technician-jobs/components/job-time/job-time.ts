@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { VisitTime } from '../../models/technician-visits.model';
 import {
@@ -12,6 +13,7 @@ import {
 /** BR-18 time summary: labor and break time, estimate and deviation chip. */
 @Component({
   selector: 'app-job-time',
+  imports: [TranslocoPipe],
   templateUrl: './job-time.html',
   styleUrl: './job-time.scss',
 })

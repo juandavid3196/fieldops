@@ -12,9 +12,15 @@
   <form class="dialog" ngNoForm novalidate (submit)="$event.preventDefault(); submit()">
     <p class="dialog__text">
       @if (kind() === 'decline') {
-        Let {{ organizationName() }} know why you're declining. This can't be undone.
+        {{
+          'quotes.publicQuoteDialog.letKnowWhyYou'
+            | transloco: { organizationName: organizationName() }
+        }}
       } @else {
-        {{ organizationName() }} will contact you by phone or email.
+        {{
+          'quotes.publicQuoteDialog.willContactYouBy'
+            | transloco: { organizationName: organizationName() }
+        }}
       }
     </p>
     <app-form-field
@@ -51,7 +57,7 @@
       [disabled]="submitting()"
       (click)="dismissed.emit()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button
       pButton

@@ -10,12 +10,12 @@ import { portalGuard } from '../../core/guards/portal.guard';
 export default [
   {
     path: 'sign-in',
-    title: 'Sign in · Customer portal',
+    title: 'titles.portalSignIn',
     loadComponent: () => import('./pages/sign-in/sign-in').then((m) => m.PortalSignIn),
   },
   {
     path: 'forgot-password',
-    title: 'Reset your password · Customer portal',
+    title: 'titles.portalResetYourPassword',
     data: { portal: true },
     loadComponent: () =>
       import('../authentication/pages/forgot-password/forgot-password').then(
@@ -24,14 +24,14 @@ export default [
   },
   {
     path: 'reset-password',
-    title: 'Create a new password · Customer portal',
+    title: 'titles.portalCreateANewPassword',
     data: { portal: true },
     loadComponent: () =>
       import('../authentication/pages/reset-password/reset-password').then((m) => m.ResetPassword),
   },
   {
     path: 'activate',
-    title: 'Activate your access · Customer portal',
+    title: 'titles.portalActivateYourAccess',
     loadComponent: () => import('./pages/activate/activate').then((m) => m.PortalActivate),
   },
   {
@@ -44,38 +44,38 @@ export default [
       {
         path: '',
         pathMatch: 'full',
-        title: 'Home · Customer portal',
+        title: 'titles.portalHome',
         loadComponent: () => import('./pages/home/home').then((m) => m.PortalHome),
       },
       {
         path: 'requests',
         pathMatch: 'full',
-        title: 'Requests · Customer portal',
+        title: 'titles.portalRequests',
         loadComponent: () => import('./pages/requests/requests').then((m) => m.PortalRequests),
       },
       // Before `requests/:requestId` so `new` is never read as an id.
       {
         path: 'requests/new',
-        title: 'Request a service · Customer portal',
+        title: 'titles.portalRequestAService',
         loadComponent: () =>
           import('./pages/request-new/request-new').then((m) => m.PortalRequestNew),
       },
       {
         path: 'requests/:requestId',
-        title: 'Request · Customer portal',
+        title: 'titles.portalRequest',
         loadComponent: () =>
           import('./pages/request-detail/request-detail').then((m) => m.PortalRequestDetail),
       },
       {
         path: 'appointments',
         pathMatch: 'full',
-        title: 'Appointments · Customer portal',
+        title: 'titles.portalAppointments',
         loadComponent: () =>
           import('./pages/appointments/appointments').then((m) => m.PortalAppointments),
       },
       {
         path: 'appointments/:visitId',
-        title: 'Appointment · Customer portal',
+        title: 'titles.portalAppointment',
         loadComponent: () =>
           import('./pages/appointment-detail/appointment-detail').then(
             (m) => m.PortalAppointmentDetail,
@@ -84,53 +84,53 @@ export default [
       {
         path: 'quotes',
         pathMatch: 'full',
-        title: 'Quotes · Customer portal',
+        title: 'titles.portalQuotes',
         loadComponent: () => import('./pages/quotes/quotes').then((m) => m.PortalQuotes),
       },
       {
         path: 'quotes/:quoteId',
-        title: 'Quote · Customer portal',
+        title: 'titles.portalQuote',
         loadComponent: () => import('./pages/portal-quote/portal-quote').then((m) => m.PortalQuote),
       },
       {
         path: 'invoices',
         pathMatch: 'full',
-        title: 'Invoices · Customer portal',
+        title: 'titles.portalInvoices',
         loadComponent: () => import('./pages/invoices/invoices').then((m) => m.PortalInvoices),
       },
       {
         path: 'invoices/:invoiceId',
-        title: 'Invoice · Customer portal',
+        title: 'titles.portalInvoice',
         loadComponent: () =>
           import('./pages/portal-invoice/portal-invoice').then((m) => m.PortalInvoice),
       },
       {
         path: 'properties',
         pathMatch: 'full',
-        title: 'Properties · Customer portal',
+        title: 'titles.portalProperties',
         loadComponent: () =>
           import('./pages/properties/properties').then((m) => m.PortalProperties),
       },
       {
         path: 'properties/new',
-        title: 'Add property · Customer portal',
+        title: 'titles.portalAddProperty',
         loadComponent: () =>
           import('./pages/property-form/property-form').then((m) => m.PortalPropertyForm),
       },
       {
         path: 'properties/:propertyId/edit',
-        title: 'Edit property · Customer portal',
+        title: 'titles.portalEditProperty',
         loadComponent: () =>
           import('./pages/property-form/property-form').then((m) => m.PortalPropertyForm),
       },
       {
         path: 'updates',
-        title: 'Updates · Customer portal',
+        title: 'titles.portalUpdates',
         loadComponent: () => import('./pages/updates/updates').then((m) => m.PortalUpdates),
       },
       {
         path: 'activity',
-        title: 'Recent activity · Customer portal',
+        title: 'titles.portalRecentActivity',
         loadComponent: () => import('./pages/activity/activity').then((m) => m.PortalActivity),
       },
       // help-support-center FR-16: declared before the catch-all; the portal guard above applies.

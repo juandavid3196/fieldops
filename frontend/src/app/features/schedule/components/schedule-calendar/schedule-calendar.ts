@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { visitStatusLabel } from '../../../jobs/utils/work-order-format';
 import {
@@ -30,8 +31,10 @@ import {
   zoned,
 } from '../../utils/schedule-range';
 
-export const LOAD_ERROR_MESSAGE = "We couldn't load the schedule. Try again.";
-export const NO_TECHNICIANS_MESSAGE = 'No active technicians in this branch.';
+import { t } from '../../../../core/i18n/translate';
+export const LOAD_ERROR_MESSAGE = (): string => t('schedule.scheduleCalendar.loadErrorMessage');
+export const NO_TECHNICIANS_MESSAGE = (): string =>
+  t('schedule.scheduleCalendar.noTechniciansMessage');
 
 export interface BlockVm {
   readonly key: string;
@@ -82,7 +85,7 @@ export interface DayHeaderVm {
 /** Presentational Day/Week calendar: lanes per technician, blocks, load, legend (BR-04, BR-05). */
 @Component({
   selector: 'app-schedule-calendar',
-  imports: [NgTemplateOutlet, RouterLink, ButtonDirective, Message, Skeleton],
+  imports: [TranslocoPipe, NgTemplateOutlet, RouterLink, ButtonDirective, Message, Skeleton],
   templateUrl: './schedule-calendar.html',
   styleUrl: './schedule-calendar.scss',
 })
@@ -100,8 +103,12 @@ export class ScheduleCalendar {
   readonly visitSelected = output<string>();
   readonly retry = output<void>();
 
-  readonly errorMessage = LOAD_ERROR_MESSAGE;
-  readonly noTechniciansMessage = NO_TECHNICIANS_MESSAGE;
+  get errorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  get noTechniciansMessage(): string {
+    return NO_TECHNICIANS_MESSAGE();
+  }
   readonly skeletons = [0, 1, 2];
 
   readonly days = computed<readonly string[]>(() => {
@@ -200,12 +207,12 @@ export class ScheduleCalendar {
           kind: 'proposed',
           visitId: null,
           time,
-          title: 'Proposed',
+          title: t('schedule.scheduleCalendar.proposed'),
           number: '',
           street: '',
           conflict: false,
           selected: false,
-          ariaLabel: `Proposed schedule ${time}`,
+          ariaLabel: t('schedule.scheduleCalendar.proposedSchedule', { time: time }),
           left: geometry.left,
           width: geometry.width,
           sortKey: proposed.startMinutes,
@@ -253,7 +260,7 @@ export class ScheduleCalendar {
       street: visit.street,
       conflict,
       selected: visit.visitId === selected,
-      ariaLabel: `${time}, ${visit.title}, ${number}, ${visitStatusLabel(visit.status)}${conflict ? ', conflict' : ''}`,
+      ariaLabel: `${time}, ${visit.title}, ${number}, ${visitStatusLabel(visit.status)}${conflict ? t('schedule.scheduleCalendar.conflict3') : ''}`,
       left: geometry.left,
       width: geometry.width,
       sortKey: start,
@@ -269,12 +276,12 @@ export class ScheduleCalendar {
       kind: 'assessment',
       visitId: null,
       time,
-      title: 'Assessment',
+      title: t('schedule.scheduleCalendar.assessment'),
       number: '',
       street: '',
       conflict: false,
       selected: false,
-      ariaLabel: `Assessment ${time}`,
+      ariaLabel: t('schedule.scheduleCalendar.assessment2', { time: time }),
       left: geometry.left,
       width: geometry.width,
       sortKey: start,

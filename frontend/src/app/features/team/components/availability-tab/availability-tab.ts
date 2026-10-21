@@ -10,6 +10,7 @@ import { Paginator, PaginatorState } from 'primeng/paginator';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Subject, Subscription, debounceTime, filter, map } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import {
@@ -32,9 +33,13 @@ import { AvailabilityDrawer } from '../availability-drawer/availability-drawer';
 import { TeamTabs } from '../team-tabs/team-tabs';
 import { TimeOffDrawer } from '../time-off-drawer/time-off-drawer';
 
-export const AVAILABILITY_ERROR_MESSAGE = "We couldn't load availability. Try again.";
-export const EMPTY_TECHNICIANS_MESSAGE = 'No active technicians yet.';
-export const FILTERED_EMPTY_MESSAGE = 'No technicians match these filters.';
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const AVAILABILITY_ERROR_MESSAGE = (): string =>
+  t('team.availabilityTab.availabilityErrorMessage');
+export const EMPTY_TECHNICIANS_MESSAGE = (): string =>
+  t('team.availabilityTab.emptyTechniciansMessage');
+export const FILTERED_EMPTY_MESSAGE = (): string => t('team.availabilityTab.filteredEmptyMessage');
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5];
 
@@ -43,12 +48,12 @@ interface Choice {
   readonly label: string;
 }
 
-const AVAILABILITY_OPTIONS: Choice[] = [
-  { code: 'all', label: 'All availability' },
-  { code: 'available', label: 'Available this week' },
-  { code: 'time_off', label: 'Has time off this week' },
-  { code: 'none', label: 'No availability this week' },
-];
+const AVAILABILITY_OPTIONS: Choice[] = localizedList(() => [
+  { code: 'all', label: t('team.availabilityTab.allAvailability') },
+  { code: 'available', label: t('team.availabilityTab.availableThisWeek') },
+  { code: 'time_off', label: t('team.availabilityTab.hasTimeOffThis') },
+  { code: 'none', label: t('team.availabilityTab.noAvailabilityThisWeek') },
+]);
 
 type Drawer = 'none' | 'edit' | 'timeOff';
 
@@ -56,6 +61,8 @@ type Drawer = 'none' | 'edit' | 'timeOff';
 @Component({
   selector: 'app-availability-tab',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     IconField,
@@ -86,17 +93,26 @@ export class AvailabilityTab {
   readonly unauthorized = output<void>();
   readonly forbidden = output<void>();
 
-  readonly errorMessage = AVAILABILITY_ERROR_MESSAGE;
-  readonly emptyMessage = EMPTY_TECHNICIANS_MESSAGE;
-  readonly filteredEmptyMessage = FILTERED_EMPTY_MESSAGE;
+  get errorMessage(): string {
+    return AVAILABILITY_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return EMPTY_TECHNICIANS_MESSAGE();
+  }
+  get filteredEmptyMessage(): string {
+    return FILTERED_EMPTY_MESSAGE();
+  }
   readonly availabilityOptions = AVAILABILITY_OPTIONS;
   readonly skeletonRows = SKELETON_ROWS;
   readonly pageSize = TEAM_PAGE_SIZE;
-  readonly legend = [
-    { key: 'available', label: 'Available' },
-    { key: 'time_off', label: 'Time off' },
-    { key: 'unavailable', label: 'Unavailable' },
-  ] as const;
+  readonly legend = localizedList(
+    () =>
+      [
+        { key: 'available', label: t('team.availabilityTab.available') },
+        { key: 'time_off', label: t('team.availabilityTab.timeOff') },
+        { key: 'unavailable', label: t('team.availabilityTab.unavailable') },
+      ] as const,
+  );
 
   /** `null` = the current week, resolved by the server; navigation then uses the returned week. */
   private readonly requestedWeek = signal<string | null>(null);
@@ -126,7 +142,11 @@ export class AvailabilityTab {
   readonly report = computed(() => {
     const total = this.totalCount();
     const from = total === 0 ? 0 : this.first() + 1;
-    return `Showing ${from} – ${Math.min(this.first() + TEAM_PAGE_SIZE, total)} of ${total} technicians`;
+    return t('team.availabilityTab.showingOfTechnicians', {
+      from: from,
+      value: Math.min(this.first() + TEAM_PAGE_SIZE, total),
+      total: total,
+    });
   });
   readonly hasFilters = computed(
     () =>
@@ -135,7 +155,7 @@ export class AvailabilityTab {
       this.availability() !== 'all',
   );
   readonly branchChoices = computed<Choice[]>(() => [
-    { code: 'all', label: 'All branches' },
+    { code: 'all', label: t('team.availabilityTab.allBranches') },
     ...this.branches().map((branch) => ({ code: branch.id, label: branch.name })),
   ]);
 

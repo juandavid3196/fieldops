@@ -80,7 +80,7 @@ describe('help home', () => {
     );
 
     await search('permission nonexistentterm');
-    expect(host().querySelector('.home__empty')?.textContent).toBe(
+    expect(host().querySelector('.home__empty')?.textContent?.trim()).toBe(
       'No articles match "permission nonexistentterm"',
     );
     expect(host().querySelector('app-help-support-card')).not.toBeNull();

@@ -397,14 +397,15 @@ describe('AppShell', () => {
     await settle();
 
     const alert = host.querySelector('p-message');
-    expect(alert?.textContent?.trim()).toBe(SIGN_OUT_ERROR_MESSAGE);
+    expect(alert?.textContent?.trim()).toBe(SIGN_OUT_ERROR_MESSAGE());
     expect(alert?.getAttribute('role')).toBe('alert');
     expect(router.url).toBe('/dashboard');
     expect(sessionService.session()).toEqual(SESSION);
     expect(host.querySelector('[role="menu"]')).toBeNull();
     expect(document.activeElement).toBe(userButton());
     await expectAxeClean();
-  });
+    // Two axe passes over the menu: allow more time than the default under a loaded full run.
+  }, 15000);
 
   it.each(['owner', 'dispatcher', 'technician'])(
     'lists the avatar header, My profile, Account settings, Help & support and Sign out for %s, and the links go to their pages (FR-03, AC-01; help-support-center FR-01, AC-01)',
@@ -417,15 +418,20 @@ describe('AppShell', () => {
       const menu = host.querySelector('[aria-label="Account"]')!;
       expect(menu.querySelector('.shell__menu-header app-user-avatar')).not.toBeNull();
       expect(menu.querySelector('.shell__menu-header')?.textContent).toContain('Alex Morgan');
-      expect(menu.querySelector('.shell__menu-header')?.textContent).toContain('Role name');
+      // BR-14: a known role code shows its translated name, not the server name.
+      expect(menu.querySelector('.shell__menu-header')?.textContent).toContain(
+        { owner: 'Owner', dispatcher: 'Dispatcher', technician: 'Technician' }[code],
+      );
       expect(accountItems().map((item) => item.textContent?.trim())).toEqual([
         'My profile',
         'Account settings',
         'Help & support',
+        expect.stringContaining('Language'),
         'Sign out',
       ]);
+      expect(menu.querySelector('app-language-menu-item')).not.toBeNull();
       expect(menu.querySelector('[role="separator"]')).not.toBeNull();
-      expect(menu.textContent).not.toMatch(/Language|Dark mode/);
+      expect(menu.textContent).not.toMatch(/Dark mode/);
       expect(accountItems()[2].getAttribute('href')).toBe('/help');
 
       // Roving keyboard focus over the items, then Account settings ends on My profile page.

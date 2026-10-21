@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 
 import {
   ApiActiveVisit,
@@ -8,21 +8,9 @@ import {
   ApiRowError,
   isApiError,
 } from '../models/api-error.model';
+import { FieldErrorCatalog } from '../i18n/field-error-catalog';
+import { hasTranslation, t } from '../i18n/translate';
 import { ProblemDetails } from '../models/problem-details.model';
-
-const MESSAGES: Readonly<Record<ApiErrorKind, string>> = {
-  network: 'Unable to reach the server. Check your connection and try again.',
-  'bad-request': 'The request could not be processed. Review the information and try again.',
-  validation: 'Some fields are invalid. Review the highlighted information and try again.',
-  unauthorized: 'Your session is not valid. Please sign in again.',
-  forbidden: 'You do not have permission to perform this action.',
-  'not-found': 'The requested resource was not found.',
-  conflict: 'The resource was changed or already exists. Refresh and try again.',
-  'rate-limited': 'Too many requests. Wait a moment and try again.',
-  unavailable: 'The service is temporarily unavailable. Please try again later.',
-  server: 'An unexpected error occurred. Please try again later.',
-  unknown: 'An unexpected error occurred. Please try again.',
-};
 
 /**
  * Converts HTTP failures into user-safe {@link ApiError} values.
@@ -34,6 +22,8 @@ const MESSAGES: Readonly<Record<ApiErrorKind, string>> = {
  */
 @Injectable({ providedIn: 'root' })
 export class ApiErrorService {
+  private readonly catalog = inject(FieldErrorCatalog);
+
   toApiError(error: unknown): ApiError {
     if (isApiError(error)) {
       return error;
@@ -54,7 +44,13 @@ export class ApiErrorService {
     // `fieldErrors` is kept whenever the body has an `errors` object,
     // regardless of `kind`: a `409` (e.g. duplicate email) carries field
     // errors too, not only `400`/`422` validation responses.
-    const apiError = createApiError(kind, error.status, fieldErrors, readTraceId(problem));
+    const apiError = createApiError(
+      kind,
+      error.status,
+      fieldErrors,
+      readTraceId(problem),
+      this.catalog,
+    );
     const retryAfterSeconds =
       error.status === 429 ? readRetryAfterSeconds(error.headers?.get('Retry-After')) : undefined;
     // `code` is read for 403 and 404 too (technician_inactive, technician_profile_not_linked).
@@ -76,8 +72,10 @@ export class ApiErrorService {
     const activeVisit =
       error.status === 409 ? readActiveVisit(problem?.['activeVisit']) : undefined;
 
+    const known = code !== undefined && hasTranslation(`errors.code.${code}`);
     return {
       ...apiError,
+      ...(known ? { message: t(`errors.code.${code}`) } : {}),
       ...(activeVisit === undefined ? {} : { activeVisit }),
       ...(upcomingVisitCount === undefined ? {} : { upcomingVisitCount }),
       ...(rowErrors === undefined ? {} : { rowErrors }),
@@ -113,10 +111,12 @@ function createApiError(
   status: number,
   fieldErrors: ApiError['fieldErrors'] = {},
   traceId?: string,
+  catalog?: FieldErrorCatalog,
 ): ApiError {
-  return traceId
-    ? { kind, status, message: MESSAGES[kind], fieldErrors, traceId }
-    : { kind, status, message: MESSAGES[kind], fieldErrors };
+  const message = t(`errors.kind.${kind}`);
+  const localizedFieldErrors = catalog === undefined ? {} : localize(fieldErrors, catalog);
+  const base = { kind, status, message, fieldErrors, localizedFieldErrors };
+  return traceId ? { ...base, traceId } : base;
 }
 
 function resolveKind(status: number, hasFieldErrors: boolean): ApiErrorKind {
@@ -202,4 +202,16 @@ function readRowErrors(problem: ProblemDetails | null): readonly ApiRowError[] |
       typeof entry.message === 'string',
   );
   return valid.length > 0 ? valid : undefined;
+}
+
+function localize(
+  fieldErrors: ApiError['fieldErrors'],
+  catalog: FieldErrorCatalog,
+): Record<string, readonly string[]> {
+  return Object.fromEntries(
+    Object.entries(fieldErrors).map(([field, messages]) => [
+      field,
+      messages.map((message) => catalog.translate(field, message)),
+    ]),
+  );
 }

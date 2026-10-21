@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, catchError, map, of, tap, throwError } from 'rxjs';
+import { Observable, catchError, map, of, switchMap, tap, throwError } from 'rxjs';
 
 import { API_CONFIG, buildApiUrl } from '../config/api.config';
+import { LanguageService } from '../i18n/language.service';
 import { isApiError } from '../models/api-error.model';
 import { Session, SignInRequest } from '../models/session.model';
 
@@ -15,6 +16,7 @@ import { Session, SignInRequest } from '../models/session.model';
 export class SessionService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(API_CONFIG);
+  private readonly language = inject(LanguageService);
   private readonly currentSession = signal<Session | null>(null);
 
   readonly session = this.currentSession.asReadonly();
@@ -26,6 +28,7 @@ export class SessionService {
         next: (session) => this.currentSession.set(session),
         error: () => this.currentSession.set(null),
       }),
+      switchMap((session) => this.applyLanguage(session)),
     );
   }
 
@@ -36,6 +39,7 @@ export class SessionService {
   refreshCurrent(): Observable<void> {
     return this.http.get<Session>(buildApiUrl(this.config, 'sessions/current')).pipe(
       tap((session) => this.currentSession.set(session)),
+      switchMap((session) => this.applyLanguage(session)),
       map(() => undefined),
       catchError(() => of(undefined)),
     );
@@ -49,9 +53,10 @@ export class SessionService {
       rememberMe: request.rememberMe,
     };
 
-    return this.http
-      .post<Session>(buildApiUrl(this.config, 'sessions'), body)
-      .pipe(tap((session) => this.currentSession.set(session)));
+    return this.http.post<Session>(buildApiUrl(this.config, 'sessions'), body).pipe(
+      tap((session) => this.currentSession.set(session)),
+      switchMap((session) => this.applyLanguage(session)),
+    );
   }
 
   /** Stores a session body issued by another endpoint (invitation acceptance). */
@@ -74,5 +79,10 @@ export class SessionService {
       }),
       tap(() => this.currentSession.set(null)),
     );
+  }
+
+  /** BR-02: the session `preferredLanguage` wins over the local value; unsupported values are ignored. */
+  private applyLanguage(session: Session): Observable<Session> {
+    return this.language.applyPreference(session.user.preferredLanguage).pipe(map(() => session));
   }
 }

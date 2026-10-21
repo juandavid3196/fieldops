@@ -1,4 +1,5 @@
 import { Component, computed, inject, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { WorkEvidenceVisit } from '../../models/billing-review.model';
 import { BillingReviewService } from '../../services/billing-review.service';
@@ -8,9 +9,11 @@ import {
   RELATIONSHIP_LABELS,
 } from '../../utils/billing-review-format';
 
+import { t } from '../../../../core/i18n/translate';
 /** Work evidence tab (BR-12): per-visit checklist, materials, photos, summary and acknowledgment. */
 @Component({
   selector: 'app-review-work-evidence',
+  imports: [TranslocoPipe],
   templateUrl: './review-work-evidence.html',
   styleUrl: './review-work-evidence.scss',
 })
@@ -30,26 +33,37 @@ export class ReviewWorkEvidence {
         visit,
         tasks: {
           met: required.every((task) => task.completed),
-          text: `${required.filter((task) => task.completed).length}/${required.length} required tasks`,
+          text: t('billingReview.reviewWorkEvidence.requiredTasks', {
+            value: required.filter((task) => task.completed).length,
+            length: required.length,
+          }),
         },
-        materials: `${visit.materials.length} ${visit.materials.length === 1 ? 'material' : 'materials'} recorded`,
+        materials: t('billingReview.reviewWorkEvidence.recorded', {
+          length: visit.materials.length,
+          value:
+            visit.materials.length === 1
+              ? t('billingReview.reviewWorkEvidence.material')
+              : t('billingReview.reviewWorkEvidence.materials'),
+        }),
         photos: {
           met: hasBefore && hasAfter,
           text:
-            hasBefore && hasAfter ? 'Before & after evidence' : 'Before & after evidence missing',
+            hasBefore && hasAfter
+              ? t('billingReview.reviewWorkEvidence.beforeAfterEvidence')
+              : t('billingReview.reviewWorkEvidence.beforeAfterEvidenceMissing'),
         },
         groups: EVIDENCE_GROUPS.map((group) => {
           const items = visit.evidence.filter((item) => item.type === group.type);
           return {
             label: group.label,
             items,
-            count: `${items.length} ${items.length === 1 ? 'photo' : 'photos'}`,
+            count: `${items.length} ${items.length === 1 ? t('billingReview.reviewWorkEvidence.photo') : t('billingReview.reviewWorkEvidence.photos')}`,
           };
         }).filter((group) => group.items.length > 0),
         ack: ack && {
           ...ack,
           title: ack.signatureCaptured
-            ? 'Signature captured'
+            ? t('billingReview.reviewWorkEvidence.signatureCaptured')
             : (ACK_METHOD_LABELS[ack.method] ?? ack.method),
           relationship: ack.relationship
             ? (RELATIONSHIP_LABELS[ack.relationship] ?? ack.relationship)

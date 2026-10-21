@@ -1,6 +1,6 @@
 import { Route } from '@angular/router';
 
-export const MESSAGES_TITLE = 'Messages';
+export const MESSAGES_TITLE = 'shell.routeData.messages';
 export const TECHNICIAN_MESSAGES_PATH = '/today/messages';
 export const STAFF_MESSAGES_PATH = '/messages';
 
@@ -8,7 +8,7 @@ function messagesRoute(path: string, base: string, split: boolean): Route {
   const data = { shellTitle: MESSAGES_TITLE, messagesBase: base, split };
   return {
     path,
-    title: 'Messages · FieldOps',
+    title: 'titles.messages',
     data,
     loadComponent: () => import('./pages/messages-host/messages-host').then((m) => m.MessagesHost),
     children: [

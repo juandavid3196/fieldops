@@ -10,7 +10,7 @@
     <button
       type="button"
       class="customer-drawer__close"
-      aria-label="Close customer drawer"
+      [attr.aria-label]="'customers.customerDrawer.closeCustomerDrawer' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -31,9 +31,9 @@
     } @else if (detailFailed()) {
       <p-message severity="error" [closable]="false">
         <span class="customer-drawer__retry">
-          We couldn't load this customer.
+          {{ 'customers.customerDrawer.weCouldnTLoad' | transloco }}
           <button pButton type="button" severity="secondary" size="small" (click)="loadDetail()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -51,8 +51,14 @@
         />
 
         <fieldset class="customer-drawer__type" [disabled]="submitting() || readOnly()">
-          <legend class="customer-drawer__sr">Customer type</legend>
-          <div class="customer-drawer__segments" role="radiogroup" aria-label="Customer type">
+          <legend class="customer-drawer__sr">
+            {{ 'customers.customerDrawer.customerType' | transloco }}
+          </legend>
+          <div
+            class="customer-drawer__segments"
+            role="radiogroup"
+            [attr.aria-label]="'customers.customerDrawer.customerType' | transloco"
+          >
             @for (option of typeOptions; track option.value) {
               <label
                 class="customer-drawer__segment"
@@ -81,7 +87,7 @@
 
         @if (form().type === 'commercial') {
           <app-form-field
-            label="Company name"
+            [label]="'customers.customerDrawer.companyName' | transloco"
             [controlId]="controlIds.companyName"
             [required]="true"
             [error]="error('companyName')"
@@ -105,7 +111,7 @@
 
         <div class="customer-drawer__row">
           <app-form-field
-            label="First name"
+            [label]="'customers.customerDrawer.firstName' | transloco"
             [controlId]="controlIds.firstName"
             [required]="true"
             [error]="error('firstName')"
@@ -126,7 +132,7 @@
             />
           </app-form-field>
           <app-form-field
-            label="Last name"
+            [label]="'customers.customerDrawer.lastName' | transloco"
             [controlId]="controlIds.lastName"
             [required]="true"
             [error]="error('lastName')"
@@ -149,7 +155,11 @@
         </div>
 
         @if (form().type === 'commercial') {
-          <app-form-field label="Title" [controlId]="controlIds.title" [error]="error('title')">
+          <app-form-field
+            [label]="'customers.customerDrawer.title' | transloco"
+            [controlId]="controlIds.title"
+            [error]="error('title')"
+          >
             <input
               pInputText
               fluid
@@ -168,7 +178,7 @@
 
         <div class="customer-drawer__row">
           <app-form-field
-            label="Email"
+            [label]="'common.email' | transloco"
             [controlId]="controlIds.email"
             [required]="true"
             [error]="error('email')"
@@ -190,7 +200,7 @@
             />
           </app-form-field>
           <app-form-field
-            label="Mobile phone"
+            [label]="'customers.customerDrawer.mobilePhone' | transloco"
             [controlId]="controlIds.phone"
             [error]="error('phone')"
           >
@@ -221,7 +231,8 @@
           [attr.aria-describedby]="describedBy('preferences')"
         >
           <legend class="customer-drawer__legend">
-            Preferred communication <span aria-hidden="true">*</span>
+            {{ 'customers.customerDrawer.preferredCommunication' | transloco }}
+            <span aria-hidden="true">*</span>
           </legend>
           <div class="customer-drawer__checks">
             <span class="customer-drawer__check"
@@ -231,7 +242,7 @@
                 [ngModel]="form().prefersEmail"
                 (ngModelChange)="patch({ prefersEmail: $event }, 'preferences')"
                 [disabled]="submitting() || readOnly()"
-              /><label for="customer-prefers-email">Email</label></span
+              /><label for="customer-prefers-email">{{ 'common.email' | transloco }}</label></span
             >
             <span class="customer-drawer__check"
               ><p-checkbox
@@ -240,7 +251,9 @@
                 [ngModel]="form().prefersSms"
                 (ngModelChange)="patch({ prefersSms: $event }, 'preferences')"
                 [disabled]="submitting() || readOnly()"
-              /><label for="customer-prefers-sms">SMS</label></span
+              /><label for="customer-prefers-sms">{{
+                'customers.customerDrawer.sms' | transloco
+              }}</label></span
             >
           </div>
           @if (error('preferences'); as message) {
@@ -254,8 +267,10 @@
               <header class="customer-drawer__duplicate-head">
                 <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
                 <div>
-                  <h3 id="customer-duplicate-title">Possible existing customer</h3>
-                  <p>Review this match before creating a duplicate.</p>
+                  <h3 id="customer-duplicate-title">
+                    {{ 'customers.customerDrawer.possibleExistingCustomer' | transloco }}
+                  </h3>
+                  <p>{{ 'customers.customerDrawer.reviewThisMatchBefore' | transloco }}</p>
                 </div>
               </header>
               @for (match of matches(); track $index) {
@@ -276,7 +291,7 @@
                     [outlined]="true"
                     (click)="viewExisting(target)"
                   >
-                    View existing customer
+                    {{ 'customers.customerDrawer.viewExistingCustomer' | transloco }}
                   </button>
                 }
                 @for (field of differentFields(); track field) {
@@ -287,22 +302,22 @@
                     [outlined]="true"
                     (click)="useDifferent(field)"
                   >
-                    Use different {{ field }}
+                    {{ 'customers.customerDrawer.useDifferent' | transloco: { field: field } }}
                   </button>
                 }
                 <button pButton type="button" severity="secondary" (click)="createAnyway()">
-                  Create anyway
+                  {{ 'customers.customerDrawer.createAnyway' | transloco }}
                 </button>
               </div>
               <p class="customer-drawer__duplicate-note">
-                Exact email or phone matches require review.
+                {{ 'customers.customerDrawer.exactEmailOrPhone' | transloco }}
               </p>
             </section>
           }
         </div>
 
         <app-form-field
-          label="Address line 1"
+          [label]="'customers.customerDrawer.addressLine1' | transloco"
           [controlId]="controlIds.addressLine1"
           [required]="true"
           [error]="error('addressLine1')"
@@ -311,7 +326,7 @@
             pInputText
             fluid
             autocomplete="address-line1"
-            placeholder="Enter address"
+            [attr.placeholder]="'customers.customerDrawer.enterAddress' | transloco"
             [id]="controlIds.addressLine1"
             [ngModel]="form().addressLine1"
             (ngModelChange)="patch({ addressLine1: $event }, 'addressLine1')"
@@ -326,7 +341,7 @@
 
         <div class="customer-drawer__row customer-drawer__row--address">
           <app-form-field
-            label="City"
+            [label]="'customers.customerDrawer.city' | transloco"
             [controlId]="controlIds.city"
             [required]="true"
             [error]="error('city')"
@@ -347,20 +362,20 @@
             />
           </app-form-field>
           <app-form-field
-            label="State"
+            [label]="'customers.customerDrawer.state' | transloco"
             [controlId]="controlIds.stateRegion"
             [error]="error('stateRegion')"
           >
             @if (usesStateList()) {
               <p-select
                 [inputId]="controlIds.stateRegion"
-                [options]="stateOptions"
+                [options]="stateOptions | localizedRef"
                 optionLabel="label"
                 optionValue="code"
                 [filter]="true"
                 [showClear]="true"
-                ariaLabel="State"
-                placeholder="State"
+                [ariaLabel]="'customers.customerDrawer.state' | transloco"
+                [placeholder]="'customers.customerDrawer.state' | transloco"
                 appendTo="body"
                 fluid
                 [ngModel]="form().stateRegion || null"
@@ -388,7 +403,7 @@
             }
           </app-form-field>
           <app-form-field
-            label="ZIP code"
+            [label]="'customers.customerDrawer.zipCode' | transloco"
             [controlId]="controlIds.postalCode"
             [error]="error('postalCode')"
           >
@@ -396,7 +411,7 @@
               pInputText
               fluid
               autocomplete="postal-code"
-              placeholder="Enter ZIP"
+              [attr.placeholder]="'customers.customerDrawer.enterZip' | transloco"
               [id]="controlIds.postalCode"
               [ngModel]="form().postalCode"
               (ngModelChange)="patch({ postalCode: $event }, 'postalCode')"
@@ -410,7 +425,7 @@
         </div>
 
         <app-form-field
-          label="Service instructions"
+          [label]="'customers.customerDrawer.serviceInstructions' | transloco"
           [controlId]="controlIds.serviceInstructions"
           [error]="error('serviceInstructions')"
         >
@@ -418,7 +433,9 @@
             pTextarea
             rows="3"
             fluid
-            placeholder="Add service instructions (optional)"
+            [attr.placeholder]="
+              'customers.customerDrawer.addServiceInstructionsOptional' | transloco
+            "
             [id]="controlIds.serviceInstructions"
             [ngModel]="form().serviceInstructions"
             (ngModelChange)="patch({ serviceInstructions: $event }, 'serviceInstructions')"
@@ -432,7 +449,7 @@
 
         <div class="customer-drawer__row">
           <app-form-field
-            label="Branch"
+            [label]="'customers.customerDrawer.branch' | transloco"
             [controlId]="controlIds.branchId"
             [required]="true"
             [error]="error('branchId')"
@@ -442,8 +459,8 @@
               [options]="branchOptions()"
               optionLabel="name"
               optionValue="id"
-              ariaLabel="Branch"
-              placeholder="Select branch"
+              [ariaLabel]="'customers.customerDrawer.branch' | transloco"
+              [placeholder]="'customers.customerDrawer.selectBranch' | transloco"
               appendTo="body"
               fluid
               [ngModel]="form().branchId"
@@ -453,7 +470,11 @@
               [attr.aria-describedby]="describedBy('branchId')"
             />
           </app-form-field>
-          <app-form-field label="Tags" [controlId]="controlIds.tagIds" [error]="error('tagIds')">
+          <app-form-field
+            [label]="'customers.customerDrawer.tags' | transloco"
+            [controlId]="controlIds.tagIds"
+            [error]="error('tagIds')"
+          >
             <app-tag-selector
               [inputId]="controlIds.tagIds"
               [tags]="catalogTags()"
@@ -472,7 +493,7 @@
         </div>
 
         <app-form-field
-          label="Internal note"
+          [label]="'customers.customerDrawer.internalNote' | transloco"
           [controlId]="controlIds.internalNote"
           [error]="error('internalNote')"
         >
@@ -480,7 +501,7 @@
             pTextarea
             rows="2"
             fluid
-            placeholder="Add an internal note (optional)"
+            [attr.placeholder]="'customers.customerDrawer.addAnInternalNote' | transloco"
             [id]="controlIds.internalNote"
             [ngModel]="form().internalNote"
             (ngModelChange)="patch({ internalNote: $event }, 'internalNote')"
@@ -499,7 +520,7 @@
     <span class="customer-drawer__spacer"></span>
     @if (readOnly()) {
       <button pButton type="button" class="customer-drawer__action" (click)="requestClose()">
-        Close
+        {{ 'common.close' | transloco }}
       </button>
     } @else {
       <button
@@ -511,7 +532,7 @@
         [disabled]="submitting()"
         (click)="requestClose()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
       <button
         pButton
@@ -524,7 +545,11 @@
         @if (submitting()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        {{ isCreate() ? 'Create customer' : 'Save changes' }}
+        {{
+          isCreate()
+            ? ('customers.customerDrawer.createCustomer' | transloco)
+            : ('customers.customerDrawer.saveChanges' | transloco)
+        }}
       </button>
       @if (panelVisible()) {
         <p class="customer-drawer__hint" id="customer-resolve-hint">{{ resolveMessage }}</p>

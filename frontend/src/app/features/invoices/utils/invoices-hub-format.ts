@@ -9,6 +9,7 @@ import {
 } from '../models/invoices-hub.model';
 import { formatCalendarDate, money } from '../../billing-review/utils/billing-review-format';
 
+import { localized, t } from '../../../core/i18n/translate';
 export {
   addDays,
   formatCalendarDate,
@@ -16,29 +17,41 @@ export {
   money,
   todayIn,
 } from '../../billing-review/utils/billing-review-format';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 
 /** BR-03 chip: text and icon so the status never relies on colour alone (BR-30). */
 export const STATUS_CHIPS: Readonly<
   Record<DisplayStatus, { readonly label: string; readonly icon: string; readonly tone: string }>
-> = {
-  draft: { label: 'Draft', icon: 'pi-file-edit', tone: 'neutral' },
-  sent: { label: 'Sent', icon: 'pi-send', tone: 'info' },
-  partially_paid: { label: 'Partially paid', icon: 'pi-clock', tone: 'warning' },
-  paid: { label: 'Paid', icon: 'pi-check-circle', tone: 'success' },
-  overdue: { label: 'Overdue', icon: 'pi-exclamation-circle', tone: 'danger' },
-};
+> = localized(() => ({
+  draft: { label: t('invoices.invoicesHubFormat.draft'), icon: 'pi-file-edit', tone: 'neutral' },
+  sent: { label: t('invoices.invoicesHubFormat.sent'), icon: 'pi-send', tone: 'info' },
+  partially_paid: {
+    label: t('invoices.invoicesHubFormat.partiallyPaid'),
+    icon: 'pi-clock',
+    tone: 'warning',
+  },
+  paid: { label: t('invoices.invoicesHubFormat.paid'), icon: 'pi-check-circle', tone: 'success' },
+  overdue: {
+    label: t('invoices.invoicesHubFormat.overdue'),
+    icon: 'pi-exclamation-circle',
+    tone: 'danger',
+  },
+}));
 
 export function statusText(row: Pick<InvoiceRow, 'status' | 'daysOverdue'>): string {
   if (row.status !== 'overdue') {
     return STATUS_CHIPS[row.status].label;
   }
   const days = row.daysOverdue ?? 0;
-  return `Overdue ${days} ${days === 1 ? 'day' : 'days'}`;
+  return t('invoices.invoicesHubFormat.overdue2', {
+    days: days,
+    value: days === 1 ? t('invoices.invoicesHubFormat.day') : t('invoices.invoicesHubFormat.days'),
+  });
 }
 
 /** "MMM d" of a calendar date (`yyyy-mm-dd`), never shifted by a time zone. */
 function shortDate(value: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',
@@ -49,11 +62,11 @@ function shortDate(value: string): string {
 export function lastActivityText(activity: LastActivity | null): string {
   switch (activity?.kind) {
     case 'paid':
-      return `Paid ${formatCalendarDate(activity.date)}`;
+      return t('invoices.invoicesHubFormat.paid2', { date: formatCalendarDate(activity.date) });
     case 'payment':
-      return `Payment ${shortDate(activity.date)}`;
+      return t('invoices.invoicesHubFormat.payment', { date: shortDate(activity.date) });
     case 'sent':
-      return `Sent ${formatCalendarDate(activity.date)}`;
+      return t('invoices.invoicesHubFormat.sent2', { date: formatCalendarDate(activity.date) });
     default:
       return '—';
   }
@@ -61,14 +74,21 @@ export function lastActivityText(activity: LastActivity | null): string {
 
 /** "<n> days" for the average time to pay, "—" when there is none (BR-21). */
 export function averageDaysText(days: number | null): string {
-  return days === null ? '—' : `${days} ${days === 1 ? 'day' : 'days'}`;
+  return days === null
+    ? '—'
+    : `${days} ${days === 1 ? t('invoices.invoicesHubFormat.day') : t('invoices.invoicesHubFormat.days')}`;
 }
 
 /** "Showing <a> – <b> of <n> <noun>" (BR-22). */
 export function showingText(page: number, pageSize: number, total: number, noun: string): string {
   const first = (page - 1) * pageSize + 1;
   const last = Math.min(page * pageSize, total);
-  return `Showing ${first} – ${last} of ${total} ${noun}`;
+  return t('invoices.invoicesHubFormat.showingOf', {
+    first: first,
+    last: last,
+    total: total,
+    noun: noun,
+  });
 }
 
 export type PaymentField =
@@ -112,35 +132,41 @@ export function validatePayment(values: PaymentValues, context: PaymentContext):
   const errors: PaymentErrors = {};
   const amount = parseAmount(values.amount);
   if (amount === null || amount < 0.01) {
-    errors.amount = 'Enter an amount greater than 0.';
+    errors.amount = t('invoices.invoicesHubFormat.enterAnAmountGreater');
   } else if (amount > context.balance) {
-    errors.amount = `Amount can't exceed the outstanding balance of ${money(context.balance, context.currency)}.`;
+    errors.amount = t('invoices.invoicesHubFormat.amountCantExceedThe', {
+      value: money(context.balance, context.currency),
+    });
   }
   if (values.paidDate === '') {
-    errors.paidDate = 'Enter the payment date.';
+    errors.paidDate = t('invoices.invoicesHubFormat.enterThePaymentDate');
   } else if (values.paidDate > context.today) {
-    errors.paidDate = "Payment date can't be in the future.";
+    errors.paidDate = t('invoices.invoicesHubFormat.paymentDateCantBe');
   } else if (values.paidDate < context.issueDate) {
-    errors.paidDate = "Payment date can't be before the invoice date.";
+    errors.paidDate = t('invoices.invoicesHubFormat.paymentDateCantBe2');
   }
   if (values.method === null) {
-    errors.method = 'Select a payment method.';
+    errors.method = t('invoices.invoicesHubFormat.selectAPaymentMethod');
   }
   const reference = values.reference.trim();
   if (reference.length > REFERENCE_MAX_LENGTH) {
-    errors.reference = `Use ${REFERENCE_MAX_LENGTH} characters or fewer.`;
+    errors.reference = t('invoices.invoicesHubFormat.useCharactersOrFewer', {
+      REFERENCE_MAX_LENGTH: REFERENCE_MAX_LENGTH,
+    });
   } else if (
     reference === '' &&
     values.method !== null &&
     REFERENCE_REQUIRED_METHODS.includes(values.method)
   ) {
-    errors.reference = 'Enter the reference number.';
+    errors.reference = t('invoices.invoicesHubFormat.enterTheReferenceNumber');
   }
   if (values.receivedByUserId === '') {
-    errors.receivedByUserId = 'Select who received the payment.';
+    errors.receivedByUserId = t('invoices.invoicesHubFormat.selectWhoReceivedThe');
   }
   if (values.note.trim().length > NOTE_MAX_LENGTH) {
-    errors.note = `Use ${NOTE_MAX_LENGTH} characters or fewer.`;
+    errors.note = t('invoices.invoicesHubFormat.useCharactersOrFewer2', {
+      NOTE_MAX_LENGTH: NOTE_MAX_LENGTH,
+    });
   }
   return errors;
 }

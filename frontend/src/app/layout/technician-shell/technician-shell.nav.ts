@@ -5,6 +5,7 @@ import {
   PROFILE_PATH,
 } from '../../features/technician-jobs/technician-jobs.routes';
 
+import { localizedList, t } from '../../core/i18n/translate';
 /** One bottom navigation destination (BR-15). */
 export interface TechnicianNavItem {
   readonly label: string;
@@ -16,33 +17,33 @@ export interface TechnicianNavItem {
   readonly unreadMessages?: boolean;
 }
 
-export const TECHNICIAN_NAV: readonly TechnicianNavItem[] = [
+export const TECHNICIAN_NAV: readonly TechnicianNavItem[] = localizedList(() => [
   {
-    label: 'Today',
+    label: t('technicianJobs.technicianShellNav.today'),
     icon: 'pi-home',
     link: '/today',
     matches: (path) => path === '/today' || path.startsWith('/today/visits/'),
   },
   {
-    label: 'Schedule',
+    label: t('technicianJobs.technicianShellNav.schedule'),
     icon: 'pi-calendar',
     link: '/today/schedule',
     matches: (path) => path === '/today/schedule',
   },
   {
-    label: 'Time',
+    label: t('technicianJobs.technicianShellNav.time'),
     icon: 'pi-clock',
     link: '/today/time',
     matches: (path) => path === '/today/time',
   },
   {
-    label: 'Messages',
+    label: t('technicianJobs.technicianShellNav.messages'),
     icon: 'pi-comments',
     link: TECHNICIAN_MESSAGES_PATH,
     matches: (path) => path.startsWith(TECHNICIAN_MESSAGES_PATH),
     unreadMessages: true,
   },
-];
+]);
 
 /** More menu destinations, all inside the technician shell. */
 export const PROFILE_LINK = PROFILE_PATH;

@@ -1,4 +1,4 @@
-<article class="doc" aria-label="Invoice preview">
+<article class="doc" [attr.aria-label]="'invoices.invoicePreview.invoicePreview' | transloco">
   <header class="doc__top">
     <div class="doc__org">
       <div class="doc__brand">
@@ -24,19 +24,19 @@
       </address>
     </div>
     <div class="doc__invoice">
-      <p class="doc__word">INVOICE</p>
+      <p class="doc__word">{{ 'invoices.invoicePreview.invoice' | transloco }}</p>
       <p class="doc__number">{{ preview().number }}</p>
       <dl class="doc__dates">
         <div>
-          <dt>Issue date</dt>
+          <dt>{{ 'invoices.invoicePreview.issueDate' | transloco }}</dt>
           <dd>{{ view().issueDate }}</dd>
         </div>
         <div>
-          <dt>Due date</dt>
+          <dt>{{ 'invoices.invoicePreview.dueDate' | transloco }}</dt>
           <dd>{{ view().dueDate }}</dd>
         </div>
         <div>
-          <dt>Work order</dt>
+          <dt>{{ 'invoices.invoicePreview.workOrder' | transloco }}</dt>
           <dd>
             @if (workOrderId(); as id) {
               <a [routerLink]="['/jobs', id]">{{ preview().workOrderNumber }}</a>
@@ -51,7 +51,9 @@
 
   <div class="doc__parties">
     <section aria-labelledby="doc-bill-to">
-      <h3 class="doc__label" id="doc-bill-to">Bill to</h3>
+      <h3 class="doc__label" id="doc-bill-to">
+        {{ 'invoices.invoicePreview.billTo' | transloco }}
+      </h3>
       <p class="doc__strong">{{ preview().billTo.name }}</p>
       <address class="doc__address">
         @if (preview().billTo.email; as email) {
@@ -67,7 +69,9 @@
     </section>
     @if (preview().serviceAddress; as address) {
       <section aria-labelledby="doc-service-address">
-        <h3 class="doc__label" id="doc-service-address">Service address</h3>
+        <h3 class="doc__label" id="doc-service-address">
+          {{ 'invoices.invoicePreview.serviceAddress' | transloco }}
+        </h3>
         <address class="doc__address">
           <span>{{ address }}</span>
         </address>
@@ -75,15 +79,20 @@
     }
   </div>
 
-  <div class="doc__scroll" role="region" aria-label="Invoice lines" tabindex="0">
+  <div
+    class="doc__scroll"
+    role="region"
+    [attr.aria-label]="'invoices.invoicePreview.invoiceLines' | transloco"
+    tabindex="0"
+  >
     <table class="doc__table">
       <thead>
         <tr>
-          <th scope="col">Description</th>
-          <th scope="col" class="doc__num">Qty</th>
-          <th scope="col" class="doc__num">Rate</th>
-          <th scope="col" class="doc__num">Tax</th>
-          <th scope="col" class="doc__num">Amount</th>
+          <th scope="col">{{ 'common.description' | transloco }}</th>
+          <th scope="col" class="doc__num">{{ 'invoices.invoicePreview.qty' | transloco }}</th>
+          <th scope="col" class="doc__num">{{ 'invoices.invoicePreview.rate' | transloco }}</th>
+          <th scope="col" class="doc__num">{{ 'invoices.invoicePreview.tax' | transloco }}</th>
+          <th scope="col" class="doc__num">{{ 'common.amount' | transloco }}</th>
         </tr>
       </thead>
       <tbody>
@@ -108,18 +117,20 @@
   <div class="doc__bottom">
     @if (preview().completionNote; as note) {
       <section class="doc__note" aria-labelledby="doc-note">
-        <h3 class="doc__label" id="doc-note">Service completion note</h3>
+        <h3 class="doc__label" id="doc-note">
+          {{ 'invoices.invoicePreview.serviceCompletionNote' | transloco }}
+        </h3>
         <p>{{ note }}</p>
       </section>
     }
     <dl class="doc__totals">
       <div>
-        <dt>Subtotal</dt>
+        <dt>{{ 'invoices.invoicePreview.subtotal' | transloco }}</dt>
         <dd>{{ view().subtotal }}</dd>
       </div>
       @if (view().discount; as discount) {
         <div>
-          <dt>Discount</dt>
+          <dt>{{ 'invoices.invoicePreview.discount' | transloco }}</dt>
           <dd>−{{ discount }}</dd>
         </div>
       }
@@ -128,11 +139,11 @@
         <dd>{{ view().tax }}</dd>
       </div>
       <div class="doc__total">
-        <dt>Total due</dt>
+        <dt>{{ 'invoices.invoicePreview.totalDue' | transloco }}</dt>
         <dd>{{ view().total }}</dd>
       </div>
     </dl>
   </div>
 
-  <p class="doc__thanks">Thank you for your business!</p>
+  <p class="doc__thanks">{{ 'invoices.invoicePreview.thankYouForYour' | transloco }}</p>
 </article>

@@ -2,7 +2,7 @@
   <header class="pcard__head">
     <h2 class="pcard__title" id="property-title">
       <i class="pi pi-clipboard pcard__icon" aria-hidden="true"></i>
-      Your property
+      {{ 'portal.propertyCard.yourProperty' | transloco }}
     </h2>
     @if (property()) {
       <a
@@ -12,7 +12,7 @@
         size="small"
         routerLink="/portal/properties"
       >
-        Manage
+        {{ 'portal.propertyCard.manage' | transloco }}
       </a>
     }
   </header>
@@ -25,7 +25,7 @@
         <p class="property__name">
           {{ property.name }}
           @if (property.isPrimary) {
-            <span class="pcard__tag">Primary</span>
+            <span class="pcard__tag">{{ 'portal.propertyCard.primary' | transloco }}</span>
           }
         </p>
         <p class="property__line">{{ property.addressLine1 }}</p>
@@ -34,13 +34,14 @@
         </p>
         @if (lastService(); as date) {
           <p class="property__line">
-            <span class="property__label">Last service:</span> {{ date }}
+            <span class="property__label">{{ 'portal.propertyCard.lastService' | transloco }}</span>
+            {{ date }}
           </p>
         }
       </div>
     </div>
   } @else {
-    <p class="pcard__empty">No properties yet.</p>
+    <p class="pcard__empty">{{ 'portal.propertyCard.noPropertiesYet' | transloco }}</p>
   }
   <a
     pButton
@@ -50,6 +51,6 @@
     routerLink="/portal/properties/new"
   >
     <i class="pi pi-plus" aria-hidden="true"></i>
-    Add property
+    {{ 'portal.propertyCard.addProperty' | transloco }}
   </a>
 </section>

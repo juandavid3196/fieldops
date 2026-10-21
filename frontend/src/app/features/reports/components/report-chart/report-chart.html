@@ -47,7 +47,7 @@
       </caption>
       <thead>
         <tr>
-          <th scope="col">Group</th>
+          <th scope="col">{{ 'reports.reportChart.group' | transloco }}</th>
           @for (bar of model().groups[0].bars; track bar.key) {
             <th scope="col">{{ bar.label }}</th>
           }

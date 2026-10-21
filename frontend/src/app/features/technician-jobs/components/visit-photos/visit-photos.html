@@ -2,12 +2,14 @@
   @for (photo of photos(); track photo.id; let index = $index) {
     <li class="photos__item">
       @if (failed().has(photo.id)) {
-        <span class="photos__failed">Photo unavailable.</span>
+        <span class="photos__failed">{{
+          'technicianJobs.visitPhotos.photoUnavailable' | transloco
+        }}</span>
       } @else {
         <button
           type="button"
           class="photos__button"
-          [attr.aria-label]="'Open ' + alt(index)"
+          [attr.aria-label]="'technicianJobs.visitPhotos.open' | transloco: { index: alt(index) }"
           (click)="open.emit({ index, trigger: $any($event.currentTarget) })"
         >
           <img

@@ -2,7 +2,7 @@
   <div class="mat__head">
     <h2 class="mat__title" id="mat-title">
       <i class="pi pi-box" aria-hidden="true"></i>
-      Materials used
+      {{ 'technicianJobs.jobMaterials.materialsUsed' | transloco }}
     </h2>
     @if (rows().length > 0) {
       <p class="mat__indicator" [class.mat__indicator--ok]="matches()">
@@ -11,7 +11,11 @@
           [class]="matches() ? 'pi-check-circle' : 'pi-info-circle'"
           aria-hidden="true"
         ></i>
-        {{ matches() ? 'Matches planned quantities' : 'Differs from planned quantities' }}
+        {{
+          matches()
+            ? ('technicianJobs.jobMaterials.matchesPlannedQuantities' | transloco)
+            : ('technicianJobs.jobMaterials.differsFromPlannedQuantities' | transloco)
+        }}
       </p>
     }
   </div>
@@ -21,11 +25,11 @@
   }
 
   @if (rows().length === 0) {
-    <p class="mat__muted">No materials recorded.</p>
+    <p class="mat__muted">{{ 'technicianJobs.jobMaterials.noMaterialsRecorded' | transloco }}</p>
   } @else {
     <div class="mat__columns" aria-hidden="true">
-      <span class="mat__col-planned">Planned</span>
-      <span class="mat__col-used">Used</span>
+      <span class="mat__col-planned">{{ 'technicianJobs.jobMaterials.planned' | transloco }}</span>
+      <span class="mat__col-used">{{ 'technicianJobs.jobMaterials.used' | transloco }}</span>
     </div>
     <ul class="mat__list">
       @for (row of rows(); track row.id) {
@@ -41,14 +45,16 @@
             @if (row.planned !== null) {
               {{ row.planned }}
             } @else {
-              Added
+              {{ 'technicianJobs.jobMaterials.added' | transloco }}
             }
           </span>
           <span class="mat__stepper">
             <button
               type="button"
               class="mat__step"
-              [attr.aria-label]="'Decrease ' + row.description"
+              [attr.aria-label]="
+                'technicianJobs.jobMaterials.decrease' | transloco: { description: row.description }
+              "
               [disabled]="readOnly() || pending() !== null || row.used <= 0"
               (click)="step(row, -1, $any($event.currentTarget))"
             >
@@ -59,7 +65,10 @@
               type="text"
               inputmode="decimal"
               class="mat__input"
-              [attr.aria-label]="'Used quantity for ' + row.description"
+              [attr.aria-label]="
+                'technicianJobs.jobMaterials.usedQuantityFor'
+                  | transloco: { description: row.description }
+              "
               [readOnly]="readOnly()"
               [value]="display(row)"
               (input)="typed(row, field.value)"
@@ -68,7 +77,9 @@
             <button
               type="button"
               class="mat__step"
-              [attr.aria-label]="'Increase ' + row.description"
+              [attr.aria-label]="
+                'technicianJobs.jobMaterials.increase' | transloco: { description: row.description }
+              "
               [disabled]="readOnly() || pending() !== null"
               (click)="step(row, 1, $any($event.currentTarget))"
             >
@@ -91,14 +102,14 @@
       (click)="openAdd($any($event.currentTarget))"
     >
       <i class="pi pi-plus" aria-hidden="true"></i>
-      Add material
+      {{ 'technicianJobs.jobMaterials.addMaterial' | transloco }}
     </button>
   }
 </section>
 
 <p-dialog
   [modal]="true"
-  closeAriaLabel="Close"
+  [closeAriaLabel]="'common.close' | transloco"
   [closeButtonProps]="closeProps"
   [draggable]="false"
   [resizable]="false"
@@ -109,13 +120,17 @@
   <ng-template #header>
     <div class="add__head">
       <span class="add__tile" aria-hidden="true"><i class="pi pi-box"></i></span>
-      <h2 class="add__title">Add material</h2>
+      <h2 class="add__title">{{ 'technicianJobs.jobMaterials.addMaterial' | transloco }}</h2>
     </div>
   </ng-template>
 
   <div class="add">
-    <p class="add__intro">Choose a catalog item or add a custom material.</p>
-    <div class="add__modes" role="group" aria-label="Material source">
+    <p class="add__intro">{{ 'technicianJobs.jobMaterials.chooseACatalogItem' | transloco }}</p>
+    <div
+      class="add__modes"
+      role="group"
+      [attr.aria-label]="'technicianJobs.jobMaterials.materialSource' | transloco"
+    >
       <button
         type="button"
         class="add__mode"
@@ -123,7 +138,7 @@
         (click)="setFreeText(false)"
       >
         <i class="pi pi-search" aria-hidden="true"></i>
-        From catalog
+        {{ 'technicianJobs.jobMaterials.fromCatalog' | transloco }}
       </button>
       <button
         type="button"
@@ -132,13 +147,13 @@
         (click)="setFreeText(true)"
       >
         <i class="pi pi-pencil" aria-hidden="true"></i>
-        Custom material
+        {{ 'technicianJobs.jobMaterials.customMaterial' | transloco }}
       </button>
     </div>
 
     @if (freeText()) {
       <label class="add__field">
-        Description
+        {{ 'common.description' | transloco }}
         <input
           type="text"
           class="add__input"
@@ -148,7 +163,7 @@
         />
       </label>
       <label class="add__field">
-        Unit
+        {{ 'technicianJobs.jobMaterials.unit' | transloco }}
         <input
           type="text"
           class="add__input"
@@ -159,29 +174,37 @@
       </label>
     } @else {
       <label class="add__field">
-        Search catalog
+        {{ 'technicianJobs.jobMaterials.searchCatalog' | transloco }}
         <span class="add__search">
           <i class="pi pi-search" aria-hidden="true"></i>
           <input
             type="search"
             class="add__input"
             maxlength="80"
-            placeholder="Search materials"
+            [attr.placeholder]="'technicianJobs.jobMaterials.searchMaterials' | transloco"
             aria-describedby="add-catalog-help"
             [value]="searchText()"
             (input)="onSearch($any($event.target).value)"
           />
         </span>
       </label>
-      <p class="add__help" id="add-catalog-help">Only active catalog materials are shown.</p>
+      <p class="add__help" id="add-catalog-help">
+        {{ 'technicianJobs.jobMaterials.onlyActiveCatalogMaterials' | transloco }}
+      </p>
       @if (searching()) {
-        <p class="add__help" role="status">Searching…</p>
+        <p class="add__help" role="status">
+          {{ 'technicianJobs.jobMaterials.searching' | transloco }}
+        </p>
       } @else if (searchFailed()) {
-        <p class="mat__error" role="alert">We couldn't search the catalog. Try again.</p>
+        <p class="mat__error" role="alert">
+          {{ 'technicianJobs.jobMaterials.weCouldnTSearch' | transloco }}
+        </p>
       } @else if (
         searchText().trim().length >= 2 && results().length === 0 && selected() === null
       ) {
-        <p class="add__help" role="status">No matching materials.</p>
+        <p class="add__help" role="status">
+          {{ 'technicianJobs.jobMaterials.noMatchingMaterials' | transloco }}
+        </p>
       }
       <ul class="add__results">
         @for (item of results(); track item.id) {
@@ -201,13 +224,13 @@
     }
 
     <div class="add__field">
-      <span id="add-quantity-label">Quantity</span>
+      <span id="add-quantity-label">{{ 'technicianJobs.jobMaterials.quantity' | transloco }}</span>
       <div class="add__quantity">
         <span class="add__stepper">
           <button
             type="button"
             class="add__step"
-            aria-label="Decrease quantity"
+            [attr.aria-label]="'technicianJobs.jobMaterials.decreaseQuantity' | transloco"
             (click)="stepNew(-1)"
           >
             <i class="pi pi-minus" aria-hidden="true"></i>
@@ -223,7 +246,7 @@
           <button
             type="button"
             class="add__step"
-            aria-label="Increase quantity"
+            [attr.aria-label]="'technicianJobs.jobMaterials.increaseQuantity' | transloco"
             (click)="stepNew(1)"
           >
             <i class="pi pi-plus" aria-hidden="true"></i>
@@ -245,7 +268,7 @@
         [outlined]="true"
         (click)="closeAdd()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
       <button
         pButton
@@ -255,16 +278,18 @@
         [loading]="pending() === 'add'"
         (click)="add()"
       >
-        Add material
+        {{ 'technicianJobs.jobMaterials.addMaterial' | transloco }}
       </button>
     </div>
   </div>
 </p-dialog>
 
 <p-dialog
-  [header]="'Remove ' + (removeTarget()?.description ?? '') + '?'"
+  [header]="
+    'technicianJobs.jobMaterials.remove' | transloco: { value: removeTarget()?.description ?? '' }
+  "
   [modal]="true"
-  closeAriaLabel="Close"
+  [closeAriaLabel]="'common.close' | transloco"
   [draggable]="false"
   [resizable]="false"
   [visible]="removeTarget() !== null"
@@ -281,7 +306,7 @@
       [loading]="pending() !== null"
       (click)="confirmRemove()"
     >
-      Remove
+      {{ 'common.remove' | transloco }}
     </button>
     <button
       pButton
@@ -292,7 +317,7 @@
       [disabled]="pending() !== null"
       (click)="closeRemove()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
   </div>
 </p-dialog>

@@ -5,18 +5,27 @@
 
 <div class="page">
   <header class="page__header">
-    <nav class="page__breadcrumb" aria-label="Breadcrumb">
+    <nav
+      class="page__breadcrumb"
+      [attr.aria-label]="'invoices.invoiceDetail.breadcrumb' | transloco"
+    >
       <ol>
-        <li>Billing</li>
-        <li><a routerLink="/invoices">Invoices</a></li>
-        <li aria-current="page">{{ invoice()?.number ?? 'Invoice' }}</li>
+        <li>{{ 'invoices.invoiceDetail.billing' | transloco }}</li>
+        <li>
+          <a routerLink="/invoices">{{ 'invoices.invoiceDetail.invoices' | transloco }}</a>
+        </li>
+        <li aria-current="page">
+          {{ invoice()?.number ?? ('invoices.invoiceDetail.invoice' | transloco) }}
+        </li>
       </ol>
     </nav>
 
     @if (invoice(); as invoice) {
       <div class="page__title-row">
         <div class="page__heading">
-          <h1 #heading class="page__title" tabindex="-1">Invoice {{ invoice.number }}</h1>
+          <h1 #heading class="page__title" tabindex="-1">
+            {{ 'invoices.invoiceDetail.invoice2' | transloco: { number: invoice.number } }}
+          </h1>
           <span class="page__chip" [attr.data-status]="invoice.status">{{ statusText() }}</span>
         </div>
         <div class="page__actions">
@@ -35,7 +44,7 @@
             } @else {
               <i class="pi pi-download" aria-hidden="true"></i>
             }
-            Download PDF
+            {{ 'invoices.invoiceDetail.downloadPdf' | transloco }}
           </button>
           @if (canEdit()) {
             <button
@@ -53,7 +62,7 @@
               } @else {
                 <i class="pi pi-save" aria-hidden="true"></i>
               }
-              Save draft
+              {{ 'invoices.invoiceDetail.saveDraft' | transloco }}
             </button>
             <button
               pButton
@@ -67,7 +76,7 @@
               } @else {
                 <i class="pi pi-send" aria-hidden="true"></i>
               }
-              Send invoice
+              {{ 'invoices.invoiceDetail.sendInvoice' | transloco }}
             </button>
           }
         </div>
@@ -76,20 +85,30 @@
         <dl class="page__meta">
           <div>
             <dt>
-              <i class="pi pi-user" aria-hidden="true"></i><span class="page__sr">Customer</span>
+              <i class="pi pi-user" aria-hidden="true"></i
+              ><span class="page__sr">{{ 'common.customer' | transloco }}</span>
             </dt>
             <dd>{{ invoice.customerName }}</dd>
           </div>
           <div>
-            <dt><i class="pi pi-calendar" aria-hidden="true"></i>Issue date:</dt>
+            <dt>
+              <i class="pi pi-calendar" aria-hidden="true"></i
+              >{{ 'invoices.invoiceDetail.issueDate' | transloco }}
+            </dt>
             <dd>{{ dates.issue }}</dd>
           </div>
           <div>
-            <dt><i class="pi pi-calendar" aria-hidden="true"></i>Due date:</dt>
+            <dt>
+              <i class="pi pi-calendar" aria-hidden="true"></i
+              >{{ 'invoices.invoiceDetail.dueDate' | transloco }}
+            </dt>
             <dd>{{ dates.due }}</dd>
           </div>
           <div>
-            <dt><i class="pi pi-link" aria-hidden="true"></i>Work order:</dt>
+            <dt>
+              <i class="pi pi-link" aria-hidden="true"></i
+              >{{ 'invoices.invoiceDetail.workOrder' | transloco }}
+            </dt>
             <dd>
               <a [routerLink]="['/jobs', invoice.workOrderId]">{{ invoice.workOrderNumber }}</a>
             </dd>
@@ -97,13 +116,19 @@
         </dl>
       }
     } @else {
-      <h1 #heading class="page__title" tabindex="-1">Invoice</h1>
+      <h1 #heading class="page__title" tabindex="-1">
+        {{ 'invoices.invoiceDetail.invoice' | transloco }}
+      </h1>
     }
   </header>
 
   @switch (state()) {
     @case ('loading') {
-      <div class="page__skeletons" aria-busy="true" aria-label="Loading invoice">
+      <div
+        class="page__skeletons"
+        aria-busy="true"
+        [attr.aria-label]="'invoices.invoiceDetail.loadingInvoice' | transloco"
+      >
         <p-skeleton height="2.5rem" width="50%" />
         <div class="page__body">
           <p-skeleton height="34rem" />
@@ -117,7 +142,9 @@
     @case ('not-available') {
       <div class="page__message" role="alert">
         <p>{{ unavailableMessage }}</p>
-        <a pButton severity="secondary" size="small" routerLink="/invoices/review">Needs review</a>
+        <a pButton severity="secondary" size="small" routerLink="/invoices/review">{{
+          'invoices.invoiceDetail.needsReview' | transloco
+        }}</a>
       </div>
     }
     @case ('error') {
@@ -125,7 +152,7 @@
         <span class="page__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -133,7 +160,10 @@
     @default {
       @if (invoice(); as invoice) {
         <div class="page__body">
-          <section class="page__card" aria-label="Invoice">
+          <section
+            class="page__card"
+            [attr.aria-label]="'invoices.invoiceDetail.invoice' | transloco"
+          >
             <app-invoice-preview [preview]="invoice" [workOrderId]="invoice.workOrderId" />
             @if (activity(); as activity) {
               <footer class="page__activity">

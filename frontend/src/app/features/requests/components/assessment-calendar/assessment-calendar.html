@@ -1,10 +1,13 @@
-<section class="calendar" aria-label="Technician calendar">
+<section
+  class="calendar"
+  [attr.aria-label]="'requests.assessmentCalendar.technicianCalendar' | transloco"
+>
   <div class="calendar__toolbar">
     <div class="calendar__nav">
       <button
         type="button"
         class="calendar__icon-button"
-        [attr.aria-label]="'Previous ' + step()"
+        [attr.aria-label]="'requests.assessmentCalendar.previous' | transloco: { step: step() }"
         (click)="shift.emit(-1)"
       >
         <i class="pi pi-chevron-left" aria-hidden="true"></i>
@@ -12,14 +15,18 @@
       <button
         type="button"
         class="calendar__icon-button"
-        [attr.aria-label]="'Next ' + step()"
+        [attr.aria-label]="'requests.assessmentCalendar.next' | transloco: { step: step() }"
         (click)="shift.emit(1)"
       >
         <i class="pi pi-chevron-right" aria-hidden="true"></i>
       </button>
     </div>
     <p class="calendar__range" aria-live="polite">{{ label() }}</p>
-    <div class="calendar__views" role="group" aria-label="Calendar view">
+    <div
+      class="calendar__views"
+      role="group"
+      [attr.aria-label]="'requests.assessmentCalendar.calendarView' | transloco"
+    >
       @for (option of views; track option.code) {
         <button
           type="button"
@@ -41,7 +48,7 @@
       <span class="calendar__error" role="alert">
         {{ errorMessage }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -95,7 +102,7 @@
                   [style.height.%]="shade.height"
                 >
                   @if (shade.kind === 'time-off') {
-                    Time off
+                    {{ 'requests.assessmentCalendar.timeOff' | transloco }}
                   }
                 </span>
               }

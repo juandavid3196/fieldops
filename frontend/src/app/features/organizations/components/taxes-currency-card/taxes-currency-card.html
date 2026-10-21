@@ -4,11 +4,13 @@
   aria-labelledby="taxes-currency-heading"
   [formGroup]="group()"
 >
-  <h2 id="taxes-currency-heading">Taxes &amp; currency</h2>
+  <h2 id="taxes-currency-heading">
+    {{ 'organizations.taxesCurrencyCard.taxesCurrency' | transloco }}
+  </h2>
 
   <div class="taxes-card__grid">
     <app-form-field
-      label="Currency"
+      [label]="'organizations.taxesCurrencyCard.currency' | transloco"
       controlId="organization-currency"
       [required]="true"
       [error]="error('organization.currency')"
@@ -20,7 +22,7 @@
         optionLabel="label"
         optionValue="code"
         [filter]="true"
-        ariaLabel="Currency"
+        [ariaLabel]="'organizations.taxesCurrencyCard.currency' | transloco"
         appendTo="body"
         fluid
         [invalid]="error('organization.currency') !== null"
@@ -35,7 +37,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Default sales tax rate"
+      [label]="'organizations.taxesCurrencyCard.defaultSalesTaxRate' | transloco"
       controlId="organization-defaultTaxRate"
       [required]="true"
       [error]="error('organization.defaultTaxRate')"
@@ -51,7 +53,7 @@
         fluid
         [invalid]="error('organization.defaultTaxRate') !== null"
         [readonly]="submitting()"
-        ariaLabel="Default sales tax rate"
+        [ariaLabel]="'organizations.taxesCurrencyCard.defaultSalesTaxRate' | transloco"
         aria-required="true"
         [attr.aria-invalid]="error('organization.defaultTaxRate') !== null ? 'true' : null"
         [attr.aria-describedby]="
@@ -66,13 +68,15 @@
     <p-toggleswitch
       inputId="organization-pricesIncludeTax"
       formControlName="pricesIncludeTax"
-      ariaLabel="Prices include tax"
+      [ariaLabel]="'organizations.taxesCurrencyCard.pricesIncludeTax' | transloco"
       [readonly]="submitting()"
     />
     <span>
-      <span class="taxes-card__switch-title">Prices include tax</span>
+      <span class="taxes-card__switch-title">{{
+        'organizations.taxesCurrencyCard.pricesIncludeTax' | transloco
+      }}</span>
       <span class="taxes-card__switch-helper">
-        Show prices with tax included on quotes and invoices.
+        {{ 'organizations.taxesCurrencyCard.showPricesWithTax' | transloco }}
       </span>
     </span>
   </div>
@@ -83,6 +87,7 @@
   </div>
 
   <a class="taxes-card__link" [routerLink]="taxRatesLink">
-    Manage tax rates<i class="pi pi-arrow-right" aria-hidden="true"></i>
+    {{ 'organizations.taxesCurrencyCard.manageTaxRates' | transloco
+    }}<i class="pi pi-arrow-right" aria-hidden="true"></i>
   </a>
 </section>

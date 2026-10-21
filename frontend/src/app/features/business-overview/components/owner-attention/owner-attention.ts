@@ -1,5 +1,6 @@
 import { Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { BusinessAlert } from '../../models/business-overview.model';
 import {
@@ -9,9 +10,10 @@ import {
   attentionItem,
 } from '../../utils/business-view';
 
-export const ATTENTION_EMPTY_TEXT = 'Nothing needs your attention.';
-export const DISCLAIMER_TEXT =
-  'Profitability figures are operational estimates based on configured product and service costs. They exclude overhead, payroll, payroll taxes, depreciation, and other accounting expenses. They are not net income and not a substitute for accounting software.';
+import { t } from '../../../../core/i18n/translate';
+export const ATTENTION_EMPTY_TEXT = (): string =>
+  t('businessOverview.ownerAttention.attentionEmptyText');
+export const DISCLAIMER_TEXT = (): string => t('businessOverview.ownerAttention.disclaimerText');
 
 interface AttentionView extends AttentionItem {
   readonly path: readonly string[];
@@ -21,7 +23,7 @@ interface AttentionView extends AttentionItem {
 /** BR-18, BR-19: alerts with their actions (3 shown, rest expandable) beside the disclaimer. */
 @Component({
   selector: 'app-owner-attention',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './owner-attention.html',
   styleUrl: './owner-attention.scss',
 })
@@ -33,8 +35,12 @@ export class OwnerAttention {
   readonly keptQuery = input.required<Readonly<Record<string, string>>>();
 
   readonly expanded = signal(false);
-  readonly emptyText = ATTENTION_EMPTY_TEXT;
-  readonly disclaimer = DISCLAIMER_TEXT;
+  get emptyText(): string {
+    return ATTENTION_EMPTY_TEXT();
+  }
+  get disclaimer(): string {
+    return DISCLAIMER_TEXT();
+  }
 
   readonly items = computed((): readonly AttentionView[] =>
     this.alerts().map((alert, index) => {

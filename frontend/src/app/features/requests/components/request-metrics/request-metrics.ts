@@ -1,8 +1,10 @@
 import { Component, computed, input } from '@angular/core';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { RequestMetrics } from '../../models/requests.model';
 
+import { t } from '../../../../core/i18n/translate';
 type Tone = 'positive' | 'negative' | 'neutral';
 
 interface MetricView {
@@ -35,7 +37,7 @@ function tone(delta: number | null, upIsPositive: boolean): Tone {
 /** Four metric cards (BR-07): skeletons while loading, "—" with an accessible name on failure. */
 @Component({
   selector: 'app-request-metrics',
-  imports: [Skeleton],
+  imports: [TranslocoPipe, Skeleton],
   templateUrl: './request-metrics.html',
   styleUrl: './request-metrics.scss',
 })
@@ -44,7 +46,9 @@ export class RequestMetricsCards {
   readonly loading = input(false);
   readonly failed = input(false);
 
-  readonly errorText = "Couldn't load";
+  get errorText(): string {
+    return t('requests.requestMetrics.couldntLoad');
+  }
 
   readonly items = computed<readonly MetricView[]>(() => {
     const data = this.metrics();
@@ -62,21 +66,33 @@ export class RequestMetricsCards {
       delta: deltaText(metric?.deltaPercent ?? null),
       direction: direction(metric?.deltaPercent ?? null),
       tone: tone(metric?.deltaPercent ?? null, upIsPositive),
-      comparison: 'vs. previous week',
+      comparison: t('requests.requestMetrics.vsPreviousWeek'),
     });
     return [
-      count('newToday', 'New today', 'pi-file', data?.newToday, true),
-      count('awaitingResponse', 'Awaiting response', 'pi-comment', data?.awaitingResponse, false),
-      count('assessmentsToday', 'Assessments today', 'pi-calendar', data?.assessmentsToday, true),
+      count('newToday', t('requests.requestMetrics.newToday'), 'pi-file', data?.newToday, true),
+      count(
+        'awaitingResponse',
+        t('requests.requestMetrics.awaitingResponse'),
+        'pi-comment',
+        data?.awaitingResponse,
+        false,
+      ),
+      count(
+        'assessmentsToday',
+        t('requests.requestMetrics.assessmentsToday'),
+        'pi-calendar',
+        data?.assessmentsToday,
+        true,
+      ),
       {
         key: 'conversionRate',
-        label: 'Conversion rate',
+        label: t('requests.requestMetrics.conversionRate'),
         icon: 'pi-chart-bar',
         value: data === null ? '—' : `${data.conversionRate.value}%`,
         delta: deltaText(data?.conversionRate.deltaPoints ?? null),
         direction: direction(data?.conversionRate.deltaPoints ?? null),
         tone: tone(data?.conversionRate.deltaPoints ?? null, true),
-        comparison: 'vs. previous month',
+        comparison: t('requests.requestMetrics.vsPreviousMonth'),
       },
     ];
   });

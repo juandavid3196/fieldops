@@ -3,6 +3,7 @@ import { Paginator, PaginatorState } from 'primeng/paginator';
 
 import { showingText } from '../../utils/invoices-hub-format';
 
+import { t } from '../../../../core/i18n/translate';
 /** Footer of a hub list: "Showing <a> – <b> of <n> <noun>" and the page controls on the right (BR-22). */
 @Component({
   selector: 'app-hub-pager',
@@ -57,7 +58,7 @@ export class HubPager {
 
   readonly text = computed(() =>
     this.total() === 0
-      ? `Showing 0 of 0 ${this.noun()}`
+      ? t('invoices.hubPager.showing0Of0', { noun: this.noun() })
       : showingText(this.page(), this.pageSize(), this.total(), this.noun()),
   );
 

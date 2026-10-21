@@ -178,12 +178,12 @@ describe('Quote editor page', () => {
   afterEach(() => httpTesting?.verify());
 
   it.each<[string, string, QuoteDetail | 'not-found' | null, string]>([
-    ['viewer', QUOTE_ID, null, EDITOR_FORBIDDEN_MESSAGE],
-    ['accounting', QUOTE_ID, null, EDITOR_FORBIDDEN_MESSAGE],
-    ['technician', QUOTE_ID, null, EDITOR_FORBIDDEN_MESSAGE],
-    ['custom_role', QUOTE_ID, null, EDITOR_FORBIDDEN_MESSAGE],
-    ['owner', 'not-a-uuid', null, QUOTE_UNAVAILABLE_MESSAGE],
-    ['owner', QUOTE_ID, 'not-found', QUOTE_UNAVAILABLE_MESSAGE],
+    ['viewer', QUOTE_ID, null, EDITOR_FORBIDDEN_MESSAGE()],
+    ['accounting', QUOTE_ID, null, EDITOR_FORBIDDEN_MESSAGE()],
+    ['technician', QUOTE_ID, null, EDITOR_FORBIDDEN_MESSAGE()],
+    ['custom_role', QUOTE_ID, null, EDITOR_FORBIDDEN_MESSAGE()],
+    ['owner', 'not-a-uuid', null, QUOTE_UNAVAILABLE_MESSAGE()],
+    ['owner', QUOTE_ID, 'not-found', QUOTE_UNAVAILABLE_MESSAGE()],
   ])(
     '%s opening %s sees a state instead of the editor; read roles and technicians make no calls (quote-builder AC-25, AC-26)',
     async (role, id, response, message) => {
@@ -289,7 +289,7 @@ describe('Quote editor page', () => {
     page.save();
     quote('PUT', '/draft').flush(null, { status: 500, statusText: 'Server Error' });
     await settle();
-    expect(text()).toContain(QUOTE_SAVE_FAILED_MESSAGE);
+    expect(text()).toContain(QUOTE_SAVE_FAILED_MESSAGE());
     expect(page.dirty()).toBe(true);
 
     // Success: the response replaces the form, the baseline resets and the toast shows.

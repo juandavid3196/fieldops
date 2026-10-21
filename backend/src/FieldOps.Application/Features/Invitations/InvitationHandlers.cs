@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Account;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.Users;
 using FluentValidation;
@@ -86,7 +87,8 @@ public sealed class AcceptInvitationHandler(
                 (command.FirstName ?? string.Empty).Trim(),
                 (command.LastName ?? string.Empty).Trim(),
                 passwordHasher.Hash(password),
-                command.ClientIp),
+                command.ClientIp,
+                SupportedLanguages.Normalize(command.PreferredLanguage)),
             cancellationToken);
     }
 }

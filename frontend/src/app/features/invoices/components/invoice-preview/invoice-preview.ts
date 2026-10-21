@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatCalendarDate, money } from '../../../billing-review/utils/billing-review-format';
 import { InvoicePreview as InvoicePreviewData } from '../../models/invoice.model';
@@ -11,7 +12,7 @@ import { organizationInitials, quantityText, taxText } from '../../utils/invoice
  */
 @Component({
   selector: 'app-invoice-preview',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './invoice-preview.html',
   styleUrl: './invoice-preview.scss',
 })

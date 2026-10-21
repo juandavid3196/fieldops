@@ -23,6 +23,7 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
 import { Observable, Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -50,9 +51,10 @@ import {
   validateTechnicianField,
 } from './technician-form.validators';
 
+import { t } from '../../../../core/i18n/translate';
 export type TechnicianFormMode = 'create' | 'edit';
 
-export const SAVE_FAILED_MESSAGE = "We couldn't save the technician profile. Try again.";
+export const SAVE_FAILED_MESSAGE = (): string => t('team.technicianFormDrawer.saveFailedMessage');
 const TITLE_ID = 'technician-form-title';
 const SUMMARY_ID = 'technician-form-summary';
 const CONTROL_IDS: Readonly<Record<TechnicianFieldKey, string>> = {
@@ -75,6 +77,7 @@ const text = (value: string): string | null => (value.trim() === '' ? null : val
 @Component({
   selector: 'app-technician-form-drawer',
   imports: [
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     InputText,
@@ -116,7 +119,9 @@ export class TechnicianFormDrawer {
 
   readonly isCreate = computed(() => this.mode() === 'create');
   readonly title = computed(() =>
-    this.isCreate() ? 'Add technician profile' : 'Edit technician profile',
+    this.isCreate()
+      ? t('team.technicianFormDrawer.addTechnicianProfile')
+      : t('team.technicianFormDrawer.editTechnicianProfile'),
   );
 
   readonly form = signal<TechnicianFormValue>(EMPTY_FORM);
@@ -306,7 +311,10 @@ export class TechnicianFormDrawer {
         this.submitting.set(false);
         this.messageService.add({
           severity: 'success',
-          summary: id === null ? 'Technician profile created.' : 'Technician profile updated.',
+          summary:
+            id === null
+              ? t('team.technicianFormDrawer.technicianProfileCreated')
+              : t('team.technicianFormDrawer.technicianProfileUpdated'),
         });
         this.closed.emit();
         this.saved.emit(id ?? result.id);
@@ -334,7 +342,7 @@ export class TechnicianFormDrawer {
         return;
       }
     }
-    this.messageService.add({ severity: 'error', summary: SAVE_FAILED_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: SAVE_FAILED_MESSAGE() });
   }
 
   /** Read by the page's route-leave guard and drawer switching. */
@@ -349,7 +357,7 @@ export class TechnicianFormDrawer {
     if (this.dirty()) {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this technician profile',
+          subject: t('team.technicianFormDrawer.thisTechnicianProfile'),
           accept: () => this.closed.emit(),
         }),
       );

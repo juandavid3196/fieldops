@@ -3,13 +3,18 @@ import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PlannerTechnician, SlotState } from '../../models/requests.model';
 import { slotChipText, workloadText } from '../../utils/assessment-schedule';
 
-export const PLANNER_ERROR_MESSAGE = "We couldn't load technician availability.";
-export const NO_TECHNICIANS_MESSAGE = 'No active technicians in this branch.';
-export const CHOOSE_BRANCH_MESSAGE = 'Choose a branch to see technicians.';
+import { t } from '../../../../core/i18n/translate';
+export const PLANNER_ERROR_MESSAGE = (): string =>
+  t('requests.assessmentTechnicianPicker.plannerErrorMessage');
+export const NO_TECHNICIANS_MESSAGE = (): string =>
+  t('requests.assessmentTechnicianPicker.noTechniciansMessage');
+export const CHOOSE_BRANCH_MESSAGE = (): string =>
+  t('requests.assessmentTechnicianPicker.chooseBranchMessage');
 
 const CHIP_ICONS: Readonly<Record<SlotState, string>> = {
   available: 'pi-check-circle',
@@ -33,7 +38,7 @@ interface Card {
  */
 @Component({
   selector: 'app-assessment-technician-picker',
-  imports: [RouterLink, ButtonDirective, Message, Skeleton],
+  imports: [TranslocoPipe, RouterLink, ButtonDirective, Message, Skeleton],
   templateUrl: './assessment-technician-picker.html',
   styleUrl: './assessment-technician-picker.scss',
 })
@@ -53,9 +58,15 @@ export class AssessmentTechnicianPicker {
 
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
-  readonly errorMessage = PLANNER_ERROR_MESSAGE;
-  readonly emptyMessage = NO_TECHNICIANS_MESSAGE;
-  readonly chooseBranchMessage = CHOOSE_BRANCH_MESSAGE;
+  get errorMessage(): string {
+    return PLANNER_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return NO_TECHNICIANS_MESSAGE();
+  }
+  get chooseBranchMessage(): string {
+    return CHOOSE_BRANCH_MESSAGE();
+  }
 
   readonly cards = computed<Card[]>(() =>
     (this.technicians() ?? []).map((technician) => {
@@ -66,7 +77,11 @@ export class AssessmentTechnicianPicker {
         chip,
         icon: CHIP_ICONS[technician.slot.state],
         workload,
-        name: `${technician.name}, ${chip}, workload ${workload}`,
+        name: t('requests.assessmentTechnicianPicker.workload2', {
+          name: technician.name,
+          chip: chip,
+          workload: workload,
+        }),
       };
     }),
   );

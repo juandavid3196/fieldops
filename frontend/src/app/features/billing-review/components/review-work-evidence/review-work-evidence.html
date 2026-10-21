@@ -1,10 +1,16 @@
 @for (item of view(); track item.visit.visitId) {
   <section class="work" [attr.aria-labelledby]="'visit-' + item.visit.visitId">
     <h3 class="work__visit" [id]="'visit-' + item.visit.visitId">
-      Visit {{ item.visit.visitNumber }}
+      {{
+        'billingReview.reviewWorkEvidence.visit'
+          | transloco: { visitNumber: item.visit.visitNumber }
+      }}
     </h3>
 
-    <ul class="work__strip" aria-label="Visit summary">
+    <ul
+      class="work__strip"
+      [attr.aria-label]="'billingReview.reviewWorkEvidence.visitSummary' | transloco"
+    >
       <li>
         <i
           class="pi work__mark"
@@ -25,9 +31,13 @@
     <div class="work__columns">
       <div class="work__stack">
         <section class="work__card">
-          <h4 class="work__title">Completion checklist</h4>
+          <h4 class="work__title">
+            {{ 'billingReview.reviewWorkEvidence.completionChecklist' | transloco }}
+          </h4>
           @if (item.visit.checklist.length === 0) {
-            <p class="work__muted">No tasks recorded.</p>
+            <p class="work__muted">
+              {{ 'billingReview.reviewWorkEvidence.noTasksRecorded' | transloco }}
+            </p>
           } @else {
             <ul class="work__rows">
               @for (task of item.visit.checklist; track $index) {
@@ -41,10 +51,16 @@
                   ></i>
                   <span class="work__grow">{{ task.label }}</span>
                   @if (task.required) {
-                    <span class="work__pill work__pill--info">Required</span>
+                    <span class="work__pill work__pill--info">{{
+                      'billingReview.reviewWorkEvidence.required' | transloco
+                    }}</span>
                   }
                   <span class="work__pill" [class.work__pill--ok]="task.completed">
-                    {{ task.completed ? 'Done' : 'Not done' }}
+                    {{
+                      task.completed
+                        ? ('common.done' | transloco)
+                        : ('billingReview.reviewWorkEvidence.notDone' | transloco)
+                    }}
                   </span>
                 </li>
               }
@@ -53,9 +69,13 @@
         </section>
 
         <section class="work__card">
-          <h4 class="work__title">Materials used</h4>
+          <h4 class="work__title">
+            {{ 'billingReview.reviewWorkEvidence.materialsUsed' | transloco }}
+          </h4>
           @if (item.visit.materials.length === 0) {
-            <p class="work__muted">No materials recorded.</p>
+            <p class="work__muted">
+              {{ 'billingReview.reviewWorkEvidence.noMaterialsRecorded' | transloco }}
+            </p>
           } @else {
             <ul class="work__rows">
               @for (material of item.visit.materials; track $index) {
@@ -64,7 +84,11 @@
                   <strong class="work__grow">{{ material.description }}</strong>
                   <span class="work__muted">{{ material.quantity }} {{ material.unit }}</span>
                   <span class="work__pill">
-                    {{ material.origin === 'planned' ? 'Planned' : 'Added' }}
+                    {{
+                      material.origin === 'planned'
+                        ? ('billingReview.reviewWorkEvidence.planned' | transloco)
+                        : ('billingReview.reviewWorkEvidence.added' | transloco)
+                    }}
                   </span>
                 </li>
               }
@@ -74,7 +98,9 @@
 
         @if (item.visit.completionSummary) {
           <section class="work__card">
-            <h4 class="work__title">Technician completion summary</h4>
+            <h4 class="work__title">
+              {{ 'billingReview.reviewWorkEvidence.technicianCompletionSummary' | transloco }}
+            </h4>
             <p class="work__text">{{ item.visit.completionSummary }}</p>
           </section>
         }
@@ -82,7 +108,9 @@
 
       <div class="work__stack">
         <section class="work__card">
-          <h4 class="work__title">Photo evidence</h4>
+          <h4 class="work__title">
+            {{ 'billingReview.reviewWorkEvidence.photoEvidence' | transloco }}
+          </h4>
           @for (group of item.groups; track group.label) {
             <div class="work__group">
               <h5>{{ group.label }}</h5>
@@ -93,14 +121,21 @@
                 <img
                   loading="lazy"
                   [src]="evidenceUrl(photo.id)"
-                  [alt]="photo.caption ?? group.label + ' photo'"
+                  [alt]="
+                    photo.caption ??
+                    ('billingReview.reviewWorkEvidence.photoAlt'
+                      | transloco: { label: group.label })
+                  "
                 />
                 <a
                   class="work__expand"
                   target="_blank"
                   rel="noopener"
                   [href]="evidenceUrl(photo.id)"
-                  [attr.aria-label]="'Open ' + group.label.toLowerCase() + ' photo in a new tab'"
+                  [attr.aria-label]="
+                    'billingReview.reviewWorkEvidence.openPhotoInA'
+                      | transloco: { toLowerCase: group.label.toLowerCase() }
+                  "
                 >
                   <i
                     class="pi pi-arrow-up-right-and-arrow-down-left-from-center"
@@ -113,13 +148,17 @@
               </figure>
             }
           } @empty {
-            <p class="work__muted">No photos recorded.</p>
+            <p class="work__muted">
+              {{ 'billingReview.reviewWorkEvidence.noPhotosRecorded' | transloco }}
+            </p>
           }
         </section>
 
         @if (item.ack; as ack) {
           <section class="work__card">
-            <h4 class="work__title">Customer acknowledgment</h4>
+            <h4 class="work__title">
+              {{ 'billingReview.reviewWorkEvidence.customerAcknowledgment' | transloco }}
+            </h4>
             <p class="work__banner" [class.work__banner--ok]="ack.signatureCaptured">
               @if (ack.signatureCaptured) {
                 <i class="pi pi-check work__mark" aria-hidden="true"></i>
@@ -143,5 +182,5 @@
     </div>
   </section>
 } @empty {
-  <p class="work__muted">No activity recorded.</p>
+  <p class="work__muted">{{ 'billingReview.reviewWorkEvidence.noActivityRecorded' | transloco }}</p>
 }

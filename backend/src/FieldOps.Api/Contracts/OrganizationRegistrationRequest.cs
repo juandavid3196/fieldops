@@ -11,7 +11,8 @@ namespace FieldOps.Api.Contracts;
 public sealed record OrganizationRegistrationRequest(
     OrganizationRegistrationRequest.OrganizationSection? Organization,
     OrganizationRegistrationRequest.BranchSection? Branch,
-    OrganizationRegistrationRequest.OwnerSection? Owner)
+    OrganizationRegistrationRequest.OwnerSection? Owner,
+    JsonElement? PreferredLanguage = null)
 {
     public sealed record OrganizationSection(
         string? Name,

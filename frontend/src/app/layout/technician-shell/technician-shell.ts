@@ -1,5 +1,16 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, DestroyRef, Renderer2, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  Injector,
+  Renderer2,
+  afterNextRender,
+  computed,
+  inject,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   ActivatedRouteSnapshot,
@@ -10,21 +21,26 @@ import {
 } from '@angular/router';
 import { Message } from 'primeng/message';
 import { filter } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { comingSoonModuleName } from '../../core/config/coming-soon-modules';
 import { MessageUnreadService } from '../../core/services/message-unread.service';
 import { SessionService } from '../../core/services/session.service';
 import { TechnicianVisitsService } from '../../features/technician-jobs/services/technician-visits.service';
+import { LanguageMenuItem } from '../../shared/components/language-menu-item/language-menu-item';
+import { LanguageToast } from '../../shared/components/language-toast/language-toast';
 import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
 import { avatarTextColor } from '../../features/technician-jobs/utils/technician-format';
 import { ACCOUNT_LINK, HELP_LINK, PROFILE_LINK, TECHNICIAN_NAV } from './technician-shell.nav';
 
+import { t, tOrRaw } from '../../core/i18n/translate';
 export interface ShellBack {
   readonly link: string;
   readonly label: string;
 }
 
-export const SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
+export const SIGN_OUT_ERROR_MESSAGE = (): string =>
+  t('technicianJobs.technicianShell.signOutErrorMessage');
 type PanelKind = 'more';
 /** Read by the `wide` breakpoint mixin (styles/_breakpoints.scss). */
 const PHONE_SHELL_CLASS = 'fo-phone-shell';
@@ -40,7 +56,15 @@ function deepest(snapshot: ActivatedRouteSnapshot): ActivatedRouteSnapshot {
 /** Technician layout: top bar, the single `main` and a fixed bottom navigation (BR-14, BR-15, BR-19). */
 @Component({
   selector: 'app-technician-shell',
-  imports: [RouterLink, RouterOutlet, Message, UserAvatar],
+  imports: [
+    TranslocoPipe,
+    LanguageMenuItem,
+    LanguageToast,
+    RouterLink,
+    RouterOutlet,
+    Message,
+    UserAvatar,
+  ],
   templateUrl: './technician-shell.html',
   styleUrl: './technician-shell.scss',
   host: {
@@ -54,12 +78,16 @@ export class TechnicianShell {
   private readonly unread = inject(MessageUnreadService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
+  private readonly moreButton = viewChild<ElementRef<HTMLButtonElement>>('moreButton');
 
   readonly nav = TECHNICIAN_NAV;
   readonly profileLink = PROFILE_LINK;
   readonly accountLink = ACCOUNT_LINK;
   readonly helpLink = HELP_LINK;
-  readonly signOutErrorMessage = SIGN_OUT_ERROR_MESSAGE;
+  get signOutErrorMessage(): string {
+    return SIGN_OUT_ERROR_MESSAGE();
+  }
 
   readonly openPanel = signal<PanelKind | null>(null);
   readonly signingOut = signal(false);
@@ -67,8 +95,12 @@ export class TechnicianShell {
   private readonly path = signal(this.currentPath());
   private readonly routeTitle = signal(this.titleFor());
   /** The job page overrides the route title while it shows Job in progress (BR-20). */
-  readonly pageTitle = computed(() => this.visits.pageTitle() ?? this.routeTitle());
-  readonly back = signal(this.backFor());
+  readonly pageTitle = computed(() => this.visits.pageTitle() ?? tOrRaw(this.routeTitle()));
+  private readonly backTarget = signal(this.backFor());
+  readonly back = computed(() => {
+    const target = this.backTarget();
+    return target === null ? null : { ...target, label: tOrRaw(target.label) };
+  });
   /** Review & complete top bar (back action, number, status chip, labor time); `null` elsewhere. */
   readonly header = this.visits.shellHeader;
   /** Job page step progress drawn on the bottom nav's top edge; `null` elsewhere. */
@@ -126,7 +158,7 @@ export class TechnicianShell {
       .subscribe(() => {
         this.path.set(this.currentPath());
         this.routeTitle.set(this.titleFor());
-        this.back.set(this.backFor());
+        this.backTarget.set(this.backFor());
         this.openPanel.set(null);
       });
   }
@@ -141,6 +173,12 @@ export class TechnicianShell {
 
   closePanel(): void {
     this.openPanel.set(null);
+  }
+
+  /** BR-18: choosing a language closes the panel and returns focus to the More button. */
+  onLanguageChosen(): void {
+    this.closePanel();
+    afterNextRender(() => this.moreButton()?.nativeElement.focus(), { injector: this.injector });
   }
 
   onDocumentClick(event: Event): void {

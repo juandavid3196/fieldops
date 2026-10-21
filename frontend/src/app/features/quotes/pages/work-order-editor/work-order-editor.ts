@@ -23,6 +23,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
 import { Toast } from 'primeng/toast';
 import { Observable, Subject, catchError, map, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -88,6 +89,8 @@ import {
   toBody,
 } from '../../utils/work-order-form';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 type PageState =
   | 'loading'
   | 'ready'
@@ -104,7 +107,9 @@ const WINDOW_OPTIONS = optionsOf(WINDOW_LABELS);
 const FREQUENCY_OPTIONS = optionsOf(FREQUENCY_LABELS);
 const JOB_TYPE_OPTIONS = optionsOf(JOB_TYPE_LABELS);
 const PRIORITY_OPTIONS = optionsOf(PRIORITY_LABELS);
-const ONE_TIME_RECURRENCE = [{ code: null, label: 'Does not repeat' }];
+const ONE_TIME_RECURRENCE = localizedList(() => [
+  { code: null, label: t('quotes.workOrderEditor.doesNotRepeat') },
+]);
 
 /**
  * Work order editor (`/quotes/:quoteId/work-order`, Design 5). Single owner of the form: job
@@ -114,6 +119,8 @@ const ONE_TIME_RECURRENCE = [{ code: null, label: 'Does not repeat' }];
 @Component({
   selector: 'app-work-order-editor',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     RouterLink,
     ButtonDirective,
@@ -152,11 +159,21 @@ export class WorkOrderEditor {
   readonly quoteId = this.route.snapshot.paramMap.get('quoteId') ?? '';
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
 
-  readonly forbiddenMessage = WO_FORBIDDEN_MESSAGE;
-  readonly notAvailableMessage = WO_NOT_AVAILABLE_MESSAGE;
-  readonly notApprovedMessage = WO_NOT_APPROVED_MESSAGE;
-  readonly customerRequiredMessage = WO_CUSTOMER_REQUIRED_MESSAGE;
-  readonly loadErrorMessage = WO_LOAD_ERROR_MESSAGE;
+  get forbiddenMessage(): string {
+    return WO_FORBIDDEN_MESSAGE();
+  }
+  get notAvailableMessage(): string {
+    return WO_NOT_AVAILABLE_MESSAGE();
+  }
+  get notApprovedMessage(): string {
+    return WO_NOT_APPROVED_MESSAGE();
+  }
+  get customerRequiredMessage(): string {
+    return WO_CUSTOMER_REQUIRED_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return WO_LOAD_ERROR_MESSAGE();
+  }
   readonly instructionsLimit = INSTRUCTIONS_LIMIT;
 
   readonly jobTypes = JOB_TYPE_OPTIONS;
@@ -193,9 +210,11 @@ export class WorkOrderEditor {
       return '';
     }
     if (this.dirty()) {
-      return 'Unsaved changes';
+      return t('quotes.workOrderEditor.unsavedChanges');
     }
-    return this.editor()?.workOrder?.status === 'draft' ? 'Draft saved' : '';
+    return this.editor()?.workOrder?.status === 'draft'
+      ? t('quotes.workOrderEditor.draftSaved')
+      : '';
   });
   readonly taskLabels = computed(() =>
     (this.form()?.tasks ?? []).map((task) => task.label.trim()).filter((label) => label.length > 0),
@@ -424,7 +443,7 @@ export class WorkOrderEditor {
     const tasks = form.tasks.filter((task) => task.uid !== uid);
     this.update({ tasks });
     if (removed !== undefined) {
-      this.announce(`Removed ${taskName(removed, index)}.`);
+      this.announce(t('quotes.workOrderEditor.removed', { value: taskName(removed, index) }));
     }
     const next = tasks[index] ?? tasks[index - 1];
     this.focus(
@@ -441,7 +460,11 @@ export class WorkOrderEditor {
     this.update({ tasks: move.tasks });
     const index = move.tasks.indexOf(move.task);
     this.announce(
-      `${taskName(move.task, index)} moved to position ${move.position} of ${move.count}`,
+      t('quotes.workOrderEditor.movedToPositionOf', {
+        value: taskName(move.task, index),
+        position: move.position,
+        count: move.count,
+      }),
     );
     this.focus(`[data-task-input][data-uid="${move.task.uid}"]`);
   }
@@ -457,7 +480,7 @@ export class WorkOrderEditor {
     }
     this.templatesOpen.set(false);
     this.update({ tasks }, 'tasks');
-    this.announce(`Added ${labels.length} tasks from the template.`);
+    this.announce(t('quotes.workOrderEditor.addedTasksFromThe', { length: labels.length }));
     const first = tasks[form.tasks.length];
     if (first !== undefined) {
       this.focus(`[data-task-input][data-uid="${first.uid}"]`);
@@ -465,7 +488,10 @@ export class WorkOrderEditor {
   }
 
   onTemplateSaved(): void {
-    this.messageService.add({ severity: 'success', summary: 'Template saved.' });
+    this.messageService.add({
+      severity: 'success',
+      summary: t('quotes.workOrderEditor.templateSaved'),
+    });
   }
 
   // Materials (BR-12)
@@ -553,7 +579,9 @@ export class WorkOrderEditor {
         next: (created) =>
           this.leaveTo(['/jobs', created.id], {
             severity: 'success',
-            summary: `Work order ${created.displayNumber} created.`,
+            summary: t('quotes.workOrderEditor.workOrderCreated', {
+              displayNumber: created.displayNumber,
+            }),
           }),
         error: (error: unknown) => this.mutationFailed(isApiError(error) ? error : null),
       });
@@ -590,24 +618,27 @@ export class WorkOrderEditor {
         }
         break;
     }
-    this.messageService.add({ severity: 'error', summary: WO_SAVE_FAILED_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: WO_SAVE_FAILED_MESSAGE() });
   }
 
   /** `409` per the states table; false when the code is not recognised. */
   private conflict(error: ApiError): boolean {
     switch (error.code) {
       case 'work_order_changed':
-        this.banner.set({ message: WO_CHANGED_MESSAGE, reload: true });
+        this.banner.set({ message: WO_CHANGED_MESSAGE(), reload: true });
         return true;
       case 'request_changed':
-        this.banner.set({ message: WO_REQUEST_CHANGED_MESSAGE, reload: true });
+        this.banner.set({ message: WO_REQUEST_CHANGED_MESSAGE(), reload: true });
         return true;
       case 'work_order_created': {
         const id = this.editor()?.workOrder?.id;
         if (id === undefined) {
           this.loads.next();
         } else {
-          this.leaveTo(['/jobs', id], { severity: 'success', summary: WO_ALREADY_CREATED_MESSAGE });
+          this.leaveTo(['/jobs', id], {
+            severity: 'success',
+            summary: WO_ALREADY_CREATED_MESSAGE(),
+          });
         }
         return true;
       }
@@ -664,7 +695,7 @@ export class WorkOrderEditor {
     }
     this.confirmationService.confirm(
       discardChangesConfirmation({
-        subject: 'this work order',
+        subject: t('quotes.workOrderEditor.thisWorkOrder'),
         accept: () => this.loads.next(),
       }),
     );
@@ -688,7 +719,7 @@ export class WorkOrderEditor {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this work order',
+          subject: t('quotes.workOrderEditor.thisWorkOrder'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();

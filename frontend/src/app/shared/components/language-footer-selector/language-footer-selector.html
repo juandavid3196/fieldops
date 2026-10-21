@@ -1,0 +1,25 @@
+<div class="lang-footer" (focusout)="onFocusOut($event)">
+  <button
+    #button
+    type="button"
+    class="lang-footer__button"
+    aria-haspopup="menu"
+    [attr.aria-expanded]="open()"
+    [attr.aria-label]="'selector.footerLabel' | transloco: { name: activeName() }"
+    (click)="toggle()"
+    (keydown)="onButtonKeydown($event)"
+  >
+    <i class="pi pi-globe" aria-hidden="true"></i>
+    <span aria-hidden="true" [attr.lang]="activeCode()">{{ activeName() }}</span>
+    <i class="pi pi-angle-down" aria-hidden="true"></i>
+  </button>
+  @if (open()) {
+    <div class="lang-footer__menu">
+      <app-language-options
+        surface="anonymous"
+        (chosen)="close(true)"
+        (closeRequested)="close(true)"
+      />
+    </div>
+  }
+</div>
