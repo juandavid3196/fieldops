@@ -367,6 +367,7 @@
     "weCouldnTLoad": "No pudimos cargar tus solicitudes."
   },
   "signIn": {
+    "backToFieldopsSignIn": "Volver al inicio de sesión de FieldOps",
     "customerPortal": "· Portal de clientes",
     "field": "Field",
     "fieldops": "© {{year}} FieldOps",

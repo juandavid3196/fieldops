@@ -74,6 +74,7 @@ import {
 } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
 import { localized, t } from '../../../../core/i18n/translate';
+import { changedKeys } from '../../utils/form-path';
 import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 /** Retry lock after a `429` without a usable `Retry-After`. */
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
@@ -201,6 +202,16 @@ export class RegisterCompany {
           this.form.controls.branch.controls.timezone.setValue(value, { emitEvent: false });
         }
       });
+
+    // A shown error follows the field being edited, so a corrected value clears it at once.
+    let previousValue = this.form.getRawValue();
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const nextValue = this.form.getRawValue();
+      for (const field of changedKeys(Object.keys(this.fieldErrors()), previousValue, nextValue)) {
+        this.setFieldError(field as FieldKey, this.computeFieldError(field as FieldKey));
+      }
+      previousValue = nextValue;
+    });
 
     // FR-12: the browser leave prompt exists only while the wizard holds changed data.
     effect((onCleanup) => {

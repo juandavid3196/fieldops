@@ -39,13 +39,15 @@
         <tbody>
           @for (module of data.modules; track module.key) {
             <tr>
-              <th scope="row" class="matrix__module">{{ module.name }}</th>
+              <th scope="row" class="matrix__module">
+                {{ module.name | codeLabel: 'users.permissionMatrix.modules' : module.key }}
+              </th>
               @for (role of data.roles; track role.code) {
                 <td>
                   @let cell = module.levels[role.code];
                   @if (cell) {
                     <span class="matrix__level matrix__level--{{ tone(cell.level) }}">{{
-                      cell.label
+                      cell.label | codeLabel: 'users.permissionMatrix.levels' : cell.level
                     }}</span>
                   }
                 </td>

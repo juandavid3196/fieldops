@@ -11,18 +11,27 @@
       role="menuitemradio"
       class="lang-options__item"
       tabindex="-1"
+      [class.lang-options__item--card]="card()"
       [class.lang-options__item--selected]="option.code === active()"
       [attr.lang]="option.code"
+      [attr.aria-label]="card() ? option.name : null"
       [attr.aria-checked]="option.code === active()"
       [attr.aria-disabled]="saving()"
       (click)="choose(option.code)"
     >
-      <span class="lang-options__check" aria-hidden="true">
+      @if (card()) {
+        <span class="lang-options__name" aria-hidden="true">{{ option.name }}</span>
         @if (option.code === active()) {
-          <i class="pi pi-check"></i>
+          <span class="lang-options__badge" aria-hidden="true"><i class="pi pi-check"></i></span>
         }
-      </span>
-      {{ option.name }}
+      } @else {
+        <span class="lang-options__check" aria-hidden="true">
+          @if (option.code === active()) {
+            <i class="pi pi-check"></i>
+          }
+        </span>
+        {{ option.name }}
+      }
     </button>
   }
 </div>

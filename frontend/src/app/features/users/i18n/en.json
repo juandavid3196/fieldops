@@ -11,6 +11,29 @@
     "predefinedRolesAccessIs": "Predefined roles. Access is also limited to each user's assigned branches.",
     "readOnly": "read only",
     "scopedSubset": "scoped subset",
+    "levels": {
+      "assigned_only": "Assigned only",
+      "completed_only": "Completed only",
+      "edit": "Edit",
+      "financial_only": "Financial only",
+      "full": "Full",
+      "none": "None",
+      "own_profile": "Own profile",
+      "view": "View",
+      "view_if_granted": "View if granted"
+    },
+    "modules": {
+      "audit_log": "Audit log",
+      "company_settings": "Company settings",
+      "customers": "Customers",
+      "invoices_payments": "Invoices & payments",
+      "overview": "Overview",
+      "products_services": "Products & services",
+      "reports": "Reports",
+      "requests_quotes": "Requests & quotes",
+      "team": "Team",
+      "work_orders_schedule": "Work orders & schedule"
+    },
     "matrixErrorMessage": "We couldn't load the permission matrix. Check your connection and try again."
   },
   "userDrawer": {

@@ -213,16 +213,30 @@
     display: flex;
     flex: 1 1 0;
     gap: 0.625rem;
+    align-items: center;
     padding: 0.625rem 0.75rem;
     font-size: 0.8125rem;
     border: 1px solid transparent;
     border-radius: var(--fo-radius-panel);
 
+    // Filled badge: the note text color is the disc, the note background is the glyph.
     i {
-      margin-block-start: 0.125rem;
+      display: grid;
+      flex: none;
+      place-items: center;
+      box-sizing: border-box;
+      inline-size: 1.375rem;
+      block-size: 1.375rem;
+      font-size: 0.75rem;
+      color: var(--fo-note-surface, #fff);
+      background: var(--fo-note-accent, currentcolor);
+      border-radius: 50%;
     }
 
     &--info {
+      --fo-note-accent: var(--fo-color-info-text);
+      --fo-note-surface: var(--fo-color-info-background);
+
       color: var(--fo-color-info-text);
       background: var(--fo-color-info-background);
       border-color: var(--fo-color-info-border);
@@ -233,12 +247,18 @@
     }
 
     &--success {
+      --fo-note-accent: var(--fo-color-success-text);
+      --fo-note-surface: var(--fo-color-success-background);
+
       color: var(--fo-color-success-text);
       background: var(--fo-color-success-background);
       border-color: var(--fo-color-success-solid);
     }
 
     &--warning {
+      --fo-note-accent: var(--fo-color-warning-text);
+      --fo-note-surface: var(--fo-color-warning-background);
+
       color: var(--fo-color-warning-text);
       background: var(--fo-color-warning-background);
       border-color: var(--fo-color-warning-border);

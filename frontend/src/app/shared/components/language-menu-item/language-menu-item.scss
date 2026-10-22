@@ -1,4 +1,5 @@
 :host {
+  position: relative;
   display: block;
 }
 
@@ -46,7 +47,49 @@
   }
 
   &__sublist {
-    padding-inline-start: 1.25rem;
+    padding: 0.5rem;
+    margin: 0.25rem 0.25rem 0.5rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    // With room on the leading side: a flyout beside the menu, pointing at the Language row.
+    &--flyout {
+      position: absolute;
+      inset-block-start: 50%;
+      inset-inline-end: calc(100% + 0.75rem);
+      z-index: 1;
+      min-inline-size: 14rem;
+      margin: 0;
+      transform: translateY(-50%);
+      box-shadow: var(--fo-shadow-overlay);
+
+      &::after {
+        content: '';
+        position: absolute;
+        inset-block-start: 50%;
+        inset-inline-end: -0.3125rem;
+        inline-size: 0.5rem;
+        block-size: 0.5rem;
+        background: var(--fo-color-surface);
+        border-block-start: 1px solid var(--fo-color-border);
+        border-inline-end: 1px solid var(--fo-color-border);
+        transform: translateY(-50%) rotate(45deg);
+      }
+    }
+  }
+
+  &__title {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.25rem 0.75rem 0.5rem;
+    margin: 0 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    white-space: normal;
+    color: var(--fo-color-text);
+    border-block-end: 1px solid var(--fo-color-border);
   }
 }
 

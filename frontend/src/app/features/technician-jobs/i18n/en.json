@@ -181,7 +181,8 @@
     "call": "Call {{customerName}}",
     "call2": "Call",
     "toOpensInA": "{{directionsLabel}} to {{title}} (opens in a new tab)",
-    "directions": "Directions"
+    "directions": "Directions",
+    "openDirections": "Open directions"
   },
   "visitDetail": {
     "approvedAssessment": "Approved assessment",

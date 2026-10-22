@@ -367,6 +367,7 @@
     "weCouldnTLoad": "We couldn't load your requests."
   },
   "signIn": {
+    "backToFieldopsSignIn": "Back to FieldOps sign in",
     "customerPortal": "· Customer portal",
     "field": "Field",
     "fieldops": "© {{year}} FieldOps",

@@ -16,6 +16,9 @@ import { LanguageService } from '../../../core/i18n/language.service';
 import { languageOption } from '../../../core/i18n/languages.config';
 import { LanguageOptions } from '../language-options/language-options';
 
+/** 14rem panel + 0.75rem gap + 0.5rem margin from the screen edge, at the 16px root size. */
+const FLYOUT_ROOM_PX = 14 * 16 + 12 + 8;
+
 /**
  * The **Language** item of the three shell menus (BR-18): shows the active option name as secondary
  * text and opens a sublist with English and Español. Enter, Space or Right Arrow open it; Escape or
@@ -31,6 +34,7 @@ import { LanguageOptions } from '../language-options/language-options';
 export class LanguageMenuItem {
   private readonly language = inject(LanguageService);
   private readonly injector = inject(Injector);
+  private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
   private readonly options = viewChild(LanguageOptions);
 
@@ -41,6 +45,8 @@ export class LanguageMenuItem {
   readonly chosen = output<void>();
 
   readonly open = signal(false);
+  /** The sublist floats beside the menu when there is room for it; otherwise it opens inline. */
+  readonly flyout = signal(false);
 
   activeName(): string {
     return languageOption(this.language.lang()).name;
@@ -50,11 +56,12 @@ export class LanguageMenuItem {
     return this.language.lang();
   }
 
-  toggle(): void {
+  /** A pointer click (`detail > 0`) opens the list without moving focus, so no focus ring shows. */
+  toggle(event?: MouseEvent): void {
     if (this.open()) {
       this.close(true);
     } else {
-      this.openList();
+      this.openList(event === undefined || event.detail === 0);
     }
   }
 
@@ -82,8 +89,19 @@ export class LanguageMenuItem {
     this.chosen.emit();
   }
 
-  private openList(): void {
+  private openList(focusOptions = true): void {
+    this.flyout.set(this.hasRoomForFlyout());
     this.open.set(true);
-    afterNextRender(() => this.options()?.focusActive(), { injector: this.injector });
+    if (focusOptions) {
+      afterNextRender(() => this.options()?.focusActive(), { injector: this.injector });
+    }
+  }
+
+  /** Room on the leading side of the menu item for the flyout (width + gap + screen margin). */
+  private hasRoomForFlyout(): boolean {
+    const rect = this.host.getBoundingClientRect();
+    const rtl = getComputedStyle(this.host).direction === 'rtl';
+    const room = rtl ? window.innerWidth - rect.right : rect.left;
+    return room >= FLYOUT_ROOM_PX;
   }
 }

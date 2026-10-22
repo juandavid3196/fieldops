@@ -42,6 +42,52 @@
       color: var(--fo-color-primary-strong);
       background: var(--fo-color-primary-soft);
     }
+
+    &--card {
+      justify-content: space-between;
+      min-block-size: 2.5rem;
+      padding: 0.375rem 0.75rem 0.375rem calc(0.75rem - 3px);
+      border-inline-start: 3px solid transparent;
+      border-radius: 0.25rem;
+
+      &.lang-options__item--selected {
+        font-weight: inherit;
+        background: var(--fo-color-primary-soft);
+        border-inline-start-color: var(--fo-color-primary);
+      }
+    }
+  }
+
+  &:has(&__item--card) {
+    gap: 0.125rem;
+  }
+
+  &__name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__item--selected &__name {
+    color: var(--fo-color-primary-strong);
+  }
+
+  &__badge {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    inline-size: 1.25rem;
+    block-size: 1.25rem;
+    font-size: 0.625rem;
+    color: var(--fo-color-on-primary);
+    background: var(--fo-color-primary);
+    border-radius: 50%;
+
+    i {
+      display: block;
+      font-size: 0.625rem;
+      line-height: 1;
+    }
   }
 
   &__check {

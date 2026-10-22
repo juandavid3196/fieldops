@@ -95,7 +95,7 @@
                 <div class="visit__side">
                   <app-visit-actions
                     [visit]="job"
-                    directionsLabel="Open directions"
+                    [directionsLabel]="'technicianJobs.visitActions.openDirections' | transloco"
                     [featured]="true"
                     [showCall]="!working()"
                   />

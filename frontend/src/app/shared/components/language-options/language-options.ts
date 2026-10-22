@@ -25,6 +25,8 @@ export class LanguageOptions {
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
   readonly surface = input.required<LanguageSurface>();
+  /** Card layout of the user menus: name with its region and a filled check on the active one. */
+  readonly card = input(false);
   /** Emits after a choice so the host can close its menu and return focus. */
   readonly chosen = output<LanguageCode>();
   /** Escape or Left Arrow: the host closes the list and focuses its trigger. */

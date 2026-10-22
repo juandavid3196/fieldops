@@ -11,6 +11,29 @@
     "predefinedRolesAccessIs": "Roles predefinidos. El acceso también se limita a las sucursales asignadas a cada usuario.",
     "readOnly": "solo lectura",
     "scopedSubset": "subconjunto limitado",
+    "levels": {
+      "assigned_only": "Solo asignados",
+      "completed_only": "Solo completados",
+      "edit": "Edición",
+      "financial_only": "Solo financiero",
+      "full": "Total",
+      "none": "Ninguno",
+      "own_profile": "Perfil propio",
+      "view": "Ver",
+      "view_if_granted": "Ver si se concede"
+    },
+    "modules": {
+      "audit_log": "Registro de auditoría",
+      "company_settings": "Configuración de la empresa",
+      "customers": "Clientes",
+      "invoices_payments": "Facturas y pagos",
+      "overview": "Resumen",
+      "products_services": "Productos y servicios",
+      "reports": "Reportes",
+      "requests_quotes": "Solicitudes y cotizaciones",
+      "team": "Equipo",
+      "work_orders_schedule": "Órdenes de trabajo y agenda"
+    },
     "matrixErrorMessage": "No pudimos cargar la matriz de permisos. Revisa tu conexión e inténtalo de nuevo."
   },
   "userDrawer": {

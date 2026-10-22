@@ -181,7 +181,8 @@
     "call": "Llamar a {{customerName}}",
     "call2": "Llamar",
     "toOpensInA": "{{directionsLabel}} a {{title}} (se abre en una pestaña nueva)",
-    "directions": "Cómo llegar"
+    "directions": "Cómo llegar",
+    "openDirections": "Abrir ruta"
   },
   "visitDetail": {
     "approvedAssessment": "Evaluación aprobada",

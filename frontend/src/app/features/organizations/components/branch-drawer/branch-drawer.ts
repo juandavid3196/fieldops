@@ -26,6 +26,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
+import { changedKeys } from '../../utils/form-path';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
 import { BusinessHoursEditor } from '../business-hours-editor/business-hours-editor';
 import { ErrorSummary, FieldErrorLink } from '../error-summary/error-summary';
@@ -194,6 +195,19 @@ export class BranchDrawer {
       if (this.open()) {
         this.initialize(this.branchId());
       }
+    });
+
+    // A shown error follows the field being edited, so a corrected value clears it at once.
+    let previousValue = this.form.getRawValue();
+    this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      const nextValue = this.form.getRawValue();
+      for (const field of changedKeys(Object.keys(this.fieldErrors()), previousValue, nextValue)) {
+        this.setFieldError(
+          field as BranchFieldKey,
+          this.computeFieldError(field as BranchFieldKey),
+        );
+      }
+      previousValue = nextValue;
     });
   }
 

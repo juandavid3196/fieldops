@@ -132,6 +132,11 @@
       </form>
     </div>
 
+    <a class="login__back" routerLink="/auth/sign-in">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      {{ 'portal.signIn.backToFieldopsSignIn' | transloco }}
+    </a>
+
     <footer class="login__footer">
       <span>{{ 'portal.signIn.fieldops' | transloco: { year: year } }}</span>
       <span class="login__sep" aria-hidden="true">|</span>
