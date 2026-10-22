@@ -154,25 +154,34 @@ describe('session precedence and system as light (FR-02, BR-02, BR-03, AC-02)', 
   );
 
   it('renders system as light even on a dark device and survives unavailable storage', () => {
+    const original = Object.getOwnPropertyDescriptor(window, 'matchMedia');
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       writable: true,
       value: vi.fn(() => ({ matches: true })),
     });
-    const { theme } = setup();
-    theme.init();
-    expect(isDark()).toBe(false);
-    expect(themeColor()).toBe('#0f9d9a');
-    theme.apply('dark');
-    expect(isDark()).toBe(true);
-    theme.apply('system');
-    expect(isDark()).toBe(false);
+    try {
+      const { theme } = setup();
+      theme.init();
+      expect(isDark()).toBe(false);
+      expect(themeColor()).toBe('#0f9d9a');
+      theme.apply('dark');
+      expect(isDark()).toBe(true);
+      theme.apply('system');
+      expect(isDark()).toBe(false);
 
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
-      throw new Error('blocked');
-    });
-    expect(() => theme.commit('dark')).not.toThrow();
-    expect(isDark()).toBe(true);
-    expect(theme.persisted()).toBe('dark');
+      vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new Error('blocked');
+      });
+      expect(() => theme.commit('dark')).not.toThrow();
+      expect(isDark()).toBe(true);
+      expect(theme.persisted()).toBe('dark');
+    } finally {
+      if (original) {
+        Object.defineProperty(window, 'matchMedia', original);
+      } else {
+        Reflect.deleteProperty(window, 'matchMedia');
+      }
+    }
   });
 });
