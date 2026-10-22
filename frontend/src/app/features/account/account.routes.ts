@@ -4,13 +4,13 @@ import { accountUnsavedChangesGuard } from './guards/account-unsaved-changes.gua
 
 /**
  * Account settings under `base`: `/account` in the app shell; the technician shell mounts its own
- * copy so technicians stay in their layout.
+ * copy so technicians stay in their layout. Both shells list Preferences.
  */
-export function createAccountRoutes(base: string): Routes {
+export function createAccountRoutes(base: string, withPreferences = false): Routes {
   return [
     {
       path: '',
-      data: { accountBase: base },
+      data: { accountBase: base, accountPreferences: withPreferences },
       loadComponent: () =>
         import('./pages/account-layout/account-layout').then((m) => m.AccountLayout),
       children: [
@@ -21,6 +21,17 @@ export function createAccountRoutes(base: string): Routes {
           canDeactivate: [accountUnsavedChangesGuard],
           loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
         },
+        ...(withPreferences
+          ? [
+              {
+                path: 'preferences',
+                title: 'titles.preferences',
+                canDeactivate: [accountUnsavedChangesGuard],
+                loadComponent: () =>
+                  import('./pages/preferences/preferences').then((m) => m.Preferences),
+              },
+            ]
+          : []),
         {
           path: 'security',
           title: 'titles.security',
@@ -33,4 +44,4 @@ export function createAccountRoutes(base: string): Routes {
 }
 
 /** Authenticated account settings; mounted inside the app shell, which owns the auth guard. */
-export default createAccountRoutes('/account');
+export default createAccountRoutes('/account', true);

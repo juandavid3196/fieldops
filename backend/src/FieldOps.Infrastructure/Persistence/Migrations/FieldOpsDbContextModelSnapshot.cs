@@ -4143,6 +4143,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasDefaultValue("en")
                         .HasColumnName("preferred_language");
 
+                    b.Property<string>("PreferredTheme")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("system")
+                        .HasColumnName("preferred_theme");
+
                     b.Property<UserStatus>("Status")
                         .HasColumnType("user_status")
                         .HasColumnName("status");

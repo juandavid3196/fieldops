@@ -10,6 +10,7 @@ import { authInterceptor } from '../../core/interceptors/auth.interceptor';
 import { errorInterceptor } from '../../core/interceptors/error.interceptor';
 import { Session } from '../../core/models/session.model';
 import { SessionService } from '../../core/services/session.service';
+import { createAccountRoutes } from './account.routes';
 
 const API = 'http://api.test';
 
@@ -91,19 +92,23 @@ describe('account routes and layout', () => {
     expect(document.title).toBe('My profile · FieldOps');
     expect(host().querySelectorAll('h1')).toHaveLength(1);
     expect(host().querySelector('h1')?.textContent).toBe('Account settings');
-    expect(host().textContent).toContain('Manage your profile and security settings.');
+    expect(host().textContent).toContain('Manage your profile, preferences and security settings.');
     expect(host().querySelector('.account__breadcrumb')?.textContent).toBe('AccountMy profile');
     const links = () =>
       Array.from(
         host().querySelectorAll<HTMLAnchorElement>('nav[aria-label="Account settings sections"] a'),
       );
-    expect(links().map((link) => link.textContent?.trim())).toEqual(['My profile', 'Security']);
-    expect(links().map((link) => link.getAttribute('aria-current'))).toEqual(['page', null]);
+    expect(links().map((link) => link.textContent?.trim())).toEqual([
+      'My profile',
+      'Preferences',
+      'Security',
+    ]);
+    expect(links().map((link) => link.getAttribute('aria-current'))).toEqual(['page', null, null]);
 
     // Unsaved profile edits: Keep editing stays with the input, Discard changes navigates.
     type('#profile-firstName', 'Anna');
     await stable();
-    links()[1].click();
+    links()[2].click();
     await tick();
     expect(dialogButton('Keep editing')).toBeDefined();
     dialogButton('Keep editing')!.click();
@@ -111,13 +116,27 @@ describe('account routes and layout', () => {
     expect(router.url).toBe('/account/profile');
     expect(host().querySelector<HTMLInputElement>('#profile-firstName')?.value).toBe('Anna');
 
-    links()[1].click();
+    links()[2].click();
     await tick();
     dialogButton('Discard changes')!.click();
     await stable();
     expect(router.url).toBe('/account/security');
     expect(host().querySelector('.account__breadcrumb')?.textContent).toBe('AccountSecurity');
-    expect(links().map((link) => link.getAttribute('aria-current'))).toEqual([null, 'page']);
+    expect(links().map((link) => link.getAttribute('aria-current'))).toEqual([null, null, 'page']);
+
+    // Preferences sits between the two (FR-05, AC-05); the technician mount lists it too.
+    links()[1].click();
+    await stable();
+    expect(router.url).toBe('/account/preferences');
+    expect(document.title).toBe('Preferences · FieldOps');
+    expect(host().querySelector('.account__breadcrumb')?.textContent).toBe('AccountPreferences');
+    expect(links().map((link) => link.getAttribute('aria-current'))).toEqual([null, 'page', null]);
+    expect(
+      createAccountRoutes('/today/account', true)[0].children?.map((child) => child.path),
+    ).toEqual(['', 'profile', 'preferences', 'security']);
+    links()[2].click();
+    await stable();
+    expect(router.url).toBe('/account/security');
 
     // Security: any non-empty field prompts; an empty form and a cleared session leave silently.
     type('#security-currentPassword', 'secret');

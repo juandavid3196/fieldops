@@ -209,7 +209,7 @@
   &__error {
     margin: 0;
     font-size: 0.788rem;
-    color: light-dark(var(--p-red-700), var(--p-red-400));
+    color: var(--fo-color-invitation-text);
   }
 
   &__show {
@@ -299,7 +299,7 @@
 
   // Password-recovery pages: blue links and a security note ruled on both sides (design-1).
   &--recovery {
-    --invitation-link-color: light-dark(#0b4fbf, #8ab4ff);
+    --invitation-link-color: var(--fo-color-invitation-invitation-link-color);
     --p-button-text-primary-color: var(--invitation-link-color);
 
     .invitation__back,

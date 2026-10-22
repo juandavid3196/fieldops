@@ -427,9 +427,12 @@ describe('AppShell', () => {
         'Account settings',
         'Help & support',
         expect.stringContaining('Language'),
+        expect.stringContaining('Appearance'),
         'Sign out',
       ]);
-      expect(menu.querySelector('app-language-menu-item')).not.toBeNull();
+      expect(
+        menu.querySelector('app-language-menu-item + app-appearance-menu-item'),
+      ).not.toBeNull();
       expect(menu.querySelector('[role="separator"]')).not.toBeNull();
       expect(menu.textContent).not.toMatch(/Dark mode/);
       expect(accountItems()[2].getAttribute('href')).toBe('/help');

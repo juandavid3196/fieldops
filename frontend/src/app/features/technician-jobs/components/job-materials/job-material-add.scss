@@ -1,7 +1,7 @@
 // Add material dialog design: tile header, source toggle, catalog search and quantity stepper.
 .add {
-  --add-teal: light-dark(#138784, #4fc3bd);
-  --add-soft: light-dark(#e3f4f2, var(--fo-color-success-background));
+  --add-teal: var(--fo-color-job-material-add-add-teal);
+  --add-soft: var(--fo-color-job-material-add-add-soft);
   --add-field: var(--fo-color-surface-muted);
 
   display: flex;
@@ -23,8 +23,8 @@
     inline-size: 3rem;
     block-size: 3rem;
     font-size: 1.375rem;
-    color: light-dark(#138784, #4fc3bd);
-    background: light-dark(#e3f4f2, var(--fo-color-success-background));
+    color: var(--fo-color-job-material-add-add-teal);
+    background: var(--fo-color-job-material-add-add-soft);
     border-radius: 0.75rem;
   }
 

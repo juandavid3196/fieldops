@@ -3,6 +3,7 @@ import {
   ElementRef,
   Injector,
   afterNextRender,
+  effect,
   inject,
   input,
   output,
@@ -15,6 +16,7 @@ import { LanguageSurface } from '../../../core/i18n/language-preference.service'
 import { LanguageService } from '../../../core/i18n/language.service';
 import { languageOption } from '../../../core/i18n/languages.config';
 import { LanguageOptions } from '../language-options/language-options';
+import { SubmenuCoordinator } from './submenu-coordinator';
 
 /** 14rem panel + 0.75rem gap + 0.5rem margin from the screen edge, at the 16px root size. */
 const FLYOUT_ROOM_PX = 14 * 16 + 12 + 8;
@@ -33,6 +35,7 @@ const FLYOUT_ROOM_PX = 14 * 16 + 12 + 8;
 })
 export class LanguageMenuItem {
   private readonly language = inject(LanguageService);
+  private readonly submenus = inject(SubmenuCoordinator);
   private readonly injector = inject(Injector);
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('trigger');
@@ -47,6 +50,14 @@ export class LanguageMenuItem {
   readonly open = signal(false);
   /** The sublist floats beside the menu when there is room for it; otherwise it opens inline. */
   readonly flyout = signal(false);
+
+  constructor() {
+    effect(() => {
+      if (this.submenus.active() !== this && this.open()) {
+        this.open.set(false);
+      }
+    });
+  }
 
   activeName(): string {
     return languageOption(this.language.lang()).name;
@@ -91,6 +102,7 @@ export class LanguageMenuItem {
 
   private openList(focusOptions = true): void {
     this.flyout.set(this.hasRoomForFlyout());
+    this.submenus.active.set(this);
     this.open.set(true);
     if (focusOptions) {
       afterNextRender(() => this.options()?.focusActive(), { injector: this.injector });

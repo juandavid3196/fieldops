@@ -4,9 +4,9 @@
 | -------- | --------------- |
 | Feature  | `app-dark-mode` |
 | Type     | Full-stack      |
-| Status   | APPROVED        |
+| Status   | AUDITED         |
 | Created  | 2026-10-21      |
-| Updated  | 2026-10-21      |
+| Updated  | 2026-10-22      |
 | Approved | 2026-10-21      |
 
 ## Context and objective
@@ -336,3 +336,5 @@ distinct risks).
 | ---------- | ------------- | ------ |
 | 2026-10-21 | — → DRAFT     | Created |
 | 2026-10-21 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-22 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-22 | IMPLEMENTED → AUDITED | final-audit returned AUDIT FAIL on validation only (frontend full suite 829/830, `company-setup.spec.ts` AC-20 timeout in two runs, passes in isolation; backend `dotnet format` pre-existing whitespace errors in `TeamAvailabilityTestSupport.cs`); no Critical/Important code finding. AUDITED by user override (admin order). Debts: user-directed deviations from BR-02/BR-05/FR-03/AC-01/AC-03 (`system` always light), FR-05/AC-05 (Preferences also in the technician shell), Non-goals/OD-05 (anonymous footer appearance selector), `docs/frontend/styling-architecture.md` stale; spec revision owed. |

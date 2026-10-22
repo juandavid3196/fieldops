@@ -6,6 +6,30 @@
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0f9d9a" />
+    <script>
+      // BR-04: first-paint theme (BR-02 steps 2 and 3). Keep in sync with core/theme (anti-drift spec).
+      (function () {
+        var preference = 'system';
+        try {
+          var stored = window.localStorage.getItem('fieldops.theme');
+          if (stored === 'system' || stored === 'light' || stored === 'dark') {
+            preference = stored;
+          }
+        } catch (error) {
+          preference = 'system';
+        }
+        var dark = preference === 'dark';
+        var root = document.documentElement;
+        if (dark) {
+          root.classList.add('app-dark');
+        }
+        root.style.colorScheme = dark ? 'dark' : 'light';
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) {
+          meta.setAttribute('content', dark ? '#0b1620' : '#0f9d9a');
+        }
+      })();
+    </script>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />

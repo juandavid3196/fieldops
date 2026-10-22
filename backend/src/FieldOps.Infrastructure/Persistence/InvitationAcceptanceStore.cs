@@ -305,7 +305,7 @@ internal sealed class InvitationAcceptanceStore(FieldOpsDbContext dbContext, Tim
 
         return InvitationResult<AcceptedInvitation>.Ok(new AcceptedInvitation(
             new SessionView(
-                new SessionUser(user.Id, user.FirstName, user.LastName, user.Email, photoUpdatedAt, user.PreferredLanguage),
+                new SessionUser(user.Id, user.FirstName, user.LastName, user.Email, photoUpdatedAt, user.PreferredLanguage, user.PreferredTheme),
                 new SessionOrganization(invitation.OrganizationId, organizationName),
                 new SessionRole(role.Code, role.Name)),
             membership.Id,

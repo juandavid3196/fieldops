@@ -4,8 +4,8 @@
   display: block;
   min-width: 0;
   // Design 11 activity accents without a shared token (purple) plus status tokens.
-  --audit-purple: light-dark(#6d3fd1, #b9a2f2);
-  --audit-purple-soft: light-dark(#f1ecfd, rgb(109 63 209 / 22%));
+  --audit-purple: var(--fo-color-review-audit-trail-audit-purple);
+  --audit-purple-soft: var(--fo-color-review-audit-trail-audit-purple-soft);
 }
 
 .audit {

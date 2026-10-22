@@ -122,5 +122,7 @@
 button[pButton][data-tool] {
   --p-button-outlined-secondary-color: var(--wo-blue);
   --p-button-outlined-secondary-border-color: var(--wo-blue-border);
-  --p-button-outlined-secondary-hover-background: #e3f0fe;
+  --p-button-outlined-secondary-hover-background: var(
+    --fo-color-work-order-materials-button-outlined-secondary-hover-bg
+  );
 }

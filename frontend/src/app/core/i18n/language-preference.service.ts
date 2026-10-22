@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
-import { catchError, finalize, map, of, switchMap } from 'rxjs';
+import { Observable, catchError, finalize, map, of, switchMap, tap } from 'rxjs';
 
 import { API_CONFIG, buildApiUrl } from '../config/api.config';
 import { LanguageService } from './language.service';
@@ -40,15 +40,9 @@ export class LanguagePreferenceService {
       return;
     }
 
-    const path = surface === 'portal' ? 'portal/account/language' : 'account/language';
     apply$
       .pipe(
-        switchMap(() =>
-          this.http.put<{ preferredLanguage: string }>(buildApiUrl(this.config, path), {
-            language: code,
-          }),
-        ),
-        map(() => undefined),
+        switchMap(() => this.save(code, surface)),
         catchError(() =>
           this.language.apply(previous).pipe(
             map(() => {
@@ -61,5 +55,19 @@ export class LanguagePreferenceService {
         finalize(() => this.savingState.set(false)),
       )
       .subscribe();
+  }
+
+  /**
+   * `PUT /account/language` or `/portal/account/language`; a `200` makes the language the saved
+   * one and writes the local value. Used by the menus and by the Preferences page.
+   */
+  save(code: LanguageCode, surface: Exclude<LanguageSurface, 'anonymous'>): Observable<void> {
+    const path = surface === 'portal' ? 'portal/account/language' : 'account/language';
+    return this.http
+      .put<{ preferredLanguage: string }>(buildApiUrl(this.config, path), { language: code })
+      .pipe(
+        tap(() => this.language.markPersisted(code)),
+        map(() => undefined),
+      );
   }
 }

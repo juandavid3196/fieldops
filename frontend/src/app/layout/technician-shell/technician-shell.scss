@@ -4,8 +4,8 @@ $nav-height: 4rem;
 
 :host {
   display: block;
-  --fo-today-accent: #05a49f;
-  --fo-today-ink: #000663;
+  --fo-today-accent: var(--fo-color-schedule-sched-accent);
+  --fo-today-ink: var(--fo-color-message-list-msg-ink);
   min-height: 100dvh;
   background: var(--fo-color-border);
 }

@@ -26,7 +26,10 @@
   --fo-color-primary-hover: #0b8583;
   --fo-color-primary-soft: light-dark(#e7f6f5, rgb(15 157 154 / 18%));
   --fo-color-on-primary: #fff;
-  --fo-focus-ring: 0 0 0 3px rgb(15 157 154 / 24%);
+  --fo-color-ink-black: #000;
+  // Text on the strong fills that invert in dark mode (action blue, secondary text).
+  --fo-color-on-strong: light-dark(#fff, #0b1620);
+  --fo-focus-ring: 0 0 0 3px light-dark(rgb(15 157 154 / 24%), rgb(95 211 207 / 60%));
 
   // Inline links to other records
   --fo-color-link: light-dark(#2349ec, #8fa2ff);
@@ -76,9 +79,154 @@
   --fo-color-on-navy: #fff;
 
   // Overlay and elevation
-  --fo-color-mask: rgb(16 42 67 / 32%);
-  --fo-shadow-overlay: 0 8px 24px rgb(16 42 67 / 14%);
-  --fo-shadow-drawer: -8px 0 24px rgb(16 42 67 / 6%);
+  --fo-color-mask: light-dark(rgb(16 42 67 / 32%), rgb(0 0 0 / 60%));
+  --fo-color-shadow-faint: light-dark(rgb(16 42 67 / 4%), rgb(0 0 0 / 30%));
+  --fo-shadow-overlay: 0 8px 24px light-dark(rgb(16 42 67 / 14%), rgb(0 0 0 / 50%));
+  --fo-shadow-drawer: -8px 0 24px light-dark(rgb(16 42 67 / 6%), rgb(0 0 0 / 40%));
+
+  // Feature palettes moved out of component styles (light values unchanged).
+  --fo-color-audit-event-drawer-bg: light-dark(#eaf1ff, rgb(143 162 255 / 15%));
+  --fo-color-audit-log-card-bg: light-dark(#e9f8f3, rgb(15 118 110 / 20%));
+  --fo-color-audit-log-card-bg-2: light-dark(#fff3e8, rgb(234 108 8 / 18%));
+  --fo-color-audit-log-card-bg-3: light-dark(#fff0f0, rgb(220 38 38 / 18%));
+  --fo-color-audit-log-card-border: light-dark(#bfe6da, rgb(94 205 180 / 35%));
+  --fo-color-audit-log-card-border-2: light-dark(#fbd5b0, rgb(248 170 104 / 35%));
+  --fo-color-audit-log-card-border-3: light-dark(#fbcaca, rgb(248 130 130 / 35%));
+  --fo-color-audit-log-card-chip: light-dark(#d6e8fb, rgb(37 99 235 / 30%));
+  --fo-color-audit-log-card-chip-2: light-dark(#c4ebe0, rgb(15 118 110 / 35%));
+  --fo-color-audit-log-card-chip-3: light-dark(#fddcbb, rgb(234 108 8 / 32%));
+  --fo-color-audit-log-card-chip-4: light-dark(#fccfcf, rgb(220 38 38 / 32%));
+  --fo-color-audit-log-card-icon: light-dark(#1769e0, #7db3f5);
+  --fo-color-audit-log-card-icon-2: light-dark(#0f766e, #5ecdb4);
+  --fo-color-audit-log-card-icon-3: light-dark(#ea6c08, #f8aa68);
+  --fo-color-audit-log-card-icon-4: light-dark(#dc2626, #f88282);
+  --fo-color-audit-log-card-text: light-dark(#14235f, #dbe4ff);
+  --fo-color-billing-review-review-blue: light-dark(#2349ec, #8ea2ff);
+  --fo-color-billing-review-review-blue-soft: light-dark(#e8f2fc, rgb(35 73 236 / 18%));
+  --fo-color-branch-performance-text: light-dark(#c2410c, #f5a874);
+  --fo-color-cash-flow-bg: light-dark(#e2e8f0, rgb(255 255 255 / 12%));
+  --fo-color-cash-flow-bg-2: #2f6fd6;
+  --fo-color-cash-flow-bg-3: #4a86e8;
+  --fo-color-cash-flow-bg-4: #4f8be3;
+  --fo-color-cash-flow-bg-5: #6a9fec;
+  --fo-color-cash-flow-bg-6: #7faef0;
+  --fo-color-cash-flow-bg-7: #96bff5;
+  --fo-color-cash-flow-bg-8: #a9c9f7;
+  --fo-color-cash-flow-bg-9: #bdd6fa;
+  --fo-color-dashboard-analytics-bg: #e8a317;
+  --fo-color-dashboard-analytics-text: light-dark(#d9480f, #ff9a52);
+  --fo-color-dispatch-drawer-text: light-dark(#1d5fd1, #7cb2f5);
+  --fo-color-invitation-brand-panel-bg: light-dark(var(--p-surface-900), var(--p-surface-950));
+  --fo-color-invitation-invitation-link-color: light-dark(#0b4fbf, #8ab4ff);
+  --fo-color-invitation-text: light-dark(var(--p-red-700), var(--p-red-400));
+  --fo-color-job-material-add-add-soft: light-dark(#e3f4f2, var(--fo-color-success-background));
+  --fo-color-job-material-add-add-teal: light-dark(#138784, #4fc3bd);
+  --fo-color-job-materials-mat-action: light-dark(#1a2ea0, var(--fo-color-text));
+  --fo-color-job-progress-bg: light-dark(#ebf9f6, var(--fo-color-success-background));
+  --fo-color-job-progress-bg-2: light-dark(#fff4e6, var(--fo-color-warning-background));
+  --fo-color-job-progress-button-outlined-info-color: light-dark(#2860ff, #8aa8ff);
+  --fo-color-job-progress-button-outlined-info-hover-bg: light-dark(#eef3ff, rgb(40 96 255 / 15%));
+  --fo-color-job-progress-button-outlined-secondary-border-color: light-dark(
+    #84c9c7,
+    var(--fo-color-border-strong)
+  );
+  --fo-color-job-progress-button-outlined-secondary-color: light-dark(
+    #095b69,
+    var(--fo-color-heading)
+  );
+  --fo-color-job-progress-button-outlined-warn-active-bg: light-dark(
+    #ffdcb3,
+    var(--fo-color-warning-background)
+  );
+  --fo-color-job-progress-button-outlined-warn-border-color: light-dark(
+    #f0a04b,
+    var(--fo-color-warning-border)
+  );
+  --fo-color-job-progress-button-outlined-warn-color: light-dark(
+    #d4600c,
+    var(--fo-color-warning-text)
+  );
+  --fo-color-job-progress-button-outlined-warn-hover-bg: light-dark(
+    #ffe8cc,
+    var(--fo-color-warning-background)
+  );
+  --fo-color-job-progress-text: light-dark(#126272, var(--fo-color-success-text));
+  --fo-color-job-progress-text-2: light-dark(#04595b, var(--fo-color-success-text));
+  --fo-color-job-scope-bg: light-dark(#edf2fa, var(--fo-color-info-background));
+  --fo-color-job-scope-scope-teal: light-dark(#095b69, var(--fo-color-success-text));
+  --fo-color-message-list-msg-ink: light-dark(#000663, var(--fo-color-text));
+  --fo-color-owner-attention-bg: #ea580c;
+  --fo-color-owner-attention-bg-2: #dc2626;
+  --fo-color-owner-attention-border: light-dark(#f26a1b, #f5a874);
+  --fo-color-public-help-inputtext-shadow: light-dark(rgb(16 42 67 / 10%), rgb(0 0 0 / 30%));
+  --fo-color-public-help-inputtext-shadow-2: light-dark(rgb(16 42 67 / 8%), rgb(0 0 0 / 24%));
+  --fo-color-quote-approval-bg: light-dark(#fcdca0, rgb(196 122 18 / 35%));
+  --fo-color-quote-approval-quote-link: light-dark(#1769d1, #7cb5f5);
+  --fo-color-quote-approval-text: light-dark(#b45309, #f6c36a);
+  --fo-color-quote-view-box-shadow: light-dark(rgb(15 23 42 / 6%), rgb(0 0 0 / 18%));
+  --fo-color-report-header-text: light-dark(#ffb000, #ffc21a);
+  --fo-color-report-issue-bg: light-dark(#fff1e0, var(--fo-color-warning-background));
+  --fo-color-report-issue-text: light-dark(#a35a00, var(--fo-color-warning-text));
+  --fo-color-report-issue-text-2: light-dark(#1a2ea0, #8aa8ff);
+  --fo-color-report-summary-text: light-dark(#e8410f, #ff8a65);
+  --fo-color-review-audit-trail-audit-purple: light-dark(#6d3fd1, #b9a2f2);
+  --fo-color-review-audit-trail-audit-purple-soft: light-dark(#f1ecfd, rgb(109 63 209 / 22%));
+  --fo-color-schedule-sched-accent: #05a49f;
+  --fo-color-schedule-sched-blue-bg: light-dark(#e6f0fc, rgb(26 111 196 / 22%));
+  --fo-color-schedule-sched-blue-strong: light-dark(#d3e3f8, rgb(26 111 196 / 38%));
+  --fo-color-schedule-sched-blue-text: light-dark(#1a6fc4, #8ec1f5);
+  --fo-color-shell-sidebar-scrollbar-color: rgb(255 255 255 / 20%);
+  --fo-color-sign-in-other-ways-bg: light-dark(var(--p-primary-50), var(--p-surface-800));
+  --fo-color-sign-in-other-ways-border: light-dark(var(--p-primary-200), var(--p-surface-700));
+  --fo-color-sign-in-other-ways-text: light-dark(var(--p-primary-800), var(--p-surface-100));
+  --fo-color-signature-pad-bg: #fff;
+  --fo-color-time-entry-dialog-text: light-dark(#0b6b69, var(--fo-color-primary-strong));
+  --fo-color-time-entry-dialog-text-2: light-dark(#0a476b, var(--fo-color-text));
+  --fo-color-today-route-today-blue: light-dark(#0262df, #7fb0ff);
+  --fo-color-today-route-today-next-chip: light-dark(#cee9fd, rgb(36 123 160 / 25%));
+  --fo-color-today-today-link: light-dark(#0851cd, var(--fo-color-info-text));
+  --fo-color-unscheduled-panel-bg: #0b766e;
+  --fo-color-unscheduled-panel-bg-2: light-dark(#edffff, var(--fo-color-primary-soft));
+  --fo-color-visit-actions-border: light-dark(#d5dff0, var(--fo-color-border));
+  --fo-color-visit-actions-text: light-dark(#095b69, var(--fo-today-action));
+  --fo-color-visit-detail-bar-text: light-dark(#2860ff, var(--fo-color-primary-strong));
+  --fo-color-visit-detail-tag-warn-bg: light-dark(#fef0d9, rgb(196 122 18 / 20%));
+  --fo-color-visit-detail-tag-warn-color: light-dark(#b85800, #f5a874);
+  --fo-color-visit-review-ack-border: light-dark(#c9d7ff, rgb(138 168 255 / 35%));
+  --fo-color-visit-review-ack-text: light-dark(#1f4fd6, #8aa8ff);
+  --fo-color-visit-stepper-bg: light-dark(#dfe6ee, var(--fo-color-surface-muted));
+  --fo-color-visit-stepper-border-block-start: light-dark(#c4ccdd, var(--fo-color-border));
+  --fo-color-visit-stepper-border-block-start-color: light-dark(#148570, #5fd3cf);
+  --fo-color-visit-stepper-text: light-dark(#46598c, var(--fo-color-text-secondary));
+  --fo-color-visit-stepper-text-2: light-dark(#03595b, var(--fo-color-text));
+  --fo-color-visit-tabs-bg: light-dark(#f0f5fa, var(--fo-color-surface-muted));
+  --fo-color-visit-tabs-bg-2: light-dark(#edf1fb, var(--fo-color-info-background));
+  --fo-color-visit-tabs-bg-3: light-dark(#f0f5fa, var(--fo-color-info-background));
+  --fo-color-visit-tabs-bg-4: light-dark(#e9edf9, var(--fo-color-info-background));
+  --fo-color-visit-tabs-tabs-rule: light-dark(#dfe6ee, var(--fo-color-border));
+  --fo-color-visit-tabs-tabs-text: light-dark(#475a88, var(--fo-color-text-secondary));
+  --fo-color-visit-tabs-tabs-tile: light-dark(#edf1fb, var(--fo-color-surface-muted));
+  --fo-color-visit-tabs-tabs-tile-teal: light-dark(#dff0f0, var(--fo-color-surface-muted));
+  --fo-color-visit-tabs-text: light-dark(#2a3d8f, var(--fo-color-info-text));
+  --fo-color-visit-tabs-text-2: light-dark(#1a2ea0, var(--fo-color-info-text));
+  --fo-color-visit-tabs-text-3: light-dark(#475a88, var(--fo-color-info-text));
+  --fo-color-work-order-editor-bg: light-dark(#fef0dc, rgb(196 122 18 / 20%));
+  --fo-color-work-order-editor-bg-2: light-dark(#dee3ea, #2a3a49);
+  --fo-color-work-order-editor-bg-3: #0051ff;
+  --fo-color-work-order-editor-border-inline-end: light-dark(#e2e7ee, #2a3a49);
+  --fo-color-work-order-editor-text: light-dark(#5c77ac, #8b9aa8);
+  --fo-color-work-order-editor-text-2: light-dark(#009333, #6fd4a5);
+  --fo-color-work-order-editor-text-3: light-dark(#d66703, #f0c274);
+  --fo-color-work-order-editor-text-4: light-dark(#02a7a0, #5fd3cf);
+  --fo-color-work-order-editor-text-5: light-dark(#778196, #8b9aa8);
+  --fo-color-work-order-editor-text-6: light-dark(#d35c00, #f5a874);
+  --fo-color-work-order-editor-text-7: light-dark(#d67500, #f0c274);
+  --fo-color-work-order-editor-wo-blue: light-dark(#0a33f5, #8aa8ff);
+  --fo-color-work-order-editor-wo-blue-border: light-dark(#aab7dd, #435a6f);
+  --fo-color-work-order-materials-button-outlined-secondary-hover-bg: light-dark(
+    #e3f0fe,
+    rgb(124 176 255 / 16%)
+  );
 
   // Sizes
   --fo-size-touch-target: 2.75rem;

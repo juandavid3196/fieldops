@@ -12,7 +12,7 @@
     flex: none;
     inline-size: 3.5rem;
     block-size: 3.5rem;
-    color: light-dark(#ffb000, #ffc21a);
+    color: var(--fo-color-report-header-text);
     opacity: 0.5;
 
     .pi {

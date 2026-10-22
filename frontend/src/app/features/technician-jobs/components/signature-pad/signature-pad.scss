@@ -15,7 +15,7 @@
     // Pointer Events drive the drawing; the browser must not scroll or zoom over the pad.
     touch-action: none;
     cursor: crosshair;
-    background: #fff;
+    background: var(--fo-color-signature-pad-bg);
     border: 1px solid var(--fo-color-border-strong);
     border-radius: var(--fo-radius-control);
 

@@ -84,7 +84,9 @@ describe('PortalShell', () => {
     expect(text('.pshell__menu')).toContain('Sign out');
     // FR-03: the Language item lives in the portal user menu.
     expect(
-      (single.nativeElement as HTMLElement).querySelector('.pshell__menu app-language-menu-item'),
+      (single.nativeElement as HTMLElement).querySelector(
+        '.pshell__menu app-language-menu-item + app-appearance-menu-item',
+      ),
     ).not.toBeNull();
     single.destroy();
     TestBed.resetTestingModule();

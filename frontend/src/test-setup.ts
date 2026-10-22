@@ -8,6 +8,7 @@ import {
   provideI18nTesting,
 } from './app/core/i18n/testing/i18n-testing';
 import { registerTranslator } from './app/core/i18n/translate';
+import { THEME_STORAGE_KEY } from './app/core/theme/theme.config';
 
 // A test that resets the module itself still gets the translation providers (English, real files).
 const resetTestingModule = TestBed.resetTestingModule.bind(TestBed);
@@ -27,8 +28,11 @@ beforeEach(() => {
   setActiveIntlLocale('en-US');
   registerTranslator(createStaticTranslator('en'));
   document.documentElement.lang = 'en';
+  document.documentElement.classList.remove('app-dark');
+  document.documentElement.style.colorScheme = '';
   try {
     localStorage.removeItem(LANGUAGE_STORAGE_KEY);
+    localStorage.removeItem(THEME_STORAGE_KEY);
   } catch {
     // Storage may be unavailable in a test that replaced it.
   }

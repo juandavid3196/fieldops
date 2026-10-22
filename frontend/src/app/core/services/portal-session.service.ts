@@ -6,6 +6,7 @@ import { API_CONFIG, buildApiUrl } from '../config/api.config';
 import { LanguageService } from '../i18n/language.service';
 import { isApiError } from '../models/api-error.model';
 import { PortalSession, PortalSignInRequest } from '../models/portal-session.model';
+import { ThemeService } from '../theme/theme.service';
 
 /**
  * Holds the portal cookie session, separate from the internal {@link SessionService}. The backend
@@ -16,6 +17,7 @@ export class PortalSessionService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(API_CONFIG);
   private readonly language = inject(LanguageService);
+  private readonly theme = inject(ThemeService);
   private readonly currentSession = signal<PortalSession | null>(null);
   private readonly expired = signal(false);
 
@@ -91,6 +93,7 @@ export class PortalSessionService {
 
   /** BR-02: the session `preferredLanguage` wins over the local value; unsupported values are ignored. */
   private applyLanguage(session: PortalSession): Observable<PortalSession> {
+    this.theme.applyPreference(session.user.preferredTheme);
     return this.language.applyPreference(session.user.preferredLanguage).pipe(map(() => session));
   }
 }

@@ -18,10 +18,19 @@ interface AccountSection {
   readonly link: string;
 }
 
-/** FR-02: exactly these two sections; there is no Preferences item. */
-function sectionsFor(base: string): readonly AccountSection[] {
+/** app-dark-mode FR-05: Profile, Preferences (main shell only), Security. */
+function sectionsFor(base: string, withPreferences: boolean): readonly AccountSection[] {
   return [
     { label: t('account.accountLayout.myProfile'), icon: 'pi-user', link: `${base}/profile` },
+    ...(withPreferences
+      ? [
+          {
+            label: t('account.accountLayout.preferences'),
+            icon: 'pi-sliders-h',
+            link: `${base}/preferences`,
+          },
+        ]
+      : []),
     { label: t('account.accountLayout.security'), icon: 'pi-shield', link: `${base}/security` },
   ];
 }
@@ -35,11 +44,13 @@ function sectionsFor(base: string): readonly AccountSection[] {
 })
 export class AccountLayout {
   private readonly router = inject(Router);
-  private readonly accountBase: unknown = inject(ActivatedRoute).snapshot.data['accountBase'];
+  private readonly routeData = inject(ActivatedRoute).snapshot.data;
+  private readonly accountBase: unknown = this.routeData['accountBase'];
 
   /** `/account` by default; the technician shell mounts its own copy (`data.accountBase`). */
   readonly sections = sectionsFor(
     typeof this.accountBase === 'string' ? this.accountBase : '/account',
+    this.routeData['accountPreferences'] === true,
   );
   readonly currentLabel = signal(this.labelFor());
 

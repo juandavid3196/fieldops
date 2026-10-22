@@ -133,27 +133,43 @@
     display: block;
     block-size: 0.75rem;
     overflow: hidden;
-    background: light-dark(#e2e8f0, rgb(255 255 255 / 12%));
+    background: var(--fo-color-cash-flow-bg);
     border-radius: var(--fo-radius-pill);
   }
 
   &__bar {
     display: block;
     block-size: 100%;
-    background: linear-gradient(90deg, #2f6fd6, #4a86e8);
+    background: linear-gradient(
+      90deg,
+      var(--fo-color-cash-flow-bg-2),
+      var(--fo-color-cash-flow-bg-3)
+    );
     border-radius: var(--fo-radius-pill);
   }
 
   &__row:nth-child(2) &__bar {
-    background: linear-gradient(90deg, #4f8be3, #6a9fec);
+    background: linear-gradient(
+      90deg,
+      var(--fo-color-cash-flow-bg-4),
+      var(--fo-color-cash-flow-bg-5)
+    );
   }
 
   &__row:nth-child(3) &__bar {
-    background: linear-gradient(90deg, #7faef0, #96bff5);
+    background: linear-gradient(
+      90deg,
+      var(--fo-color-cash-flow-bg-6),
+      var(--fo-color-cash-flow-bg-7)
+    );
   }
 
   &__row:nth-child(4) &__bar {
-    background: linear-gradient(90deg, #a9c9f7, #bdd6fa);
+    background: linear-gradient(
+      90deg,
+      var(--fo-color-cash-flow-bg-8),
+      var(--fo-color-cash-flow-bg-9)
+    );
   }
 
   &__amount {

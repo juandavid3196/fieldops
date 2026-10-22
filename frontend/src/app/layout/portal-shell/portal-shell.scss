@@ -259,7 +259,7 @@
     }
 
     &--danger {
-      color: var(--fo-color-danger-solid);
+      color: light-dark(var(--fo-color-danger-solid), var(--fo-color-danger-text));
     }
   }
 

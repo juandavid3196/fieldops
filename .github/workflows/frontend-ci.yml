@@ -48,6 +48,11 @@ jobs:
           npm run i18n:check
           npm run i18n:check:test
 
+      - name: Theme check
+        run: |
+          npm run theme:check
+          npm run theme:check:test
+
       - name: Test
         run: npm run test -- --watch=false
 

@@ -28,7 +28,7 @@
     justify-content: center;
     inline-size: 2.25rem;
     block-size: 2.25rem;
-    color: light-dark(#000663, var(--fo-color-text));
+    color: var(--fo-color-message-list-msg-ink);
     background: color-mix(in srgb, var(--fo-color-primary) 22%, var(--fo-color-surface));
     border-radius: 50%;
 
@@ -46,7 +46,7 @@
     block-size: 3.5rem;
     margin-inline-end: 1rem;
     font-size: 1.7rem;
-    color: light-dark(#0b6b69, var(--fo-color-primary-strong));
+    color: var(--fo-color-time-entry-dialog-text);
 
     i {
       font-size: inherit;
@@ -90,7 +90,7 @@
     font-weight: 700;
 
     a {
-      color: light-dark(#0a476b, var(--fo-color-text));
+      color: var(--fo-color-time-entry-dialog-text-2);
       text-decoration: underline;
     }
   }
@@ -160,7 +160,7 @@
     white-space: nowrap;
     font-size: 1rem;
     font-weight: 700;
-    color: light-dark(#000663, var(--fo-color-text));
+    color: var(--fo-color-message-list-msg-ink);
   }
 
   &__open-job {

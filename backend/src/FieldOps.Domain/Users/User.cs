@@ -40,6 +40,9 @@ public sealed class User
     /// <summary>Supported language code, validated by the caller (app i18n BR-01).</summary>
     public string PreferredLanguage { get; private set; } = "en";
 
+    /// <summary>Supported appearance value, validated by the caller (app dark mode BR-01).</summary>
+    public string PreferredTheme { get; private set; } = "system";
+
     public UserStatus Status { get; private set; }
 
     public DateTimeOffset? EmailVerifiedAt { get; private set; }
@@ -181,6 +184,18 @@ public sealed class User
         }
 
         PreferredLanguage = preferredLanguage;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Stores an already validated appearance value.</summary>
+    public void UpdatePreferredTheme(string preferredTheme, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(preferredTheme))
+        {
+            throw new ArgumentException("Preferred theme is required.", nameof(preferredTheme));
+        }
+
+        PreferredTheme = preferredTheme;
         UpdatedAt = now;
     }
 

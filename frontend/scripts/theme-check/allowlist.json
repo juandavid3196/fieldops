@@ -1,0 +1,342 @@
+[
+  {
+    "file": "src/app/core/theme/theme.config.ts",
+    "value": "#0f9d9a",
+    "reason": "theme-color meta values (BR-04)"
+  },
+  {
+    "file": "src/app/core/theme/theme.config.ts",
+    "value": "#0b1620",
+    "reason": "theme-color meta values (BR-04)"
+  },
+  {
+    "file": "src/app/features/authentication/pages/sign-in/sign-in.scss",
+    "value": "#fcd116",
+    "reason": "Colombian flag emblem (brand artwork)"
+  },
+  {
+    "file": "src/app/features/authentication/pages/sign-in/sign-in.scss",
+    "value": "#003893",
+    "reason": "Colombian flag emblem (brand artwork)"
+  },
+  {
+    "file": "src/app/features/authentication/pages/sign-in/sign-in.scss",
+    "value": "#ce1126",
+    "reason": "Colombian flag emblem (brand artwork)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#14b8a6",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#3b82f6",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#ec4899",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#8b5cf6",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#f59e0b",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#22c55e",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#ef4444",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#06b6d4",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#a855f7",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#84cc16",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#f97316",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/jobs/utils/jobs-format.ts",
+    "value": "#6366f1",
+    "reason": "Technician identity palette (data colors with computed contrast text)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#fff",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#dcf5f1",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#0b4fc9",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#e3eefc",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#8a99ab",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#19b8a7",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#2f80ed",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#dfe6ee",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "rgb(95 211 207 / 35%)",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "rgb(95 211 207 / 55%)",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "rgb(255 255 255 / 70%)",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "rgb(255 255 255 / 6%)",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "rgb(0 0 0 / 35%)",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "rgb(255 255 255 / 12%)",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "rgb(255 255 255 / 14%)",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  },
+  {
+    "file": "src/app/features/technician-jobs/components/signature-pad/signature-pad.ts",
+    "value": "#fff",
+    "reason": "Signature canvas: white paper and dark ink in both themes (evidence)"
+  },
+  {
+    "file": "src/app/features/technician-jobs/components/signature-pad/signature-pad.ts",
+    "value": "#102a43",
+    "reason": "Signature canvas: white paper and dark ink in both themes (evidence)"
+  },
+  {
+    "file": "src/app/features/technician-jobs/utils/technician-format.ts",
+    "value": "#fff",
+    "reason": "Computed contrast text on identity avatar colors"
+  },
+  {
+    "file": "src/app/features/technician-jobs/utils/technician-format.ts",
+    "value": "#102a43",
+    "reason": "Computed contrast text on identity avatar colors"
+  },
+  {
+    "file": "src/index.html",
+    "value": "#0b1620",
+    "reason": "BR-04 first-paint script and theme-color values"
+  },
+  {
+    "file": "src/index.html",
+    "value": "#0f9d9a",
+    "reason": "BR-04 first-paint script and theme-color values"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-primary",
+    "reason": "Brand or status solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-primary-hover",
+    "reason": "Brand or status solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-on-primary",
+    "reason": "Brand or status solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-ink-black",
+    "reason": "Brand or status solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-success-solid",
+    "reason": "Brand or status solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-danger-solid",
+    "reason": "Brand or status solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-navy-text",
+    "reason": "Navy sidebar token (dark in both themes)"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-navy-muted",
+    "reason": "Navy sidebar token (dark in both themes)"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-navy-hover",
+    "reason": "Navy sidebar token (dark in both themes)"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-navy-divider",
+    "reason": "Navy sidebar token (dark in both themes)"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-navy-active",
+    "reason": "Navy sidebar token (dark in both themes)"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-navy-active-icon",
+    "reason": "Navy sidebar token (dark in both themes)"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-on-navy",
+    "reason": "Navy sidebar token (dark in both themes)"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-cash-flow-bg-2",
+    "reason": "Chart series gradient, at least 3:1 on both surfaces"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-cash-flow-bg-3",
+    "reason": "Chart series gradient, at least 3:1 on both surfaces"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-cash-flow-bg-4",
+    "reason": "Chart series gradient, at least 3:1 on both surfaces"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-cash-flow-bg-5",
+    "reason": "Chart series gradient, at least 3:1 on both surfaces"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-cash-flow-bg-6",
+    "reason": "Chart series gradient, at least 3:1 on both surfaces"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-cash-flow-bg-7",
+    "reason": "Chart series gradient, at least 3:1 on both surfaces"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-cash-flow-bg-8",
+    "reason": "Chart series gradient, at least 3:1 on both surfaces"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-cash-flow-bg-9",
+    "reason": "Chart series gradient, at least 3:1 on both surfaces"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-dashboard-analytics-bg",
+    "reason": "Status or action solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-owner-attention-bg",
+    "reason": "Status or action solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-owner-attention-bg-2",
+    "reason": "Status or action solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-schedule-sched-accent",
+    "reason": "Technician schedule accent, solid fill with white text"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-shell-sidebar-scrollbar-color",
+    "reason": "Status or action solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-signature-pad-bg",
+    "reason": "Signature canvas paper stays white so the ink is readable"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-unscheduled-panel-bg",
+    "reason": "Status or action solid fill, same in both themes"
+  },
+  {
+    "file": "src/styles/_tokens.scss",
+    "value": "--fo-color-work-order-editor-bg-3",
+    "reason": "Status or action solid fill, same in both themes"
+  },
+  {
+    "file": "src/app/features/portal/components/portal-auth-brand/portal-auth-brand.scss",
+    "value": "#102a43",
+    "reason": "Portal brand panel artwork (navy panel with white cards, same in both themes)"
+  }
+]

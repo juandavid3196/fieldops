@@ -45,7 +45,7 @@ internal sealed class PortalAuthenticationStore(FieldOpsDbContext dbContext) : I
             .Where(candidate => candidate.Id == userId
                 && candidate.Status == UserStatus.Active
                 && (candidate.PasswordChangedAt == null || candidate.PasswordChangedAt <= signedInAt))
-            .Select(candidate => new { candidate.FirstName, candidate.LastName, candidate.Email, candidate.PreferredLanguage })
+            .Select(candidate => new { candidate.FirstName, candidate.LastName, candidate.Email, candidate.PreferredLanguage, candidate.PreferredTheme })
             .SingleOrDefaultAsync(cancellationToken);
 
         if (user is null)
@@ -60,7 +60,7 @@ internal sealed class PortalAuthenticationStore(FieldOpsDbContext dbContext) : I
         return current is null
             ? null
             : new PortalSessionContext(
-                PortalSessionViews.Build(user.FirstName, user.LastName, user.Email, user.PreferredLanguage, current, links),
+                PortalSessionViews.Build(user.FirstName, user.LastName, user.Email, user.PreferredLanguage, user.PreferredTheme, current, links),
                 new PortalScope(current.OrganizationId, current.CustomerId, current.ContactId, userId));
     }
 
@@ -76,9 +76,9 @@ internal sealed class PortalAuthenticationStore(FieldOpsDbContext dbContext) : I
 internal static class PortalSessionViews
 {
     public static PortalSessionView Build(
-        string firstName, string lastName, string email, string preferredLanguage, PortalLink current, IReadOnlyList<PortalLink> links) =>
+        string firstName, string lastName, string email, string preferredLanguage, string preferredTheme, PortalLink current, IReadOnlyList<PortalLink> links) =>
         new(
-            new PortalSessionUser(firstName, lastName, email, preferredLanguage),
+            new PortalSessionUser(firstName, lastName, email, preferredLanguage, preferredTheme),
             new PortalSessionAccount(current.ContactId, current.CustomerName, current.OrganizationName, current.HasLogo),
             links.Select(link => new PortalSessionAccountSummary(link.ContactId, link.CustomerName, link.OrganizationName)).ToList());
 }

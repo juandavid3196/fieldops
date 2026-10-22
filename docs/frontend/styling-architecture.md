@@ -122,12 +122,40 @@ Responsive:
 - Media queries use `rem`.
 - Touch targets ≥ 2.75rem (44px) on mobile.
 
-Dark mode:
+Dark mode (app-dark-mode):
 
-- `.app-dark` on `<html>` (`darkModeSelector`); no toggle exists yet.
+- `.app-dark` on `<html>` (`darkModeSelector`) is set only in dark mode; `style.colorScheme` and
+  `<meta name="theme-color">` (`#0f9d9a` light, `#0b1620` dark) always equal the effective mode.
+- Preference `system` | `light` | `dark` (default `system`), defined once in
+  `core/theme/theme.config.ts`. Resolution (`theme-resolver.ts`): the signed-in user's
+  `preferredTheme`, then the `fieldops.theme` local value, then `system`; `system` follows
+  `prefers-color-scheme` and falls back to light when `matchMedia` is unavailable. An unsupported
+  value is ignored.
+- Pre-bootstrap: the inline script in `src/index.html` applies the local value and the device mode
+  before the bundle (no flash). `core/theme/theme.service.spec.ts` runs that script and the
+  resolver over one table, so the two cannot drift.
+- `ThemeService` (`core/theme`) owns the state: `apply()` is DOM-only (previews), `commit()` and
+  `applyPreference()` also write the local value, and a single `matchMedia` listener exists only
+  while the preference is `system`. `ThemePreferenceService` saves through `PUT /account/theme` or
+  `PUT /portal/account/theme` (with the `source`) and restores on failure. Session services apply
+  `preferredTheme` beside `preferredLanguage`.
+- Entry points: `/account/preferences` (main shell only) and the **Appearance** item
+  (`shared/components/appearance-menu-item`) in the main, technician and portal menus.
 - PrimeNG sets `color-scheme` per mode, so `light-dark()` follows `.app-dark`.
-- Every `--fo-*` color uses `light-dark()`.
-- Mockups are light-only; dark values derive from `--p-*` dark values.
+- Every `--fo-*` color token is a `light-dark()` pair unless it is a documented mode-invariant
+  (brand, status solid fills, navy sidebar). Component styles use tokens only; palettes that used
+  to live in component SCSS are tokens in `_tokens.scss`, light values unchanged.
+- Text on fills that invert in dark (action blue, secondary text) uses `--fo-color-on-strong`.
+
+`npm run theme:check` (`scripts/theme-check`, tests with `npm run theme:check:test`) fails with
+file and line when a `.scss`/`.css` file other than `_tokens.scss`, a template (`style`, `fill`,
+`stroke`, `color`, `[style.*]` and text) or a component `.ts` file contains a hex, `rgb()`/`hsl()`
+color or a named color (assigned to a color property or CSS string), or when a color token in
+`_tokens.scss` is not a `light-dark()` pair. `transparent`, `currentColor`, `inherit` and token
+references pass. Exceptions live in `scripts/theme-check/allowlist.json` as
+`{ "file", "value", "reason" }` (for a token, `value` is the token name); keep reasons specific
+(brand artwork, solid fills, `theme-color`, navy sidebar). It runs in the frontend CI after the
+i18n check.
 
 ## 8. PrimeNG override rules
 
@@ -190,6 +218,8 @@ From `frontend/`:
 ```bash
 npm run format:check
 npm run lint
+npm run theme:check
+npm run theme:check:test
 npm run test -- --watch=false
 npm run build -- --configuration production
 ```
@@ -202,7 +232,7 @@ Grep checks (from repo root):
 | `grep -rn "!important" frontend/src`                                | Only `styles/_base.scss`   |
 | `grep -rnE "^\s*--fo-[a-z-]+:" frontend/src`                        | Only `styles/_tokens.scss` |
 | `grep -rnE "@use .*styles/(tokens\|base)" frontend/src/app`         | No matches                 |
-| `grep -rnE "#[0-9a-fA-F]{3,8}\b" --include=*.scss frontend/src/app` | No matches                 |
+| `npm run theme:check` (hardcoded colors, allowlist and token pairs) | Passes                     |
 
 ## Deferred
 

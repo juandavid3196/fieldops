@@ -17,7 +17,7 @@
     gap: 0.25rem;
     min-inline-size: 0;
     font-size: 0.8125rem;
-    color: light-dark(#46598c, var(--fo-color-text-secondary));
+    color: var(--fo-color-visit-stepper-text);
     text-align: center;
 
     // Connector to the next step; teal once this step is done.
@@ -26,17 +26,17 @@
       inset-block-start: 1.1875rem;
       inset-inline-start: calc(50% + 1.5rem);
       inline-size: calc(100% - 3rem);
-      border-block-start: 2px solid light-dark(#c4ccdd, var(--fo-color-border));
+      border-block-start: 2px solid var(--fo-color-visit-stepper-border-block-start);
       content: '';
     }
 
     &--done:not(:last-child)::after {
-      border-block-start-color: #148570;
+      border-block-start-color: var(--fo-color-visit-stepper-border-block-start-color);
     }
 
     &--current {
       font-weight: 700;
-      color: light-dark(#03595b, var(--fo-color-text));
+      color: var(--fo-color-visit-stepper-text-2);
     }
   }
 
@@ -48,13 +48,13 @@
     inline-size: 2.5rem;
     block-size: 2.5rem;
     font-size: 1.125rem;
-    color: light-dark(#46598c, var(--fo-color-text-secondary));
-    background: light-dark(#dfe6ee, var(--fo-color-surface-muted));
+    color: var(--fo-color-visit-stepper-text);
+    background: var(--fo-color-visit-stepper-bg);
     border-radius: 50%;
 
     .stepper__step--done &,
     .stepper__step--current & {
-      color: #fff;
+      color: var(--fo-color-on-primary);
     }
 
     .stepper__step--done &,

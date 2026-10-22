@@ -39,8 +39,8 @@
     > button[aria-pressed='true'],
     > button[aria-pressed='true']:hover {
       color: var(--fo-color-on-primary);
-      background: #0b766e;
-      border-color: #0b766e;
+      background: var(--fo-color-unscheduled-panel-bg);
+      border-color: var(--fo-color-unscheduled-panel-bg);
     }
   }
 
@@ -94,7 +94,7 @@
 
     &--selected,
     &--selected:hover {
-      background: light-dark(#edffff, var(--fo-color-primary-soft));
+      background: var(--fo-color-unscheduled-panel-bg-2);
       border: 1px dashed var(--fo-color-primary);
     }
   }

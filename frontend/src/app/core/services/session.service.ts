@@ -6,6 +6,7 @@ import { API_CONFIG, buildApiUrl } from '../config/api.config';
 import { LanguageService } from '../i18n/language.service';
 import { isApiError } from '../models/api-error.model';
 import { Session, SignInRequest } from '../models/session.model';
+import { ThemeService } from '../theme/theme.service';
 
 /**
  * Holds the current cookie session. The backend decides authentication; this
@@ -17,6 +18,7 @@ export class SessionService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(API_CONFIG);
   private readonly language = inject(LanguageService);
+  private readonly theme = inject(ThemeService);
   private readonly currentSession = signal<Session | null>(null);
 
   readonly session = this.currentSession.asReadonly();
@@ -83,6 +85,7 @@ export class SessionService {
 
   /** BR-02: the session `preferredLanguage` wins over the local value; unsupported values are ignored. */
   private applyLanguage(session: Session): Observable<Session> {
+    this.theme.applyPreference(session.user.preferredTheme);
     return this.language.applyPreference(session.user.preferredLanguage).pipe(map(() => session));
   }
 }

@@ -28,9 +28,12 @@ export class LanguageService {
   private readonly document = inject(DOCUMENT);
   private readonly scopes = inject(I18nScopeRegistry);
   private readonly active = signal<LanguageCode>(BASE_LANGUAGE);
+  private readonly persistedState = signal<LanguageCode>(BASE_LANGUAGE);
   private latest = 0;
 
   readonly lang = this.active.asReadonly();
+  /** The last saved language: the Preferences page's saved value (app-dark-mode BR-10, BR-13). */
+  readonly persisted = this.persistedState.asReadonly();
   readonly locale = computed(() => localeOf(this.active()));
   readonly options = SUPPORTED_LANGUAGES;
 
@@ -41,11 +44,14 @@ export class LanguageService {
 
   /** Application initializer: the first screen renders in the resolved language. */
   init(): Observable<LanguageCode> {
-    return this.apply(this.resolveInitial());
+    return this.apply(this.resolveInitial()).pipe(tap((code) => this.persistedState.set(code)));
   }
 
-  /** Applies a supported language; resolves once its texts are loaded. */
-  apply(code: LanguageCode): Observable<LanguageCode> {
+  /**
+   * Applies a supported language; resolves once its texts are loaded. The local value follows
+   * unless `writeLocal` is `false` (Preferences previews never write it, app-dark-mode BR-10).
+   */
+  apply(code: LanguageCode, writeLocal = true): Observable<LanguageCode> {
     if (!isSupportedLanguage(code)) {
       return of(this.active());
     }
@@ -54,7 +60,7 @@ export class LanguageService {
       map(() => code),
       tap(() => {
         if (run === this.latest) {
-          this.commit(code);
+          this.commit(code, writeLocal);
         }
       }),
     );
@@ -68,11 +74,18 @@ export class LanguageService {
     if (!isSupportedLanguage(value)) {
       return of(null);
     }
+    this.persistedState.set(value);
     if (value === this.active()) {
       this.writeLocal(value);
       return of(value);
     }
     return this.apply(value);
+  }
+
+  /** A successful save: the language becomes the saved value and the local value follows. */
+  markPersisted(code: LanguageCode): void {
+    this.persistedState.set(code);
+    this.writeLocal(code);
   }
 
   /** Local value restore (BR-04); unreadable or unsupported values are ignored. */
@@ -93,13 +106,15 @@ export class LanguageService {
     }
   }
 
-  private commit(code: LanguageCode): void {
+  private commit(code: LanguageCode, writeLocal: boolean): void {
     this.transloco.setActiveLang(code);
     this.active.set(code);
     setActiveIntlLocale(localeOf(code));
     this.document.documentElement.lang = code;
     this.primeng.setTranslation(this.primeNgTexts(code));
-    this.writeLocal(code);
+    if (writeLocal) {
+      this.writeLocal(code);
+    }
   }
 
   private loadRoot(code: LanguageCode): Observable<unknown> {

@@ -1,10 +1,10 @@
 :host {
   display: block;
-  --fo-sched-accent: #05a49f;
-  --fo-sched-blue-text: light-dark(#1a6fc4, #8ec1f5);
-  --fo-sched-blue-background: light-dark(#e6f0fc, rgb(26 111 196 / 22%));
-  --fo-sched-blue-strong: light-dark(#d3e3f8, rgb(26 111 196 / 38%));
-  --fo-sched-ink: light-dark(#000663, var(--fo-color-text));
+  --fo-sched-accent: var(--fo-color-schedule-sched-accent);
+  --fo-sched-blue-text: var(--fo-color-schedule-sched-blue-text);
+  --fo-sched-blue-background: var(--fo-color-schedule-sched-blue-bg);
+  --fo-sched-blue-strong: var(--fo-color-schedule-sched-blue-strong);
+  --fo-sched-ink: var(--fo-color-message-list-msg-ink);
 }
 
 .sched {

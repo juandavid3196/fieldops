@@ -38,7 +38,7 @@ import { Component, input } from '@angular/core';
       font-size: 0.8125rem;
       font-weight: 800;
       line-height: 1;
-      color: #fff;
+      color: var(--fo-color-on-strong);
       background: var(--fo-color-action-blue);
       border-radius: var(--fo-radius-pill);
 

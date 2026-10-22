@@ -1,5 +1,6 @@
 <div class="shell">
   <app-language-toast />
+  <app-appearance-toast />
   @if (!isDrawer()) {
     <app-shell-sidebar
       class="shell__sidebar"
@@ -222,6 +223,12 @@
             </a>
             <app-language-menu-item
               surface="internal"
+              (chosen)="onLanguageChosen()"
+              (keydown)="onMenuKeydown($event)"
+            />
+            <app-appearance-menu-item
+              surface="internal"
+              source="user_menu"
               (chosen)="onLanguageChosen()"
               (keydown)="onMenuKeydown($event)"
             />

@@ -46,7 +46,9 @@
     // Raised field on the tinted hero: shadow instead of a border, darker search icon.
     --p-inputtext-border-color: transparent;
     --p-inputtext-hover-border-color: transparent;
-    --p-inputtext-shadow: 0 4px 16px rgb(16 42 67 / 10%), 0 1px 3px rgb(16 42 67 / 8%);
+    --p-inputtext-shadow:
+      0 4px 16px var(--fo-color-public-help-inputtext-shadow),
+      0 1px 3px var(--fo-color-public-help-inputtext-shadow-2);
     --p-iconfield-icon-color: var(--fo-color-heading);
   }
 

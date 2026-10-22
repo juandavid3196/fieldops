@@ -1,6 +1,6 @@
 :host {
-  --fo-today-blue: #0262df;
-  --fo-today-next-chip: #cee9fd;
+  --fo-today-blue: var(--fo-color-today-route-today-blue);
+  --fo-today-next-chip: var(--fo-color-today-route-today-next-chip);
 }
 
 .today {

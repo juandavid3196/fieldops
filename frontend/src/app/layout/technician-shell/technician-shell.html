@@ -1,5 +1,6 @@
 <div class="tshell">
   <app-language-toast />
+  <app-appearance-toast />
   <header class="tshell__topbar">
     @if (header(); as job) {
       <button
@@ -98,6 +99,12 @@
         </a>
         <app-language-menu-item
           surface="internal"
+          [menuRole]="null"
+          (chosen)="onLanguageChosen()"
+        />
+        <app-appearance-menu-item
+          surface="internal"
+          source="technician_menu"
           [menuRole]="null"
           (chosen)="onLanguageChosen()"
         />

@@ -17,8 +17,8 @@
     justify-content: center;
     inline-size: 3rem;
     block-size: 3rem;
-    color: light-dark(#a35a00, var(--fo-color-warning-text));
-    background: light-dark(#fff1e0, var(--fo-color-warning-background));
+    color: var(--fo-color-report-issue-text);
+    background: var(--fo-color-report-issue-bg);
     border-radius: 0.75rem;
 
     i.pi {
@@ -46,7 +46,7 @@
     color: var(--fo-color-heading);
     text-decoration: none;
     background: var(--fo-color-surface);
-    border: 1.5px solid light-dark(#138784, #4fc3bd);
+    border: 1.5px solid var(--fo-color-job-material-add-add-teal);
     border-radius: var(--fo-radius-control);
 
     &:hover {
@@ -60,7 +60,7 @@
 
     .pi {
       flex: none;
-      color: light-dark(#138784, #4fc3bd);
+      color: var(--fo-color-job-material-add-add-teal);
     }
   }
 
@@ -91,12 +91,12 @@
     padding: 0.75rem 0.875rem;
     font-size: 0.875rem;
     color: var(--fo-color-heading);
-    background: light-dark(#edf2fa, var(--fo-color-info-background));
+    background: var(--fo-color-job-scope-bg);
     border-radius: var(--fo-radius-control);
 
     i.pi {
       font-size: 1.125rem;
-      color: light-dark(#1a2ea0, #8aa8ff);
+      color: var(--fo-color-report-issue-text-2);
     }
   }
 
