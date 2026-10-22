@@ -99,7 +99,7 @@
 
     dd {
       margin: 0;
-      font-size: 2rem;
+      font-size: 1.7rem;
       font-weight: 700;
       line-height: 1.15;
       color: var(--card-text);
@@ -131,14 +131,14 @@
     display: grid;
     flex: none;
     place-items: center;
-    inline-size: 3.5rem;
-    block-size: 3.5rem;
+    inline-size: 3rem;
+    block-size: 3rem;
     color: var(--card-icon);
     background: var(--card-chip);
     border-radius: 50%;
 
     i {
-      font-size: 1.75rem;
+      font-size: 1.5rem;
     }
   }
 
@@ -364,6 +364,7 @@
     padding: 0.3125rem 0.75rem;
     font-size: 0.8125rem;
     font-weight: 600;
+    white-space: nowrap;
     color: var(--fo-color-info-text);
     background: var(--fo-color-info-background);
     border-radius: 999px;

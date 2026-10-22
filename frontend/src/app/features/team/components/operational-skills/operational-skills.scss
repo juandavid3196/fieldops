@@ -36,18 +36,16 @@
     list-style: none;
   }
 
+  // The card is a narrow side column: the name takes its own line, level and actions share the next.
   &__row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.5rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.25rem 0.5rem;
     align-items: center;
-
-    @media (min-width: 30rem) {
-      grid-template-columns: minmax(0, 1fr) 10rem 11rem;
-    }
   }
 
   &__name {
+    grid-column: 1 / -1;
     font-weight: 600;
     overflow-wrap: anywhere;
   }

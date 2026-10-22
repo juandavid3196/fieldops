@@ -1,4 +1,4 @@
-﻿@use '../../../../../styles/breakpoints' as bp;
+@use '../../../../../styles/breakpoints' as bp;
 
 :host {
   display: grid;
@@ -108,7 +108,7 @@
     color: var(--p-text-color);
 
     @include bp.up(md) {
-      font-size: 2.75rem;
+      font-size: 2.25rem;
     }
   }
 

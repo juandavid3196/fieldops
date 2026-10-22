@@ -101,8 +101,17 @@
     flex-direction: column;
     gap: 0.5rem;
 
+    // From md the actions sit at the trailing edge, beside the heading when it fits or on their own row.
     @include bp.up(md) {
       align-items: flex-end;
+      margin-inline-start: auto;
+    }
+  }
+
+  &__heading {
+    @include bp.up(md) {
+      flex: 1 1 24rem;
+      min-inline-size: 0;
     }
   }
 

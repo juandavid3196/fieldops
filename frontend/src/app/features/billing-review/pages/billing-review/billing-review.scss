@@ -60,9 +60,13 @@
     margin: 0;
     min-width: 0;
 
-    @include bp.up(lg) {
-      flex: 1;
+    @include bp.up(md) {
       grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    // Beside the title only when the content area is wide enough for the four cards.
+    @media (min-width: 100rem) {
+      flex: 1;
       white-space: nowrap;
       max-inline-size: 56rem;
     }
@@ -144,7 +148,7 @@
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 
-    @media (min-width: 80rem) {
+    @media (min-width: 100rem) {
       grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.6fr);
       align-items: end;
     }
@@ -166,7 +170,7 @@
   &__search {
     grid-column: 1 / -1;
 
-    @media (min-width: 80rem) {
+    @media (min-width: 100rem) {
       grid-column: auto;
     }
   }
@@ -195,9 +199,8 @@
     border-radius: var(--p-content-border-radius);
   }
 
-  // < 768 px: queue or detail (with the invoice panel below). 768-1279 px: queue + detail with the
-  // invoice panel under the detail. >= 1280 px (80rem, between the shared `lg` and `dock` steps):
-  // three columns.
+  // < 768 px: queue or detail (with the invoice panel below). 768-1599 px: queue + detail with the
+  // invoice panel under the detail. >= 1600 px (100rem): three columns.
   &__columns {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
@@ -208,7 +211,7 @@
       grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr);
     }
 
-    @media (min-width: 80rem) {
+    @media (min-width: 100rem) {
       grid-template-columns: minmax(18rem, 21rem) minmax(0, 1fr) minmax(19rem, 22rem);
     }
   }
@@ -246,7 +249,7 @@
       grid-column: 2;
     }
 
-    @media (min-width: 80rem) {
+    @media (min-width: 100rem) {
       grid-column: auto;
     }
   }

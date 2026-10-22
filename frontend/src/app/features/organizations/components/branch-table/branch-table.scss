@@ -88,6 +88,11 @@
       }
     }
 
+    // Tags keep their label on one line; the table scrolls instead of squeezing them.
+    p-tag {
+      white-space: nowrap;
+    }
+
     // Below md a card shows name, Main tag, address, status and actions only.
     td.branch-table__wide {
       display: none;

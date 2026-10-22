@@ -9,6 +9,16 @@ import { MessageList } from '../../components/message-list/message-list';
 import { FORBIDDEN_MESSAGE, MESSAGING_ROLES } from '../../utils/messages-format';
 
 import { t } from '../../../../core/i18n/translate';
+const LIST_COLLAPSED_KEY = 'fieldops.messages.list-collapsed';
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(LIST_COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export const SELECT_CONVERSATION_TEXT = (): string =>
   t('messages.messagesHost.selectConversationText');
 
@@ -45,6 +55,8 @@ export class MessagesHost {
   }
 
   readonly wide = signal(true);
+  /** Staff two-pane list shrunk to a rail; the choice survives reloads. */
+  readonly listCollapsed = signal(readCollapsed());
   readonly selectedId = signal<string | null>(this.currentId());
 
   constructor() {
@@ -64,6 +76,16 @@ export class MessagesHost {
   /** Two panes (staff, from 1024 px). */
   twoPanes(): boolean {
     return this.split && this.wide();
+  }
+
+  toggleList(): void {
+    const next = !this.listCollapsed();
+    this.listCollapsed.set(next);
+    try {
+      localStorage.setItem(LIST_COLLAPSED_KEY, next ? '1' : '0');
+    } catch {
+      // Storage errors never break the layout.
+    }
   }
 
   private currentId(): string | null {

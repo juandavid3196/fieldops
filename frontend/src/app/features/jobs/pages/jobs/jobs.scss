@@ -319,6 +319,7 @@ $wide: 80rem;
     th {
       font-size: 0.875rem;
       font-weight: 600;
+      white-space: nowrap;
       color: var(--fo-color-heading);
       background: var(--fo-color-neutral-background);
     }

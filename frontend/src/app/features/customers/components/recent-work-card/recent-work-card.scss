@@ -63,7 +63,18 @@
       padding: 0.625rem 0.5rem;
       text-align: start;
       vertical-align: middle;
+      white-space: nowrap;
       border-block-end: 1px solid var(--fo-color-row-divider);
+    }
+
+    [pButton] {
+      text-decoration: none;
+    }
+
+    // Only the title may wrap; tags, status, dates and amounts stay on one line.
+    td:nth-child(3) {
+      min-inline-size: 9rem;
+      white-space: normal;
     }
 
     th {

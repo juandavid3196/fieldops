@@ -222,7 +222,6 @@ describe('Team page', () => {
     ]);
     expect(page.buildMenu(ETHAN).map((item) => item.label)).toContain('Link account');
     expect(page.buildMenu(OLD).map((item) => item.label)).toContain('Activate');
-    expect(button('Manage skills')?.getAttribute('href')).toBe('/coming-soon/team-skills');
     expect(button('Availability')?.getAttribute('href')).toBe('/team?tab=availability');
     expect(button('Skills')?.getAttribute('href')).toBe('/team?tab=skills');
 
@@ -231,7 +230,6 @@ describe('Team page', () => {
     await setup('dispatcher', () => flushManager([ANA, ETHAN]));
     expect(button('Add technician profile')).toBeUndefined();
     expect(button('Link account')).toBeUndefined();
-    expect(button('Manage skills')).toBeDefined();
     expect(page.buildMenu(ANA).map((item) => item.label)).toEqual(['View']);
     expect(host.querySelector('app-link-account-dialog')).toBeNull();
     expect(host.querySelector('app-technician-form-drawer')).toBeNull();

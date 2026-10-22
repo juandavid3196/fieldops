@@ -270,6 +270,10 @@
     justify-content: center;
     min-height: var(--fo-size-touch-target);
 
+    @include bp.up(md) {
+      min-height: var(--fo-size-control);
+    }
+
     &--primary {
       flex-basis: 100%;
     }

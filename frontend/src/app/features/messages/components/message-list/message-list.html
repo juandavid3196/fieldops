@@ -1,7 +1,28 @@
-<div class="list">
+<div class="list" [class.list--rail]="collapsed()">
   <header class="list__header">
-    <h1 class="list__title">{{ 'messages.messageList.messages' | transloco }}</h1>
-    <p class="list__subtitle">{{ 'messages.messageList.jobAndTeamConversations' | transloco }}</p>
+    <div class="list__heading">
+      <h1 class="list__title">{{ 'messages.messageList.messages' | transloco }}</h1>
+      <p class="list__subtitle">{{ 'messages.messageList.jobAndTeamConversations' | transloco }}</p>
+    </div>
+    @if (collapsible()) {
+      <button
+        type="button"
+        class="list__collapse"
+        [attr.aria-label]="
+          (collapsed() ? 'messages.messageList.expandList' : 'messages.messageList.collapseList')
+            | transloco
+        "
+        [attr.aria-expanded]="!collapsed()"
+        (click)="collapseToggled.emit()"
+      >
+        <i
+          class="pi"
+          [class.pi-angle-double-left]="!collapsed()"
+          [class.pi-angle-double-right]="collapsed()"
+          aria-hidden="true"
+        ></i>
+      </button>
+    }
   </header>
 
   @if (accessText(); as access) {
@@ -140,18 +161,22 @@
     }
   </span>
   <span class="row__body">
-    <span class="row__title">{{ row.item.title }}</span>
+    <span class="row__heading">
+      <span class="row__title">{{ row.item.title }}</span>
+      <span class="row__chip">{{ row.chip }}</span>
+    </span>
     <span class="row__preview">{{ row.preview }}</span>
   </span>
   <span class="row__meta">
     @if (row.time) {
-      <span class="row__time">{{ row.time }}</span>
+      <span class="row__time"><i class="pi pi-clock" aria-hidden="true"></i>{{ row.time }}</span>
     }
-    @if (row.unreadLabel) {
-      <span class="row__badge" aria-hidden="true">{{ row.item.unreadCount }}</span>
-      <span class="list__sr">{{ row.unreadLabel }}</span>
-    }
-    <span class="row__chip">{{ row.chip }}</span>
+    <span class="row__actions">
+      @if (row.unreadLabel) {
+        <span class="row__badge" aria-hidden="true">{{ row.item.unreadCount }}</span>
+        <span class="list__sr">{{ row.unreadLabel }}</span>
+      }
+      <i class="pi pi-chevron-right row__chevron" aria-hidden="true"></i>
+    </span>
   </span>
-  <i class="pi pi-chevron-right row__chevron" aria-hidden="true"></i>
 </ng-template>

@@ -176,6 +176,7 @@ describe('AppShell', () => {
 
   afterEach(() => {
     window.matchMedia = originalMatchMedia;
+    localStorage.removeItem('fieldops.sidebar.collapsed');
     httpTesting.verify();
   });
 
@@ -310,7 +311,7 @@ describe('AppShell', () => {
     ['full', false],
     ['rail', true],
   ] as const)(
-    'starts as %s (rail = %s) and toggles Collapse for the visit only, with names in the rail (FR-01, FR-02, AC-05)',
+    'starts as %s (rail = %s) and toggles Collapse, with names in the rail (FR-01, FR-02, AC-05)',
     async (mode, startsRail) => {
       await setup(SESSION, mode);
       const sidebar = () => host.querySelector('.sidebar')!;
@@ -330,6 +331,17 @@ describe('AppShell', () => {
       expect(sidebar().classList.contains('sidebar--rail')).toBe(startsRail);
     },
   );
+
+  it('keeps the sidebar choice across a reload', async () => {
+    await setup(SESSION, 'full');
+    host.querySelector<HTMLButtonElement>('.sidebar__collapse')!.click();
+    await settle();
+    expect(host.querySelector('.sidebar')!.classList.contains('sidebar--rail')).toBe(true);
+
+    TestBed.resetTestingModule();
+    await setup(SESSION, 'full');
+    expect(host.querySelector('.sidebar')!.classList.contains('sidebar--rail')).toBe(true);
+  });
 
   it('shows organization, full name, role and initials, and follows session reloads (FR-04, BR-02, AC-08, AC-09)', async () => {
     await setup();

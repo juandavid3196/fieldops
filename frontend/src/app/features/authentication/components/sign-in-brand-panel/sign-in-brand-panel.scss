@@ -1,4 +1,4 @@
-﻿:host {
+:host {
   display: block;
 }
 
@@ -34,7 +34,8 @@
     position: relative;
     z-index: 2;
     padding-block: 2.25rem 2.7rem;
-    padding-inline: clamp(1.8rem, 12vw, 11.7rem) 2.7rem;
+    // Grows with the screen so the text block drifts toward the centre of the panel on large monitors.
+    padding-inline: clamp(1.8rem, 15vw - 8rem, 20rem) 2.7rem;
   }
 
   &__wordmark {
@@ -69,7 +70,7 @@
   &__heading {
     max-inline-size: 36rem;
     margin: 2.25rem 0 0;
-    font-size: clamp(2.25rem, 4vw, 3.6rem);
+    font-size: clamp(2rem, 3.4vw, 3rem);
     font-weight: 800;
     line-height: 1.02;
     letter-spacing: -0.02em;

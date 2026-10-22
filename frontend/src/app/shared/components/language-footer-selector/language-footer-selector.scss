@@ -49,14 +49,29 @@ app-appearance-footer-selector {
   &__menu {
     position: absolute;
     inset-block-end: 100%;
-    inset-inline-start: 0;
+    inset-inline-start: 50%;
     z-index: 30;
     min-inline-size: 10rem;
-    margin-block-end: 0.25rem;
+    margin-block-end: 0.5rem;
     padding: 0.25rem;
     background: var(--fo-color-surface);
     border: 1px solid var(--fo-color-border);
     border-radius: var(--fo-radius-control);
     box-shadow: var(--fo-shadow-overlay);
+    transform: translateX(-50%);
+
+    // Arrow pointing at the trigger, centered under the menu.
+    &::after {
+      position: absolute;
+      inset-block-end: -0.3rem;
+      inset-inline-start: calc(50% - 0.25rem);
+      inline-size: 0.5rem;
+      block-size: 0.5rem;
+      content: '';
+      background: var(--fo-color-surface);
+      border-inline-end: 1px solid var(--fo-color-border);
+      border-block-end: 1px solid var(--fo-color-border);
+      transform: rotate(45deg);
+    }
   }
 }

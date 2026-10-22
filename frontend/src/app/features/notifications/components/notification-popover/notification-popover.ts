@@ -51,6 +51,10 @@ const POPOVER_REQUEST: NotificationsRequest = {
 
 const NARROW_VIEWPORT = 480;
 const ARROW_LEFT_VAR = '--p-popover-arrow-left';
+/** Aura `popover.arrowOffset` (1.125rem), added by the theme to the variable above. */
+const ARROW_OFFSET = 18;
+/** Minimum distance (px) between the arrow tip and either panel edge. */
+const ARROW_EDGE_GAP = 24;
 
 /** Panel size through the popover's own `style` input (the panel is appended to `body`). */
 const PANEL_STYLE = {
@@ -190,25 +194,31 @@ export class NotificationPopover {
     this.focusInitial();
   }
 
-  /** Below 480 px the panel is centered in the viewport and its arrow keeps pointing at the bell. */
+  /**
+   * Below 480 px the panel is centered in the viewport. In every case the arrow is aimed at the
+   * center of the bell (PrimeNG aims it at the trigger's left edge).
+   */
   private centerOnNarrowScreens(): void {
-    if (window.innerWidth >= NARROW_VIEWPORT) {
-      return;
-    }
-    // PrimeNG positions the panel after `onShow`, so center it on the next frame.
+    // PrimeNG positions the panel after `onShow`, so adjust it on the next frame.
     requestAnimationFrame(() => {
       const panel = document.querySelector<HTMLElement>('.notif-pop');
       if (!panel) {
         return;
       }
       // `offsetLeft` ignores the enter animation's scale transform, unlike the bounding rect.
-      const target = (document.documentElement.clientWidth - panel.offsetWidth) / 2;
-      const shift = panel.offsetLeft - target;
-      const arrow = parseFloat(panel.style.getPropertyValue(ARROW_LEFT_VAR));
-      panel.style.left = `${target}px`;
-      if (!Number.isNaN(arrow)) {
-        panel.style.setProperty(ARROW_LEFT_VAR, `${arrow + shift}px`);
+      if (window.innerWidth < NARROW_VIEWPORT) {
+        panel.style.left = `${(document.documentElement.clientWidth - panel.offsetWidth) / 2}px`;
       }
+      const bell = this.trigger().getBoundingClientRect();
+      const bellCenter = bell.left + bell.width / 2 + window.scrollX;
+      // Arrow tip = panel left + border + arrow offset + variable. The tip stays clear of the
+      // rounded corners, so the arrow never overhangs the panel edge.
+      const tip = Math.min(
+        Math.max(bellCenter - panel.offsetLeft, ARROW_EDGE_GAP),
+        panel.offsetWidth - ARROW_EDGE_GAP,
+      );
+      const arrow = tip - panel.clientLeft - ARROW_OFFSET;
+      panel.style.setProperty(ARROW_LEFT_VAR, `${arrow}px`);
     });
   }
 

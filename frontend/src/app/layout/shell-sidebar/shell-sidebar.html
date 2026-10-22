@@ -19,15 +19,23 @@
         <span class="sidebar__hidden">{{ 'shell.shellSidebar.closeNavigation' | transloco }}</span>
       </button>
     </div>
+  } @else if (rail()) {
+    <!-- Rail: the logo expands the sidebar. -->
+    <button
+      type="button"
+      class="sidebar__brand sidebar__brand--toggle"
+      [attr.aria-label]="'shell.shellSidebar.expandNavigation' | transloco"
+      [pTooltip]="'shell.shellSidebar.expand' | transloco"
+      tooltipPosition="right"
+      (click)="collapseToggled.emit()"
+    >
+      <ng-container [ngTemplateOutlet]="mark" />
+    </button>
   } @else {
     <p class="sidebar__brand">
       <ng-container [ngTemplateOutlet]="mark" />
-      @if (rail()) {
-        <span class="sidebar__hidden">{{ 'shell.shellSidebar.fieldops' | transloco }}</span>
-      } @else {
-        <span>{{ 'shell.shellSidebar.field' | transloco }}</span
-        ><span class="sidebar__accent">{{ 'shell.shellSidebar.ops' | transloco }}</span>
-      }
+      <span>{{ 'shell.shellSidebar.field' | transloco }}</span
+      ><span class="sidebar__accent">{{ 'shell.shellSidebar.ops' | transloco }}</span>
     </p>
   }
 

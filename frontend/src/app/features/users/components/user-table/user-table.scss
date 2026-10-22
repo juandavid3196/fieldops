@@ -85,6 +85,11 @@
       }
     }
 
+    // Tags keep their label on one line; the table scrolls instead of squeezing them.
+    p-tag {
+      white-space: nowrap;
+    }
+
     // Below md a card shows avatar, name, email, role tag, status and the actions only.
     td:first-child {
       flex: 1 1 100%;

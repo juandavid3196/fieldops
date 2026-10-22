@@ -33,6 +33,10 @@
     @include bp.up(lg) {
       padding: 3rem 2rem 1.5rem;
     }
+
+    @media (min-width: 64rem) and (max-height: 50rem) {
+      padding-block: 1.5rem 1rem;
+    }
   }
 
   &__mobile-brand {
@@ -52,6 +56,10 @@
     margin-block: auto;
     padding: 2rem;
     box-shadow: 0 1px 2px var(--fo-color-shadow-faint);
+
+    @media (max-height: 50rem) {
+      padding: 1.25rem 1.5rem;
+    }
 
     .auth__title {
       font-size: 1.875rem;

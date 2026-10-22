@@ -32,6 +32,11 @@
       border-bottom: 1px solid var(--fo-color-row-divider);
     }
 
+    // Tags keep their label on one line; the table scrolls instead of squeezing them.
+    p-tag {
+      white-space: nowrap;
+    }
+
     tbody tr:last-child td {
       border-bottom: 0;
     }

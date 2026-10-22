@@ -343,7 +343,9 @@
                         </span>
                       </td>
                       <td>
-                        <span [class.jobs__emphasis]="item.emphasized">{{ item.priority }}</span>
+                        <span class="jobs__nowrap" [class.jobs__emphasis]="item.emphasized">{{
+                          item.priority
+                        }}</span>
                       </td>
                       <td>
                         <span class="jobs__chip jobs__chip--{{ item.chip.tone }}">

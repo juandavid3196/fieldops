@@ -59,6 +59,11 @@ p-drawer.drawer-shell {
     background: var(--fo-color-surface);
     border-block-start: 1px solid var(--fo-color-border);
 
+    // Short laptop screens: give the body the room.
+    @media (max-height: 50rem) {
+      padding-block: 0.625rem;
+    }
+
     &--overlay {
       inline-size: 100%;
       padding-block-end: max(0.875rem, env(safe-area-inset-bottom));

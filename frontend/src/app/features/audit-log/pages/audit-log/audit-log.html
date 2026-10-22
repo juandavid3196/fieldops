@@ -287,13 +287,13 @@
                           <span class="audit__line">{{ row.time }}</span>
                         </time>
                       </td>
-                      <td>{{ row.item.actor.name }}</td>
+                      <td class="audit__nowrap">{{ row.item.actor.name }}</td>
                       <td>
                         <span class="audit__tag">{{
                           row.item.action.label | codeLabel: 'auditActions' : row.item.action.code
                         }}</span>
                       </td>
-                      <td>{{ row.item.entity.label }}</td>
+                      <td class="audit__nowrap">{{ row.item.entity.label }}</td>
                       <td class="audit__nowrap">{{ row.item.reference }}</td>
                       <td class="audit__summary">{{ row.item.summary }}</td>
                       <td class="audit__nowrap">{{ row.branch }}</td>

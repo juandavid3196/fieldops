@@ -38,7 +38,9 @@
     "team": "Equipo",
     "unread": "Sin leer",
     "loadingMessages": "Cargando mensajes",
-    "loadMore": "Cargar más"
+    "loadMore": "Cargar más",
+    "collapseList": "Contraer conversaciones",
+    "expandList": "Expandir conversaciones"
   },
   "messagesFormat": {
     "bodyErrorMessage": "Escribe un mensaje de hasta 2000 caracteres.",

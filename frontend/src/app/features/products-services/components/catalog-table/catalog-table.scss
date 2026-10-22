@@ -86,6 +86,11 @@
       }
     }
 
+    // Tags keep their label on one line; the table scrolls instead of squeezing them.
+    p-tag {
+      white-space: nowrap;
+    }
+
     td:first-child {
       flex: 1 1 100%;
     }

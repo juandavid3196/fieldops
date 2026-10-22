@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
   untracked,
 } from '@angular/core';
@@ -104,6 +105,10 @@ export class MessageList {
 
   readonly basePath = input.required<string>();
   readonly selectedId = input<string | null>(null);
+  /** Two-pane staff layout: the list can shrink to a rail of avatars (the host owns the state). */
+  readonly collapsible = input(false);
+  readonly collapsed = input(false);
+  readonly collapseToggled = output<void>();
 
   get notice(): string {
     return LIST_NOTICE();
@@ -225,7 +230,10 @@ export class MessageList {
   load(): void {
     this.inFlight?.unsubscribe();
     this.cursor = null;
-    this.state.set('loading');
+    // A ready list stays on screen while a new filter or search loads: no skeleton flash.
+    if (this.state() !== 'ready') {
+      this.state.set('loading');
+    }
     this.inFlight = this.messages.list(this.filter(), this.search(), null).subscribe({
       next: (page) => {
         this.apply(page, false);
