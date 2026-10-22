@@ -10,6 +10,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { portalUnauthorizedInterceptor } from './core/interceptors/portal-unauthorized.interceptor';
 import { ReloadRouteReuseStrategy } from './core/services/reload-route-reuse.strategy';
+import { provideTheme } from './core/theme/theme.providers';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -21,5 +22,6 @@ export const appConfig: ApplicationConfig = {
     ),
     providePrimeNG(primeNgConfig),
     provideI18n(),
+    provideTheme(),
   ],
 };

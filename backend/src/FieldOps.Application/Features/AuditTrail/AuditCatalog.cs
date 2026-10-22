@@ -157,6 +157,7 @@ public static class AuditCatalog
             ("auth.password_changed", "Password changed", "user"),
             ("user.profile_updated", "Profile updated", "user"),
             ("user.language_updated", "Language updated", "user"),
+            ("user.theme_updated", "Appearance updated", "user"),
             ("user.photo_updated","Profile photo updated", "user"),
             ("user.photo_removed", "Profile photo removed", "user"),
             ("organization.registered", "Organization registered", "organization"),

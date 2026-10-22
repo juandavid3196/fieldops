@@ -141,7 +141,7 @@ export const accountRoute: Route = withI18n(
     path: `${TODAY_ROUTE_PATH}/account`,
     data: { shellTitle: 'shell.routeData.accountSettings' },
     loadChildren: () =>
-      import('../account/account.routes').then((m) => m.createAccountRoutes(ACCOUNT_PATH)),
+      import('../account/account.routes').then((m) => m.createAccountRoutes(ACCOUNT_PATH, true)),
   },
   'technician-jobs',
   'account',

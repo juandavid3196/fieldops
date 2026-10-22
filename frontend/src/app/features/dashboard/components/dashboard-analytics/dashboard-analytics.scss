@@ -162,7 +162,7 @@
     }
 
     &[data-tone='warning'] {
-      color: light-dark(#d9480f, #ff9a52);
+      color: var(--fo-color-dashboard-analytics-text);
     }
 
     &[data-tone='bad'] {
@@ -221,7 +221,7 @@
     block-size: 2rem;
     font-size: 1rem;
     color: var(--fo-color-on-primary);
-    background: var(--fo-color-warning-solid, #e8a317);
+    background: var(--fo-color-warning-solid, var(--fo-color-dashboard-analytics-bg));
     border-radius: var(--fo-radius-pill);
   }
 

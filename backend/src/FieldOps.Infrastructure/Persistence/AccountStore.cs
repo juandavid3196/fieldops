@@ -140,6 +140,50 @@ internal sealed class AccountStore(FieldOpsDbContext dbContext) : IAccountStore
         return user.PreferredLanguage;
     }
 
+    public async Task<string?> UpdateThemeAsync(
+        Guid userId,
+        Guid organizationId,
+        string theme,
+        string source,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        var user = await dbContext.Users.SingleOrDefaultAsync(candidate => candidate.Id == userId, cancellationToken);
+
+        if (user is null)
+        {
+            return null;
+        }
+
+        if (string.Equals(user.PreferredTheme, theme, StringComparison.Ordinal))
+        {
+            return user.PreferredTheme;
+        }
+
+        var previous = user.PreferredTheme;
+
+        user.UpdatePreferredTheme(theme, now);
+
+        dbContext.AuditLogs.Add(AuditLog.Create(
+            organizationId,
+            UpdateThemeHandler.ThemeUpdatedAuditAction,
+            AuditEntity,
+            actorUserId: userId,
+            entityId: userId,
+            ipAddress: clientIp,
+            metadata: JsonSerializer.Serialize(new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["previousTheme"] = previous,
+                ["newTheme"] = theme,
+                ["source"] = source,
+            })));
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return user.PreferredTheme;
+    }
+
     public Task<AccountCredential?> FindCredentialAsync(Guid userId, CancellationToken cancellationToken) =>
         dbContext.Users.AsNoTracking()
             .Where(user => user.Id == userId)

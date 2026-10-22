@@ -9,8 +9,8 @@ $wide: 80rem;
 }
 
 .jobs {
-  --jobs-purple: light-dark(#6d3fd1, #b9a2f2);
-  --jobs-purple-soft: light-dark(#f1ecfd, rgb(109 63 209 / 22%));
+  --jobs-purple: var(--fo-color-review-audit-trail-audit-purple);
+  --jobs-purple-soft: var(--fo-color-review-audit-trail-audit-purple-soft);
 
   display: flex;
   flex-direction: column;

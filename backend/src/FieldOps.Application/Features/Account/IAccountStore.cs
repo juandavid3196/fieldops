@@ -39,6 +39,20 @@ public interface IAccountStore
         DateTimeOffset now,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Stores the theme and, only when it differs, writes one <c>user.theme_updated</c>
+    /// audit row ({previousTheme,newTheme,source}) in the same save.
+    /// Returns the stored theme, or null when the user does not exist.
+    /// </summary>
+    Task<string?> UpdateThemeAsync(
+        Guid userId,
+        Guid organizationId,
+        string theme,
+        string source,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
     Task<AccountCredential?> FindCredentialAsync(Guid userId, CancellationToken cancellationToken);
 
     /// <summary>

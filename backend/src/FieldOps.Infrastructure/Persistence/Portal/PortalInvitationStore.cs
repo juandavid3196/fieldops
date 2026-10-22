@@ -359,7 +359,7 @@ internal sealed class PortalInvitationStore(FieldOpsDbContext dbContext, TimePro
             ? Failed(PortalActivationFailure.Gone)
             : new PortalActivationResult.Activated(new PortalAcceptedInvitation(
                 new PortalSessionContext(
-                    PortalSessionViews.Build(user.FirstName, user.LastName, user.Email, user.PreferredLanguage, current, links),
+                    PortalSessionViews.Build(user.FirstName, user.LastName, user.Email, user.PreferredLanguage, user.PreferredTheme, current, links),
                     new PortalScope(current.OrganizationId, current.CustomerId, current.ContactId, user.Id)),
                 now));
     }

@@ -20,7 +20,8 @@ public sealed class PortalAccountController(
     SendPortalMessageHandler messageHandler,
     GetPortalWorkOrderReportHandler reportHandler,
     IPortalCatalogStore catalogStore,
-    UpdateLanguageHandler languageHandler) : PortalControllerBase
+    UpdateLanguageHandler languageHandler,
+    UpdateThemeHandler themeHandler) : PortalControllerBase
 {
     public const int MaxRequestBodyBytes = 8 * 1024;
 
@@ -183,6 +184,41 @@ public sealed class PortalAccountController(
         {
             UpdateLanguageResult.Succeeded succeeded => Ok(new UpdateLanguageView(succeeded.PreferredLanguage)),
             UpdateLanguageResult.Invalid invalid => FieldErrors(invalid.Errors),
+            _ => Unauthorized(),
+        };
+    }
+
+    // Only the session user's own theme; the user and organization come from the validated portal session (app dark mode BR-06..BR-08).
+    [HttpPut("portal/account/theme")]
+    [Consumes("application/json")]
+    [RequestSizeLimit(AccountController.MaxJsonBodyBytes)]
+    [ProducesResponseType<UpdateThemeView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status415UnsupportedMediaType)]
+    public async Task<IActionResult> UpdateTheme(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] UpdateThemeRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return InvalidBody();
+        }
+
+        var scope = Scope;
+        var result = await themeHandler.HandleAsync(
+            scope.UserId,
+            scope.OrganizationId,
+            portal: true,
+            ClientIp(),
+            new UpdateThemeCommand(request.ThemeText, request.SourceText),
+            cancellationToken);
+
+        return result switch
+        {
+            UpdateThemeResult.Succeeded succeeded => Ok(new UpdateThemeView(succeeded.PreferredTheme)),
+            UpdateThemeResult.Invalid invalid => FieldErrors(invalid.Errors),
             _ => Unauthorized(),
         };
     }

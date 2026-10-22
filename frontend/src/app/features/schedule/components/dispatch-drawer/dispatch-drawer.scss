@@ -105,7 +105,7 @@
   }
 
   &__phone {
-    color: light-dark(#1d5fd1, #7cb2f5);
+    color: var(--fo-color-dispatch-drawer-text);
     text-decoration: none;
   }
 

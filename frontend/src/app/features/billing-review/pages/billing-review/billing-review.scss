@@ -7,8 +7,8 @@
 
 // Design 11 action blue, inherited by the invoice panel (no shared token).
 .review {
-  --review-blue: light-dark(#2349ec, #8ea2ff);
-  --review-blue-soft: light-dark(#e8f2fc, rgb(35 73 236 / 18%));
+  --review-blue: var(--fo-color-billing-review-review-blue);
+  --review-blue-soft: var(--fo-color-billing-review-review-blue-soft);
 
   display: flex;
   flex-direction: column;

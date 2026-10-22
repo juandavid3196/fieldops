@@ -1,6 +1,6 @@
 :host {
   display: block;
-  --fo-msg-ink: light-dark(#000663, var(--fo-color-text));
+  --fo-msg-ink: var(--fo-color-message-list-msg-ink);
 }
 
 .list {
@@ -65,7 +65,7 @@
     cursor: pointer;
 
     &[aria-pressed='true'] {
-      color: var(--fo-color-on-primary);
+      color: var(--fo-color-on-strong);
       background: var(--fo-color-primary-strong);
     }
 
@@ -196,7 +196,7 @@
     inline-size: 3rem;
     block-size: 3rem;
     font-weight: 700;
-    color: var(--fo-color-on-primary);
+    color: var(--fo-color-on-strong);
     background: var(--fo-color-primary-strong);
     border-radius: 50%;
 

@@ -3,11 +3,13 @@
   display: contents;
 
   // Design 9 action blue for Add task, View original scope, Add material and Add photo.
-  --p-button-outlined-info-color: light-dark(#2860ff, #8aa8ff);
-  --p-button-outlined-info-border-color: light-dark(#2860ff, #8aa8ff);
-  --p-button-outlined-info-hover-background: light-dark(#eef3ff, rgb(40 96 255 / 15%));
-  --p-button-text-info-color: light-dark(#2860ff, #8aa8ff);
-  --p-button-text-info-hover-background: light-dark(#eef3ff, rgb(40 96 255 / 15%));
+  --p-button-outlined-info-color: var(--fo-color-job-progress-button-outlined-info-color);
+  --p-button-outlined-info-border-color: var(--fo-color-job-progress-button-outlined-info-color);
+  --p-button-outlined-info-hover-background: var(
+    --fo-color-job-progress-button-outlined-info-hover-bg
+  );
+  --p-button-text-info-color: var(--fo-color-job-progress-button-outlined-info-color);
+  --p-button-text-info-hover-background: var(--fo-color-job-progress-button-outlined-info-hover-bg);
 }
 
 .progress {
@@ -71,8 +73,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.875rem 1rem;
-  color: light-dark(#126272, var(--fo-color-success-text));
-  background: light-dark(#ebf9f6, var(--fo-color-success-background));
+  color: var(--fo-color-job-progress-text);
+  background: var(--fo-color-job-progress-bg);
   border-radius: var(--fo-radius-card);
 
   &__top {
@@ -104,7 +106,7 @@
 
     strong {
       font-size: 1rem;
-      color: light-dark(#04595b, var(--fo-color-success-text));
+      color: var(--fo-color-job-progress-text-2);
     }
   }
 
@@ -127,23 +129,27 @@
 
   // Design 9: filled light-orange Pause and white Report issue, not transparent outlined buttons.
   & &__button--pause {
-    --p-button-outlined-warn-color: light-dark(#d4600c, var(--fo-color-warning-text));
-    --p-button-outlined-warn-border-color: light-dark(#f0a04b, var(--fo-color-warning-border));
-    --p-button-outlined-warn-hover-background: light-dark(
-      #ffe8cc,
-      var(--fo-color-warning-background)
+    --p-button-outlined-warn-color: var(--fo-color-job-progress-button-outlined-warn-color);
+    --p-button-outlined-warn-border-color: var(
+      --fo-color-job-progress-button-outlined-warn-border-color
     );
-    --p-button-outlined-warn-active-background: light-dark(
-      #ffdcb3,
-      var(--fo-color-warning-background)
+    --p-button-outlined-warn-hover-background: var(
+      --fo-color-job-progress-button-outlined-warn-hover-bg
+    );
+    --p-button-outlined-warn-active-background: var(
+      --fo-color-job-progress-button-outlined-warn-active-bg
     );
 
-    background: light-dark(#fff4e6, var(--fo-color-warning-background));
+    background: var(--fo-color-job-progress-bg-2);
   }
 
   & &__button--report {
-    --p-button-outlined-secondary-color: light-dark(#095b69, var(--fo-color-heading));
-    --p-button-outlined-secondary-border-color: light-dark(#84c9c7, var(--fo-color-border-strong));
+    --p-button-outlined-secondary-color: var(
+      --fo-color-job-progress-button-outlined-secondary-color
+    );
+    --p-button-outlined-secondary-border-color: var(
+      --fo-color-job-progress-button-outlined-secondary-border-color
+    );
     --p-button-outlined-secondary-hover-background: var(--fo-color-surface-hover);
     --p-button-outlined-secondary-active-background: var(--fo-color-surface-hover);
 

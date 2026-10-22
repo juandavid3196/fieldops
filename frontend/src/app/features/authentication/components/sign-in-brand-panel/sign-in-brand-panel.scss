@@ -6,7 +6,7 @@
   position: relative;
   height: 100%;
   overflow: hidden;
-  background: light-dark(var(--p-surface-900), var(--p-surface-950));
+  background: var(--fo-color-invitation-brand-panel-bg);
   color: var(--p-surface-0);
 
   &__photo {

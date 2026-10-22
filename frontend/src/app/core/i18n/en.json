@@ -186,6 +186,7 @@
     "quote": "Quote · FieldOps",
     "myProfile": "My profile · FieldOps",
     "security": "Security · FieldOps",
+    "preferences": "Preferences · FieldOps",
     "auditTrail": "Audit trail · FieldOps",
     "signIn": "Sign in · FieldOps",
     "acceptInvitation": "Accept invitation · FieldOps",
@@ -248,7 +249,13 @@
   "selector": {
     "language": "Language",
     "footerLabel": "Language: {{name}}",
-    "saveFailed": "We couldn't save your language. Try again."
+    "appearanceFooterLabel": "Appearance: {{name}}",
+    "saveFailed": "We couldn't save your language. Try again.",
+    "appearance": "Appearance",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark",
+    "appearanceSaveFailed": "We couldn't save your appearance. Try again."
   },
   "errors": {
     "kind": {

@@ -10,9 +10,9 @@ namespace FieldOps.Application.Features.PortalAuth;
 internal static class PortalSessions
 {
     public static PortalSessionView Build(
-        string firstName, string lastName, string email, string preferredLanguage, PortalLink current, IReadOnlyList<PortalLink> links) =>
+        string firstName, string lastName, string email, string preferredLanguage, string preferredTheme, PortalLink current, IReadOnlyList<PortalLink> links) =>
         new(
-            new PortalSessionUser(firstName, lastName, email, preferredLanguage),
+            new PortalSessionUser(firstName, lastName, email, preferredLanguage, preferredTheme),
             new PortalSessionAccount(current.ContactId, current.CustomerName, current.OrganizationName, current.HasLogo),
             links.Select(link => new PortalSessionAccountSummary(link.ContactId, link.CustomerName, link.OrganizationName)).ToList());
 
@@ -102,7 +102,7 @@ public sealed class SignInPortalHandler(
 
         return new PortalSignInResult.Succeeded(
             new PortalSessionContext(
-                PortalSessions.Build(user.FirstName, user.LastName, user.Email, user.PreferredLanguage, chosen, links),
+                PortalSessions.Build(user.FirstName, user.LastName, user.Email, user.PreferredLanguage, user.PreferredTheme, chosen, links),
                 PortalSessions.ScopeOf(chosen)),
             signedInAt);
     }

@@ -27,6 +27,8 @@ import { comingSoonModuleName } from '../../core/config/coming-soon-modules';
 import { MessageUnreadService } from '../../core/services/message-unread.service';
 import { SessionService } from '../../core/services/session.service';
 import { TechnicianVisitsService } from '../../features/technician-jobs/services/technician-visits.service';
+import { AppearanceMenuItem } from '../../shared/components/appearance-menu-item/appearance-menu-item';
+import { AppearanceToast } from '../../shared/components/appearance-toast/appearance-toast';
 import { LanguageMenuItem } from '../../shared/components/language-menu-item/language-menu-item';
 import { LanguageToast } from '../../shared/components/language-toast/language-toast';
 import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
@@ -58,6 +60,8 @@ function deepest(snapshot: ActivatedRouteSnapshot): ActivatedRouteSnapshot {
   selector: 'app-technician-shell',
   imports: [
     TranslocoPipe,
+    AppearanceMenuItem,
+    AppearanceToast,
     LanguageMenuItem,
     LanguageToast,
     RouterLink,

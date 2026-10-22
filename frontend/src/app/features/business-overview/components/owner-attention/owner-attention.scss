@@ -89,11 +89,11 @@
   color: var(--fo-color-text);
   text-decoration: none;
   background: var(--fo-color-surface);
-  border: 1px solid #f26a1b;
+  border: 1px solid var(--fo-color-owner-attention-border);
   border-radius: var(--fo-radius-panel);
 
   &[data-severity='critical'] {
-    border-color: #dc2626;
+    border-color: var(--fo-color-audit-log-card-icon-4);
   }
 
   &:focus-visible {
@@ -113,8 +113,8 @@
     padding-block-start: 0.25rem;
     font-size: 1rem;
     font-weight: 800;
-    color: #fff;
-    background: #ea580c;
+    color: var(--fo-color-on-primary);
+    background: var(--fo-color-owner-attention-bg);
     clip-path: polygon(50% 0, 100% 100%, 0 100%);
 
     &::after {
@@ -124,7 +124,7 @@
 
   &[data-severity='critical'] &__icon {
     padding-block-start: 0;
-    background: #dc2626;
+    background: var(--fo-color-owner-attention-bg-2);
     clip-path: circle(50%);
   }
 
@@ -138,11 +138,11 @@
   &__title {
     font-weight: 600;
     overflow-wrap: anywhere;
-    color: #c2410c;
+    color: var(--fo-color-branch-performance-text);
   }
 
   &[data-severity='critical'] &__title {
-    color: #dc2626;
+    color: var(--fo-color-audit-log-card-icon-4);
   }
 
   &__detail {
@@ -169,7 +169,7 @@
     block-size: 1.875rem;
     font-size: 1.125rem;
     font-weight: 800;
-    color: #fff;
+    color: var(--fo-color-on-strong);
     background: var(--fo-color-action-blue);
     border-radius: var(--fo-radius-pill);
 

@@ -1,6 +1,24 @@
 :host {
-  display: inline-block;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
   max-inline-size: 100%;
+}
+
+// Divider between the language and appearance selectors.
+app-appearance-footer-selector {
+  position: relative;
+  padding-inline-start: 0.75rem;
+
+  // 85% of the selector height, centered.
+  &::before {
+    position: absolute;
+    inset-block: 7.5%;
+    inset-inline-start: 0;
+    content: '';
+    border-inline-start: 1px solid var(--fo-color-border-strong);
+  }
 }
 
 .lang-footer {

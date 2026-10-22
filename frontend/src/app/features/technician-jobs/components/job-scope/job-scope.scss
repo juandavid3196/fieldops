@@ -1,8 +1,8 @@
 // Scope list design: teal tile header, numbered read-only rows, info note and full-width Close.
 .scope {
-  --scope-teal: light-dark(#095b69, var(--fo-color-success-text));
-  --scope-soft: light-dark(#e3f4f2, var(--fo-color-success-background));
-  --scope-border: light-dark(#84c9c7, var(--fo-color-border-strong));
+  --scope-teal: var(--fo-color-job-scope-scope-teal);
+  --scope-soft: var(--fo-color-job-material-add-add-soft);
+  --scope-border: var(--fo-color-job-progress-button-outlined-secondary-border-color);
 
   display: flex;
   flex-direction: column;
@@ -23,8 +23,8 @@
     inline-size: 3rem;
     block-size: 3rem;
     font-size: 1.375rem;
-    color: light-dark(#095b69, var(--fo-color-success-text));
-    background: light-dark(#e3f4f2, var(--fo-color-success-background));
+    color: var(--fo-color-job-scope-scope-teal);
+    background: var(--fo-color-job-material-add-add-soft);
     border-radius: 0.75rem;
   }
 
@@ -121,12 +121,12 @@
     padding: 0.75rem 0.875rem;
     font-size: 0.8125rem;
     color: var(--fo-color-text-secondary);
-    background: light-dark(#edf2fa, var(--fo-color-info-background));
+    background: var(--fo-color-job-scope-bg);
     border-radius: var(--fo-radius-control);
 
     i.pi {
       font-size: 1.125rem;
-      color: light-dark(#2860ff, #8aa8ff);
+      color: var(--fo-color-job-progress-button-outlined-info-color);
     }
   }
 

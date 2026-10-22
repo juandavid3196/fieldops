@@ -25,6 +25,8 @@ import { MessageUnreadService } from '../../core/services/message-unread.service
 import { NotificationUnreadService } from '../../core/services/notification-unread.service';
 import { SessionService } from '../../core/services/session.service';
 import { NotificationPopover } from '../../features/notifications/components/notification-popover/notification-popover';
+import { AppearanceMenuItem } from '../../shared/components/appearance-menu-item/appearance-menu-item';
+import { AppearanceToast } from '../../shared/components/appearance-toast/appearance-toast';
 import { LanguageMenuItem } from '../../shared/components/language-menu-item/language-menu-item';
 import { LanguageToast } from '../../shared/components/language-toast/language-toast';
 import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
@@ -52,6 +54,8 @@ type MenuKind = 'org' | 'user';
     Drawer,
     FocusTrap,
     GlobalSearch,
+    AppearanceMenuItem,
+    AppearanceToast,
     LanguageMenuItem,
     LanguageToast,
     Message,

@@ -68,6 +68,7 @@ public static class DependencyInjection
         services.AddScoped<RemoveUserPhotoHandler>();
         services.AddScoped<ChangePasswordHandler>();
         services.AddScoped<UpdateLanguageHandler>();
+        services.AddScoped<UpdateThemeHandler>();
         services.AddScoped<ListCatalogItemsHandler>();
         services.AddScoped<GetCatalogSummaryHandler>();
         services.AddScoped<GetCatalogItemHandler>();

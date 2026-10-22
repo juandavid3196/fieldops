@@ -39,6 +39,11 @@ internal sealed class UserConfiguration : IEntityTypeConfiguration<User>
             .HasDefaultValue("en")
             .IsRequired();
 
+        builder.Property(user => user.PreferredTheme)
+            .HasMaxLength(10)
+            .HasDefaultValue("system")
+            .IsRequired();
+
         // PostgreSQL enum user_status, mapped in FieldOpsDbContext.
         builder.Property(user => user.Status)
             .IsRequired();

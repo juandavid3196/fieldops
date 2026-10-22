@@ -185,7 +185,7 @@
     gap: 1rem;
     padding: 1.25rem;
     border-radius: var(--fo-radius-panel);
-    box-shadow: 0 1px 3px rgb(15 23 42 / 6%);
+    box-shadow: 0 1px 3px var(--fo-color-quote-view-box-shadow);
 
     @include bp.up(md) {
       padding: 1.5rem 2rem;

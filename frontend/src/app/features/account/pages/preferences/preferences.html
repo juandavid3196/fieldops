@@ -1,0 +1,98 @@
+<p-toast />
+<app-discard-changes-dialog />
+
+<form class="prefs" novalidate (ngSubmit)="save()">
+  <section class="prefs__section" aria-labelledby="prefs-language-heading">
+    <h2 class="prefs__heading" id="prefs-language-heading">
+      {{ 'account.preferences.language' | transloco }}
+    </h2>
+    <div class="prefs__field">
+      <label class="prefs__label" id="prefs-language-label" for="prefs-language">{{
+        'account.preferences.displayLanguage' | transloco
+      }}</label>
+      <p-select
+        class="prefs__select"
+        inputId="prefs-language"
+        appendTo="body"
+        fluid
+        ariaLabelledBy="prefs-language-label"
+        aria-describedby="prefs-language-helper"
+        optionLabel="name"
+        optionValue="code"
+        [options]="languages"
+        [disabled]="saving()"
+        [ngModel]="selectedLanguage()"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="selectLanguage($event)"
+      />
+      <p class="prefs__helper" id="prefs-language-helper">
+        {{ 'account.preferences.languageHelper' | transloco }}
+      </p>
+    </div>
+  </section>
+
+  <section class="prefs__section" aria-labelledby="prefs-appearance-heading">
+    <h2 class="prefs__heading" id="prefs-appearance-heading">
+      {{ 'account.preferences.appearance' | transloco }}
+    </h2>
+    <div
+      class="prefs__cards"
+      role="radiogroup"
+      [attr.aria-label]="'selector.appearance' | transloco"
+    >
+      @for (card of cards; track card.value; let index = $index) {
+        <div
+          class="prefs__card"
+          role="radio"
+          [class.prefs__card--selected]="card.value === selectedTheme()"
+          [attr.aria-checked]="card.value === selectedTheme()"
+          [attr.aria-disabled]="saving()"
+          [attr.aria-labelledby]="'prefs-card-' + card.value + '-label'"
+          [attr.aria-describedby]="'prefs-card-' + card.value + '-description'"
+          [attr.tabindex]="card.value === selectedTheme() ? 0 : -1"
+          (click)="selectTheme(card.value)"
+          (keydown)="onCardKeydown($event, index)"
+        >
+          <span class="prefs__card-top">
+            <i class="pi prefs__card-icon" [class]="card.icon" aria-hidden="true"></i>
+            <span class="prefs__radio" aria-hidden="true"></span>
+          </span>
+          <span class="prefs__card-label" [id]="'prefs-card-' + card.value + '-label'">{{
+            card.labelKey | transloco
+          }}</span>
+          <span
+            class="prefs__card-description"
+            [id]="'prefs-card-' + card.value + '-description'"
+            >{{ card.descriptionKey | transloco }}</span
+          >
+        </div>
+      }
+    </div>
+  </section>
+
+  <p class="prefs__note" role="note">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    {{ 'account.preferences.note' | transloco }}
+  </p>
+
+  <div class="prefs__actions">
+    <button pButton type="submit" [disabled]="!dirty() || saving()">
+      @if (saving()) {
+        <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
+        {{ 'account.preferences.saving' | transloco }}
+      } @else {
+        {{ 'account.preferences.savePreferences' | transloco }}
+      }
+    </button>
+    <button
+      pButton
+      type="button"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="!dirty() || saving()"
+      (click)="reset()"
+    >
+      {{ 'account.preferences.reset' | transloco }}
+    </button>
+  </div>
+</form>

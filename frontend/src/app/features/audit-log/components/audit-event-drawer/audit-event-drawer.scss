@@ -230,7 +230,7 @@
     padding: 0.75rem;
     font-size: 0.875rem;
     color: var(--fo-color-link);
-    background: light-dark(#eaf1ff, rgb(143 162 255 / 15%));
+    background: var(--fo-color-audit-event-drawer-bg);
     border-radius: var(--fo-radius-control);
 
     i {

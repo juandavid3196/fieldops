@@ -1,6 +1,6 @@
 :host {
   display: block;
-  --fo-time-ink: light-dark(#000663, var(--fo-color-text));
+  --fo-time-ink: var(--fo-color-message-list-msg-ink);
   --fo-time-work: var(--fo-color-primary-strong);
   --fo-time-travel: var(--fo-color-info-text);
   --fo-time-break: var(--fo-color-text-muted);

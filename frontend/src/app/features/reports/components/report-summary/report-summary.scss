@@ -41,7 +41,7 @@
     }
 
     &[data-tone='negative'] {
-      color: light-dark(#e8410f, #ff8a65);
+      color: var(--fo-color-report-summary-text);
     }
   }
 

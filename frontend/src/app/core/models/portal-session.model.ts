@@ -12,6 +12,8 @@ export interface PortalSessionUser {
   readonly email: string;
   /** Persisted UI language (`en` or `es`); an unsupported value is ignored (app-i18n-en-es BR-02). */
   readonly preferredLanguage?: string;
+  /** Persisted appearance (`system`, `light` or `dark`); an unsupported value is ignored (app-dark-mode BR-02). */
+  readonly preferredTheme?: string;
 }
 
 export interface PortalAccountSummary {

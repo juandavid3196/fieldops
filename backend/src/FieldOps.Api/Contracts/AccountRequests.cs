@@ -23,6 +23,20 @@ public sealed record UpdateLanguageRequest(JsonElement? Language)
 /// <summary>Response of the language endpoints.</summary>
 public sealed record UpdateLanguageView(string PreferredLanguage);
 
+/// <summary>
+/// Body of PUT /account/theme and PUT /portal/account/theme. Values are bound as raw JSON so a number or null
+/// reaches validation as a keyed 400.
+/// </summary>
+public sealed record UpdateThemeRequest(JsonElement? Theme, JsonElement? Source)
+{
+    public string? ThemeText => LanguageInput.AsString(Theme);
+
+    public string? SourceText => LanguageInput.AsString(Source);
+}
+
+/// <summary>Response of the theme endpoints.</summary>
+public sealed record UpdateThemeView(string PreferredTheme);
+
 /// <summary>Reads a raw JSON value as a string; any other JSON type is null.</summary>
 public static class LanguageInput
 {

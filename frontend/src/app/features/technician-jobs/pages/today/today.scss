@@ -1,9 +1,9 @@
 :host {
   display: block;
-  --fo-today-accent: #05a49f;
-  --fo-today-accent-dark: color-mix(in srgb, var(--fo-today-accent) 85%, black);
-  --fo-today-ink: light-dark(#000663, var(--fo-color-text));
-  --fo-today-link: light-dark(#0851cd, var(--fo-color-info-text));
+  --fo-today-accent: var(--fo-color-schedule-sched-accent);
+  --fo-today-accent-dark: color-mix(in srgb, var(--fo-today-accent) 85%, var(--fo-color-ink-black));
+  --fo-today-ink: var(--fo-color-message-list-msg-ink);
+  --fo-today-link: var(--fo-color-today-today-link);
 }
 
 .today {

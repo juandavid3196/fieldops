@@ -1,0 +1,33 @@
+<button
+  #trigger
+  type="button"
+  [attr.role]="menuRole()"
+  class="lang-item"
+  aria-haspopup="menu"
+  [attr.aria-expanded]="open()"
+  (click)="toggle($event)"
+  (keydown)="onTriggerKeydown($event)"
+>
+  <i class="pi pi-palette" aria-hidden="true"></i>
+  <span class="lang-item__label">{{ 'selector.appearance' | transloco }}</span>
+  <span class="lang-item__current">{{ activeKey() | transloco }}</span>
+  <i
+    class="pi pi-angle-right lang-item__chevron"
+    [class.lang-item__chevron--open]="open() && !flyout()"
+    aria-hidden="true"
+  ></i>
+</button>
+
+@if (open()) {
+  <div class="lang-item__sublist" [class.lang-item__sublist--flyout]="flyout()">
+    <p class="lang-item__title">
+      <i class="pi pi-palette" aria-hidden="true"></i>{{ 'selector.appearance' | transloco }}
+    </p>
+    <app-appearance-options
+      [surface]="surface()"
+      [source]="source()"
+      (chosen)="onChosen()"
+      (closeRequested)="close(true)"
+    />
+  </div>
+}

@@ -217,6 +217,9 @@ describe('TechnicianShell', () => {
     ]);
     // FR-03: the Language item lives in the More panel.
     expect(host.querySelector('#tshell-more-panel app-language-menu-item')).not.toBeNull();
+    expect(
+      host.querySelector('#tshell-more-panel app-language-menu-item + app-appearance-menu-item'),
+    ).not.toBeNull();
     // Every destination stays inside the technician shell.
     expect(panelItems[0].getAttribute('href')).toBe('/today/profile');
     expect(panelItems[1].getAttribute('href')).toBe('/today/account');

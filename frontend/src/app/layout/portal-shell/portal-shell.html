@@ -1,5 +1,6 @@
 <div class="pshell">
   <app-language-toast />
+  <app-appearance-toast />
   <header class="pshell__bar">
     @if (isDrawer()) {
       <button
@@ -107,6 +108,11 @@
             }
           }
           <app-language-menu-item surface="portal" (chosen)="onLanguageChosen()" />
+          <app-appearance-menu-item
+            surface="portal"
+            source="portal_menu"
+            (chosen)="onLanguageChosen()"
+          />
           <button
             type="button"
             role="menuitem"

@@ -22,6 +22,8 @@ import { PortalSessionService } from '../../core/services/portal-session.service
 import { PortalOrganizationService } from '../../features/portal/services/portal-organization.service';
 import { PortalUpdatesStore } from '../../features/portal/services/portal-updates.store';
 import { initialsOf } from '../../features/portal/utils/portal-format';
+import { AppearanceMenuItem } from '../../shared/components/appearance-menu-item/appearance-menu-item';
+import { AppearanceToast } from '../../shared/components/appearance-toast/appearance-toast';
 import { LanguageMenuItem } from '../../shared/components/language-menu-item/language-menu-item';
 import { LanguageToast } from '../../shared/components/language-toast/language-toast';
 import { PORTAL_NAV, SIGN_IN_LINK, UPDATES_LINK, bellCountText } from './portal-shell.nav';
@@ -41,6 +43,8 @@ export const PORTAL_SWITCH_ERROR_MESSAGE = (): string =>
   imports: [
     TranslocoPipe,
     Drawer,
+    AppearanceMenuItem,
+    AppearanceToast,
     LanguageMenuItem,
     LanguageToast,
     Message,

@@ -11,16 +11,18 @@ import { TranslocoPipe } from '@jsverse/transloco';
 
 import { LanguageService } from '../../../core/i18n/language.service';
 import { languageOption } from '../../../core/i18n/languages.config';
+import { AppearanceFooterSelector } from '../appearance-footer-selector/appearance-footer-selector';
 import { LanguageOptions } from '../language-options/language-options';
 
 /**
  * Compact footer selector of the anonymous pages (BR-18): a button with a language icon, the active
  * option name and the accessible name "Language: English" / "Idioma: Español". It opens the same two
- * options; the choice only updates the local value. Escape returns focus to the button.
+ * options; the choice only updates the local value. Escape returns focus to the button. The
+ * appearance selector sits beside it so every anonymous page offers both.
  */
 @Component({
   selector: 'app-language-footer-selector',
-  imports: [TranslocoPipe, LanguageOptions],
+  imports: [TranslocoPipe, LanguageOptions, AppearanceFooterSelector],
   templateUrl: './language-footer-selector.html',
   styleUrl: './language-footer-selector.scss',
   host: { '(document:click)': 'onDocumentClick($event)' },

@@ -186,6 +186,7 @@
     "quote": "Cotización · FieldOps",
     "myProfile": "Mi perfil · FieldOps",
     "security": "Seguridad · FieldOps",
+    "preferences": "Preferencias · FieldOps",
     "auditTrail": "Registro de auditoría · FieldOps",
     "signIn": "Iniciar sesión · FieldOps",
     "acceptInvitation": "Aceptar invitación · FieldOps",
@@ -248,7 +249,13 @@
   "selector": {
     "language": "Idioma",
     "footerLabel": "Idioma: {{name}}",
-    "saveFailed": "No pudimos guardar tu idioma. Inténtalo de nuevo."
+    "appearanceFooterLabel": "Apariencia: {{name}}",
+    "saveFailed": "No pudimos guardar tu idioma. Inténtalo de nuevo.",
+    "appearance": "Apariencia",
+    "themeSystem": "Sistema",
+    "themeLight": "Claro",
+    "themeDark": "Oscuro",
+    "appearanceSaveFailed": "No pudimos guardar tu apariencia. Inténtalo de nuevo."
   },
   "errors": {
     "kind": {

@@ -3,7 +3,7 @@
 
 :host {
   // Link blue shared by the page actions (phone, Ask a question, Decline, Download PDF).
-  --quote-link: light-dark(#1769d1, #7cb5f5);
+  --quote-link: var(--fo-color-quote-approval-quote-link);
 
   display: block;
   min-height: 100dvh;
@@ -271,8 +271,8 @@
 
   &[data-tone='warning'] {
     font-weight: 700;
-    color: light-dark(#b45309, #f6c36a);
-    background: light-dark(#fcdca0, rgb(196 122 18 / 35%));
+    color: var(--fo-color-quote-approval-text);
+    background: var(--fo-color-quote-approval-bg);
   }
 
   &[data-tone='info'] {

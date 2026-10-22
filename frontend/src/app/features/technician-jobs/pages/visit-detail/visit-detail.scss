@@ -1,6 +1,6 @@
 :host {
   display: block;
-  --fo-today-ink: light-dark(#000663, var(--fo-color-text));
+  --fo-today-ink: var(--fo-color-message-list-msg-ink);
 }
 
 .visit {
@@ -65,13 +65,13 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.875rem 1rem;
-    color: light-dark(#126272, var(--fo-color-success-text));
-    background: light-dark(#ebf9f6, var(--fo-color-success-background));
+    color: var(--fo-color-job-progress-text);
+    background: var(--fo-color-job-progress-bg);
     border-radius: var(--fo-radius-card);
 
     i.pi {
       font-size: 1.25rem;
-      color: light-dark(#04595b, var(--fo-color-success-text));
+      color: var(--fo-color-job-progress-text-2);
     }
   }
 
@@ -81,7 +81,7 @@
 
     strong {
       font-size: 1rem;
-      color: light-dark(#04595b, var(--fo-color-success-text));
+      color: var(--fo-color-job-progress-text-2);
     }
   }
 
@@ -116,8 +116,8 @@
 
   // Design 8 priority chip: amber tint, set through the PrimeNG tag tokens.
   &__priority {
-    --p-tag-warn-background: #fef0d9;
-    --p-tag-warn-color: #b85800;
+    --p-tag-warn-background: var(--fo-color-visit-detail-tag-warn-bg);
+    --p-tag-warn-color: var(--fo-color-visit-detail-tag-warn-color);
     --p-tag-font-weight: 600;
   }
 
@@ -165,7 +165,7 @@
     flex-direction: column;
     justify-content: center;
     padding-inline-start: 1rem;
-    border-inline-start: 1px solid light-dark(#dfe6ee, var(--fo-color-border));
+    border-inline-start: 1px solid var(--fo-color-visit-tabs-tabs-rule);
   }
 
   &__body {
@@ -189,7 +189,7 @@
   &__side {
     @container (min-width: 26rem) {
       padding-inline-start: 1rem;
-      border-inline-start: 1px solid light-dark(#dfe6ee, var(--fo-color-border));
+      border-inline-start: 1px solid var(--fo-color-visit-tabs-tabs-rule);
     }
   }
 
@@ -202,7 +202,7 @@
   &__muted {
     margin: 0;
     font-size: 0.875rem;
-    color: light-dark(#475a88, var(--fo-color-text-secondary));
+    color: var(--fo-color-visit-tabs-tabs-text);
   }
 
   &__caption {

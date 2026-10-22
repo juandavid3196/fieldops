@@ -9,7 +9,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "i18n:check": "node scripts/i18n-check/cli.mjs",
-    "i18n:check:test": "node --test \"scripts/i18n-check/*.test.mjs\""
+    "i18n:check:test": "node --test \"scripts/i18n-check/*.test.mjs\"",
+    "theme:check": "node scripts/theme-check/cli.mjs",
+    "theme:check:test": "node --test \"scripts/theme-check/*.test.mjs\""
   },
   "private": true,
   "packageManager": "npm@9.7.1",

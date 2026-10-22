@@ -71,7 +71,7 @@
   &__callout-icon {
     @include help.icon-tile(2rem);
 
-    color: var(--fo-color-on-primary);
+    color: var(--fo-color-on-strong);
     background: var(--fo-color-primary-strong);
     border-radius: var(--fo-radius-pill);
 
@@ -109,7 +109,7 @@
       inline-size: 2.5rem;
       block-size: 2.5rem;
       font-weight: 700;
-      color: var(--fo-color-on-primary);
+      color: var(--fo-color-on-strong);
       background: var(--fo-color-primary-strong);
       border-radius: var(--fo-radius-pill);
     }

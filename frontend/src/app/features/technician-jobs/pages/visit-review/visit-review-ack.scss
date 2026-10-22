@@ -1,10 +1,12 @@
 // Customer acknowledgment step: method cards and the fields of the selected method.
 .ack {
   // Design 9 action blue (as in job-progress) for Back, Clear, Redo and the info note.
-  --ack-blue: light-dark(#2860ff, #8aa8ff);
+  --ack-blue: var(--fo-color-job-progress-button-outlined-info-color);
   --p-button-outlined-info-color: var(--ack-blue);
   --p-button-outlined-info-border-color: var(--ack-blue);
-  --p-button-outlined-info-hover-background: light-dark(#eef3ff, rgb(40 96 255 / 15%));
+  --p-button-outlined-info-hover-background: var(
+    --fo-color-job-progress-button-outlined-info-hover-bg
+  );
 
   display: flex;
   flex: 1;
@@ -191,9 +193,9 @@
     align-items: center;
     margin: 0;
     padding: 0.625rem 0.75rem;
-    color: light-dark(#1f4fd6, #8aa8ff);
-    background: light-dark(#eef3ff, rgb(40 96 255 / 15%));
-    border: 1px solid light-dark(#c9d7ff, rgb(138 168 255 / 35%));
+    color: var(--fo-color-visit-review-ack-text);
+    background: var(--fo-color-job-progress-button-outlined-info-hover-bg);
+    border: 1px solid var(--fo-color-visit-review-ack-border);
     border-radius: var(--fo-radius-control);
   }
 

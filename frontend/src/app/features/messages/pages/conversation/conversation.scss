@@ -5,7 +5,7 @@
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
-  --fo-msg-ink: light-dark(#000663, var(--fo-color-text));
+  --fo-msg-ink: var(--fo-color-message-list-msg-ink);
   // Technician shell: top bar above, bottom navigation (4rem) and safe areas below.
   --conv-height: calc(
     100dvh - var(--fo-size-topbar) -
@@ -40,7 +40,7 @@
     inline-size: 3.75rem;
     block-size: 3.75rem;
     font-size: 1.5rem;
-    color: var(--fo-color-on-primary);
+    color: var(--fo-color-on-strong);
     background: var(--fo-color-primary-strong);
     border-radius: 50%;
   }
@@ -210,7 +210,7 @@
     padding-inline: 1rem;
     font: inherit;
     font-weight: 600;
-    color: var(--fo-color-on-primary);
+    color: var(--fo-color-on-strong);
     background: var(--fo-color-primary-strong);
     border: 0;
     border-radius: var(--fo-radius-pill);
@@ -336,7 +336,7 @@
   }
 
   &--mine &__bubble {
-    color: var(--fo-color-on-primary);
+    color: var(--fo-color-on-strong);
     background: var(--fo-color-primary-strong);
     border-color: transparent;
   }
