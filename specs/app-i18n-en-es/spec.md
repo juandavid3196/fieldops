@@ -4,7 +4,7 @@
 | -------- | ---------------- |
 | Feature  | `app-i18n-en-es` |
 | Type     | Full-stack       |
-| Status   | APPROVED         |
+| Status   | AUDITED          |
 | Created  | 2026-10-21       |
 | Updated  | 2026-10-21       |
 | Approved | 2026-10-21       |
@@ -369,3 +369,5 @@ distinct risks).
 | ---------- | ------------- | ------ |
 | 2026-10-21 | — → DRAFT     | Created |
 | 2026-10-21 | DRAFT → APPROVED | Approved by user via /spec approve |
+| 2026-10-21 | APPROVED → IMPLEMENTED | Required implementation workflows completed. |
+| 2026-10-21 | IMPLEMENTED → AUDITED | AUDITED by user override; final-audit returned AUDIT FAIL (3 Important frontend findings: BR-13 field-message catalog not wired, hardcoded English component inputs, logic keyed on English labels). |
