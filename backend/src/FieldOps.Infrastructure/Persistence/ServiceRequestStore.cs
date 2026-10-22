@@ -149,10 +149,15 @@ internal sealed partial class ServiceRequestStore(
     }
 
     public async Task<CustomerOptions> GetCustomerOptionsAsync(
-        Guid organizationId, BranchScope scope, string? search, CancellationToken cancellationToken)
+        Guid organizationId, BranchScope scope, string? search, Guid? customerId, CancellationToken cancellationToken)
     {
         var query = dbContext.Customers.AsNoTracking()
             .Where(customer => customer.OrganizationId == organizationId && customer.IsActive);
+
+        if (customerId is { } onlyCustomer)
+        {
+            query = query.Where(customer => customer.Id == onlyCustomer);
+        }
 
         if (!scope.All)
         {

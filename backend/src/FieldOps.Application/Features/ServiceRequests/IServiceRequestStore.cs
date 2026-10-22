@@ -24,8 +24,9 @@ public interface IServiceRequestStore
 
     Task<RequestOptions> GetOptionsAsync(Guid organizationId, BranchScope scope, CancellationToken cancellationToken);
 
+    /// <summary>With <paramref name="customerId"/> (exclusive with search): that customer when active and in scope, else none.</summary>
     Task<CustomerOptions> GetCustomerOptionsAsync(
-        Guid organizationId, BranchScope scope, string? search, CancellationToken cancellationToken);
+        Guid organizationId, BranchScope scope, string? search, Guid? customerId, CancellationToken cancellationToken);
 
     /// <summary>The detail of a visible request in any status, otherwise null (BR-02).</summary>
     Task<RequestDetail?> GetDetailAsync(

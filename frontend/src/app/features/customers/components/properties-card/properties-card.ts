@@ -38,6 +38,8 @@ const byOrder = (a: PropertyItem, b: PropertyItem): number =>
 export class PropertiesCard {
   readonly state = input.required<RegionState<PropertiesResponse>>();
   readonly canMutate = input(false);
+  /** Last service and Next appointment need Jobs read (BR-14). */
+  readonly showHistory = input(true);
   /** Property whose action is in flight (its menu is locked). */
   readonly busyId = input<string | null>(null);
 

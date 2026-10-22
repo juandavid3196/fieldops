@@ -111,6 +111,8 @@ public static class DependencyInjection
         services.AddScoped<ICustomerStore, CustomerStore>();
         services.AddScoped<ITeamStore, TeamStore>();
         services.AddScoped<ICustomerDetailStore, CustomerDetailStore>();
+        services.AddScoped<ICustomerRecordStore, CustomerRecordStore>();
+        services.AddScoped<ICustomerActivityStore, CustomerActivityStore>();
         services.AddScoped<IUserAccessStore, UserAccessStore>();
         services.AddScoped<IInvitationAcceptanceStore, InvitationAcceptanceStore>();
         services.AddScoped<IPasswordResetStore, PasswordResetStore>();

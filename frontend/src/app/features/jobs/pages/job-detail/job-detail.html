@@ -23,7 +23,7 @@
         </h1>
         @if (detail(); as detail) {
           <span class="job__chip" [class.job__chip--draft]="detail.status === 'draft'">
-            {{ statusLabels[detail.status] }}
+            {{ statusLabel(detail.status) }}
           </span>
           <span class="job__chip job__chip--neutral">{{ priorityLabels[detail.priority] }}</span>
         }

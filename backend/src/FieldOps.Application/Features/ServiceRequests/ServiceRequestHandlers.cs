@@ -197,7 +197,11 @@ public sealed class GetServiceRequestOptionsHandler(IServiceRequestStore store, 
 public sealed class GetRequestCustomerOptionsHandler(IServiceRequestStore store, IBranchScopeResolver scopes)
 {
     public async Task<ServiceRequestResult<CustomerOptions>> HandleAsync(
-        Guid organizationId, Guid membershipId, string? search, CancellationToken cancellationToken)
+        Guid organizationId,
+        Guid membershipId,
+        string? search,
+        string? customerId,
+        CancellationToken cancellationToken)
     {
         var term = search?.Trim();
 
@@ -206,10 +210,23 @@ public sealed class GetRequestCustomerOptionsHandler(IServiceRequestStore store,
             return ServiceRequestResult<CustomerOptions>.Invalid("search", ServiceRequestMessages.SearchTooLong);
         }
 
+        Guid? onlyCustomer = null;
+
+        if (customerId is not null)
+        {
+            // Customer page BR-09: customerId and search are exclusive and the id must be a UUID.
+            if (!string.IsNullOrWhiteSpace(search) || !Guid.TryParse(customerId, out var parsed) || parsed == Guid.Empty)
+            {
+                return ServiceRequestResult<CustomerOptions>.Invalid("customerId", ServiceRequestMessages.CustomerIdInvalid);
+            }
+
+            onlyCustomer = parsed;
+        }
+
         var scope = await scopes.ResolveAsync(organizationId, membershipId, cancellationToken);
 
         return ServiceRequestResult<CustomerOptions>.Ok(
-            await store.GetCustomerOptionsAsync(organizationId, scope, term, cancellationToken));
+            await store.GetCustomerOptionsAsync(organizationId, scope, term, onlyCustomer, cancellationToken));
     }
 }
 

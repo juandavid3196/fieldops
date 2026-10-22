@@ -112,35 +112,6 @@ export function validateNote(value: string): string | null {
   return text.length > 2000 ? t('customers.customerDetailFormat.use2000Characters') : null;
 }
 
-/** BR-17 activity label from the action and the subject (current property name). */
-export function activityLabel(action: string, subject: string | null | undefined): string {
-  const name = subject?.trim() ?? '';
-  switch (action) {
-    case 'customer.created':
-      return t('customers.customerDetailFormat.customerCreated');
-    case 'customer.updated':
-      return t('customers.customerDetailFormat.customerDetailsUpdated');
-    case 'customer.archived':
-      return t('customers.customerDetailFormat.customerArchived');
-    case 'customer.reactivated':
-      return t('customers.customerDetailFormat.customerReactivated');
-    case 'property.created':
-      return t('customers.customerDetailFormat.propertyAdded', { name: name });
-    case 'property.updated':
-      return t('customers.customerDetailFormat.propertyUpdated', { name: name });
-    case 'property.primary_changed':
-      return t('customers.customerDetailFormat.primaryPropertyChangedTo', { name: name });
-    case 'property.archived':
-      return t('customers.customerDetailFormat.propertyArchived', { name: name });
-    case 'property.reactivated':
-      return t('customers.customerDetailFormat.propertyReactivated', { name: name });
-    case 'customer_note.created':
-      return t('customers.customerDetailFormat.internalNoteAdded');
-    default:
-      return /^[a-z_]+\.[a-z_]+$/.test(action) ? sentenceCase(action.replace('.', ' ')) : action;
-  }
-}
-
 /** BR-03: organization currency with two decimals, always. */
 export function formatMoney(value: number, currency: string | null): string {
   const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };

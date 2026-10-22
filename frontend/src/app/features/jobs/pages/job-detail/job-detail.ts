@@ -33,6 +33,7 @@ import {
   WorkOrderDetail,
 } from '../../models/work-order.model';
 import { WorkOrdersService } from '../../services/work-orders.service';
+import { JOB_STATUS_CHIPS } from '../../utils/jobs-format';
 import {
   FREQUENCY_LABELS,
   JOB_TYPE_LABELS,
@@ -86,7 +87,13 @@ export class JobDetail {
     return NO_VISITS_MESSAGE();
   }
   readonly priorityLabels = PRIORITY_LABELS;
-  readonly statusLabels = STATUS_LABELS;
+  /** The detail carries the stored status, which also reaches in_progress, completed, ... (BR-05 labels). */
+  readonly statusLabel = (status: string): string =>
+    Object.hasOwn(STATUS_LABELS, status)
+      ? STATUS_LABELS[status as keyof typeof STATUS_LABELS]
+      : Object.hasOwn(JOB_STATUS_CHIPS, status)
+        ? JOB_STATUS_CHIPS[status as keyof typeof JOB_STATUS_CHIPS].label
+        : status;
   readonly visitLabel = visitStatusLabel;
   readonly jobTypeLabels = JOB_TYPE_LABELS;
   readonly sourceLabels = SOURCE_LABELS;

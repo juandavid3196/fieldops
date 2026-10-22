@@ -29,27 +29,37 @@
           [required]="true"
           [error]="error('customerId')"
         >
-          <p-autocomplete
-            inputId="new-request-customerId"
-            fluid
-            appendTo="body"
-            optionLabel="displayName"
-            [placeholder]="'requests.newRequestDrawer.searchCustomers' | transloco"
-            [emptyMessage]="'requests.newRequestDrawer.noCustomersFound' | transloco"
-            [showEmptyMessage]="!searching()"
-            [dropdown]="true"
-            [completeOnFocus]="true"
-            [suggestions]="suggestions()"
-            [ngModel]="customerInput()"
-            [invalid]="error('customerId') !== null"
-            [attr.aria-describedby]="describedBy('customerId')"
-            (completeMethod)="onSearch($event.query)"
-            (ngModelChange)="onCustomerInput($event)"
-          />
-          @if (searching()) {
-            <span class="new-request__progress" role="status">{{
-              'requests.newRequestDrawer.searchingCustomers' | transloco
-            }}</span>
+          @if (lockedCustomer(); as locked) {
+            <input
+              pInputText
+              id="new-request-customerId"
+              fluid
+              readonly
+              [value]="locked.displayName"
+            />
+          } @else {
+            <p-autocomplete
+              inputId="new-request-customerId"
+              fluid
+              appendTo="body"
+              optionLabel="displayName"
+              [placeholder]="'requests.newRequestDrawer.searchCustomers' | transloco"
+              [emptyMessage]="'requests.newRequestDrawer.noCustomersFound' | transloco"
+              [showEmptyMessage]="!searching()"
+              [dropdown]="true"
+              [completeOnFocus]="true"
+              [suggestions]="suggestions()"
+              [ngModel]="customerInput()"
+              [invalid]="error('customerId') !== null"
+              [attr.aria-describedby]="describedBy('customerId')"
+              (completeMethod)="onSearch($event.query)"
+              (ngModelChange)="onCustomerInput($event)"
+            />
+            @if (searching()) {
+              <span class="new-request__progress" role="status">{{
+                'requests.newRequestDrawer.searchingCustomers' | transloco
+              }}</span>
+            }
           }
         </app-form-field>
 

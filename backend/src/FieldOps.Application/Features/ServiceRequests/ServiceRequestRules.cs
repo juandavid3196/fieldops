@@ -100,6 +100,8 @@ public static class ServiceRequestMessages
 
     public const string TooManyAttachments = "A request can have up to 5 files.";
 
+    public const string CustomerIdInvalid = "Use a valid customer without a search term.";
+
     public const string CustomerNotAllowed = "Choose a customer you have access to.";
 
     public const string ContactNotAllowed = "Choose a contact of this customer.";

@@ -63,10 +63,11 @@ public class CustomerDetailSecurityTests(CompanySettingsDatabaseFixture database
         Assert.Equal(0L, await database.ScalarAsync<long>("SELECT COUNT(*) FROM audit_logs WHERE action = 'customer_note.created' AND organization_id IN (@a, @b)", ("a", orgA), ("b", orgB)));
     }
 
-    // AC-22: a Dispatcher and an Accounting user limited to branch X get 404 for a customer in branch Y on every
-    // endpoint, and 200 for a customer in X whose derived data (work, invoices, property) lives in branch Y.
+    // AC-22, customer-related-records AC-08: a Dispatcher and an Accounting user limited to branch X get 404 for a customer in
+    // branch Y on every endpoint, and 200 for a customer in X whose work, invoices and property history live in branch Y:
+    // those records stay hidden from every derived value (BR-02, BR-14), while the property itself remains listed.
     [Fact]
-    public async Task Endpoints_BranchScopedUsers_HideOtherBranchCustomersButSeeAllDerivedDataOfVisibleOnes()
+    public async Task Endpoints_BranchScopedUsers_HideOtherBranchCustomersAndTheirOutOfScopeRecords()
     {
         var org = await database.SeedOrganizationAsync();
         var branchX = await database.SeedBranchAsync(org, "Xray Branch", isMain: true);
@@ -97,12 +98,13 @@ public class CustomerDetailSecurityTests(CompanySettingsDatabaseFixture database
             }
 
             var detail = await CustomerHost.ReadAsync(await host.SendAsync(Get, $"/customers/{customerX}/detail", cookie));
-            Assert.Equal((1, 250m), (detail["summary"]!["totalJobs"]!.GetValue<int>(), detail["outstandingBalance"]!.GetValue<decimal>()));
+            Assert.Equal((cookie == accounting ? null : 0, 0m), (detail["summary"]!["totalJobs"]?.GetValue<int>(), detail["outstandingBalance"]!.GetValue<decimal>()));
             var properties = await CustomerHost.ReadAsync(await host.SendAsync(Get, $"/customers/{customerX}/properties", cookie));
             var yard = properties["items"]!.AsArray().Single(item => item!["name"]!.GetValue<string>() == "Yard Site")!;
-            Assert.Equal(("Yankee Branch", "Branch Y job"), (yard["branch"]!["name"]!.GetValue<string>(), yard["lastService"]!["summary"]!.GetValue<string>()));
+            Assert.Equal("Yankee Branch", yard["branch"]!["name"]!.GetValue<string>());
+            Assert.Null(yard["lastService"]);
             var recent = await CustomerHost.ReadAsync(await host.SendAsync(Get, $"/customers/{customerX}/recent-work", cookie));
-            Assert.Equal(["WO-9"], recent["items"]!.AsArray().Select(item => item!["number"]!.GetValue<string>()).ToArray());
+            Assert.Empty(recent["items"]!.AsArray());
 
             foreach (var (method, path, body) in CustomerReads(customerX.ToString()))
             {

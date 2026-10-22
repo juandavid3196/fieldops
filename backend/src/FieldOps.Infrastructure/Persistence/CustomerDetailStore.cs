@@ -22,7 +22,7 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
         Visible(organizationId, scope).AnyAsync(customer => customer.Id == customerId, cancellationToken);
 
     public async Task<CustomerOverviewData?> GetOverviewAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, CancellationToken cancellationToken)
+        Guid organizationId, BranchScope scope, Guid customerId, CustomerRecordAccess access, CancellationToken cancellationToken)
     {
         var customer = await Visible(organizationId, scope)
             .Where(candidate => candidate.Id == customerId)
@@ -34,55 +34,57 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
             return null;
         }
 
-        var invoices = dbContext.Invoices.AsNoTracking()
-            .Where(invoice => invoice.OrganizationId == organizationId && invoice.CustomerId == customerId);
-
-        var balance = await invoices
-            .Where(invoice => invoice.Status == InvoiceStatus.Sent
-                || invoice.Status == InvoiceStatus.PartiallyPaid
-                || invoice.Status == InvoiceStatus.Overdue)
-            .SumAsync(invoice => invoice.BalanceDue, cancellationToken);
-
-        var lifetimeValue = await invoices
-            .Where(invoice => invoice.Status != InvoiceStatus.Void)
-            .SumAsync(invoice => invoice.AmountPaid, cancellationToken);
-
-        var totalJobs = await dbContext.WorkOrders.AsNoTracking()
-            .CountAsync(
-                order => order.OrganizationId == organizationId
-                    && order.CustomerId == customerId
-                    && order.Status != WorkOrderStatus.Cancelled,
-                cancellationToken);
-
-        var lastServiceAt = await (
-            from visit in dbContext.Visits.AsNoTracking()
-            join order in dbContext.WorkOrders.AsNoTracking() on visit.WorkOrderId equals order.Id
-            where order.OrganizationId == organizationId
-                && order.CustomerId == customerId
-                && (visit.Status == VisitStatus.Completed || visit.Status == VisitStatus.Approved)
-            select visit.ActualCompletedAt ?? visit.ScheduledEnd)
-            .MaxAsync(cancellationToken);
-
-        var last = await invoices
-            .Where(invoice => invoice.Status != InvoiceStatus.Draft && invoice.Status != InvoiceStatus.Void)
-            .OrderBy(invoice => invoice.IssueDate == null ? 1 : 0)
-            .ThenByDescending(invoice => invoice.IssueDate)
-            .ThenByDescending(invoice => invoice.CreatedAt)
-            .ThenBy(invoice => invoice.Id)
-            .Select(invoice => new { invoice.InvoiceNumber, invoice.Status, invoice.IssueDate })
-            .FirstOrDefaultAsync(cancellationToken);
-
+        // BR-14: every value derives from the records visible to the caller; a module the role cannot read is omitted (null), not zero.
+        decimal? balance = null;
+        decimal? lifetimeValue = null;
         CustomerLastInvoice? lastInvoice = null;
 
-        if (last is not null)
+        if (access.Invoices)
         {
-            var prefix = await dbContext.Organizations.AsNoTracking()
-                .Where(organization => organization.Id == organizationId)
-                .Select(organization => organization.InvoicePrefix)
-                .SingleAsync(cancellationToken);
+            var invoices = dbContext.VisibleInvoices(organizationId, scope, customerId);
 
-            lastInvoice = new CustomerLastInvoice(
-                $"{prefix}-{last.InvoiceNumber}", CustomerEnumText.Snake(last.Status), last.IssueDate);
+            balance = await invoices
+                .Where(invoice => invoice.Status == InvoiceStatus.Sent
+                    || invoice.Status == InvoiceStatus.PartiallyPaid
+                    || invoice.Status == InvoiceStatus.Overdue)
+                .SumAsync(invoice => invoice.BalanceDue, cancellationToken);
+
+            lifetimeValue = await invoices.SumAsync(invoice => invoice.AmountPaid, cancellationToken);
+
+            var last = await invoices
+                .Where(invoice => invoice.Status != InvoiceStatus.Draft)
+                .OrderBy(invoice => invoice.IssueDate == null ? 1 : 0)
+                .ThenByDescending(invoice => invoice.IssueDate)
+                .ThenByDescending(invoice => invoice.CreatedAt)
+                .ThenBy(invoice => invoice.Id)
+                .Select(invoice => new { invoice.InvoiceNumber, invoice.Status, invoice.IssueDate })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (last is not null)
+            {
+                var prefix = await dbContext.Organizations.AsNoTracking()
+                    .Where(organization => organization.Id == organizationId)
+                    .Select(organization => organization.InvoicePrefix)
+                    .SingleAsync(cancellationToken);
+
+                lastInvoice = new CustomerLastInvoice(
+                    $"{prefix}-{last.InvoiceNumber}", CustomerEnumText.Snake(last.Status), last.IssueDate);
+            }
+        }
+
+        int? totalJobs = null;
+        DateTimeOffset? lastServiceAt = null;
+
+        if (access.Jobs)
+        {
+            // Unchanged rule: cancelled jobs are not counted.
+            totalJobs = await dbContext.VisibleJobs(organizationId, scope, customerId)
+                .CountAsync(order => order.Status != WorkOrderStatus.Cancelled, cancellationToken);
+
+            lastServiceAt = await dbContext.VisibleVisits(organizationId, scope, customerId)
+                .Where(visit => visit.Status == VisitStatus.Completed || visit.Status == VisitStatus.Approved)
+                .Select(visit => visit.ActualCompletedAt ?? visit.ScheduledEnd)
+                .MaxAsync(cancellationToken);
         }
 
         return new CustomerOverviewData(
@@ -90,7 +92,12 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
     }
 
     public async Task<IReadOnlyList<CustomerPropertyView>?> ListPropertiesAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, DateTimeOffset now, CancellationToken cancellationToken)
+        Guid organizationId,
+        BranchScope scope,
+        Guid customerId,
+        CustomerRecordAccess access,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
     {
         if (!await IsCustomerVisibleAsync(organizationId, scope, customerId, cancellationToken))
         {
@@ -105,7 +112,7 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
             .ThenBy(property => property.Id)
             .ToListAsync(cancellationToken);
 
-        return await ToViewsAsync(organizationId, customerId, properties, now, cancellationToken);
+        return await ToViewsAsync(organizationId, scope, customerId, properties, access, now, cancellationToken);
     }
 
     public async Task<CustomerPropertyView?> GetPropertyAsync(
@@ -113,12 +120,13 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
         BranchScope scope,
         Guid customerId,
         Guid propertyId,
+        CustomerRecordAccess access,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
         var property = await LoadPropertyAsync(organizationId, scope, customerId, propertyId, track: false, cancellationToken);
 
-        return property is null ? null : await ToViewAsync(property, now, cancellationToken);
+        return property is null ? null : await ToViewAsync(property, scope, access, now, cancellationToken);
     }
 
     public async Task<CustomerPropertyState?> GetPropertyStateAsync(
@@ -137,6 +145,7 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
         string countryCode,
         Guid actorUserId,
         IPAddress? clientIp,
+        CustomerRecordAccess access,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
@@ -176,7 +185,7 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
             {
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-                return await ToViewAsync(created, now, cancellationToken);
+                return await ToViewAsync(created, scope, access, now, cancellationToken);
             }
             catch (DbUpdateException ex) when (attempt == 0 && IsPrimaryViolation(ex))
             {
@@ -194,6 +203,7 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
         CustomerPropertyValues values,
         Guid actorUserId,
         IPAddress? clientIp,
+        CustomerRecordAccess access,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
@@ -227,7 +237,7 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
             await dbContext.SaveChangesAsync(cancellationToken);
         }
 
-        return new CustomerPropertyChange(CustomerPropertyOutcome.Changed, await ToViewAsync(property, now, cancellationToken));
+        return new CustomerPropertyChange(CustomerPropertyOutcome.Changed, await ToViewAsync(property, scope, access, now, cancellationToken));
     }
 
     public async Task<CustomerPropertyOutcome> ChangePropertyStateAsync(
@@ -257,7 +267,7 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
     }
 
     public async Task<IReadOnlyList<CustomerRecentWorkItem>?> ListRecentWorkAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, CancellationToken cancellationToken)
+        Guid organizationId, BranchScope scope, Guid customerId, CustomerRecordAccess access, CancellationToken cancellationToken)
     {
         if (!await IsCustomerVisibleAsync(organizationId, scope, customerId, cancellationToken))
         {
@@ -269,99 +279,103 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
             .Select(organization => new { organization.QuotePrefix, organization.WorkOrderPrefix })
             .SingleAsync(cancellationToken);
 
-        var requests = await dbContext.ServiceRequests.AsNoTracking()
-            .Where(request => request.OrganizationId == organizationId && request.CustomerId == customerId)
-            .OrderByDescending(request => request.CreatedAt)
-            .ThenBy(request => request.Id)
-            .Take(RecentWorkLimit)
-            .Select(request => new
-            {
-                request.Id,
-                request.RequestNumber,
-                request.Description,
-                request.Status,
-                request.CreatedAt,
-            })
-            .ToListAsync(cancellationToken);
-
-        var quotes = await (
-            from quote in dbContext.Quotes.AsNoTracking()
-            join version in dbContext.QuoteVersions.AsNoTracking()
-                on new { QuoteId = quote.Id, VersionNo = quote.CurrentVersionNo }
-                equals new { version.QuoteId, version.VersionNo } into versions
-            from version in versions.DefaultIfEmpty()
-            join request in dbContext.ServiceRequests.AsNoTracking() on quote.RequestId equals request.Id
-            where quote.OrganizationId == organizationId && quote.CustomerId == customerId
-            orderby (version.SentAt ?? quote.CreatedAt) descending, quote.Id
-            select new
-            {
-                quote.Id,
-                quote.QuoteNumber,
-                quote.Status,
-                Date = version.SentAt ?? quote.CreatedAt,
-                version.Scope,
-                Total = (decimal?)version.Total,
-                request.Description,
-            })
-            .Take(RecentWorkLimit)
-            .ToListAsync(cancellationToken);
-
-        var jobs = await (
-            from order in dbContext.WorkOrders.AsNoTracking()
-            join source in dbContext.QuoteVersions.AsNoTracking() on order.QuoteVersionId equals source.Id into sources
-            from source in sources.DefaultIfEmpty()
-            where order.OrganizationId == organizationId && order.CustomerId == customerId
-            let doneAt = (
-                from visit in dbContext.Visits
-                where visit.WorkOrderId == order.Id
-                    && (visit.Status == VisitStatus.Completed || visit.Status == VisitStatus.Approved)
-                select visit.ActualCompletedAt ?? visit.ScheduledEnd).Max()
-            orderby (doneAt ?? order.CreatedAt) descending, order.Id
-            select new
-            {
-                order.Id,
-                order.WorkOrderNumber,
-                order.Status,
-                order.ScopeSnapshot,
-                Date = doneAt ?? order.CreatedAt,
-                Total = (decimal?)source.Total,
-            })
-            .Take(RecentWorkLimit)
-            .ToListAsync(cancellationToken);
-
         var items = new List<CustomerRecentWorkItem>();
 
-        items.AddRange(requests.Select(request => new CustomerRecentWorkItem(
-            "request",
-            request.Id,
-            $"REQ-{request.RequestNumber}",
-            CustomerEnumText.FirstLine(request.Description),
-            CustomerEnumText.Snake(request.Status),
-            request.CreatedAt,
-            null,
-            null)));
-
-        items.AddRange(quotes.Select(quote => new CustomerRecentWorkItem(
-            "quote",
-            quote.Id,
-            $"{prefixes.QuotePrefix}-{quote.QuoteNumber}",
-            CustomerEnumText.FirstLine(quote.Scope ?? quote.Description),
-            CustomerEnumText.Snake(quote.Status),
-            quote.Date,
-            null,
-            quote.Total)));
-
-        foreach (var job in jobs)
+        // BR-14: rows come only from visible records, and a row kind the role cannot read is dropped.
+        if (access.Requests)
         {
-            items.Add(new CustomerRecentWorkItem(
-                "job",
-                job.Id,
-                $"{prefixes.WorkOrderPrefix}-{job.WorkOrderNumber}",
-                CustomerEnumText.FirstLine(job.ScopeSnapshot),
-                CustomerEnumText.Snake(job.Status),
-                job.Date,
-                await TechnicianOfLatestVisitAsync(organizationId, job.Id, cancellationToken),
-                job.Total));
+            var requests = await dbContext.VisibleRequests(organizationId, scope, customerId)
+                .OrderByDescending(request => request.CreatedAt)
+                .ThenBy(request => request.Id)
+                .Take(RecentWorkLimit)
+                .Select(request => new
+                {
+                    request.Id,
+                    request.RequestNumber,
+                    request.Description,
+                    request.Status,
+                    request.CreatedAt,
+                })
+                .ToListAsync(cancellationToken);
+
+            var quotes = await (
+                from quote in dbContext.VisibleQuotes(organizationId, scope, customerId)
+                join version in dbContext.QuoteVersions.AsNoTracking()
+                    on new { QuoteId = quote.Id, VersionNo = quote.CurrentVersionNo }
+                    equals new { version.QuoteId, version.VersionNo } into versions
+                from version in versions.DefaultIfEmpty()
+                join request in dbContext.ServiceRequests.AsNoTracking() on quote.RequestId equals request.Id
+                orderby (version.SentAt ?? quote.CreatedAt) descending, quote.Id
+                select new
+                {
+                    quote.Id,
+                    quote.QuoteNumber,
+                    quote.Status,
+                    Date = version.SentAt ?? quote.CreatedAt,
+                    version.Scope,
+                    Total = (decimal?)version.Total,
+                    request.Description,
+                })
+                .Take(RecentWorkLimit)
+                .ToListAsync(cancellationToken);
+
+            items.AddRange(requests.Select(request => new CustomerRecentWorkItem(
+                "request",
+                request.Id,
+                $"REQ-{request.RequestNumber}",
+                CustomerEnumText.FirstLine(request.Description),
+                CustomerEnumText.Snake(request.Status),
+                request.CreatedAt,
+                null,
+                null)));
+
+            items.AddRange(quotes.Select(quote => new CustomerRecentWorkItem(
+                "quote",
+                quote.Id,
+                $"{prefixes.QuotePrefix}-{quote.QuoteNumber}",
+                CustomerEnumText.FirstLine(quote.Scope ?? quote.Description),
+                CustomerEnumText.Snake(quote.Status),
+                quote.Date,
+                null,
+                quote.Total)));
+        }
+
+        if (access.Jobs)
+        {
+            var jobs = await (
+                from order in dbContext.VisibleJobs(organizationId, scope, customerId)
+                join source in dbContext.QuoteVersions.AsNoTracking() on order.QuoteVersionId equals source.Id into sources
+                from source in sources.DefaultIfEmpty()
+                let doneAt = (
+                    from visit in dbContext.Visits
+                    where visit.WorkOrderId == order.Id
+                        && (visit.Status == VisitStatus.Completed || visit.Status == VisitStatus.Approved)
+                    select visit.ActualCompletedAt ?? visit.ScheduledEnd).Max()
+                orderby (doneAt ?? order.CreatedAt) descending, order.Id
+                select new
+                {
+                    order.Id,
+                    order.WorkOrderNumber,
+                    order.Status,
+                    order.ScopeSnapshot,
+                    Date = doneAt ?? order.CreatedAt,
+                    Total = (decimal?)source.Total,
+                })
+                .Take(RecentWorkLimit)
+                .ToListAsync(cancellationToken);
+
+            foreach (var job in jobs)
+            {
+                items.Add(new CustomerRecentWorkItem(
+                    "job",
+                    job.Id,
+                    $"{prefixes.WorkOrderPrefix}-{job.WorkOrderNumber}",
+                    CustomerEnumText.FirstLine(job.ScopeSnapshot),
+                    CustomerEnumText.Snake(job.Status),
+                    job.Date,
+                    await TechnicianOfLatestVisitAsync(organizationId, job.Id, cancellationToken),
+                    job.Total));
+            }
         }
 
         // Ids compare as lower-case hex text, the same order as PostgreSQL's uuid comparison.
@@ -372,11 +386,22 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
     }
 
     public async Task<IReadOnlyList<CustomerUpcomingAppointment>?> ListUpcomingAppointmentsAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, DateTimeOffset now, CancellationToken cancellationToken)
+        Guid organizationId,
+        BranchScope scope,
+        Guid customerId,
+        CustomerRecordAccess access,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
     {
         if (!await IsCustomerVisibleAsync(organizationId, scope, customerId, cancellationToken))
         {
             return null;
+        }
+
+        // BR-14: without Jobs read the card is empty.
+        if (!access.Jobs)
+        {
+            return [];
         }
 
         var prefix = await dbContext.Organizations.AsNoTracking()
@@ -385,13 +410,10 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
             .SingleAsync(cancellationToken);
 
         var rows = await (
-            from visit in dbContext.Visits.AsNoTracking()
+            from visit in dbContext.VisibleVisits(organizationId, scope, customerId)
             join order in dbContext.WorkOrders.AsNoTracking() on visit.WorkOrderId equals order.Id
             join property in dbContext.Properties.AsNoTracking() on order.PropertyId equals property.Id
-            where visit.OrganizationId == organizationId
-                && order.OrganizationId == organizationId
-                && order.CustomerId == customerId
-                && visit.ScheduledStart != null
+            where visit.ScheduledStart != null
                 && visit.ScheduledStart >= now
                 && (visit.Status == VisitStatus.Scheduled
                     || visit.Status == VisitStatus.Assigned
@@ -488,89 +510,6 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
             .SingleAsync(cancellationToken);
 
         return new CustomerNoteView(entry.Id, entry.Note, author, entry.CreatedAt);
-    }
-
-    public async Task<CustomerActivityPage?> ListActivityAsync(
-        Guid organizationId,
-        BranchScope scope,
-        Guid customerId,
-        int page,
-        string timezone,
-        CancellationToken cancellationToken)
-    {
-        if (!await IsCustomerVisibleAsync(organizationId, scope, customerId, cancellationToken))
-        {
-            return null;
-        }
-
-        var customerActions = CustomerActivityActions.Customer.ToArray();
-        var propertyActions = CustomerActivityActions.Property.ToArray();
-        var noteActions = CustomerActivityActions.Note.ToArray();
-
-        var propertyIds = dbContext.Properties
-            .Where(property => property.OrganizationId == organizationId && property.CustomerId == customerId)
-            .Select(property => (Guid?)property.Id);
-
-        var noteIds = dbContext.CustomerNotes
-            .Where(note => note.OrganizationId == organizationId && note.CustomerId == customerId)
-            .Select(note => (Guid?)note.Id);
-
-        var rows = dbContext.AuditLogs.AsNoTracking()
-            .Where(log => log.OrganizationId == organizationId
-                && ((log.EntityType == CustomerAuditActions.EntityType
-                        && log.EntityId == customerId
-                        && customerActions.Contains(log.Action))
-                    || (log.EntityType == CustomerAuditActions.PropertyEntityType
-                        && propertyIds.Contains(log.EntityId)
-                        && propertyActions.Contains(log.Action))
-                    || (log.EntityType == CustomerAuditActions.NoteEntityType
-                        && noteIds.Contains(log.EntityId)
-                        && noteActions.Contains(log.Action))));
-
-        var total = await rows.CountAsync(cancellationToken);
-
-        // Only the whitelisted scalar columns are read: before/after data, metadata and IP never leave the database.
-        var pageRows = await rows
-            .OrderByDescending(log => log.OccurredAt)
-            .ThenBy(log => log.Id)
-            .Skip((page - 1) * CustomerActivityActions.PageSize)
-            .Take(CustomerActivityActions.PageSize)
-            .Select(log => new { log.Id, log.Action, log.EntityId, log.ActorUserId, log.OccurredAt })
-            .ToListAsync(cancellationToken);
-
-        var actorIds = pageRows.Where(row => row.ActorUserId != null).Select(row => row.ActorUserId!.Value).Distinct().ToArray();
-
-        var actors = actorIds.Length == 0
-            ? []
-            : await dbContext.Users.AsNoTracking()
-                .Where(user => actorIds.Contains(user.Id))
-                .ToDictionaryAsync(user => user.Id, user => user.FirstName + " " + user.LastName, cancellationToken);
-
-        var subjectIds = pageRows
-            .Where(row => CustomerActivityActions.NamesProperty(row.Action) && row.EntityId != null)
-            .Select(row => row.EntityId!.Value)
-            .Distinct()
-            .ToArray();
-
-        var subjects = subjectIds.Length == 0
-            ? []
-            : await dbContext.Properties.AsNoTracking()
-                .Where(property => property.OrganizationId == organizationId
-                    && property.CustomerId == customerId
-                    && subjectIds.Contains(property.Id))
-                .ToDictionaryAsync(property => property.Id, property => property.Name, cancellationToken);
-
-        var items = pageRows.Select(row => new CustomerActivityItem(
-            row.Id,
-            row.Action,
-            CustomerActivityActions.NamesProperty(row.Action) && row.EntityId is { } entityId
-                && subjects.TryGetValue(entityId, out var name)
-                    ? name
-                    : null,
-            row.ActorUserId is { } actorId && actors.TryGetValue(actorId, out var actor) ? actor : null,
-            row.OccurredAt)).ToList();
-
-        return new CustomerActivityPage(items, total, page, CustomerActivityActions.PageSize, timezone);
     }
 
     private static bool IsPrimaryViolation(DbUpdateException ex) =>
@@ -751,13 +690,16 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
         return CustomerPropertyOutcome.Changed;
     }
 
-    private async Task<CustomerPropertyView> ToViewAsync(Property property, DateTimeOffset now, CancellationToken cancellationToken) =>
-        (await ToViewsAsync(property.OrganizationId, property.CustomerId, [property], now, cancellationToken))[0];
+    private async Task<CustomerPropertyView> ToViewAsync(
+        Property property, BranchScope scope, CustomerRecordAccess access, DateTimeOffset now, CancellationToken cancellationToken) =>
+        (await ToViewsAsync(property.OrganizationId, scope, property.CustomerId, [property], access, now, cancellationToken))[0];
 
     private async Task<IReadOnlyList<CustomerPropertyView>> ToViewsAsync(
         Guid organizationId,
+        BranchScope scope,
         Guid customerId,
         IReadOnlyList<Property> properties,
+        CustomerRecordAccess access,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
@@ -770,35 +712,38 @@ internal sealed class CustomerDetailStore(FieldOpsDbContext dbContext) : ICustom
                 .ToDictionaryAsync(branch => branch.Id, branch => branch.Name, cancellationToken);
 
         var views = new List<CustomerPropertyView>(properties.Count);
+        var visibleJobs = dbContext.VisibleJobs(organizationId, scope, customerId);
 
         foreach (var property in properties)
         {
-            var last = await (
-                from visit in dbContext.Visits.AsNoTracking()
-                join order in dbContext.WorkOrders.AsNoTracking() on visit.WorkOrderId equals order.Id
-                where order.OrganizationId == organizationId
-                    && order.CustomerId == customerId
-                    && order.PropertyId == property.Id
-                    && (visit.Status == VisitStatus.Completed || visit.Status == VisitStatus.Approved)
-                    && (visit.ActualCompletedAt ?? visit.ScheduledEnd) != null
-                orderby (visit.ActualCompletedAt ?? visit.ScheduledEnd) descending, visit.Id
-                select new { At = visit.ActualCompletedAt ?? visit.ScheduledEnd, order.ScopeSnapshot })
-                .FirstOrDefaultAsync(cancellationToken);
+            // BR-14: the service history and the next appointment come from visible jobs and are omitted without Jobs read.
+            var propertyId = property.Id;
+            var last = access.Jobs
+                ? await (
+                    from visit in dbContext.Visits.AsNoTracking()
+                    join order in visibleJobs on visit.WorkOrderId equals order.Id
+                    where order.PropertyId == propertyId
+                        && (visit.Status == VisitStatus.Completed || visit.Status == VisitStatus.Approved)
+                        && (visit.ActualCompletedAt ?? visit.ScheduledEnd) != null
+                    orderby (visit.ActualCompletedAt ?? visit.ScheduledEnd) descending, visit.Id
+                    select new { At = visit.ActualCompletedAt ?? visit.ScheduledEnd, order.ScopeSnapshot })
+                    .FirstOrDefaultAsync(cancellationToken)
+                : null;
 
-            var next = await (
-                from visit in dbContext.Visits.AsNoTracking()
-                join order in dbContext.WorkOrders.AsNoTracking() on visit.WorkOrderId equals order.Id
-                where order.OrganizationId == organizationId
-                    && order.CustomerId == customerId
-                    && order.PropertyId == property.Id
-                    && visit.ScheduledStart != null
-                    && visit.ScheduledStart >= now
-                    && (visit.Status == VisitStatus.Scheduled
-                        || visit.Status == VisitStatus.Assigned
-                        || visit.Status == VisitStatus.OnTheWay)
-                orderby visit.ScheduledStart, visit.Id
-                select visit.ScheduledStart)
-                .FirstOrDefaultAsync(cancellationToken);
+            var next = access.Jobs
+                ? await (
+                    from visit in dbContext.Visits.AsNoTracking()
+                    join order in visibleJobs on visit.WorkOrderId equals order.Id
+                    where order.PropertyId == propertyId
+                        && visit.ScheduledStart != null
+                        && visit.ScheduledStart >= now
+                        && (visit.Status == VisitStatus.Scheduled
+                            || visit.Status == VisitStatus.Assigned
+                            || visit.Status == VisitStatus.OnTheWay)
+                    orderby visit.ScheduledStart, visit.Id
+                    select visit.ScheduledStart)
+                    .FirstOrDefaultAsync(cancellationToken)
+                : null;
 
             views.Add(new CustomerPropertyView(
                 property.Id,

@@ -4,6 +4,7 @@ import { Observable, map } from 'rxjs';
 
 import { API_CONFIG, buildApiUrl } from '../../../core/config/api.config';
 import {
+  ActivityQuery,
   ActivityResponse,
   AppointmentsResponse,
   BranchOptionsResponse,
@@ -26,6 +27,9 @@ import {
   PropertyItem,
   PropertyRequest,
   RecentWorkResponse,
+  RelatedKind,
+  RelatedQuery,
+  RelatedResponses,
 } from '../models/customer.model';
 
 /** `/customers` and `/customer-tags` endpoints. Organization and branch scope are server-side only. */
@@ -159,10 +163,34 @@ export class CustomersService {
     return this.http.post<NoteItem>(this.url(`customers/${id}/notes`), { note });
   }
 
-  activity(id: string, page: number): Observable<ActivityResponse> {
-    return this.http.get<ActivityResponse>(this.url(`customers/${id}/activity`), {
-      params: new HttpParams().set('page', page),
-    });
+  /** One cursor block of the activity timeline; `type` is omitted for all activity (BR-12). */
+  activity(id: string, query: ActivityQuery): Observable<ActivityResponse> {
+    let params = new HttpParams().set('period', query.period);
+    if (query.type !== 'all') {
+      params = params.set('type', query.type);
+    }
+    if (query.before) {
+      params = params.set('before', query.before);
+    }
+    return this.http.get<ActivityResponse>(this.url(`customers/${id}/activity`), { params });
+  }
+
+  /** One page of the customer's requests, quotes, jobs or invoices (BR-04). */
+  relatedList<K extends RelatedKind>(
+    id: string,
+    kind: K,
+    query: RelatedQuery,
+  ): Observable<RelatedResponses[K]> {
+    let params = new HttpParams();
+    const search = query.search.trim();
+    if (search.length > 0) {
+      params = params.set('search', search);
+    }
+    if (query.status !== null) {
+      params = params.set('status', query.status);
+    }
+    params = params.set('page', query.page).set('pageSize', query.pageSize);
+    return this.http.get<RelatedResponses[K]>(this.url(`customers/${id}/${kind}`), { params });
   }
 
   duplicateCheck(body: DuplicateCheckRequest): Observable<DuplicateCheckResponse> {

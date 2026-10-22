@@ -73,11 +73,11 @@ public sealed class GetCustomerOverviewHandler(
     PortalInvitations.IPortalInvitationStore portalStore)
 {
     public async Task<CustomerOverview?> HandleAsync(
-        Guid organizationId, Guid membershipId, Guid customerId, CancellationToken cancellationToken)
+        Guid organizationId, Guid membershipId, Guid customerId, CustomerRecordAccess access, CancellationToken cancellationToken)
     {
         var scope = await scopeResolver.ResolveAsync(organizationId, membershipId, cancellationToken);
 
-        var data = await detailStore.GetOverviewAsync(organizationId, scope, customerId, cancellationToken);
+        var data = await detailStore.GetOverviewAsync(organizationId, scope, customerId, access, cancellationToken);
         var detail = data is null
             ? null
             : await customerStore.GetDetailAsync(organizationId, scope, customerId, cancellationToken);
@@ -128,12 +128,12 @@ public sealed class ListCustomerPropertiesHandler(
     TimeProvider timeProvider)
 {
     public async Task<CustomerPropertyList?> HandleAsync(
-        Guid organizationId, Guid membershipId, Guid customerId, CancellationToken cancellationToken)
+        Guid organizationId, Guid membershipId, Guid customerId, CustomerRecordAccess access, CancellationToken cancellationToken)
     {
         var scope = await scopeResolver.ResolveAsync(organizationId, membershipId, cancellationToken);
 
         var items = await detailStore.ListPropertiesAsync(
-            organizationId, scope, customerId, timeProvider.GetUtcNow(), cancellationToken);
+            organizationId, scope, customerId, access, timeProvider.GetUtcNow(), cancellationToken);
 
         if (items is null)
         {
@@ -151,12 +151,17 @@ public sealed class GetCustomerPropertyHandler(
     ICustomerDetailStore detailStore, IBranchScopeResolver scopeResolver, TimeProvider timeProvider)
 {
     public async Task<CustomerPropertyView?> HandleAsync(
-        Guid organizationId, Guid membershipId, Guid customerId, Guid propertyId, CancellationToken cancellationToken)
+        Guid organizationId,
+        Guid membershipId,
+        Guid customerId,
+        Guid propertyId,
+        CustomerRecordAccess access,
+        CancellationToken cancellationToken)
     {
         var scope = await scopeResolver.ResolveAsync(organizationId, membershipId, cancellationToken);
 
         return await detailStore.GetPropertyAsync(
-            organizationId, scope, customerId, propertyId, timeProvider.GetUtcNow(), cancellationToken);
+            organizationId, scope, customerId, propertyId, access, timeProvider.GetUtcNow(), cancellationToken);
     }
 }
 
@@ -174,6 +179,7 @@ public sealed class CreateCustomerPropertyHandler(
         Guid actorUserId,
         IPAddress? clientIp,
         CustomerPropertyInput input,
+        CustomerRecordAccess access,
         CancellationToken cancellationToken)
     {
         var scope = await scopeResolver.ResolveAsync(organizationId, membershipId, cancellationToken);
@@ -203,6 +209,7 @@ public sealed class CreateCustomerPropertyHandler(
             countryCode,
             actorUserId,
             clientIp,
+            access,
             timeProvider.GetUtcNow(),
             cancellationToken);
 
@@ -227,6 +234,7 @@ public sealed class UpdateCustomerPropertyHandler(
         Guid actorUserId,
         IPAddress? clientIp,
         CustomerPropertyInput input,
+        CustomerRecordAccess access,
         CancellationToken cancellationToken)
     {
         var scope = await scopeResolver.ResolveAsync(organizationId, membershipId, cancellationToken);
@@ -261,6 +269,7 @@ public sealed class UpdateCustomerPropertyHandler(
             values,
             actorUserId,
             clientIp,
+            access,
             timeProvider.GetUtcNow(),
             cancellationToken);
 
@@ -308,10 +317,10 @@ public sealed class GetCustomerRecentWorkHandler(
     ICustomerStore customerStore, ICustomerDetailStore detailStore, IBranchScopeResolver scopeResolver)
 {
     public async Task<CustomerRecentWork?> HandleAsync(
-        Guid organizationId, Guid membershipId, Guid customerId, CancellationToken cancellationToken)
+        Guid organizationId, Guid membershipId, Guid customerId, CustomerRecordAccess access, CancellationToken cancellationToken)
     {
         var scope = await scopeResolver.ResolveAsync(organizationId, membershipId, cancellationToken);
-        var items = await detailStore.ListRecentWorkAsync(organizationId, scope, customerId, cancellationToken);
+        var items = await detailStore.ListRecentWorkAsync(organizationId, scope, customerId, access, cancellationToken);
 
         if (items is null)
         {
@@ -332,12 +341,12 @@ public sealed class GetCustomerUpcomingAppointmentsHandler(
     TimeProvider timeProvider)
 {
     public async Task<CustomerUpcomingAppointments?> HandleAsync(
-        Guid organizationId, Guid membershipId, Guid customerId, CancellationToken cancellationToken)
+        Guid organizationId, Guid membershipId, Guid customerId, CustomerRecordAccess access, CancellationToken cancellationToken)
     {
         var scope = await scopeResolver.ResolveAsync(organizationId, membershipId, cancellationToken);
 
         var items = await detailStore.ListUpcomingAppointmentsAsync(
-            organizationId, scope, customerId, timeProvider.GetUtcNow(), cancellationToken);
+            organizationId, scope, customerId, access, timeProvider.GetUtcNow(), cancellationToken);
 
         if (items is null)
         {
@@ -406,31 +415,5 @@ public sealed class AddCustomerNoteHandler(ICustomerDetailStore detailStore, IBr
             organizationId, scope, customerId, text, actorUserId, clientIp, cancellationToken);
 
         return created is null ? CustomerResult<CustomerNoteView>.NotFound() : CustomerResult<CustomerNoteView>.Ok(created);
-    }
-}
-
-/// <summary>GET /customers/{id}/activity (FR-13, BR-17).</summary>
-public sealed class ListCustomerActivityHandler(
-    ICustomerStore customerStore, ICustomerDetailStore detailStore, IBranchScopeResolver scopeResolver)
-{
-    public async Task<CustomerResult<CustomerActivityPage>> HandleAsync(
-        Guid organizationId, Guid membershipId, Guid customerId, string? pageText, CancellationToken cancellationToken)
-    {
-        var scope = await scopeResolver.ResolveAsync(organizationId, membershipId, cancellationToken);
-
-        if (!await detailStore.IsCustomerVisibleAsync(organizationId, scope, customerId, cancellationToken))
-        {
-            return CustomerResult<CustomerActivityPage>.NotFound();
-        }
-
-        if (CustomerPropertyRules.ParsePage(pageText) is not { } page)
-        {
-            return CustomerResult<CustomerActivityPage>.Invalid("page", CustomerMessages.PageInvalid);
-        }
-
-        var context = await CustomerDetailChecks.ContextAsync(customerStore, organizationId, cancellationToken);
-        var result = await detailStore.ListActivityAsync(organizationId, scope, customerId, page, context.Timezone, cancellationToken);
-
-        return result is null ? CustomerResult<CustomerActivityPage>.NotFound() : CustomerResult<CustomerActivityPage>.Ok(result);
     }
 }

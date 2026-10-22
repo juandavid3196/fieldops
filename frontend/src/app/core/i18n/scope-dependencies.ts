@@ -10,7 +10,7 @@ export const I18N_SCOPE_DEPENDENCIES: Readonly<Record<string, readonly string[]>
   authentication: ['organizations'],
   'billing-review': ['organizations'],
   'business-overview': ['dashboard', 'organizations', 'schedule'],
-  customers: ['organizations', 'quotes'],
+  customers: ['invoices', 'jobs', 'organizations', 'quotes', 'requests'],
   dashboard: ['business-overview', 'organizations', 'schedule'],
   invoices: ['billing-review', 'organizations', 'requests'],
   jobs: ['customers', 'organizations', 'requests'],

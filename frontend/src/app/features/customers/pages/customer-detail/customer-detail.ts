@@ -6,6 +6,7 @@ import {
   inject,
   signal,
   viewChild,
+  viewChildren,
   WritableSignal,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -17,7 +18,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 import { Toast } from 'primeng/toast';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, map, of, switchMap } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
@@ -28,6 +29,10 @@ import {
   discardChangesConfirmation,
 } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 import { handleUnauthorized } from '../../../organizations/utils/handle-unauthorized';
+import { NewRequestDrawer } from '../../../requests/components/new-request-drawer/new-request-drawer';
+import { CustomerOption, RequestOptions } from '../../../requests/models/requests.model';
+import { RequestsService } from '../../../requests/services/requests.service';
+import { ActivityTimeline } from '../../components/activity-timeline/activity-timeline';
 import { AppointmentsCard } from '../../components/appointments-card/appointments-card';
 import {
   BranchOption,
@@ -42,29 +47,33 @@ import {
   PropertyDrawerMode,
 } from '../../components/property-drawer/property-drawer';
 import { RecentWorkCard } from '../../components/recent-work-card/recent-work-card';
+import { RelatedListTab } from '../../components/related-list-tab/related-list-tab';
 import { SideCards } from '../../components/side-cards/side-cards';
 import {
-  ACTIVITY_PAGE_SIZE,
+  ActivityPeriod,
   ActivityResponse,
+  ActivityType,
   AppointmentsResponse,
   CustomerFieldKey,
   CustomerOverview,
   CustomerTag,
-  DETAIL_TABS,
   DetailTab,
   IDLE_REGION,
+  JOBS_READ_ROLES,
   NOTES_PAGE_SIZE,
   NoteItem,
   PropertiesResponse,
   PortalAccess,
   PropertyItem,
+  RELATED_KINDS,
+  RELATED_READ_ROLES,
   RecentWorkResponse,
   RegionState,
+  RelatedKind,
 } from '../../models/customer.model';
 import { CustomersService } from '../../services/customers.service';
+import { groupActivity } from '../../utils/customer-activity';
 import {
-  activityLabel,
-  formatDateTime,
   formatMoney,
   initials,
   preferredContact,
@@ -96,43 +105,25 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 interface TabInfo {
   readonly code: DetailTab;
   readonly label: string;
-  /** Coming soon destination of the transactional tabs (BR-18). */
-  readonly soon?: { readonly noun: string; readonly link: string };
 }
 
 const TABS: readonly TabInfo[] = localizedList(() => [
   { code: 'overview', label: t('customers.customerDetail.overview') },
-  {
-    code: 'requests',
-    label: t('customers.customerDetail.requests'),
-    soon: { noun: t('customers.customerDetail.nounRequests'), link: '/requests' },
-  },
-  {
-    code: 'quotes',
-    label: t('customers.customerDetail.quotes'),
-    soon: { noun: t('customers.customerDetail.nounQuotes'), link: '/coming-soon/quotes' },
-  },
-  {
-    code: 'jobs',
-    label: t('customers.customerDetail.jobs'),
-    soon: { noun: t('customers.customerDetail.nounJobs'), link: '/coming-soon/work-orders' },
-  },
-  {
-    code: 'invoices',
-    label: t('customers.customerDetail.invoices'),
-    soon: { noun: t('customers.customerDetail.nounInvoices'), link: '/coming-soon/invoices' },
-  },
+  { code: 'requests', label: t('customers.customerDetail.requests') },
+  { code: 'quotes', label: t('customers.customerDetail.quotes') },
+  { code: 'jobs', label: t('customers.customerDetail.jobs') },
+  { code: 'invoices', label: t('customers.customerDetail.invoices') },
   { code: 'activity', label: t('customers.customerDetail.activity') },
 ]);
 
-const CREATE_LINKS: readonly { readonly label: string; readonly path: string }[] = localizedList(
-  () => [
-    { label: t('customers.customerDetail.request'), path: '/requests' },
+/** Create menu destinations; Request opens the New request drawer instead of navigating (BR-09). */
+const CREATE_LINKS: readonly { readonly label: string; readonly path: string | null }[] =
+  localizedList(() => [
+    { label: t('customers.customerDetail.request'), path: null },
     { label: t('customers.customerDetail.quote'), path: '/coming-soon/quotes' },
     { label: t('customers.customerDetail.job'), path: '/coming-soon/work-orders' },
     { label: t('customers.customerDetail.invoice'), path: '/coming-soon/invoices' },
-  ],
-);
+  ]);
 
 type PropertyAction = 'set-primary' | 'archive' | 'reactivate';
 
@@ -155,7 +146,10 @@ type PropertyAction = 'set-primary' | 'archive' | 'reactivate';
     Toast,
     ConfirmDialog,
     DiscardChangesDialog,
+    ActivityTimeline,
     AppointmentsCard,
+    NewRequestDrawer,
+    RelatedListTab,
     CustomerDrawer,
     NotesCard,
     PropertiesCard,
@@ -174,11 +168,14 @@ export class CustomerDetail {
   private readonly route = inject(ActivatedRoute);
   private readonly messageService = inject(MessageService);
   private readonly confirmationService = inject(ConfirmationService);
+  private readonly requestsService = inject(RequestsService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
   private readonly customerDrawer = viewChild(CustomerDrawer);
   private readonly propertyDrawer = viewChild(PropertyDrawer);
+  private readonly requestDrawer = viewChild(NewRequestDrawer);
+  private readonly relatedLists = viewChildren(RelatedListTab);
   private readonly menu = viewChild.required(Menu);
 
   get forbiddenMessage(): string {
@@ -193,11 +190,20 @@ export class CustomerDetail {
   get detailErrorMessage(): string {
     return DETAIL_ERROR_MESSAGE();
   }
-  readonly tabs = TABS;
-  readonly activityPageSize = ACTIVITY_PAGE_SIZE;
+  readonly relatedKinds = RELATED_KINDS;
 
   private readonly roleCode = computed(() => this.sessionService.session()?.role.code ?? '');
   readonly canMutate = computed(() => MUTATE_ROLES.includes(this.roleCode()));
+  /** BR-03: tabs the role can read; Overview and Activity are always shown. */
+  readonly visibleTabs = computed(() =>
+    TABS.filter(
+      (item) =>
+        !(RELATED_KINDS as readonly string[]).includes(item.code) ||
+        RELATED_READ_ROLES[item.code as RelatedKind].includes(this.roleCode()),
+    ),
+  );
+  /** BR-14: without Jobs read the job-derived Overview values and regions are omitted. */
+  readonly canReadJobs = computed(() => JOBS_READ_ROLES.includes(this.roleCode()));
   readonly isReadOnly = computed(() => READ_ROLES.includes(this.roleCode()));
   private readonly serverForbidden = signal(false);
   readonly forbidden = computed(
@@ -216,7 +222,15 @@ export class CustomerDetail {
   readonly recentWork = signal<RegionState<RecentWorkResponse>>(IDLE_REGION);
   readonly appointments = signal<RegionState<AppointmentsResponse>>(IDLE_REGION);
   readonly activity = signal<RegionState<ActivityResponse>>(IDLE_REGION);
-  readonly activityPage = signal(1);
+  readonly activityType = signal<ActivityType | 'all'>('all');
+  readonly activityPeriod = signal<ActivityPeriod>('last_90_days');
+  /** Types of the latest response; kept while a filter change reloads. */
+  readonly activityTypes = signal<readonly ActivityType[]>([]);
+  readonly loadingOlder = signal(false);
+  readonly olderError = signal(false);
+  readonly focusEventId = signal<string | null>(null);
+  /** Related tabs opened at least once stay mounted so their filters persist (BR-03). */
+  readonly visitedKinds = signal<ReadonlySet<RelatedKind>>(new Set());
 
   readonly notes = signal<RegionState<readonly NoteItem[]>>(IDLE_REGION);
   readonly notesTotal = signal(0);
@@ -238,6 +252,10 @@ export class CustomerDetail {
   readonly propertyDrawerOpen = signal(false);
   readonly propertyDrawerMode = signal<PropertyDrawerMode>('create');
   readonly propertyDrawerId = signal<string | null>(null);
+  readonly newRequestOpen = signal(false);
+  readonly lockedCustomer = signal<CustomerOption | null>(null);
+  readonly requestOptions = signal<RequestOptions | null>(null);
+  readonly openingRequest = signal(false);
 
   readonly menuModel = signal<MenuItem[]>([]);
   readonly mutating = signal(false);
@@ -262,36 +280,39 @@ export class CustomerDetail {
       phone: phone === null ? null : formatPhone(phone),
       phoneHref: phone === null ? null : `tel:${phone.replace(/[^\d+]/g, '')}`,
       preferred: preferredContact(o.contact),
-      balance: formatMoney(o.outstandingBalance, o.currency),
+      balance:
+        o.outstandingBalance === null || o.outstandingBalance === undefined
+          ? null
+          : formatMoney(o.outstandingBalance, o.currency),
       isActive: o.isActive,
     };
   });
-  readonly activityEntries = computed(() => {
+  readonly activityGroups = computed(() => {
     const data = this.activity().data;
-    return (data?.items ?? []).map((item) => ({
-      id: item.id,
-      label: activityLabel(item.action, item.subjectName),
-      actor: item.actorName?.trim() || t('customers.customerDetail.system'),
-      date: formatDateTime(item.occurredAt, data?.timezone ?? 'UTC'),
-    }));
+    return data === null ? [] : groupActivity(data.items, data.currency, data.timezone);
   });
-  readonly activityPages = computed(() =>
-    Math.max(1, Math.ceil((this.activity().data?.totalCount ?? 0) / ACTIVITY_PAGE_SIZE)),
+  readonly canCreateRequest = computed(
+    () => this.canMutate() && this.overview().data?.isActive === true,
   );
-  readonly activeTab = computed(() => TABS.find((item) => item.code === this.tab()) ?? TABS[0]);
 
   private readonly requests = new Map<string, Subscription>();
   private optionsRequested = false;
   /** The drawer already asked to discard before "View existing customer" navigates. */
   private leaveConfirmed = false;
 
+  /** An unknown tab, or one the role cannot read, shows Overview (BR-03). */
+  private tabFor(code: string | null): DetailTab {
+    return this.visibleTabs().find((item) => item.code === code)?.code ?? 'overview';
+  }
+
   constructor() {
+    // The deep-linked tab is known before the customer loads, so only its data is requested.
+    this.tab.set(this.tabFor(this.route.snapshot.queryParamMap.get('tab')));
     this.route.paramMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((params) => this.openCustomer(params.get('customerId')));
     this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((query) => {
-      const requested = DETAIL_TABS.find((code) => code === query.get('tab'));
-      this.tab.set(requested ?? 'overview');
+      this.tab.set(this.tabFor(query.get('tab')));
       this.loadTabData();
     });
     this.destroyRef.onDestroy(() => this.requests.forEach((request) => request.unsubscribe()));
@@ -307,8 +328,13 @@ export class CustomerDetail {
     this.recentWork.set(IDLE_REGION);
     this.appointments.set(IDLE_REGION);
     this.activity.set(IDLE_REGION);
+    this.activityType.set('all');
+    this.activityPeriod.set('last_90_days');
+    this.activityTypes.set([]);
+    this.loadingOlder.set(false);
+    this.olderError.set(false);
+    this.visitedKinds.set(new Set());
     this.notes.set(IDLE_REGION);
-    this.activityPage.set(1);
     this.noteText.set('');
     this.noteError.set(null);
     this.customerId.set(id);
@@ -321,7 +347,7 @@ export class CustomerDetail {
     this.loadTabData();
   }
 
-  /** Overview regions and Activity load on first view; transactional tabs make no request. */
+  /** Overview regions, Activity and each related list load the first time their tab is shown. */
   private loadTabData(): void {
     if (this.forbidden() || this.notFound() || this.customerId() === null) {
       return;
@@ -333,14 +359,19 @@ export class CustomerDetail {
       if (this.recentWork().status === 'idle') {
         this.loadRecentWork();
       }
-      if (this.appointments().status === 'idle') {
+      if (this.canReadJobs() && this.appointments().status === 'idle') {
         this.loadAppointments();
       }
       if (this.notes().status === 'idle') {
         this.loadNotes();
       }
-    } else if (this.tab() === 'activity' && this.activity().status === 'idle') {
-      this.loadActivity(1);
+    } else if (this.tab() === 'activity') {
+      if (this.activity().status === 'idle') {
+        this.loadActivity();
+      }
+    } else if (!this.visitedKinds().has(this.tab() as RelatedKind)) {
+      // The related list loads itself when it first renders (BR-03).
+      this.visitedKinds.update((kinds) => new Set(kinds).add(this.tab() as RelatedKind));
     }
   }
 
@@ -443,9 +474,94 @@ export class CustomerDetail {
     );
   }
 
-  loadActivity(page: number): void {
-    this.activityPage.set(page);
-    this.load('activity', this.customers.activity(this.requireId(), page), this.activity);
+  loadActivity(): void {
+    this.requests.get('activity-older')?.unsubscribe();
+    this.loadingOlder.set(false);
+    this.olderError.set(false);
+    this.focusEventId.set(null);
+    this.requests.get('activity')?.unsubscribe();
+    this.activity.set({ status: 'loading', data: null });
+    this.requests.set(
+      'activity',
+      this.customers
+        .activity(this.requireId(), { type: this.activityType(), period: this.activityPeriod() })
+        .subscribe({
+          next: (data) => {
+            this.activityTypes.set(data.availableTypes);
+            this.activity.set({ status: 'ready', data });
+          },
+          error: (error: unknown) => {
+            if (!this.handleFailure(error)) {
+              this.activity.set({ status: 'error', data: null });
+            }
+          },
+        }),
+    );
+  }
+
+  /** "Load older activity": appends the next block without duplicates (BR-12). */
+  loadOlderActivity(): void {
+    const current = this.activity().data;
+    const cursor = current?.nextCursor;
+    if (current === null || !cursor || this.loadingOlder()) {
+      return;
+    }
+    this.loadingOlder.set(true);
+    this.olderError.set(false);
+    this.requests.get('activity-older')?.unsubscribe();
+    this.requests.set(
+      'activity-older',
+      this.customers
+        .activity(this.requireId(), {
+          type: this.activityType(),
+          period: this.activityPeriod(),
+          before: cursor,
+        })
+        .subscribe({
+          next: (block) => {
+            const known = new Set(current.items.map((item) => item.id));
+            const fresh = block.items.filter((item) => !known.has(item.id));
+            this.loadingOlder.set(false);
+            this.activityTypes.set(block.availableTypes);
+            this.activity.set({
+              status: 'ready',
+              data: {
+                ...current,
+                items: [...current.items, ...fresh],
+                nextCursor: block.nextCursor,
+              },
+            });
+            this.focusEventId.set(fresh[0]?.id ?? null);
+          },
+          error: (error: unknown) => {
+            this.loadingOlder.set(false);
+            if (!this.handleFailure(error)) {
+              this.olderError.set(true);
+            }
+          },
+        }),
+    );
+  }
+
+  onActivityType(type: ActivityType | 'all'): void {
+    this.activityType.set(type);
+    this.loadActivity();
+  }
+
+  onActivityPeriod(period: ActivityPeriod): void {
+    this.activityPeriod.set(period);
+    this.loadActivity();
+  }
+
+  /** Forgets Activity after a change elsewhere; a visible tab reloads it right away. */
+  private invalidateActivity(): void {
+    if (this.activity().status === 'idle') {
+      return;
+    }
+    this.activity.set(IDLE_REGION);
+    if (this.tab() === 'activity') {
+      this.loadActivity();
+    }
   }
 
   loadNotes(): void {
@@ -475,14 +591,7 @@ export class CustomerDetail {
       this.loadOverview(true);
     }
     this.loadProperties(true);
-    if (this.activity().status === 'idle') {
-      return;
-    }
-    if (this.tab() === 'activity') {
-      this.loadActivity(1);
-    } else {
-      this.activity.set(IDLE_REGION);
-    }
+    this.invalidateActivity();
   }
 
   // Tabs (BR-01)
@@ -496,12 +605,13 @@ export class CustomerDetail {
   }
 
   onTabKeydown(event: KeyboardEvent, index: number): void {
-    const last = TABS.length - 1;
+    const tabs = this.visibleTabs();
+    const last = tabs.length - 1;
     const next =
       event.key === 'ArrowRight'
-        ? (index + 1) % TABS.length
+        ? (index + 1) % tabs.length
         : event.key === 'ArrowLeft'
-          ? (index + last) % TABS.length
+          ? (index + last) % tabs.length
           : event.key === 'Home'
             ? 0
             : event.key === 'End'
@@ -511,7 +621,7 @@ export class CustomerDetail {
       return;
     }
     event.preventDefault();
-    this.selectTab(TABS[next].code);
+    this.selectTab(tabs[next].code);
     queueMicrotask(() =>
       this.host.querySelectorAll<HTMLElement>('[role="tab"]').item(next)?.focus(),
     );
@@ -526,10 +636,13 @@ export class CustomerDetail {
         icon: 'pi pi-home',
         command: () => this.openAddProperty(),
       },
-      ...CREATE_LINKS.map((item) => ({
-        label: item.label,
-        command: () => void this.router.navigateByUrl(item.path),
-      })),
+      ...CREATE_LINKS.filter((item) => item.path !== null || this.canCreateRequest()).map(
+        (item) => ({
+          label: item.label,
+          command: () =>
+            item.path === null ? this.openNewRequest() : void this.router.navigateByUrl(item.path),
+        }),
+      ),
     ]);
     this.menu().toggle(event);
   }
@@ -592,6 +705,7 @@ export class CustomerDetail {
   openEditCustomer(focus: CustomerFieldKey | null = null): void {
     this.showExclusive(() => {
       this.propertyDrawerOpen.set(false);
+      this.newRequestOpen.set(false);
       this.customerDrawerFocus.set(focus);
       this.customerDrawerOpen.set(true);
     });
@@ -604,6 +718,7 @@ export class CustomerDetail {
   openPropertyDrawer(mode: PropertyDrawerMode, id: string | null): void {
     this.showExclusive(() => {
       this.customerDrawerOpen.set(false);
+      this.newRequestOpen.set(false);
       this.propertyDrawerMode.set(mode);
       this.propertyDrawerId.set(id);
       this.propertyDrawerOpen.set(true);
@@ -636,7 +751,81 @@ export class CustomerDetail {
     if (this.customerDrawer()?.isDirty()) {
       return t('customers.customerDetail.thisCustomer');
     }
-    return this.propertyDrawer()?.isDirty() ? t('customers.customerDetail.thisProperty') : null;
+    if (this.propertyDrawer()?.isDirty()) {
+      return t('customers.customerDetail.thisProperty');
+    }
+    return this.newRequestOpen() && this.requestDrawer()?.dirty()
+      ? t('requests.newRequestDrawer.thisRequest')
+      : null;
+  }
+
+  // New request (BR-09): the existing drawer opens in place with the customer locked.
+
+  openNewRequest(): void {
+    const id = this.customerId();
+    if (id === null || !this.canCreateRequest() || this.openingRequest()) {
+      return;
+    }
+    this.openingRequest.set(true);
+    this.requestsService
+      .customerOptions('', id)
+      .pipe(
+        switchMap((response) => {
+          const customer = response.items[0] ?? null;
+          if (customer === null || this.requestOptions() !== null) {
+            return of({ customer, options: this.requestOptions() });
+          }
+          return this.requestsService.options().pipe(map((options) => ({ customer, options })));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: ({ customer, options }) => {
+          this.openingRequest.set(false);
+          if (customer === null) {
+            this.messageService.add({
+              severity: 'error',
+              summary: t('customers.customerDetail.requestUnavailableMessage'),
+            });
+            return;
+          }
+          this.requestOptions.set(options);
+          this.showExclusive(() => {
+            this.customerDrawerOpen.set(false);
+            this.propertyDrawerOpen.set(false);
+            this.lockedCustomer.set(customer);
+            this.newRequestOpen.set(true);
+          });
+        },
+        error: (error: unknown) => {
+          this.openingRequest.set(false);
+          if (!this.handleFailure(error)) {
+            this.messageService.add({
+              severity: 'error',
+              summary: t('customers.customerDetail.requestOpenFailedMessage'),
+            });
+          }
+        },
+      });
+  }
+
+  onNewRequestClosed(): void {
+    this.newRequestOpen.set(false);
+  }
+
+  /** The request exists: no navigation; the Requests tab, Overview work and Activity refresh. */
+  onRequestCreated(): void {
+    this.newRequestOpen.set(false);
+    this.messageService.add({
+      severity: 'success',
+      summary: t('requests.requests.requestCreated'),
+    });
+    this.relatedLists()
+      .find((list) => list.kind() === 'requests')
+      ?.load();
+    this.recentWork.set(IDLE_REGION);
+    this.loadTabData();
+    this.invalidateActivity();
   }
 
   onCustomerDrawerClosed(): void {
@@ -714,6 +903,11 @@ export class CustomerDetail {
         }),
       );
     });
+  }
+
+  /** 401/403/404 from a related list: the page resolves it like any other region. */
+  onRelatedFailure(error: unknown): void {
+    this.handleFailure(error);
   }
 
   onUnauthorized(): void {
@@ -946,12 +1140,7 @@ export class CustomerDetail {
             severity: 'success',
             summary: t('customers.customerDetail.noteAdded'),
           });
-          if (this.activity().status !== 'idle') {
-            this.activity.set(IDLE_REGION);
-            if (this.tab() === 'activity') {
-              this.loadActivity(1);
-            }
-          }
+          this.invalidateActivity();
         },
         error: (error: unknown) => {
           this.addingNote.set(false);

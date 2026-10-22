@@ -3,8 +3,8 @@ using System.Text;
 namespace FieldOps.Application.Features.Customers;
 
 public sealed record CustomerDetailSummary(
-    int TotalJobs,
-    decimal LifetimeValue,
+    int? TotalJobs,
+    decimal? LifetimeValue,
     DateTimeOffset CustomerSince,
     DateTimeOffset? LastServiceAt);
 
@@ -19,7 +19,7 @@ public sealed record CustomerOverview(
     string Lifecycle,
     string DisplayStatus,
     bool IsActive,
-    decimal OutstandingBalance,
+    decimal? OutstandingBalance,
     string Currency,
     string Timezone,
     CustomerDetailSummary Summary,
@@ -43,9 +43,9 @@ public sealed record CustomerOverviewContact(
 /// <summary>Values the store derives for the overview; the handler adds the contact, tags and status.</summary>
 public sealed record CustomerOverviewData(
     string DisplayName,
-    decimal Balance,
-    int TotalJobs,
-    decimal LifetimeValue,
+    decimal? Balance,
+    int? TotalJobs,
+    decimal? LifetimeValue,
     DateTimeOffset CustomerSince,
     DateTimeOffset? LastServiceAt,
     CustomerLastInvoice? LastInvoice);
@@ -147,52 +147,6 @@ public sealed record CustomerNotesPage(
     int Page,
     int PageSize,
     string Timezone);
-
-/// <summary>One whitelisted audit row (BR-17): never any before/after data, metadata, IP or note text.</summary>
-public sealed record CustomerActivityItem(
-    long Id,
-    string Action,
-    string? SubjectName,
-    string? ActorName,
-    DateTimeOffset OccurredAt);
-
-public sealed record CustomerActivityPage(
-    IReadOnlyList<CustomerActivityItem> Items,
-    int TotalCount,
-    int Page,
-    int PageSize,
-    string Timezone);
-
-/// <summary>The audit actions the Activity tab may show and which of them name a property (BR-17).</summary>
-public static class CustomerActivityActions
-{
-    public const int PageSize = 20;
-
-    public static IReadOnlyList<string> Customer { get; } =
-    [
-        CustomerAuditActions.Created,
-        CustomerAuditActions.Updated,
-        CustomerAuditActions.Archived,
-        CustomerAuditActions.Reactivated,
-    ];
-
-    public static IReadOnlyList<string> Property { get; } =
-    [
-        CustomerAuditActions.PropertyCreated,
-        CustomerAuditActions.PropertyUpdated,
-        CustomerAuditActions.PropertyPrimaryChanged,
-        CustomerAuditActions.PropertyArchived,
-        CustomerAuditActions.PropertyReactivated,
-    ];
-
-    public static IReadOnlyList<string> Note { get; } = [CustomerAuditActions.NoteCreated];
-
-    /// <summary>True for the actions whose label carries the property name.</summary>
-    public static bool NamesProperty(string action) => Property.Contains(action);
-
-    public static bool IsWhitelisted(string action) =>
-        Customer.Contains(action) || Property.Contains(action) || Note.Contains(action);
-}
 
 /// <summary>Wire text of the enums shown by recent work and the last invoice (snake_case).</summary>
 public static class CustomerEnumText

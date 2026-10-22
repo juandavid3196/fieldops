@@ -1,12 +1,11 @@
 using System.Net;
 using System.Text.Json.Nodes;
-using FieldOps.Application.Features.Customers;
 using FieldOps.IntegrationTests.CompanySettings;
 using FieldOps.IntegrationTests.Users;
 
 namespace FieldOps.IntegrationTests.Customers;
 
-/// <summary>Derived data, notes and activity of the customer detail page (FR-02, FR-04, FR-09 to FR-13): AC-04, AC-14 to AC-18.</summary>
+/// <summary>Derived data and notes of the customer detail page (FR-02, FR-04, FR-09 to FR-12): AC-04, AC-14 to AC-17.</summary>
 [Collection(CompanySettingsDatabaseCollection.Name)]
 public class CustomerDetailReadTests(CompanySettingsDatabaseFixture database)
 {
@@ -177,15 +176,13 @@ public class CustomerDetailReadTests(CompanySettingsDatabaseFixture database)
         Assert.Empty((await CustomerHost.ReadAsync(await host.SendAsync(HttpMethod.Get, $"/customers/{empty}/upcoming-appointments", cookie)))["items"]!.AsArray());
     }
 
-    // AC-17, AC-18, FR-12, FR-13, FR-17: notes paging and creation with a text-free audit row, and the activity history
-    // restricted to the whitelist and the customer's own rows, without any before/after data, metadata, IP or note text.
+    // AC-17, FR-12, FR-17: notes paging and creation with a text-free audit row; the activity history is covered by
+    // CustomerRelatedRecordsTests.
     [Fact]
-    public async Task NotesAndActivity_PageValidateAndNeverExposeSensitiveValues()
+    public async Task Notes_PageValidateAndAuditWithoutText()
     {
         var org = await database.SeedOrganizationAsync();
-        var other = await database.SeedOrganizationAsync();
         var branch = await database.SeedBranchAsync(org, isMain: true);
-        var otherBranch = await database.SeedBranchAsync(other, isMain: true);
         var author = await database.SeedMemberAsync(org, CompanySettingsDatabaseFixture.OwnerRoleId, "Nora", "Notes");
         var notesCustomer = await database.SeedCustomerAsync(org, branch.Id, "Notes Customer");
         var now = DateTimeOffset.UtcNow;
@@ -242,92 +239,6 @@ public class CustomerDetailReadTests(CompanySettingsDatabaseFixture database)
         }
 
         Assert.Equal(notes, await database.CountRowsAsync("customer_notes", org));
-
-        // Activity: 25 whitelisted rows of the customer plus rows that must never appear.
-        var customer = await database.SeedCustomerAsync(org, branch.Id, "Activity Customer");
-        var rivalCustomer = await database.SeedCustomerAsync(org, branch.Id, "Rival Customer");
-        var foreignCustomer = await database.SeedCustomerAsync(other, otherBranch.Id, "Foreign Customer");
-        var property = await database.ScalarAsync<Guid>("SELECT id FROM properties WHERE customer_id = @c", ("c", customer));
-        var rivalProperty = await database.ScalarAsync<Guid>("SELECT id FROM properties WHERE customer_id = @c", ("c", rivalCustomer));
-        var noteIds = new[] { Guid.NewGuid(), Guid.NewGuid() };
-        var rivalNote = Guid.NewGuid();
-
-        foreach (var id in noteIds.Append(rivalNote))
-        {
-            await database.ExecuteAsync(
-                "INSERT INTO customer_notes (id, organization_id, customer_id, author_user_id, note) VALUES (@id, @o, @c, @a, 'Secret note text')",
-                ("id", id), ("o", org), ("c", id == rivalNote ? rivalCustomer : customer), ("a", author.UserId));
-        }
-
-        const string secret = "{\"email\":\"leak@example.com\",\"note\":\"SECRET-NOTE\"}";
-        var minute = 0;
-        var seeded = new List<(string Action, string Type, Guid Id)>
-        {
-            ("customer.created", "customer", customer),
-            ("customer.archived", "customer", customer),
-            ("customer.reactivated", "customer", customer),
-            ("property.created", "property", property),
-            ("property.updated", "property", property),
-            ("property.primary_changed", "property", property),
-            ("property.archived", "property", property),
-            ("property.reactivated", "property", property),
-            ("customer_note.created", "customer_note", noteIds[0]),
-            ("customer_note.created", "customer_note", noteIds[1]),
-        };
-
-        seeded.AddRange(Enumerable.Repeat(("customer.updated", "customer", customer), 15));
-        Assert.Equal(25, seeded.Count);
-
-        foreach (var (action, type, id) in seeded)
-        {
-            await database.SeedAuditAsync(org, minute == 3 ? null : author.UserId, action, type, id, now.AddMinutes(-100 + minute++), secret, secret, secret);
-        }
-
-        foreach (var (action, type, id, orgId) in new (string, string, Guid, Guid)[]
-        {
-            ("customer.imported", "customer", customer, org),
-            ("customer_tag.created", "customer_tag", customer, org),
-            ("property.deleted", "property", property, org),
-            ("customer.updated", "customer", rivalCustomer, org),
-            ("property.updated", "property", rivalProperty, org),
-            ("customer_note.created", "customer_note", rivalNote, org),
-            ("customer.updated", "customer", customer, other),
-            ("customer.updated", "customer", foreignCustomer, other),
-        })
-        {
-            await database.SeedAuditAsync(orgId, author.UserId, action, type, id, now.AddMinutes(-100 + minute++), secret, secret, secret);
-        }
-
-        await database.ExecuteAsync("UPDATE properties SET name = 'Renamed Site' WHERE id = @p", ("p", property));
-        var activityPath = $"/customers/{customer}/activity";
-
-        var first = await host.SendAsync(HttpMethod.Get, activityPath, viewer);
-        var firstText = await first.Content.ReadAsStringAsync();
-        var firstPage = JsonNode.Parse(firstText)!;
-        var second = JsonNode.Parse(await (await host.SendAsync(HttpMethod.Get, $"{activityPath}?page=2", viewer)).Content.ReadAsStringAsync())!;
-        Assert.Equal((25, 20, 20, 5), (
-            firstPage["totalCount"]!.GetValue<int>(), firstPage["pageSize"]!.GetValue<int>(), firstPage["items"]!.AsArray().Count, second["items"]!.AsArray().Count));
-        var all = firstPage["items"]!.AsArray().Concat(second["items"]!.AsArray()).ToArray();
-        Assert.Equal(25, all.Select(item => item!["id"]!.GetValue<long>()).Distinct().Count());
-        Assert.Equal(all.Select(item => item!["occurredAt"]!.GetValue<DateTimeOffset>()).OrderByDescending(at => at).ToArray(), all.Select(item => item!["occurredAt"]!.GetValue<DateTimeOffset>()).ToArray());
-        Assert.All(all, item => Assert.Contains(item!["action"]!.GetValue<string>(), CustomerActivityActions.Customer
-            .Concat(CustomerActivityActions.Property)
-            .Concat(CustomerActivityActions.Note)));
-        Assert.All(
-            all.Where(item => item!["action"]!.GetValue<string>().StartsWith("property.", StringComparison.Ordinal)),
-            item => Assert.Equal("Renamed Site", item!["subjectName"]!.GetValue<string>()));
-        Assert.All(
-            all.Where(item => !item!["action"]!.GetValue<string>().StartsWith("property.", StringComparison.Ordinal)),
-            item => Assert.Null(item!["subjectName"]));
-        Assert.Single(all, item => item!["actorName"] is null);
-        Assert.Contains(all, item => item!["actorName"]?.GetValue<string>() == "Nora Notes");
-        Assert.Empty((await CustomerHost.ReadAsync(await host.SendAsync(HttpMethod.Get, $"{activityPath}?page=3", viewer)))["items"]!.AsArray());
-        Assert.Equal(HttpStatusCode.BadRequest, (await host.SendAsync(HttpMethod.Get, $"{activityPath}?page=0", viewer)).StatusCode);
-
-        foreach (var forbidden in new[] { "SECRET-NOTE", "leak@example.com", "10.1.2.3", "beforeData", "afterData", "metadata", "ipAddress", "Secret note text" })
-        {
-            Assert.DoesNotContain(forbidden, firstText, StringComparison.Ordinal);
-        }
     }
 
     private sealed class ApproximateComparer : IEqualityComparer<DateTimeOffset>

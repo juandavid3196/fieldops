@@ -70,9 +70,15 @@ export class RequestsService {
     return this.http.get<RequestOptions>(this.url('/options'));
   }
 
-  customerOptions(search: string): Observable<CustomerOptionsResponse> {
+  /** `customerId` is exclusive with `search`: the response holds only that customer, when it can receive requests. */
+  customerOptions(search: string, customerId?: string): Observable<CustomerOptionsResponse> {
     const term = search.trim();
-    const params = term.length > 0 ? new HttpParams().set('search', term) : new HttpParams();
+    let params = new HttpParams();
+    if (customerId !== undefined) {
+      params = params.set('customerId', customerId);
+    } else if (term.length > 0) {
+      params = params.set('search', term);
+    }
     return this.http.get<CustomerOptionsResponse>(this.url('/customer-options'), { params });
   }
 

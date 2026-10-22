@@ -120,7 +120,8 @@ public sealed class ServiceRequestsController(
     [ProducesResponseType<CustomerOptions>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> CustomerOptionsList([FromQuery] string? search, CancellationToken cancellationToken)
+    public async Task<IActionResult> CustomerOptionsList(
+        [FromQuery] string? search, [FromQuery] string? customerId, CancellationToken cancellationToken)
     {
         Response.Headers.CacheControl = "no-store";
 
@@ -130,7 +131,7 @@ public sealed class ServiceRequestsController(
         }
 
         return Map(await customerOptionsHandler.HandleAsync(
-            ticket.OrganizationId, ticket.MembershipId, search, cancellationToken));
+            ticket.OrganizationId, ticket.MembershipId, search, customerId, cancellationToken));
     }
 
     [HttpGet("{id:guid}")]

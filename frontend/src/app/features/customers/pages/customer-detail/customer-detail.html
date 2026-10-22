@@ -78,12 +78,14 @@
               </span>
             </li>
           </ul>
-          <div class="detail__balance">
-            <span class="detail__caption">{{
-              'customers.customerDetail.outstandingBalance' | transloco
-            }}</span>
-            <strong>{{ h.balance }}</strong>
-          </div>
+          @if (h.balance !== null) {
+            <div class="detail__balance">
+              <span class="detail__caption">{{
+                'customers.customerDetail.outstandingBalance' | transloco
+              }}</span>
+              <strong>{{ h.balance }}</strong>
+            </div>
+          }
           @if (canMutate()) {
             <div class="detail__actions">
               <button
@@ -136,7 +138,7 @@
           role="tablist"
           [attr.aria-label]="'customers.customerDetail.customerSections' | transloco"
         >
-          @for (item of tabs; track item.code; let index = $index) {
+          @for (item of visibleTabs(); track item.code; let index = $index) {
             <button
               type="button"
               role="tab"
@@ -165,6 +167,7 @@
                 <app-properties-card
                   [state]="properties()"
                   [canMutate]="canMutate()"
+                  [showHistory]="canReadJobs()"
                   [busyId]="propertyBusyId()"
                   (addRequested)="openAddProperty()"
                   (viewRequested)="viewProperty($event)"
@@ -173,16 +176,19 @@
                   (retry)="loadProperties()"
                 />
                 <app-recent-work-card [state]="recentWork()" (retry)="loadRecentWork()" />
-                <app-appointments-card
-                  [state]="appointments()"
-                  [canMutate]="canMutate()"
-                  (retry)="loadAppointments()"
-                />
+                @if (canReadJobs()) {
+                  <app-appointments-card
+                    [state]="appointments()"
+                    [canMutate]="canMutate()"
+                    (retry)="loadAppointments()"
+                  />
+                }
               </div>
               <div class="detail__column">
                 @if (overview().data; as customer) {
                   <app-side-cards
                     [overview]="customer"
+                    [canReadJobs]="canReadJobs()"
                     [canMutate]="canMutate()"
                     [portalBusy]="portalBusy()"
                     [portalError]="portalError()"
@@ -213,94 +219,34 @@
               </div>
             </div>
           } @else if (tab() === 'activity') {
-            <section class="detail__card" aria-labelledby="activity-title">
-              <h2 class="detail__card-title" id="activity-title">
-                {{ 'customers.customerDetail.activity' | transloco }}
-              </h2>
-              @if (activity().status === 'error') {
-                <p-message severity="error" [closable]="false">
-                  <span class="detail__retry">
-                    {{ 'customers.customerDetail.weCouldnTLoad' | transloco }}
-                    <button
-                      pButton
-                      type="button"
-                      severity="secondary"
-                      size="small"
-                      (click)="loadActivity(activityPage())"
-                    >
-                      {{ 'common.retry' | transloco }}
-                    </button>
-                  </span>
-                </p-message>
-              } @else if (activity().status !== 'ready') {
-                <div class="detail__skeletons" aria-busy="true">
-                  <p-skeleton height="2.5rem" />
-                  <p-skeleton height="2.5rem" />
-                  <p-skeleton height="2.5rem" />
-                </div>
-              } @else if (activityEntries().length === 0) {
-                <p class="detail__empty">
-                  {{ 'customers.customerDetail.noActivityYet' | transloco }}
-                </p>
-              } @else {
-                <ul class="detail__activity">
-                  @for (entry of activityEntries(); track entry.id) {
-                    <li>
-                      <span class="detail__activity-label">{{ entry.label }}</span>
-                      <span class="detail__caption">{{ entry.actor }} · {{ entry.date }}</span>
-                    </li>
-                  }
-                </ul>
-                <nav
-                  class="detail__pager"
-                  [attr.aria-label]="'customers.customerDetail.activityPagination' | transloco"
-                >
-                  <button
-                    pButton
-                    type="button"
-                    severity="secondary"
-                    [outlined]="true"
-                    size="small"
-                    [attr.aria-label]="'customers.customerDetail.previousPage' | transloco"
-                    [disabled]="activityPage() === 1"
-                    (click)="loadActivity(activityPage() - 1)"
-                  >
-                    <i class="pi pi-chevron-left" aria-hidden="true"></i>
-                  </button>
-                  <span class="detail__caption">
-                    {{
-                      'customers.customerDetail.pageOf'
-                        | transloco
-                          : { activityPage: activityPage(), activityPages: activityPages() }
-                    }}
-                  </span>
-                  <button
-                    pButton
-                    type="button"
-                    severity="secondary"
-                    [outlined]="true"
-                    size="small"
-                    [attr.aria-label]="'customers.customerDetail.nextPage' | transloco"
-                    [disabled]="activityPage() >= activityPages()"
-                    (click)="loadActivity(activityPage() + 1)"
-                  >
-                    <i class="pi pi-chevron-right" aria-hidden="true"></i>
-                  </button>
-                </nav>
-              }
-            </section>
-          } @else if (activeTab().soon; as soon) {
-            <section class="detail__card detail__soon">
-              <h2 class="detail__card-title">
-                {{
-                  'customers.customerDetail.areComingSoon' | transloco: { label: activeTab().label }
-                }}
-              </h2>
-              <p>{{ 'customers.customerDetail.youLlSeeThis' | transloco: { noun: soon.noun } }}</p>
-              <a pButton severity="secondary" [outlined]="true" [routerLink]="soon.link">
-                {{ 'customers.customerDetail.goTo' | transloco: { label: activeTab().label } }}
-              </a>
-            </section>
+            <app-activity-timeline
+              [state]="activity()"
+              [groups]="activityGroups()"
+              [types]="activityTypes()"
+              [type]="activityType()"
+              [period]="activityPeriod()"
+              [hasMore]="!!activity().data?.nextCursor"
+              [loadingOlder]="loadingOlder()"
+              [olderError]="olderError()"
+              [focusId]="focusEventId()"
+              (typeChange)="onActivityType($event)"
+              (periodChange)="onActivityPeriod($event)"
+              (loadOlder)="loadOlderActivity()"
+              (retry)="loadActivity()"
+            />
+          }
+          @for (kind of relatedKinds; track kind) {
+            @if (visitedKinds().has(kind) && customerId(); as id) {
+              <div [hidden]="tab() !== kind">
+                <app-related-list-tab
+                  [kind]="kind"
+                  [customerId]="id"
+                  [canCreate]="canCreateRequest()"
+                  (newRequest)="openNewRequest()"
+                  (failed)="onRelatedFailure($event)"
+                />
+              </div>
+            }
           }
         </div>
       }
@@ -324,6 +270,16 @@
         (unavailable)="onCustomerUnavailable()"
         (openCustomer)="onOpenExisting($event)"
         (tagCreated)="onTagCreated($event)"
+      />
+    }
+    @if (canMutate()) {
+      <app-new-request-drawer
+        [open]="newRequestOpen()"
+        [options]="requestOptions()"
+        [lockedCustomer]="lockedCustomer()"
+        (created)="onRequestCreated()"
+        (closed)="onNewRequestClosed()"
+        (unauthorized)="onUnauthorized()"
       />
     }
     <app-property-drawer
