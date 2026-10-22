@@ -1,4 +1,4 @@
-<ul class="kpis" aria-label="Key figures">
+<ul class="kpis" [attr.aria-label]="'dashboard.dashboardKpis.keyFigures' | transloco">
   <li class="kpi">
     <span class="kpi__icon kpi__icon--teal" aria-hidden="true"
       ><i class="pi pi-clipboard"></i
@@ -14,10 +14,11 @@
       ><i class="pi pi-exclamation-triangle"></i
     ></span>
     <div class="kpi__body">
-      <h2 class="kpi__label">Unassigned</h2>
+      <h2 class="kpi__label">{{ 'dashboard.dashboardKpis.unassigned' | transloco }}</h2>
       <p class="kpi__value">{{ kpis().unassigned }}</p>
       <a class="kpi__link" [routerLink]="boardLink().path" [queryParams]="boardLink().queryParams">
-        Assign now <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        {{ 'dashboard.dashboardKpis.assignNow' | transloco }}
+        <i class="pi pi-arrow-right" aria-hidden="true"></i>
       </a>
     </div>
   </li>
@@ -26,17 +27,18 @@
       ><i class="pi pi-exclamation-circle"></i
     ></span>
     <div class="kpi__body">
-      <h2 class="kpi__label">At risk / delayed</h2>
+      <h2 class="kpi__label">{{ 'dashboard.dashboardKpis.atRiskDelayed' | transloco }}</h2>
       <p class="kpi__value">{{ kpis().atRiskOrDelayed }}</p>
       <button type="button" class="kpi__link" (click)="reviewRequested.emit()">
-        Review <i class="pi pi-arrow-right" aria-hidden="true"></i>
+        {{ 'dashboard.dashboardKpis.review' | transloco }}
+        <i class="pi pi-arrow-right" aria-hidden="true"></i>
       </button>
     </div>
   </li>
   <li class="kpi">
     <span class="kpi__icon kpi__icon--teal" aria-hidden="true"><i class="pi pi-users"></i></span>
     <div class="kpi__body">
-      <h2 class="kpi__label">Technician utilization</h2>
+      <h2 class="kpi__label">{{ 'dashboard.dashboardKpis.technicianUtilization' | transloco }}</h2>
       <p class="kpi__value">{{ utilization().value }}</p>
       <p class="kpi__caption">{{ utilization().caption }}</p>
     </div>
@@ -44,10 +46,10 @@
   <li class="kpi">
     <span class="kpi__icon kpi__icon--teal" aria-hidden="true"><i class="pi pi-clock"></i></span>
     <div class="kpi__body">
-      <h2 class="kpi__label">On-time arrival</h2>
+      <h2 class="kpi__label">{{ 'dashboard.dashboardKpis.onTimeArrival' | transloco }}</h2>
       <p class="kpi__value">{{ onTime().value }}</p>
       @if (onTime().empty) {
-        <p class="kpi__caption">No arrivals yet</p>
+        <p class="kpi__caption">{{ 'dashboard.dashboardKpis.noArrivalsYet' | transloco }}</p>
       }
       @if (onTime().trend; as trend) {
         <p class="kpi__caption kpi__trend" [attr.data-direction]="trend.direction">

@@ -1,7 +1,9 @@
 <section class="bank" aria-labelledby="bank-title">
-  <h3 id="bank-title" class="bank__title">Bank transfer instructions</h3>
+  <h3 id="bank-title" class="bank__title">
+    {{ 'invoices.publicBankTransfer.bankTransferInstructions' | transloco }}
+  </h3>
   <p class="bank__text">
-    Send a payment using your bank's online bill pay or ACH transfer with the following details.
+    {{ 'invoices.publicBankTransfer.sendAPaymentUsing' | transloco }}
   </p>
   <dl class="bank__rows">
     @for (row of rows(); track row.label) {
@@ -11,7 +13,7 @@
         <button
           type="button"
           class="bank__copy"
-          [attr.aria-label]="'Copy ' + row.label"
+          [attr.aria-label]="'invoices.publicBankTransfer.copy' | transloco: { label: row.label }"
           (click)="copy(row.label, row.copy)"
         >
           <i class="pi pi-copy" aria-hidden="true"></i>
@@ -21,16 +23,16 @@
   </dl>
   <span class="bank__copied" aria-live="polite">
     @if (copied(); as label) {
-      Copied {{ label }}
+      {{ 'invoices.publicBankTransfer.copied' | transloco: { label: label } }}
     }
   </span>
-  <p class="bank__text">Use the invoice number as the payment reference.</p>
+  <p class="bank__text">{{ 'invoices.publicBankTransfer.useTheInvoiceNumber' | transloco }}</p>
 </section>
 
 @if (reportedText(); as date) {
   <p class="notice notice--ok" role="status">
     <i class="pi pi-check-circle" aria-hidden="true"></i>
-    Transfer reported on {{ date }}. We'll confirm it once it arrives.
+    {{ 'invoices.publicBankTransfer.transferReportedOnWe' | transloco: { date: date } }}
   </p>
 } @else {
   <button
@@ -46,7 +48,7 @@
     } @else {
       <i class="pi pi-send" aria-hidden="true"></i>
     }
-    I sent the transfer
+    {{ 'invoices.publicBankTransfer.iSentTheTransfer' | transloco }}
   </button>
   @if (failed()) {
     <p class="notice notice--error" role="alert">{{ failureMessage }}</p>
@@ -54,12 +56,15 @@
 }
 <p class="notice notice--info">
   <i class="pi pi-info-circle" aria-hidden="true"></i>
-  Bank transfers may take 1–3 business days to appear.
+  {{ 'invoices.publicBankTransfer.bankTransfersMayTake' | transloco }}
 </p>
 <p class="cash">
   <i class="pi pi-money-bill" aria-hidden="true"></i>
   <span>
-    <strong>Prefer cash?</strong>
-    Contact {{ invoice().organization.name }} to arrange payment.
+    <strong>{{ 'invoices.publicBankTransfer.preferCash' | transloco }}</strong>
+    {{
+      'invoices.publicBankTransfer.contactToArrangePayment'
+        | transloco: { name: invoice().organization.name }
+    }}
   </span>
 </p>

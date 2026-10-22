@@ -1,5 +1,7 @@
-<h2 class="sr-title" tabindex="-1" data-sr-heading>Review your request</h2>
-<p class="sr-lead">Make sure everything looks right before sending.</p>
+<h2 class="sr-title" tabindex="-1" data-sr-heading>
+  {{ 'serviceRequest.reviewStep.reviewYourRequest' | transloco }}
+</h2>
+<p class="sr-lead">{{ 'serviceRequest.reviewStep.makeSureEverythingLooks' | transloco }}</p>
 
 <form novalidate (submit)="$event.preventDefault(); store.submit()">
   <ul class="sr-review">
@@ -28,7 +30,14 @@
                 <p class="sr-review__line">{{ attachments }}</p>
               }
               <p class="sr-review__line">
-                Active damage: {{ service().hasActiveDamage ? 'Yes' : 'No' }}
+                {{
+                  'serviceRequest.reviewStep.activeDamage'
+                    | transloco
+                      : {
+                          answer:
+                            (service().hasActiveDamage ? 'common.yes' : 'common.no') | transloco,
+                        }
+                }}
               </p>
             }
             @case ('contact') {
@@ -49,10 +58,10 @@
           type="button"
           variant="text"
           class="sr-review__edit"
-          [attr.aria-label]="'Edit ' + section.title"
+          [attr.aria-label]="'serviceRequest.reviewStep.edit' | transloco: { title: section.title }"
           (click)="store.edit(section.step)"
         >
-          Edit
+          {{ 'common.edit' | transloco }}
         </button>
       </li>
     }
@@ -60,7 +69,7 @@
 
   <p class="sr-notice">
     <i class="pi pi-info-circle" aria-hidden="true"></i>
-    Submitting this request does not confirm a price or appointment.
+    {{ 'serviceRequest.reviewStep.submittingThisRequestDoes' | transloco }}
   </p>
 
   <div class="sr-field">
@@ -75,7 +84,7 @@
         [attr.aria-describedby]="store.errorId('consent')"
         (change)="store.setConsent(consent.checked); store.revalidate('consent')"
       />
-      I confirm these details are accurate and agree to be contacted about this request.
+      {{ 'serviceRequest.reviewStep.iConfirmTheseDetails' | transloco }}
     </label>
     @if (store.error('consent'); as message) {
       <p class="sr-error" id="sr-consent-error">{{ message }}</p>
@@ -101,13 +110,13 @@
   <div class="sr-actions">
     <button pButton type="button" variant="outlined" class="sr-back" (click)="store.back()">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      Back
+      {{ 'common.back' | transloco }}
     </button>
     <button pButton type="submit" [disabled]="store.submitting()">
       @if (store.submitting()) {
-        Submitting…
+        {{ 'serviceRequest.reviewStep.submitting' | transloco }}
       } @else {
-        Submit request
+        {{ 'serviceRequest.reviewStep.submitRequest' | transloco }}
         <i class="pi pi-arrow-right" aria-hidden="true"></i>
       }
     </button>

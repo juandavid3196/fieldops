@@ -20,6 +20,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -63,23 +64,30 @@ import {
 } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to products and services.";
-export const READ_ONLY_MESSAGE =
-  'You have view-only access. Adding and editing items requires the Owner or Operations Manager role.';
-export const DESCRIPTION_MESSAGE = 'Manage reusable line items for quotes, jobs, and invoices.';
-export const LIST_ERROR_MESSAGE = "We couldn't load items. Check your connection and try again.";
-export const INFO_NOTE =
-  'Catalog items are defaults. Price and description may be adjusted on an individual quote or invoice without changing this list.';
-export const WARNING_NOTE =
-  'Discounts are added as adjustments on a quote or invoice and are not saved as products or services.';
-export const EMPTY_INITIAL_MESSAGE = 'No products or services yet.';
-export const EMPTY_FILTERED_MESSAGE = 'No items match these filters.';
-export const EXPORT_FAILED_MESSAGE = "We couldn't export items. Try again.";
-export const READINESS_MESSAGES: Readonly<Record<PublicRequestReadiness, string>> = {
-  ready: 'Public service requests are ready.',
-  no_active_categories: 'Create and activate a category to accept public requests.',
-  no_active_services: 'Assign an active service to an active category to accept public requests.',
-};
+import { localized, t } from '../../../../core/i18n/translate';
+export const FORBIDDEN_MESSAGE = (): string =>
+  t('productsServices.productsServices.forbiddenMessage');
+export const READ_ONLY_MESSAGE = (): string =>
+  t('productsServices.productsServices.readOnlyMessage');
+export const DESCRIPTION_MESSAGE = (): string =>
+  t('productsServices.productsServices.descriptionMessage');
+export const LIST_ERROR_MESSAGE = (): string =>
+  t('productsServices.productsServices.listErrorMessage');
+export const INFO_NOTE = (): string => t('productsServices.productsServices.infoNote');
+export const WARNING_NOTE = (): string => t('productsServices.productsServices.warningNote');
+export const EMPTY_INITIAL_MESSAGE = (): string =>
+  t('productsServices.productsServices.emptyInitialMessage');
+export const EMPTY_FILTERED_MESSAGE = (): string =>
+  t('productsServices.productsServices.emptyFilteredMessage');
+export const EXPORT_FAILED_MESSAGE = (): string =>
+  t('productsServices.productsServices.exportFailedMessage');
+export const READINESS_MESSAGES: Readonly<Record<PublicRequestReadiness, string>> = localized(
+  () => ({
+    ready: t('productsServices.productsServices.publicServiceRequestsAre'),
+    no_active_categories: t('productsServices.productsServices.createAndActivateA'),
+    no_active_services: t('productsServices.productsServices.assignAnActiveService'),
+  }),
+);
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5];
 const MANAGE_ROLES: readonly string[] = ['owner', 'operations_manager'];
@@ -98,6 +106,7 @@ type ListResult =
 @Component({
   selector: 'app-products-services',
   imports: [
+    TranslocoPipe,
     CategoryDialog,
     ConfirmDialog,
     DiscardChangesDialog,
@@ -135,14 +144,30 @@ export class ProductsServices {
   private readonly listRequests = new Subject<CatalogListQuery>();
   private readonly searchInput = new Subject<string>();
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly readOnlyMessage = READ_ONLY_MESSAGE;
-  readonly descriptionMessage = DESCRIPTION_MESSAGE;
-  readonly listErrorMessage = LIST_ERROR_MESSAGE;
-  readonly infoNote = INFO_NOTE;
-  readonly warningNote = WARNING_NOTE;
-  readonly emptyInitialMessage = EMPTY_INITIAL_MESSAGE;
-  readonly emptyFilteredMessage = EMPTY_FILTERED_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get readOnlyMessage(): string {
+    return READ_ONLY_MESSAGE();
+  }
+  get descriptionMessage(): string {
+    return DESCRIPTION_MESSAGE();
+  }
+  get listErrorMessage(): string {
+    return LIST_ERROR_MESSAGE();
+  }
+  get infoNote(): string {
+    return INFO_NOTE();
+  }
+  get warningNote(): string {
+    return WARNING_NOTE();
+  }
+  get emptyInitialMessage(): string {
+    return EMPTY_INITIAL_MESSAGE();
+  }
+  get emptyFilteredMessage(): string {
+    return EMPTY_FILTERED_MESSAGE();
+  }
   readonly pageSize = PAGE_SIZE;
   readonly skeletonRows = SKELETON_ROWS;
 
@@ -189,7 +214,11 @@ export class ProductsServices {
     const total = this.totalCount();
     const from = total === 0 ? 0 : this.first() + 1;
     const to = Math.min(this.first() + PAGE_SIZE, total);
-    return `Showing ${from} – ${to} of ${total} items`;
+    return t('productsServices.productsServices.showingOfItems', {
+      from: from,
+      to: to,
+      total: total,
+    });
   });
 
   readonly summary = signal<CatalogSummary | null>(null);
@@ -293,7 +322,12 @@ export class ProductsServices {
       return;
     }
     this.listError.set(
-      result.error ?? { kind: 'unknown', status: 0, message: LIST_ERROR_MESSAGE, fieldErrors: {} },
+      result.error ?? {
+        kind: 'unknown',
+        status: 0,
+        message: LIST_ERROR_MESSAGE(),
+        fieldErrors: {},
+      },
     );
   }
 
@@ -437,7 +471,7 @@ export class ProductsServices {
   }
 
   onItemUnavailable(): void {
-    this.messageService.add({ severity: 'error', summary: ITEM_UNAVAILABLE_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: ITEM_UNAVAILABLE_MESSAGE() });
     this.drawerOpen.set(false);
     this.refresh();
   }
@@ -454,7 +488,7 @@ export class ProductsServices {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this item',
+          subject: t('productsServices.productsServices.thisItem'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();
@@ -483,7 +517,7 @@ export class ProductsServices {
     if (!this.canManage()) {
       return [
         {
-          label: 'View details',
+          label: t('productsServices.productsServices.viewDetails'),
           icon: 'pi pi-eye',
           command: () => this.showDrawer('view', row.id),
         },
@@ -492,34 +526,47 @@ export class ProductsServices {
     const busy = this.mutatingId() !== null;
     return [
       {
-        label: 'Edit',
+        label: t('common.edit'),
         icon: 'pi pi-pencil',
         command: () => this.showDrawer('edit', row.id),
       },
       row.isActive
         ? {
-            label: 'Deactivate',
+            label: t('productsServices.productsServices.deactivate'),
             icon: 'pi pi-ban',
             disabled: busy,
             command: () => this.confirmDeactivate(row),
           }
         : {
-            label: 'Activate',
+            label: t('productsServices.productsServices.activate'),
             icon: 'pi pi-check-circle',
             disabled: busy,
-            command: () => this.mutate(row, this.catalog.activate(row.id), `${row.name} activated`),
+            command: () =>
+              this.mutate(
+                row,
+                this.catalog.activate(row.id),
+                t('productsServices.productsServices.activated', { name: row.name }),
+              ),
           },
     ];
   }
 
   private confirmDeactivate(row: CatalogRow): void {
     this.confirmationService.confirm({
-      header: 'Deactivate item',
-      message: `Deactivate ${row.name}? It stays on existing quotes, jobs and invoices, and can be reactivated at any time.`,
+      header: t('productsServices.productsServices.deactivateItem'),
+      message: t('productsServices.productsServices.deactivateItStaysOn', { name: row.name }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Deactivate', severity: 'danger' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
-      accept: () => this.mutate(row, this.catalog.deactivate(row.id), `${row.name} deactivated`),
+      acceptButtonProps: {
+        label: t('productsServices.productsServices.deactivate'),
+        severity: 'danger',
+      },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
+      accept: () =>
+        this.mutate(
+          row,
+          this.catalog.deactivate(row.id),
+          t('productsServices.productsServices.deactivated', { name: row.name }),
+        ),
     });
   }
 
@@ -546,13 +593,14 @@ export class ProductsServices {
       return;
     }
     if (apiError?.kind === 'not-found') {
-      this.messageService.add({ severity: 'error', summary: ITEM_UNAVAILABLE_MESSAGE });
+      this.messageService.add({ severity: 'error', summary: ITEM_UNAVAILABLE_MESSAGE() });
       this.refresh();
       return;
     }
     this.messageService.add({
       severity: 'error',
-      summary: apiError?.message ?? 'An unexpected error occurred. Please try again.',
+      summary:
+        apiError?.message ?? t('productsServices.productsServices.anUnexpectedErrorOccurred'),
     });
   }
 
@@ -572,7 +620,7 @@ export class ProductsServices {
           saveCsv(csv);
         },
         error: (error: unknown) =>
-          this.handleDownloadFailed(error, EXPORT_FAILED_MESSAGE, this.exporting),
+          this.handleDownloadFailed(error, EXPORT_FAILED_MESSAGE(), this.exporting),
       });
   }
 
@@ -590,7 +638,7 @@ export class ProductsServices {
           saveCsv(csv);
         },
         error: (error: unknown) =>
-          this.handleDownloadFailed(error, TEMPLATE_FAILED_MESSAGE, this.downloadingTemplate),
+          this.handleDownloadFailed(error, TEMPLATE_FAILED_MESSAGE(), this.downloadingTemplate),
       });
   }
 
@@ -612,7 +660,10 @@ export class ProductsServices {
   }
 
   onImported(count: number): void {
-    this.messageService.add({ severity: 'success', summary: `Imported ${count} items` });
+    this.messageService.add({
+      severity: 'success',
+      summary: t('productsServices.productsServices.importedItems', { count: count }),
+    });
     this.refresh();
   }
 }

@@ -14,6 +14,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Subscription, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { AvailabilityStep } from '../../components/availability-step/availability-step';
@@ -28,12 +29,15 @@ import { ServiceRequestWizardStore } from '../../services/service-request-wizard
 import { ServiceRequestService } from '../../services/service-request.service';
 import { LOAD_ERROR_MESSAGE, UNAVAILABLE_MESSAGE } from '../../service-request.messages';
 import { fieldId } from '../../service-request.validators';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 
 type LoadState = 'loading' | 'ready' | 'unavailable' | 'error';
 
 @Component({
   selector: 'app-service-request',
   imports: [
+    LanguageFooterSelector,
+    TranslocoPipe,
     RouterLink,
     ButtonDirective,
     Message,
@@ -64,8 +68,12 @@ export class ServiceRequest {
 
   protected readonly store = inject(ServiceRequestWizardStore);
   protected readonly state = signal<LoadState>('loading');
-  protected readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
-  protected readonly unavailableMessage = UNAVAILABLE_MESSAGE;
+  protected get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  protected get unavailableMessage(): string {
+    return UNAVAILABLE_MESSAGE();
+  }
 
   constructor() {
     this.route.paramMap

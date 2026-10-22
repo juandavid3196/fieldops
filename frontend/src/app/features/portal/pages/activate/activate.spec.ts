@@ -100,6 +100,7 @@ describe('PortalActivate (BR-12, BR-13)', () => {
       token: 'abc123',
       password: PASSWORD,
       lastName: 'Rivera',
+      preferredLanguage: 'en',
     });
     accept.flush(SESSION);
     await settle();
@@ -129,7 +130,11 @@ describe('PortalActivate (BR-12, BR-13)', () => {
     await fill('portal-activate-confirm', PASSWORD);
     await submit();
     const conflict = httpTesting.expectOne(`${API}/portal/invitations/accept`);
-    expect(conflict.request.body).toEqual({ token: 'abc', password: PASSWORD });
+    expect(conflict.request.body).toEqual({
+      token: 'abc',
+      password: PASSWORD,
+      preferredLanguage: 'en',
+    });
     conflict.flush(
       { code: 'portal_invitation_ineligible' },
       { status: 409, statusText: 'Conflict' },

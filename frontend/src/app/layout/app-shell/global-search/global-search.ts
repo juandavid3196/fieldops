@@ -17,6 +17,7 @@ import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { EMPTY, Subject, catchError, filter, map, of, switchMap, timer } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { GlobalSearchItem } from '../../../core/models/global-search.model';
 import { isApiError } from '../../../core/models/api-error.model';
@@ -24,13 +25,14 @@ import { GlobalSearchService } from '../../../core/services/global-search.servic
 import { RELOAD_ON_PARAM_CHANGE } from '../../../core/services/reload-route-reuse.strategy';
 import { SearchGroup, SearchRow, buildGroups } from './global-search-view';
 
-export const SEARCH_PLACEHOLDER = 'Search requests, customers, work orders…';
+import { t } from '../../../core/i18n/translate';
+export const SEARCH_PLACEHOLDER = (): string => t('shell.globalSearch.searchPlaceholder');
 export const SEARCH_DEBOUNCE_MS = 300;
 export const SEARCH_MIN_LENGTH = 2;
-export const SEARCH_HINT = 'Search by name, number, email, or phone.';
-export const SEARCH_SHORT = 'Enter at least 2 characters.';
-export const SEARCH_ERROR = "Couldn't search right now.";
-export const SEARCH_MORE = 'More results exist. Refine your search.';
+export const SEARCH_HINT = (): string => t('shell.globalSearch.searchHint');
+export const SEARCH_SHORT = (): string => t('shell.globalSearch.searchShort');
+export const SEARCH_ERROR = (): string => t('shell.globalSearch.searchError');
+export const SEARCH_MORE = (): string => t('shell.globalSearch.searchMore');
 
 type SearchState = 'idle' | 'short' | 'loading' | 'results' | 'empty' | 'error';
 
@@ -44,7 +46,7 @@ interface Outcome {
 /** global-search BR-10 – BR-17: staff top bar combobox with a grouped results panel. */
 @Component({
   selector: 'app-global-search',
-  imports: [Button, IconField, InputIcon, InputText],
+  imports: [TranslocoPipe, Button, IconField, InputIcon, InputText],
   templateUrl: './global-search.html',
   styleUrl: './global-search.scss',
   host: {
@@ -64,11 +66,21 @@ export class GlobalSearch {
   private readonly requests = new Subject<{ query: string; delay: number }>();
   private trimmed = '';
 
-  readonly placeholder = SEARCH_PLACEHOLDER;
-  readonly hint = SEARCH_HINT;
-  readonly shortText = SEARCH_SHORT;
-  readonly errorText = SEARCH_ERROR;
-  readonly moreText = SEARCH_MORE;
+  get placeholder(): string {
+    return SEARCH_PLACEHOLDER();
+  }
+  get hint(): string {
+    return SEARCH_HINT();
+  }
+  get shortText(): string {
+    return SEARCH_SHORT();
+  }
+  get errorText(): string {
+    return SEARCH_ERROR();
+  }
+  get moreText(): string {
+    return SEARCH_MORE();
+  }
   readonly skeletonRows = [0, 1, 2, 3];
 
   readonly term = signal('');
@@ -84,9 +96,13 @@ export class GlobalSearch {
   );
   readonly countText = computed(() => {
     const count = this.options().length;
-    return count === 1 ? '1 result' : `${count} results`;
+    return count === 1
+      ? t('shell.globalSearch.n1Result')
+      : t('shell.globalSearch.results', { count: count });
   });
-  readonly emptyText = computed(() => `No results for “${this.query()}”.`);
+  readonly emptyText = computed(() =>
+    t('shell.globalSearch.noResultsFor', { query: this.query() }),
+  );
   readonly activeId = computed(() =>
     this.open() && this.state() === 'results'
       ? (this.options()[this.activeIndex()]?.id ?? null)

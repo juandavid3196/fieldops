@@ -1,13 +1,15 @@
 import { BusinessAlert } from '../models/business-overview.model';
 
+import { t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 export const EMPTY_VALUE = '—';
-export const BELOW_TARGET_TEXT = 'Below 40% target';
+export const BELOW_TARGET_TEXT = (): string => t('businessOverview.businessView.belowTargetText');
 export const ATTENTION_LIMIT = 3;
 export const SERVICE_LIMIT = 5;
 
 /** BR-10: card and table money in whole currency units with the symbol. */
 export function money(value: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(activeIntlLocale(), {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
@@ -50,7 +52,7 @@ export function delta(current: number, previous: number): Delta | null {
   }
   const value = Math.round(((current - previous) / Math.abs(previous)) * 1000) / 10;
   if (value === 0) {
-    return { direction: 'flat', text: 'No change' };
+    return { direction: 'flat', text: t('businessOverview.businessView.noChange') };
   }
   return value > 0
     ? { direction: 'up', text: `+${value.toFixed(1)}%` }
@@ -64,7 +66,7 @@ export function overtimeChange(current: number, previous: number): Delta | null 
   }
   const value = Math.round(((current - previous) / previous) * 100);
   if (value === 0) {
-    return { direction: 'flat', text: 'No change' };
+    return { direction: 'flat', text: t('businessOverview.businessView.noChange') };
   }
   return value > 0
     ? { direction: 'up', text: `${value}%` }
@@ -92,7 +94,10 @@ export function attentionItem(
   currency: string,
   target: number,
 ): AttentionItem {
-  const targetText = `${percentOne(alert.marginPercent)} vs ${target.toFixed(1)}% target`;
+  const targetText = t('businessOverview.businessView.vsTarget', {
+    marginPercent: percentOne(alert.marginPercent),
+    value: target.toFixed(1),
+  });
   const key = `${alert.type}-${alert.branchId ?? alert.categoryId ?? index}`;
   switch (alert.type) {
     case 'overdue_invoices': {
@@ -100,8 +105,15 @@ export function attentionItem(
       return {
         key,
         severity: alert.severity,
-        title: `${count} overdue invoice${count === 1 ? '' : 's'}`,
-        detail: `Totaling ${money(alert.amount ?? 0, currency)}`,
+        title: t(
+          count === 1
+            ? 'businessOverview.businessView.overdueInvoice'
+            : 'businessOverview.businessView.overdueInvoices',
+          { count },
+        ),
+        detail: t('businessOverview.businessView.totaling', {
+          value: money(alert.amount ?? 0, currency),
+        }),
         link: { kind: 'invoices' },
       };
     }
@@ -109,7 +121,9 @@ export function attentionItem(
       return {
         key,
         severity: alert.severity,
-        title: `${alert.name ?? 'Branch'} estimated margin below target`,
+        title: t('businessOverview.businessView.estimatedMarginBelowTarget', {
+          value: alert.name ?? t('businessOverview.businessView.branch'),
+        }),
         detail: targetText,
         link: { kind: 'branch', branchId: alert.branchId ?? '' },
       };
@@ -117,7 +131,9 @@ export function attentionItem(
       return {
         key,
         severity: alert.severity,
-        title: `${alert.name ?? 'Service'} estimated margin below target`,
+        title: t('businessOverview.businessView.estimatedMarginBelowTarget', {
+          value: alert.name ?? t('businessOverview.businessView.service'),
+        }),
         detail: targetText,
         link: { kind: 'catalog' },
       };
@@ -125,8 +141,13 @@ export function attentionItem(
       return {
         key,
         severity: alert.severity,
-        title: `Scheduled overtime up ${Math.round(alert.changePercent ?? 0)}%`,
-        detail: `${hours(alert.overtimeMinutes ?? 0)} vs ${hours(alert.previousOvertimeMinutes ?? 0)} in previous period`,
+        title: t('businessOverview.businessView.scheduledOvertimeUp', {
+          value: Math.round(alert.changePercent ?? 0),
+        }),
+        detail: t('businessOverview.businessView.vsInPreviousPeriod', {
+          value: hours(alert.overtimeMinutes ?? 0),
+          value2: hours(alert.previousOvertimeMinutes ?? 0),
+        }),
         link: { kind: 'team' },
       };
   }

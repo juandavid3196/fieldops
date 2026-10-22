@@ -1,5 +1,7 @@
 <section class="card" aria-labelledby="team-title">
-  <h2 class="card__title" id="team-title">Team &amp; capacity</h2>
+  <h2 class="card__title" id="team-title">
+    {{ 'businessOverview.teamCapacity.teamCapacity' | transloco }}
+  </h2>
   <dl class="rows">
     @for (row of rows(); track row.id) {
       <div class="rows__item">

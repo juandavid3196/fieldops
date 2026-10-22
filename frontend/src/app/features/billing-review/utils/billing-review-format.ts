@@ -9,11 +9,14 @@ import {
   TERMS_MESSAGE,
 } from '../models/billing-review.model';
 
-export const TERMS_OPTIONS: readonly { readonly code: PaymentTerms; readonly label: string }[] = [
-  { code: 'due_upon_receipt', label: 'Due upon receipt' },
-  { code: 'net_15', label: 'Net 15' },
-  { code: 'net_30', label: 'Net 30' },
-];
+import { localized, localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
+export const TERMS_OPTIONS: readonly { readonly code: PaymentTerms; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'due_upon_receipt', label: t('billingReview.billingReviewFormat.dueUponReceipt') },
+    { code: 'net_15', label: t('billingReview.billingReviewFormat.net15') },
+    { code: 'net_30', label: t('billingReview.billingReviewFormat.net30') },
+  ]);
 
 const TERMS_DAYS: Readonly<Record<PaymentTerms, number>> = {
   due_upon_receipt: 0,
@@ -24,40 +27,65 @@ const TERMS_DAYS: Readonly<Record<PaymentTerms, number>> = {
 /** Status text and icon (never colour alone, BR-29). */
 export const LINE_STATUS: Readonly<
   Record<LineStatus, { readonly label: string; readonly icon: string; readonly tone: string }>
-> = {
-  matches: { label: 'Matches quote', icon: 'pi-check', tone: 'ok' },
-  over: { label: 'Over quote', icon: 'pi-arrow-up', tone: 'warn' },
-  under: { label: 'Under quote', icon: 'pi-arrow-down', tone: 'info' },
-  not_in_quote: { label: 'Not in quote', icon: 'pi-exclamation-triangle', tone: 'warn' },
-  not_tracked: { label: 'Not tracked', icon: 'pi-minus-circle', tone: 'muted' },
-  see_labor_total: { label: 'See labor total', icon: 'pi-arrow-down', tone: 'muted' },
-};
+> = localized(() => ({
+  matches: {
+    label: t('billingReview.billingReviewFormat.matchesQuote'),
+    icon: 'pi-check',
+    tone: 'ok',
+  },
+  over: {
+    label: t('billingReview.billingReviewFormat.overQuote'),
+    icon: 'pi-arrow-up',
+    tone: 'warn',
+  },
+  under: {
+    label: t('billingReview.billingReviewFormat.underQuote'),
+    icon: 'pi-arrow-down',
+    tone: 'info',
+  },
+  not_in_quote: {
+    label: t('billingReview.billingReviewFormat.notInQuote'),
+    icon: 'pi-exclamation-triangle',
+    tone: 'warn',
+  },
+  not_tracked: {
+    label: t('billingReview.billingReviewFormat.notTracked'),
+    icon: 'pi-minus-circle',
+    tone: 'muted',
+  },
+  see_labor_total: {
+    label: t('billingReview.billingReviewFormat.seeLaborTotal'),
+    icon: 'pi-arrow-down',
+    tone: 'muted',
+  },
+}));
 
 /** `mobile-job-completion` BR-05 acknowledgment method labels. */
-export const ACK_METHOD_LABELS: Readonly<Record<string, string>> = {
-  signed: 'Signature obtained',
-  customer_absent: 'Customer not available',
-  customer_refused: 'Customer declined to sign',
-  remote_confirmation: 'Remote confirmation',
-};
+export const ACK_METHOD_LABELS: Readonly<Record<string, string>> = localized(() => ({
+  signed: t('billingReview.billingReviewFormat.signatureObtained'),
+  customer_absent: t('billingReview.billingReviewFormat.customerNotAvailable'),
+  customer_refused: t('billingReview.billingReviewFormat.customerDeclinedToSign'),
+  remote_confirmation: t('billingReview.billingReviewFormat.remoteConfirmation'),
+}));
 
 /** `mobile-job-completion` BR-06 signer relationship labels. */
-export const RELATIONSHIP_LABELS: Readonly<Record<string, string>> = {
-  customer: 'Customer',
-  family_member: 'Family member',
-  tenant: 'Tenant',
-  property_manager: 'Property manager',
-  employee: 'Employee',
-  other: 'Other',
-};
+export const RELATIONSHIP_LABELS: Readonly<Record<string, string>> = localized(() => ({
+  customer: t('common.customer'),
+  family_member: t('billingReview.billingReviewFormat.familyMember'),
+  tenant: t('billingReview.billingReviewFormat.tenant'),
+  property_manager: t('billingReview.billingReviewFormat.propertyManager'),
+  employee: t('billingReview.billingReviewFormat.employee'),
+  other: t('billingReview.billingReviewFormat.other'),
+}));
 
-export const EVIDENCE_GROUPS: readonly { readonly type: EvidenceKind; readonly label: string }[] = [
-  { type: 'before', label: 'Before' },
-  { type: 'during', label: 'During' },
-  { type: 'after', label: 'After' },
-  { type: 'incident', label: 'Incident' },
-  { type: 'other', label: 'Other' },
-];
+export const EVIDENCE_GROUPS: readonly { readonly type: EvidenceKind; readonly label: string }[] =
+  localizedList(() => [
+    { type: 'before', label: t('billingReview.billingReviewFormat.before') },
+    { type: 'during', label: t('billingReview.billingReviewFormat.during') },
+    { type: 'after', label: t('billingReview.billingReviewFormat.after') },
+    { type: 'incident', label: t('billingReview.billingReviewFormat.incident') },
+    { type: 'other', label: t('billingReview.billingReviewFormat.other') },
+  ]);
 
 export function hasVariance(labor: LaborVariance, material: boolean): boolean {
   return labor !== 'none' || material;
@@ -67,18 +95,20 @@ export function hasVariance(labor: LaborVariance, material: boolean): boolean {
 export function varianceBadge(labor: LaborVariance, material: boolean): string {
   const hasLabor = labor !== 'none';
   if (hasLabor && material) {
-    return 'Labor and material variance';
+    return t('billingReview.billingReviewFormat.laborAndMaterialVariance');
   }
   if (hasLabor) {
-    return 'Labor variance';
+    return t('billingReview.billingReviewFormat.laborVariance');
   }
-  return material ? 'Material variance' : 'No variance';
+  return material
+    ? t('billingReview.billingReviewFormat.materialVariance')
+    : t('billingReview.billingReviewFormat.noVariance');
 }
 
 /** Backend amounts are shown, never recalculated. */
 export function money(value: number, currency: string): string {
   try {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value);
+    return new Intl.NumberFormat(activeIntlLocale(), { style: 'currency', currency }).format(value);
   } catch {
     return value.toFixed(2);
   }
@@ -90,9 +120,11 @@ function zoned(iso: string, timeZone: string, options: Intl.DateTimeFormatOption
     return '';
   }
   try {
-    return new Intl.DateTimeFormat('en-US', { ...options, timeZone }).format(date);
+    return new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone }).format(date);
   } catch {
-    return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(date);
+    return new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: 'UTC' }).format(
+      date,
+    );
   }
 }
 
@@ -161,13 +193,13 @@ export function validateGenerate(
   const errors: GenerateErrors = {};
   const date = /^\d{4}-\d{2}-\d{2}$/.test(values.issueDate) ? values.issueDate : null;
   if (date === null || date > today || date < addDays(today, -30)) {
-    errors.issueDate = ISSUE_DATE_MESSAGE;
+    errors.issueDate = ISSUE_DATE_MESSAGE();
   }
   if (!TERMS_OPTIONS.some((option) => option.code === values.paymentTerms)) {
-    errors.paymentTerms = TERMS_MESSAGE;
+    errors.paymentTerms = TERMS_MESSAGE();
   }
   if (values.note.trim().length > NOTE_MAX_LENGTH) {
-    errors.note = NOTE_TOO_LONG_MESSAGE;
+    errors.note = NOTE_TOO_LONG_MESSAGE();
   }
   return errors;
 }
@@ -175,5 +207,7 @@ export function validateGenerate(
 /** BR-25: "Organization default • <rate>%" for a single rate, else "Quote tax rates". */
 export function taxJurisdiction(taxLabel: string): string {
   const rate = /\(([\d.]+)%\)/.exec(taxLabel)?.[1];
-  return rate === undefined ? 'Quote tax rates' : `Organization default • ${rate}%`;
+  return rate === undefined
+    ? t('billingReview.billingReviewFormat.quoteTaxRates')
+    : t('billingReview.billingReviewFormat.organizationDefault', { rate: rate });
 }

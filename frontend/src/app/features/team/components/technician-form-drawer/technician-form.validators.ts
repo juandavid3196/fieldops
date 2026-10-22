@@ -4,6 +4,7 @@ import {
   TechnicianFieldKey,
 } from '../../models/team.model';
 
+import { localized, t } from '../../../../core/i18n/translate';
 export interface TechnicianFormValue {
   readonly firstName: string;
   readonly lastName: string;
@@ -14,15 +15,15 @@ export interface TechnicianFormValue {
   readonly notes: string;
 }
 
-export const FIELD_LABELS: Readonly<Record<TechnicianFieldKey, string>> = {
-  firstName: 'First name',
-  lastName: 'Last name',
-  email: 'Email',
-  phone: 'Mobile phone',
-  employeeCode: 'Profile ID',
-  branchId: 'Home branch',
-  notes: 'Notes',
-};
+export const FIELD_LABELS: Readonly<Record<TechnicianFieldKey, string>> = localized(() => ({
+  firstName: t('team.technicianFormValidators.firstName'),
+  lastName: t('team.technicianFormValidators.lastName'),
+  email: t('common.email'),
+  phone: t('team.technicianFormValidators.mobilePhone'),
+  employeeCode: t('team.technicianFormValidators.profileId'),
+  branchId: t('team.technicianFormValidators.homeBranch'),
+  notes: t('common.notes'),
+}));
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_CHARACTERS = /^[0-9\s+()\-.]*$/;
@@ -49,15 +50,17 @@ export function validateTechnicianField(
     case 'lastName': {
       const text = value[field].trim();
       if (text.length === 0) {
-        return field === 'firstName' ? 'Enter a first name.' : 'Enter a last name.';
+        return field === 'firstName'
+          ? t('team.technicianFormValidators.enterAFirstName')
+          : t('team.technicianFormValidators.enterALastName');
       }
-      return text.length > 100 ? 'Use 100 characters or fewer.' : null;
+      return text.length > 100 ? t('team.technicianFormValidators.use100CharactersOr') : null;
     }
     case 'email': {
       const text = value.email.trim();
       return text.length === 0 || (text.length <= 254 && EMAIL.test(text))
         ? null
-        : 'Enter a valid email address.';
+        : t('team.technicianFormValidators.enterAValidEmail');
     }
     case 'phone': {
       const text = value.phone.trim();
@@ -67,20 +70,22 @@ export function validateTechnicianField(
       const digits = text.replace(/\D/g, '').length;
       return text.length <= 40 && PHONE_CHARACTERS.test(text) && digits >= 7 && digits <= 15
         ? null
-        : 'Enter a valid phone number.';
+        : t('team.technicianFormValidators.enterAValidPhone');
     }
     case 'employeeCode': {
       const text = value.employeeCode.trim();
       return text.length === 0 || (text.length <= 50 && CODE.test(text))
         ? null
-        : 'Use letters, numbers, hyphens or underscores.';
+        : t('team.technicianFormValidators.useLettersNumbersHyphens');
     }
     case 'branchId':
       return value.branchId !== null && branchIds.includes(value.branchId)
         ? null
-        : 'Choose a branch you have access to.';
+        : t('team.technicianFormValidators.chooseABranchYou');
     case 'notes':
-      return value.notes.trim().length > 2000 ? 'Use 2000 characters or fewer.' : null;
+      return value.notes.trim().length > 2000
+        ? t('team.technicianFormValidators.use2000CharactersOr')
+        : null;
   }
 }
 

@@ -19,6 +19,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { comingSoonPath } from '../../../../core/config/coming-soon-modules';
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
@@ -59,15 +60,13 @@ import {
 } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to users and permissions.";
-export const READ_ONLY_MESSAGE =
-  'You have view-only access. Inviting users and editing access requires the Owner role.';
-export const DESCRIPTION_MESSAGE =
-  'Manage sign-in access, predefined roles, and branch visibility.';
-export const LIST_ERROR_MESSAGE = "We couldn't load users. Check your connection and try again.";
-export const NOTE_MESSAGE =
-  'User access controls sign-in and permissions. Skills, workload, and availability are managed in';
-export const EMPTY_MESSAGE = 'No users match these filters.';
+import { t } from '../../../../core/i18n/translate';
+export const FORBIDDEN_MESSAGE = (): string => t('users.users.forbiddenMessage');
+export const READ_ONLY_MESSAGE = (): string => t('users.users.readOnlyMessage');
+export const DESCRIPTION_MESSAGE = (): string => t('users.users.descriptionMessage');
+export const LIST_ERROR_MESSAGE = (): string => t('users.users.listErrorMessage');
+export const NOTE_MESSAGE = (): string => t('users.users.noteMessage');
+export const EMPTY_MESSAGE = (): string => t('users.users.emptyMessage');
 const SEARCH_DEBOUNCE_MS = 300;
 const SKELETON_ROWS = [0, 1, 2, 3, 4, 5];
 
@@ -83,6 +82,7 @@ type ListResult =
 @Component({
   selector: 'app-users',
   imports: [
+    TranslocoPipe,
     ConfirmDialog,
     DiscardChangesDialog,
     RouterLink,
@@ -119,12 +119,24 @@ export class Users {
   private readonly listRequests = new Subject<UserListQuery>();
   private readonly searchInput = new Subject<string>();
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly readOnlyMessage = READ_ONLY_MESSAGE;
-  readonly descriptionMessage = DESCRIPTION_MESSAGE;
-  readonly listErrorMessage = LIST_ERROR_MESSAGE;
-  readonly noteMessage = NOTE_MESSAGE;
-  readonly emptyMessage = EMPTY_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get readOnlyMessage(): string {
+    return READ_ONLY_MESSAGE();
+  }
+  get descriptionMessage(): string {
+    return DESCRIPTION_MESSAGE();
+  }
+  get listErrorMessage(): string {
+    return LIST_ERROR_MESSAGE();
+  }
+  get noteMessage(): string {
+    return NOTE_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return EMPTY_MESSAGE();
+  }
   readonly teamPath = comingSoonPath('team');
   readonly pageSize = PAGE_SIZE;
   readonly skeletonRows = SKELETON_ROWS;
@@ -258,7 +270,12 @@ export class Users {
       return;
     }
     this.listError.set(
-      result.error ?? { kind: 'unknown', status: 0, message: LIST_ERROR_MESSAGE, fieldErrors: {} },
+      result.error ?? {
+        kind: 'unknown',
+        status: 0,
+        message: LIST_ERROR_MESSAGE(),
+        fieldErrors: {},
+      },
     );
   }
 
@@ -423,7 +440,7 @@ export class Users {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this user',
+          subject: t('users.users.thisUser'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();
@@ -453,13 +470,13 @@ export class Users {
     if (row.kind === 'invitation') {
       return [
         {
-          label: 'Resend invitation',
+          label: t('users.users.resendInvitation'),
           icon: 'pi pi-send',
           disabled: busy,
           command: () => this.resend(row),
         },
         {
-          label: 'Revoke invitation',
+          label: t('users.users.revokeInvitation'),
           icon: 'pi pi-times-circle',
           disabled: busy,
           command: () => this.confirmRevoke(row),
@@ -469,7 +486,7 @@ export class Users {
     if (displayStatus(row) === 'suspended') {
       return [
         {
-          label: 'Reactivate',
+          label: t('users.users.reactivate'),
           icon: 'pi pi-refresh',
           disabled: busy,
           command: () => this.reactivate(row),
@@ -477,13 +494,13 @@ export class Users {
       ];
     }
     const tooltip = row.isCurrentUser
-      ? SELF_SUSPEND_TOOLTIP
+      ? SELF_SUSPEND_TOOLTIP()
       : row.isLastOwner
-        ? LAST_OWNER_TOOLTIP
+        ? LAST_OWNER_TOOLTIP()
         : undefined;
     return [
       {
-        label: 'Suspend access',
+        label: t('users.users.suspendAccess'),
         icon: 'pi pi-ban',
         disabled: busy || tooltip !== undefined,
         tooltip,
@@ -497,36 +514,45 @@ export class Users {
   private confirmSuspend(row: UserRow): void {
     const name = fullName(row);
     this.confirmationService.confirm({
-      header: 'Suspend access',
-      message: `Suspend ${name}? They won't be able to sign in. Assigned work and audit history are preserved.`,
+      header: t('users.users.suspendAccess'),
+      message: t('users.users.suspendTheyWontBe', { name: name }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Suspend', severity: 'danger' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('users.users.suspend'), severity: 'danger' },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () =>
-        this.mutate(row, this.usersService.suspend(row.id), `Access suspended for ${name}`),
+        this.mutate(
+          row,
+          this.usersService.suspend(row.id),
+          t('users.users.accessSuspendedFor', { name: name }),
+        ),
     });
   }
 
   private confirmRevoke(row: UserRow): void {
     this.confirmationService.confirm({
-      header: 'Revoke invitation',
-      message: `Revoke the invitation for ${row.email}? The link will stop working.`,
+      header: t('users.users.revokeInvitation'),
+      message: t('users.users.revokeTheInvitationFor', { email: row.email }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Revoke', severity: 'danger' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
-      accept: () => this.mutate(row, this.usersService.revoke(row.id), 'Invitation revoked'),
+      acceptButtonProps: { label: t('users.users.revoke'), severity: 'danger' },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
+      accept: () =>
+        this.mutate(row, this.usersService.revoke(row.id), t('users.users.invitationRevoked')),
     });
   }
 
   private resend(row: UserRow): void {
-    this.mutate(row, this.usersService.resend(row.id), `Invitation resent to ${row.email}`);
+    this.mutate(
+      row,
+      this.usersService.resend(row.id),
+      t('users.users.invitationResentTo', { email: row.email }),
+    );
   }
 
   private reactivate(row: UserRow): void {
     this.mutate(
       row,
       this.usersService.reactivate(row.id),
-      `Access reactivated for ${fullName(row)}`,
+      t('users.users.accessReactivatedFor', { row: fullName(row) }),
     );
   }
 
@@ -556,22 +582,22 @@ export class Users {
         this.onUnauthorized();
         return;
       case 'not-found':
-        summary = USER_UNAVAILABLE_MESSAGE;
+        summary = USER_UNAVAILABLE_MESSAGE();
         reload = true;
         break;
       case 'conflict':
         if (row.kind === 'invitation') {
-          summary = NOT_PENDING_MESSAGE;
+          summary = NOT_PENDING_MESSAGE();
           reload = true;
         } else {
-          summary = row.isCurrentUser ? SELF_SUSPEND_TOOLTIP : LAST_OWNER_TOOLTIP;
+          summary = row.isCurrentUser ? SELF_SUSPEND_TOOLTIP() : LAST_OWNER_TOOLTIP();
         }
         break;
       default:
         summary =
           apiError?.status === 502
-            ? DELIVERY_FAILED_MESSAGE
-            : (apiError?.message ?? 'An unexpected error occurred. Please try again.');
+            ? DELIVERY_FAILED_MESSAGE()
+            : (apiError?.message ?? t('users.users.anUnexpectedErrorOccurred'));
     }
     this.messageService.add({ severity: 'error', summary });
     if (reload) {

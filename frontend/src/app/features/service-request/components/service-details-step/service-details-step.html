@@ -1,16 +1,19 @@
 <p class="sr-guest">
   <i class="pi pi-user sr-guest__icon" aria-hidden="true"></i>
   <span>
-    <strong>Continuing as guest</strong>
-    Tell us what you need.
+    <strong>{{ 'serviceRequest.serviceDetailsStep.continuingAsGuest' | transloco }}</strong>
+    {{ 'serviceRequest.serviceDetailsStep.tellUsWhatYou' | transloco }}
   </span>
 </p>
-<h2 class="sr-title" tabindex="-1" data-sr-heading>Service details</h2>
+<h2 class="sr-title" tabindex="-1" data-sr-heading>
+  {{ 'serviceRequest.serviceDetailsStep.serviceDetails' | transloco }}
+</h2>
 
 <form novalidate (submit)="$event.preventDefault(); store.next()">
   <fieldset class="sr-field" [attr.aria-describedby]="store.errorId('service.categoryId')">
     <legend class="sr-label">
-      What type of service do you need? <span class="sr-required" aria-hidden="true">*</span>
+      {{ 'serviceRequest.serviceDetailsStep.whatTypeOfService' | transloco }}
+      <span class="sr-required" aria-hidden="true">*</span>
     </legend>
     <div class="sr-tiles">
       @for (category of store.config()?.categories; track category.id) {
@@ -36,13 +39,14 @@
 
   <div class="sr-field">
     <label class="sr-label" for="sr-service-serviceId"
-      >Service <span class="sr-required" aria-hidden="true">*</span></label
+      >{{ 'serviceRequest.serviceDetailsStep.service' | transloco }}
+      <span class="sr-required" aria-hidden="true">*</span></label
     >
     <div class="sr-service-row">
       <p-select
         inputId="sr-service-serviceId"
-        ariaLabel="Service"
-        placeholder="Select a service"
+        [ariaLabel]="'serviceRequest.serviceDetailsStep.service' | transloco"
+        [placeholder]="'serviceRequest.serviceDetailsStep.selectAService' | transloco"
         appendTo="body"
         fluid
         optionLabel="name"
@@ -72,7 +76,8 @@
 
   <div class="sr-field">
     <label class="sr-label" for="sr-service-description"
-      >Describe the problem <span class="sr-required" aria-hidden="true">*</span></label
+      >{{ 'serviceRequest.serviceDetailsStep.describeTheProblem' | transloco }}
+      <span class="sr-required" aria-hidden="true">*</span></label
     >
     <textarea
       pTextarea
@@ -91,9 +96,9 @@
       (blur)="store.revalidate('service.description')"
     ></textarea>
     <span class="sr-meta">
-      <span class="sr-hint"
-        >When did it start? Is anything turned off? Include any access or safety concerns.</span
-      >
+      <span class="sr-hint">{{
+        'serviceRequest.serviceDetailsStep.whenDidItStart' | transloco
+      }}</span>
       <span class="sr-count" aria-live="polite">{{ service().description.length }}/1000</span>
     </span>
     @if (store.error('service.description'); as message) {
@@ -103,7 +108,8 @@
 
   <fieldset class="sr-field">
     <legend class="sr-label">
-      How urgent is this? <span class="sr-required" aria-hidden="true">*</span>
+      {{ 'serviceRequest.serviceDetailsStep.howUrgentIsThis' | transloco }}
+      <span class="sr-required" aria-hidden="true">*</span>
     </legend>
     <div class="sr-urgency">
       @for (urgency of urgencies; track urgency.value) {
@@ -123,14 +129,17 @@
       }
       <p class="sr-hint sr-hint--emergency">
         <span class="sr-alert-dot" aria-hidden="true">!</span>
-        For immediate danger, shut off utilities if safe and contact emergency services.
+        {{ 'serviceRequest.serviceDetailsStep.forImmediateDangerShut' | transloco }}
       </p>
     </div>
   </fieldset>
 
   <div class="sr-field">
     <span class="sr-label"
-      >Add photos or documents <span class="sr-optional">(optional)</span></span
+      >{{ 'serviceRequest.serviceDetailsStep.addPhotosOrDocuments' | transloco }}
+      <span class="sr-optional">{{
+        'serviceRequest.serviceDetailsStep.optional' | transloco
+      }}</span></span
     >
     <app-attachment-dropzone />
   </div>
@@ -142,16 +151,16 @@
       [checked]="service().hasActiveDamage"
       (change)="store.patchService({ hasActiveDamage: damage.checked })"
     />
-    The issue is currently causing active damage
+    {{ 'serviceRequest.serviceDetailsStep.theIssueIsCurrently' | transloco }}
   </label>
 
   <div class="sr-actions">
     <button pButton type="button" variant="outlined" class="sr-back" (click)="store.back()">
       <i class="pi pi-arrow-left" aria-hidden="true"></i>
-      Back
+      {{ 'common.back' | transloco }}
     </button>
     <button pButton type="submit">
-      Continue to availability
+      {{ 'serviceRequest.serviceDetailsStep.continueToAvailability' | transloco }}
       <i class="pi pi-arrow-right" aria-hidden="true"></i>
     </button>
   </div>

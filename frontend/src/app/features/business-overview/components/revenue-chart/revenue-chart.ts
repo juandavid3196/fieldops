@@ -1,4 +1,5 @@
 import { Component, computed, input, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Granularity, SeriesBucket } from '../../models/business-overview.model';
 import {
@@ -12,12 +13,13 @@ import { money } from '../../utils/business-view';
 import { PROFIT_HINT } from '../business-kpis/business-kpis';
 import { InfoHint } from '../info-hint/info-hint';
 
-export const CHART_EMPTY_TEXT = 'No data for this period.';
+import { t } from '../../../../core/i18n/translate';
+export const CHART_EMPTY_TEXT = (): string => t('businessOverview.revenueChart.chartEmptyText');
 
 /** BR-12: revenue, estimated profit and cash collected as inline SVG with a text alternative. */
 @Component({
   selector: 'app-revenue-chart',
-  imports: [InfoHint],
+  imports: [TranslocoPipe, InfoHint],
   templateUrl: './revenue-chart.html',
   styleUrl: './revenue-chart.scss',
 })
@@ -29,8 +31,12 @@ export class RevenueChart {
 
   readonly tab = signal<ChartTab>('revenue');
   readonly tabs = CHART_TABS;
-  readonly hint = PROFIT_HINT;
-  readonly emptyText = CHART_EMPTY_TEXT;
+  get hint(): string {
+    return PROFIT_HINT();
+  }
+  get emptyText(): string {
+    return CHART_EMPTY_TEXT();
+  }
   readonly viewBox = `0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`;
   readonly width = CHART_WIDTH;
 

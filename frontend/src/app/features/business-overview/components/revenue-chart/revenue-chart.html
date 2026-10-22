@@ -1,13 +1,19 @@
 <section class="card" aria-labelledby="chart-title">
   <header class="card__head">
-    <h2 class="card__title" id="chart-title">Revenue &amp; estimated profit</h2>
+    <h2 class="card__title" id="chart-title">
+      {{ 'businessOverview.revenueChart.revenueEstimatedProfit' | transloco }}
+    </h2>
     <app-info-hint [text]="hint" [filled]="true" />
   </header>
   <p class="card__caption">
     <span class="card__dot" aria-hidden="true"></span>
     {{ hint }}
   </p>
-  <div class="tabs" role="group" aria-label="Chart series">
+  <div
+    class="tabs"
+    role="group"
+    [attr.aria-label]="'businessOverview.revenueChart.chartSeries' | transloco"
+  >
     @for (item of tabs; track item.id) {
       <button
         type="button"
@@ -74,11 +80,13 @@
     </ul>
     <table class="sr">
       <caption>
-        Revenue and estimated profit by period
+        {{
+          'businessOverview.revenueChart.revenueAndEstimatedProfit' | transloco
+        }}
       </caption>
       <thead>
         <tr>
-          <th scope="col">Period</th>
+          <th scope="col">{{ 'businessOverview.revenueChart.period' | transloco }}</th>
           @for (line of chart().lines; track line.id) {
             <th scope="col">{{ line.label }}</th>
           }

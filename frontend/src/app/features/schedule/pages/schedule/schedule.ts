@@ -16,6 +16,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { MD_QUERY, watchMedia } from '../../../../core/config/breakpoints';
 import { SessionService } from '../../../../core/services/session.service';
@@ -39,10 +40,12 @@ import {
   todayInZone,
 } from '../../utils/schedule-range';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to Schedule.";
-export const NO_BRANCHES_MESSAGE = 'No branches available.';
-export const LOAD_ERROR_MESSAGE = "We couldn't load the schedule. Try again.";
-export const VISIT_UNAVAILABLE_MESSAGE = "This visit isn't available.";
+import { t } from '../../../../core/i18n/translate';
+export const FORBIDDEN_MESSAGE = (): string => t('schedule.schedule.forbiddenMessage');
+export const NO_BRANCHES_MESSAGE = (): string => t('schedule.schedule.noBranchesMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('schedule.schedule.loadErrorMessage');
+export const VISIT_UNAVAILABLE_MESSAGE = (): string =>
+  t('schedule.schedule.visitUnavailableMessage');
 
 /** BR-01: Manage = owner, operations manager, dispatcher; Read adds viewer. */
 const READ_ROLES: readonly string[] = ['owner', 'operations_manager', 'dispatcher', 'viewer'];
@@ -64,6 +67,7 @@ const KEEP_SELECTION_SELECTOR =
   selector: 'app-schedule',
   host: { '(document:click)': 'onBackgroundClick($event)' },
   imports: [
+    TranslocoPipe,
     ButtonDirective,
     DiscardChangesDialog,
     DispatchDrawer,
@@ -87,9 +91,15 @@ export class SchedulePage {
   private readonly confirmationService = inject(ConfirmationService);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly noBranchesMessage = NO_BRANCHES_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get noBranchesMessage(): string {
+    return NO_BRANCHES_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
   readonly skeletons = [0, 1, 2];
 
   private readonly roleCode = computed(() => this.sessionService.session()?.role.code ?? '');
@@ -316,7 +326,7 @@ export class SchedulePage {
   }
 
   onDrawerUnavailable(): void {
-    this.messageService.add({ severity: 'error', summary: VISIT_UNAVAILABLE_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: VISIT_UNAVAILABLE_MESSAGE() });
     this.closeDrawer();
     this.store.refresh();
   }
@@ -360,7 +370,7 @@ export class SchedulePage {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this visit',
+          subject: t('schedule.schedule.thisVisit'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();

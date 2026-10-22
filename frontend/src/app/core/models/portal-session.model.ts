@@ -10,6 +10,8 @@ export interface PortalSessionUser {
   readonly firstName: string;
   readonly lastName: string;
   readonly email: string;
+  /** Persisted UI language (`en` or `es`); an unsupported value is ignored (app-i18n-en-es BR-02). */
+  readonly preferredLanguage?: string;
 }
 
 export interface PortalAccountSummary {

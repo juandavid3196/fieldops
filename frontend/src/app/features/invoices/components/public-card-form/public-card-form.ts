@@ -14,6 +14,7 @@ import {
 import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   NAME_MAX_LENGTH,
@@ -26,10 +27,11 @@ import { STRIPE_PAYMENT_ADAPTER, StripeCardHandle } from '../../services/stripe-
 import { money, minorUnits } from '../../utils/public-invoice-format';
 import { resolveStripeAppearance } from '../../utils/stripe-appearance';
 
+import { t } from '../../../../core/i18n/translate';
 /** Cardholder name, Stripe Payment Element and the Pay button (BR-28, BR-29). */
 @Component({
   selector: 'app-public-card-form',
-  imports: [ButtonDirective, InputText, SpinnerIcon],
+  imports: [TranslocoPipe, ButtonDirective, InputText, SpinnerIcon],
   templateUrl: './public-card-form.html',
   styleUrl: './public-card-form.scss',
 })
@@ -57,9 +59,11 @@ export class PublicCardForm {
   protected readonly buttonLabel = computed(() => {
     const phase = this.flow.phase();
     if (phase === 'failed') {
-      return 'Try payment again';
+      return t('invoices.publicCardForm.tryPaymentAgain');
     }
-    return this.flow.overlay() ? `Processing ${this.balance()}` : `Pay ${this.balance()}`;
+    return this.flow.overlay()
+      ? t('invoices.publicCardForm.processing', { balance: this.balance() })
+      : t('invoices.publicCardForm.pay', { balance: this.balance() });
   });
 
   constructor() {
@@ -110,9 +114,9 @@ export class PublicCardForm {
     const name = this.flow.cardholderName().trim();
     const error =
       name === ''
-        ? NAME_REQUIRED_MESSAGE
+        ? NAME_REQUIRED_MESSAGE()
         : name.length > NAME_MAX_LENGTH
-          ? NAME_TOO_LONG_MESSAGE
+          ? NAME_TOO_LONG_MESSAGE()
           : null;
     this.nameError.set(error);
     if (error !== null) {

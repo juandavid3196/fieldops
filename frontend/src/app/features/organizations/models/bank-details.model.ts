@@ -1,3 +1,4 @@
+import { localized, t } from '../../../core/i18n/translate';
 /** Contracts of specs/customer-invoice-payments/spec.md (Final), BR-25. */
 export interface BankDetails {
   readonly configured: boolean;
@@ -19,15 +20,23 @@ export interface BankDetailsRequest {
 export type BankField = 'bankName' | 'accountNumber' | 'routingNumber';
 export type BankFieldErrors = Partial<Record<BankField, string>>;
 
-export const BANK_NAME_MESSAGE = 'Enter the bank name.';
-export const BANK_ACCOUNT_MESSAGE = 'Enter a valid account number.';
-export const BANK_ROUTING_MESSAGE = 'Enter a 9-digit routing number.';
-export const BANK_SAVED_MESSAGE = 'Bank details saved.';
-export const BANK_CHANGED_MESSAGE = 'These details changed. Refresh to see the latest.';
-export const BANK_UNAVAILABLE_MESSAGE = "Bank details can't be saved right now.";
-export const BANK_SAVE_FAILED_MESSAGE = "We couldn't save bank details. Try again.";
-export const BANK_LOAD_ERROR_MESSAGE = "We couldn't load bank details.";
-export const BANK_HELPER_MESSAGE = 'Customers see these details on unpaid invoices.';
+export const BANK_NAME_MESSAGE = (): string => t('organizations.bankDetailsModel.bankNameMessage');
+export const BANK_ACCOUNT_MESSAGE = (): string =>
+  t('organizations.bankDetailsModel.bankAccountMessage');
+export const BANK_ROUTING_MESSAGE = (): string =>
+  t('organizations.bankDetailsModel.bankRoutingMessage');
+export const BANK_SAVED_MESSAGE = (): string =>
+  t('organizations.bankDetailsModel.bankSavedMessage');
+export const BANK_CHANGED_MESSAGE = (): string =>
+  t('organizations.bankDetailsModel.bankChangedMessage');
+export const BANK_UNAVAILABLE_MESSAGE = (): string =>
+  t('organizations.bankDetailsModel.bankUnavailableMessage');
+export const BANK_SAVE_FAILED_MESSAGE = (): string =>
+  t('organizations.bankDetailsModel.bankSaveFailedMessage');
+export const BANK_LOAD_ERROR_MESSAGE = (): string =>
+  t('organizations.bankDetailsModel.bankLoadErrorMessage');
+export const BANK_HELPER_MESSAGE = (): string =>
+  t('organizations.bankDetailsModel.bankHelperMessage');
 export const BANK_NAME_MAX_LENGTH = 120;
 
 const ACCOUNT_PATTERN = /^\d{4,17}$/;
@@ -41,20 +50,20 @@ export function validateBankDetails(
   const errors: BankFieldErrors = {};
   const name = values.bankName.trim();
   if (name === '' || name.length > BANK_NAME_MAX_LENGTH) {
-    errors.bankName = BANK_NAME_MESSAGE;
+    errors.bankName = BANK_NAME_MESSAGE();
   }
   const account = values.accountNumber.trim();
   if ((account === '' && accountRequired) || (account !== '' && !ACCOUNT_PATTERN.test(account))) {
-    errors.accountNumber = BANK_ACCOUNT_MESSAGE;
+    errors.accountNumber = BANK_ACCOUNT_MESSAGE();
   }
   if (!ROUTING_PATTERN.test(values.routingNumber.trim())) {
-    errors.routingNumber = BANK_ROUTING_MESSAGE;
+    errors.routingNumber = BANK_ROUTING_MESSAGE();
   }
   return errors;
 }
 
-export const BANK_FIELD_MESSAGES: Readonly<Record<BankField, string>> = {
-  bankName: BANK_NAME_MESSAGE,
-  accountNumber: BANK_ACCOUNT_MESSAGE,
-  routingNumber: BANK_ROUTING_MESSAGE,
-};
+export const BANK_FIELD_MESSAGES: Readonly<Record<BankField, string>> = localized(() => ({
+  bankName: BANK_NAME_MESSAGE(),
+  accountNumber: BANK_ACCOUNT_MESSAGE(),
+  routingNumber: BANK_ROUTING_MESSAGE(),
+}));

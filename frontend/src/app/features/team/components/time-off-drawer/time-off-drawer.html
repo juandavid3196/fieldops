@@ -6,12 +6,14 @@
   (closeRequested)="requestClose()"
 >
   <ng-container ngProjectAs="[drawerHeader]">
-    <h2 class="time-off__title" [id]="titleId" tabindex="-1">Time off</h2>
+    <h2 class="time-off__title" [id]="titleId" tabindex="-1">
+      {{ 'team.timeOffDrawer.timeOff' | transloco }}
+    </h2>
     <span class="time-off__spacer"></span>
     <button
       type="button"
       class="time-off__close"
-      aria-label="Close time off"
+      [attr.aria-label]="'team.timeOffDrawer.closeTimeOff' | transloco"
       [disabled]="busy()"
       (click)="requestClose()"
     >
@@ -23,7 +25,9 @@
     @if (open()) {
       <div class="time-off__body">
         <div class="time-off__field">
-          <label class="time-off__label" for="time-off-technician">Technician</label>
+          <label class="time-off__label" for="time-off-technician">{{
+            'team.timeOffDrawer.technician' | transloco
+          }}</label>
           <app-technician-picker
             inputId="time-off-technician"
             [value]="selection()"
@@ -44,15 +48,17 @@
         } @else if (loadFailed()) {
           <p-message severity="error" [closable]="false">
             <span class="time-off__inline">
-              We couldn't load this technician's time off.
+              {{ 'team.timeOffDrawer.weCouldnTLoad' | transloco }}
               <button pButton type="button" severity="secondary" size="small" (click)="reload()">
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
         } @else if (detail()) {
           <section class="time-off__section" aria-labelledby="time-off-upcoming">
-            <h3 class="time-off__heading" id="time-off-upcoming">Upcoming time off</h3>
+            <h3 class="time-off__heading" id="time-off-upcoming">
+              {{ 'team.timeOffDrawer.upcomingTimeOff' | transloco }}
+            </h3>
             @if (conflict(); as notice) {
               <p-message severity="error" [closable]="false" role="alert">
                 <span class="time-off__inline">
@@ -65,14 +71,16 @@
                       size="small"
                       (click)="reload()"
                     >
-                      Reload
+                      {{ 'team.timeOffDrawer.reload' | transloco }}
                     </button>
                   }
                 </span>
               </p-message>
             }
             @if (items().length === 0) {
-              <p class="time-off__empty">No upcoming time off.</p>
+              <p class="time-off__empty">
+                {{ 'team.timeOffDrawer.noUpcomingTimeOff' | transloco }}
+              </p>
             } @else {
               <ul class="time-off__list">
                 @for (entry of items(); track entry.item.id) {
@@ -89,11 +97,13 @@
                       severity="secondary"
                       size="small"
                       [outlined]="true"
-                      [attr.aria-label]="'Remove time off ' + entry.range"
+                      [attr.aria-label]="
+                        'team.timeOffDrawer.removeTimeOff' | transloco: { range: entry.range }
+                      "
                       [disabled]="busy() || loading()"
                       (click)="confirmRemove(entry.item)"
                     >
-                      Remove
+                      {{ 'common.remove' | transloco }}
                     </button>
                   </li>
                 }
@@ -105,18 +115,18 @@
             class="time-off__form"
             ngNoForm
             novalidate
-            aria-label="Add time off"
+            [attr.aria-label]="'team.timeOffDrawer.addTimeOff' | transloco"
             (submit)="$event.preventDefault(); add()"
           >
-            <h3 class="time-off__heading">Add time off</h3>
+            <h3 class="time-off__heading">{{ 'team.timeOffDrawer.addTimeOff' | transloco }}</h3>
             @if (saveFailed()) {
               <p-message severity="error" [closable]="false" role="alert">
-                We couldn't add time off. Try again.
+                {{ 'team.timeOffDrawer.weCouldnTAdd' | transloco }}
               </p-message>
             }
             <div class="time-off__row">
               <app-form-field
-                label="Start date"
+                [label]="'team.timeOffDrawer.startDate' | transloco"
                 controlId="time-off-start"
                 [required]="true"
                 [error]="errors().startDate ?? null"
@@ -137,7 +147,7 @@
                 />
               </app-form-field>
               <app-form-field
-                label="End date"
+                [label]="'team.timeOffDrawer.endDate' | transloco"
                 controlId="time-off-end"
                 [required]="true"
                 [error]="errors().endDate ?? null"
@@ -158,7 +168,11 @@
                 />
               </app-form-field>
             </div>
-            <app-form-field label="Note" controlId="time-off-note" [error]="errors().note ?? null">
+            <app-form-field
+              [label]="'team.timeOffDrawer.note' | transloco"
+              controlId="time-off-note"
+              [error]="errors().note ?? null"
+            >
               <textarea
                 pTextarea
                 rows="3"
@@ -176,11 +190,11 @@
               @if (submitting()) {
                 <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
               }
-              Add time off
+              {{ 'team.timeOffDrawer.addTimeOff' | transloco }}
             </button>
           </form>
         } @else {
-          <p class="time-off__empty">Choose a technician to see their time off.</p>
+          <p class="time-off__empty">{{ 'team.timeOffDrawer.chooseATechnicianTo' | transloco }}</p>
         }
       </div>
     }
@@ -197,7 +211,7 @@
       [disabled]="busy()"
       (click)="requestClose()"
     >
-      Close
+      {{ 'common.close' | transloco }}
     </button>
   </ng-container>
 </app-drawer-shell>

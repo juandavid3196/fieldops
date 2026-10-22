@@ -11,11 +11,16 @@
       <section class="detail__state" aria-labelledby="detail-not-found">
         <h1 class="detail__state-title" id="detail-not-found">{{ notFoundTitle }}</h1>
         <p>{{ notFoundMessage }}</p>
-        <a pButton routerLink="/customers">Back to customers</a>
+        <a pButton routerLink="/customers">{{
+          'customers.customerDetail.backToCustomers' | transloco
+        }}</a>
       </section>
     } @else {
-      <nav class="detail__breadcrumb" aria-label="Breadcrumb">
-        <a routerLink="/customers">Customers</a>
+      <nav
+        class="detail__breadcrumb"
+        [attr.aria-label]="'customers.customerDetail.breadcrumb' | transloco"
+      >
+        <a routerLink="/customers">{{ 'customers.customerDetail.customers' | transloco }}</a>
         @if (header(); as h) {
           <span aria-hidden="true">/</span>
           <span aria-current="page">{{ h.name }}</span>
@@ -33,7 +38,7 @@
               size="small"
               (click)="loadOverview()"
             >
-              Retry
+              {{ 'common.retry' | transloco }}
             </button>
           </span>
         </p-message>
@@ -67,12 +72,16 @@
               <i class="pi pi-comment" aria-hidden="true"></i>
               <span>
                 {{ h.preferred }}
-                <span class="detail__caption">Preferred contact</span>
+                <span class="detail__caption">{{
+                  'customers.customerDetail.preferredContact' | transloco
+                }}</span>
               </span>
             </li>
           </ul>
           <div class="detail__balance">
-            <span class="detail__caption">Outstanding balance</span>
+            <span class="detail__caption">{{
+              'customers.customerDetail.outstandingBalance' | transloco
+            }}</span>
             <strong>{{ h.balance }}</strong>
           </div>
           @if (canMutate()) {
@@ -86,7 +95,7 @@
                 (click)="openEditCustomer()"
               >
                 <i class="pi pi-pencil" aria-hidden="true"></i>
-                Edit customer
+                {{ 'customers.customerDetail.editCustomer' | transloco }}
               </button>
               <button
                 pButton
@@ -96,7 +105,7 @@
                 (click)="openCreateMenu($event)"
               >
                 <i class="pi pi-plus" aria-hidden="true"></i>
-                Create
+                {{ 'common.create' | transloco }}
                 <i class="pi pi-chevron-down" aria-hidden="true"></i>
               </button>
               <button
@@ -106,7 +115,7 @@
                 severity="secondary"
                 [outlined]="true"
                 aria-haspopup="menu"
-                aria-label="More actions"
+                [attr.aria-label]="'customers.customerDetail.moreActions' | transloco"
                 [disabled]="mutating()"
                 (click)="openMoreMenu($event)"
               >
@@ -122,7 +131,11 @@
       }
 
       @if (overview().status !== 'error') {
-        <div class="detail__tabs" role="tablist" aria-label="Customer sections">
+        <div
+          class="detail__tabs"
+          role="tablist"
+          [attr.aria-label]="'customers.customerDetail.customerSections' | transloco"
+        >
           @for (item of tabs; track item.code; let index = $index) {
             <button
               type="button"
@@ -201,11 +214,13 @@
             </div>
           } @else if (tab() === 'activity') {
             <section class="detail__card" aria-labelledby="activity-title">
-              <h2 class="detail__card-title" id="activity-title">Activity</h2>
+              <h2 class="detail__card-title" id="activity-title">
+                {{ 'customers.customerDetail.activity' | transloco }}
+              </h2>
               @if (activity().status === 'error') {
                 <p-message severity="error" [closable]="false">
                   <span class="detail__retry">
-                    We couldn't load activity.
+                    {{ 'customers.customerDetail.weCouldnTLoad' | transloco }}
                     <button
                       pButton
                       type="button"
@@ -213,7 +228,7 @@
                       size="small"
                       (click)="loadActivity(activityPage())"
                     >
-                      Retry
+                      {{ 'common.retry' | transloco }}
                     </button>
                   </span>
                 </p-message>
@@ -224,7 +239,9 @@
                   <p-skeleton height="2.5rem" />
                 </div>
               } @else if (activityEntries().length === 0) {
-                <p class="detail__empty">No activity yet</p>
+                <p class="detail__empty">
+                  {{ 'customers.customerDetail.noActivityYet' | transloco }}
+                </p>
               } @else {
                 <ul class="detail__activity">
                   @for (entry of activityEntries(); track entry.id) {
@@ -234,21 +251,28 @@
                     </li>
                   }
                 </ul>
-                <nav class="detail__pager" aria-label="Activity pagination">
+                <nav
+                  class="detail__pager"
+                  [attr.aria-label]="'customers.customerDetail.activityPagination' | transloco"
+                >
                   <button
                     pButton
                     type="button"
                     severity="secondary"
                     [outlined]="true"
                     size="small"
-                    aria-label="Previous page"
+                    [attr.aria-label]="'customers.customerDetail.previousPage' | transloco"
                     [disabled]="activityPage() === 1"
                     (click)="loadActivity(activityPage() - 1)"
                   >
                     <i class="pi pi-chevron-left" aria-hidden="true"></i>
                   </button>
                   <span class="detail__caption">
-                    Page {{ activityPage() }} of {{ activityPages() }}
+                    {{
+                      'customers.customerDetail.pageOf'
+                        | transloco
+                          : { activityPage: activityPage(), activityPages: activityPages() }
+                    }}
                   </span>
                   <button
                     pButton
@@ -256,7 +280,7 @@
                     severity="secondary"
                     [outlined]="true"
                     size="small"
-                    aria-label="Next page"
+                    [attr.aria-label]="'customers.customerDetail.nextPage' | transloco"
                     [disabled]="activityPage() >= activityPages()"
                     (click)="loadActivity(activityPage() + 1)"
                   >
@@ -267,10 +291,14 @@
             </section>
           } @else if (activeTab().soon; as soon) {
             <section class="detail__card detail__soon">
-              <h2 class="detail__card-title">{{ activeTab().label }} are coming soon</h2>
-              <p>You'll see this customer's {{ soon.noun }} here.</p>
+              <h2 class="detail__card-title">
+                {{
+                  'customers.customerDetail.areComingSoon' | transloco: { label: activeTab().label }
+                }}
+              </h2>
+              <p>{{ 'customers.customerDetail.youLlSeeThis' | transloco: { noun: soon.noun } }}</p>
               <a pButton severity="secondary" [outlined]="true" [routerLink]="soon.link">
-                Go to {{ activeTab().label }}
+                {{ 'customers.customerDetail.goTo' | transloco: { label: activeTab().label } }}
               </a>
             </section>
           }

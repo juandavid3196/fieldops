@@ -19,6 +19,7 @@ import { Popover } from 'primeng/popover';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { EMPTY, Subject, catchError, filter, switchMap, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { NotificationUnreadService } from '../../../../core/services/notification-unread.service';
@@ -35,6 +36,8 @@ import {
 import { NotificationsService } from '../../services/notifications.service';
 import { fullDateTime, iconFor, relativeTime, targetRoute } from '../../utils/notifications-format';
 
+import { t } from '../../../../core/i18n/translate';
+import { NotificationTextPipe } from '../../utils/notification-text.pipe';
 /** BR-26: the five latest notifications visible to the caller. */
 const POPOVER_REQUEST: NotificationsRequest = {
   tab: 'all',
@@ -68,7 +71,7 @@ interface PopoverRow {
 /** Notification popover of the shell bell (BR-26, Design 33). Adds no polling and no summary request. */
 @Component({
   selector: 'app-notification-popover',
-  imports: [Popover, Skeleton, Toast],
+  imports: [NotificationTextPipe, TranslocoPipe, Popover, Skeleton, Toast],
   providers: [MessageService],
   templateUrl: './notification-popover.html',
   styleUrl: './notification-popover.scss',
@@ -90,7 +93,9 @@ export class NotificationPopover {
   readonly closed = output<void>();
 
   readonly panelStyle = PANEL_STYLE;
-  readonly errorMessage = NOTIFICATIONS_LOAD_ERROR_MESSAGE;
+  get errorMessage(): string {
+    return NOTIFICATIONS_LOAD_ERROR_MESSAGE();
+  }
   readonly skeletonRows = [1, 2, 3, 4, 5];
   readonly open = signal(false);
   readonly status = signal<'idle' | 'loading' | 'ready' | 'error'>('idle');
@@ -117,7 +122,7 @@ export class NotificationPopover {
         tone,
         relative,
         full: fullDateTime(item.createdAt, zone),
-        name: `${item.title}, ${item.isRead ? 'read' : 'unread'}, ${relative}`,
+        name: `${item.title}, ${item.isRead ? t('notifications.notificationPopover.read') : t('notifications.notificationPopover.unread')}, ${relative}`,
         route: item.target === null ? null : targetRoute(item.target.kind, item.target.id),
       };
     });
@@ -225,7 +230,7 @@ export class NotificationPopover {
       this.markRead(row.item);
     }
     if (row.route === null) {
-      this.messageService.add({ severity: 'info', summary: NOTIFICATION_TARGET_GONE_MESSAGE });
+      this.messageService.add({ severity: 'info', summary: NOTIFICATION_TARGET_GONE_MESSAGE() });
       this.hide();
       return;
     }
@@ -268,7 +273,10 @@ export class NotificationPopover {
     this.api.read(item.id).subscribe({
       error: (error: unknown) => {
         if (isApiError(error) && error.kind === 'not-found') {
-          this.messageService.add({ severity: 'error', summary: NOTIFICATION_UNAVAILABLE_MESSAGE });
+          this.messageService.add({
+            severity: 'error',
+            summary: NOTIFICATION_UNAVAILABLE_MESSAGE(),
+          });
           this.reload();
         } else {
           this.page.set(before);
@@ -296,7 +304,7 @@ export class NotificationPopover {
     } else if (kind === 'forbidden') {
       this.hide();
     } else if (notify) {
-      this.messageService.add({ severity: 'error', summary: NOTIFICATION_UPDATE_FAILED_MESSAGE });
+      this.messageService.add({ severity: 'error', summary: NOTIFICATION_UPDATE_FAILED_MESSAGE() });
     }
   }
 

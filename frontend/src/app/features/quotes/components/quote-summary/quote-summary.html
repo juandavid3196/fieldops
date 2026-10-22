@@ -1,12 +1,14 @@
 <section class="summary" aria-labelledby="quote-summary-heading">
-  <h2 class="summary__title" id="quote-summary-heading">Quote summary</h2>
+  <h2 class="summary__title" id="quote-summary-heading">
+    {{ 'quotes.quoteSummary.quoteSummary' | transloco }}
+  </h2>
 
   @if (failed()) {
     <p-message severity="error" [closable]="false">
       <span class="summary__error">
         {{ errorMessage }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -15,15 +17,15 @@
   <div class="summary__totals" aria-live="polite" [attr.aria-busy]="loading()">
     <dl class="summary__list">
       <div class="summary__row">
-        <dt>Subtotal</dt>
+        <dt>{{ 'quotes.quoteSummary.subtotal' | transloco }}</dt>
         <dd>{{ rows().subtotal }}</dd>
       </div>
       <div class="summary__row">
         <dt>
-          Discount
+          {{ 'quotes.quoteSummary.discount' | transloco }}
           @if (!discountOpen() && !readOnly()) {
             <button type="button" class="summary__add" (click)="revealDiscount()">
-              Add discount
+              {{ 'quotes.quoteSummary.addDiscount' | transloco }}
             </button>
           }
         </dt>
@@ -31,7 +33,7 @@
       </div>
       @if (discountOpen()) {
         <div class="summary__discount">
-          <label for="quote-discount">Discount amount</label>
+          <label for="quote-discount">{{ 'quotes.quoteSummary.discountAmount' | transloco }}</label>
           <input
             pInputText
             id="quote-discount"
@@ -56,19 +58,19 @@
         <dd>{{ rows().tax }}</dd>
       </div>
       <div class="summary__row summary__row--total">
-        <dt>Total</dt>
+        <dt>{{ 'common.total' | transloco }}</dt>
         <dd>{{ rows().total }}</dd>
       </div>
       <div class="summary__row summary__row--margin">
         <dt>
-          Estimated margin
-          <span class="summary__chip">Internal</span>
+          {{ 'quotes.quoteSummary.estimatedMargin' | transloco }}
+          <span class="summary__chip">{{ 'quotes.quoteSummary.internal' | transloco }}</span>
         </dt>
         <dd>{{ rows().margin }}</dd>
       </div>
     </dl>
     @if (loading()) {
-      <p class="summary__loading">Updating totals…</p>
+      <p class="summary__loading">{{ 'quotes.quoteSummary.updatingTotals' | transloco }}</p>
     }
   </div>
 </section>

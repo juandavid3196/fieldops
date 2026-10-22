@@ -7,17 +7,18 @@ import {
 } from '../../models/organization-registration.model';
 import { validateNextInvoiceNumber } from './register-company.validators';
 
+import { localized, t } from '../../../../core/i18n/translate';
 export type WizardStep = 1 | 2 | 3 | 4;
 export type FormStep = 1 | 2 | 3;
 
-export const STEP_LABELS: Readonly<Record<WizardStep, string>> = {
-  1: 'Company & branch',
-  2: 'Business settings',
-  3: 'Owner account',
-  4: 'Review',
-};
+export const STEP_LABELS: Readonly<Record<WizardStep, string>> = localized(() => ({
+  1: t('organizations.registerCompanyHelpers.companyBranch'),
+  2: t('organizations.registerCompanyHelpers.businessSettings'),
+  3: t('organizations.registerCompanyHelpers.ownerAccount'),
+  4: t('organizations.registerCompanyHelpers.review'),
+}));
 
-export const NOT_PROVIDED = 'Not provided';
+export const NOT_PROVIDED = (): string => t('organizations.registerCompanyHelpers.notProvided');
 const DASH = '—';
 
 type Hours = RegisterCompanyFormValue['branch']['businessHours'];
@@ -77,15 +78,15 @@ export function copyMondayToWeekdays(hours: Hours): Hours {
 
 // --- BR-05 business hours summary ------------------------------------------
 
-const DAY_ABBREVIATIONS: Readonly<Record<Weekday, string>> = {
-  monday: 'Mon',
-  tuesday: 'Tue',
-  wednesday: 'Wed',
-  thursday: 'Thu',
-  friday: 'Fri',
-  saturday: 'Sat',
-  sunday: 'Sun',
-};
+const DAY_ABBREVIATIONS: Readonly<Record<Weekday, string>> = localized(() => ({
+  monday: t('organizations.registerCompanyHelpers.mon'),
+  tuesday: t('organizations.registerCompanyHelpers.tue'),
+  wednesday: t('organizations.registerCompanyHelpers.wed'),
+  thursday: t('organizations.registerCompanyHelpers.thu'),
+  friday: t('organizations.registerCompanyHelpers.fri'),
+  saturday: t('organizations.registerCompanyHelpers.sat'),
+  sunday: t('organizations.registerCompanyHelpers.sun'),
+}));
 
 export function summarizeBusinessHours(hours: Hours, timezone: string): string {
   const groups: { first: Weekday; last: Weekday; start: string; end: string }[] = [];
@@ -107,7 +108,7 @@ export function summarizeBusinessHours(hours: Hours, timezone: string): string {
   }
 
   if (groups.length === 0) {
-    return 'Closed all week';
+    return t('organizations.registerCompanyHelpers.closedAllWeek');
   }
 
   const text = groups
@@ -135,7 +136,12 @@ export function numberingExamples(
     validateNextInvoiceNumber(organization.nextInvoiceNumber) === null
       ? String(organization.nextInvoiceNumber)
       : DASH;
-  return `Examples: ${prefix(organization.quotePrefix)}-1 · ${prefix(organization.workOrderPrefix)}-1 · ${prefix(organization.invoicePrefix)}-${next}`;
+  return t('organizations.registerCompanyHelpers.examples11', {
+    quotePrefix: prefix(organization.quotePrefix),
+    workOrderPrefix: prefix(organization.workOrderPrefix),
+    invoicePrefix: prefix(organization.invoicePrefix),
+    next: next,
+  });
 }
 
 // --- BR-07 password requirements -------------------------------------------
@@ -157,7 +163,7 @@ export function passwordRequirements(password: string, ownerEmail: string): Pass
 
 export function orNotProvided(value: string): string {
   const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : NOT_PROVIDED;
+  return trimmed.length > 0 ? trimmed : NOT_PROVIDED();
 }
 
 /** "{City}, {State / Region} {Postal code}"; without a state "{City} {Postal code}". */

@@ -1,3 +1,4 @@
+import { t } from '../../../core/i18n/translate';
 /** BR-16: the dashboard reloads every 60 seconds while the tab is visible. */
 export const REFRESH_INTERVAL_MS = 60_000;
 
@@ -7,7 +8,9 @@ export function agoLabel(updatedAt: number | null, now: number): string {
     return '';
   }
   const minutes = Math.floor(Math.max(0, now - updatedAt) / REFRESH_INTERVAL_MS);
-  return minutes < 1 ? 'Updated just now' : `Updated ${minutes} min ago`;
+  return minutes < 1
+    ? t('dashboard.dashboardRefresh.updatedJustNow')
+    : t('dashboard.dashboardRefresh.updatedMinAgo', { minutes: minutes });
 }
 
 export interface RefreshState {

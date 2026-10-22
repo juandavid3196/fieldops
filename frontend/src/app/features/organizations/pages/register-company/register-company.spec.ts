@@ -257,7 +257,10 @@ describe('RegisterCompany wizard', () => {
     await submitForm();
     await submitForm();
     const request = httpTesting.expectOne({ method: 'POST', url: REGISTER_URL });
-    expect(request.request.body).toEqual(buildRegistrationRequest(component.form.getRawValue()));
+    expect(request.request.body).toEqual({
+      ...buildRegistrationRequest(component.form.getRawValue()),
+      preferredLanguage: 'en',
+    });
     expect(JSON.stringify(request.request.body)).not.toContain('confirmPassword');
     expect(primary().textContent).toContain('Creating organization…');
     expect(primary().disabled).toBe(true);

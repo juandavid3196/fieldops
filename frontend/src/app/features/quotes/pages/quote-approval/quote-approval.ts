@@ -25,6 +25,7 @@ import { TimesCircleIcon } from 'primeng/icons/timescircle';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { PublicQuoteDetails } from '../../components/public-quote-details/public-quote-details';
@@ -64,19 +65,23 @@ import { PublicQuoteTokenService } from '../../services/public-quote-token.servi
 import { QuoteLinkApi } from '../../services/quote-link-api';
 import { customerInitials, dateOnlyLabel } from '../../utils/quote-format';
 
+import { localized, t } from '../../../../core/i18n/translate';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 type PageState = 'loading' | 'ready' | 'unavailable' | 'superseded' | 'rate-limited' | 'error';
 type ChipTone = 'warning' | 'info' | 'success' | 'neutral';
 
 const PUBLIC_PATH = '/quotes/view';
 const CALCULATE_DEBOUNCE_MS = 250;
 
-const CHIPS: Readonly<Record<PublicQuoteStatus, { label: string; tone: ChipTone }>> = {
-  sent: { label: 'Awaiting your approval', tone: 'warning' },
-  expired: { label: 'Expired', tone: 'neutral' },
-  clarification_requested: { label: 'Question sent', tone: 'info' },
-  approved: { label: 'Approved', tone: 'success' },
-  rejected: { label: 'Declined', tone: 'neutral' },
-};
+const CHIPS: Readonly<Record<PublicQuoteStatus, { label: string; tone: ChipTone }>> = localized(
+  () => ({
+    sent: { label: t('quotes.quoteApproval.awaitingYourApproval'), tone: 'warning' },
+    expired: { label: t('quotes.quoteApproval.expired'), tone: 'neutral' },
+    clarification_requested: { label: t('quotes.quoteApproval.questionSent'), tone: 'info' },
+    approved: { label: t('quotes.quoteApproval.approved'), tone: 'success' },
+    rejected: { label: t('quotes.quoteApproval.declined'), tone: 'neutral' },
+  }),
+);
 
 type CalculateResult =
   | { readonly ok: true; readonly ids: readonly string[]; readonly totals: PublicTotals }
@@ -95,6 +100,8 @@ interface DialogSubmission {
 @Component({
   selector: 'app-quote-approval',
   imports: [
+    LanguageFooterSelector,
+    TranslocoPipe,
     ButtonDirective,
     CheckIcon,
     ExclamationTriangleIcon,
@@ -136,13 +143,27 @@ export class QuoteApproval implements OnInit {
   private trigger: HTMLElement | null = null;
   private confirmedIds: readonly string[] = [];
 
-  readonly unavailableTitle = UNAVAILABLE_TITLE;
-  readonly unavailableBody = UNAVAILABLE_BODY;
-  readonly supersededTitle = SUPERSEDED_TITLE;
-  readonly supersededBody = SUPERSEDED_BODY;
-  readonly loadError = PUBLIC_LOAD_ERROR;
-  readonly rateLimited = PUBLIC_RATE_LIMITED;
-  readonly pdfError = PDF_ERROR;
+  get unavailableTitle(): string {
+    return UNAVAILABLE_TITLE();
+  }
+  get unavailableBody(): string {
+    return UNAVAILABLE_BODY();
+  }
+  get supersededTitle(): string {
+    return SUPERSEDED_TITLE();
+  }
+  get supersededBody(): string {
+    return SUPERSEDED_BODY();
+  }
+  get loadError(): string {
+    return PUBLIC_LOAD_ERROR();
+  }
+  get rateLimited(): string {
+    return PUBLIC_RATE_LIMITED();
+  }
+  get pdfError(): string {
+    return PDF_ERROR();
+  }
   readonly year = new Date().getFullYear();
 
   readonly state = signal<PageState>('loading');
@@ -161,7 +182,7 @@ export class QuoteApproval implements OnInit {
   readonly logoUrl = signal<string | null>(null);
 
   readonly expiredNotice = computed(() =>
-    QUOTE_EXPIRED_NOTICE(this.quote()?.organization.name ?? 'the company'),
+    QUOTE_EXPIRED_NOTICE(this.quote()?.organization.name ?? t('quotes.quoteApproval.theCompany')),
   );
   readonly editable = computed(() => {
     const status = this.quote()?.quote.status;
@@ -323,7 +344,7 @@ export class QuoteApproval implements OnInit {
       this.show(status === 404 ? 'unavailable' : 'superseded');
     } else {
       this.calculateError.set(
-        result.error?.kind === 'rate-limited' ? PUBLIC_RATE_LIMITED : CALCULATE_ERROR,
+        result.error?.kind === 'rate-limited' ? PUBLIC_RATE_LIMITED() : CALCULATE_ERROR(),
       );
     }
   }
@@ -403,24 +424,24 @@ export class QuoteApproval implements OnInit {
         // reloads to its read-only expired state without the answered notice.
         this.dialog.set(null);
         if (apiError.code !== 'quote_expired') {
-          this.messages.add({ severity: 'info', summary: ALREADY_ANSWERED });
+          this.messages.add({ severity: 'info', summary: ALREADY_ANSWERED() });
         }
         this.load();
         return;
     }
 
     if (apiError?.kind === 'rate-limited') {
-      this.report(PUBLIC_RATE_LIMITED, dialog);
+      this.report(PUBLIC_RATE_LIMITED(), dialog);
     } else if (apiError?.kind === 'validation' && dialog !== null) {
-      this.dialogFieldError.set(publicTextError(dialog.kind, dialog.text) ?? RESPONSE_ERROR);
+      this.dialogFieldError.set(publicTextError(dialog.kind, dialog.text) ?? RESPONSE_ERROR());
     } else if (apiError?.kind === 'validation') {
       this.actionError.set(
         apiError.fieldErrors['acceptTerms'] !== undefined
-          ? ACCEPT_TERMS_ERROR
-          : OPTIONAL_SELECTION_ERROR,
+          ? ACCEPT_TERMS_ERROR()
+          : OPTIONAL_SELECTION_ERROR(),
       );
     } else {
-      this.report(RESPONSE_ERROR, dialog);
+      this.report(RESPONSE_ERROR(), dialog);
     }
   }
 

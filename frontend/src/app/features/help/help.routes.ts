@@ -1,5 +1,6 @@
 import { ActivatedRouteSnapshot, Routes } from '@angular/router';
 
+import { t } from '../../core/i18n/translate';
 import { HelpAudience } from './models/help.model';
 import { findArticle, findTopic } from './utils/help-content';
 
@@ -9,8 +10,8 @@ import { findArticle, findTopic } from './utils/help-content';
  * mounted elsewhere (public `/support`, technician shell) pass their own `base`.
  */
 export function createHelpRoutes(audience: HelpAudience, base?: string): Routes {
-  const baseTitle =
-    audience === 'portal' ? 'Help & support · Customer portal' : 'Help & support · FieldOps';
+  const baseKey = audience === 'portal' ? 'titles.portalHelpAndSupport' : 'titles.helpAndSupport';
+  const baseTitle = (): string => t(baseKey);
   const data =
     base === undefined ? { helpAudience: audience } : { helpAudience: audience, helpBase: base };
 
@@ -18,7 +19,7 @@ export function createHelpRoutes(audience: HelpAudience, base?: string): Routes 
     {
       path: '',
       pathMatch: 'full',
-      title: baseTitle,
+      title: baseKey,
       data,
       loadComponent: () => import('./pages/help-home/help-home').then((m) => m.HelpHome),
     },
@@ -26,7 +27,7 @@ export function createHelpRoutes(audience: HelpAudience, base?: string): Routes 
       path: ':topicSlug',
       pathMatch: 'full',
       title: (route: ActivatedRouteSnapshot) =>
-        `${findTopic(route.paramMap.get('topicSlug'), audience)?.title ?? 'Article not found'} · ${baseTitle}`,
+        `${findTopic(route.paramMap.get('topicSlug'), audience)?.title ?? t('titles.articleNotFound')} · ${baseTitle()}`,
       data,
       loadComponent: () => import('./pages/help-topic/help-topic').then((m) => m.HelpTopicPage),
     },
@@ -35,8 +36,8 @@ export function createHelpRoutes(audience: HelpAudience, base?: string): Routes 
       title: (route: ActivatedRouteSnapshot) =>
         `${
           findArticle(route.paramMap.get('topicSlug'), route.paramMap.get('articleSlug'), audience)
-            ?.article.title ?? 'Article not found'
-        } · ${baseTitle}`,
+            ?.article.title ?? t('titles.articleNotFound')
+        } · ${baseTitle()}`,
       data,
       loadComponent: () =>
         import('./pages/help-article/help-article').then((m) => m.HelpArticlePage),
@@ -57,7 +58,7 @@ export function createPublicHelpRoutes(): Routes {
     {
       path: '',
       pathMatch: 'full',
-      title: 'Help & support · FieldOps',
+      title: 'titles.helpAndSupport',
       data,
       loadComponent: () => import('./pages/public-help/public-help').then((m) => m.PublicHelp),
     },

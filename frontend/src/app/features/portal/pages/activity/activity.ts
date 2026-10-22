@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { HubPager } from '../../../invoices/components/hub-pager/hub-pager';
 import { PortalActivityTable } from '../../components/portal-activity-table/portal-activity-table';
@@ -10,7 +11,7 @@ import { PortalList } from '../../utils/portal-list';
 /** Recent activity (BR-26): paginated, 20 per page, property-filterable. */
 @Component({
   selector: 'app-portal-activity',
-  imports: [HubPager, PortalActivityTable, PortalPropertyFilter, PortalState],
+  imports: [TranslocoPipe, HubPager, PortalActivityTable, PortalPropertyFilter, PortalState],
   templateUrl: './activity.html',
   styleUrl: '../../portal.scss',
 })

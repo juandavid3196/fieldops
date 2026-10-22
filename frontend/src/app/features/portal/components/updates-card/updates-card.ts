@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PortalUpdate } from '../../models/portal.model';
 import { updateTimeLabel } from '../../utils/portal-format';
@@ -18,7 +19,7 @@ export function updateLink(update: PortalUpdate): string[] {
 /** Messages & updates card (BR-24, BR-25): the latest three events, unread ones with a dot. */
 @Component({
   selector: 'app-updates-card',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './updates-card.html',
   styleUrls: ['../../portal.scss', '../../portal-card.scss', './updates-card.scss'],
 })

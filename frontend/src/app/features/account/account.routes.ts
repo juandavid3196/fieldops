@@ -17,13 +17,13 @@ export function createAccountRoutes(base: string): Routes {
         { path: '', pathMatch: 'full', redirectTo: 'profile' },
         {
           path: 'profile',
-          title: 'My profile · FieldOps',
+          title: 'titles.myProfile',
           canDeactivate: [accountUnsavedChangesGuard],
           loadComponent: () => import('./pages/profile/profile').then((m) => m.Profile),
         },
         {
           path: 'security',
-          title: 'Security · FieldOps',
+          title: 'titles.security',
           canDeactivate: [accountUnsavedChangesGuard],
           loadComponent: () => import('./pages/security/security').then((m) => m.Security),
         },

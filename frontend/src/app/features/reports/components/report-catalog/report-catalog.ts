@@ -3,9 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ReportInfo, ReportKey } from '../../models/reports.model';
 
+import { t } from '../../../../core/i18n/translate';
 interface CatalogGroup {
   readonly name: string;
   readonly count: number;
@@ -15,7 +17,7 @@ interface CatalogGroup {
 /** BR-01/BR-21: search, Favorites, Recently viewed and the report groups the caller may see. */
 @Component({
   selector: 'app-report-catalog',
-  imports: [FormsModule, IconField, InputIcon, InputText],
+  imports: [TranslocoPipe, FormsModule, IconField, InputIcon, InputText],
   templateUrl: './report-catalog.html',
   styleUrl: './report-catalog.scss',
 })
@@ -58,9 +60,9 @@ export class ReportCatalog {
       .filter((group) => group.items.length > 0);
   });
   groupIcon(name: string): string {
-    return name.startsWith('Billing')
+    return name.startsWith(t('reports.reportCatalog.billing'))
       ? 'pi-wallet'
-      : name.startsWith('Sales')
+      : name.startsWith(t('reports.reportCatalog.sales'))
         ? 'pi-file'
         : 'pi-cog';
   }

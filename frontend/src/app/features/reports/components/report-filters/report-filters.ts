@@ -2,8 +2,10 @@ import { Component, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Select } from 'primeng/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { FilterKey, ReportFilterValues } from '../../models/reports.model';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 
 export interface FilterField {
   readonly key: FilterKey;
@@ -14,7 +16,7 @@ export interface FilterField {
 /** BR-19: report filters edited as a draft; Apply filters and Reset act on the whole draft. */
 @Component({
   selector: 'app-report-filters',
-  imports: [ButtonDirective, FormsModule, Select],
+  imports: [LocalizedRefPipe, TranslocoPipe, ButtonDirective, FormsModule, Select],
   templateUrl: './report-filters.html',
   styleUrl: './report-filters.scss',
 })

@@ -6,6 +6,8 @@ import {
   ScheduleView,
 } from '../models/schedule.model';
 
+import { localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 /** BR-04 default Day axis when no displayed technician has availability. */
 export const DEFAULT_AXIS_START_HOUR = 8;
 export const DEFAULT_AXIS_END_HOUR = 17;
@@ -72,7 +74,7 @@ const formatters = new Map<string, Intl.DateTimeFormat>();
 function zonedFormatter(timezone: string): Intl.DateTimeFormat {
   let formatter = formatters.get(timezone);
   if (formatter === undefined) {
-    formatter = new Intl.DateTimeFormat('en-US', {
+    formatter = new Intl.DateTimeFormat(activeIntlLocale(), {
       timeZone: timezone,
       hourCycle: 'h23',
       year: 'numeric',
@@ -118,8 +120,29 @@ export function shiftDate(view: ScheduleView, date: string, direction: -1 | 1): 
   return addDays(date, direction * (view === 'day' ? 1 : 7));
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const MONTHS = localizedList(() => [
+  t('schedule.scheduleRange.jan'),
+  t('schedule.scheduleRange.feb'),
+  t('schedule.scheduleRange.mar'),
+  t('schedule.scheduleRange.apr'),
+  t('schedule.scheduleRange.may'),
+  t('schedule.scheduleRange.jun'),
+  t('schedule.scheduleRange.jul'),
+  t('schedule.scheduleRange.aug'),
+  t('schedule.scheduleRange.sep'),
+  t('schedule.scheduleRange.oct'),
+  t('schedule.scheduleRange.nov'),
+  t('schedule.scheduleRange.dec'),
+]);
+const WEEKDAYS = localizedList(() => [
+  t('schedule.scheduleRange.mon'),
+  t('schedule.scheduleRange.tue'),
+  t('schedule.scheduleRange.wed'),
+  t('schedule.scheduleRange.thu'),
+  t('schedule.scheduleRange.fri'),
+  t('schedule.scheduleRange.sat'),
+  t('schedule.scheduleRange.sun'),
+]);
 
 export function weekdayShort(date: string): string {
   return WEEKDAYS[mondayIndex(date)];
@@ -255,7 +278,7 @@ export function loadInfo(load: {
   readonly state: LoadState;
 }): LoadInfo {
   if (load.state === 'no_availability') {
-    return { text: 'No availability', tone: 'red', percent: 100 };
+    return { text: t('schedule.scheduleRange.noAvailability'), tone: 'red', percent: 100 };
   }
   const hours = (minutes: number): string => `${Math.round((minutes / 60) * 10) / 10}h`;
   const text = `${hours(load.scheduledMinutes)} / ${hours(load.availableMinutes)}`;
@@ -293,7 +316,7 @@ export function formatPreferred(
   timezone: string,
 ): string {
   if (startIso === null || endIso === null) {
-    return 'No preferred date';
+    return t('schedule.scheduleRange.noPreferredDate');
   }
   const date = zoned(startIso, timezone).date;
   return `${weekdayShort(date)}, ${monthDay(date)}, ${formatBlockRange(startIso, endIso, timezone)}`;

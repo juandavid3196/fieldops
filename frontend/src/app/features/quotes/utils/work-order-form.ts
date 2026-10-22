@@ -11,6 +11,7 @@ import {
 } from '../../jobs/models/work-order.model';
 import { hasAtMostDecimals } from './quote-lines';
 
+import { t } from '../../../core/i18n/translate';
 /** A task in the editor: the contract `label` plus a client-only `uid` that survives reorders. */
 export interface TaskRow {
   readonly uid: string;
@@ -120,7 +121,7 @@ export function materialErrors(material: Omit<MaterialRow, 'uid'>): MaterialErro
   const errors: Record<string, string> = {};
   const description = material.description.trim();
   if (description.length === 0 || description.length > 240) {
-    errors['description'] = 'Enter a material.';
+    errors['description'] = t('quotes.workOrderForm.enterAMaterial');
   }
   const quantity = material.quantity;
   if (
@@ -130,14 +131,14 @@ export function materialErrors(material: Omit<MaterialRow, 'uid'>): MaterialErro
     quantity > MAX_QUANTITY ||
     !hasAtMostDecimals(quantity, 3)
   ) {
-    errors['quantity'] = 'Enter a quantity greater than 0.';
+    errors['quantity'] = t('quotes.workOrderForm.enterAQuantityGreater');
   }
   const unit = material.unit.trim();
   if (unit.length === 0 || unit.length > 40) {
-    errors['unit'] = 'Enter a unit.';
+    errors['unit'] = t('quotes.workOrderForm.enterAUnit');
   }
   if (!SOURCES.includes(material.source)) {
-    errors['source'] = 'Select a source.';
+    errors['source'] = t('quotes.workOrderForm.selectASource');
   }
   return errors;
 }
@@ -150,34 +151,34 @@ export function formErrors(form: WorkOrderForm, today: string): Record<string, s
   const errors: Record<string, string> = {};
   const title = form.title.trim();
   if (title.length === 0) {
-    errors['title'] = 'Enter a work order title.';
+    errors['title'] = t('quotes.workOrderForm.enterAWorkOrder');
   } else if (title.length > 160) {
-    errors['title'] = 'Title must be 160 characters or fewer.';
+    errors['title'] = t('quotes.workOrderForm.titleMustBe160');
   }
   if (form.serviceCategoryId === null) {
-    errors['serviceCategoryId'] = 'Select a service category.';
+    errors['serviceCategoryId'] = t('quotes.workOrderForm.selectAServiceCategory');
   }
   if (form.branchId === null) {
-    errors['branchId'] = 'Select a branch.';
+    errors['branchId'] = t('quotes.workOrderForm.selectABranch');
   }
   if (form.skillIds.length > MAX_SKILLS) {
-    errors['skillIds'] = 'Select up to 10 skills.';
+    errors['skillIds'] = t('quotes.workOrderForm.selectUpTo10');
   }
   if (form.tasks.length === 0) {
-    errors['tasks'] = 'Add at least one task.';
+    errors['tasks'] = t('quotes.workOrderForm.addAtLeastOne');
   } else if (form.tasks.length > MAX_TASKS) {
-    errors['tasks'] = TASK_LIMIT_MESSAGE;
+    errors['tasks'] = TASK_LIMIT_MESSAGE();
   }
   for (const task of form.tasks) {
     const label = task.label.trim();
     if (label.length === 0) {
-      errors[`tasks[${task.uid}]`] = 'Enter a task.';
+      errors[`tasks[${task.uid}]`] = t('quotes.workOrderForm.enterATask');
     } else if (label.length > 240) {
-      errors[`tasks[${task.uid}]`] = 'Task must be 240 characters or fewer.';
+      errors[`tasks[${task.uid}]`] = t('quotes.workOrderForm.taskMustBe240');
     }
   }
   if (form.materials.length > MAX_MATERIALS) {
-    errors['materials'] = 'A work order can have up to 50 materials.';
+    errors['materials'] = t('quotes.workOrderForm.aWorkOrderCan');
   }
   for (const material of form.materials) {
     const first = Object.values(materialErrors(material))[0];
@@ -186,21 +187,21 @@ export function formErrors(form: WorkOrderForm, today: string): Record<string, s
     }
   }
   if (form.instructions.trim().length > INSTRUCTIONS_LIMIT) {
-    errors['instructions'] = 'Instructions must be 2000 characters or fewer.';
+    errors['instructions'] = t('quotes.workOrderForm.instructionsMustBe2000');
   }
   if (form.preferredDate !== '' && !(form.preferredDate >= today)) {
-    errors['preferredDate'] = 'Select today or a later date.';
+    errors['preferredDate'] = t('quotes.workOrderForm.selectTodayOrA');
   }
   if (form.jobType === 'recurring') {
     if (form.frequency === null) {
-      errors['recurrence'] = 'Select how often this job repeats.';
+      errors['recurrence'] = t('quotes.workOrderForm.selectHowOftenThis');
     } else if (
       form.occurrences === null ||
       !Number.isInteger(form.occurrences) ||
       form.occurrences < 2 ||
       form.occurrences > 24
     ) {
-      errors['recurrence'] = 'Enter between 2 and 24 occurrences.';
+      errors['recurrence'] = t('quotes.workOrderForm.enterBetween2And');
     }
   }
   return errors;
@@ -208,7 +209,7 @@ export function formErrors(form: WorkOrderForm, today: string): Record<string, s
 
 export function taskName(task: { readonly label: string }, index: number): string {
   const label = task.label.trim();
-  return label.length > 0 ? label : `Task ${index + 1}`;
+  return label.length > 0 ? label : t('quotes.workOrderForm.task', { value: index + 1 });
 }
 
 export interface TaskMove {

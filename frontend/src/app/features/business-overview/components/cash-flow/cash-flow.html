@@ -1,5 +1,7 @@
 <section class="card section" aria-labelledby="cash-title">
-  <h2 class="card__title" id="cash-title">Cash flow snapshot</h2>
+  <h2 class="card__title" id="cash-title">
+    {{ 'businessOverview.cashFlow.cashFlowSnapshot' | transloco }}
+  </h2>
   <dl class="totals">
     @for (item of totals(); track item.id) {
       <div class="totals__item">
@@ -9,9 +11,10 @@
     }
   </dl>
   <div class="card__row">
-    <h3 class="card__sub">Accounts receivable aging</h3>
+    <h3 class="card__sub">{{ 'businessOverview.cashFlow.accountsReceivableAging' | transloco }}</h3>
     <a class="card__link" routerLink="/invoices"
-      >View receivables <i class="pi pi-arrow-right" aria-hidden="true"></i
+      >{{ 'businessOverview.cashFlow.viewReceivables' | transloco }}
+      <i class="pi pi-arrow-right" aria-hidden="true"></i
     ></a>
   </div>
   <ul class="aging">

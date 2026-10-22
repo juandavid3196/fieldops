@@ -1,5 +1,6 @@
 import { Component, computed, input, output } from '@angular/core';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { CustomerRow, CustomerSort } from '../../models/customer.model';
 import {
@@ -12,8 +13,10 @@ import {
   statusSeverity,
 } from '../../utils/customer-format';
 
-export const NO_SERVICE_MESSAGE = 'No completed service';
-export const NO_NEXT_SERVICE_MESSAGE = 'None';
+import { localizedList, t } from '../../../../core/i18n/translate';
+export const NO_SERVICE_MESSAGE = (): string => t('customers.customerTable.noServiceMessage');
+export const NO_NEXT_SERVICE_MESSAGE = (): string =>
+  t('customers.customerTable.noNextServiceMessage');
 
 interface RowView {
   readonly row: CustomerRow;
@@ -28,15 +31,15 @@ interface RowView {
   readonly severity: 'success' | 'danger' | 'secondary';
 }
 
-const COLUMNS: readonly string[] = [
-  'Type',
-  'Contact information',
-  'Properties',
-  'Last service',
-  'Next service',
-  'Balance',
-  'Status',
-];
+const COLUMNS: readonly string[] = localizedList(() => [
+  t('common.type'),
+  t('customers.customerTable.contactInformation'),
+  t('customers.customerTable.properties'),
+  t('customers.customerTable.lastService'),
+  t('customers.customerTable.nextService'),
+  t('customers.customerTable.balance'),
+  t('common.status'),
+]);
 
 /**
  * Customers table (BR-09). Presentational: the page owns data, sorting and the row menu. Below
@@ -44,7 +47,7 @@ const COLUMNS: readonly string[] = [
  */
 @Component({
   selector: 'app-customer-table',
-  imports: [Tag],
+  imports: [TranslocoPipe, Tag],
   templateUrl: './customer-table.html',
   styleUrl: './customer-table.scss',
 })
@@ -61,8 +64,12 @@ export class CustomerTable {
   readonly menuRequested = output<{ event: Event; row: CustomerRow }>();
 
   readonly columns = COLUMNS;
-  readonly noService = NO_SERVICE_MESSAGE;
-  readonly noNextService = NO_NEXT_SERVICE_MESSAGE;
+  get noService(): string {
+    return NO_SERVICE_MESSAGE();
+  }
+  get noNextService(): string {
+    return NO_NEXT_SERVICE_MESSAGE();
+  }
 
   readonly ariaSort = computed<'ascending' | 'descending' | 'none'>(() =>
     this.sort() === 'name_asc' ? 'ascending' : this.sort() === 'name_desc' ? 'descending' : 'none',

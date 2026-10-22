@@ -1,10 +1,14 @@
+import { t } from '../../../core/i18n/translate';
 /** Fixed copy of the quotes workspace (specs/quotes-management/spec.md UI states; backend text is never shown). */
-export const QUOTES_LOAD_ERROR_MESSAGE = "We couldn't load quotes. Try again.";
-export const QUOTES_METRICS_ERROR_MESSAGE = "We couldn't load quote metrics. Try again.";
-export const QUOTES_EMPTY_MESSAGE =
-  'No quotes yet. Quotes are created from requests that are ready for a quote.';
-export const QUOTES_FILTERED_EMPTY_MESSAGE = 'No quotes match the current view.';
-export const QUOTES_NO_BRANCHES_MESSAGE = 'No branches available.';
+export const QUOTES_LOAD_ERROR_MESSAGE = (): string =>
+  t('quotes.quotesListModel.quotesLoadErrorMessage');
+export const QUOTES_METRICS_ERROR_MESSAGE = (): string =>
+  t('quotes.quotesListModel.quotesMetricsErrorMessage');
+export const QUOTES_EMPTY_MESSAGE = (): string => t('quotes.quotesListModel.quotesEmptyMessage');
+export const QUOTES_FILTERED_EMPTY_MESSAGE = (): string =>
+  t('quotes.quotesListModel.quotesFilteredEmptyMessage');
+export const QUOTES_NO_BRANCHES_MESSAGE = (): string =>
+  t('quotes.quotesListModel.quotesNoBranchesMessage');
 
 /** BR-10: rows per page offered by the UI (the first is the default). */
 export const QUOTES_PAGE_SIZES: readonly number[] = [10, 25, 50];

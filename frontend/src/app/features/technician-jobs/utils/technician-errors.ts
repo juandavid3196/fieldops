@@ -1,12 +1,15 @@
 import { isApiError } from '../../../core/models/api-error.model';
 import { ActiveVisitSummary } from '../models/technician-visits.model';
 
+import { localized, t } from '../../../core/i18n/translate';
 export type TechnicianLoadFailure =
   'forbidden' | 'inactive' | 'not-linked' | 'not-found' | 'failed';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to Today's jobs.";
-export const NOT_LINKED_MESSAGE = "Your team profile isn't linked yet. Contact your manager.";
-export const INACTIVE_MESSAGE = 'Your technician profile is inactive. Contact your manager.';
+export const FORBIDDEN_MESSAGE = (): string =>
+  t('technicianJobs.technicianErrors.forbiddenMessage');
+export const NOT_LINKED_MESSAGE = (): string =>
+  t('technicianJobs.technicianErrors.notLinkedMessage');
+export const INACTIVE_MESSAGE = (): string => t('technicianJobs.technicianErrors.inactiveMessage');
 
 /** Maps a failed technician request to the page state; the backend code decides, never its text. */
 export function classifyFailure(error: unknown): TechnicianLoadFailure {
@@ -25,28 +28,33 @@ export function classifyFailure(error: unknown): TechnicianLoadFailure {
 export function accessMessage(failure: TechnicianLoadFailure): string | null {
   switch (failure) {
     case 'forbidden':
-      return FORBIDDEN_MESSAGE;
+      return FORBIDDEN_MESSAGE();
     case 'inactive':
-      return INACTIVE_MESSAGE;
+      return INACTIVE_MESSAGE();
     case 'not-linked':
-      return NOT_LINKED_MESSAGE;
+      return NOT_LINKED_MESSAGE();
     default:
       return null;
   }
 }
 
-export const UPDATE_ERROR_MESSAGE = "We couldn't update this job. Try again.";
-export const NOT_PRIMARY_MESSAGE = 'The primary technician manages travel for this job.';
-export const STATUS_INVALID_MESSAGE = 'Travel cannot be managed for this job in its current state.';
+export const UPDATE_ERROR_MESSAGE = (): string =>
+  t('technicianJobs.technicianErrors.updateErrorMessage');
+export const NOT_PRIMARY_MESSAGE = (): string =>
+  t('technicianJobs.technicianErrors.notPrimaryMessage');
+export const STATUS_INVALID_MESSAGE = (): string =>
+  t('technicianJobs.technicianErrors.statusInvalidMessage');
 
-const CONFLICT_MESSAGES: Readonly<Record<string, string>> = {
-  visit_status_invalid: STATUS_INVALID_MESSAGE,
-  visit_not_today: 'Travel can only be started on the day of the visit.',
-  another_visit_active: "You're already traveling to or working on another job.",
-};
+const CONFLICT_MESSAGES: Readonly<Record<string, string>> = localized(() => ({
+  visit_status_invalid: STATUS_INVALID_MESSAGE(),
+  visit_not_today: t('technicianJobs.technicianErrors.travelCanOnlyBe'),
+  another_visit_active: t('technicianJobs.technicianErrors.youreAlreadyTravelingTo'),
+}));
 
-export const START_JOB_INVALID_MESSAGE = "This job can't be started in its current state.";
-export const NOT_PRIMARY_JOB_MESSAGE = 'The primary technician manages this job.';
+export const START_JOB_INVALID_MESSAGE = (): string =>
+  t('technicianJobs.technicianErrors.startJobInvalidMessage');
+export const NOT_PRIMARY_JOB_MESSAGE = (): string =>
+  t('technicianJobs.technicianErrors.notPrimaryJobMessage');
 
 export interface TravelFailure {
   readonly message: string;
@@ -56,13 +64,14 @@ export interface TravelFailure {
   readonly activeVisit?: ActiveVisitSummary;
 }
 
-export const RESUME_INVALID_MESSAGE = "This job can't be resumed in its current state.";
+export const RESUME_INVALID_MESSAGE = (): string =>
+  t('technicianJobs.technicianErrors.resumeInvalidMessage');
 
 /** Resume reuses the travel classification, with its own copy for an invalid status. */
 export function classifyResumeFailure(error: unknown): TravelFailure {
   const failure = classifyTravelFailure(error);
   return isApiError(error) && error.status === 409 && error.code === 'visit_status_invalid'
-    ? { ...failure, message: RESUME_INVALID_MESSAGE }
+    ? { ...failure, message: RESUME_INVALID_MESSAGE() }
     : failure;
 }
 
@@ -76,8 +85,8 @@ export function classifyTravelFailure(
       return {
         message:
           action === 'start-job' && error.code === 'visit_status_invalid'
-            ? START_JOB_INVALID_MESSAGE
-            : (CONFLICT_MESSAGES[error.code ?? ''] ?? UPDATE_ERROR_MESSAGE),
+            ? START_JOB_INVALID_MESSAGE()
+            : (CONFLICT_MESSAGES[error.code ?? ''] ?? UPDATE_ERROR_MESSAGE()),
         reload: true,
         ...(error.code === 'another_visit_active' && error.activeVisit !== undefined
           ? { activeVisit: error.activeVisit }
@@ -86,10 +95,10 @@ export function classifyTravelFailure(
     }
     if (error.status === 403 && error.code === 'not_primary_technician') {
       return {
-        message: action === 'start-job' ? NOT_PRIMARY_JOB_MESSAGE : NOT_PRIMARY_MESSAGE,
+        message: action === 'start-job' ? NOT_PRIMARY_JOB_MESSAGE() : NOT_PRIMARY_MESSAGE(),
         reload: true,
       };
     }
   }
-  return { message: UPDATE_ERROR_MESSAGE, reload: false };
+  return { message: UPDATE_ERROR_MESSAGE(), reload: false };
 }

@@ -1,16 +1,16 @@
 <app-wizard-card
   headingId="first-branch-heading"
-  title="First branch"
-  description="Add your first operating location. You can add more branches later."
+  [title]="'organizations.firstBranchSection.firstBranch' | transloco"
+  [description]="'organizations.firstBranchSection.addYourFirstOperating' | transloco"
   icon="pi-map-marker"
 >
   <app-wizard-note cardAside class="first-branch__note">
-    This will be your default operating location. You can add more branches after setup is complete.
+    {{ 'organizations.firstBranchSection.thisWillBeYour' | transloco }}
   </app-wizard-note>
 
   <div class="first-branch__grid" [formGroup]="group()">
     <app-form-field
-      label="Branch name"
+      [label]="'organizations.firstBranchSection.branchName' | transloco"
       controlId="branch-name"
       [required]="true"
       [error]="error('branch.name')"
@@ -31,11 +31,15 @@
     </app-form-field>
 
     <app-form-field
-      label="Branch code"
+      [label]="'organizations.firstBranchSection.branchCode' | transloco"
       controlId="branch-code"
       [required]="true"
       [error]="error('branch.code')"
-      [helper]="error('branch.code') === null ? 'Used in document numbering and reports.' : null"
+      [helper]="
+        error('branch.code') === null
+          ? ('organizations.firstBranchSection.usedInDocumentNumbering' | transloco)
+          : null
+      "
     >
       <input
         pInputText
@@ -54,7 +58,11 @@
       />
     </app-form-field>
 
-    <app-form-field label="Branch phone" controlId="branch-phone" [error]="error('branch.phone')">
+    <app-form-field
+      [label]="'organizations.firstBranchSection.branchPhone' | transloco"
+      controlId="branch-phone"
+      [error]="error('branch.phone')"
+    >
       <input
         pInputText
         id="branch-phone"
@@ -69,7 +77,11 @@
       />
     </app-form-field>
 
-    <app-form-field label="Branch email" controlId="branch-email" [error]="error('branch.email')">
+    <app-form-field
+      [label]="'organizations.firstBranchSection.branchEmail' | transloco"
+      controlId="branch-email"
+      [error]="error('branch.email')"
+    >
       <input
         pInputText
         id="branch-email"
@@ -85,7 +97,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Branch time zone"
+      [label]="'organizations.firstBranchSection.branchTimeZone' | transloco"
       controlId="branch-timezone"
       [required]="true"
       [error]="error('branch.timezone')"
@@ -98,7 +110,7 @@
         optionLabel="label"
         optionValue="code"
         [filter]="true"
-        ariaLabel="Branch time zone"
+        [ariaLabel]="'organizations.firstBranchSection.branchTimeZone' | transloco"
         fluid
         [invalid]="error('branch.timezone') !== null"
         [readonly]="submitting()"
@@ -111,10 +123,10 @@
     </app-form-field>
 
     <fieldset class="first-branch__address" [formGroup]="group()">
-      <legend>Branch address</legend>
+      <legend>{{ 'organizations.firstBranchSection.branchAddress' | transloco }}</legend>
       <div class="first-branch__address-grid">
         <app-form-field
-          label="Address line 1"
+          [label]="'organizations.firstBranchSection.addressLine1' | transloco"
           controlId="branch-addressLine1"
           [required]="true"
           [error]="error('branch.addressLine1')"
@@ -137,7 +149,7 @@
         </app-form-field>
 
         <app-form-field
-          label="City"
+          [label]="'organizations.firstBranchSection.city' | transloco"
           controlId="branch-city"
           [required]="true"
           [error]="error('branch.city')"
@@ -158,7 +170,7 @@
         </app-form-field>
 
         <app-form-field
-          label="State / Region"
+          [label]="'organizations.firstBranchSection.stateRegion' | transloco"
           controlId="branch-stateRegion"
           [error]="error('branch.stateRegion')"
         >
@@ -178,7 +190,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Postal code"
+          [label]="'organizations.firstBranchSection.postalCode' | transloco"
           controlId="branch-postalCode"
           [required]="true"
           [error]="error('branch.postalCode')"
@@ -202,7 +214,7 @@
 
         <app-form-field
           class="first-branch__country"
-          label="Country"
+          [label]="'organizations.firstBranchSection.country' | transloco"
           controlId="branch-countryCode"
           [required]="true"
           [error]="error('branch.countryCode')"
@@ -215,7 +227,7 @@
             optionLabel="label"
             optionValue="code"
             [filter]="true"
-            ariaLabel="Country"
+            [ariaLabel]="'organizations.firstBranchSection.country' | transloco"
             fluid
             [invalid]="error('branch.countryCode') !== null"
             [readonly]="submitting()"

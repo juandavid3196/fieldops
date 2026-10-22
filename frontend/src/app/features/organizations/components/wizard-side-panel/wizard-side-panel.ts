@@ -1,8 +1,10 @@
 import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { STEP_LABELS, WizardStep } from '../../pages/register-company/register-company.helpers';
 
+import { t } from '../../../../core/i18n/translate';
 export interface StepperItem {
   readonly step: WizardStep;
   readonly label: string;
@@ -19,7 +21,7 @@ const STEPS: readonly WizardStep[] = [1, 2, 3, 4];
  */
 @Component({
   selector: 'app-wizard-side-panel',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './wizard-side-panel.html',
   styleUrl: './wizard-side-panel.scss',
 })
@@ -44,6 +46,8 @@ export class WizardSidePanel {
   }
 
   accessibleName(item: StepperItem): string {
-    return item.completed && !item.current ? `${item.label}, completed` : item.label;
+    return item.completed && !item.current
+      ? t('organizations.wizardSidePanel.completed', { label: item.label })
+      : item.label;
   }
 }

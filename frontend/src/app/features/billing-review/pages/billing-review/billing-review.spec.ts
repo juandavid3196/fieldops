@@ -393,7 +393,7 @@ describe('Billing review page', () => {
 
     expect(text()).toContain('Kitchen sink leak repair');
     expect(text()).toContain('#WO-3091 | Quote #Q-2036');
-    expect(text()).toContain('Completed byCarlos Rivera');
+    expect(text()).toMatch(/Completed by\s*Carlos Rivera/);
     expect(text()).toContain('Sep 23, 2026, 11:13 AM');
     expect(host.querySelectorAll('.detail__table thead th[scope="col"]')).toHaveLength(8);
     const rows = Array.from(host.querySelectorAll('.detail__table tbody tr'), (tr) =>

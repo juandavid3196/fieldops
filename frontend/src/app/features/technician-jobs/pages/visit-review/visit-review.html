@@ -3,7 +3,12 @@
 
   @switch (state()) {
     @case ('loading') {
-      <div class="review__skeletons" aria-busy="true" aria-label="Loading job" role="status">
+      <div
+        class="review__skeletons"
+        aria-busy="true"
+        [attr.aria-label]="'technicianJobs.visitReview.loadingJob' | transloco"
+        role="status"
+      >
         <p-skeleton height="4rem" />
         <p-skeleton height="9rem" />
         <p-skeleton height="14rem" />
@@ -15,7 +20,7 @@
         <span class="review__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="load()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -29,44 +34,55 @@
         [outlined]="true"
         [routerLink]="todayPath"
       >
-        Back to Today's jobs
+        {{ 'technicianJobs.visitReview.backToTodayS' | transloco }}
       </a>
     }
     @case ('ready') {
       @if (visit(); as job) {
         <header class="review__head">
           <h1 class="review__title" id="review-title" tabindex="-1" #title>
-            {{ currentStep() === 'review' ? 'Review & complete' : 'Customer acknowledgment' }}
+            {{
+              currentStep() === 'review'
+                ? ('technicianJobs.visitReview.reviewComplete' | transloco)
+                : ('technicianJobs.visitReview.customerAcknowledgment' | transloco)
+            }}
           </h1>
           <p class="review__subtitle">
             {{
               currentStep() === 'review'
-                ? 'Review completed work before capturing customer acknowledgment.'
-                : 'Choose how completion was acknowledged.'
+                ? ('technicianJobs.visitReview.reviewCompletedWorkBefore' | transloco)
+                : ('technicianJobs.visitReview.chooseHowCompletionWas' | transloco)
             }}
           </p>
         </header>
 
         @if (currentStep() === 'review') {
-          <section class="review__card review__summary" aria-label="Job summary">
+          <section
+            class="review__card review__summary"
+            [attr.aria-label]="'technicianJobs.visitReview.jobSummary' | transloco"
+          >
             <p class="review__fact">
               <i class="pi pi-wrench" aria-hidden="true"></i>
               <span>
-                <span class="review__caption">Service</span>
+                <span class="review__caption">{{
+                  'technicianJobs.visitReview.service' | transloco
+                }}</span>
                 {{ job.title }}
               </span>
             </p>
             <p class="review__fact">
               <i class="pi pi-user" aria-hidden="true"></i>
               <span>
-                <span class="review__caption">Customer</span>
+                <span class="review__caption">{{ 'common.customer' | transloco }}</span>
                 {{ job.customerName }}
               </span>
             </p>
             <p class="review__fact">
               <i class="pi pi-home" aria-hidden="true"></i>
               <span>
-                <span class="review__caption">Property</span>
+                <span class="review__caption">{{
+                  'technicianJobs.visitReview.property' | transloco
+                }}</span>
                 {{ address() }}
               </span>
             </p>
@@ -84,9 +100,14 @@
                   ><i class="pi pi-check-square"></i
                 ></span>
                 <span class="review__text">
-                  <strong>Completion checklist</strong>
+                  <strong>{{
+                    'technicianJobs.visitReview.completionChecklist' | transloco
+                  }}</strong>
                   <span id="review-checklist-text">
-                    {{ tasksDone() }} of {{ tasksTotal() }} tasks complete.
+                    {{
+                      'technicianJobs.visitReview.ofTasksComplete'
+                        | transloco: { tasksDone: tasksDone(), tasksTotal: tasksTotal() }
+                    }}
                   </span>
                 </span>
                 <span
@@ -107,14 +128,16 @@
               <a class="review__row" [routerLink]="jobLink" [fragment]="sectionLink('materials')">
                 <span class="review__tile" aria-hidden="true"><i class="pi pi-box"></i></span>
                 <span class="review__text">
-                  <strong>Materials used</strong>
+                  <strong>{{ 'technicianJobs.visitReview.materialsUsed' | transloco }}</strong>
                   @for (line of materials().lines; track $index) {
                     <span>{{ line }}</span>
                   } @empty {
-                    <span>No materials recorded.</span>
+                    <span>{{ 'technicianJobs.visitReview.noMaterialsRecorded' | transloco }}</span>
                   }
                   @if (materials().more > 0) {
-                    <span>+{{ materials().more }} more</span>
+                    <span>{{
+                      'technicianJobs.visitReview.more' | transloco: { more: materials().more }
+                    }}</span>
                   }
                 </span>
                 <i class="pi pi-chevron-right review__chevron" aria-hidden="true"></i>
@@ -124,9 +147,15 @@
               <a class="review__row" [routerLink]="jobLink" [fragment]="sectionLink('photos')">
                 <span class="review__tile" aria-hidden="true"><i class="pi pi-camera"></i></span>
                 <span class="review__text">
-                  <strong>Evidence</strong>
-                  <span>Before photos: {{ beforeCount() }}</span>
-                  <span>After photos: {{ afterCount() }}</span>
+                  <strong>{{ 'technicianJobs.visitReview.evidence' | transloco }}</strong>
+                  <span>{{
+                    'technicianJobs.visitReview.beforePhotos'
+                      | transloco: { beforeCount: beforeCount() }
+                  }}</span>
+                  <span>{{
+                    'technicianJobs.visitReview.afterPhotos'
+                      | transloco: { afterCount: afterCount() }
+                  }}</span>
                 </span>
                 <i class="pi pi-chevron-right review__chevron" aria-hidden="true"></i>
               </a>
@@ -135,8 +164,12 @@
               <a class="review__row" [routerLink]="jobLink" [fragment]="sectionLink('notes')">
                 <span class="review__tile" aria-hidden="true"><i class="pi pi-file-edit"></i></span>
                 <span class="review__text">
-                  <strong>Technician completion note</strong>
-                  <span class="review__note">{{ note() || 'No completion note.' }}</span>
+                  <strong>{{
+                    'technicianJobs.visitReview.technicianCompletionNote' | transloco
+                  }}</strong>
+                  <span class="review__note">{{
+                    note() || ('technicianJobs.visitReview.noCompletionNote' | transloco)
+                  }}</span>
                 </span>
                 <i class="pi pi-chevron-right review__chevron" aria-hidden="true"></i>
               </a>
@@ -144,14 +177,18 @@
             <li class="review__row review__row--static">
               <span class="review__tile" aria-hidden="true"><i class="pi pi-clock"></i></span>
               <span class="review__text">
-                <strong>Summary</strong>
+                <strong>{{ 'technicianJobs.visitReview.summary' | transloco }}</strong>
                 <span class="review__pair">
                   <span>
-                    <span class="review__caption">Work time</span>
+                    <span class="review__caption">{{
+                      'technicianJobs.visitReview.workTime' | transloco
+                    }}</span>
                     <strong>{{ laborText() }}</strong>
                   </span>
                   <span>
-                    <span class="review__caption">Technician</span>
+                    <span class="review__caption">{{
+                      'technicianJobs.visitReview.technician' | transloco
+                    }}</span>
                     <strong>{{ job.primaryTechnicianName }}</strong>
                   </span>
                 </span>
@@ -172,11 +209,15 @@
               } @else {
                 <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
               }
-              {{ ready() ? 'Ready to complete' : 'Not ready to complete' }}
+              {{
+                ready()
+                  ? ('technicianJobs.visitReview.readyToComplete' | transloco)
+                  : ('technicianJobs.visitReview.notReadyToComplete' | transloco)
+              }}
             </h2>
             @if (!ready()) {
               <p class="review__ready-help">
-                Complete required tasks and add before and after photos
+                {{ 'technicianJobs.visitReview.completeRequiredTasksAnd' | transloco }}
               </p>
             }
             <ul class="review__items">
@@ -212,7 +253,7 @@
                 [outlined]="true"
                 [routerLink]="jobLink"
               >
-                Back to job
+                {{ 'technicianJobs.visitReview.backToJob' | transloco }}
               </a>
             } @else {
               <button
@@ -222,7 +263,7 @@
                 [disabled]="!ready()"
                 (click)="show('acknowledgment')"
               >
-                Continue to acknowledgment
+                {{ 'technicianJobs.visitReview.continueToAcknowledgment' | transloco }}
                 <i class="pi pi-arrow-right" aria-hidden="true"></i>
               </button>
             }
@@ -230,7 +271,9 @@
         } @else {
           <form class="ack" novalidate (submit)="complete($event)">
             <fieldset class="ack__methods" [disabled]="pending()">
-              <legend class="review__sr">Acknowledgment method</legend>
+              <legend class="review__sr">
+                {{ 'technicianJobs.visitReview.acknowledgmentMethod' | transloco }}
+              </legend>
               @for (option of methods; track option.code) {
                 <label class="ack__method" [class.ack__method--selected]="method() === option.code">
                   <input
@@ -256,7 +299,12 @@
                   @if (rules().signerName !== null) {
                     <div class="ack__field">
                       <label class="ack__label" for="ack-signerName">
-                        Signer name{{ rules().signerName === 'optional' ? ' (optional)' : '' }}
+                        {{
+                          (rules().signerName === 'optional'
+                            ? 'technicianJobs.visitReview.signerNameOptional'
+                            : 'technicianJobs.visitReview.signerName'
+                          ) | transloco
+                        }}
                       </label>
                       <input
                         pInputText
@@ -277,7 +325,9 @@
                   }
                   @if (rules().relationship) {
                     <div class="ack__field">
-                      <label class="ack__label" for="ack-relationship">Relationship</label>
+                      <label class="ack__label" for="ack-relationship">{{
+                        'technicianJobs.visitReview.relationship' | transloco
+                      }}</label>
                       <select
                         id="ack-relationship"
                         class="ack__input ack__select"
@@ -304,7 +354,9 @@
 
               @if (rules().signature) {
                 <div class="ack__field">
-                  <span class="ack__label" id="ack-signature-label">Customer signature</span>
+                  <span class="ack__label" id="ack-signature-label">{{
+                    'technicianJobs.visitReview.customerSignature' | transloco
+                  }}</span>
                   <app-signature-pad
                     [strokes]="strokes()"
                     [disabled]="pending()"
@@ -350,7 +402,7 @@
                       "
                       (change)="setConfirmed($any($event.target).checked)"
                     />
-                    Customer confirms the work was reviewed.
+                    {{ 'technicianJobs.visitReview.customerConfirmsTheWork' | transloco }}
                   </label>
                   @if (errors().reviewConfirmed; as message) {
                     <p class="ack__error" [id]="errorId('reviewConfirmed')">{{ message }}</p>
@@ -361,7 +413,7 @@
 
             <p class="ack__info">
               <span class="ack__info-icon" aria-hidden="true"><i class="pi pi-info"></i></span>
-              A signature confirms service acknowledgment. It does not confirm payment.
+              {{ 'technicianJobs.visitReview.aSignatureConfirmsService' | transloco }}
             </p>
 
             <div class="bar">
@@ -378,7 +430,7 @@
                   [disabled]="pending()"
                   (click)="show('review')"
                 >
-                  Back
+                  {{ 'common.back' | transloco }}
                 </button>
                 <button
                   pButton
@@ -387,7 +439,7 @@
                   [disabled]="pending()"
                   [loading]="pending()"
                 >
-                  Complete job
+                  {{ 'technicianJobs.visitReview.completeJob' | transloco }}
                 </button>
               </div>
               <p class="bar__helper">{{ footerText() }}</p>

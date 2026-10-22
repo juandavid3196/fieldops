@@ -1,4 +1,4 @@
-<ol class="stepper" aria-label="Progress">
+<ol class="stepper" [attr.aria-label]="'serviceRequest.requestStepper.progress' | transloco">
   @for (step of steps(); track step.id; let index = $index) {
     <li
       class="stepper__item"
@@ -10,7 +10,9 @@
         <button
           type="button"
           class="stepper__link"
-          [attr.aria-label]="'Go to ' + step.label + ', completed'"
+          [attr.aria-label]="
+            'serviceRequest.requestStepper.goToCompleted' | transloco: { label: step.label }
+          "
           (click)="open(step.id)"
         >
           <span class="stepper__marker" aria-hidden="true"><i class="pi pi-check"></i></span>
@@ -26,7 +28,9 @@
         </span>
         <span class="stepper__label">{{ step.label }}</span>
         @if (isDone(step.id)) {
-          <span class="stepper__sr">, completed</span>
+          <span class="stepper__sr">{{
+            'serviceRequest.requestStepper.completed' | transloco
+          }}</span>
         }
       }
     </li>

@@ -18,6 +18,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
@@ -34,15 +35,15 @@ import {
 } from '../../utils/team-planning';
 import { TechnicianPicker } from '../technician-picker/technician-picker';
 
-export const OVERLAP_MESSAGE =
-  'This technician already has time off or an exception on these dates.';
-export const CLOSED_MESSAGE = 'This time off has already ended or was removed.';
-export const TIME_OFF_STALE_MESSAGE =
-  'This time off was changed by someone else. Reload to see the latest version.';
-export const PAST_START_MESSAGE = 'Choose today or a future date.';
-export const END_BEFORE_START_DATE_MESSAGE = "End date can't be before start date.";
-export const NOTE_TOO_LONG_MESSAGE = 'Use 250 characters or fewer.';
-const REQUIRED_MESSAGE = 'This field is required.';
+import { t } from '../../../../core/i18n/translate';
+export const OVERLAP_MESSAGE = (): string => t('team.timeOffDrawer.overlapMessage');
+export const CLOSED_MESSAGE = (): string => t('team.timeOffDrawer.closedMessage');
+export const TIME_OFF_STALE_MESSAGE = (): string => t('team.timeOffDrawer.timeOffStaleMessage');
+export const PAST_START_MESSAGE = (): string => t('team.timeOffDrawer.pastStartMessage');
+export const END_BEFORE_START_DATE_MESSAGE = (): string =>
+  t('team.timeOffDrawer.endBeforeStartDateMessage');
+export const NOTE_TOO_LONG_MESSAGE = (): string => t('team.timeOffDrawer.noteTooLongMessage');
+const REQUIRED_MESSAGE = (): string => t('team.timeOffDrawer.requiredMessage');
 const NOTE_MAX = 250;
 const TITLE_ID = 'time-off-drawer-title';
 
@@ -61,17 +62,17 @@ const EMPTY_FORM: TimeOffForm = { startDate: '', endDate: '', note: '' };
 export function validateTimeOff(form: TimeOffForm, today: string): FormErrors {
   const errors: FormErrors = {};
   if (form.startDate === '') {
-    errors.startDate = REQUIRED_MESSAGE;
+    errors.startDate = REQUIRED_MESSAGE();
   } else if (form.startDate < today) {
-    errors.startDate = PAST_START_MESSAGE;
+    errors.startDate = PAST_START_MESSAGE();
   }
   if (form.endDate === '') {
-    errors.endDate = REQUIRED_MESSAGE;
+    errors.endDate = REQUIRED_MESSAGE();
   } else if (form.startDate !== '' && form.endDate < form.startDate) {
-    errors.endDate = END_BEFORE_START_DATE_MESSAGE;
+    errors.endDate = END_BEFORE_START_DATE_MESSAGE();
   }
   if (form.note.trim().length > NOTE_MAX) {
-    errors.note = NOTE_TOO_LONG_MESSAGE;
+    errors.note = NOTE_TOO_LONG_MESSAGE();
   }
   return errors;
 }
@@ -80,6 +81,7 @@ export function validateTimeOff(form: TimeOffForm, today: string): FormErrors {
 @Component({
   selector: 'app-time-off-drawer',
   imports: [
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     InputText,
@@ -111,7 +113,9 @@ export class TimeOffDrawer {
 
   readonly titleId = TITLE_ID;
   readonly noteMax = NOTE_MAX;
-  readonly unavailableMessage = UNAVAILABLE_TECHNICIAN_MESSAGE;
+  get unavailableMessage(): string {
+    return UNAVAILABLE_TECHNICIAN_MESSAGE();
+  }
 
   readonly selection = signal<string | null>(null);
   readonly technicianId = signal<string | null>(null);
@@ -191,7 +195,7 @@ export class TimeOffDrawer {
     }
     this.confirmation.confirm(
       discardChangesConfirmation({
-        subject: 'this time off',
+        subject: t('team.timeOffDrawer.thisTimeOff'),
         accept: () => this.load(id),
         reject: () => this.selection.set(this.technicianId()),
       }),
@@ -267,7 +271,7 @@ export class TimeOffDrawer {
       .subscribe({
         next: () => {
           this.submitting.set(false);
-          this.messages.add({ severity: 'success', summary: 'Time off added.' });
+          this.messages.add({ severity: 'success', summary: t('team.timeOffDrawer.timeOffAdded') });
           this.resetForm();
           this.changed.emit();
           this.load(detail.technicianId, true);
@@ -283,11 +287,14 @@ export class TimeOffDrawer {
       return;
     }
     this.confirmation.confirm({
-      header: 'Remove this time off?',
-      message: `${timeOffRange(item.startDate, item.endDate)} will be removed from ${this.current()?.name ?? 'this technician'}'s schedule.`,
+      header: t('team.timeOffDrawer.removeThisTimeOff'),
+      message: t('team.timeOffDrawer.willBeRemovedFrom', {
+        value: timeOffRange(item.startDate, item.endDate),
+        value2: this.current()?.name ?? t('team.timeOffDrawer.thisTechnician'),
+      }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Remove' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('common.remove') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => this.remove(item),
     });
   }
@@ -304,7 +311,10 @@ export class TimeOffDrawer {
       .subscribe({
         next: () => {
           this.removingId.set(null);
-          this.messages.add({ severity: 'success', summary: 'Time off removed.' });
+          this.messages.add({
+            severity: 'success',
+            summary: t('team.timeOffDrawer.timeOffRemoved'),
+          });
           this.changed.emit();
           this.load(detail.technicianId, true);
         },
@@ -323,11 +333,11 @@ export class TimeOffDrawer {
       this.notFound.set(true);
     } else if (apiError?.kind === 'conflict') {
       if (apiError.code === 'time_off_closed') {
-        this.conflict.set({ text: CLOSED_MESSAGE, reloadable: true });
+        this.conflict.set({ text: CLOSED_MESSAGE(), reloadable: true });
       } else if (apiError.code === 'stale' || removing) {
-        this.conflict.set({ text: TIME_OFF_STALE_MESSAGE, reloadable: true });
+        this.conflict.set({ text: TIME_OFF_STALE_MESSAGE(), reloadable: true });
       } else {
-        this.conflict.set({ text: OVERLAP_MESSAGE, reloadable: false });
+        this.conflict.set({ text: OVERLAP_MESSAGE(), reloadable: false });
       }
     } else if (
       !removing &&
@@ -356,7 +366,7 @@ export class TimeOffDrawer {
     if (this.dirty()) {
       this.confirmation.confirm(
         discardChangesConfirmation({
-          subject: 'this time off',
+          subject: t('team.timeOffDrawer.thisTimeOff'),
           accept: () => this.closed.emit(),
         }),
       );

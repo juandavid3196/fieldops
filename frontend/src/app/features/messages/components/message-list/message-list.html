@@ -1,14 +1,16 @@
 <div class="list">
   <header class="list__header">
-    <h1 class="list__title">Messages</h1>
-    <p class="list__subtitle">Job and team conversations</p>
+    <h1 class="list__title">{{ 'messages.messageList.messages' | transloco }}</h1>
+    <p class="list__subtitle">{{ 'messages.messageList.jobAndTeamConversations' | transloco }}</p>
   </header>
 
   @if (accessText(); as access) {
     <p class="list__access" role="status">{{ access }}</p>
   } @else {
     <div class="list__search" role="search">
-      <label class="list__sr" for="messages-search">Search messages</label>
+      <label class="list__sr" for="messages-search">{{
+        'messages.messageList.searchMessages' | transloco
+      }}</label>
       <p-iconfield>
         <p-inputicon class="pi pi-search" />
         <input
@@ -17,14 +19,18 @@
           type="search"
           fluid
           autocomplete="off"
-          placeholder="Search messages"
+          [attr.placeholder]="'messages.messageList.searchMessages' | transloco"
           [value]="text()"
           (input)="onSearch($any($event.target).value)"
         />
       </p-iconfield>
     </div>
 
-    <div class="list__chips" role="group" aria-label="Filter conversations">
+    <div
+      class="list__chips"
+      role="group"
+      [attr.aria-label]="'messages.messageList.filterConversations' | transloco"
+    >
       @for (option of filters; track option.value) {
         <button
           type="button"
@@ -46,11 +52,16 @@
       {{ notice }}
     </p>
 
-    <h2 class="list__section">Recent</h2>
+    <h2 class="list__section">{{ 'messages.messageList.recent' | transloco }}</h2>
 
     @switch (state()) {
       @case ('loading') {
-        <div class="list__skeletons" role="status" aria-busy="true" aria-label="Loading messages">
+        <div
+          class="list__skeletons"
+          role="status"
+          aria-busy="true"
+          [attr.aria-label]="'messages.messageList.loadingMessages' | transloco"
+        >
           @for (row of skeletonRows; track row) {
             <p-skeleton height="5rem" borderRadius="0.75rem" />
           }
@@ -61,7 +72,7 @@
           <span class="list__error">
             {{ errorMessage }}
             <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-              Retry
+              {{ 'common.retry' | transloco }}
             </button>
           </span>
         </p-message>
@@ -110,7 +121,7 @@
               [loading]="loadingMore()"
               (click)="loadMore()"
             >
-              Load more
+              {{ 'messages.messageList.loadMore' | transloco }}
             </button>
           }
         }

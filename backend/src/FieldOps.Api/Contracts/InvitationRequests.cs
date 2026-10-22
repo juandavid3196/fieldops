@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace FieldOps.Api.Contracts;
 
 /// <summary>
@@ -10,4 +12,5 @@ public sealed record AcceptInvitationRequest(
     string? Token,
     string? FirstName,
     string? LastName,
-    string? Password);
+    string? Password,
+    JsonElement? PreferredLanguage = null);

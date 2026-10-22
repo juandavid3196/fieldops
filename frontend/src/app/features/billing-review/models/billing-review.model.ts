@@ -1,3 +1,4 @@
+import { localized, t } from '../../../core/i18n/translate';
 export type CompletedRange = '7d' | '30d' | '90d' | 'all';
 export type VarianceFilter = 'all' | 'none' | 'any' | 'labor' | 'material';
 export type QueueTab = 'all' | 'variances' | 'ready';
@@ -209,25 +210,35 @@ export interface GeneratedInvoice {
 }
 
 export const NOTE_MAX_LENGTH = 500;
-export const READ_ONLY_MESSAGE = 'Only owners and accounting can review and generate invoices.';
-export const FORBIDDEN_MESSAGE = "You don't have access to the completed jobs review.";
-export const QUEUE_ERROR_MESSAGE = "We couldn't load completed jobs. Try again.";
-export const QUEUE_EMPTY_MESSAGE = 'No completed jobs need review.';
-export const QUEUE_FILTERED_EMPTY_MESSAGE = 'No jobs match these filters.';
-export const DETAIL_ERROR_MESSAGE = "We couldn't load this job. Try again.";
-export const DETAIL_GONE_MESSAGE = 'This job is no longer in the review queue.';
-export const ACTION_FAILED_MESSAGE = "We couldn't complete this action. Try again.";
-export const EXPORT_FAILED_MESSAGE = "We couldn't export the queue. Try again.";
-export const EXPORT_TOO_LARGE_MESSAGE = 'Narrow the filters to export 5,000 jobs or fewer.';
-export const NOTE_TOO_LONG_MESSAGE = 'Use 500 characters or fewer.';
-export const ISSUE_DATE_MESSAGE = 'Choose an issue date within the last 30 days.';
-export const TERMS_MESSAGE = 'Select payment terms.';
+export const READ_ONLY_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.readOnlyMessage');
+export const FORBIDDEN_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.forbiddenMessage');
+export const QUEUE_ERROR_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.queueErrorMessage');
+export const QUEUE_EMPTY_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.queueEmptyMessage');
+export const QUEUE_FILTERED_EMPTY_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.queueFilteredEmptyMessage');
+export const DETAIL_ERROR_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.detailErrorMessage');
+export const DETAIL_GONE_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.detailGoneMessage');
+export const ACTION_FAILED_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.actionFailedMessage');
+export const EXPORT_FAILED_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.exportFailedMessage');
+export const EXPORT_TOO_LARGE_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.exportTooLargeMessage');
+export const NOTE_TOO_LONG_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.noteTooLongMessage');
+export const ISSUE_DATE_MESSAGE = (): string =>
+  t('billingReview.billingReviewModel.issueDateMessage');
+export const TERMS_MESSAGE = (): string => t('billingReview.billingReviewModel.termsMessage');
 /** Fixed copy for the `409` codes of the generate endpoint (backend titles are never displayed). */
-export const GENERATE_MESSAGES: Readonly<Record<string, string>> = {
-  work_order_status_invalid: 'This job is no longer ready for invoicing.',
-  completion_requirements_unmet:
-    'Complete the required closing items before generating an invoice. This job was marked for follow-up.',
-  variance_confirmation_required: 'Confirm the variances to generate this invoice.',
-  invoice_totals_mismatch:
-    "The approved quote amounts don't match its lines. Review the quote before invoicing.",
-};
+export const GENERATE_MESSAGES: Readonly<Record<string, string>> = localized(() => ({
+  work_order_status_invalid: t('billingReview.billingReviewModel.thisJobIsNo'),
+  completion_requirements_unmet: t('billingReview.billingReviewModel.completeTheRequiredClosing'),
+  variance_confirmation_required: t('billingReview.billingReviewModel.confirmTheVariancesTo'),
+  invoice_totals_mismatch: t('billingReview.billingReviewModel.theApprovedQuoteAmounts'),
+}));

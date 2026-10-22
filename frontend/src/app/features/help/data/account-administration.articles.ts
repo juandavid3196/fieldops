@@ -1,170 +1,154 @@
 import { HelpSection } from '../models/help.model';
 
+import { localizedList, t } from '../../../core/i18n/translate';
 /** Account & administration articles. Content describes only behavior FieldOps implements (BR-10). */
-export const ACCOUNT_ADMINISTRATION_SECTIONS: readonly HelpSection[] = [
+export const ACCOUNT_ADMINISTRATION_SECTIONS: readonly HelpSection[] = localizedList(() => [
   {
-    label: 'YOUR ACCOUNT',
+    label: t('help.accountAdministrationArticles.yourAccount'),
     articles: [
       {
         slug: 'update-your-profile',
-        title: 'Update your profile',
-        description: 'Change your name, phone and photo.',
+        title: t('help.accountAdministrationArticles.updateYourProfile'),
+        description: t('help.accountAdministrationArticles.changeYourNamePhone'),
         icon: 'pi-user',
-        introduction:
-          'Your profile shows your name, contact details and photo. You can change them at any time from your account settings.',
-        callout:
-          'Your email address, organization and role cannot be changed here. An administrator manages your role.',
+        introduction: t('help.accountAdministrationArticles.yourProfileShowsYour'),
+        callout: t('help.accountAdministrationArticles.yourEmailAddressOrganization'),
         steps: [
           {
-            text: 'Open your name at the top right and select My profile. Technicians open More and select My profile.',
+            text: t('help.accountAdministrationArticles.openYourNameAt'),
           },
           {
-            text: 'To change your photo, select Change photo and choose a JPG or PNG file of 5 MB or less. Select Remove photo to delete it.',
+            text: t('help.accountAdministrationArticles.toChangeYourPhoto'),
           },
           {
-            text: 'Edit your First name and Last name. Add or update your Phone number if you wish.',
+            text: t('help.accountAdministrationArticles.editYourFirstName'),
           },
-          { text: 'Select Save changes. Select Cancel to leave without saving.' },
+          { text: t('help.accountAdministrationArticles.selectSaveChangesSelect') },
         ],
-        whatHappensNext:
-          'Your updated name and photo appear across FieldOps. Your Membership details stay read-only.',
+        whatHappensNext: t('help.accountAdministrationArticles.yourUpdatedNameAnd'),
       },
       {
         slug: 'change-your-password',
-        title: 'Change your password',
-        description: 'Keep your account secure.',
+        title: t('help.accountAdministrationArticles.changeYourPassword'),
+        description: t('help.accountAdministrationArticles.keepYourAccountSecure'),
         icon: 'pi-lock',
-        introduction:
-          'Change your password from Account settings. You need your current password to set a new one.',
+        introduction: t('help.accountAdministrationArticles.changeYourPasswordFrom'),
         steps: [
           {
-            text: 'Open your name at the top right and select Account settings, then Security. Technicians open More and select Account settings.',
+            text: t('help.accountAdministrationArticles.openYourNameAt2'),
           },
-          { text: 'Enter your Current password.' },
+          { text: t('help.accountAdministrationArticles.enterYourCurrentPassword') },
           {
-            text: 'Enter your New password and repeat it in Confirm new password. The Password requirements list shows which rules are met.',
+            text: t('help.accountAdministrationArticles.enterYourNewPassword'),
           },
-          { text: 'Select Update password.' },
+          { text: t('help.accountAdministrationArticles.selectUpdatePassword') },
         ],
-        whatHappensNext:
-          'Changing your password keeps you signed in on this device and signs you out on other devices.',
+        whatHappensNext: t('help.accountAdministrationArticles.changingYourPasswordKeeps'),
       },
     ],
   },
   {
-    label: 'ADMINISTRATION',
+    label: t('help.accountAdministrationArticles.administration'),
     articles: [
       {
         slug: 'manage-users-and-permissions',
-        title: 'Manage users and permissions',
-        description: 'Invite users and review role access.',
+        title: t('help.accountAdministrationArticles.manageUsersAndPermissions'),
+        description: t('help.accountAdministrationArticles.inviteUsersAndReview'),
         icon: 'pi-users',
-        introduction:
-          'Users & permissions lists everyone who can sign in to your organization, with their role and branch access. Invite new people and change or suspend access here.',
-        callout:
-          'Only owners can invite users and change access. Viewers can open the page but it is read-only. Other roles do not see Administration.',
+        introduction: t('help.accountAdministrationArticles.usersPermissionsListsEveryone'),
+        callout: t('help.accountAdministrationArticles.onlyOwnersCanInvite'),
         steps: [
-          { text: 'Select Administration in the sidebar, then Users & permissions.' },
+          { text: t('help.accountAdministrationArticles.selectAdministrationInThe') },
           {
-            text: 'Use the filters to find people by role, branch or status: Active, Pending invitation or Suspended.',
+            text: t('help.accountAdministrationArticles.useTheFiltersTo'),
           },
-          { text: 'Select Invite user.' },
+          { text: t('help.accountAdministrationArticles.selectInviteUser') },
           {
-            text: 'Enter the Email address, First name and Last name, choose the Role and set the Branch access. For Operations Manager, Dispatcher and Technician roles you can also switch on Link operational team profile after acceptance.',
-          },
-          {
-            text: 'Choose how long the invitation lasts in Invitation expires in, then select Send invitation.',
+            text: t('help.accountAdministrationArticles.enterTheEmailAddress'),
           },
           {
-            text: 'To change someone later, select Edit access on their row. The row menu offers Suspend access and Reactivate, and for pending invitations Resend invitation and Revoke invitation.',
+            text: t('help.accountAdministrationArticles.chooseHowLongThe'),
+          },
+          {
+            text: t('help.accountAdministrationArticles.toChangeSomeoneLater'),
           },
         ],
-        whatHappensNext:
-          'The person receives an invitation email and accepts it to start using FieldOps. The last Owner cannot be suspended or downgraded. Roles are Owner, Operations Manager, Dispatcher, Technician, Accounting and Viewer; the Permission matrix at the bottom of the page shows what each one can do.',
+        whatHappensNext: t('help.accountAdministrationArticles.thePersonReceivesAn'),
       },
       {
         slug: 'manage-technician-skills-and-availability',
-        title: 'Manage technician skills and availability',
-        description: 'Set the skills and hours used for assignment.',
+        title: t('help.accountAdministrationArticles.manageTechnicianSkillsAnd'),
+        description: t('help.accountAdministrationArticles.setTheSkillsAnd'),
         icon: 'pi-id-card',
-        introduction:
-          'Technician profiles hold the skills and working hours that help you choose who to assign. Open Team in the sidebar to work with them.',
-        callout:
-          'Owners and operations managers can edit. Dispatchers see the information read-only, and technicians see only their own profile. The Skills and Availability tabs and Manage skills buttons on the Team page are not available yet; use the profile steps below.',
+        introduction: t('help.accountAdministrationArticles.technicianProfilesHoldThe'),
+        callout: t('help.accountAdministrationArticles.ownersAndOperationsManagers'),
         steps: [
           {
-            text: 'To create a profile, select Add technician profile on the Team page, fill in the details and save.',
+            text: t('help.accountAdministrationArticles.toCreateAProfile'),
           },
           {
-            text: 'Open a technician from the list (View in the row menu) to see the profile drawer, then select Edit skills or Edit availability. Both open the Skills & availability page.',
+            text: t('help.accountAdministrationArticles.openATechnicianFrom'),
           },
           {
-            text: 'In Operational skills, search and add skills, set the level, and select Set as primary for the main one. Use Manage skill list to add skills to your organization.',
+            text: t('help.accountAdministrationArticles.inOperationalSkillsSearch'),
           },
           {
-            text: 'In Standard weekly availability, set the working days, start and end times, breaks and capacity. Copy Monday to weekdays or Reset can speed this up.',
+            text: t('help.accountAdministrationArticles.inStandardWeeklyAvailability'),
           },
           {
-            text: 'In Availability exceptions, select Add exception to override the weekly schedule for a date.',
+            text: t('help.accountAdministrationArticles.inAvailabilityExceptionsSelect'),
           },
-          { text: 'Select Save changes.' },
+          { text: t('help.accountAdministrationArticles.selectSaveChanges') },
         ],
-        whatHappensNext:
-          'Dispatchers can compare technicians by skills and availability when assigning work. FieldOps never assigns a technician automatically. The Overview, Schedule and Job history tabs on this page are not available yet.',
+        whatHappensNext: t('help.accountAdministrationArticles.dispatchersCanCompareTechnicians'),
       },
       {
         slug: 'manage-customer-records',
-        title: 'Manage customer records',
-        description: 'Find, edit, import and archive customers.',
+        title: t('help.accountAdministrationArticles.manageCustomerRecords'),
+        description: t('help.accountAdministrationArticles.findEditImportAnd'),
         icon: 'pi-address-book',
-        introduction:
-          'Customers keeps every customer, their properties and notes in one place. Search, add or import customers and archive the ones you no longer work with.',
-        callout:
-          'Owners and dispatchers can add and edit customers; only owners can import. Other roles see them read-only. On a customer page, the Requests, Quotes, Jobs and Invoices tabs only show a coming soon message; Overview and Activity work.',
+        introduction: t('help.accountAdministrationArticles.customersKeepsEveryCustomer'),
+        callout: t('help.accountAdministrationArticles.ownersAndDispatchersCan'),
         steps: [
           {
-            text: 'Select Customers in the sidebar. Use the All customers, Leads, Active and Archived tabs and the search and filters to find a customer.',
+            text: t('help.accountAdministrationArticles.selectCustomersInThe'),
           },
           {
-            text: 'Select New customer to add one. If FieldOps finds a Possible existing customer, review it and choose View existing customer or Create anyway.',
+            text: t('help.accountAdministrationArticles.selectNewCustomerTo'),
           },
           {
-            text: 'To add many at once, select Import customers, download the CSV template, drop your file and review any row errors or duplicate warnings before importing.',
+            text: t('help.accountAdministrationArticles.toAddManyAt'),
           },
           {
-            text: 'Open the row menu to View, Edit, Archive or Reactivate a customer. Select a name to open its page.',
+            text: t('help.accountAdministrationArticles.openTheRowMenu'),
           },
           {
-            text: 'On the customer page, use Edit customer for details. The properties card has Add property, Edit, Set as primary and Archive, and Internal notes lets you add notes.',
+            text: t('help.accountAdministrationArticles.onTheCustomerPage'),
           },
         ],
-        whatHappensNext:
-          'Archived customers move to the Archived tab and can be reactivated. Their history is kept.',
+        whatHappensNext: t('help.accountAdministrationArticles.archivedCustomersMoveTo'),
       },
       {
         slug: 'invite-a-customer-to-the-portal',
-        title: 'Invite a customer to the portal',
-        description: 'Give a customer access to their portal.',
+        title: t('help.accountAdministrationArticles.inviteACustomerTo'),
+        description: t('help.accountAdministrationArticles.giveACustomerAccess'),
         icon: 'pi-send',
-        introduction:
-          'The customer portal lets a customer sign in to see their own information. Invite the customer from their page and they activate access from an email.',
-        callout:
-          'Owners and dispatchers can invite. If the contact cannot receive an invitation, FieldOps shows a message and nothing is sent.',
+        introduction: t('help.accountAdministrationArticles.theCustomerPortalLets'),
+        callout: t('help.accountAdministrationArticles.ownersAndDispatchersCan2'),
         steps: [
-          { text: 'Select Customers and open the customer.' },
+          { text: t('help.accountAdministrationArticles.selectCustomersAndOpen') },
           {
-            text: 'In the Contact details card, check the email address, then select Invite to portal (shown while Portal access is Not invited).',
+            text: t('help.accountAdministrationArticles.inTheContactDetails'),
           },
           {
-            text: 'The card shows Portal access as Invitation sent with its expiry date. Select Resend invitation to send it again.',
+            text: t('help.accountAdministrationArticles.theCardShowsPortal'),
           },
           {
-            text: 'To stop access, select Remove portal access and confirm. The customer is signed out of the portal.',
+            text: t('help.accountAdministrationArticles.toStopAccessSelect'),
           },
         ],
-        whatHappensNext:
-          'The customer receives an email that opens the portal activation page, confirms their name, sets a password (or enters their current one if they already have an account) and selects Activate access. Portal access then shows as Active since the activation date.',
+        whatHappensNext: t('help.accountAdministrationArticles.theCustomerReceivesAn'),
       },
     ],
   },
-];
+]);

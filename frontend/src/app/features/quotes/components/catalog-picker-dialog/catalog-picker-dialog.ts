@@ -26,12 +26,14 @@ import {
   of,
   switchMap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatMoney } from '../../../customers/utils/customer-detail-format';
 import { CatalogRow } from '../../../products-services/models/catalog.model';
 import { CatalogItemsService } from '../../../products-services/services/catalog-items.service';
 import { LineType } from '../../models/quote.model';
 
+import { t } from '../../../../core/i18n/translate';
 export interface PickerTarget {
   /** Fixed by Add service / Add material; `null` lets the optional picker choose. */
   readonly type: LineType | null;
@@ -46,7 +48,8 @@ export interface PickedLine {
 
 type PickerState = 'loading' | 'ready' | 'error';
 
-export const CATALOG_ERROR_MESSAGE = "We couldn't load the catalog.";
+export const CATALOG_ERROR_MESSAGE = (): string =>
+  t('quotes.catalogPickerDialog.catalogErrorMessage');
 const SEARCH_DEBOUNCE_MS = 300;
 
 /**
@@ -56,7 +59,7 @@ const SEARCH_DEBOUNCE_MS = 300;
  */
 @Component({
   selector: 'app-catalog-picker-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, InputText, Message, Skeleton],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Dialog, InputText, Message, Skeleton],
   templateUrl: './catalog-picker-dialog.html',
   styleUrl: './catalog-picker-dialog.scss',
 })
@@ -75,7 +78,9 @@ export class CatalogPickerDialog {
   readonly items = signal<readonly CatalogRow[]>([]);
   /** The Service/Material choice of an optional item. */
   readonly choice = signal<LineType>('service');
-  readonly errorMessage = CATALOG_ERROR_MESSAGE;
+  get errorMessage(): string {
+    return CATALOG_ERROR_MESSAGE();
+  }
 
   readonly open = computed(() => this.target() !== null);
   readonly title = computed(() => {
@@ -84,14 +89,19 @@ export class CatalogPickerDialog {
       return '';
     }
     return target.optional
-      ? 'Add optional item'
+      ? t('quotes.catalogPickerDialog.addOptionalItem')
       : target.type === 'product'
-        ? 'Add material'
-        : 'Add service';
+        ? t('quotes.catalogPickerDialog.addMaterial')
+        : t('quotes.catalogPickerDialog.addService');
   });
   readonly type = computed<LineType>(() => this.target()?.type ?? this.choice());
-  readonly customLabel = computed(
-    () => `Custom ${this.type() === 'product' ? 'material' : 'service'} line`,
+  readonly customLabel = computed(() =>
+    t('quotes.catalogPickerDialog.customLine', {
+      value:
+        this.type() === 'product'
+          ? t('quotes.catalogPickerDialog.material2')
+          : t('quotes.catalogPickerDialog.service2'),
+    }),
   );
 
   private readonly reload = new Subject<void>();

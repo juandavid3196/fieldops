@@ -1,21 +1,32 @@
 <section class="audit" [attr.aria-labelledby]="id + '-title'">
   <div class="audit__head">
     <div>
-      <h3 class="audit__title" [id]="id + '-title'">Activity history</h3>
+      <h3 class="audit__title" [id]="id + '-title'">
+        {{ 'billingReview.reviewAuditTrail.activityHistory' | transloco }}
+      </h3>
       <p class="audit__muted">
-        {{ entries().length }} recorded {{ entries().length === 1 ? 'event' : 'events' }}
+        {{
+          (entries().length === 1
+            ? 'billingReview.reviewAuditTrail.recordedEvent'
+            : 'billingReview.reviewAuditTrail.recordedEvents'
+          ) | transloco: { count: entries().length }
+        }}
       </p>
     </div>
     @if (entries().length > 0) {
-      <div class="audit__filters" role="search" aria-label="Filter activity">
+      <div
+        class="audit__filters"
+        role="search"
+        [attr.aria-label]="'billingReview.reviewAuditTrail.filterActivity' | transloco"
+      >
         <p-iconfield>
           <p-inputicon class="pi pi-search" />
           <input
             pInputText
             type="search"
             fluid
-            placeholder="Search activity"
-            aria-label="Search activity"
+            [attr.placeholder]="'billingReview.reviewAuditTrail.searchActivity' | transloco"
+            [attr.aria-label]="'billingReview.reviewAuditTrail.searchActivity' | transloco"
             [ngModel]="search()"
             (ngModelChange)="search.set($event)"
           />
@@ -23,7 +34,7 @@
         <p-select
           appendTo="body"
           fluid
-          ariaLabel="Activity type"
+          [ariaLabel]="'billingReview.reviewAuditTrail.activityType' | transloco"
           [options]="categoryOptions()"
           optionLabel="label"
           optionValue="code"
@@ -35,7 +46,9 @@
   </div>
 
   @if (entries().length === 0) {
-    <p class="audit__muted">No activity recorded.</p>
+    <p class="audit__muted">
+      {{ 'billingReview.reviewAuditTrail.noActivityRecorded' | transloco }}
+    </p>
   } @else {
     @for (day of days(); track day.date) {
       <h4 class="audit__day">{{ day.date }}</h4>
@@ -52,12 +65,14 @@
         }
       </ol>
     } @empty {
-      <p class="audit__muted" role="status">No activity matches these filters.</p>
+      <p class="audit__muted" role="status">
+        {{ 'billingReview.reviewAuditTrail.noActivityMatchesThese' | transloco }}
+      </p>
     }
   }
 
   <p class="audit__note">
     <i class="pi pi-info-circle" aria-hidden="true"></i>
-    Audit history is read-only and uses the organization time zone.
+    {{ 'billingReview.reviewAuditTrail.auditHistoryIsRead' | transloco }}
   </p>
 </section>

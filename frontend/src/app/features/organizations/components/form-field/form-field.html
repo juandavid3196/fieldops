@@ -6,7 +6,7 @@
     }
   </label>
 
-  <ng-content />
+  <div class="form-field__control"><ng-content /></div>
 
   @if (error(); as message) {
     <p class="form-field__error" [id]="controlId() + '-error'">

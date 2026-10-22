@@ -1,6 +1,6 @@
 <div class="pp">
   <header class="pp__head">
-    <h1 class="pp__title">Recent activity</h1>
+    <h1 class="pp__title">{{ 'portal.activity.recentActivity' | transloco }}</h1>
     @if (list.properties().length > 0) {
       <app-portal-property-filter
         [properties]="list.properties()"
@@ -12,9 +12,9 @@
 
   <app-portal-state
     [state]="list.resource.state()"
-    label="Loading activity"
-    emptyText="No completed services yet."
-    errorText="We couldn't load your activity."
+    [label]="'portal.activity.loadingActivity' | transloco"
+    [emptyText]="'portal.activity.noCompletedServicesYet' | transloco"
+    [errorText]="'portal.activity.weCouldnTLoad' | transloco"
     (retry)="list.reload()"
   >
     @if (list.resource.data(); as page) {
@@ -24,7 +24,7 @@
           [page]="page.page"
           [pageSize]="page.pageSize"
           [total]="page.total"
-          noun="services"
+          [noun]="'portal.activity.services' | transloco"
           (pageChange)="list.goTo($event)"
         />
       </div>

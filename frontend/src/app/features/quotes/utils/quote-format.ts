@@ -13,15 +13,16 @@ import {
 } from '../models/quote.model';
 import { EMAIL_LIMIT } from './quote-lines';
 
-export const STATUS_LABELS: Readonly<Record<QuoteStatus, string>> = {
-  draft: 'Draft',
-  sent: 'Sent',
-  clarification_requested: 'Clarification requested',
-  approved: 'Approved',
-  rejected: 'Rejected',
-  expired: 'Expired',
-  cancelled: 'Cancelled',
-};
+import { localized, t } from '../../../core/i18n/translate';
+export const STATUS_LABELS: Readonly<Record<QuoteStatus, string>> = localized(() => ({
+  draft: t('quotes.quoteFormat.draft'),
+  sent: t('quotes.quoteFormat.sent'),
+  clarification_requested: t('quotes.quoteFormat.clarificationRequested'),
+  approved: t('quotes.quoteFormat.approved'),
+  rejected: t('quotes.quoteFormat.rejected'),
+  expired: t('quotes.quoteFormat.expired'),
+  cancelled: t('quotes.quoteFormat.cancelled'),
+}));
 
 /** The browser time zone: the quote contract carries no organization time zone. */
 export function localZone(): string {
@@ -39,27 +40,33 @@ export function dateOnlyLabel(value: string): string {
 
 /** "MMM d, yyyy 'at' h:mm a" (BR-08). */
 export function dateTimeAt(iso: string, zone: string): string {
-  return `${formatDate(iso, zone)} at ${formatTime(iso, zone)}`;
+  return t('quotes.quoteFormat.at', {
+    value: formatDate(iso, zone),
+    value2: formatTime(iso, zone),
+  });
 }
 
 /** Relative save time (BR-08): "Just now" under one minute. */
 export function relativeTime(iso: string, now: Date, zone: string): string {
   const elapsed = now.getTime() - new Date(iso).getTime();
   if (Number.isNaN(elapsed) || elapsed < 60_000) {
-    return 'Just now';
+    return t('quotes.quoteFormat.justNow');
   }
   const minutes = Math.floor(elapsed / 60_000);
   if (minutes < 60) {
-    return `${minutes} min ago`;
+    return t('quotes.quoteFormat.minAgo', { minutes: minutes });
   }
   const hours = Math.floor(minutes / 60);
-  return hours < 24 ? `${hours} h ago` : formatDate(iso, zone);
+  return hours < 24 ? t('quotes.quoteFormat.hAgo', { hours: hours }) : formatDate(iso, zone);
 }
 
 /** BR-21 default email message, truncated to the 320-character limit. */
 export function defaultEmailMessage(customerName: string, requestTitle: string): string {
   const first = customerName.trim().split(/\s+/)[0] ?? '';
-  const text = `Hi ${first.length > 0 ? first : 'there'}, here is your quote for ${requestTitle}. Please review it and let us know if you have any questions.`;
+  const text = t('quotes.quoteFormat.hiHereIsYour', {
+    value: first.length > 0 ? first : t('quotes.quoteFormat.there'),
+    requestTitle: requestTitle,
+  });
   return text.slice(0, EMAIL_LIMIT);
 }
 

@@ -1,5 +1,5 @@
 <p-dialog
-  header="Preview"
+  [header]="'quotes.quotePreviewDialog.preview' | transloco"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
@@ -14,7 +14,7 @@
       <span class="preview__error">
         {{ errorMessage }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -30,7 +30,7 @@
 
   <ng-template #footer>
     <button pButton type="button" severity="secondary" [outlined]="true" (click)="dismissed.emit()">
-      Close
+      {{ 'common.close' | transloco }}
     </button>
   </ng-template>
 </p-dialog>

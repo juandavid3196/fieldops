@@ -11,16 +11,22 @@
         }
         <span class="page__brand">{{ quote.organization.name }}</span>
       } @else {
-        <span class="page__brand">FieldOps</span>
+        <span class="page__brand">{{ 'quotes.quoteApproval.fieldops' | transloco }}</span>
       }
-      <a class="page__portal" routerLink="/portal/sign-in">Sign in to your portal</a>
+      <a class="page__portal" routerLink="/portal/sign-in">{{
+        'quotes.quoteApproval.signInToYour' | transloco
+      }}</a>
     </header>
   }
 
   <main class="page__main">
     @switch (state()) {
       @case ('loading') {
-        <div class="skeletons" aria-busy="true" aria-label="Loading quote">
+        <div
+          class="skeletons"
+          aria-busy="true"
+          [attr.aria-label]="'quotes.quoteApproval.loadingQuote' | transloco"
+        >
           <p-skeleton height="2.5rem" width="60%" />
           <p-skeleton height="5rem" />
           <p-skeleton height="12rem" />
@@ -44,13 +50,17 @@
       @case ('rate-limited') {
         <section class="notice">
           <h1 #heading class="notice__title" tabindex="-1">{{ rateLimited }}</h1>
-          <button pButton type="button" severity="secondary" (click)="retry()">Try again</button>
+          <button pButton type="button" severity="secondary" (click)="retry()">
+            {{ 'common.tryAgain' | transloco }}
+          </button>
         </section>
       }
       @case ('error') {
         <section class="notice">
           <h1 #heading class="notice__title" tabindex="-1">{{ loadError }}</h1>
-          <button pButton type="button" severity="secondary" (click)="retry()">Try again</button>
+          <button pButton type="button" severity="secondary" (click)="retry()">
+            {{ 'common.tryAgain' | transloco }}
+          </button>
         </section>
       }
       @default {
@@ -60,7 +70,9 @@
               <div class="layout__title">
                 <div class="title">
                   <div class="title__heading">
-                    <h1 #heading class="title__text" tabindex="-1">Your quote is ready</h1>
+                    <h1 #heading class="title__text" tabindex="-1">
+                      {{ 'quotes.quoteApproval.yourQuoteIsReady' | transloco }}
+                    </h1>
                     @if (chip(); as chip) {
                       <span class="chip" [attr.data-tone]="chip.tone">
                         @switch (chip.tone) {
@@ -82,20 +94,23 @@
                     }
                   </div>
                   <p class="title__subtitle">
-                    Review the proposed work for {{ quote.quote.scope }}.
+                    {{
+                      'quotes.quoteApproval.reviewTheProposedWork'
+                        | transloco: { scope: quote.quote.scope }
+                    }}
                   </p>
                 </div>
                 <dl class="meta">
                   <div class="meta__item">
-                    <dt>Quote number</dt>
+                    <dt>{{ 'quotes.quoteApproval.quoteNumber' | transloco }}</dt>
                     <dd>#{{ quote.quote.displayNumber }}</dd>
                   </div>
                   <div class="meta__item">
-                    <dt>Sent date</dt>
+                    <dt>{{ 'quotes.quoteApproval.sentDate' | transloco }}</dt>
                     <dd>{{ sentOn() }}</dd>
                   </div>
                   <div class="meta__item">
-                    <dt>Valid until</dt>
+                    <dt>{{ 'quotes.quoteApproval.validUntil' | transloco }}</dt>
                     <dd>{{ validUntil() }}</dd>
                   </div>
                 </dl>
@@ -138,7 +153,9 @@
                 }
 
                 <section class="terms" aria-labelledby="terms-heading">
-                  <h2 class="terms__title" id="terms-heading">Terms and next steps</h2>
+                  <h2 class="terms__title" id="terms-heading">
+                    {{ 'quotes.quoteApproval.termsAndNextSteps' | transloco }}
+                  </h2>
                   <div class="terms__grid">
                     <div class="terms__block">
                       <svg
@@ -151,11 +168,15 @@
                         <path d="M14 3v5h5M9 13h6M9 17h6" />
                       </svg>
                       <div class="terms__body">
-                        <h3 class="terms__subtitle">Payment terms</h3>
+                        <h3 class="terms__subtitle">
+                          {{ 'quotes.quoteApproval.paymentTerms' | transloco }}
+                        </h3>
                         @if (quote.quote.terms) {
                           <p class="terms__text">{{ quote.quote.terms }}</p>
                         }
-                        <p class="terms__text">No deposit required.</p>
+                        <p class="terms__text">
+                          {{ 'quotes.quoteApproval.noDepositRequired' | transloco }}
+                        </p>
                       </div>
                     </div>
                     <div class="terms__block">
@@ -169,10 +190,11 @@
                         <path d="M3 10h18M8 3v4M16 3v4" />
                       </svg>
                       <div class="terms__body">
-                        <h3 class="terms__subtitle">What happens next?</h3>
+                        <h3 class="terms__subtitle">
+                          {{ 'quotes.quoteApproval.whatHappensNext' | transloco }}
+                        </h3>
                         <p class="terms__text">
-                          After approval, our team will contact you to confirm the service date and
-                          assigned technician.
+                          {{ 'quotes.quoteApproval.afterApprovalOurTeam' | transloco }}
                         </p>
                       </div>
                     </div>
@@ -187,7 +209,9 @@
                         <path d="M14 3v5h5M9 13h6M9 17h6" />
                       </svg>
                       <div class="terms__body">
-                        <h3 class="terms__subtitle">Need a copy?</h3>
+                        <h3 class="terms__subtitle">
+                          {{ 'quotes.quoteApproval.needACopy' | transloco }}
+                        </h3>
                         <button
                           type="button"
                           class="terms__download"
@@ -206,7 +230,7 @@
                               <path d="M12 4v11M7 11l5 5 5-5M4 20h16" />
                             </svg>
                           }
-                          Download PDF
+                          {{ 'quotes.quoteApproval.downloadPdf' | transloco }}
                         </button>
                         @if (pdfState() === 'failed') {
                           <p class="terms__error" role="alert">{{ pdfError }}</p>
@@ -236,8 +260,12 @@
   @if (quote(); as quote) {
     @if (!embedded()) {
       <footer class="page__footer">
-        <span>© {{ year }} {{ quote.organization.name }}. All rights reserved.</span>
-        <span>Powered by FieldOps</span>
+        <span>{{
+          'quotes.quoteApproval.allRightsReserved'
+            | transloco: { year: year, name: quote.organization.name }
+        }}</span>
+        <span>{{ 'quotes.quoteApproval.poweredByFieldops' | transloco }}</span>
+        <app-language-footer-selector />
       </footer>
     }
   }

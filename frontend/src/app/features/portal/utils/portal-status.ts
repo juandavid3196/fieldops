@@ -9,6 +9,7 @@ import {
   progressIndex,
 } from '../models/portal.model';
 
+import { localized, t } from '../../../core/i18n/translate';
 export type ChipTone = 'info' | 'warning' | 'success' | 'danger' | 'neutral';
 
 export interface ChipView {
@@ -34,25 +35,25 @@ export function requestChip(status: RequestStatus): ChipView {
   };
 }
 
-const QUOTE_CHIPS: Readonly<Record<QuoteRow['status'], ChipView>> = {
-  sent: { label: 'Awaiting your approval', tone: 'warning' },
-  clarification_requested: { label: 'Question sent', tone: 'info' },
-  approved: { label: 'Approved', tone: 'success' },
-  rejected: { label: 'Declined', tone: 'neutral' },
-  expired: { label: 'Expired', tone: 'neutral' },
-};
+const QUOTE_CHIPS: Readonly<Record<QuoteRow['status'], ChipView>> = localized(() => ({
+  sent: { label: t('portal.portalStatus.awaitingYourApproval'), tone: 'warning' },
+  clarification_requested: { label: t('portal.portalStatus.questionSent'), tone: 'info' },
+  approved: { label: t('portal.portalStatus.approved'), tone: 'success' },
+  rejected: { label: t('portal.portalStatus.declined'), tone: 'neutral' },
+  expired: { label: t('portal.portalStatus.expired'), tone: 'neutral' },
+}));
 
 /** BR-30 quote status labels. */
 export function quoteChip(status: string): ChipView {
   return QUOTE_CHIPS[status as QuoteRow['status']] ?? { label: status, tone: 'neutral' };
 }
 
-const INVOICE_CHIPS: Readonly<Record<string, ChipView>> = {
-  sent: { label: 'Sent', tone: 'info' },
-  partially_paid: { label: 'Partially paid', tone: 'warning' },
-  overdue: { label: 'Overdue', tone: 'danger' },
-  paid: { label: 'Paid', tone: 'success' },
-};
+const INVOICE_CHIPS: Readonly<Record<string, ChipView>> = localized(() => ({
+  sent: { label: t('portal.portalStatus.sent'), tone: 'info' },
+  partially_paid: { label: t('portal.portalStatus.partiallyPaid'), tone: 'warning' },
+  overdue: { label: t('portal.portalStatus.overdue'), tone: 'danger' },
+  paid: { label: t('portal.portalStatus.paid'), tone: 'success' },
+}));
 
 export function invoiceChip(status: InvoiceRow['status']): ChipView {
   return INVOICE_CHIPS[status] ?? { label: status, tone: 'neutral' };
@@ -61,17 +62,17 @@ export function invoiceChip(status: InvoiceRow['status']): ChipView {
 /** BR-38 label of a visit, or "Cancelled". */
 export function visitChip(visit: Pick<PortalAppointment, 'status' | 'progressStep'>): ChipView {
   if (visit.status === 'cancelled') {
-    return { label: 'Cancelled', tone: 'neutral' };
+    return { label: t('portal.portalStatus.cancelled'), tone: 'neutral' };
   }
   const index = progressIndex(visit.progressStep);
   return { label: VISIT_STEPS[index], tone: index >= 3 ? 'success' : 'info' };
 }
 
-const ACTIVITY_CHIPS: Readonly<Record<ActivityRow['status'], ChipView>> = {
-  completed: { label: 'Completed', tone: 'neutral' },
-  paid: { label: 'Completed + Paid', tone: 'success' },
-  invoice_due: { label: 'Invoice due', tone: 'danger' },
-};
+const ACTIVITY_CHIPS: Readonly<Record<ActivityRow['status'], ChipView>> = localized(() => ({
+  completed: { label: t('portal.portalStatus.completed'), tone: 'neutral' },
+  paid: { label: t('portal.portalStatus.completedPaid'), tone: 'success' },
+  invoice_due: { label: t('portal.portalStatus.invoiceDue'), tone: 'danger' },
+}));
 
 /** BR-26 activity statuses. */
 export function activityChip(status: ActivityRow['status']): ChipView {
@@ -82,15 +83,15 @@ export function activityChip(status: ActivityRow['status']): ChipView {
 export function appointmentNotice(visit: PortalAppointment): string {
   const technician = visit.technician;
   if (technician === null) {
-    return "We'll let you know once a technician is assigned.";
+    return t('portal.portalStatus.wellLetYouKnow');
   }
   switch (visit.status) {
     case 'on_the_way':
-      return `${technician.firstName} is on the way.`;
+      return t('portal.portalStatus.isOnTheWay', { firstName: technician.firstName });
     case 'in_progress':
     case 'paused':
-      return 'Work is in progress.';
+      return t('portal.portalStatus.workIsInProgress');
     default:
-      return `We'll let you know when ${technician.firstName} is on the way.`;
+      return t('portal.portalStatus.wellLetYouKnow2', { firstName: technician.firstName });
   }
 }

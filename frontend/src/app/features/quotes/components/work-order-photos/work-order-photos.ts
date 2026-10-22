@@ -5,7 +5,9 @@ import { ChevronLeftIcon } from 'primeng/icons/chevronleft';
 import { ChevronRightIcon } from 'primeng/icons/chevronright';
 import { SearchIcon } from 'primeng/icons/search';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { t } from '../../../../core/i18n/translate';
 export interface WorkOrderPhoto {
   readonly id: string;
   readonly state: 'loading' | 'ready' | 'failed';
@@ -19,7 +21,15 @@ export interface WorkOrderPhoto {
  */
 @Component({
   selector: 'app-work-order-photos',
-  imports: [ButtonDirective, Dialog, ChevronLeftIcon, ChevronRightIcon, SearchIcon, Skeleton],
+  imports: [
+    TranslocoPipe,
+    ButtonDirective,
+    Dialog,
+    ChevronLeftIcon,
+    ChevronRightIcon,
+    SearchIcon,
+    Skeleton,
+  ],
   templateUrl: './work-order-photos.html',
   styleUrl: './work-order-photos.scss',
 })
@@ -34,7 +44,10 @@ export class WorkOrderPhotos {
   });
 
   alt(index: number): string {
-    return `Assessment photo ${index + 1} of ${this.items().length}`;
+    return t('quotes.workOrderPhotos.assessmentPhotoOf', {
+      value: index + 1,
+      length: this.items().length,
+    });
   }
 
   open(index: number): void {

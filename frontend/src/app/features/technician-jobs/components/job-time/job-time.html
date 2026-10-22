@@ -1,26 +1,26 @@
 <section class="time" aria-labelledby="time-title">
   <h2 class="time__title" id="time-title">
     <i class="pi pi-clock" aria-hidden="true"></i>
-    Time summary
+    {{ 'technicianJobs.jobTime.timeSummary' | transloco }}
   </h2>
   <div class="time__grid">
     <dl class="time__cells">
       <div class="time__cell">
-        <dt class="time__label">Labor time</dt>
+        <dt class="time__label">{{ 'technicianJobs.jobTime.laborTime' | transloco }}</dt>
         <dd class="time__value">
           {{ laborText() }}
           @if (live()) {
-            <span class="time__live">Live</span>
+            <span class="time__live">{{ 'technicianJobs.jobTime.live' | transloco }}</span>
           }
         </dd>
       </div>
       <div class="time__cell">
-        <dt class="time__label">Break time</dt>
+        <dt class="time__label">{{ 'technicianJobs.jobTime.breakTime' | transloco }}</dt>
         <dd class="time__value">{{ breakText() }}</dd>
       </div>
       @if (estimateText(); as estimate) {
         <div class="time__cell">
-          <dt class="time__label">Estimated</dt>
+          <dt class="time__label">{{ 'technicianJobs.jobTime.estimated' | transloco }}</dt>
           <dd class="time__value">{{ estimate }}</dd>
         </div>
       }

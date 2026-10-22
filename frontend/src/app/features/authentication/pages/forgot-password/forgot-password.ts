@@ -15,6 +15,7 @@ import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { InvitationBrandPanel } from '../../components/invitation-brand-panel/invitation-brand-panel';
@@ -22,6 +23,7 @@ import { PasswordResetService } from '../../services/password-reset.service';
 import { rateLimitedMessage } from '../invitation/invitation.messages';
 import { mapServerFieldErrors, normalizeEmail, validateEmail } from '../sign-in/sign-in.validators';
 import { REQUEST_ERROR_MESSAGE } from './forgot-password.messages';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 
 type ForgotPasswordState = 'form' | 'sent';
 
@@ -31,6 +33,8 @@ const DEFAULT_RETRY_AFTER_SECONDS = 60;
 @Component({
   selector: 'app-forgot-password',
   imports: [
+    LanguageFooterSelector,
+    TranslocoPipe,
     ReactiveFormsModule,
     RouterLink,
     ButtonDirective,
@@ -135,7 +139,7 @@ export class ForgotPassword {
       return;
     }
 
-    this.pageMessage.set(REQUEST_ERROR_MESSAGE);
+    this.pageMessage.set(REQUEST_ERROR_MESSAGE());
     this.focus('button[type="submit"]');
   }
 

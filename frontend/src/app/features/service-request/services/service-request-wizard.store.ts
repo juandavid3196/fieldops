@@ -40,6 +40,7 @@ import {
 } from '../service-request.validators';
 import { ServiceRequestService } from './service-request.service';
 
+import { t } from '../../../core/i18n/translate';
 type Section = 'contact' | 'property' | 'service' | 'availability';
 
 export interface SummarySection {
@@ -158,7 +159,9 @@ export class ServiceRequestWizardStore {
   ]);
   readonly attachmentSummary = computed(() => {
     const count = this.files().length;
-    return count === 0 ? null : `${count} ${count === 1 ? 'attachment' : 'attachments'}`;
+    return count === 0
+      ? null
+      : `${count} ${count === 1 ? t('serviceRequest.serviceRequestWizardStore.attachment') : t('serviceRequest.serviceRequestWizardStore.attachments')}`;
   });
 
   readonly summary = computed<readonly SummarySection[]>(() => {
@@ -166,25 +169,25 @@ export class ServiceRequestWizardStore {
     const done = this.completed();
     const categoryName = this.config()?.categories.find((c) => c.id === service.categoryId)?.name;
     const serviceName = service.notSure
-      ? NOT_SURE_LABEL
+      ? NOT_SURE_LABEL()
       : this.categoryServices().find((s) => s.id === service.serviceId)?.name;
     const when =
       availability.dateMode === 'asap'
-        ? 'As soon as possible'
+        ? t('serviceRequest.serviceRequestWizardStore.asSoonAsPossible')
         : availability.dateMode === 'flexible'
-          ? "I'm flexible"
+          ? t('serviceRequest.serviceRequestWizardStore.imFlexible')
           : availability.preferredDate;
 
     const known = this.chosenProperty();
     const sections: readonly SummarySection[] = [
       {
         step: 'contact',
-        title: 'Contact',
+        title: t('serviceRequest.serviceRequestWizardStore.contact'),
         lines: [`${contact.firstName.trim()} ${contact.lastName.trim()}`, contact.email.trim()],
       },
       {
         step: 'property',
-        title: 'Property',
+        title: t('serviceRequest.serviceRequestWizardStore.property'),
         lines:
           known !== null
             ? [
@@ -193,7 +196,9 @@ export class ServiceRequestWizardStore {
                 `${known.city}, ${known.stateRegion} ${known.postalCode}`,
               ]
             : [
-                property.propertyType === 'home' ? 'Home' : 'Business',
+                property.propertyType === 'home'
+                  ? t('serviceRequest.propertyStep.home')
+                  : t('serviceRequest.serviceRequestWizardStore.business'),
                 [property.addressLine1.trim(), property.addressLine2.trim()]
                   .filter(Boolean)
                   .join(', '),
@@ -202,7 +207,7 @@ export class ServiceRequestWizardStore {
       },
       {
         step: 'service',
-        title: 'Service details',
+        title: t('serviceRequest.serviceRequestWizardStore.serviceDetails'),
         lines: [
           [categoryName, serviceName].filter(Boolean).join(' · '),
           URGENCY_LABELS[service.urgency],
@@ -210,7 +215,7 @@ export class ServiceRequestWizardStore {
       },
       {
         step: 'availability',
-        title: 'Availability',
+        title: t('serviceRequest.serviceRequestWizardStore.availability'),
         lines: [when, TIME_WINDOW_LABELS[availability.timeWindow]],
       },
     ];
@@ -464,7 +469,7 @@ export class ServiceRequestWizardStore {
   private validate(step: WizardStep): StepErrors {
     if (this.portal() !== null && step === 'property' && !this.newPropertyChosen()) {
       return this.chosenProperty() === null
-        ? { 'property.propertyId': PORTAL_PROPERTY_REQUIRED_MESSAGE }
+        ? { 'property.propertyId': PORTAL_PROPERTY_REQUIRED_MESSAGE() }
         : {};
     }
     return validateStep(step, this.data(), {
@@ -508,14 +513,14 @@ export class ServiceRequestWizardStore {
       return;
     }
     if (error?.kind === 'bad-request' && error.status === 413) {
-      this.stepErrors.update((errors) => ({ ...errors, attachments: ATTACHMENT_SIZE_MESSAGE }));
+      this.stepErrors.update((errors) => ({ ...errors, attachments: ATTACHMENT_SIZE_MESSAGE() }));
       this.attempted.add('service');
       this.goTo('service');
       this.requestFocus('attachments');
       return;
     }
     this.submitError.set(
-      error?.kind === 'rate-limited' ? RATE_LIMITED_MESSAGE : SUBMIT_ERROR_MESSAGE,
+      error?.kind === 'rate-limited' ? RATE_LIMITED_MESSAGE() : SUBMIT_ERROR_MESSAGE(),
     );
   }
 
@@ -535,10 +540,10 @@ export class ServiceRequestWizardStore {
             ? 'contact.prefersEmail'
             : STEP_FIELDS[step][0]));
       mapped[path] = isAttachment
-        ? SERVER_ATTACHMENTS_MESSAGE
+        ? SERVER_ATTACHMENTS_MESSAGE()
         : path === 'property.propertyId'
-          ? PORTAL_PROPERTY_REQUIRED_MESSAGE
-          : SERVER_FIELD_MESSAGE;
+          ? PORTAL_PROPERTY_REQUIRED_MESSAGE()
+          : SERVER_FIELD_MESSAGE();
     }
 
     const steps = this.order().filter((s) => Object.keys(mapped).some((p) => stepOfField(p) === s));

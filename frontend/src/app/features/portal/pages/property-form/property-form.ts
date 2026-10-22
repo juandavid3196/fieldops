@@ -10,6 +10,7 @@ import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { map, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { PortalSessionService } from '../../../../core/services/portal-session.service';
@@ -30,9 +31,12 @@ import {
 import { PortalPropertiesService } from '../../services/portal-properties.service';
 import { PortalResource } from '../../utils/portal-resource';
 
-export const PROPERTY_CHANGED_MESSAGE = 'This property changed. Reload and try again.';
-export const ADDRESS_LOCKED_MESSAGE = "The address can't be changed online.";
-export const FIELD_FALLBACK_MESSAGE = 'Check this field and try again.';
+import { localized, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const PROPERTY_CHANGED_MESSAGE = (): string =>
+  t('portal.propertyForm.propertyChangedMessage');
+export const ADDRESS_LOCKED_MESSAGE = (): string => t('portal.propertyForm.addressLockedMessage');
+export const FIELD_FALLBACK_MESSAGE = (): string => t('portal.propertyForm.fieldFallbackMessage');
 
 export type PropertyField =
   | 'name'
@@ -44,12 +48,12 @@ export type PropertyField =
   | 'accessInstructions';
 type FieldErrors = Partial<Record<PropertyField, string>>;
 
-const NOT_FOUND: ApiError = {
+const NOT_FOUND: ApiError = localized(() => ({
   kind: 'not-found',
   status: 404,
-  message: 'Not found',
+  message: t('portal.propertyForm.notFound'),
   fieldErrors: {},
-};
+}));
 
 const FIELD_ORDER: readonly PropertyField[] = [
   'name',
@@ -64,7 +68,7 @@ const FIELD_ORDER: readonly PropertyField[] = [
 function textError(value: string, max: number, required: boolean): string | null {
   const length = value.trim().length;
   if (required && length === 0) {
-    return REQUIRED_MESSAGE;
+    return REQUIRED_MESSAGE();
   }
   return length > max ? maxLengthMessage(max) : null;
 }
@@ -83,10 +87,10 @@ export function validateProperty(
       ['addressLine1', textError(values.addressLine1, 180, true)],
       ['addressLine2', textError(values.addressLine2, 180, false)],
       ['city', textError(values.city, 100, true)],
-      ['stateRegion', US_STATES.includes(values.stateRegion) ? null : STATE_INVALID_MESSAGE],
+      ['stateRegion', US_STATES.includes(values.stateRegion) ? null : STATE_INVALID_MESSAGE()],
       [
         'postalCode',
-        /^\d{5}(-\d{4})?$/.test(values.postalCode.trim()) ? null : POSTAL_CODE_INVALID_MESSAGE,
+        /^\d{5}(-\d{4})?$/.test(values.postalCode.trim()) ? null : POSTAL_CODE_INVALID_MESSAGE(),
       ],
     );
   }
@@ -103,6 +107,8 @@ export function validateProperty(
 @Component({
   selector: 'app-portal-property-form',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     ButtonDirective,
     Checkbox,
     FormsModule,
@@ -156,7 +162,7 @@ export class PortalPropertyForm {
   readonly conflict = signal(false);
   readonly submitting = signal(false);
   readonly organizationName = computed(
-    () => this.sessions.session()?.account.organizationName ?? 'the company',
+    () => this.sessions.session()?.account.organizationName ?? t('portal.propertyForm.theCompany'),
   );
   readonly alreadyPrimary = computed(() => this.resource.data()?.isPrimary === true);
 
@@ -238,23 +244,23 @@ export class PortalPropertyForm {
     const apiError = isApiError(error) ? error : null;
     if (apiError?.status === 409) {
       this.conflict.set(true);
-      this.failure.set(PROPERTY_CHANGED_MESSAGE);
+      this.failure.set(PROPERTY_CHANGED_MESSAGE());
     } else if (apiError?.kind === 'validation') {
       const mapped: FieldErrors = {};
       for (const field of FIELD_ORDER) {
         if (apiError.fieldErrors[field] !== undefined) {
-          mapped[field] = FIELD_FALLBACK_MESSAGE;
+          mapped[field] = FIELD_FALLBACK_MESSAGE();
         }
       }
       if (Object.keys(mapped).length > 0) {
         this.errors.set(mapped);
       } else {
-        this.failure.set(this.editing ? ADDRESS_LOCKED_MESSAGE : FIELD_FALLBACK_MESSAGE);
+        this.failure.set(this.editing ? ADDRESS_LOCKED_MESSAGE() : FIELD_FALLBACK_MESSAGE());
       }
     } else if (apiError?.kind === 'rate-limited') {
-      this.failure.set(RATE_LIMITED_MESSAGE);
+      this.failure.set(RATE_LIMITED_MESSAGE());
     } else {
-      this.failure.set(GENERIC_ERROR_MESSAGE);
+      this.failure.set(GENERIC_ERROR_MESSAGE());
     }
   }
 }

@@ -6,6 +6,8 @@ import {
 } from '../models/customer.model';
 import { formatDate, formatTime } from './customer-format';
 
+import { localized, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 /** BR-03 avatar initials. */
 export function initials(
   type: CustomerType,
@@ -28,10 +30,10 @@ export function initials(
 /** BR-03 preferred contact label. */
 export function preferredContact(contact: Pick<CustomerContact, 'prefersEmail' | 'prefersSms'>) {
   return contact.prefersEmail && contact.prefersSms
-    ? 'Email & SMS'
+    ? t('customers.customerDetailFormat.emailSms')
     : contact.prefersSms
       ? 'SMS'
-      : 'Email';
+      : t('common.email');
 }
 
 /** BR-04 one-line address: "<line1>[, <line2>], <city>[, <state>] [<zip>]". */
@@ -67,22 +69,24 @@ export function sinceLabel(iso: string, timeZone: string): string {
     return '';
   }
   const format = (zone: string): string =>
-    new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric', timeZone: zone }).format(
-      date,
-    );
+    new Intl.DateTimeFormat(activeIntlLocale(), {
+      month: 'short',
+      year: 'numeric',
+      timeZone: zone,
+    }).format(date);
   try {
-    return `Since ${format(timeZone)}`;
+    return t('customers.customerDetailFormat.since', { timeZone: format(timeZone) });
   } catch {
-    return `Since ${format('UTC')}`;
+    return t('customers.customerDetailFormat.since2', { value: format('UTC') });
   }
 }
 
-export const INVOICE_STATUS_LABELS: Readonly<Record<InvoiceStatus, string>> = {
-  sent: 'Sent',
-  partially_paid: 'Partially paid',
-  paid: 'Paid',
-  overdue: 'Overdue',
-};
+export const INVOICE_STATUS_LABELS: Readonly<Record<InvoiceStatus, string>> = localized(() => ({
+  sent: t('customers.customerDetailFormat.sent'),
+  partially_paid: t('customers.customerDetailFormat.partiallyPaid'),
+  paid: t('customers.customerDetailFormat.paid'),
+  overdue: t('customers.customerDetailFormat.overdue'),
+}));
 
 export function invoiceSeverity(status: InvoiceStatus): 'success' | 'danger' | 'info' | 'warn' {
   return status === 'paid'
@@ -103,9 +107,9 @@ export function firstLine(value: string | null | undefined): string {
 export function validateNote(value: string): string | null {
   const text = value.trim();
   if (text.length === 0) {
-    return 'Enter a note.';
+    return t('customers.customerDetailFormat.enterANote');
   }
-  return text.length > 2000 ? 'Use 2,000 characters or fewer.' : null;
+  return text.length > 2000 ? t('customers.customerDetailFormat.use2000Characters') : null;
 }
 
 /** BR-17 activity label from the action and the subject (current property name). */
@@ -113,25 +117,25 @@ export function activityLabel(action: string, subject: string | null | undefined
   const name = subject?.trim() ?? '';
   switch (action) {
     case 'customer.created':
-      return 'Customer created';
+      return t('customers.customerDetailFormat.customerCreated');
     case 'customer.updated':
-      return 'Customer details updated';
+      return t('customers.customerDetailFormat.customerDetailsUpdated');
     case 'customer.archived':
-      return 'Customer archived';
+      return t('customers.customerDetailFormat.customerArchived');
     case 'customer.reactivated':
-      return 'Customer reactivated';
+      return t('customers.customerDetailFormat.customerReactivated');
     case 'property.created':
-      return `Property added: ${name}`;
+      return t('customers.customerDetailFormat.propertyAdded', { name: name });
     case 'property.updated':
-      return `Property updated: ${name}`;
+      return t('customers.customerDetailFormat.propertyUpdated', { name: name });
     case 'property.primary_changed':
-      return `Primary property changed to ${name}`;
+      return t('customers.customerDetailFormat.primaryPropertyChangedTo', { name: name });
     case 'property.archived':
-      return `Property archived: ${name}`;
+      return t('customers.customerDetailFormat.propertyArchived', { name: name });
     case 'property.reactivated':
-      return `Property reactivated: ${name}`;
+      return t('customers.customerDetailFormat.propertyReactivated', { name: name });
     case 'customer_note.created':
-      return 'Internal note added';
+      return t('customers.customerDetailFormat.internalNoteAdded');
     default:
       return /^[a-z_]+\.[a-z_]+$/.test(action) ? sentenceCase(action.replace('.', ' ')) : action;
   }
@@ -142,10 +146,10 @@ export function formatMoney(value: number, currency: string | null): string {
   const options = { minimumFractionDigits: 2, maximumFractionDigits: 2 };
   try {
     return new Intl.NumberFormat(
-      'en-US',
+      activeIntlLocale(),
       currency === null ? options : { style: 'currency', currency, ...options },
     ).format(value);
   } catch {
-    return new Intl.NumberFormat('en-US', options).format(value);
+    return new Intl.NumberFormat(activeIntlLocale(), options).format(value);
   }
 }

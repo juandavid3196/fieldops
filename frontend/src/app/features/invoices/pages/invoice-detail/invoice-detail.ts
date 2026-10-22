@@ -19,6 +19,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { Observable, Subject, catchError, map, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -66,6 +67,7 @@ import {
   validateDelivery,
 } from '../../utils/invoice-format';
 
+import { t } from '../../../../core/i18n/translate';
 type PageState = 'loading' | 'ready' | 'forbidden' | 'not-available' | 'error';
 type LoadResult =
   | { readonly kind: 'ready'; readonly invoice: InvoiceDetail }
@@ -82,6 +84,7 @@ const SEND_KEY = 'send-invoice';
 @Component({
   selector: 'app-invoice-detail',
   imports: [
+    TranslocoPipe,
     ButtonDirective,
     ConfirmDialog,
     DiscardChangesDialog,
@@ -113,9 +116,15 @@ export class InvoiceDetailPage {
   private readonly loads = new Subject<void>();
 
   readonly invoiceId = this.route.snapshot.paramMap.get('invoiceId') ?? '';
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly unavailableMessage = UNAVAILABLE_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get unavailableMessage(): string {
+    return UNAVAILABLE_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
   readonly sendKey = SEND_KEY;
 
   readonly sessionExpired = signal(false);
@@ -162,15 +171,26 @@ export class InvoiceDetailPage {
     }
     const zone = invoice.timezone;
     const when = (iso: string): string =>
-      `${formatInstantDate(iso, zone)} at ${formatInstantTime(iso, zone)}`;
-    const created = `Invoice created from completed job ${invoice.workOrderNumber}`;
+      t('invoices.invoiceDetail.at', {
+        value: formatInstantDate(iso, zone),
+        value2: formatInstantTime(iso, zone),
+      });
+    const created = t('invoices.invoiceDetail.invoiceCreatedFromCompleted', {
+      workOrderNumber: invoice.workOrderNumber,
+    });
     const recipient = invoice.delivery.recipientEmail;
     return {
       text:
         invoice.sentAt === null
-          ? `${created} · Not yet sent`
-          : `Sent ${when(invoice.sentAt)}${recipient ? ` to ${recipient}` : ''}`,
-      meta: `${when(invoice.createdAt)} · by ${invoice.createdByName}`,
+          ? t('invoices.invoiceDetail.notYetSent', { created: created })
+          : t('invoices.invoiceDetail.sent', {
+              sentAt: when(invoice.sentAt),
+              value: recipient ? t('invoices.invoiceDetail.to', { recipient: recipient }) : '',
+            }),
+      meta: t('invoices.invoiceDetail.by', {
+        createdAt: when(invoice.createdAt),
+        createdByName: invoice.createdByName,
+      }),
     };
   });
 
@@ -272,7 +292,7 @@ export class InvoiceDetailPage {
       this.api.saveDraft(invoice.id, body),
       (updated) => {
         this.apply(updated);
-        this.notify('success', 'Draft saved.');
+        this.notify('success', t('invoices.invoiceDetail.draftSaved'));
       },
       'save',
     );
@@ -294,11 +314,16 @@ export class InvoiceDetailPage {
     const recipient = this.values().recipientEmail.trim();
     this.confirmations.confirm({
       key: SEND_KEY,
-      header: 'Send invoice?',
-      message: `${invoice.customerName} will receive ${invoice.number} for ${money(invoice.totals.total, invoice.currency)} at ${recipient}. A sent invoice can't be edited.`,
+      header: t('invoices.invoiceDetail.sendInvoice2'),
+      message: t('invoices.invoiceDetail.willReceiveForAt', {
+        customerName: invoice.customerName,
+        number: invoice.number,
+        value: money(invoice.totals.total, invoice.currency),
+        recipient: recipient,
+      }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Send invoice' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('invoices.invoiceDetail.sendInvoice') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => this.send(),
     });
   }
@@ -313,12 +338,15 @@ export class InvoiceDetailPage {
     this.run(this.api.send(invoice.id, body), (result) => {
       const number = result.invoice.number;
       if (!result.changed) {
-        this.notify('info', `Invoice ${number} was already sent.`);
+        this.notify('info', t('invoices.invoiceDetail.invoiceWasAlreadySent', { number: number }));
         this.loads.next();
         return;
       }
       this.apply(result.invoice);
-      this.notifyEmail(result.emailStatus, `Invoice ${number} sent.`);
+      this.notifyEmail(
+        result.emailStatus,
+        t('invoices.invoiceDetail.invoiceSent', { number: number }),
+      );
     });
   }
 
@@ -332,7 +360,7 @@ export class InvoiceDetailPage {
     this.pending.set('resend');
     this.run(this.api.resendEmail(invoice.id, invoice.updatedAt), (result) => {
       this.apply(result.invoice);
-      this.notifyEmail(result.emailStatus, 'Invoice email sent again.');
+      this.notifyEmail(result.emailStatus, t('invoices.invoiceDetail.invoiceEmailSentAgain'));
     });
   }
 
@@ -362,7 +390,7 @@ export class InvoiceDetailPage {
           if (isApiError(error) && error.kind === 'unauthorized') {
             handleUnauthorized(this.router, this.sessionExpired);
           } else {
-            this.notify('error', PDF_FAILED_MESSAGE);
+            this.notify('error', PDF_FAILED_MESSAGE());
           }
         },
       });
@@ -394,10 +422,10 @@ export class InvoiceDetailPage {
         handleUnauthorized(this.router, this.sessionExpired);
         return;
       case 'forbidden':
-        this.notify('error', READ_ONLY_MESSAGE);
+        this.notify('error', READ_ONLY_MESSAGE());
         return;
       case 'not-found':
-        this.notify('error', UNAVAILABLE_MESSAGE);
+        this.notify('error', UNAVAILABLE_MESSAGE());
         this.loads.next();
         return;
       case 'conflict':
@@ -416,7 +444,7 @@ export class InvoiceDetailPage {
         break;
       }
     }
-    this.notify('error', ACTION_FAILED_MESSAGE);
+    this.notify('error', ACTION_FAILED_MESSAGE());
   }
 
   private invalid(errors: DeliveryErrors): void {
@@ -429,7 +457,7 @@ export class InvoiceDetailPage {
 
   private notifyEmail(status: string, success: string): void {
     if (status === 'failed') {
-      this.notify('warn', EMAIL_FAILED_MESSAGE);
+      this.notify('warn', EMAIL_FAILED_MESSAGE());
     } else {
       this.notify('success', success);
     }
@@ -448,7 +476,7 @@ export class InvoiceDetailPage {
     return new Observable<boolean>((subscriber) => {
       this.confirmations.confirm(
         discardChangesConfirmation({
-          subject: 'this invoice',
+          subject: t('invoices.invoiceDetail.thisInvoice'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();

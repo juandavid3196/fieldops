@@ -1,10 +1,12 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ReportChart as ReportChartData } from '../../models/reports.model';
 import { ChartUnit } from '../../utils/report-catalog';
 import { BarChart, barChart } from '../../utils/report-view';
 
-export const CHART_EMPTY_MESSAGE = 'No data for this report and filters.';
+import { t } from '../../../../core/i18n/translate';
+export const CHART_EMPTY_MESSAGE = (): string => t('reports.reportChart.chartEmptyMessage');
 
 /**
  * Bar charts of the five reports (grouped, stacked, horizontal) drawn with plain HTML/CSS. The
@@ -12,6 +14,7 @@ export const CHART_EMPTY_MESSAGE = 'No data for this report and filters.';
  */
 @Component({
   selector: 'app-report-chart',
+  imports: [TranslocoPipe],
   templateUrl: './report-chart.html',
   styleUrl: './report-chart.scss',
 })
@@ -23,7 +26,9 @@ export class ReportChart {
   /** The report has no rows: the chart shows its empty text. */
   readonly noRows = input(false);
 
-  readonly emptyMessage = CHART_EMPTY_MESSAGE;
+  get emptyMessage(): string {
+    return CHART_EMPTY_MESSAGE();
+  }
   readonly model = computed<BarChart>(() => barChart(this.chart(), this.unit(), this.currency()));
   readonly empty = computed(() => this.noRows() || this.model().empty);
 }

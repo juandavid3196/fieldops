@@ -1,24 +1,26 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ITEM_UNAVAILABLE_MESSAGE } from '../../models/portal.model';
 import { ResourceState } from '../../utils/portal-resource';
 
+import { t } from '../../../../core/i18n/translate';
 /**
  * Loading, empty, error and not-found states of a portal list or detail. The ready content is
  * projected; `[empty]` content adds an action under the empty text. Announced politely.
  */
 @Component({
   selector: 'app-portal-state',
-  imports: [ButtonDirective, Message, RouterLink, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, Message, RouterLink, Skeleton],
   template: `
     @switch (state()) {
       @case ('loading') {
         <div class="state" role="status" aria-live="polite" aria-busy="true">
-          <span class="sr">{{ label() }}</span>
+          <span class="sr">{{ labelValue() }}</span>
           <p-skeleton height="2rem" />
           <p-skeleton height="2rem" />
           <p-skeleton height="2rem" />
@@ -29,15 +31,15 @@ import { ResourceState } from '../../utils/portal-resource';
           <span class="state__icon" aria-hidden="true"
             ><i class="pi" [class]="emptyIcon()"></i
           ></span>
-          <p class="state__text">{{ emptyText() }}</p>
+          <p class="state__text">{{ emptyTextValue() }}</p>
           <ng-content select="[empty]" />
         </div>
       }
       @case ('error') {
         <div class="state" role="alert">
-          <p-message severity="error">{{ errorText() }}</p-message>
+          <p-message severity="error">{{ errorTextValue() }}</p-message>
           <button pButton type="button" severity="secondary" (click)="retry.emit()">
-            Try again
+            {{ 'common.tryAgain' | transloco }}
           </button>
         </div>
       }
@@ -45,7 +47,7 @@ import { ResourceState } from '../../utils/portal-resource';
         <div class="state" role="alert">
           <h2 class="state__title">{{ unavailable }}</h2>
           @if (backLink(); as link) {
-            <a pButton severity="secondary" [routerLink]="link">{{ backLabel() }}</a>
+            <a pButton severity="secondary" [routerLink]="link">{{ backLabelValue() }}</a>
           }
         </div>
       }
@@ -124,16 +126,26 @@ import { ResourceState } from '../../utils/portal-resource';
 export class PortalState {
   readonly state = input.required<ResourceState>();
   /** Accessible loading label, e.g. "Loading requests". */
-  readonly label = input('Loading');
-  readonly emptyText = input('Nothing here yet.');
+  readonly label = input<string | null>(null);
+  readonly labelValue = computed(() => this.label() ?? t('portal.portalState.loading'));
+  readonly emptyText = input<string | null>(null);
+  readonly emptyTextValue = computed(
+    () => this.emptyText() ?? t('portal.portalState.nothingHereYet'),
+  );
   /** PrimeIcons class of the empty-state tile. */
   readonly emptyIcon = input('pi-inbox');
-  readonly errorText = input("We couldn't load this. Try again.");
+  readonly errorText = input<string | null>(null);
+  readonly errorTextValue = computed(
+    () => this.errorText() ?? t('portal.portalState.weCouldntLoadThis'),
+  );
   /** Route of the "Back to <module>" link of the not-found state. */
   readonly backLink = input<string | null>(null);
-  readonly backLabel = input('Back');
+  readonly backLabel = input<string | null>(null);
+  readonly backLabelValue = computed(() => this.backLabel() ?? t('common.back'));
 
   readonly retry = output<void>();
 
-  protected readonly unavailable = ITEM_UNAVAILABLE_MESSAGE;
+  protected get unavailable(): string {
+    return ITEM_UNAVAILABLE_MESSAGE();
+  }
 }

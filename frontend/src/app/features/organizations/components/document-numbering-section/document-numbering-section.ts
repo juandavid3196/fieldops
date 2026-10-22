@@ -11,12 +11,13 @@ import {
 } from '../../models/organization-registration.model';
 
 import type { FormGroup } from '@angular/forms';
+import { TranslocoPipe } from '@jsverse/transloco';
 import type { SimpleFieldKey } from '../../models/organization-registration.model';
 
 /** "Document numbering" section (FR-01): prefixes and next invoice number. */
 @Component({
   selector: 'app-document-numbering-section',
-  imports: [ReactiveFormsModule, InputText, InputNumber, FormField, WizardCard],
+  imports: [TranslocoPipe, ReactiveFormsModule, InputText, InputNumber, FormField, WizardCard],
   templateUrl: './document-numbering-section.html',
   styleUrl: './document-numbering-section.scss',
 })

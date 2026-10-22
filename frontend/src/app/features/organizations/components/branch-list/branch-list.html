@@ -1,12 +1,14 @@
 <section class="branch-list" id="branches" aria-labelledby="branch-list-heading">
   <div class="branch-list__header">
-    <h2 id="branch-list-heading">Branches</h2>
-    <span class="branch-list__count">{{ branches().length }} branches</span>
+    <h2 id="branch-list-heading">{{ 'organizations.branchList.branches' | transloco }}</h2>
+    <span class="branch-list__count">{{
+      'organizations.branchList.branches2' | transloco: { length: branches().length }
+    }}</span>
     <span class="branch-list__spacer"></span>
     @if (canManage()) {
       <button pButton type="button" class="branch-list__add" (click)="addBranch.emit()">
         <i class="pi pi-plus" aria-hidden="true"></i>
-        Add branch
+        {{ 'organizations.branchList.addBranch' | transloco }}
       </button>
     }
   </div>
@@ -18,8 +20,8 @@
         pInputText
         type="search"
         class="branch-list__search"
-        placeholder="Search branches…"
-        aria-label="Search branches"
+        [attr.placeholder]="'organizations.branchList.searchBranches' | transloco"
+        [attr.aria-label]="'organizations.branchList.searchBranches2' | transloco"
         fluid
         [ngModel]="search()"
         (ngModelChange)="search.set($event)"
@@ -27,9 +29,9 @@
     </p-iconfield>
     <p-select
       class="branch-list__status-filter"
-      ariaLabel="Filter by status"
+      [ariaLabel]="'organizations.branchList.filterByStatus' | transloco"
       appendTo="body"
-      [options]="statusOptions"
+      [options]="statusOptions | localizedRef"
       optionLabel="label"
       optionValue="code"
       [ngModel]="statusFilter()"
@@ -43,7 +45,7 @@
       <span class="branch-list__load-error-text">{{ loadErrorMessage }}</span>
       <button pButton type="button" severity="secondary" [outlined]="true" (click)="retry.emit()">
         <i class="pi pi-refresh" aria-hidden="true"></i>
-        Retry
+        {{ 'common.retry' | transloco }}
       </button>
     </div>
   } @else if (loading()) {
@@ -53,12 +55,12 @@
       <p-skeleton height="2.75rem" />
     </div>
   } @else if (branches().length === 0) {
-    <p class="branch-list__empty">No branches to show.</p>
+    <p class="branch-list__empty">{{ 'organizations.branchList.noBranchesToShow' | transloco }}</p>
   } @else if (filtered().length === 0) {
     <div class="branch-list__empty">
-      <p>No branches match these filters.</p>
+      <p>{{ 'organizations.branchList.noBranchesMatchThese' | transloco }}</p>
       <button pButton type="button" severity="secondary" (click)="clearFilters()">
-        Clear filters
+        {{ 'organizations.branchList.clearFilters' | transloco }}
       </button>
     </div>
   } @else {

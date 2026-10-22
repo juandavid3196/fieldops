@@ -5,7 +5,9 @@ import { AutoFocus } from 'primeng/autofocus';
 import { ButtonDirective, ButtonSeverity } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
 import { ConfirmDialog as PrimeConfirmDialog } from 'primeng/confirmdialog';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { t } from '../../../core/i18n/translate';
 interface ActionButton {
   readonly label: string;
   readonly severity: ButtonSeverity | undefined;
@@ -29,7 +31,7 @@ let nextId = 0;
  */
 @Component({
   selector: 'app-confirm-dialog',
-  imports: [FormsModule, AutoFocus, ButtonDirective, Checkbox, PrimeConfirmDialog],
+  imports: [TranslocoPipe, FormsModule, AutoFocus, ButtonDirective, Checkbox, PrimeConfirmDialog],
   templateUrl: './confirm-dialog.html',
   styleUrl: './confirm-dialog.scss',
 })
@@ -70,14 +72,14 @@ export class ConfirmDialog {
     const rejectProps = (confirmation?.rejectButtonProps ?? {}) as ButtonProps;
     const focusReject = confirmation?.defaultFocus === 'reject';
     const reject: ActionButton = {
-      label: rejectProps.label ?? 'Cancel',
+      label: rejectProps.label ?? t('common.cancel'),
       severity: rejectProps.severity,
       outlined: rejectProps.outlined ?? false,
       focused: focusReject,
       run: onReject,
     };
     const accept: ActionButton = {
-      label: acceptProps.label ?? 'Confirm',
+      label: acceptProps.label ?? t('common.confirm'),
       severity: acceptProps.severity,
       outlined: acceptProps.outlined ?? false,
       focused: !focusReject,

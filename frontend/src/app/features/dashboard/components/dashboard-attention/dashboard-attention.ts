@@ -2,18 +2,21 @@ import { Component, computed, ElementRef, inject, input, signal, viewChild } fro
 import { Router, RouterLink } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { Menu } from 'primeng/menu';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Attention } from '../../models/dashboard.model';
 import { AppLink } from '../../utils/dashboard-params';
 import { AttentionView, attentionView } from '../../utils/dashboard-view';
 
+import { t } from '../../../../core/i18n/translate';
 export const ATTENTION_COLLAPSED_COUNT = 4;
-export const NOTHING_NEEDS_ATTENTION = 'Nothing needs attention.';
+export const NOTHING_NEEDS_ATTENTION = (): string =>
+  t('dashboard.dashboardAttention.nothingNeedsAttention');
 
 /** BR-11: delayed, unassigned, over-estimate and over-capacity items. */
 @Component({
   selector: 'app-dashboard-attention',
-  imports: [Menu, RouterLink],
+  imports: [TranslocoPipe, Menu, RouterLink],
   templateUrl: './dashboard-attention.html',
   styleUrl: './dashboard-attention.scss',
 })
@@ -30,7 +33,9 @@ export class DashboardAttention {
 
   readonly expanded = signal(false);
   readonly menuModel = signal<MenuItem[]>([]);
-  readonly empty = NOTHING_NEEDS_ATTENTION;
+  get empty(): string {
+    return NOTHING_NEEDS_ATTENTION();
+  }
 
   private readonly all = computed<readonly AttentionView[]>(() =>
     this.isFuture()

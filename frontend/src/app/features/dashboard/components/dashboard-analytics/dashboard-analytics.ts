@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   ActivityEvent,
@@ -22,18 +23,21 @@ import {
 } from '../../utils/dashboard-view';
 import { LoadStatus } from '../../services/dashboard-page.store';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 export const ACTIVITY_LIMIT = 4;
-export const PERFORMANCE_ERROR_MESSAGE = "We couldn't load performance.";
+export const PERFORMANCE_ERROR_MESSAGE = (): string =>
+  t('dashboard.dashboardAnalytics.performanceErrorMessage');
 
-const PERIODS: { code: DashboardPeriod; label: string }[] = [
-  { code: '7', label: 'Last 7 days' },
-  { code: '30', label: 'Last 30 days' },
-];
+const PERIODS: { code: DashboardPeriod; label: string }[] = localizedList(() => [
+  { code: '7', label: t('dashboard.dashboardAnalytics.last7Days') },
+  { code: '30', label: t('dashboard.dashboardAnalytics.last30Days') },
+]);
 
 /** BR-13 … BR-15: estimated vs actual duration, service performance and live activity. */
 @Component({
   selector: 'app-dashboard-analytics',
-  imports: [FormsModule, RouterLink, Select, Skeleton],
+  imports: [LocalizedRefPipe, TranslocoPipe, FormsModule, RouterLink, Select, Skeleton],
   templateUrl: './dashboard-analytics.html',
   styleUrl: './dashboard-analytics.scss',
 })
@@ -50,10 +54,18 @@ export class DashboardAnalytics {
 
   readonly periods = PERIODS;
   readonly jobsLink = JOBS_LINK;
-  readonly performanceError = PERFORMANCE_ERROR_MESSAGE;
+  get performanceError(): string {
+    return PERFORMANCE_ERROR_MESSAGE();
+  }
 
-  readonly durationCaption = computed(
-    () => `Last 7 days · ${plural(this.durations().visitCount, 'visit', 'visits')}`,
+  readonly durationCaption = computed(() =>
+    t('dashboard.dashboardAnalytics.last7Days2', {
+      value: plural(
+        this.durations().visitCount,
+        t('dashboard.plurals.visit'),
+        t('dashboard.plurals.visits'),
+      ),
+    }),
   );
   readonly durationRows = computed(() => {
     const categories = this.durations().categories;
@@ -84,11 +96,19 @@ export class DashboardAnalytics {
       fixPercent: fix,
       rating: value.rating.average === null ? null : value.rating.average.toFixed(1),
       reviews:
-        value.rating.count === 0 ? 'No reviews' : plural(value.rating.count, 'review', 'reviews'),
+        value.rating.count === 0
+          ? t('dashboard.dashboardAnalytics.noReviews')
+          : plural(
+              value.rating.count,
+              t('dashboard.plurals.review'),
+              t('dashboard.plurals.reviews'),
+            ),
       chart: chartModel(value.daily),
     };
   });
-  readonly chartTitle = computed(() => `Jobs completed (last ${this.period()} days)`);
+  readonly chartTitle = computed(() =>
+    t('dashboard.dashboardAnalytics.jobsCompletedLastDays', { period: this.period() }),
+  );
 
   readonly events = computed(() =>
     this.activity()

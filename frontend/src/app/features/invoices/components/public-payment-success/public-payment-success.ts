@@ -1,18 +1,20 @@
 import { Component, computed, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PublicInvoice, PublicPayment } from '../../models/invoice.model';
 import { cardBrand, formatCalendarDate, money, netText } from '../../utils/public-invoice-format';
 import { PublicPaymentSummary } from '../public-payment-summary/public-payment-summary';
 
+import { t } from '../../../../core/i18n/translate';
 /**
  * Success and paid view (BR-30): confirmation card with the latest payment, downloads, the payment
  * summary, a slot for the review card and the closing info band.
  */
 @Component({
   selector: 'app-public-payment-success',
-  imports: [ButtonDirective, PublicPaymentSummary, SpinnerIcon],
+  imports: [TranslocoPipe, ButtonDirective, PublicPaymentSummary, SpinnerIcon],
   templateUrl: './public-payment-success.html',
   styleUrl: './public-payment-success.scss',
 })
@@ -30,8 +32,10 @@ export class PublicPaymentSuccess {
     return {
       thanks:
         invoice.customerFirstName === null
-          ? 'Thank you. Your payment has been confirmed.'
-          : `Thank you, ${invoice.customerFirstName}. Your payment has been confirmed.`,
+          ? t('invoices.publicPaymentSuccess.thankYouYourPayment')
+          : t('invoices.publicPaymentSuccess.thankYouYourPayment2', {
+              customerFirstName: invoice.customerFirstName,
+            }),
       amount:
         payment === null
           ? money(invoice.amountPaid, invoice.currency)

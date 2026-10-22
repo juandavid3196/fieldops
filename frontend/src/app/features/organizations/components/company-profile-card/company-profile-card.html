@@ -4,7 +4,9 @@
   aria-labelledby="company-profile-heading"
   [formGroup]="group()"
 >
-  <h2 id="company-profile-heading">Company profile</h2>
+  <h2 id="company-profile-heading">
+    {{ 'organizations.companyProfileCard.companyProfile' | transloco }}
+  </h2>
 
   <app-logo-control
     class="profile-card__logo"
@@ -16,7 +18,7 @@
 
   <div class="profile-card__grid">
     <app-form-field
-      label="Legal business name"
+      [label]="'organizations.companyProfileCard.legalBusinessName' | transloco"
       controlId="organization-legalName"
       [required]="true"
       [error]="error('organization.legalName')"
@@ -36,7 +38,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Display name"
+      [label]="'organizations.companyProfileCard.displayName' | transloco"
       controlId="organization-name"
       [required]="true"
       [error]="error('organization.name')"
@@ -56,7 +58,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Website"
+      [label]="'organizations.companyProfileCard.website' | transloco"
       controlId="organization-website"
       [error]="error('organization.website')"
     >
@@ -75,7 +77,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Business email"
+      [label]="'organizations.companyProfileCard.businessEmail' | transloco"
       controlId="organization-email"
       [required]="true"
       [error]="error('organization.email')"
@@ -96,7 +98,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Phone number"
+      [label]="'organizations.companyProfileCard.phoneNumber' | transloco"
       controlId="organization-phone"
       [required]="true"
       [error]="error('organization.phone')"
@@ -117,7 +119,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Tax ID (EIN)"
+      [label]="'organizations.companyProfileCard.taxIdEin' | transloco"
       controlId="organization-taxId"
       [error]="error('organization.taxId')"
     >
@@ -138,15 +140,16 @@
   <div class="profile-card__grid profile-card__grid--second">
     <div class="profile-card__address" role="group" aria-labelledby="company-address-label">
       <span class="profile-card__label" id="company-address-label">
-        Company address <span class="profile-card__required" aria-hidden="true">*</span>
+        {{ 'organizations.companyProfileCard.companyAddress' | transloco }}
+        <span class="profile-card__required" aria-hidden="true">*</span>
       </span>
       <div class="profile-card__address-row">
         <input
           pInputText
           id="organization-addressLine1"
           formControlName="addressLine1"
-          aria-label="Street address"
-          placeholder="Street address"
+          [attr.aria-label]="'organizations.companyProfileCard.streetAddress' | transloco"
+          [attr.placeholder]="'organizations.companyProfileCard.streetAddress' | transloco"
           fluid
           [invalid]="error('organization.addressLine1') !== null"
           [readonly]="submitting()"
@@ -161,8 +164,8 @@
           pInputText
           id="organization-city"
           formControlName="city"
-          aria-label="City"
-          placeholder="City"
+          [attr.aria-label]="'organizations.companyProfileCard.city' | transloco"
+          [attr.placeholder]="'organizations.companyProfileCard.city' | transloco"
           fluid
           [invalid]="error('organization.city') !== null"
           [readonly]="submitting()"
@@ -175,12 +178,12 @@
           <p-select
             inputId="organization-stateRegion"
             formControlName="stateRegion"
-            [options]="stateOptions"
+            [options]="stateOptions | localizedRef"
             optionLabel="label"
             optionValue="code"
             [filter]="true"
-            ariaLabel="State"
-            placeholder="State"
+            [ariaLabel]="'organizations.companyProfileCard.state' | transloco"
+            [placeholder]="'organizations.companyProfileCard.state' | transloco"
             appendTo="body"
             fluid
             [invalid]="error('organization.stateRegion') !== null"
@@ -198,8 +201,8 @@
             pInputText
             id="organization-stateRegion"
             formControlName="stateRegion"
-            aria-label="State"
-            placeholder="State / region"
+            [attr.aria-label]="'organizations.companyProfileCard.state' | transloco"
+            [attr.placeholder]="'organizations.companyProfileCard.stateRegion' | transloco"
             fluid
             [invalid]="error('organization.stateRegion') !== null"
             [readonly]="submitting()"
@@ -214,8 +217,8 @@
           pInputText
           id="organization-postalCode"
           formControlName="postalCode"
-          aria-label="ZIP code"
-          placeholder="ZIP code"
+          [attr.aria-label]="'organizations.companyProfileCard.zipCode' | transloco"
+          [attr.placeholder]="'organizations.companyProfileCard.zipCode' | transloco"
           fluid
           [invalid]="error('organization.postalCode') !== null"
           [readonly]="submitting()"
@@ -238,7 +241,7 @@
     </div>
 
     <app-form-field
-      label="Default country"
+      [label]="'organizations.companyProfileCard.defaultCountry' | transloco"
       controlId="organization-countryCode"
       [required]="true"
       [error]="error('organization.countryCode')"
@@ -250,8 +253,8 @@
         optionLabel="label"
         optionValue="code"
         [filter]="true"
-        ariaLabel="Default country"
-        placeholder="Select a country"
+        [ariaLabel]="'organizations.companyProfileCard.defaultCountry' | transloco"
+        [placeholder]="'organizations.companyProfileCard.selectACountry' | transloco"
         appendTo="body"
         fluid
         [invalid]="error('organization.countryCode') !== null"
@@ -266,7 +269,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Default time zone"
+      [label]="'organizations.companyProfileCard.defaultTimeZone' | transloco"
       controlId="organization-timezone"
       [required]="true"
       [error]="error('organization.timezone')"
@@ -278,7 +281,7 @@
         optionLabel="label"
         optionValue="code"
         [filter]="true"
-        ariaLabel="Default time zone"
+        [ariaLabel]="'organizations.companyProfileCard.defaultTimeZone' | transloco"
         appendTo="body"
         fluid
         [invalid]="error('organization.timezone') !== null"

@@ -4,6 +4,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { startWith, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { SelectOption } from '../../data/display-names';
 import { US_STATE_OPTIONS } from '../../data/us-states';
@@ -16,13 +17,23 @@ import {
 import { FormField } from '../form-field/form-field';
 import { LogoControl } from '../logo-control/logo-control';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 /**
  * "Company profile" card of Company setup (handoff §2.5): logo, identity, contact, 4-part
  * company address, default country and time zone. Distinct from the onboarding section.
  */
 @Component({
   selector: 'app-company-profile-card',
-  imports: [ReactiveFormsModule, InputText, Select, FormField, LogoControl],
+  imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
+    ReactiveFormsModule,
+    InputText,
+    Select,
+    FormField,
+    LogoControl,
+  ],
   templateUrl: './company-profile-card.html',
   styleUrl: './company-profile-card.scss',
 })
@@ -38,12 +49,29 @@ export class CompanyProfileCard {
   readonly unauthorized = output<void>();
 
   readonly stateOptions = US_STATE_OPTIONS;
-  readonly addressFields: readonly { key: OrganizationFieldKey; id: string; label: string }[] = [
-    { key: 'organization.addressLine1', id: 'organization-addressLine1', label: 'Street address' },
-    { key: 'organization.city', id: 'organization-city', label: 'City' },
-    { key: 'organization.stateRegion', id: 'organization-stateRegion', label: 'State' },
-    { key: 'organization.postalCode', id: 'organization-postalCode', label: 'ZIP code' },
-  ];
+  readonly addressFields: readonly { key: OrganizationFieldKey; id: string; label: string }[] =
+    localizedList(() => [
+      {
+        key: 'organization.addressLine1',
+        id: 'organization-addressLine1',
+        label: t('organizations.companyProfileCard.streetAddress'),
+      },
+      {
+        key: 'organization.city',
+        id: 'organization-city',
+        label: t('organizations.companyProfileCard.city'),
+      },
+      {
+        key: 'organization.stateRegion',
+        id: 'organization-stateRegion',
+        label: t('organizations.companyProfileCard.state'),
+      },
+      {
+        key: 'organization.postalCode',
+        id: 'organization-postalCode',
+        label: t('organizations.companyProfileCard.zipCode'),
+      },
+    ]);
 
   /** The US uses a state list; other countries a free-text region. */
   private readonly country = toSignal(

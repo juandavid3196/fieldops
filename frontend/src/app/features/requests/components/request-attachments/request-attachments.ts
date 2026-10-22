@@ -9,6 +9,7 @@ import {
   untracked,
 } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { MAX_FILES, validateNewFile } from '../../../service-request/service-request.validators';
 import { RequestAttachment } from '../../models/requests.model';
@@ -24,6 +25,7 @@ const ACCEPT = '.jpg,.jpeg,.png,.pdf';
  */
 @Component({
   selector: 'app-request-attachments',
+  imports: [TranslocoPipe],
   templateUrl: './request-attachments.html',
   styleUrl: './request-attachments.scss',
 })

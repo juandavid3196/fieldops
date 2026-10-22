@@ -6,10 +6,12 @@
       severity="secondary"
       [outlined]="true"
       [href]="href"
-      [attr.aria-label]="'Call ' + visit().customerName"
+      [attr.aria-label]="
+        'technicianJobs.visitActions.call' | transloco: { customerName: visit().customerName }
+      "
     >
       <i class="pi pi-phone" aria-hidden="true"></i>
-      Call
+      {{ 'technicianJobs.visitActions.call2' | transloco }}
     </a>
   }
   <a
@@ -20,9 +22,12 @@
     target="_blank"
     rel="noopener noreferrer"
     [href]="directionsHref()"
-    [attr.aria-label]="directionsLabel() + ' to ' + visit().title + ' (opens in a new tab)'"
+    [attr.aria-label]="
+      'technicianJobs.visitActions.toOpensInA'
+        | transloco: { directionsLabel: directionsLabelValue(), title: visit().title }
+    "
   >
     <i class="pi" [class]="featured() ? 'pi-send' : 'pi-directions'" aria-hidden="true"></i>
-    {{ directionsLabel() }}
+    {{ directionsLabelValue() }}
   </a>
 </div>

@@ -1,15 +1,17 @@
 <section class="notes" aria-labelledby="notes-title">
   <header class="notes__head">
-    <h2 class="notes__title" id="notes-title">Internal notes</h2>
+    <h2 class="notes__title" id="notes-title">
+      {{ 'customers.notesCard.internalNotes' | transloco }}
+    </h2>
     <span class="notes__hint">
       <i class="pi pi-lock" aria-hidden="true"></i>
-      Not visible to customer
+      {{ 'customers.notesCard.notVisibleToCustomer' | transloco }}
     </span>
     @if (canMutate()) {
       <button
         type="button"
         class="notes__pencil"
-        aria-label="Edit internal notes"
+        [attr.aria-label]="'customers.notesCard.editInternalNotes' | transloco"
         (click)="editRequested.emit()"
       >
         <i class="pi pi-pencil" aria-hidden="true"></i>
@@ -17,16 +19,20 @@
     }
   </header>
 
-  <p class="notes__pinned">{{ pinnedNote()?.trim() || 'No pinned note' }}</p>
+  <p class="notes__pinned">
+    {{ pinnedNote()?.trim() || ('customers.notesCard.noPinnedNote' | transloco) }}
+  </p>
 
   @if (canMutate()) {
     <div class="notes__add">
-      <label class="notes__label" [for]="inputId">Add a note</label>
+      <label class="notes__label" [for]="inputId">{{
+        'customers.notesCard.addANote' | transloco
+      }}</label>
       <textarea
         pTextarea
         rows="2"
         fluid
-        placeholder="Add a note…"
+        [attr.placeholder]="'customers.notesCard.addANote2' | transloco"
         [id]="inputId"
         [ngModel]="text()"
         (ngModelChange)="text.set($event)"
@@ -49,7 +55,7 @@
         @if (adding()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        Add note
+        {{ 'customers.notesCard.addNote' | transloco }}
       </button>
     </div>
   }
@@ -57,9 +63,9 @@
   @if (state().status === 'error') {
     <p-message severity="error" [closable]="false">
       <span class="notes__retry">
-        We couldn't load notes.
+        {{ 'customers.notesCard.weCouldnTLoad' | transloco }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -69,7 +75,7 @@
       <p-skeleton height="2.5rem" />
     </div>
   } @else if (entries().length === 0) {
-    <p class="notes__empty">No notes yet</p>
+    <p class="notes__empty">{{ 'customers.notesCard.noNotesYet' | transloco }}</p>
   } @else {
     <ul class="notes__list">
       @for (entry of entries(); track entry.id) {
@@ -92,7 +98,7 @@
         @if (loadingMore()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        Show more
+        {{ 'customers.notesCard.showMore' | transloco }}
       </button>
     }
   }

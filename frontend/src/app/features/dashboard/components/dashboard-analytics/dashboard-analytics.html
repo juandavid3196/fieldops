@@ -1,16 +1,24 @@
 <section class="card" aria-labelledby="dur-title">
   <header class="card__head">
-    <h2 class="card__title" id="dur-title">Estimated vs actual duration</h2>
+    <h2 class="card__title" id="dur-title">
+      {{ 'dashboard.dashboardAnalytics.estimatedVsActualDuration' | transloco }}
+    </h2>
     <span class="legend" aria-hidden="true">
-      <span class="legend__item"><span class="legend__swatch"></span>Estimated</span>
       <span class="legend__item"
-        ><span class="legend__swatch legend__swatch--actual"></span>Actual</span
+        ><span class="legend__swatch"></span
+        >{{ 'dashboard.dashboardAnalytics.estimated' | transloco }}</span
+      >
+      <span class="legend__item"
+        ><span class="legend__swatch legend__swatch--actual"></span
+        >{{ 'dashboard.dashboardAnalytics.actual' | transloco }}</span
       >
     </span>
   </header>
   <p class="card__caption">{{ durationCaption() }}</p>
   @if (durationRows().length === 0) {
-    <p class="card__empty">No completed visits with estimates in the last 7 days.</p>
+    <p class="card__empty">
+      {{ 'dashboard.dashboardAnalytics.noCompletedVisitsWith' | transloco }}
+    </p>
   } @else {
     <ul class="dur">
       @for (row of durationRows(); track row.id) {
@@ -35,14 +43,16 @@
     </ul>
     <table class="sr">
       <caption>
-        Estimated vs actual duration by service category
+        {{
+          'dashboard.dashboardAnalytics.estimatedVsActualDuration2' | transloco
+        }}
       </caption>
       <thead>
         <tr>
-          <th scope="col">Category</th>
-          <th scope="col">Estimated</th>
-          <th scope="col">Actual</th>
-          <th scope="col">Variance</th>
+          <th scope="col">{{ 'dashboard.dashboardAnalytics.category' | transloco }}</th>
+          <th scope="col">{{ 'dashboard.dashboardAnalytics.estimated' | transloco }}</th>
+          <th scope="col">{{ 'dashboard.dashboardAnalytics.actual' | transloco }}</th>
+          <th scope="col">{{ 'dashboard.dashboardAnalytics.variance' | transloco }}</th>
         </tr>
       </thead>
       <tbody>
@@ -61,12 +71,14 @@
 
 <section class="card" aria-labelledby="perf-title">
   <header class="card__head">
-    <h2 class="card__title" id="perf-title">Service performance</h2>
+    <h2 class="card__title" id="perf-title">
+      {{ 'dashboard.dashboardAnalytics.servicePerformance' | transloco }}
+    </h2>
     <p-select
-      [options]="periods"
+      [options]="periods | localizedRef"
       optionLabel="label"
       optionValue="code"
-      ariaLabel="Performance period"
+      [ariaLabel]="'dashboard.dashboardAnalytics.performancePeriod' | transloco"
       appendTo="body"
       [ngModel]="period()"
       (onChange)="periodChange.emit($event.value)"
@@ -80,12 +92,14 @@
   } @else if (performanceStatus() === 'error') {
     <div class="card__error" role="alert">
       <p>{{ performanceError }}</p>
-      <button type="button" class="btn" (click)="retryPerformance.emit()">Try again</button>
+      <button type="button" class="btn" (click)="retryPerformance.emit()">
+        {{ 'common.tryAgain' | transloco }}
+      </button>
     </div>
   } @else if (stats(); as s) {
     <div class="perf">
       <div class="perf__tile">
-        <h3 class="perf__label">Jobs completed</h3>
+        <h3 class="perf__label">{{ 'dashboard.dashboardAnalytics.jobsCompleted' | transloco }}</h3>
         <div class="perf__figure">
           <span class="perf__value">{{ s.jobsText }}</span>
           <span class="ring">
@@ -105,7 +119,9 @@
         </div>
       </div>
       <div class="perf__tile">
-        <h3 class="perf__label">First-time fix rate</h3>
+        <h3 class="perf__label">
+          {{ 'dashboard.dashboardAnalytics.firstTimeFixRate' | transloco }}
+        </h3>
         <div class="perf__figure">
           <span class="perf__value">{{ s.fixPercent === null ? '—' : s.fixPercent + '%' }}</span>
           <span class="ring">
@@ -125,7 +141,7 @@
         </div>
       </div>
       <div class="perf__tile">
-        <h3 class="perf__label">Customer rating</h3>
+        <h3 class="perf__label">{{ 'dashboard.dashboardAnalytics.customerRating' | transloco }}</h3>
         <div class="perf__figure">
           <span class="perf__value">{{ s.rating ?? '—' }}</span>
           @if (s.rating !== null) {
@@ -160,8 +176,8 @@
       </caption>
       <thead>
         <tr>
-          <th scope="col">Date</th>
-          <th scope="col">Jobs completed</th>
+          <th scope="col">{{ 'common.date' | transloco }}</th>
+          <th scope="col">{{ 'dashboard.dashboardAnalytics.jobsCompleted' | transloco }}</th>
         </tr>
       </thead>
       <tbody>
@@ -178,13 +194,16 @@
 
 <section class="card" aria-labelledby="act-title">
   <header class="card__head">
-    <h2 class="card__title" id="act-title">Live operational activity</h2>
+    <h2 class="card__title" id="act-title">
+      {{ 'dashboard.dashboardAnalytics.liveOperationalActivity' | transloco }}
+    </h2>
     <a class="card__link" [routerLink]="jobsLink.path">
-      View all <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      {{ 'dashboard.dashboardAnalytics.viewAll' | transloco }}
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
     </a>
   </header>
   @if (events().length === 0) {
-    <p class="card__empty">No activity for this day.</p>
+    <p class="card__empty">{{ 'dashboard.dashboardAnalytics.noActivityForThis' | transloco }}</p>
   } @else {
     <ul class="act">
       @for (event of events(); track event.key) {

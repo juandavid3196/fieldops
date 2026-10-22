@@ -1,27 +1,41 @@
 <div class="pp">
   <header class="pf__head">
-    <nav aria-label="Breadcrumb">
+    <nav [attr.aria-label]="'portal.propertyForm.breadcrumb' | transloco">
       <ol class="pf__crumbs">
-        <li><a routerLink="/portal/properties">Properties</a></li>
-        <li aria-current="page">{{ editing ? 'Edit property' : 'Add property' }}</li>
+        <li>
+          <a routerLink="/portal/properties">{{ 'portal.propertyForm.properties' | transloco }}</a>
+        </li>
+        <li aria-current="page">
+          {{
+            editing
+              ? ('portal.propertyForm.editProperty' | transloco)
+              : ('portal.propertyForm.addProperty' | transloco)
+          }}
+        </li>
       </ol>
     </nav>
-    <h1 class="pp__title">{{ editing ? 'Edit property' : 'Add property' }}</h1>
+    <h1 class="pp__title">
+      {{
+        editing
+          ? ('portal.propertyForm.editProperty' | transloco)
+          : ('portal.propertyForm.addProperty' | transloco)
+      }}
+    </h1>
     <p class="pf__intro">
       {{
         editing
-          ? 'Update the details of this service location.'
-          : 'Add a service location to your account.'
+          ? ('portal.propertyForm.updateTheDetailsOf' | transloco)
+          : ('portal.propertyForm.addAServiceLocation' | transloco)
       }}
     </p>
   </header>
 
   <app-portal-state
     [state]="editing ? resource.state() : 'ready'"
-    label="Loading property"
-    errorText="We couldn't load this property."
+    [label]="'portal.propertyForm.loadingProperty' | transloco"
+    [errorText]="'portal.propertyForm.weCouldnTLoad' | transloco"
     backLink="/portal/properties"
-    backLabel="Back to Properties"
+    [backLabel]="'portal.propertyForm.backToProperties' | transloco"
     (retry)="load()"
   >
     <div class="pf">
@@ -35,21 +49,24 @@
             </svg>
           </span>
           <div>
-            <h2 class="pf__section-title">Property details</h2>
-            <p class="pp__hint">Tell us where service will be provided.</p>
+            <h2 class="pf__section-title">
+              {{ 'portal.propertyForm.propertyDetails' | transloco }}
+            </h2>
+            <p class="pp__hint">{{ 'portal.propertyForm.tellUsWhereService' | transloco }}</p>
           </div>
         </div>
 
         <div class="pp__field">
           <label class="pp__label" for="portal-property-name">
-            Property name <span class="pf__req" aria-hidden="true">*</span>
+            {{ 'portal.propertyForm.propertyName' | transloco }}
+            <span class="pf__req" aria-hidden="true">*</span>
           </label>
           <input
             pInputText
             id="portal-property-name"
             formControlName="name"
             autocomplete="off"
-            placeholder="e.g. Home, Rental property, Downtown office"
+            [attr.placeholder]="'portal.propertyForm.eGHomeRental' | transloco"
             required
             fluid
             [invalid]="errors().name !== undefined"
@@ -61,14 +78,17 @@
           @if (errors().name; as error) {
             <p class="pp__error" id="portal-property-name-error">{{ error }}</p>
           } @else {
-            <p class="pp__hint">Use a name you'll recognize.</p>
+            <p class="pp__hint">{{ 'portal.propertyForm.useANameYou' | transloco }}</p>
           }
         </div>
 
-        <h3 class="pf__group">Service address</h3>
+        <h3 class="pf__group">{{ 'portal.propertyForm.serviceAddress' | transloco }}</h3>
 
         @if (editing) {
-          <section class="pf__address" aria-label="Service address">
+          <section
+            class="pf__address"
+            [attr.aria-label]="'portal.propertyForm.serviceAddress' | transloco"
+          >
             @if (resource.data(); as property) {
               <p class="pcard__meta">
                 {{ property.addressLine1 }}
@@ -80,19 +100,25 @@
                 {{ property.city }}, {{ property.stateRegion }} {{ property.postalCode }}
               </p>
             }
-            <p class="pp__hint">To change this address, contact {{ organizationName() }}.</p>
+            <p class="pp__hint">
+              {{
+                'portal.propertyForm.toChangeThisAddress'
+                  | transloco: { organizationName: organizationName() }
+              }}
+            </p>
           </section>
         } @else {
           <div class="pp__field">
             <label class="pp__label" for="portal-property-addressLine1">
-              Address line 1 <span class="pf__req" aria-hidden="true">*</span>
+              {{ 'portal.propertyForm.addressLine1' | transloco }}
+              <span class="pf__req" aria-hidden="true">*</span>
             </label>
             <input
               pInputText
               id="portal-property-addressLine1"
               formControlName="addressLine1"
               autocomplete="address-line1"
-              placeholder="Street address"
+              [attr.placeholder]="'portal.propertyForm.streetAddress' | transloco"
               required
               fluid
               [invalid]="errors().addressLine1 !== undefined"
@@ -108,14 +134,14 @@
 
           <div class="pp__field">
             <label class="pp__label" for="portal-property-addressLine2">
-              Address line 2 (optional)
+              {{ 'portal.propertyForm.addressLine2Optional' | transloco }}
             </label>
             <input
               pInputText
               id="portal-property-addressLine2"
               formControlName="addressLine2"
               autocomplete="address-line2"
-              placeholder="Apartment, suite, unit, building"
+              [attr.placeholder]="'portal.propertyForm.apartmentSuiteUnitBuilding' | transloco"
               fluid
               [invalid]="errors().addressLine2 !== undefined"
               [attr.aria-invalid]="errors().addressLine2 !== undefined ? 'true' : null"
@@ -131,14 +157,15 @@
           <div class="pp__grid">
             <div class="pp__field">
               <label class="pp__label" for="portal-property-city">
-                City <span class="pf__req" aria-hidden="true">*</span>
+                {{ 'portal.propertyForm.city' | transloco }}
+                <span class="pf__req" aria-hidden="true">*</span>
               </label>
               <input
                 pInputText
                 id="portal-property-city"
                 formControlName="city"
                 autocomplete="address-level2"
-                placeholder="City"
+                [attr.placeholder]="'portal.propertyForm.city' | transloco"
                 required
                 fluid
                 [invalid]="errors().city !== undefined"
@@ -154,16 +181,17 @@
 
             <div class="pp__field">
               <label class="pp__label" for="portal-property-stateRegion">
-                State <span class="pf__req" aria-hidden="true">*</span>
+                {{ 'portal.propertyForm.state' | transloco }}
+                <span class="pf__req" aria-hidden="true">*</span>
               </label>
               <p-select
                 inputId="portal-property-stateRegion"
                 formControlName="stateRegion"
-                ariaLabel="State"
-                placeholder="Select"
+                [ariaLabel]="'portal.propertyForm.state' | transloco"
+                [placeholder]="'portal.propertyForm.select' | transloco"
                 appendTo="body"
                 fluid
-                [options]="states"
+                [options]="states | localizedRef"
                 [invalid]="errors().stateRegion !== undefined"
                 [attr.aria-describedby]="
                   errors().stateRegion !== undefined ? 'portal-property-stateRegion-error' : null
@@ -178,7 +206,8 @@
           <div class="pp__grid">
             <div class="pp__field">
               <label class="pp__label" for="portal-property-postalCode">
-                ZIP code <span class="pf__req" aria-hidden="true">*</span>
+                {{ 'portal.propertyForm.zipCode' | transloco }}
+                <span class="pf__req" aria-hidden="true">*</span>
               </label>
               <input
                 pInputText
@@ -186,7 +215,7 @@
                 formControlName="postalCode"
                 inputmode="numeric"
                 autocomplete="postal-code"
-                placeholder="ZIP code"
+                [attr.placeholder]="'portal.propertyForm.zipCode' | transloco"
                 required
                 fluid
                 [invalid]="errors().postalCode !== undefined"
@@ -201,7 +230,9 @@
             </div>
 
             <div class="pp__field">
-              <label class="pp__label" for="portal-property-country">Country</label>
+              <label class="pp__label" for="portal-property-country">{{
+                'portal.propertyForm.country' | transloco
+              }}</label>
               <input
                 pInputText
                 id="portal-property-country"
@@ -214,11 +245,11 @@
           </div>
         }
 
-        <h3 class="pf__group">Access instructions</h3>
+        <h3 class="pf__group">{{ 'portal.propertyForm.accessInstructions' | transloco }}</h3>
 
         <div class="pp__field">
           <label class="pp__label" for="portal-property-accessInstructions">
-            Access instructions (optional)
+            {{ 'portal.propertyForm.accessInstructionsOptional' | transloco }}
           </label>
           <textarea
             pTextarea
@@ -226,7 +257,7 @@
             formControlName="accessInstructions"
             rows="3"
             maxlength="1000"
-            placeholder="Gate codes, parking instructions, pets, or anything your technician should know"
+            [attr.placeholder]="'portal.propertyForm.gateCodesParkingInstructions' | transloco"
             fluid
             [invalid]="errors().accessInstructions !== undefined"
             [attr.aria-invalid]="errors().accessInstructions !== undefined ? 'true' : null"
@@ -255,10 +286,12 @@
                 [ngModelOptions]="{ standalone: true }"
                 (ngModelChange)="makePrimary.set($event)"
               />
-              <label for="portal-property-primary">Make this my primary property</label>
+              <label for="portal-property-primary">{{
+                'portal.propertyForm.makeThisMyPrimary' | transloco
+              }}</label>
             </span>
             @if (alreadyPrimary()) {
-              <p class="pp__hint">This is your primary property.</p>
+              <p class="pp__hint">{{ 'portal.propertyForm.thisIsYourPrimary' | transloco }}</p>
             }
           </div>
         }
@@ -270,25 +303,29 @@
         </div>
 
         <div class="pf__actions">
-          <a pButton severity="secondary" [outlined]="true" routerLink="/portal/properties"
-            >Cancel</a
-          >
+          <a pButton severity="secondary" [outlined]="true" routerLink="/portal/properties">{{
+            'common.cancel' | transloco
+          }}</a>
           @if (conflict()) {
             <button pButton type="button" severity="secondary" [outlined]="true" (click)="load()">
-              Reload
+              {{ 'portal.propertyForm.reload' | transloco }}
             </button>
           }
           <button pButton type="submit" class="pf__submit" [disabled]="submitting()">
             @if (submitting()) {
               <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
             }
-            {{ editing ? 'Save changes' : 'Add property' }}
+            {{
+              editing
+                ? ('portal.propertyForm.saveChanges' | transloco)
+                : ('portal.propertyForm.addProperty' | transloco)
+            }}
             <i class="pi pi-arrow-right" aria-hidden="true"></i>
           </button>
         </div>
         <p class="pp__hint pf__privacy">
           <i class="pi pi-lock" aria-hidden="true"></i>
-          Your address is only shared with your service team.
+          {{ 'portal.propertyForm.yourAddressIsOnly' | transloco }}
         </p>
       </form>
 
@@ -297,48 +334,57 @@
           <section class="pcard pf__preview" aria-labelledby="portal-property-preview">
             <h2 class="pf__section-title pf__tips-title" id="portal-property-preview">
               <span class="pf__mini" aria-hidden="true"><i class="pi pi-map"></i></span>
-              Property preview
+              {{ 'portal.propertyForm.propertyPreview' | transloco }}
             </h2>
             <app-portal-map-illustration />
             <p class="pp__hint pf__caption" aria-live="polite">
-              {{ previewAddress() ?? 'Your address preview will appear here.' }}
+              {{ previewAddress() ?? ('portal.propertyForm.yourAddressPreviewWill' | transloco) }}
             </p>
           </section>
           <aside class="pcard pf__tips" aria-labelledby="portal-property-tips">
             <h2 class="pf__section-title pf__tips-title" id="portal-property-tips">
               <span class="pf__info" aria-hidden="true"><i class="pi pi-info"></i></span>
-              Before you add a property
+              {{ 'portal.propertyForm.beforeYouAddA' | transloco }}
             </h2>
             <ul class="pf__tip-list">
               <li>
                 <span class="pf__tip-icon" aria-hidden="true"><i class="pi pi-home"></i></span>
                 <div>
-                  <p class="pf__tip-title">Use the exact service address</p>
-                  <p class="pp__hint">This helps us send the right technician and avoid delays.</p>
+                  <p class="pf__tip-title">
+                    {{ 'portal.propertyForm.useTheExactService' | transloco }}
+                  </p>
+                  <p class="pp__hint">{{ 'portal.propertyForm.thisHelpsUsSend' | transloco }}</p>
                 </div>
               </li>
               <li>
                 <span class="pf__tip-icon" aria-hidden="true"><i class="pi pi-file"></i></span>
                 <div>
-                  <p class="pf__tip-title">Add access details for smoother visits</p>
+                  <p class="pf__tip-title">
+                    {{ 'portal.propertyForm.addAccessDetailsFor' | transloco }}
+                  </p>
                   <p class="pp__hint">
-                    Gate codes, parking instructions, pets, or other helpful information.
+                    {{ 'portal.propertyForm.gateCodesParkingInstructions2' | transloco }}
                   </p>
                 </div>
               </li>
               <li>
                 <span class="pf__tip-icon" aria-hidden="true"><i class="pi pi-pencil"></i></span>
                 <div>
-                  <p class="pf__tip-title">You can update these details later</p>
+                  <p class="pf__tip-title">
+                    {{ 'portal.propertyForm.youCanUpdateThese' | transloco }}
+                  </p>
                   <p class="pp__hint">
-                    Need to make a change? You can edit this property at any time.
+                    {{ 'portal.propertyForm.needToMakeA' | transloco }}
                   </p>
                 </div>
               </li>
             </ul>
             <p class="pf__help">
               <i class="pi pi-question-circle" aria-hidden="true"></i>
-              Need help? <a routerLink="/portal" fragment="help">Contact support</a>
+              {{ 'portal.propertyForm.needHelp' | transloco }}
+              <a routerLink="/portal" fragment="help">{{
+                'portal.propertyForm.contactSupport' | transloco
+              }}</a>
             </p>
           </aside>
         </div>

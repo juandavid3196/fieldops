@@ -20,6 +20,7 @@ import { InputPassword } from 'primeng/inputpassword';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { landingPath } from '../../../../core/config/landing';
 import { isApiError } from '../../../../core/models/api-error.model';
@@ -54,6 +55,9 @@ import {
   validateNewPassword,
 } from './invitation.validators';
 
+import { t } from '../../../../core/i18n/translate';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
+import { CodeLabelPipe } from '../../../../core/i18n/code-label.pipe';
 type InvitationState = 'loading' | 'unavailable' | 'load-error' | 'ready';
 type InvitationMode = 'new-account' | 'existing-account';
 
@@ -78,6 +82,9 @@ const FIELD_IDS: Readonly<Record<InvitationField, string>> = {
 @Component({
   selector: 'app-invitation',
   imports: [
+    CodeLabelPipe,
+    LanguageFooterSelector,
+    TranslocoPipe,
     ReactiveFormsModule,
     RouterLink,
     ButtonDirective,
@@ -118,7 +125,7 @@ export class Invitation {
   readonly mode = signal<InvitationMode>('new-account');
   readonly detail = signal<InvitationDetails | null>(null);
   private readonly loadedAt = signal(Date.now());
-  readonly loadErrorMessage = signal(LOAD_ERROR_MESSAGE);
+  readonly loadErrorMessage = signal(LOAD_ERROR_MESSAGE());
   readonly pageMessage = signal<PageMessage | null>(null);
   readonly fieldErrors = signal<InvitationFieldErrors>({});
   readonly submitting = signal(false);
@@ -126,9 +133,15 @@ export class Invitation {
   readonly passwordMasked = signal(true);
   readonly submitDisabled = computed(() => this.submitting() || this.retryLocked());
 
-  readonly unavailableTitle = UNAVAILABLE_TITLE;
-  readonly unavailableBody = UNAVAILABLE_BODY;
-  readonly unavailableNote = UNAVAILABLE_NOTE;
+  get unavailableTitle(): string {
+    return UNAVAILABLE_TITLE();
+  }
+  get unavailableBody(): string {
+    return UNAVAILABLE_BODY();
+  }
+  get unavailableNote(): string {
+    return UNAVAILABLE_NOTE();
+  }
 
   private readonly passwordValue = toSignal(this.form.controls.password.valueChanges, {
     initialValue: '',
@@ -142,11 +155,11 @@ export class Invitation {
       return '';
     }
     if (detail.isAllBranches) {
-      return 'All branches';
+      return t('authentication.invitation.allBranches');
     }
     return detail.branches.length > 0
       ? detail.branches.map((branch) => branch.name).join(', ')
-      : 'No active branches';
+      : t('authentication.invitation.noActiveBranches');
   });
   readonly expiryText = computed(() => {
     const expiresAt = Date.parse(this.detail()?.expiresAt ?? '');
@@ -308,7 +321,7 @@ export class Invitation {
       this.loadErrorMessage.set(rateLimitedMessage(Math.max(1, Math.ceil(seconds / 60))));
       this.lockAfterRateLimit(seconds);
     } else {
-      this.loadErrorMessage.set(LOAD_ERROR_MESSAGE);
+      this.loadErrorMessage.set(LOAD_ERROR_MESSAGE());
     }
     this.state.set('load-error');
     this.focusHeading();
@@ -361,17 +374,19 @@ export class Invitation {
       case 'unauthorized':
         if (!newAccount && !afterSignIn) {
           this.form.controls.password.setValue('');
-          this.showError(INVALID_CREDENTIALS_MESSAGE);
+          this.showError(INVALID_CREDENTIALS_MESSAGE());
           this.focusAfterRender('password');
           return;
         }
         break;
       case 'conflict':
         if (newAccount && apiError.code === 'account_exists') {
-          this.pageMessage.set({ text: ACCOUNT_EXISTS_MESSAGE, offerSignIn: true });
+          this.pageMessage.set({ text: ACCOUNT_EXISTS_MESSAGE(), offerSignIn: true });
         } else {
           this.showError(
-            cannotAcceptMessage(this.detail()?.organizationName ?? 'your organization'),
+            cannotAcceptMessage(
+              this.detail()?.organizationName ?? t('authentication.invitation.yourOrganization'),
+            ),
           );
         }
         return;
@@ -383,7 +398,7 @@ export class Invitation {
       }
     }
 
-    this.showError(GENERIC_ACCEPT_ERROR_MESSAGE);
+    this.showError(GENERIC_ACCEPT_ERROR_MESSAGE());
   }
 
   private showUnavailable(): void {
@@ -425,9 +440,9 @@ export class Invitation {
     const email = this.detail()?.email ?? '';
     switch (field) {
       case 'firstName':
-        return validateName(values.firstName, FIRST_NAME_REQUIRED_MESSAGE);
+        return validateName(values.firstName, FIRST_NAME_REQUIRED_MESSAGE());
       case 'lastName':
-        return validateName(values.lastName, LAST_NAME_REQUIRED_MESSAGE);
+        return validateName(values.lastName, LAST_NAME_REQUIRED_MESSAGE());
       case 'password':
         return this.mode() === 'new-account'
           ? validateNewPassword(values.password, email)

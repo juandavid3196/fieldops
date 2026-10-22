@@ -2,16 +2,18 @@ import { Component, DestroyRef, computed, inject, input, output, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { BANK_NOTICE_FAILED_MESSAGE, PublicInvoice } from '../../models/invoice.model';
 import { InvoiceLinkApi } from '../../services/invoice-link-api';
 import { formatCalendarDate, money } from '../../utils/public-invoice-format';
 
+import { t } from '../../../../core/i18n/translate';
 /** Bank transfer instructions and the "I sent the transfer" notice (BR-28, BR-29). */
 @Component({
   selector: 'app-public-bank-transfer',
-  imports: [ButtonDirective, SpinnerIcon],
+  imports: [TranslocoPipe, ButtonDirective, SpinnerIcon],
   templateUrl: './public-bank-transfer.html',
   styleUrl: './public-bank-transfer.scss',
 })
@@ -30,7 +32,9 @@ export class PublicBankTransfer {
   protected readonly failed = signal(false);
   private readonly reportedNow = signal<string | null>(null);
   protected readonly copied = signal<string | null>(null);
-  protected readonly failureMessage = BANK_NOTICE_FAILED_MESSAGE;
+  protected get failureMessage(): string {
+    return BANK_NOTICE_FAILED_MESSAGE();
+  }
 
   protected readonly reportedText = computed(() => {
     const date = this.reportedNow() ?? this.invoice().transferReportedOn;
@@ -42,23 +46,31 @@ export class PublicBankTransfer {
     const bank = invoice.paymentOptions?.bankTransfer;
     const amount = bank?.amount ?? invoice.balanceDue;
     return [
-      { label: 'Bank name', value: bank?.bankName ?? '', copy: bank?.bankName ?? '' },
       {
-        label: 'Account number',
+        label: t('invoices.publicBankTransfer.bankName'),
+        value: bank?.bankName ?? '',
+        copy: bank?.bankName ?? '',
+      },
+      {
+        label: t('invoices.publicBankTransfer.accountNumber'),
         value: bank?.accountNumber ?? '',
         copy: bank?.accountNumber ?? '',
       },
       {
-        label: 'Routing number',
+        label: t('invoices.publicBankTransfer.routingNumber'),
         value: bank?.routingNumber ?? '',
         copy: bank?.routingNumber ?? '',
       },
       {
-        label: 'Payment reference',
+        label: t('invoices.publicBankTransfer.paymentReference'),
         value: bank?.reference ?? invoice.number,
         copy: bank?.reference ?? invoice.number,
       },
-      { label: 'Amount', value: money(amount, invoice.currency), copy: amount.toFixed(2) },
+      {
+        label: t('common.amount'),
+        value: money(amount, invoice.currency),
+        copy: amount.toFixed(2),
+      },
     ];
   });
 

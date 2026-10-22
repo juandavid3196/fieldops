@@ -10,38 +10,40 @@ import {
   NotificationsView,
 } from '../models/notifications.model';
 
+import { localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 /** BR-02: type code -> fixed label. */
 export const NOTIFICATION_TYPES: readonly {
   readonly code: NotificationType;
   readonly label: string;
-}[] = [
-  { code: 'request', label: 'Requests' },
-  { code: 'message', label: 'Messages' },
-  { code: 'quote', label: 'Quotes' },
-  { code: 'visit', label: 'Visits' },
-  { code: 'job', label: 'Jobs' },
-  { code: 'invoice', label: 'Invoices' },
-  { code: 'payment', label: 'Payments' },
-];
+}[] = localizedList(() => [
+  { code: 'request', label: t('notifications.notificationsFormat.requests') },
+  { code: 'message', label: t('notifications.notificationsFormat.messages') },
+  { code: 'quote', label: t('notifications.notificationsFormat.quotes') },
+  { code: 'visit', label: t('notifications.notificationsFormat.visits') },
+  { code: 'job', label: t('notifications.notificationsFormat.jobs') },
+  { code: 'invoice', label: t('notifications.notificationsFormat.invoices') },
+  { code: 'payment', label: t('notifications.notificationsFormat.payments') },
+]);
 
 /** BR-11: date window codes and labels. */
 export const NOTIFICATION_DATES: readonly {
   readonly code: NotificationsDate;
   readonly label: string;
-}[] = [
-  { code: 'any', label: 'Any date' },
-  { code: 'today', label: 'Today' },
-  { code: '7d', label: 'Last 7 days' },
-  { code: '30d', label: 'Last 30 days' },
-];
+}[] = localizedList(() => [
+  { code: 'any', label: t('notifications.notificationsFormat.anyDate') },
+  { code: 'today', label: t('notifications.notificationsFormat.today') },
+  { code: '7d', label: t('notifications.notificationsFormat.last7Days') },
+  { code: '30d', label: t('notifications.notificationsFormat.last30Days') },
+]);
 
 export const NOTIFICATION_TABS: readonly {
   readonly code: NotificationsTab;
   readonly label: string;
-}[] = [
-  { code: 'all', label: 'All notifications' },
-  { code: 'unread', label: 'Unread' },
-];
+}[] = localizedList(() => [
+  { code: 'all', label: t('notifications.notificationsFormat.allNotifications') },
+  { code: 'unread', label: t('notifications.notificationsFormat.unread') },
+]);
 
 export type IconTone = 'info' | 'success' | 'danger' | 'warning' | 'neutral';
 
@@ -156,7 +158,7 @@ export function activeFilterCount(view: NotificationsView): number {
 
 function safeZone(timeZone: string): string {
   try {
-    new Intl.DateTimeFormat('en-US', { timeZone });
+    new Intl.DateTimeFormat(activeIntlLocale(), { timeZone });
     return timeZone;
   } catch {
     return 'UTC';
@@ -165,7 +167,7 @@ function safeZone(timeZone: string): string {
 
 /** Local calendar day as a day number (comparable and subtractable). */
 function dayNumber(date: Date, timeZone: string): number {
-  const parts = new Intl.DateTimeFormat('en-US', {
+  const parts = new Intl.DateTimeFormat(activeIntlLocale(), {
     timeZone: safeZone(timeZone),
     year: 'numeric',
     month: 'numeric',
@@ -177,9 +179,10 @@ function dayNumber(date: Date, timeZone: string): number {
 }
 
 function year(date: Date, timeZone: string): string {
-  return new Intl.DateTimeFormat('en-US', { timeZone: safeZone(timeZone), year: 'numeric' }).format(
-    date,
-  );
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
+    timeZone: safeZone(timeZone),
+    year: 'numeric',
+  }).format(date);
 }
 
 /** BR-15: "Just now", "<n> min ago", "<n> hr ago", "Yesterday", "MMM d[, yyyy]". */
@@ -187,20 +190,20 @@ export function relativeTime(createdAt: string, timeZone: string, now: Date): st
   const created = new Date(createdAt);
   const minutes = Math.floor((now.getTime() - created.getTime()) / 60_000);
   if (minutes < 1) {
-    return 'Just now';
+    return t('notifications.notificationsFormat.justNow');
   }
   if (minutes < 60) {
-    return `${minutes} min ago`;
+    return t('notifications.notificationsFormat.minAgo', { minutes: minutes });
   }
   const days = dayNumber(now, timeZone) - dayNumber(created, timeZone);
   if (days <= 0) {
-    return `${Math.floor(minutes / 60)} hr ago`;
+    return t('notifications.notificationsFormat.hrAgo', { value: Math.floor(minutes / 60) });
   }
   if (days === 1) {
-    return 'Yesterday';
+    return t('notifications.notificationsFormat.yesterday');
   }
   const sameYear = year(created, timeZone) === year(now, timeZone);
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     timeZone: safeZone(timeZone),
     month: 'short',
     day: 'numeric',
@@ -210,7 +213,7 @@ export function relativeTime(createdAt: string, timeZone: string, now: Date): st
 
 /** Tooltip and accessible label of the time. */
 export function fullDateTime(createdAt: string, timeZone: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     timeZone: safeZone(timeZone),
     dateStyle: 'medium',
     timeStyle: 'short',

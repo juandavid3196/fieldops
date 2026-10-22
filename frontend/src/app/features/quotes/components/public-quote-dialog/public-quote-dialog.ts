@@ -17,9 +17,11 @@ import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { FormField } from '../../../organizations/components/form-field/form-field';
 
+import { localized, t } from '../../../../core/i18n/translate';
 export type PublicQuoteDialogKind = 'ask' | 'decline';
 
 export const PUBLIC_TEXT_LIMIT = 1000;
@@ -32,22 +34,22 @@ interface DialogCopy {
   readonly tooLong: string;
 }
 
-const COPY: Readonly<Record<PublicQuoteDialogKind, DialogCopy>> = {
+const COPY: Readonly<Record<PublicQuoteDialogKind, DialogCopy>> = localized(() => ({
   ask: {
-    header: 'Ask a question',
-    label: 'Question',
-    submit: 'Send question',
-    required: 'Enter your question.',
-    tooLong: 'Question must be 1,000 characters or fewer.',
+    header: t('quotes.publicQuoteDialog.askAQuestion'),
+    label: t('quotes.publicQuoteDialog.question'),
+    submit: t('quotes.publicQuoteDialog.sendQuestion'),
+    required: t('quotes.publicQuoteDialog.enterYourQuestion'),
+    tooLong: t('quotes.publicQuoteDialog.questionMustBe1'),
   },
   decline: {
-    header: 'Decline this quote?',
-    label: 'Reason',
-    submit: 'Decline quote',
-    required: "Tell us why you're declining.",
-    tooLong: 'Reason must be 1,000 characters or fewer.',
+    header: t('quotes.publicQuoteDialog.declineThisQuote'),
+    label: t('quotes.publicQuoteDialog.reason'),
+    submit: t('quotes.publicQuoteDialog.declineQuote'),
+    required: t('quotes.publicQuoteDialog.tellUsWhyYoure'),
+    tooLong: t('quotes.publicQuoteDialog.reasonMustBe1'),
   },
-};
+}));
 
 /** Validation of the dialog text (BR-14, BR-15): 1 to 1,000 characters after trim. */
 export function publicTextError(kind: PublicQuoteDialogKind, value: string): string | null {
@@ -61,7 +63,7 @@ export function publicTextError(kind: PublicQuoteDialogKind, value: string): str
 /** Ask a question and Decline dialogs. Collects and validates; the page runs the request. */
 @Component({
   selector: 'app-public-quote-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, SpinnerIcon, Textarea, FormField],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Dialog, SpinnerIcon, Textarea, FormField],
   templateUrl: './public-quote-dialog.html',
   styleUrl: './public-quote-dialog.scss',
 })

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * "Other ways to get started" card of the Sign In page (design 26). Only "Create a company
@@ -7,7 +8,7 @@ import { RouterLink } from '@angular/router';
  */
 @Component({
   selector: 'app-sign-in-other-ways',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './sign-in-other-ways.html',
   styleUrl: './sign-in-other-ways.scss',
 })

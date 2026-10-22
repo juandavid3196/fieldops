@@ -1,6 +1,8 @@
 <section class="materials" aria-labelledby="wo-materials-heading">
   <header class="materials__head">
-    <h2 class="materials__title" id="wo-materials-heading">Required materials</h2>
+    <h2 class="materials__title" id="wo-materials-heading">
+      {{ 'quotes.workOrderMaterials.requiredMaterials' | transloco }}
+    </h2>
     <button
       pButton
       type="button"
@@ -11,7 +13,7 @@
       (click)="add()"
     >
       <i class="pi pi-plus" aria-hidden="true"></i>
-      Add material
+      {{ 'quotes.workOrderMaterials.addMaterial' | transloco }}
     </button>
   </header>
 
@@ -29,11 +31,13 @@
       <table class="materials__table">
         <thead>
           <tr>
-            <th scope="col">Material</th>
-            <th scope="col">Planned qty</th>
-            <th scope="col">Source</th>
-            <th scope="col">Status</th>
-            <th scope="col"><span class="materials__sr">Actions</span></th>
+            <th scope="col">{{ 'quotes.workOrderMaterials.material' | transloco }}</th>
+            <th scope="col">{{ 'quotes.workOrderMaterials.plannedQty' | transloco }}</th>
+            <th scope="col">{{ 'quotes.workOrderMaterials.source' | transloco }}</th>
+            <th scope="col">{{ 'common.status' | transloco }}</th>
+            <th scope="col">
+              <span class="materials__sr">{{ 'common.actions' | transloco }}</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -50,7 +54,7 @@
               <td>
                 <span class="materials__status">
                   <i class="pi pi-clock" aria-hidden="true"></i>
-                  Planned
+                  {{ 'quotes.workOrderMaterials.planned' | transloco }}
                 </span>
               </td>
               <td class="materials__actions">
@@ -59,7 +63,10 @@
                     type="button"
                     class="materials__icon"
                     [attr.data-field-key]="'materials[' + material.uid + ']'"
-                    [attr.aria-label]="'Edit ' + material.description"
+                    [attr.aria-label]="
+                      'quotes.workOrderMaterials.edit'
+                        | transloco: { description: material.description }
+                    "
                     [disabled]="disabled()"
                     (click)="edit(material)"
                   >
@@ -68,7 +75,10 @@
                   <button
                     type="button"
                     class="materials__icon"
-                    [attr.aria-label]="'Remove ' + material.description"
+                    [attr.aria-label]="
+                      'quotes.workOrderMaterials.remove'
+                        | transloco: { description: material.description }
+                    "
                     [disabled]="disabled()"
                     (click)="removed.emit(material.uid)"
                   >
@@ -82,7 +92,7 @@
       </table>
     </div>
   } @else {
-    <p class="materials__note">No materials planned.</p>
+    <p class="materials__note">{{ 'quotes.workOrderMaterials.noMaterialsPlanned' | transloco }}</p>
   }
   <p class="materials__note">{{ footnote }}</p>
 

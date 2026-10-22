@@ -1,7 +1,9 @@
 <section #section class="card" tabindex="-1" aria-labelledby="att-title">
   <p-menu #menu [popup]="true" appendTo="body" [model]="menuModel()" />
   <header class="card__head">
-    <h2 class="card__title" id="att-title">Needs attention</h2>
+    <h2 class="card__title" id="att-title">
+      {{ 'dashboard.dashboardAttention.needsAttention' | transloco }}
+    </h2>
     @if (canExpand()) {
       <button
         type="button"
@@ -10,9 +12,10 @@
         (click)="expanded.set(!expanded())"
       >
         @if (expanded()) {
-          Show less
+          {{ 'dashboard.dashboardAttention.showLess' | transloco }}
         } @else {
-          View all ({{ total() }}) <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          {{ 'dashboard.dashboardAttention.viewAll' | transloco: { total: total() } }}
+          <i class="pi pi-arrow-right" aria-hidden="true"></i>
         }
       </button>
     }
@@ -27,7 +30,9 @@
           <i class="pi att__icon" [class]="item.icon" aria-hidden="true"></i>
           <div class="att__text">
             <p class="att__title">
-              <span class="sr">{{ item.severity }}: </span>{{ item.title }}
+              <span class="sr"
+                >{{ 'dashboard.dashboardView.' + item.severity.toLowerCase() | transloco }}: </span
+              >{{ item.title }}
             </p>
             <p class="att__sub">{{ item.subtitle }}</p>
           </div>
@@ -44,7 +49,9 @@
             type="button"
             class="btn btn--icon"
             aria-haspopup="menu"
-            [attr.aria-label]="'More actions for ' + item.title"
+            [attr.aria-label]="
+              'dashboard.dashboardAttention.moreActionsFor' | transloco: { title: item.title }
+            "
             (click)="openMenu($event, item)"
           >
             <i class="pi pi-ellipsis-v" aria-hidden="true"></i>

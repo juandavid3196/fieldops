@@ -9,6 +9,7 @@ import { InputPassword } from 'primeng/inputpassword';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { FALLBACK_FIELD_MESSAGE } from '../../../authentication/pages/sign-in/sign-in.messages';
@@ -25,19 +26,23 @@ import {
 } from '../../services/portal-invitation.service';
 import { PortalInvitationTokenService } from '../../services/portal-invitation-token.service';
 
+import { t } from '../../../../core/i18n/translate';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 export const ACTIVATE_PATH = '/portal/activate';
 
 /** BR-12 copy: names the organization only when a previous validation made it known. */
 export function unavailableMessage(organizationName: string | null): string {
-  return `This invitation isn't available. Ask ${organizationName ?? 'the company'} to send a new one.`;
+  return t('portal.activate.thisInvitationIsntAvailable', {
+    value: organizationName ?? t('portal.activate.theCompany'),
+  });
 }
 
-export const WRONG_PASSWORD_MESSAGE = 'The password is incorrect.';
-export const INELIGIBLE_MESSAGE = "This account can't be linked. Contact the company.";
-export const ACTIVATE_ERROR_MESSAGE = "We couldn't activate your access. Try again.";
-export const LOAD_ERROR_MESSAGE = "We couldn't load this invitation. Try again.";
-export const LAST_NAME_REQUIRED = 'Enter your last name.';
-export const LAST_NAME_TOO_LONG = 'Last name must be 100 characters or fewer.';
+export const WRONG_PASSWORD_MESSAGE = (): string => t('portal.activate.wrongPasswordMessage');
+export const INELIGIBLE_MESSAGE = (): string => t('portal.activate.ineligibleMessage');
+export const ACTIVATE_ERROR_MESSAGE = (): string => t('portal.activate.activateErrorMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('portal.activate.loadErrorMessage');
+export const LAST_NAME_REQUIRED = (): string => t('portal.activate.lastNameRequired');
+export const LAST_NAME_TOO_LONG = (): string => t('portal.activate.lastNameTooLong');
 const LAST_NAME_MAX = 100;
 const DEFAULT_RETRY_AFTER_SECONDS = 60;
 
@@ -48,9 +53,9 @@ type ActivateField = 'lastName' | 'password' | 'confirmPassword';
 export function validateLastName(value: string): string | null {
   const length = value.trim().length;
   if (length === 0) {
-    return LAST_NAME_REQUIRED;
+    return LAST_NAME_REQUIRED();
   }
-  return length > LAST_NAME_MAX ? LAST_NAME_TOO_LONG : null;
+  return length > LAST_NAME_MAX ? LAST_NAME_TOO_LONG() : null;
 }
 
 /**
@@ -60,6 +65,8 @@ export function validateLastName(value: string): string | null {
 @Component({
   selector: 'app-portal-activate',
   imports: [
+    LanguageFooterSelector,
+    TranslocoPipe,
     ReactiveFormsModule,
     ButtonDirective,
     InputPassword,
@@ -101,7 +108,9 @@ export class PortalActivate {
 
   private readonly knownOrganization = signal<string | null>(null);
   readonly unavailableMessage = computed(() => unavailableMessage(this.knownOrganization()));
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
 
   constructor() {
     this.destroyRef.onDestroy(() => clearTimeout(this.retryTimer));
@@ -208,11 +217,11 @@ export class PortalActivate {
         if (apiError.fieldErrors['lastName'] !== undefined) {
           errors.lastName =
             this.form.controls.lastName.value.trim().length > LAST_NAME_MAX
-              ? LAST_NAME_TOO_LONG
-              : LAST_NAME_REQUIRED;
+              ? LAST_NAME_TOO_LONG()
+              : LAST_NAME_REQUIRED();
         }
         if (apiError.fieldErrors['password'] !== undefined) {
-          errors.password = FALLBACK_FIELD_MESSAGE;
+          errors.password = FALLBACK_FIELD_MESSAGE();
         }
         if (Object.keys(errors).length > 0) {
           this.fieldErrors.set(errors);
@@ -222,10 +231,10 @@ export class PortalActivate {
       }
       case 'unauthorized':
         this.form.controls.password.setValue('');
-        this.pageMessage.set(WRONG_PASSWORD_MESSAGE);
+        this.pageMessage.set(WRONG_PASSWORD_MESSAGE());
         return;
       case 'conflict':
-        this.pageMessage.set(INELIGIBLE_MESSAGE);
+        this.pageMessage.set(INELIGIBLE_MESSAGE());
         return;
       case 'rate-limited': {
         const seconds = apiError.retryAfterSeconds ?? DEFAULT_RETRY_AFTER_SECONDS;
@@ -236,7 +245,7 @@ export class PortalActivate {
         return;
       }
     }
-    this.pageMessage.set(ACTIVATE_ERROR_MESSAGE);
+    this.pageMessage.set(ACTIVATE_ERROR_MESSAGE());
   }
 
   private showUnavailable(): void {

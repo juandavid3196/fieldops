@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { Avatar } from 'primeng/avatar';
 import { ButtonDirective } from 'primeng/button';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { comingSoonPath } from '../../../../core/config/coming-soon-modules';
 import { UserRow, UserSort } from '../../models/users.model';
@@ -16,6 +17,7 @@ import {
   lastActiveText,
   teamProfileText,
 } from '../../utils/user-format';
+import { CodeLabelPipe } from '../../../../core/i18n/code-label.pipe';
 
 const STATUS_PRESENTATION: Readonly<
   Record<DisplayStatus, { icon: string; severity: 'success' | 'danger' | 'warn' }>
@@ -31,7 +33,7 @@ const STATUS_PRESENTATION: Readonly<
  */
 @Component({
   selector: 'app-user-table',
-  imports: [RouterLink, Avatar, ButtonDirective, Tag],
+  imports: [CodeLabelPipe, TranslocoPipe, RouterLink, Avatar, ButtonDirective, Tag],
   templateUrl: './user-table.html',
   styleUrl: './user-table.scss',
 })

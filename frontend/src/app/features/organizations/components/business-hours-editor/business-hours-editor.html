@@ -15,7 +15,7 @@
         <p-toggleswitch
           [inputId]="controlId(day, 'open')"
           [formControl]="dayGroup(day).controls.open"
-          [ariaLabel]="dayLabel(day) + ' open'"
+          [ariaLabel]="'organizations.businessHoursEditor.open' | transloco: { day: dayLabel(day) }"
           [readonly]="submitting()"
         />
       </div>
@@ -28,7 +28,9 @@
               class="business-hours__time-input"
               [id]="controlId(day, 'start')"
               [formControl]="dayGroup(day).controls.start"
-              [attr.aria-label]="dayLabel(day) + ' start time'"
+              [attr.aria-label]="
+                'organizations.businessHoursEditor.startTime' | transloco: { day: dayLabel(day) }
+              "
               [attr.aria-invalid]="startError(day) !== null ? 'true' : null"
               [attr.aria-describedby]="
                 startError(day) !== null ? controlId(day, 'start') + '-error' : null
@@ -52,7 +54,9 @@
               class="business-hours__time-input"
               [id]="controlId(day, 'end')"
               [formControl]="dayGroup(day).controls.end"
-              [attr.aria-label]="dayLabel(day) + ' end time'"
+              [attr.aria-label]="
+                'organizations.businessHoursEditor.endTime' | transloco: { day: dayLabel(day) }
+              "
               [attr.aria-invalid]="endError(day) !== null ? 'true' : null"
               [attr.aria-describedby]="
                 endError(day) !== null ? controlId(day, 'end') + '-error' : null
@@ -69,7 +73,9 @@
           </div>
         </div>
       } @else {
-        <span class="business-hours__closed">Closed</span>
+        <span class="business-hours__closed">{{
+          'organizations.businessHoursEditor.closed' | transloco
+        }}</span>
       }
     </div>
   }

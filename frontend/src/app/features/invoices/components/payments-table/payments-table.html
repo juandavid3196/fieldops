@@ -3,7 +3,7 @@
     <p class="table__message" role="alert">
       {{ errorMessage }}
       <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-        Retry
+        {{ 'common.retry' | transloco }}
       </button>
     </p>
   } @else if (region().data === null) {
@@ -23,7 +23,7 @@
           size="small"
           (click)="clearFilters.emit()"
         >
-          Clear filters
+          {{ 'invoices.paymentsTable.clearFilters' | transloco }}
         </button>
       }
     </p>
@@ -32,14 +32,16 @@
       <table class="table__table table__table--payments">
         <thead>
           <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Payment #</th>
-            <th scope="col">Customer</th>
-            <th scope="col">Invoice #</th>
-            <th scope="col">Method</th>
-            <th scope="col">Reference</th>
-            <th scope="col" class="table__number">Amount</th>
-            <th scope="col" class="table__end">Received by</th>
+            <th scope="col">{{ 'common.date' | transloco }}</th>
+            <th scope="col">{{ 'invoices.paymentsTable.payment' | transloco }}</th>
+            <th scope="col">{{ 'common.customer' | transloco }}</th>
+            <th scope="col">{{ 'invoices.paymentsTable.invoice' | transloco }}</th>
+            <th scope="col">{{ 'invoices.paymentsTable.method' | transloco }}</th>
+            <th scope="col">{{ 'invoices.paymentsTable.reference' | transloco }}</th>
+            <th scope="col" class="table__number">{{ 'common.amount' | transloco }}</th>
+            <th scope="col" class="table__end">
+              {{ 'invoices.paymentsTable.receivedBy' | transloco }}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -70,7 +72,7 @@
       </table>
     </div>
     <app-hub-pager
-      noun="payments"
+      [noun]="'invoices.paymentsTable.payments' | transloco"
       [page]="page()"
       [pageSize]="region().data?.pageSize ?? 20"
       [total]="region().data?.total ?? 0"

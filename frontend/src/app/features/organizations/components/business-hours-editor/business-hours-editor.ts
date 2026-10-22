@@ -17,6 +17,7 @@ import {
 } from '../../pages/register-company/register-company.validators';
 
 import type { FormGroup } from '@angular/forms';
+import { TranslocoPipe } from '@jsverse/transloco';
 import type {
   BusinessHoursDayControls,
   FieldKey,
@@ -29,7 +30,7 @@ import type {
  */
 @Component({
   selector: 'app-business-hours-editor',
-  imports: [ReactiveFormsModule, ToggleSwitch, ExclamationTriangleIcon],
+  imports: [TranslocoPipe, ReactiveFormsModule, ToggleSwitch, ExclamationTriangleIcon],
   templateUrl: './business-hours-editor.html',
   styleUrl: './business-hours-editor.scss',
 })

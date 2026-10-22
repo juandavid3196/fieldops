@@ -1,4 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { SelectOption } from '../../data/display-names';
 import { RegisterCompanyFormValue } from '../../models/organization-registration.model';
@@ -11,6 +12,7 @@ import {
 } from '../../pages/register-company/register-company.helpers';
 import { WizardCard } from '../wizard-card/wizard-card';
 
+import { t } from '../../../../core/i18n/translate';
 export interface ReviewRow {
   readonly label: string;
   readonly lines: readonly string[];
@@ -19,7 +21,7 @@ export interface ReviewRow {
 /** Review step (FR-08): the "Everything is ready" banner and four summary cards (BR-09). */
 @Component({
   selector: 'app-review-step',
-  imports: [WizardCard],
+  imports: [TranslocoPipe, WizardCard],
   templateUrl: './review-step.html',
   styleUrl: './review-step.scss',
 })
@@ -34,13 +36,16 @@ export class ReviewStep {
   readonly companyRows = computed<readonly ReviewRow[]>(() => {
     const { organization } = this.value();
     return [
-      { label: 'Display name', lines: [organization.name.trim()] },
-      { label: 'Legal business name', lines: [organization.legalName.trim()] },
-      { label: 'Business email', lines: [organization.email.trim()] },
-      { label: 'Business phone', lines: [organization.phone.trim()] },
-      { label: 'Tax ID', lines: [orNotProvided(organization.taxId)] },
+      { label: t('organizations.reviewStep.displayName'), lines: [organization.name.trim()] },
       {
-        label: 'Company time zone',
+        label: t('organizations.reviewStep.legalBusinessName'),
+        lines: [organization.legalName.trim()],
+      },
+      { label: t('organizations.reviewStep.businessEmail'), lines: [organization.email.trim()] },
+      { label: t('organizations.reviewStep.businessPhone'), lines: [organization.phone.trim()] },
+      { label: t('organizations.reviewStep.taxId'), lines: [orNotProvided(organization.taxId)] },
+      {
+        label: t('organizations.reviewStep.companyTimeZone'),
         lines: [this.labelOf(this.timezoneOptions(), organization.timezone)],
       },
     ];
@@ -49,24 +54,27 @@ export class ReviewStep {
   readonly branchRows = computed<readonly ReviewRow[]>(() => {
     const { branch } = this.value();
     return [
-      { label: 'Branch name', lines: [branch.name.trim()] },
-      { label: 'Branch code', lines: [branch.code.trim().toUpperCase()] },
+      { label: t('organizations.reviewStep.branchName'), lines: [branch.name.trim()] },
       {
-        label: 'Address',
+        label: t('organizations.reviewStep.branchCode'),
+        lines: [branch.code.trim().toUpperCase()],
+      },
+      {
+        label: t('common.address'),
         lines: [
           branch.addressLine1.trim(),
           cityLine(branch.city, branch.stateRegion, branch.postalCode),
           this.labelOf(this.countryOptions(), branch.countryCode),
         ],
       },
-      { label: 'Branch phone', lines: [orNotProvided(branch.phone)] },
-      { label: 'Branch email', lines: [orNotProvided(branch.email)] },
+      { label: t('organizations.reviewStep.branchPhone'), lines: [orNotProvided(branch.phone)] },
+      { label: t('organizations.reviewStep.branchEmail'), lines: [orNotProvided(branch.email)] },
       {
-        label: 'Branch time zone',
+        label: t('organizations.reviewStep.branchTimeZone'),
         lines: [this.labelOf(this.timezoneOptions(), branch.timezone)],
       },
       {
-        label: 'Business hours',
+        label: t('organizations.reviewStep.businessHours'),
         lines: [summarizeBusinessHours(branch.businessHours, branch.timezone)],
       },
     ];
@@ -76,14 +84,29 @@ export class ReviewStep {
     const { organization } = this.value();
     return [
       {
-        label: 'Default currency',
+        label: t('organizations.reviewStep.defaultCurrency'),
         lines: [this.labelOf(this.currencyOptions(), organization.currency)],
       },
-      { label: 'Default tax rate', lines: [`${organization.defaultTaxRate}%`] },
-      { label: 'Quote prefix', lines: [organization.quotePrefix.trim().toUpperCase()] },
-      { label: 'Work order prefix', lines: [organization.workOrderPrefix.trim().toUpperCase()] },
-      { label: 'Invoice prefix', lines: [organization.invoicePrefix.trim().toUpperCase()] },
-      { label: 'Next invoice number', lines: [String(organization.nextInvoiceNumber)] },
+      {
+        label: t('organizations.reviewStep.defaultTaxRate'),
+        lines: [`${organization.defaultTaxRate}%`],
+      },
+      {
+        label: t('organizations.reviewStep.quotePrefix'),
+        lines: [organization.quotePrefix.trim().toUpperCase()],
+      },
+      {
+        label: t('organizations.reviewStep.workOrderPrefix'),
+        lines: [organization.workOrderPrefix.trim().toUpperCase()],
+      },
+      {
+        label: t('organizations.reviewStep.invoicePrefix'),
+        lines: [organization.invoicePrefix.trim().toUpperCase()],
+      },
+      {
+        label: t('organizations.reviewStep.nextInvoiceNumber'),
+        lines: [String(organization.nextInvoiceNumber)],
+      },
     ];
   });
 

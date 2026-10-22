@@ -1,0 +1,7 @@
+{
+  "overview": {
+    "organization": "Organización",
+    "welcome": "Te damos la bienvenida, {{firstName}}",
+    "welcome2": "Te damos la bienvenida"
+  }
+}

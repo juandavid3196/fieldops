@@ -99,6 +99,21 @@
     color: var(--fo-color-text-secondary);
   }
 
+  &__back {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-block-size: var(--fo-size-touch-target);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--fo-color-action-blue);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
   &__footer {
     display: flex;
     gap: 1rem;

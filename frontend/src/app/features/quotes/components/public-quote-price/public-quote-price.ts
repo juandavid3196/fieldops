@@ -2,6 +2,7 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ToggleSwitch, ToggleSwitchChangeEvent } from 'primeng/toggleswitch';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatMoney } from '../../../customers/utils/customer-detail-format';
 import { PublicLine, PublicQuote, PublicTotals } from '../../models/public-quote.model';
@@ -17,7 +18,7 @@ export interface OptionalToggle {
  */
 @Component({
   selector: 'app-public-quote-price',
-  imports: [NgTemplateOutlet, FormsModule, ToggleSwitch],
+  imports: [TranslocoPipe, NgTemplateOutlet, FormsModule, ToggleSwitch],
   templateUrl: './public-quote-price.html',
   styleUrl: './public-quote-price.scss',
 })

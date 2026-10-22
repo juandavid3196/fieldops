@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { DeltaBadge } from '../../../business-overview/components/delta-badge/delta-badge';
 import { Metric } from '../../models/reports.model';
@@ -10,7 +11,7 @@ const NEGATIVE = new Set(['estimatedCost', 'overdue', 'overdueInvoices', 'overti
 /** BR-06: summary cards with the optional previous-period comparison (never for invoice aging). */
 @Component({
   selector: 'app-report-summary',
-  imports: [DeltaBadge],
+  imports: [TranslocoPipe, DeltaBadge],
   templateUrl: './report-summary.html',
   styleUrl: './report-summary.scss',
 })

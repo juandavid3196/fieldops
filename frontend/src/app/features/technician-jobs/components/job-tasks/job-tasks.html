@@ -2,13 +2,20 @@
   <section class="tasks__card tasks__completion" aria-labelledby="tasks-completion">
     <span class="tasks__tile" aria-hidden="true"><i class="pi pi-check"></i></span>
     <div class="tasks__summary">
-      <h2 class="tasks__title" id="tasks-completion">Job completion</h2>
-      <p class="tasks__muted">{{ completed() }} of {{ tasks().length }} tasks completed</p>
+      <h2 class="tasks__title" id="tasks-completion">
+        {{ 'technicianJobs.jobTasks.jobCompletion' | transloco }}
+      </h2>
+      <p class="tasks__muted">
+        {{
+          'technicianJobs.jobTasks.ofTasksCompleted'
+            | transloco: { completed: completed(), length: tasks().length }
+        }}
+      </p>
       <div class="tasks__progress">
         <div
           class="tasks__track"
           role="progressbar"
-          aria-label="Task completion"
+          [attr.aria-label]="'technicianJobs.jobTasks.taskCompletion' | transloco"
           aria-valuemin="0"
           aria-valuemax="100"
           [attr.aria-valuenow]="percent()"
@@ -33,7 +40,7 @@
   <div class="tasks__head">
     <h2 class="tasks__title" id="tasks-checklist">
       <i class="pi pi-clipboard" aria-hidden="true"></i>
-      Task checklist
+      {{ 'technicianJobs.jobTasks.taskChecklist' | transloco }}
     </h2>
     <div class="tasks__links">
       @if (!readOnly()) {
@@ -47,7 +54,7 @@
           (click)="openAdd()"
         >
           <i class="pi pi-plus" aria-hidden="true"></i>
-          Add task
+          {{ 'technicianJobs.jobTasks.addTask' | transloco }}
         </button>
       }
       @if (scope().length > 0) {
@@ -59,7 +66,7 @@
           [outlined]="true"
           (click)="openScope($any($event.currentTarget))"
         >
-          View original scope
+          {{ 'technicianJobs.jobTasks.viewOriginalScope' | transloco }}
           <i class="pi pi-chevron-right" aria-hidden="true"></i>
         </button>
       }
@@ -76,7 +83,7 @@
         type="text"
         class="tasks__input"
         maxlength="240"
-        aria-label="Task name"
+        [attr.aria-label]="'technicianJobs.jobTasks.taskName' | transloco"
         [value]="labelDraft()"
         (input)="labelDraft.set($any($event.target).value)"
         (keydown.enter)="add()"
@@ -89,7 +96,7 @@
         [loading]="pending() === 'add'"
         (click)="add()"
       >
-        Add
+        {{ 'common.add' | transloco }}
       </button>
       <button
         pButton
@@ -100,13 +107,13 @@
         [disabled]="pending() === 'add'"
         (click)="cancelAdd()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
     </div>
   }
 
   @if (tasks().length === 0) {
-    <p class="tasks__muted">No tasks for this job.</p>
+    <p class="tasks__muted">{{ 'technicianJobs.jobTasks.noTasksForThis' | transloco }}</p>
   } @else {
     <ul class="tasks__list">
       @for (task of tasks(); track task.id) {
@@ -121,19 +128,25 @@
             <span class="tasks__label">{{ task.label }}</span>
           </label>
           @if (task.isRequired) {
-            <span class="tasks__badge">Required</span>
+            <span class="tasks__badge">{{ 'technicianJobs.jobTasks.required' | transloco }}</span>
           }
           @if (task.completedAt !== null) {
             <span class="tasks__time">{{ completedTime(task) }}</span>
           }
           @if (task.notes !== null && readOnly()) {
-            <i class="pi pi-comment tasks__flag" role="img" aria-label="Has a comment"></i>
+            <i
+              class="pi pi-comment tasks__flag"
+              role="img"
+              [attr.aria-label]="'technicianJobs.jobTasks.hasAComment' | transloco"
+            ></i>
           }
           @if (!readOnly()) {
             <button
               type="button"
               class="tasks__comment"
-              [attr.aria-label]="'Comment on ' + task.label"
+              [attr.aria-label]="
+                'technicianJobs.jobTasks.commentOn' | transloco: { label: task.label }
+              "
               [attr.aria-expanded]="commentTaskId() === task.id"
               [disabled]="pending() !== null"
               (click)="openComment(task)"
@@ -144,7 +157,9 @@
                 aria-hidden="true"
               ></i>
               @if (task.notes !== null) {
-                <span class="tasks__sr">Has a comment</span>
+                <span class="tasks__sr">{{
+                  'technicianJobs.jobTasks.hasAComment' | transloco
+                }}</span>
               }
             </button>
           }
@@ -157,7 +172,9 @@
                 class="tasks__input"
                 rows="3"
                 maxlength="1000"
-                [attr.aria-label]="'Comment for ' + task.label"
+                [attr.aria-label]="
+                  'technicianJobs.jobTasks.commentFor' | transloco: { label: task.label }
+                "
                 [value]="commentDraft()"
                 (input)="commentDraft.set($any($event.target).value)"
               ></textarea>
@@ -170,7 +187,7 @@
                   [loading]="pending() === 'comment:' + task.id"
                   (click)="saveComment(task)"
                 >
-                  Save
+                  {{ 'common.save' | transloco }}
                 </button>
                 <button
                   pButton
@@ -181,7 +198,7 @@
                   [disabled]="pending() !== null"
                   (click)="cancelComment()"
                 >
-                  Cancel
+                  {{ 'common.cancel' | transloco }}
                 </button>
               </div>
             </div>

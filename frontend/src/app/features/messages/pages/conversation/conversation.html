@@ -1,7 +1,7 @@
 <section
   class="conv"
   [class.conv--split]="split"
-  aria-label="Conversation"
+  [attr.aria-label]="'messages.conversation.conversation' | transloco"
   (pointerdown)="onInteract()"
   (focusin)="onInteract()"
 >
@@ -9,7 +9,12 @@
 
   @switch (state()) {
     @case ('loading') {
-      <div class="conv__skeletons" role="status" aria-busy="true" aria-label="Loading conversation">
+      <div
+        class="conv__skeletons"
+        role="status"
+        aria-busy="true"
+        [attr.aria-label]="'messages.conversation.loadingConversation' | transloco"
+      >
         @for (row of skeletons; track row) {
           <p-skeleton height="3.5rem" width="70%" borderRadius="1rem" />
         }
@@ -21,7 +26,7 @@
           <span class="conv__error">
             {{ errorMessage }}
             <button pButton type="button" severity="secondary" size="small" (click)="open()">
-              Retry
+              {{ 'common.retry' | transloco }}
             </button>
           </span>
         </p-message>
@@ -31,7 +36,7 @@
       <div class="conv__pad">
         <p class="conv__notice" role="status">{{ notAvailableMessage }}</p>
         <a pButton severity="secondary" [outlined]="true" [routerLink]="basePath">
-          Back to messages
+          {{ 'messages.conversation.backToMessages' | transloco }}
         </a>
       </div>
     }
@@ -45,7 +50,11 @@
           }
           <header class="conv__header">
             @if (showBack()) {
-              <a class="conv__back" [routerLink]="basePath" aria-label="Back to messages">
+              <a
+                class="conv__back"
+                [routerLink]="basePath"
+                [attr.aria-label]="'messages.conversation.backToMessages' | transloco"
+              >
                 <i class="pi pi-arrow-left" aria-hidden="true"></i>
               </a>
             }
@@ -55,10 +64,12 @@
             @if (conversation.workOrder; as order) {
               <span class="conv__chip">#{{ order.displayNumber }}</span>
               @if (openJob(); as jobLink) {
-                <a class="conv__job" [routerLink]="jobLink">Open job</a>
+                <a class="conv__job" [routerLink]="jobLink">{{
+                  'messages.conversation.openJob' | transloco
+                }}</a>
               }
             } @else {
-              <span class="conv__chip">Team</span>
+              <span class="conv__chip">{{ 'messages.conversation.team' | transloco }}</span>
             }
           </div>
         </div>
@@ -68,7 +79,7 @@
             #log
             class="conv__log"
             role="log"
-            aria-label="Messages"
+            [attr.aria-label]="'messages.conversation.messages' | transloco"
             aria-live="off"
             tabindex="0"
             (scroll)="onScroll()"
@@ -84,11 +95,13 @@
                 [loading]="loadingEarlier()"
                 (click)="loadEarlier()"
               >
-                Load earlier messages
+                {{ 'messages.conversation.loadEarlierMessages' | transloco }}
               </button>
             }
             @if (entries().length === 0) {
-              <p class="conv__empty" role="status">No messages yet. Start the conversation.</p>
+              <p class="conv__empty" role="status">
+                {{ 'messages.conversation.noMessagesYetStart' | transloco }}
+              </p>
             }
             @for (entry of entries(); track entry.key; let i = $index) {
               @if (entry.kind === 'day') {
@@ -120,15 +133,15 @@
                           @switch (bubble.status) {
                             @case ('sending') {
                               <i class="pi pi-clock" aria-hidden="true"></i>
-                              Sending…
+                              {{ 'messages.conversation.sending' | transloco }}
                             }
                             @case ('sent') {
                               <i class="pi pi-check" aria-hidden="true"></i>
-                              Sent
+                              {{ 'messages.conversation.sent' | transloco }}
                             }
                             @case ('failed') {
                               <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-                              Failed
+                              {{ 'messages.conversation.failed' | transloco }}
                             }
                           }
                         </span>
@@ -138,10 +151,10 @@
                       <p class="msg__failure">{{ bubble.failure }}</p>
                       <div class="msg__actions">
                         <button type="button" class="msg__action" (click)="retry(bubble)">
-                          Retry
+                          {{ 'common.retry' | transloco }}
                         </button>
                         <button type="button" class="msg__action" (click)="discard(bubble)">
-                          Discard
+                          {{ 'messages.conversation.discard' | transloco }}
                         </button>
                       </div>
                     }
@@ -153,7 +166,7 @@
           @if (newMessages()) {
             <button type="button" class="conv__new" (click)="showNewMessages()">
               <i class="pi pi-arrow-down" aria-hidden="true"></i>
-              New messages
+              {{ 'messages.conversation.newMessages' | transloco }}
             </button>
           }
         </div>
@@ -162,14 +175,16 @@
           @if (fieldError(); as problem) {
             <p class="conv__field-error" role="alert">{{ problem }}</p>
           }
-          <label class="conv__sr" for="conversation-message">Message</label>
+          <label class="conv__sr" for="conversation-message">{{
+            'messages.conversation.message' | transloco
+          }}</label>
           <textarea
             pTextarea
             id="conversation-message"
             class="conv__input"
             rows="1"
             fluid
-            placeholder="Write a message"
+            [attr.placeholder]="'messages.conversation.writeAMessage' | transloco"
             aria-describedby="conversation-counter"
             [attr.aria-invalid]="overLimit() || fieldError() !== null"
             [value]="draft()"
@@ -188,7 +203,7 @@
             </p>
             <button pButton type="submit" class="conv__send" [disabled]="!canSend()">
               <i class="pi pi-send" aria-hidden="true"></i>
-              Send
+              {{ 'common.send' | transloco }}
             </button>
           </div>
         </form>

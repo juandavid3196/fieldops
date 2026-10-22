@@ -1,6 +1,6 @@
 <div class="pp">
   <header class="pp__head">
-    <h1 class="pp__title">Quotes</h1>
+    <h1 class="pp__title">{{ 'portal.quotes.quotes' | transloco }}</h1>
     @if (list.properties().length > 0) {
       <app-portal-property-filter
         [properties]="list.properties()"
@@ -12,48 +12,61 @@
 
   <app-portal-state
     [state]="list.resource.state()"
-    label="Loading quotes"
-    emptyText="No quotes yet."
-    errorText="We couldn't load your quotes."
+    [label]="'portal.quotes.loadingQuotes' | transloco"
+    [emptyText]="'portal.quotes.noQuotesYet' | transloco"
+    [errorText]="'portal.quotes.weCouldnTLoad' | transloco"
     (retry)="list.reload()"
   >
     @if (list.resource.data(); as page) {
       <div class="pcard">
         <table class="ptable">
           <caption class="sr">
-            Quotes
+            {{
+              'portal.quotes.quotes' | transloco
+            }}
           </caption>
           <thead>
             <tr>
-              <th scope="col">Quote</th>
-              <th scope="col">Scope</th>
-              <th scope="col">Property</th>
-              <th scope="col">Total</th>
-              <th scope="col">Status</th>
-              <th scope="col">Valid until</th>
-              <th scope="col"><span class="sr">Actions</span></th>
+              <th scope="col">{{ 'portal.quotes.quote' | transloco }}</th>
+              <th scope="col">{{ 'portal.quotes.scope' | transloco }}</th>
+              <th scope="col">{{ 'portal.quotes.property' | transloco }}</th>
+              <th scope="col">{{ 'common.total' | transloco }}</th>
+              <th scope="col">{{ 'common.status' | transloco }}</th>
+              <th scope="col">{{ 'portal.quotes.validUntil' | transloco }}</th>
+              <th scope="col">
+                <span class="sr">{{ 'common.actions' | transloco }}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             @for (row of rows(); track row.quote.id) {
               <tr>
-                <td data-label="Quote">{{ row.quote.displayNumber }}</td>
-                <td data-label="Scope">{{ row.quote.scope }}</td>
-                <td data-label="Property">{{ row.quote.propertyName ?? '—' }}</td>
-                <td data-label="Total">{{ row.total }}</td>
-                <td data-label="Status">
+                <td [attr.data-label]="'portal.quotes.quote' | transloco">
+                  {{ row.quote.displayNumber }}
+                </td>
+                <td [attr.data-label]="'portal.quotes.scope' | transloco">{{ row.quote.scope }}</td>
+                <td [attr.data-label]="'portal.quotes.property' | transloco">
+                  {{ row.quote.propertyName ?? '—' }}
+                </td>
+                <td [attr.data-label]="'common.total' | transloco">{{ row.total }}</td>
+                <td [attr.data-label]="'common.status' | transloco">
                   <app-portal-status-chip [label]="row.chip.label" [tone]="row.chip.tone" />
                 </td>
-                <td data-label="Valid until">{{ row.validUntil }}</td>
+                <td [attr.data-label]="'portal.quotes.validUntil' | transloco">
+                  {{ row.validUntil }}
+                </td>
                 <td>
                   <a
                     pButton
                     severity="secondary"
                     [outlined]="true"
                     size="small"
-                    [attr.aria-label]="'Review quote ' + row.quote.displayNumber"
+                    [attr.aria-label]="
+                      'portal.quotes.reviewQuote'
+                        | transloco: { displayNumber: row.quote.displayNumber }
+                    "
                     [routerLink]="['/portal/quotes', row.quote.id]"
-                    >Review</a
+                    >{{ 'portal.quotes.review' | transloco }}</a
                   >
                 </td>
               </tr>
@@ -64,7 +77,7 @@
           [page]="page.page"
           [pageSize]="page.pageSize"
           [total]="page.total"
-          noun="quotes"
+          [noun]="'portal.quotes.quotes2' | transloco"
           (pageChange)="list.goTo($event)"
         />
       </div>

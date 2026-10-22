@@ -3,6 +3,7 @@ import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { openBlob } from '../../../invoices/utils/blob-download';
 import { PortalProgressStepper } from '../../components/portal-progress-stepper/portal-progress-stepper';
@@ -15,6 +16,7 @@ import { dateLabel, longDateLabel, timeRange } from '../../utils/portal-format';
 import { PortalResource } from '../../utils/portal-resource';
 import { appointmentNotice, visitChip } from '../../utils/portal-status';
 
+import { t } from '../../../../core/i18n/translate';
 const OPEN_STATUSES: readonly string[] = [
   'scheduled',
   'assigned',
@@ -27,6 +29,7 @@ const OPEN_STATUSES: readonly string[] = [
 @Component({
   selector: 'app-portal-appointment-detail',
   imports: [
+    TranslocoPipe,
     ButtonDirective,
     PortalProgressStepper,
     PortalRescheduleDialog,
@@ -109,7 +112,7 @@ export class PortalAppointmentDetail {
         },
         error: () => {
           this.reportBusy.set(false);
-          this.reportError.set("We couldn't open the report. Try again.");
+          this.reportError.set(t('portal.appointmentDetail.weCouldntOpenThe'));
         },
       });
   }

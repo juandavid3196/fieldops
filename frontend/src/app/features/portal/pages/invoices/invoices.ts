@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { HubPager } from '../../../invoices/components/hub-pager/hub-pager';
 import { PortalPropertyFilter } from '../../components/portal-property-filter/portal-property-filter';
@@ -15,6 +16,7 @@ import { invoiceChip } from '../../utils/portal-status';
 @Component({
   selector: 'app-portal-invoices',
   imports: [
+    TranslocoPipe,
     ButtonDirective,
     HubPager,
     PortalPropertyFilter,

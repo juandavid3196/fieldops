@@ -1,13 +1,20 @@
+// The field spans three rows (label, control, message) of a grid parent through a subgrid, so
+// fields in the same grid row align their controls even when a label wraps (longer Spanish
+// labels) or a neighbor shows helper or error text. Outside a grid the rows simply stack.
 :host {
-  display: block;
+  display: grid;
+  grid-row: span 3;
+  grid-template-rows: subgrid;
+  gap: 0.375rem;
   min-width: 0;
 }
 
 .form-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  min-width: 0;
+  display: contents;
+
+  &__control {
+    min-width: 0;
+  }
 
   &__label {
     font-size: 0.8125rem;

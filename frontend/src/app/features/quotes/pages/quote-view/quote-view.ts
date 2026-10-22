@@ -19,6 +19,7 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { Observable, Subject, catchError, map, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -60,6 +61,7 @@ import {
 } from '../../utils/quote-format';
 import { formatDate } from '../../../customers/utils/customer-format';
 
+import { localized, t } from '../../../../core/i18n/translate';
 const STATUS_TONES: Readonly<Record<QuoteStatus, string>> = {
   draft: 'neutral',
   sent: 'info',
@@ -79,14 +81,14 @@ const STATUS_ICONS: Readonly<Record<QuoteStatus, string>> = {
   cancelled: 'pi-ban',
 };
 
-export const NOT_SENT_MESSAGE = "This quote hasn't been sent yet.";
-export const NO_RESPONSE_MESSAGE = 'No response from the customer yet.';
-export const RESPONSE_LABELS: Readonly<Record<QuoteResponseType, string>> = {
-  approved: 'Approved',
-  rejected: 'Declined',
-  clarification_requested: 'Question',
-};
-export const CANCELLED_MESSAGE = 'This quote was cancelled.';
+export const NOT_SENT_MESSAGE = (): string => t('quotes.quoteView.notSentMessage');
+export const NO_RESPONSE_MESSAGE = (): string => t('quotes.quoteView.noResponseMessage');
+export const RESPONSE_LABELS: Readonly<Record<QuoteResponseType, string>> = localized(() => ({
+  approved: t('quotes.quoteView.approved'),
+  rejected: t('quotes.quoteView.declined'),
+  clarification_requested: t('quotes.quoteView.question'),
+}));
+export const CANCELLED_MESSAGE = (): string => t('quotes.quoteView.cancelledMessage');
 const REVISABLE: readonly string[] = ['sent', 'clarification_requested', 'rejected', 'expired'];
 
 type PageState = 'loading' | 'ready' | 'forbidden' | 'not-available' | 'error';
@@ -106,6 +108,7 @@ type LoadResult =
 @Component({
   selector: 'app-quote-view',
   imports: [
+    TranslocoPipe,
     FormsModule,
     RouterLink,
     ButtonDirective,
@@ -133,13 +136,27 @@ export class QuoteView {
   readonly quoteId = this.route.snapshot.paramMap.get('quoteId') ?? '';
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
 
-  readonly forbiddenMessage = VIEW_FORBIDDEN_MESSAGE;
-  readonly unavailableMessage = QUOTE_UNAVAILABLE_MESSAGE;
-  readonly loadErrorMessage = QUOTE_LOAD_ERROR_MESSAGE;
-  readonly notSentMessage = NOT_SENT_MESSAGE;
-  readonly cancelledMessage = CANCELLED_MESSAGE;
-  readonly noRecipientMessage = NO_RECIPIENT_MESSAGE;
-  readonly noResponseMessage = NO_RESPONSE_MESSAGE;
+  get forbiddenMessage(): string {
+    return VIEW_FORBIDDEN_MESSAGE();
+  }
+  get unavailableMessage(): string {
+    return QUOTE_UNAVAILABLE_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return QUOTE_LOAD_ERROR_MESSAGE();
+  }
+  get notSentMessage(): string {
+    return NOT_SENT_MESSAGE();
+  }
+  get cancelledMessage(): string {
+    return CANCELLED_MESSAGE();
+  }
+  get noRecipientMessage(): string {
+    return NO_RECIPIENT_MESSAGE();
+  }
+  get noResponseMessage(): string {
+    return NO_RESPONSE_MESSAGE();
+  }
   readonly responseLabels = RESPONSE_LABELS;
 
   private readonly roleCode = computed(() => this.sessionService.session()?.role.code ?? '');
@@ -169,7 +186,13 @@ export class QuoteView {
   readonly versionOptions = computed(() =>
     (this.detail()?.sentVersions ?? []).map((version) => ({
       code: version.versionNo,
-      label: `Version ${version.versionNo} · Sent ${formatDate(version.sentAt, localZone())} · ${version.isCurrent ? 'Current' : 'Superseded'}`,
+      label: t('quotes.quoteView.versionSent', {
+        versionNo: version.versionNo,
+        value: formatDate(version.sentAt, localZone()),
+        value2: version.isCurrent
+          ? t('quotes.quoteView.current')
+          : t('quotes.quoteView.superseded'),
+      }),
     })),
   );
   readonly view = computed(() => {
@@ -226,16 +249,24 @@ export class QuoteView {
     const order = detail.workOrder;
     if (order === null) {
       return manage
-        ? { label: 'Create work order', link: ['/quotes', detail.id, 'work-order'], primary: true }
+        ? {
+            label: t('quotes.quoteView.createWorkOrder'),
+            link: ['/quotes', detail.id, 'work-order'],
+            primary: true,
+          }
         : null;
     }
     if (order.status === 'draft') {
       return manage
-        ? { label: 'Continue draft', link: ['/quotes', detail.id, 'work-order'], primary: false }
+        ? {
+            label: t('quotes.quoteView.continueDraft'),
+            link: ['/quotes', detail.id, 'work-order'],
+            primary: false,
+          }
         : null;
     }
     return manage || this.roleCode() === 'viewer'
-      ? { label: 'View job', link: ['/jobs', order.id], primary: false }
+      ? { label: t('quotes.quoteView.viewJob'), link: ['/jobs', order.id], primary: false }
       : null;
   });
   readonly canResend = computed(() => {
@@ -426,8 +457,8 @@ export class QuoteView {
           this.detail.set(result.quote);
           this.messageService.add(
             result.emailStatus === 'failed'
-              ? { severity: 'warn', summary: EMAIL_FAILED_MESSAGE }
-              : { severity: 'success', summary: 'Quote email sent.' },
+              ? { severity: 'warn', summary: EMAIL_FAILED_MESSAGE() }
+              : { severity: 'success', summary: t('quotes.quoteView.quoteEmailSent') },
           );
         },
         error: (error: unknown) => this.actionFailed(isApiError(error) ? error : null, true),
@@ -461,7 +492,7 @@ export class QuoteView {
         this.messageService.add({
           key: 'quote-changed',
           severity: 'warn',
-          summary: QUOTE_CHANGED_MESSAGE,
+          summary: QUOTE_CHANGED_MESSAGE(),
           sticky: true,
         });
         return;
@@ -472,7 +503,7 @@ export class QuoteView {
       this.resendError.set(field);
       return;
     }
-    this.messageService.add({ severity: 'error', summary: QUOTE_SAVE_FAILED_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: QUOTE_SAVE_FAILED_MESSAGE() });
   }
 
   /** Refresh action of the `quote_changed` toast. */

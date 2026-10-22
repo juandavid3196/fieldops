@@ -1,144 +1,130 @@
 import { HelpSection } from '../models/help.model';
 
+import { localizedList, t } from '../../../core/i18n/translate';
 /** Customer portal articles: your portal. Content describes only behavior FieldOps implements (BR-10, BR-14). */
-export const PORTAL_YOUR_PORTAL_SECTIONS: readonly HelpSection[] = [
+export const PORTAL_YOUR_PORTAL_SECTIONS: readonly HelpSection[] = localizedList(() => [
   {
-    label: 'GET STARTED',
+    label: t('help.portalYourPortalArticles.getStarted'),
     articles: [
       {
         slug: 'activate-your-portal-access',
-        title: 'Activate your portal access',
-        description: 'Accept your invitation and create your password.',
+        title: t('help.portalYourPortalArticles.activateYourPortalAccess'),
+        description: t('help.portalYourPortalArticles.acceptYourInvitationAnd'),
         icon: 'pi-key',
-        introduction:
-          'Your service company invites you to the customer portal by email. Use the invitation link to activate your access once.',
-        callout:
-          'If the page says Invitation unavailable, the link can no longer be used. Contact your service company to ask for a new invitation.',
+        introduction: t('help.portalYourPortalArticles.yourServiceCompanyInvites'),
+        callout: t('help.portalYourPortalArticles.ifThePageSays'),
         steps: [
-          { text: 'Open the invitation email and select its link to open the activation page.' },
+          { text: t('help.portalYourPortalArticles.openTheInvitationEmail') },
           {
-            text: 'If the page asks for your Last name, enter it. It only appears when your name is incomplete.',
+            text: t('help.portalYourPortalArticles.ifThePageAsks'),
           },
           {
-            text: 'Enter a Password and repeat it in Confirm password. Use 12 to 128 characters that differ from your email.',
+            text: t('help.portalYourPortalArticles.enterAPasswordAnd'),
           },
           {
-            text: 'If you already have a portal password from another company, the page asks for your Current password instead. Enter it and select Link my account.',
+            text: t('help.portalYourPortalArticles.ifYouAlreadyHave'),
           },
-          { text: 'Otherwise, select Activate access.' },
+          { text: t('help.portalYourPortalArticles.otherwiseSelectActivateAccess') },
         ],
-        whatHappensNext:
-          'Your access is ready. From then on, use Sign in with your email and password to open your portal.',
+        whatHappensNext: t('help.portalYourPortalArticles.yourAccessIsReady'),
       },
       {
         slug: 'sign-in-and-reset-your-password',
-        title: 'Sign in and reset your password',
-        description: 'Access your portal or recover your access.',
+        title: t('help.portalYourPortalArticles.signInAndReset'),
+        description: t('help.portalYourPortalArticles.accessYourPortalOr'),
         icon: 'pi-sign-in',
-        introduction:
-          'Sign in with the email and password you created when you activated your access. If you forget your password, you can reset it by email.',
-        callout:
-          'The portal has no page for changing your password while signed in. To choose a new one, use Forgot password? on the sign-in page.',
+        introduction: t('help.portalYourPortalArticles.signInWithThe'),
+        callout: t('help.portalYourPortalArticles.thePortalHasNo'),
         steps: [
-          { text: 'Open the sign-in page of your portal, titled Sign in to your portal.' },
+          { text: t('help.portalYourPortalArticles.openTheSignIn') },
           {
-            text: 'Enter your Email and Password. Select Show password if you want to check what you typed.',
+            text: t('help.portalYourPortalArticles.enterYourEmailAnd'),
           },
           {
-            text: 'Select Remember me if you want to stay signed in on this device. Skip it on a shared computer.',
+            text: t('help.portalYourPortalArticles.selectRememberMeIf'),
           },
-          { text: 'Select Sign in.' },
+          { text: t('help.portalYourPortalArticles.selectSignIn') },
           {
-            text: 'If you forgot your password, select Forgot password?, enter your email and select Send reset link. Open the email, select the link, then choose a new password, confirm it and select Reset password. The page then says Password updated; select Continue to sign in.',
+            text: t('help.portalYourPortalArticles.ifYouForgotYour'),
           },
         ],
-        whatHappensNext:
-          'After signing in you land on Home. The reset link can be used once and expires in 30 minutes; if it expires, request a new link from the same page.',
+        whatHappensNext: t('help.portalYourPortalArticles.afterSigningInYou'),
       },
       {
         slug: 'get-around-your-portal',
-        title: 'Get around your portal',
-        description: 'Find requests, appointments, quotes and invoices.',
+        title: t('help.portalYourPortalArticles.getAroundYourPortal'),
+        description: t('help.portalYourPortalArticles.findRequestsAppointmentsQuotes'),
         icon: 'pi-compass',
-        introduction:
-          'The top bar of the portal gives you access to every area. Home summarizes everything that needs your attention.',
-        callout:
-          'On a small screen the sections are in a menu. Select Open navigation at the top left to see them.',
+        introduction: t('help.portalYourPortalArticles.theTopBarOf'),
+        callout: t('help.portalYourPortalArticles.onASmallScreen'),
         steps: [
           {
-            text: 'Use Home, Requests, Appointments, Quotes and Invoices in the top bar to move between areas.',
+            text: t('help.portalYourPortalArticles.useHomeRequestsAppointments'),
           },
           {
-            text: 'On Home, review the cards for Action required, Payment due, Property, Upcoming appointment, Active requests, Messages & updates and Recent activity. Select Request a service to ask for new work.',
+            text: t('help.portalYourPortalArticles.onHomeReviewThe'),
           },
           {
-            text: 'Select Help in the top bar to open the Help & support center. To reach your service company, use the Need help? card on Home: Call shows when the company has a phone number and Send a message when it can receive messages.',
+            text: t('help.portalYourPortalArticles.selectHelpInThe'),
           },
-          { text: 'Select the bell to open your updates. A number on it shows unread updates.' },
+          { text: t('help.portalYourPortalArticles.selectTheBellTo') },
           {
-            text: 'Select your name to open the account menu. If you belong to more than one customer account, choose one under Switch account. Select Sign out when you finish.',
+            text: t('help.portalYourPortalArticles.selectYourNameTo'),
           },
         ],
-        whatHappensNext:
-          'Use Home as your starting point each time you sign in. Anything that needs you, such as a quote to review or an invoice to pay, appears there first.',
+        whatHappensNext: t('help.portalYourPortalArticles.useHomeAsYour'),
       },
     ],
   },
   {
-    label: 'YOUR DETAILS',
+    label: t('help.portalYourPortalArticles.yourDetails'),
     articles: [
       {
         slug: 'manage-your-properties',
-        title: 'Manage your properties',
-        description: 'Keep your service locations up to date.',
+        title: t('help.portalYourPortalArticles.manageYourProperties'),
+        description: t('help.portalYourPortalArticles.keepYourServiceLocations'),
         icon: 'pi-map-marker',
-        introduction:
-          'Properties are the service locations on your account. You can add new ones and update their name and access details.',
-        callout:
-          'You cannot change an address after a property is created. The page tells you to contact your service company to change it.',
+        introduction: t('help.portalYourPortalArticles.propertiesAreTheService'),
+        callout: t('help.portalYourPortalArticles.youCannotChangeAn'),
         steps: [
           {
-            text: 'On the Your property card on Home, select Manage to open Properties and review your service locations.',
+            text: t('help.portalYourPortalArticles.onTheYourProperty'),
           },
-          { text: 'To add one, select Add property (on Properties or on the Your property card).' },
+          { text: t('help.portalYourPortalArticles.toAddOneSelect') },
           {
-            text: 'Enter a Property name you will recognize and the service address. Add Access instructions if the crew needs them, such as a gate code or where to park.',
+            text: t('help.portalYourPortalArticles.enterAPropertyName'),
           },
-          { text: 'Select Add property to save it.' },
+          { text: t('help.portalYourPortalArticles.selectAddPropertyTo') },
           {
-            text: 'To update an existing property, select Edit on its card, change the name or access instructions and select Save changes.',
+            text: t('help.portalYourPortalArticles.toUpdateAnExisting'),
           },
         ],
-        whatHappensNext:
-          'The property appears in your list and you can pick it when you request a service. Use the Property filter on Home, Requests and Appointments to focus on one location.',
+        whatHappensNext: t('help.portalYourPortalArticles.thePropertyAppearsIn'),
       },
       {
         slug: 'follow-your-updates-and-activity',
-        title: 'Follow your updates and activity',
-        description: 'See what changed and what you need to do.',
+        title: t('help.portalYourPortalArticles.followYourUpdatesAnd'),
+        description: t('help.portalYourPortalArticles.seeWhatChangedAnd'),
         icon: 'pi-bell',
-        introduction:
-          'Messages & updates is a feed of what changed on your account, such as quotes, appointments and invoices. Recent activity lists your completed services.',
-        callout:
-          'Messages & updates is a read-only feed, not a chat. To reach your service company, use the phone number or Send a message on the Need help? card on Home when they are shown.',
+        introduction: t('help.portalYourPortalArticles.messagesUpdatesIsA'),
+        callout: t('help.portalYourPortalArticles.messagesUpdatesIsA2'),
         steps: [
           {
-            text: 'Select the bell, or View all on the Messages & updates card on Home, to open the feed.',
+            text: t('help.portalYourPortalArticles.selectTheBellOr'),
           },
           {
-            text: 'Use the filters All, Action required, Appointments and Billing to narrow the list, and turn on Unread only to see what you have not opened.',
+            text: t('help.portalYourPortalArticles.useTheFiltersAll'),
           },
-          { text: 'Type in Search updates to find a specific update.' },
+          { text: t('help.portalYourPortalArticles.typeInSearchUpdates') },
           {
-            text: 'Select the button on an update to open the related quote, appointment or invoice.',
+            text: t('help.portalYourPortalArticles.selectTheButtonOn'),
           },
           {
-            text: 'To review past work, select the Recent activity card on Home. The table shows each service with its date, reference, amount and status, and lets you open an invoice, a report or a receipt when one is available.',
+            text: t('help.portalYourPortalArticles.toReviewPastWork'),
           },
         ],
-        whatHappensNext:
-          'Unread updates are marked in the feed and counted on the bell. When nothing is unread, the feed says You are all caught up.',
+        whatHappensNext: t('help.portalYourPortalArticles.unreadUpdatesAreMarked'),
       },
     ],
   },
-];
+]);

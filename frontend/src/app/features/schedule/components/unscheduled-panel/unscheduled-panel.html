@@ -1,10 +1,22 @@
 <section class="up" aria-labelledby="up-title">
   <div class="up__head">
-    <h2 class="up__title" id="up-title">Unscheduled jobs</h2>
-    <span class="up__count" [attr.aria-label]="total() + ' unscheduled visits'">{{ total() }}</span>
+    <h2 class="up__title" id="up-title">
+      {{ 'schedule.unscheduledPanel.unscheduledJobs' | transloco }}
+    </h2>
+    <span
+      class="up__count"
+      [attr.aria-label]="
+        'schedule.unscheduledPanel.unscheduledVisits' | transloco: { total: total() }
+      "
+      >{{ total() }}</span
+    >
   </div>
 
-  <div class="up__filters" role="group" aria-label="Unscheduled filter">
+  <div
+    class="up__filters"
+    role="group"
+    [attr.aria-label]="'schedule.unscheduledPanel.unscheduledFilter' | transloco"
+  >
     @for (option of filters; track option.code) {
       <button
         pButton
@@ -26,8 +38,8 @@
       pInputText
       type="search"
       maxlength="100"
-      placeholder="Search jobs..."
-      aria-label="Search unscheduled jobs"
+      [attr.placeholder]="'schedule.unscheduledPanel.searchJobs' | transloco"
+      [attr.aria-label]="'schedule.unscheduledPanel.searchUnscheduledJobs' | transloco"
       fluid
       [ngModel]="searchText()"
       (ngModelChange)="onSearch($event ?? '')"
@@ -45,7 +57,7 @@
       <span class="up__inline">
         {{ errorMessage }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -111,7 +123,7 @@
         [disabled]="loadingMore()"
         (click)="loadMore.emit()"
       >
-        Load more
+        {{ 'schedule.unscheduledPanel.loadMore' | transloco }}
       </button>
     }
   }

@@ -4,6 +4,7 @@ import { Select } from 'primeng/select';
 
 import { propertyLabel } from '../../utils/portal-format';
 
+import { t } from '../../../../core/i18n/translate';
 export interface PropertyOption {
   readonly id: string;
   readonly name: string;
@@ -26,7 +27,7 @@ const ALL = 'all';
   selector: 'app-portal-property-filter',
   imports: [FormsModule, Select],
   template: `
-    <label class="filter__label" [for]="inputId">{{ label() }}</label>
+    <label class="filter__label" [for]="inputId">{{ labelValue() }}</label>
     <p-select
       [inputId]="inputId"
       [options]="items()"
@@ -36,7 +37,7 @@ const ALL = 'all';
       fluid
       [size]="large() ? 'large' : undefined"
       [ngModel]="value() ?? allValue"
-      [ariaLabel]="label()"
+      [ariaLabel]="labelValue()"
       (onChange)="changed.emit($event.value === allValue ? null : $event.value)"
     >
       <ng-template #selectedItem let-item>
@@ -77,7 +78,8 @@ export class PortalPropertyFilter {
   /** Selected property id; `null` is "All properties". */
   readonly value = input<string | null>(null);
   readonly showAll = input(true);
-  readonly label = input('Property');
+  readonly label = input<string | null>(null);
+  readonly labelValue = computed(() => this.label() ?? t('portal.portalPropertyFilter.property'));
   /** Home header size (Design 28); module lists keep the default size. */
   readonly large = input(false);
   readonly inputId = `portal-property-${Math.random().toString(36).slice(2, 8)}`;
@@ -90,6 +92,8 @@ export class PortalPropertyFilter {
       label: propertyLabel(property),
       value: property.id,
     }));
-    return this.showAll() ? [{ label: 'All properties', value: ALL }, ...options] : options;
+    return this.showAll()
+      ? [{ label: t('portal.portalPropertyFilter.allProperties'), value: ALL }, ...options]
+      : options;
   });
 }

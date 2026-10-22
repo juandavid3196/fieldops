@@ -1,3 +1,4 @@
+import { t } from '../../../core/i18n/translate';
 export type JobType = 'one_time' | 'recurring';
 export type Priority = 'urgent' | 'high' | 'normal' | 'low';
 export type WorkOrderStatus = 'draft' | 'ready_to_schedule' | 'scheduled';
@@ -13,19 +14,21 @@ export const WORK_ORDER_MANAGE_ROLES: readonly string[] = [
 ];
 
 /** Fixed copy (backend titles are never displayed). */
-export const WO_LOAD_ERROR_MESSAGE = "We couldn't load this work order. Try again.";
-export const WO_NOT_APPROVED_MESSAGE = 'This quote is no longer approved.';
-export const WO_CUSTOMER_REQUIRED_MESSAGE =
-  'Link a customer and property to this request before creating a work order.';
-export const WO_NOT_AVAILABLE_MESSAGE = "This work order isn't available.";
-export const WO_FORBIDDEN_MESSAGE = "You don't have access to work orders.";
-export const WO_CHANGED_MESSAGE =
-  'This work order was changed by someone else. Reload to see the latest version.';
-export const WO_REQUEST_CHANGED_MESSAGE = 'The request changed. Reload and try again.';
-export const WO_SAVE_FAILED_MESSAGE = "We couldn't save the work order. Try again.";
-export const WO_ALREADY_CREATED_MESSAGE = 'This work order has already been created.';
+export const WO_LOAD_ERROR_MESSAGE = (): string => t('jobs.workOrderModel.woLoadErrorMessage');
+export const WO_NOT_APPROVED_MESSAGE = (): string => t('jobs.workOrderModel.woNotApprovedMessage');
+export const WO_CUSTOMER_REQUIRED_MESSAGE = (): string =>
+  t('jobs.workOrderModel.woCustomerRequiredMessage');
+export const WO_NOT_AVAILABLE_MESSAGE = (): string =>
+  t('jobs.workOrderModel.woNotAvailableMessage');
+export const WO_FORBIDDEN_MESSAGE = (): string => t('jobs.workOrderModel.woForbiddenMessage');
+export const WO_CHANGED_MESSAGE = (): string => t('jobs.workOrderModel.woChangedMessage');
+export const WO_REQUEST_CHANGED_MESSAGE = (): string =>
+  t('jobs.workOrderModel.woRequestChangedMessage');
+export const WO_SAVE_FAILED_MESSAGE = (): string => t('jobs.workOrderModel.woSaveFailedMessage');
+export const WO_ALREADY_CREATED_MESSAGE = (): string =>
+  t('jobs.workOrderModel.woAlreadyCreatedMessage');
 export const MAX_TASKS = 50;
-export const TASK_LIMIT_MESSAGE = 'A work order can have up to 50 tasks.';
+export const TASK_LIMIT_MESSAGE = (): string => t('jobs.workOrderModel.taskLimitMessage');
 
 export interface WorkOrderMaterialBody {
   readonly quoteLineId?: string | null;

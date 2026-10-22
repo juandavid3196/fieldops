@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AccordionModule } from 'primeng/accordion';
 import { map } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { HelpBreadcrumb } from '../../components/help-breadcrumb/help-breadcrumb';
 import { HelpResultList } from '../../components/help-result-list/help-result-list';
@@ -20,10 +21,12 @@ import {
 } from '../../utils/help-content';
 import { effectiveQuery, searchArticles } from '../../utils/help-search';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 /** `/help` (FR-03 to FR-06): browse, global search, popular questions and `?view=all`. */
 @Component({
   selector: 'app-help-home',
   imports: [
+    TranslocoPipe,
     AccordionModule,
     HelpBreadcrumb,
     HelpResultList,
@@ -43,7 +46,7 @@ export class HelpHome {
   /** BR-13: only the topics, articles and questions of this route's audience. */
   readonly base = this.context.base;
   readonly topics = topicsFor(this.context.audience);
-  readonly crumbs = [{ label: 'Help' }];
+  readonly crumbs = localizedList(() => [{ label: t('help.helpHome.help') }]);
   readonly query = signal('');
   /** Several questions may be open at once (FR-06). */
   readonly openQuestions = signal<string[]>([]);
@@ -62,8 +65,11 @@ export class HelpHome {
     }
     const count = this.results().length;
     return count === 0
-      ? `No articles match "${this.trimmedQuery()}"`
-      : `${count} ${count === 1 ? 'article' : 'articles'} found`;
+      ? t('help.helpHome.noArticlesMatch', { trimmedQuery: this.trimmedQuery() })
+      : t('help.helpHome.found', {
+          count: count,
+          value: count === 1 ? t('help.helpHome.article') : t('help.helpHome.articles'),
+        });
   });
 
   /** FR-05: all articles grouped by topic in catalog order. */

@@ -14,7 +14,8 @@ public sealed record SessionUser(
     string FirstName,
     string LastName,
     string Email,
-    DateTimeOffset? PhotoUpdatedAt);
+    DateTimeOffset? PhotoUpdatedAt,
+    string PreferredLanguage);
 
 public sealed record SessionOrganization(Guid Id, string Name);
 

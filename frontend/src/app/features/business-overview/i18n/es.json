@@ -1,0 +1,140 @@
+{
+  "branchPerformance": {
+    "branch": "Sucursal",
+    "branchPerformance": "Rendimiento por sucursal",
+    "estimatedMargin": "Margen estimado",
+    "jobs": "Trabajos",
+    "noBranchActivityIn": "No hay actividad de sucursales en este período.",
+    "onTime": "% a tiempo",
+    "rating": "Calificación",
+    "revenue": "Ingresos",
+    "inactive": "{{name}} (inactiva)",
+    "marginColumnHint": "Margen estimado = utilidad bruta estimada ÷ ingresos."
+  },
+  "businessKpis": {
+    "keyFigures": "Cifras clave",
+    "acceptedOfSent": "{{accepted}} aceptadas de {{sent}} enviadas",
+    "estimatedGrossMargin": "Margen bruto estimado",
+    "estimatedGrossProfit": "Utilidad bruta estimada",
+    "jobsCompleted": "Trabajos completados",
+    "marginHint": "Margen bruto estimado = utilidad bruta estimada ÷ ingresos.",
+    "nothingOverdue": "Nada vencido",
+    "outstandingInvoices": "Facturas pendientes",
+    "overdue": "{{value}} vencidas",
+    "profitHint": "Utilidad estimada = ingresos − costos configurados de productos y servicios.",
+    "quoteConversion": "Conversión de cotizaciones",
+    "revenue": "Ingresos"
+  },
+  "businessOverview": {
+    "branch": "Sucursal",
+    "businessOverview": "Resumen del negocio",
+    "compareToPreviousPeriod": "Comparar con el período anterior",
+    "dashboard": "Panel",
+    "dateRange": "Rango de fechas",
+    "exportReport": "Exportar informe",
+    "from": "Desde",
+    "refreshBusinessOverview": "Actualizar resumen del negocio",
+    "to": "Hasta",
+    "allBranches": "Todas las sucursales",
+    "exportErrorMessage": "No pudimos exportar el informe.",
+    "forbiddenMessage": "No tienes acceso al Panel.",
+    "loadErrorMessage": "No pudimos cargar el resumen del negocio.",
+    "noBranchesMessage": "No hay sucursales disponibles.",
+    "refreshErrorMessage": "No se pudo actualizar."
+  },
+  "cashFlow": {
+    "accountsReceivableAging": "Antigüedad de las cuentas por cobrar",
+    "cashFlowSnapshot": "Resumen del flujo de caja",
+    "viewReceivables": "Ver cuentas por cobrar",
+    "collected": "Cobrado",
+    "current": "Al día",
+    "invoiced": "Facturado",
+    "n130Days": "1 – 30 días",
+    "n3160Days": "31 – 60 días",
+    "n60Days": "Más de 60 días",
+    "outstanding": "Pendiente",
+    "overdue": "Vencidas"
+  },
+  "ownerAttention": {
+    "critical": "Crítico: ",
+    "estimatesDisclaimer": "Aviso sobre las estimaciones",
+    "ownerAttention": "Atención del propietario",
+    "showLess": "Mostrar menos",
+    "warning": "Advertencia: ",
+    "attentionEmptyText": "Nada requiere tu atención.",
+    "disclaimerText": "Las cifras de rentabilidad son estimaciones operativas basadas en los costos configurados de productos y servicios. Excluyen gastos generales, nómina, impuestos de nómina, depreciación y otros gastos contables. No son utilidad neta ni sustituyen un software contable.",
+    "viewAll": "Ver todo ({{count}})"
+  },
+  "revenueChart": {
+    "chartSeries": "Series del gráfico",
+    "period": "Período",
+    "revenueAndEstimatedProfit": "Ingresos y utilidad estimada por período",
+    "revenueEstimatedProfit": "Ingresos y utilidad estimada",
+    "chartEmptyText": "No hay datos para este período."
+  },
+  "salesPipeline": {
+    "salesPipeline": "Embudo de ventas",
+    "accepted": "Aceptadas",
+    "jobsCreated": "Trabajos creados",
+    "quotesSent": "Cotizaciones enviadas",
+    "requests": "Solicitudes"
+  },
+  "serviceProfitability": {
+    "avgJobValue": "Valor promedio por trabajo",
+    "estimatedMargin": "Margen estimado",
+    "revenue": "Ingresos",
+    "service": "Servicio",
+    "serviceProfitabilityEstimates": "Estimaciones de rentabilidad por servicio",
+    "servicesEmptyText": "No hay servicios facturados en este período."
+  },
+  "teamCapacity": {
+    "teamCapacity": "Equipo y capacidad",
+    "next7DaysScheduled": "Próximos 7 días (programados)",
+    "scheduledOvertime": "Horas extra programadas",
+    "technicians": "Técnicos",
+    "utilization": "Utilización"
+  },
+  "businessParams": {
+    "apr": "Abr",
+    "aug": "Ago",
+    "custom": "Personalizado",
+    "dec": "Dic",
+    "feb": "Feb",
+    "jan": "Ene",
+    "jul": "Jul",
+    "jun": "Jun",
+    "last30Days": "Últimos 30 días",
+    "lastMonth": "Último mes",
+    "mar": "Mar",
+    "may": "May",
+    "nov": "Nov",
+    "oct": "Oct",
+    "sep": "Sep",
+    "thisMonth": "Este mes",
+    "thisQuarter": "Este trimestre",
+    "thisYear": "Este año"
+  },
+  "businessView": {
+    "belowTargetText": "Por debajo de la meta del 40 %",
+    "branch": "Sucursal",
+    "estimatedMarginBelowTarget": "{{value}} de margen estimado por debajo de la meta",
+    "noChange": "Sin cambios",
+    "overdueInvoice": "{{count}} factura vencida",
+    "scheduledOvertimeUp": "Horas extra programadas al alza: {{value}}%",
+    "service": "Servicio",
+    "totaling": "Total de {{value}}",
+    "vsInPreviousPeriod": "{{value}} frente a {{value2}} en el período anterior",
+    "vsTarget": "{{marginPercent}} frente a la meta de {{value}}%",
+    "overdueInvoices": "{{count}} facturas vencidas"
+  },
+  "chartGeometry": {
+    "cashCollected": "Efectivo cobrado",
+    "current": "actual",
+    "estimatedProfit": "Utilidad estimada",
+    "previous": "anterior",
+    "revenue": "Ingresos"
+  },
+  "deltaBadge": {
+    "vsPreviousPeriod": "frente al período anterior"
+  }
+}

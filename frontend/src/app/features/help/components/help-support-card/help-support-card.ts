@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { injectHelpContext } from '../../utils/help-audience';
 import { supportMailto } from '../../utils/help-content';
@@ -8,7 +9,7 @@ import { supportMailto } from '../../utils/help-content';
 /** "Still need help?" card with the email-based Contact support action (FR-11). */
 @Component({
   selector: 'app-help-support-card',
-  imports: [ButtonDirective, RouterLink],
+  imports: [TranslocoPipe, ButtonDirective, RouterLink],
   templateUrl: './help-support-card.html',
   styleUrl: './help-support-card.scss',
 })

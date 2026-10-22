@@ -4,7 +4,7 @@
   [modal]="true"
   [draggable]="false"
   [dismissableMask]="true"
-  header="Before &amp; after photos"
+  [header]="'invoices.publicPhotoGallery.beforeAfterPhotos' | transloco"
   [style]="{ width: '44rem' }"
   [breakpoints]="{ '575px': '95vw' }"
   (keydown)="onKey($event)"
@@ -13,14 +13,14 @@
     @case ('loading') {
       <p class="gallery__state" role="status">
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-        Loading photos
+        {{ 'invoices.publicPhotoGallery.loadingPhotos' | transloco }}
       </p>
     }
     @case ('error') {
       <p class="gallery__state" role="alert">
-        We couldn't load the photos.
+        {{ 'invoices.publicPhotoGallery.weCouldnTLoad' | transloco }}
         <button pButton type="button" size="small" severity="secondary" (click)="loadList()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </p>
     }
@@ -30,11 +30,15 @@
           <div class="gallery__frame" [attr.aria-busy]="item.image.state === 'loading'">
             @switch (item.image.state) {
               @case ('loading') {
-                <svg data-p-icon="spinner" [spin]="true" aria-label="Loading photo"></svg>
+                <svg
+                  data-p-icon="spinner"
+                  [spin]="true"
+                  [attr.aria-label]="'invoices.publicPhotoGallery.loadingPhoto' | transloco"
+                ></svg>
               }
               @case ('error') {
                 <p class="gallery__state" role="alert">
-                  We couldn't load this photo.
+                  {{ 'invoices.publicPhotoGallery.weCouldnTLoad2' | transloco }}
                   <button
                     pButton
                     type="button"
@@ -42,7 +46,7 @@
                     severity="secondary"
                     (click)="retryImage(item.photo)"
                   >
-                    Retry
+                    {{ 'common.retry' | transloco }}
                   </button>
                 </p>
               }
@@ -50,7 +54,10 @@
                 <img
                   class="gallery__image"
                   [src]="item.image.url"
-                  [alt]="item.photo.caption ?? item.typeLabel + ' photo'"
+                  [alt]="
+                    item.photo.caption ??
+                    ('invoices.publicPhotoGallery.photoAlt' | transloco: { label: item.typeLabel })
+                  "
                 />
               }
             }
@@ -69,18 +76,21 @@
             type="button"
             severity="secondary"
             [outlined]="true"
-            aria-label="Previous photo"
+            [attr.aria-label]="'invoices.publicPhotoGallery.previousPhoto' | transloco"
             (click)="move(-1)"
           >
             <i class="pi pi-chevron-left" aria-hidden="true"></i>
           </button>
-          <span aria-live="polite">Photo {{ index() + 1 }} of {{ photos().length }}</span>
+          <span aria-live="polite">{{
+            'invoices.publicPhotoGallery.photoOf'
+              | transloco: { value: index() + 1, length: photos().length }
+          }}</span>
           <button
             pButton
             type="button"
             severity="secondary"
             [outlined]="true"
-            aria-label="Next photo"
+            [attr.aria-label]="'invoices.publicPhotoGallery.nextPhoto' | transloco"
             (click)="move(1)"
           >
             <i class="pi pi-chevron-right" aria-hidden="true"></i>

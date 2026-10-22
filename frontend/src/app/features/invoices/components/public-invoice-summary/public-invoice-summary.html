@@ -1,7 +1,9 @@
 <header class="head">
   <div class="head__text">
     <div class="head__title-row">
-      <h1 class="head__title" tabindex="-1">Invoice {{ invoice().number }}</h1>
+      <h1 class="head__title" tabindex="-1">
+        {{ 'invoices.publicInvoiceSummary.invoice' | transloco: { number: invoice().number } }}
+      </h1>
       <span class="chip chip--{{ view().chip.tone }}">{{ view().chip.label }}</span>
     </div>
     <p class="head__sub">{{ view().subtitle }}</p>
@@ -21,7 +23,7 @@
     } @else {
       <i class="pi pi-download" aria-hidden="true"></i>
     }
-    Download PDF
+    {{ 'invoices.publicInvoiceSummary.downloadPdf' | transloco }}
   </button>
 </header>
 @if (downloadError(); as message) {
@@ -32,9 +34,13 @@
 
 <ng-template #amountDue>
   <section class="due" aria-labelledby="amount-due-label">
-    <h2 id="amount-due-label" class="due__label">Amount due</h2>
+    <h2 id="amount-due-label" class="due__label">
+      {{ 'invoices.publicInvoiceSummary.amountDue' | transloco }}
+    </h2>
     <p class="due__amount">{{ view().balance }}</p>
-    <p class="due__date">Due date: {{ view().dueDate }}</p>
+    <p class="due__date">
+      {{ 'invoices.publicInvoiceSummary.dueDate' | transloco: { dueDate: view().dueDate } }}
+    </p>
     <p class="due__note" [class.due__note--late]="invoice().overdue">{{ view().due }}</p>
   </section>
 </ng-template>
@@ -64,14 +70,19 @@
 </ng-template>
 
 <ng-template #details>
-  <div class="scroll" role="region" aria-label="Invoice lines" tabindex="0">
+  <div
+    class="scroll"
+    role="region"
+    [attr.aria-label]="'invoices.publicInvoiceSummary.invoiceLines' | transloco"
+    tabindex="0"
+  >
     <table class="lines">
       <thead>
         <tr>
-          <th scope="col">Description</th>
-          <th scope="col" class="num">Qty</th>
-          <th scope="col" class="num">Rate</th>
-          <th scope="col" class="num">Amount</th>
+          <th scope="col">{{ 'common.description' | transloco }}</th>
+          <th scope="col" class="num">{{ 'invoices.publicInvoiceSummary.qty' | transloco }}</th>
+          <th scope="col" class="num">{{ 'invoices.publicInvoiceSummary.rate' | transloco }}</th>
+          <th scope="col" class="num">{{ 'common.amount' | transloco }}</th>
         </tr>
       </thead>
       <tbody>
@@ -93,12 +104,12 @@
   </div>
   <dl class="totals">
     <div>
-      <dt>Subtotal</dt>
+      <dt>{{ 'invoices.publicInvoiceSummary.subtotal' | transloco }}</dt>
       <dd>{{ view().subtotal }}</dd>
     </div>
     @if (view().discount; as discount) {
       <div>
-        <dt>Discount</dt>
+        <dt>{{ 'invoices.publicInvoiceSummary.discount' | transloco }}</dt>
         <dd>−{{ discount }}</dd>
       </div>
     }
@@ -107,7 +118,7 @@
       <dd>{{ view().tax }}</dd>
     </div>
     <div class="totals__total">
-      <dt>Total</dt>
+      <dt>{{ 'common.total' | transloco }}</dt>
       <dd>{{ view().total }}</dd>
     </div>
   </dl>
@@ -116,16 +127,17 @@
   }
   <section class="service" aria-labelledby="service-title">
     <h2 id="service-title" class="service__title">
-      <i class="pi pi-wrench" aria-hidden="true"></i>Service details
+      <i class="pi pi-wrench" aria-hidden="true"></i
+      >{{ 'invoices.publicInvoiceSummary.serviceDetails' | transloco }}
     </h2>
     <dl class="service__rows">
       <div>
-        <dt>Work order</dt>
+        <dt>{{ 'invoices.publicInvoiceSummary.workOrder' | transloco }}</dt>
         <dd class="service__work-order">{{ invoice().service.workOrderNumber }}</dd>
       </div>
       @if (invoice().service.completionNote; as note) {
         <div>
-          <dt>Completion note</dt>
+          <dt>{{ 'invoices.publicInvoiceSummary.completionNote' | transloco }}</dt>
           <dd>{{ note }}</dd>
         </div>
       }
@@ -148,7 +160,7 @@
             } @else {
               <i class="pi pi-file" aria-hidden="true"></i>
             }
-            View completion report
+            {{ 'invoices.publicInvoiceSummary.viewCompletionReport' | transloco }}
           </button>
         }
         @if (invoice().service.photoCount > 0) {
@@ -160,7 +172,8 @@
             class="action action--blue"
             (click)="photosRequested.emit()"
           >
-            <i class="pi pi-image" aria-hidden="true"></i>View before &amp; after photos
+            <i class="pi pi-image" aria-hidden="true"></i
+            >{{ 'invoices.publicInvoiceSummary.viewBeforeAfterPhotos' | transloco }}
           </button>
         }
       </div>
@@ -171,7 +184,10 @@
 <div class="body" [class.body--closed]="!showCard()">
   @if (showCard()) {
     @if (wide()) {
-      <section class="card" aria-label="Invoice">
+      <section
+        class="card"
+        [attr.aria-label]="'invoices.publicInvoiceSummary.invoice2' | transloco"
+      >
         <div class="card__top">
           <ng-container [ngTemplateOutlet]="amountDue" />
           <ng-container [ngTemplateOutlet]="org" />
@@ -179,14 +195,18 @@
         <ng-container [ngTemplateOutlet]="details" />
       </section>
     } @else {
-      <section class="card" aria-label="Amount due">
+      <section
+        class="card"
+        [attr.aria-label]="'invoices.publicInvoiceSummary.amountDue' | transloco"
+      >
         <ng-container [ngTemplateOutlet]="amountDue" />
       </section>
       <p-accordion class="accordion">
         <p-accordion-panel value="summary">
           <p-accordion-header>
             <span class="accordion__title">
-              <i class="pi pi-file" aria-hidden="true"></i>Invoice summary
+              <i class="pi pi-file" aria-hidden="true"></i
+              >{{ 'invoices.publicInvoiceSummary.invoiceSummary' | transloco }}
             </span>
           </p-accordion-header>
           <p-accordion-content>

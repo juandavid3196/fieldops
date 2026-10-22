@@ -16,6 +16,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Skeleton } from 'primeng/skeleton';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { PublicInvoiceSummary } from '../../components/public-invoice-summary/public-invoice-summary';
@@ -45,6 +46,7 @@ const PUBLIC_PATH = '/invoices/view';
 @Component({
   selector: 'app-public-invoice',
   imports: [
+    TranslocoPipe,
     PublicInvoiceSummary,
     PublicNeutralState,
     PublicPaymentPanel,
@@ -245,7 +247,7 @@ export class PublicInvoicePage implements OnInit {
         if (isApiError(error) && error.status === 404) {
           this.show('unavailable');
         } else {
-          this.downloadError.set(PUBLIC_DOWNLOAD_FAILED_MESSAGE);
+          this.downloadError.set(PUBLIC_DOWNLOAD_FAILED_MESSAGE());
         }
       },
     });

@@ -20,6 +20,7 @@ import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -56,6 +57,9 @@ import {
   validatePayment,
 } from '../../utils/invoices-hub-format';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+import { activeIntlLocale } from '../../../../core/i18n/active-locale';
 export interface DrawerNotice {
   readonly severity: 'success' | 'info' | 'warn' | 'error';
   readonly summary: string;
@@ -84,6 +88,8 @@ function fieldOf(path: string): PaymentField | null {
 @Component({
   selector: 'app-record-payment-drawer',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     DrawerShell,
@@ -118,7 +124,9 @@ export class RecordPaymentDrawer {
 
   readonly titleId = 'record-payment-title';
   readonly noteMax = NOTE_MAX_LENGTH;
-  readonly noRecipientMessage = NO_RECIPIENT_MESSAGE;
+  get noRecipientMessage(): string {
+    return NO_RECIPIENT_MESSAGE();
+  }
   readonly methodChoices = RECORDABLE_METHODS.map((code) => ({
     code,
     label: PAYMENT_METHOD_LABELS[code],
@@ -143,7 +151,7 @@ export class RecordPaymentDrawer {
   readonly currency = computed(() => this.row()?.currency ?? this.options()?.currency ?? 'USD');
   readonly currencySymbol = computed(
     () =>
-      new Intl.NumberFormat('en-US', { style: 'currency', currency: this.currency() })
+      new Intl.NumberFormat(activeIntlLocale(), { style: 'currency', currency: this.currency() })
         .formatToParts(0)
         .find((part) => part.type === 'currency')?.value ?? '$',
   );
@@ -228,7 +236,7 @@ export class RecordPaymentDrawer {
     if (this.dirty()) {
       this.confirmations.confirm(
         discardChangesConfirmation({
-          subject: 'this payment',
+          subject: t('invoices.recordPaymentDrawer.thisPayment'),
           accept: () => this.closed.emit(),
         }),
       );
@@ -303,14 +311,16 @@ export class RecordPaymentDrawer {
 
   private succeeded(result: RecordPaymentResult): void {
     if (!result.changed) {
-      this.notice.emit({ severity: 'info', summary: PAYMENT_ALREADY_RECORDED_MESSAGE });
+      this.notice.emit({ severity: 'info', summary: PAYMENT_ALREADY_RECORDED_MESSAGE() });
     } else if (result.emailStatus === 'failed') {
-      this.notice.emit({ severity: 'warn', summary: RECEIPT_FAILED_MESSAGE });
+      this.notice.emit({ severity: 'warn', summary: RECEIPT_FAILED_MESSAGE() });
     } else {
-      const recorded = `Payment ${result.payment.number} recorded.`;
+      const recorded = t('invoices.recordPaymentDrawer.paymentRecorded', {
+        number: result.payment.number,
+      });
       this.notice.emit({
         severity: 'success',
-        summary: result.emailStatus === 'sent' ? `${recorded} ${RECEIPT_SENT_MESSAGE}` : recorded,
+        summary: result.emailStatus === 'sent' ? `${recorded} ${RECEIPT_SENT_MESSAGE()}` : recorded,
       });
     }
     this.settled.emit();
@@ -328,10 +338,10 @@ export class RecordPaymentDrawer {
       this.notice.emit({ severity: 'error', summary: PAYMENT_CONFLICT_MESSAGES[code] });
       this.settled.emit();
     } else if (kind === 'not-found') {
-      this.notice.emit({ severity: 'error', summary: PAYMENT_UNAVAILABLE_MESSAGE });
+      this.notice.emit({ severity: 'error', summary: PAYMENT_UNAVAILABLE_MESSAGE() });
       this.settled.emit();
     } else if (kind === 'forbidden') {
-      this.notice.emit({ severity: 'error', summary: PAYMENT_FORBIDDEN_MESSAGE });
+      this.notice.emit({ severity: 'error', summary: PAYMENT_FORBIDDEN_MESSAGE() });
     } else if (kind === 'validation' || kind === 'bad-request') {
       const mapped: PaymentErrors = {};
       for (const [path, messages] of Object.entries(apiError?.fieldErrors ?? {})) {
@@ -344,11 +354,11 @@ export class RecordPaymentDrawer {
       if (Object.keys(mapped).length > 0) {
         this.focusFirst(mapped);
       } else {
-        this.notice.emit({ severity: 'error', summary: PAYMENT_FAILED_MESSAGE });
+        this.notice.emit({ severity: 'error', summary: PAYMENT_FAILED_MESSAGE() });
       }
     } else {
       // `409 idempotency_conflict`, network and server failures: values and key are kept.
-      this.notice.emit({ severity: 'error', summary: PAYMENT_FAILED_MESSAGE });
+      this.notice.emit({ severity: 'error', summary: PAYMENT_FAILED_MESSAGE() });
     }
   }
 }

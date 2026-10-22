@@ -1,4 +1,4 @@
-<ul class="kpis" aria-label="Key figures">
+<ul class="kpis" [attr.aria-label]="'businessOverview.businessKpis.keyFigures' | transloco">
   @for (card of cards(); track card.id) {
     <li class="kpi">
       <div class="kpi__body">

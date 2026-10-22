@@ -3,6 +3,7 @@ import { Confirmation } from 'primeng/api';
 
 import { ConfirmDialog } from '../confirm-dialog/confirm-dialog';
 
+import { t } from '../../../core/i18n/translate';
 /** Routes a confirmation to the discard-changes dialog instead of the page's generic one. */
 export const DISCARD_CHANGES_KEY = 'discard-changes';
 
@@ -20,11 +21,15 @@ export interface DiscardChangesOptions {
 export function discardChangesConfirmation(options: DiscardChangesOptions): Confirmation {
   return {
     key: DISCARD_CHANGES_KEY,
-    header: 'Discard unsaved changes?',
-    message: `You have unsaved changes in ${options.subject}. If you leave now, those changes will be lost.`,
+    header: t('shared.discardChangesDialog.discardUnsavedChanges'),
+    message: t('shared.discardChangesDialog.youHaveUnsavedChanges', { subject: options.subject }),
     defaultFocus: 'reject',
-    acceptButtonProps: { label: 'Discard changes', severity: 'secondary', outlined: true },
-    rejectButtonProps: { label: 'Keep editing' },
+    acceptButtonProps: {
+      label: t('shared.discardChangesDialog.discardChanges'),
+      severity: 'secondary',
+      outlined: true,
+    },
+    rejectButtonProps: { label: t('shared.discardChangesDialog.keepEditing') },
     accept: options.accept,
     reject: options.reject,
   };

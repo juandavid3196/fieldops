@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { DashboardProperty } from '../../models/portal.model';
 import { dateLabel } from '../../utils/portal-format';
@@ -8,7 +9,7 @@ import { dateLabel } from '../../utils/portal-format';
 /** Your property card (BR-19): the selected property, or the primary one with All. */
 @Component({
   selector: 'app-property-card',
-  imports: [ButtonDirective, RouterLink],
+  imports: [TranslocoPipe, ButtonDirective, RouterLink],
   templateUrl: './property-card.html',
   styleUrls: ['../../portal.scss', '../../portal-card.scss', './property-card.scss'],
 })

@@ -45,7 +45,7 @@ internal sealed class PortalAuthenticationStore(FieldOpsDbContext dbContext) : I
             .Where(candidate => candidate.Id == userId
                 && candidate.Status == UserStatus.Active
                 && (candidate.PasswordChangedAt == null || candidate.PasswordChangedAt <= signedInAt))
-            .Select(candidate => new { candidate.FirstName, candidate.LastName, candidate.Email })
+            .Select(candidate => new { candidate.FirstName, candidate.LastName, candidate.Email, candidate.PreferredLanguage })
             .SingleOrDefaultAsync(cancellationToken);
 
         if (user is null)
@@ -60,7 +60,7 @@ internal sealed class PortalAuthenticationStore(FieldOpsDbContext dbContext) : I
         return current is null
             ? null
             : new PortalSessionContext(
-                PortalSessionViews.Build(user.FirstName, user.LastName, user.Email, current, links),
+                PortalSessionViews.Build(user.FirstName, user.LastName, user.Email, user.PreferredLanguage, current, links),
                 new PortalScope(current.OrganizationId, current.CustomerId, current.ContactId, userId));
     }
 
@@ -75,9 +75,10 @@ internal sealed class PortalAuthenticationStore(FieldOpsDbContext dbContext) : I
 /// <summary>Builds the response body of a portal session from the user and its links.</summary>
 internal static class PortalSessionViews
 {
-    public static PortalSessionView Build(string firstName, string lastName, string email, PortalLink current, IReadOnlyList<PortalLink> links) =>
+    public static PortalSessionView Build(
+        string firstName, string lastName, string email, string preferredLanguage, PortalLink current, IReadOnlyList<PortalLink> links) =>
         new(
-            new PortalSessionUser(firstName, lastName, email),
+            new PortalSessionUser(firstName, lastName, email, preferredLanguage),
             new PortalSessionAccount(current.ContactId, current.CustomerName, current.OrganizationName, current.HasLogo),
             links.Select(link => new PortalSessionAccountSummary(link.ContactId, link.CustomerName, link.OrganizationName)).ToList());
 }

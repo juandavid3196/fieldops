@@ -15,7 +15,9 @@
     </svg>
   </span>
   <span class="jobs__text">
-    <span class="jobs__title">Unfinished jobs</span>
+    <span class="jobs__title">{{
+      'technicianJobs.unresolvedJobs.unfinishedJobs' | transloco
+    }}</span>
     <span class="jobs__summary">{{ summary() }}</span>
   </span>
   <span class="jobs__badge" aria-hidden="true">{{ count() }}</span>
@@ -39,10 +41,14 @@
   <ng-template #header let-labelledBy="ariaLabelledBy">
     <div class="jobs__sheet-head">
       <span class="jobs__handle" aria-hidden="true"></span>
-      <h2 class="jobs__sheet-title" [id]="labelledBy">Unfinished jobs</h2>
+      <h2 class="jobs__sheet-title" [id]="labelledBy">
+        {{ 'technicianJobs.unresolvedJobs.unfinishedJobs' | transloco }}
+      </h2>
     </div>
   </ng-template>
-  <p class="jobs__subtitle">Finish or close earlier visits before starting new work.</p>
+  <p class="jobs__subtitle">
+    {{ 'technicianJobs.unresolvedJobs.finishOrCloseEarlier' | transloco }}
+  </p>
   <ol class="jobs__list">
     @for (card of cards(); track card.visit.visitId) {
       <li class="jobs__card">
@@ -108,7 +114,7 @@
             [attr.aria-disabled]="resuming() !== null"
             (click)="resume(card.visit.visitId)"
           >
-            Resume job
+            {{ 'technicianJobs.unresolvedJobs.resumeJob' | transloco }}
           </button>
         } @else {
           <a
@@ -116,11 +122,13 @@
             [routerLink]="['/today/visits', card.visit.visitId]"
             (click)="navigated()"
           >
-            Open active visit
+            {{ 'technicianJobs.unresolvedJobs.openActiveVisit' | transloco }}
           </a>
         }
       </li>
     }
   </ol>
-  <p class="jobs__footer">Oldest unfinished job shown first.</p>
+  <p class="jobs__footer">
+    {{ 'technicianJobs.unresolvedJobs.oldestUnfinishedJobShown' | transloco }}
+  </p>
 </p-dialog>

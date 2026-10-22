@@ -1,7 +1,8 @@
 @if (topic(); as topic) {
   <app-help-breadcrumb [items]="crumbs()" />
   <a class="topic__back" [routerLink]="base">
-    <i class="pi pi-arrow-left" aria-hidden="true"></i>Back to Help &amp; support
+    <i class="pi pi-arrow-left" aria-hidden="true"></i
+    >{{ 'help.helpTopic.backToHelpSupport' | transloco }}
   </a>
   <header class="topic__header">
     <span class="topic__icon" aria-hidden="true"><i class="pi" [class]="topic.icon"></i></span>
@@ -20,7 +21,9 @@
 
   <div class="topic__columns">
     <section class="topic__articles" aria-labelledby="topic-articles-title">
-      <h2 class="topic__card-title" id="topic-articles-title">Articles</h2>
+      <h2 class="topic__card-title" id="topic-articles-title">
+        {{ 'help.helpTopic.articles' | transloco }}
+      </h2>
       @for (section of sections(); track section.label) {
         <h3 class="topic__section-label">{{ section.label }}</h3>
         <ul class="topic__list">
@@ -40,13 +43,20 @@
           }
         </ul>
       } @empty {
-        <p class="topic__empty">No articles in {{ topic.title }} match "{{ trimmedQuery() }}"</p>
+        <p class="topic__empty">
+          {{
+            'help.helpTopic.noArticlesInMatch'
+              | transloco: { title: topic.title, trimmedQuery: trimmedQuery() }
+          }}
+        </p>
       }
     </section>
 
     <div class="topic__side">
       <section class="topic__popular" aria-labelledby="topic-popular-title">
-        <h2 class="topic__card-title" id="topic-popular-title">Popular in this topic</h2>
+        <h2 class="topic__card-title" id="topic-popular-title">
+          {{ 'help.helpTopic.popularInThisTopic' | transloco }}
+        </h2>
         <ol class="topic__popular-list">
           @for (article of popular(); track article.slug; let index = $index) {
             <li class="topic__popular-item">
@@ -66,7 +76,9 @@
   </div>
 
   <section class="topic__related" aria-labelledby="topic-related-title">
-    <h2 class="topic__card-title" id="topic-related-title">Related topics</h2>
+    <h2 class="topic__card-title" id="topic-related-title">
+      {{ 'help.helpTopic.relatedTopics' | transloco }}
+    </h2>
     <div class="topic__related-list">
       @for (other of related(); track other.slug) {
         <app-help-topic-card [topic]="other" />

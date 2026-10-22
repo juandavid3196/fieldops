@@ -1,7 +1,9 @@
 <div class="layout">
   <section class="card" aria-labelledby="attention-title">
     <header class="card__head">
-      <h2 class="card__title" id="attention-title">Owner attention</h2>
+      <h2 class="card__title" id="attention-title">
+        {{ 'businessOverview.ownerAttention.ownerAttention' | transloco }}
+      </h2>
       @if (canExpand()) {
         <button
           type="button"
@@ -10,7 +12,11 @@
           [attr.aria-expanded]="expanded()"
           (click)="expanded.set(!expanded())"
         >
-          {{ expanded() ? 'Show less' : 'View all (' + items().length + ')' }}
+          {{
+            expanded()
+              ? ('businessOverview.ownerAttention.showLess' | transloco)
+              : ('businessOverview.ownerAttention.viewAll' | transloco: { count: items().length })
+          }}
         </button>
       }
     </header>
@@ -30,7 +36,9 @@
               <span class="item__text">
                 <span class="item__title"
                   ><span class="sr">{{
-                    item.severity === 'critical' ? 'Critical: ' : 'Warning: '
+                    item.severity === 'critical'
+                      ? ('businessOverview.ownerAttention.critical' | transloco)
+                      : ('businessOverview.ownerAttention.warning' | transloco)
                   }}</span
                   >{{ item.title }}</span
                 >
@@ -43,7 +51,10 @@
       </ul>
     }
   </section>
-  <aside class="note" aria-label="Estimates disclaimer">
+  <aside
+    class="note"
+    [attr.aria-label]="'businessOverview.ownerAttention.estimatesDisclaimer' | transloco"
+  >
     <span class="note__icon" aria-hidden="true"></span>
     <p class="note__text">{{ disclaimer }}</p>
   </aside>

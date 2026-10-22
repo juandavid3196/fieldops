@@ -1,3 +1,5 @@
+using System.Text.Json;
+
 namespace FieldOps.Api.Contracts;
 
 /// <summary>
@@ -6,7 +8,8 @@ namespace FieldOps.Api.Contracts;
 /// </summary>
 public sealed record PortalSwitchAccountRequest(Guid? ContactId);
 
-public sealed record PortalAcceptInvitationRequest(string? Token, string? Password, string? LastName);
+public sealed record PortalAcceptInvitationRequest(
+    string? Token, string? Password, string? LastName, JsonElement? PreferredLanguage = null);
 
 public sealed record PortalAcceptExistingInvitationRequest(string? Token, string? Password);
 

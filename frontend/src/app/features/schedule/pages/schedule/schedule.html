@@ -4,7 +4,7 @@
 <div class="sched">
   <div class="sched__main">
     @if (forbidden()) {
-      <h1 class="sched__title">Dispatch calendar</h1>
+      <h1 class="sched__title">{{ 'schedule.schedule.dispatchCalendar' | transloco }}</h1>
       <p class="sched__forbidden">{{ forbiddenMessage }}</p>
     } @else if (store.optionsStatus() === 'loading') {
       <div class="sched__skeletons" aria-busy="true">
@@ -24,12 +24,12 @@
             size="small"
             (click)="store.retryAll()"
           >
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
     } @else if (branches().length === 0) {
-      <h1 class="sched__title">Dispatch calendar</h1>
+      <h1 class="sched__title">{{ 'schedule.schedule.dispatchCalendar' | transloco }}</h1>
       <p class="sched__empty">{{ noBranchesMessage }}</p>
     } @else {
       <app-schedule-toolbar
@@ -66,7 +66,7 @@
             [attr.aria-expanded]="panelOpen()"
             (click)="panelOpen.set(!panelOpen())"
           >
-            Unscheduled ({{ store.total() }})
+            {{ 'schedule.schedule.unscheduled' | transloco: { total: store.total() } }}
           </button>
         }
         @if (layout() !== 'tablet' || panelOpen()) {

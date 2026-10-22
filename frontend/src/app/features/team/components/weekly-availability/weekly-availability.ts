@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { DayForm } from '../../models/skills-availability.model';
 import {
@@ -19,7 +20,9 @@ import {
 } from '../../utils/skills-availability';
 import { formatWindowTime } from '../../utils/team-format';
 
-export const TIME_ORDER_MESSAGE = 'End time must be after start time.';
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const TIME_ORDER_MESSAGE = (): string => t('team.weeklyAvailability.timeOrderMessage');
 
 interface DayView {
   readonly day: DayForm;
@@ -36,7 +39,7 @@ interface DayView {
 /** BR-05–BR-08 weekly table: presentational; the page owns the form state, copy and reset. */
 @Component({
   selector: 'app-weekly-availability',
-  imports: [FormsModule, ButtonDirective, Select, ToggleSwitch],
+  imports: [LocalizedRefPipe, TranslocoPipe, FormsModule, ButtonDirective, Select, ToggleSwitch],
   templateUrl: './weekly-availability.html',
   styleUrl: './weekly-availability.scss',
 })
@@ -64,9 +67,9 @@ export class WeeklyAvailability {
         breakText:
           day.breakStart !== null && day.breakEnd !== null
             ? `${formatWindowTime(day.breakStart)} – ${formatWindowTime(day.breakEnd)}`
-            : 'No break',
+            : t('team.weeklyAvailability.noBreak'),
         startError: errors['start'] ?? null,
-        endError: windowValid(day) ? (errors['end'] ?? null) : TIME_ORDER_MESSAGE,
+        endError: windowValid(day) ? (errors['end'] ?? null) : TIME_ORDER_MESSAGE(),
         breakError: errors['break'] ?? errors['breakstart'] ?? errors['breakend'] ?? null,
       };
     }),

@@ -1,31 +1,37 @@
 @if (visible()) {
   <section class="review" aria-labelledby="review-title">
     @if (thanks()) {
-      <h2 id="review-title" class="review__title" role="status">Thanks for your feedback!</h2>
+      <h2 id="review-title" class="review__title" role="status">
+        {{ 'invoices.publicReviewCard.thanksForYourFeedback' | transloco }}
+      </h2>
     } @else {
-      <h2 id="review-title" class="review__title">How was your service?</h2>
+      <h2 id="review-title" class="review__title">
+        {{ 'invoices.publicReviewCard.howWasYourService' | transloco }}
+      </h2>
       <dl class="review__facts">
         @if (invoice().service.technicianName; as name) {
           <div>
-            <dt>Technician</dt>
+            <dt>{{ 'invoices.publicReviewCard.technician' | transloco }}</dt>
             <dd>{{ name }}</dd>
           </div>
         }
         @if (serviceDate(); as date) {
           <div>
-            <dt>Service date</dt>
+            <dt>{{ 'invoices.publicReviewCard.serviceDate' | transloco }}</dt>
             <dd>{{ date }}</dd>
           </div>
         }
       </dl>
-      <p class="review__hint">Your feedback helps us improve.</p>
+      <p class="review__hint">{{ 'invoices.publicReviewCard.yourFeedbackHelpsUs' | transloco }}</p>
 
       <fieldset
         class="stars"
         [disabled]="sending()"
         [attr.aria-describedby]="ratingError() ? 'rating-error' : null"
       >
-        <legend class="sr-only">Rating, required</legend>
+        <legend class="sr-only">
+          {{ 'invoices.publicReviewCard.ratingRequired' | transloco }}
+        </legend>
         @for (star of stars; track star) {
           <label class="stars__star" [class.stars__star--on]="star <= rating()">
             <input
@@ -42,20 +48,31 @@
               [class.pi-star]="star > rating()"
               aria-hidden="true"
             ></i>
-            <span class="sr-only">{{ star }} {{ star === 1 ? 'star' : 'stars' }}</span>
+            <span class="sr-only"
+              >{{ star }}
+              {{
+                star === 1
+                  ? ('invoices.publicReviewCard.star' | transloco)
+                  : ('invoices.publicReviewCard.stars' | transloco)
+              }}</span
+            >
           </label>
         }
       </fieldset>
       @if (ratingError()) {
-        <p id="rating-error" class="review__error" role="alert">Select a rating.</p>
+        <p id="rating-error" class="review__error" role="alert">
+          {{ 'invoices.publicReviewCard.selectARating' | transloco }}
+        </p>
       }
 
-      <label class="sr-only" for="review-comment">Tell us about your experience (optional)</label>
+      <label class="sr-only" for="review-comment">{{
+        'invoices.publicReviewCard.tellUsAboutYour' | transloco
+      }}</label>
       <textarea
         id="review-comment"
         class="review__comment"
         rows="3"
-        placeholder="Tell us about your experience (optional)"
+        [attr.placeholder]="'invoices.publicReviewCard.tellUsAboutYour' | transloco"
         [value]="comment()"
         [disabled]="sending()"
         [attr.aria-invalid]="commentError() ? 'true' : null"
@@ -65,7 +82,9 @@
         {{ comment().length }}/{{ max }}
       </p>
       @if (commentError()) {
-        <p class="review__error" role="alert">Use 500 characters or fewer.</p>
+        <p class="review__error" role="alert">
+          {{ 'invoices.publicReviewCard.use500CharactersOr' | transloco }}
+        </p>
       }
       @if (failed()) {
         <p class="review__error" role="alert">{{ failedMessage }}</p>
@@ -82,9 +101,11 @@
         @if (sending()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        Submit review
+        {{ 'invoices.publicReviewCard.submitReview' | transloco }}
       </button>
-      <button type="button" class="review__later" (click)="dismissed.set(true)">Maybe later</button>
+      <button type="button" class="review__later" (click)="dismissed.set(true)">
+        {{ 'invoices.publicReviewCard.maybeLater' | transloco }}
+      </button>
     }
   </section>
 }

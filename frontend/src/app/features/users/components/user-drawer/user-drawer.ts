@@ -24,6 +24,7 @@ import { Select } from 'primeng/select';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -62,6 +63,10 @@ import {
 } from './user-drawer.validators';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+import { tRole } from '../../../../core/i18n/translate';
+import { CodeLabelPipe } from '../../../../core/i18n/code-label.pipe';
 export type UserDrawerMode = 'invite' | 'edit';
 
 const TITLE_ID = 'user-drawer-title';
@@ -90,6 +95,9 @@ interface RoleOption {
 @Component({
   selector: 'app-user-drawer',
   imports: [
+    CodeLabelPipe,
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     Checkbox,
@@ -130,8 +138,13 @@ export class UserDrawer {
   readonly titleId = TITLE_ID;
   readonly summaryId = SUMMARY_ID;
   readonly controlIds = CONTROL_IDS;
-  readonly expiryOptions = EXPIRY_OPTIONS.map((days) => ({ days, label: `${days} days` }));
-  readonly lastOwnerTooltip = LAST_OWNER_TOOLTIP;
+  readonly expiryOptions = EXPIRY_OPTIONS.map((days) => ({
+    days,
+    label: t('users.userDrawer.days', { days: days }),
+  }));
+  get lastOwnerTooltip(): string {
+    return LAST_OWNER_TOOLTIP();
+  }
 
   readonly email = signal('');
   readonly firstName = signal('');
@@ -150,8 +163,12 @@ export class UserDrawer {
   private submitAttempted = false;
 
   readonly isInvite = computed(() => this.mode() === 'invite');
-  readonly title = computed(() => (this.isInvite() ? 'Invite user' : 'Edit access'));
-  readonly submitLabel = computed(() => (this.isInvite() ? 'Send invitation' : 'Save access'));
+  readonly title = computed(() =>
+    this.isInvite() ? t('users.userDrawer.inviteUser') : t('users.userDrawer.editAccess'),
+  );
+  readonly submitLabel = computed(() =>
+    this.isInvite() ? t('users.userDrawer.sendInvitation') : t('users.userDrawer.saveAccess'),
+  );
   readonly selectedRole = computed(
     () => this.roles().find((role) => role.code === this.roleCode()) ?? null,
   );
@@ -164,7 +181,7 @@ export class UserDrawer {
     const lockOthers = !this.isInvite() && (this.row()?.isLastOwner ?? false);
     return this.roles().map((role) => ({
       code: role.code,
-      name: role.name,
+      name: tRole(role.code, role.name),
       disabled: lockOthers && role.code !== this.row()?.roleCode,
     }));
   });
@@ -372,7 +389,7 @@ export class UserDrawer {
     const row = this.row();
     if (!this.isInvite() && row !== null && isAccessReduced(row, access)) {
       this.confirmationService.confirm({
-        header: 'Change access',
+        header: t('users.userDrawer.changeAccess'),
         message: changeAccessMessage(
           row,
           fullName(row),
@@ -381,8 +398,8 @@ export class UserDrawer {
           this.branches(),
         ),
         defaultFocus: 'reject',
-        acceptButtonProps: { label: 'Change access' },
-        rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+        acceptButtonProps: { label: t('users.userDrawer.changeAccess') },
+        rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
         accept: () => this.send(access),
       });
       return;
@@ -419,8 +436,8 @@ export class UserDrawer {
   private handleSaved(saved: UserRow, row: UserRow | null): void {
     this.submitting.set(false);
     const summary = this.isInvite()
-      ? `Invitation sent to ${saved.email}`
-      : `Access updated for ${fullName(row ?? saved)}`;
+      ? t('users.userDrawer.invitationSentTo', { email: saved.email })
+      : t('users.userDrawer.accessUpdatedFor', { saved: fullName(row ?? saved) });
     this.messageService.add({ severity: 'success', summary });
     this.closed.emit();
     this.saved.emit();
@@ -435,7 +452,7 @@ export class UserDrawer {
         this.unauthorized.emit();
         return;
       case 'not-found':
-        this.messageService.add({ severity: 'error', summary: USER_UNAVAILABLE_MESSAGE });
+        this.messageService.add({ severity: 'error', summary: USER_UNAVAILABLE_MESSAGE() });
         this.closed.emit();
         this.saved.emit();
         return;
@@ -447,12 +464,12 @@ export class UserDrawer {
           return;
         }
         if (row?.kind === 'invitation') {
-          this.messageService.add({ severity: 'error', summary: NOT_PENDING_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: NOT_PENDING_MESSAGE() });
           this.closed.emit();
           this.saved.emit();
           return;
         }
-        this.pageMessage.set(row?.isLastOwner ? LAST_OWNER_TOOLTIP : apiError.message);
+        this.pageMessage.set(row?.isLastOwner ? LAST_OWNER_TOOLTIP() : apiError.message);
         this.focusSummary();
         return;
       }
@@ -473,8 +490,8 @@ export class UserDrawer {
     // 502 is the delivery-port failure (BR-11); any other failure keeps the input and shows its message.
     this.pageMessage.set(
       apiError?.status === 502
-        ? DELIVERY_FAILED_MESSAGE
-        : (apiError?.message ?? 'An unexpected error occurred. Please try again.'),
+        ? DELIVERY_FAILED_MESSAGE()
+        : (apiError?.message ?? t('users.userDrawer.anUnexpectedErrorOccurred')),
     );
     this.focusSummary();
   }
@@ -491,7 +508,7 @@ export class UserDrawer {
     if (this.dirty()) {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this user',
+          subject: t('users.userDrawer.thisUser'),
           accept: () => this.closed.emit(),
         }),
       );

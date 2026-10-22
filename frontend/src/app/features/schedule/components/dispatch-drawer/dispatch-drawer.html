@@ -6,13 +6,15 @@
 >
   <ng-container ngProjectAs="[drawerHeader]">
     <div class="dd__heading">
-      <h2 class="dd__title" [id]="titleId" tabindex="-1">Assign work order</h2>
+      <h2 class="dd__title" [id]="titleId" tabindex="-1">
+        {{ 'schedule.dispatchDrawer.assignWorkOrder' | transloco }}
+      </h2>
     </div>
     <span class="dd__spacer"></span>
     <button
       type="button"
       class="dd__close"
-      aria-label="Close assign work order"
+      [attr.aria-label]="'schedule.dispatchDrawer.closeAssignWorkOrder' | transloco"
       [disabled]="saving()"
       (click)="requestClose()"
     >
@@ -32,7 +34,7 @@
         <span class="dd__inline">
           {{ loadFailedMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="reload()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -47,9 +49,10 @@
               <strong>#{{ current.workOrder.displayNumber.replace('#', '') }}</strong>
               <span class="dd__status">{{ statusLabel(current.status) }}</span>
               @if (current.recurrence; as recurrence) {
-                <span class="dd__wo-visit"
-                  >Visit {{ current.visitNumber }} of {{ recurrence.count }}</span
-                >
+                <span class="dd__wo-visit">{{
+                  'schedule.dispatchDrawer.visitOf'
+                    | transloco: { visitNumber: current.visitNumber, count: recurrence.count }
+                }}</span>
               }
             </p>
             <p class="dd__wo-title">{{ current.workOrder.title }}</p>
@@ -57,14 +60,19 @@
         </div>
 
         @if (current.status === 'cancelled') {
-          <section class="dd__cancelled" aria-label="Cancellation">
+          <section
+            class="dd__cancelled"
+            [attr.aria-label]="'schedule.dispatchDrawer.cancellation' | transloco"
+          >
             @if (cancelledText(); as text) {
               <p class="dd__strong">{{ text }}</p>
             } @else {
-              <p class="dd__strong">Cancelled</p>
+              <p class="dd__strong">{{ 'schedule.dispatchDrawer.cancelled' | transloco }}</p>
             }
             @if (current.cancellation; as cancellation) {
-              <p>Reason: {{ cancellation.reason }}</p>
+              <p>
+                {{ 'schedule.dispatchDrawer.reason' | transloco: { reason: cancellation.reason } }}
+              </p>
             }
           </section>
         }
@@ -78,7 +86,9 @@
           <p-message severity="warn" [closable]="false">
             <span class="dd__inline">
               {{ changedMessage }}
-              <button pButton type="button" size="small" (click)="reload()">Reload</button>
+              <button pButton type="button" size="small" (click)="reload()">
+                {{ 'schedule.dispatchDrawer.reload' | transloco }}
+              </button>
             </span>
           </p-message>
         } @else if (saveProblem() === 'failed') {
@@ -86,7 +96,7 @@
         }
 
         <section class="dd__section" aria-labelledby="dd-customer">
-          <h3 class="dd__heading-2" id="dd-customer">Customer</h3>
+          <h3 class="dd__heading-2" id="dd-customer">{{ 'common.customer' | transloco }}</h3>
           <div class="dd__customer">
             <span class="dd__avatar" aria-hidden="true">{{ current.customer.initials }}</span>
             <div>
@@ -113,7 +123,7 @@
               {{ priorityText[current.workOrder.priority] }}
             </span>
             @if (current.workOrder.requiredSkills.length > 0) {
-              <span>Requires:</span>
+              <span>{{ 'schedule.dispatchDrawer.requires' | transloco }}</span>
               @for (skill of current.workOrder.requiredSkills; track skill.id) {
                 <span class="dd__skill">{{ skill.name }}</span>
               }
@@ -122,9 +132,11 @@
         </section>
 
         <section class="dd__section" aria-labelledby="dd-schedule">
-          <h3 class="dd__heading-2" id="dd-schedule">Schedule</h3>
+          <h3 class="dd__heading-2" id="dd-schedule">
+            {{ 'schedule.dispatchDrawer.schedule' | transloco }}
+          </h3>
           <app-form-field
-            label="Date"
+            [label]="'common.date' | transloco"
             [controlId]="controlIds.date"
             [required]="true"
             [error]="errors().date ?? null"
@@ -143,7 +155,7 @@
           </app-form-field>
           <div class="dd__row">
             <app-form-field
-              label="Start time"
+              [label]="'schedule.dispatchDrawer.startTime' | transloco"
               [controlId]="controlIds.start"
               [required]="true"
               [error]="errors().start ?? null"
@@ -154,8 +166,8 @@
                 optionLabel="label"
                 optionValue="code"
                 appendTo="body"
-                placeholder="Select"
-                ariaLabel="Start time"
+                [placeholder]="'schedule.dispatchDrawer.select' | transloco"
+                [ariaLabel]="'schedule.dispatchDrawer.startTime' | transloco"
                 fluid
                 [ngModel]="f.start"
                 (ngModelChange)="patch({ start: $event }, 'start')"
@@ -164,7 +176,7 @@
               />
             </app-form-field>
             <app-form-field
-              label="End time"
+              [label]="'schedule.dispatchDrawer.endTime' | transloco"
               [controlId]="controlIds.end"
               [required]="true"
               [error]="errors().end ?? null"
@@ -175,8 +187,8 @@
                 optionLabel="label"
                 optionValue="code"
                 appendTo="body"
-                placeholder="Select"
-                ariaLabel="End time"
+                [placeholder]="'schedule.dispatchDrawer.select' | transloco"
+                [ariaLabel]="'schedule.dispatchDrawer.endTime' | transloco"
                 fluid
                 [ngModel]="f.end"
                 (ngModelChange)="patch({ end: $event }, 'end')"
@@ -186,7 +198,7 @@
             </app-form-field>
           </div>
           <app-form-field
-            label="Preferred arrival window"
+            [label]="'schedule.dispatchDrawer.preferredArrivalWindow' | transloco"
             [controlId]="controlIds.arrivalWindow"
             [error]="errors().arrivalWindow ?? null"
           >
@@ -196,23 +208,30 @@
               optionLabel="label"
               optionValue="code"
               appendTo="body"
-              ariaLabel="Preferred arrival window"
+              [ariaLabel]="'schedule.dispatchDrawer.preferredArrivalWindow' | transloco"
               fluid
               [ngModel]="f.arrivalWindow"
               (ngModelChange)="patch({ arrivalWindow: $event }, 'arrivalWindow')"
               [disabled]="readOnly() || saving()"
             />
           </app-form-field>
-          <p class="dd__meta">Times use the branch time zone ({{ current.timezone }}).</p>
+          <p class="dd__meta">
+            {{
+              'schedule.dispatchDrawer.timesUseTheBranch'
+                | transloco: { timezone: current.timezone }
+            }}
+          </p>
         </section>
 
         <section class="dd__section" aria-labelledby="dd-technicians">
-          <h3 class="dd__heading-2" id="dd-technicians">Assign to technicians</h3>
+          <h3 class="dd__heading-2" id="dd-technicians">
+            {{ 'schedule.dispatchDrawer.assignToTechnicians' | transloco }}
+          </h3>
           @if (technicians().length === 0) {
             <p class="dd__meta">{{ noTechniciansMessage }}</p>
           } @else {
             <app-form-field
-              label="Technicians"
+              [label]="'schedule.dispatchDrawer.technicians' | transloco"
               [controlId]="controlIds.technicianIds"
               [error]="errors().technicianIds ?? null"
               [helper]="hasSchedule() ? null : needsScheduleMessage"
@@ -226,8 +245,8 @@
                 [showToggleAll]="false"
                 display="chip"
                 appendTo="body"
-                placeholder="Select up to 5 technicians"
-                ariaLabel="Technicians"
+                [placeholder]="'schedule.dispatchDrawer.selectUpTo5' | transloco"
+                [ariaLabel]="'schedule.dispatchDrawer.technicians' | transloco"
                 fluid
                 [ngModel]="f.technicianIds"
                 (ngModelChange)="setTechnicians($event)"
@@ -275,7 +294,9 @@
                 class="dd__primary"
                 [attr.aria-describedby]="describedBy('primaryTechnicianId')"
               >
-                <legend class="dd__legend">Primary technician</legend>
+                <legend class="dd__legend">
+                  {{ 'schedule.dispatchDrawer.primaryTechnician' | transloco }}
+                </legend>
                 @for (technician of selectedTechnicians(); track technician.id) {
                   <div class="dd__tech">
                     <label class="dd__radio">
@@ -289,7 +310,9 @@
                         (change)="patch({ primaryId: technician.id }, 'primaryTechnicianId')"
                       />
                       <span class="dd__strong">{{ technician.name }}</span>
-                      <span class="dd__meta">Primary</span>
+                      <span class="dd__meta">{{
+                        'schedule.dispatchDrawer.primary' | transloco
+                      }}</span>
                       @if (technician.id === bestMatchId()) {
                         <p-tag severity="success" icon="pi pi-star" value="Best match" />
                       }
@@ -329,15 +352,24 @@
               {{ result.skills.label }}
             </p>
           }
-          <p class="dd__meta">Planned materials: {{ current.workOrder.plannedMaterialsCount }}</p>
+          <p class="dd__meta">
+            {{
+              'schedule.dispatchDrawer.plannedMaterials'
+                | transloco: { plannedMaterialsCount: current.workOrder.plannedMaterialsCount }
+            }}
+          </p>
         </section>
 
         @if (hasSchedule()) {
           <section class="dd__section" aria-labelledby="dd-impact">
-            <h3 class="dd__heading-2" id="dd-impact">Workload and route impact</h3>
+            <h3 class="dd__heading-2" id="dd-impact">
+              {{ 'schedule.dispatchDrawer.workloadAndRouteImpact' | transloco }}
+            </h3>
             @if (evaluating()) {
               <p-skeleton height="3rem" />
-              <p class="dd__meta" aria-busy="true">Checking availability…</p>
+              <p class="dd__meta" aria-busy="true">
+                {{ 'schedule.dispatchDrawer.checkingAvailability' | transloco }}
+              </p>
             } @else if (evaluationFailed()) {
               <p-message severity="error" [closable]="false">
                 <span class="dd__inline">
@@ -349,7 +381,7 @@
                     size="small"
                     (click)="queueEvaluation()"
                   >
-                    Retry
+                    {{ 'common.retry' | transloco }}
                   </button>
                 </span>
               </p-message>
@@ -408,11 +440,11 @@
         @if (reasonNeeded()) {
           <app-form-field
             class="dd__field"
-            label="Justification"
+            [label]="'schedule.dispatchDrawer.justification' | transloco"
             [controlId]="controlIds.overrideReason"
             [required]="true"
             [error]="errors().overrideReason ?? null"
-            helper="Required to confirm despite the conflicts."
+            [helper]="'schedule.dispatchDrawer.requiredToConfirmDespite' | transloco"
           >
             <textarea
               pTextarea
@@ -430,7 +462,9 @@
         }
 
         <section class="dd__section dd__section--notify" aria-labelledby="dd-notify">
-          <h3 class="dd__heading-2" id="dd-notify">Customer notification</h3>
+          <h3 class="dd__heading-2" id="dd-notify">
+            {{ 'schedule.dispatchDrawer.customerNotification' | transloco }}
+          </h3>
           <span class="dd__check-row">
             <p-checkbox
               [inputId]="controlIds.notifyCustomer"
@@ -439,7 +473,9 @@
               (ngModelChange)="patch({ notify: $event }, 'notifyCustomer')"
               [disabled]="emailDisabled()"
               [attr.aria-describedby]="describedBy('notifyCustomer')"
-            /><label [for]="controlIds.notifyCustomer">Email customer when scheduled</label>
+            /><label [for]="controlIds.notifyCustomer">{{
+              'schedule.dispatchDrawer.emailCustomerWhenScheduled' | transloco
+            }}</label>
           </span>
           @if (!current.customer.hasEmail) {
             <p class="dd__hint">{{ noEmailMessage }}</p>
@@ -455,7 +491,9 @@
               [binary]="true"
               [ngModel]="false"
               [disabled]="true"
-            /><label for="dispatch-sms">Send SMS to customer</label>
+            /><label for="dispatch-sms">{{
+              'schedule.dispatchDrawer.sendSmsToCustomer' | transloco
+            }}</label>
           </span>
           <p class="dd__hint">{{ smsMessage }}</p>
           <span class="dd__check-row">
@@ -465,13 +503,15 @@
               [ngModel]="f.sendDetails"
               (ngModelChange)="patch({ sendDetails: $event })"
               [disabled]="emailDisabled() || !f.notify"
-            /><label for="dispatch-details">Send technician details to customer</label>
+            /><label for="dispatch-details">{{
+              'schedule.dispatchDrawer.sendTechnicianDetailsTo' | transloco
+            }}</label>
           </span>
         </section>
 
         <app-form-field
           class="dd__field"
-          label="Internal note (optional)"
+          [label]="'schedule.dispatchDrawer.internalNoteOptional' | transloco"
           [controlId]="controlIds.dispatchNote"
           [error]="errors().dispatchNote ?? null"
         >
@@ -479,7 +519,7 @@
             pTextarea
             rows="3"
             fluid
-            placeholder="Add a note for the technician…"
+            [attr.placeholder]="'schedule.dispatchDrawer.addANoteFor' | transloco"
             [id]="controlIds.dispatchNote"
             [ngModel]="f.note"
             (ngModelChange)="patch({ note: $event ?? '' }, 'dispatchNote')"
@@ -503,12 +543,12 @@
         [disabled]="saving()"
         (click)="openCancel($any($event.currentTarget))"
       >
-        Cancel visit
+        {{ 'schedule.dispatchDrawer.cancelVisit' | transloco }}
       </button>
     }
     @if (loadState() === 'ready' && readOnly()) {
       <button pButton type="button" severity="secondary" [outlined]="true" (click)="requestClose()">
-        Close
+        {{ 'common.close' | transloco }}
       </button>
     } @else {
       <button
@@ -520,7 +560,7 @@
         [disabled]="saving()"
         (click)="requestClose()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
       <button
         pButton
@@ -540,7 +580,7 @@
   [header]="cancelTitle()"
   [modal]="true"
   appendTo="body"
-  closeAriaLabel="Close"
+  [closeAriaLabel]="'common.close' | transloco"
   [draggable]="false"
   [resizable]="false"
   [closable]="!cancelling()"
@@ -552,7 +592,7 @@
   <div class="dd__cancel">
     <p class="dd__meta">{{ cancelText() }}</p>
     <app-form-field
-      label="Reason"
+      [label]="'schedule.dispatchDrawer.reason2' | transloco"
       controlId="dispatch-cancel-reason"
       [required]="true"
       [error]="cancelError() === cancelReasonMessage ? cancelError() : null"
@@ -587,7 +627,7 @@
         [disabled]="cancelling()"
         (click)="closeCancel()"
       >
-        Keep visit
+        {{ 'schedule.dispatchDrawer.keepVisit' | transloco }}
       </button>
       <button
         pButton
@@ -597,7 +637,7 @@
         [loading]="cancelling()"
         (click)="confirmCancel()"
       >
-        Cancel visit
+        {{ 'schedule.dispatchDrawer.cancelVisit' | transloco }}
       </button>
     </div>
   </div>

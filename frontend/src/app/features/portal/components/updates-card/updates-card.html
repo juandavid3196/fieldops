@@ -2,12 +2,14 @@
   <header class="pcard__head">
     <h2 class="pcard__title" id="updates-title">
       <i class="pi pi-comments pcard__icon" aria-hidden="true"></i>
-      Messages &amp; updates
+      {{ 'portal.updatesCard.messagesUpdates' | transloco }}
     </h2>
-    <a class="pcard__link" routerLink="/portal/updates">View all</a>
+    <a class="pcard__link" routerLink="/portal/updates">{{
+      'portal.updatesCard.viewAll' | transloco
+    }}</a>
   </header>
   @if (rows().length === 0) {
-    <p class="pcard__empty">No updates yet.</p>
+    <p class="pcard__empty">{{ 'portal.updatesCard.noUpdatesYet' | transloco }}</p>
   } @else {
     <ul class="updates">
       @for (row of rows(); track $index) {
@@ -19,7 +21,7 @@
           ></span>
           <a class="updates__main" [routerLink]="row.link">
             @if (row.update.isUnread) {
-              <span class="sr">Unread: </span>
+              <span class="sr">{{ 'portal.updatesCard.unread' | transloco }} </span>
             }
             <span class="updates__title">{{ row.update.title }}</span>
             <span class="updates__sub">{{ row.update.subtitle }}</span>

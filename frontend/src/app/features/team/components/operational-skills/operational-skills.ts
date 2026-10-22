@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { CatalogSkill, SkillRow } from '../../models/skills-availability.model';
 import {
@@ -15,12 +16,14 @@ import {
   sortSkills,
 } from '../../utils/skills-availability';
 
-export const NO_SKILLS_MESSAGE = 'No skills assigned yet.';
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const NO_SKILLS_MESSAGE = (): string => t('team.operationalSkills.noSkillsMessage');
 
 /** BR-09/BR-10 skills card: presentational; the page owns the rows and the catalog. */
 @Component({
   selector: 'app-operational-skills',
-  imports: [FormsModule, ButtonDirective, Select, Tag],
+  imports: [LocalizedRefPipe, TranslocoPipe, FormsModule, ButtonDirective, Select, Tag],
   templateUrl: './operational-skills.html',
   styleUrl: './operational-skills.scss',
 })
@@ -36,7 +39,9 @@ export class OperationalSkills {
   readonly rowsChange = output<SkillRow[]>();
   readonly manageRequested = output<void>();
 
-  protected readonly emptyMessage = NO_SKILLS_MESSAGE;
+  protected get emptyMessage(): string {
+    return NO_SKILLS_MESSAGE();
+  }
   protected readonly levels = LEVEL_OPTIONS;
   protected readonly sorted = computed(() => sortSkills(this.rows()));
   protected readonly choices = computed(() => pickerSkills(this.catalog(), this.rows()));

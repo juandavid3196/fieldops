@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TechnicianVisitDetail } from '../../models/technician-visits.model';
 import { TechnicianVisitsService } from '../../services/technician-visits.service';
@@ -34,19 +35,23 @@ import { JobTasks } from '../job-tasks/job-tasks';
 import { JobTime } from '../job-time/job-time';
 import { PhotoOpenRequest, VisitPhoto } from '../visit-photos/visit-photos';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 export const TICK_MS = 30_000;
-export const NOTES_INVALID_MESSAGE = 'Notes can be up to 4000 characters.';
+export const NOTES_INVALID_MESSAGE = (): string =>
+  t('technicianJobs.jobProgress.notesInvalidMessage');
 export const REVIEW_READY_TEXT = 'Next: customer review and signature';
-export const REVIEW_BLOCKED_TEXT = 'Complete required tasks and add before and after photos';
-export const NOT_PRIMARY_JOB_TEXT = 'The primary technician manages this job.';
+export const REVIEW_BLOCKED_TEXT = (): string => t('technicianJobs.jobProgress.reviewBlockedText');
+export const NOT_PRIMARY_JOB_TEXT = (): string => t('technicianJobs.jobProgress.notPrimaryJobText');
 
 export type JobSection = 'tasks' | 'materials' | 'photos' | 'notes';
-const SECTIONS: readonly { readonly id: JobSection; readonly label: string }[] = [
-  { id: 'tasks', label: 'Tasks' },
-  { id: 'materials', label: 'Materials' },
-  { id: 'photos', label: 'Photos' },
-  { id: 'notes', label: 'Notes' },
-];
+const SECTIONS: readonly { readonly id: JobSection; readonly label: string }[] = localizedList(
+  () => [
+    { id: 'tasks', label: t('technicianJobs.jobProgress.tasks') },
+    { id: 'materials', label: t('technicianJobs.jobProgress.materials') },
+    { id: 'photos', label: t('technicianJobs.jobProgress.photos') },
+    { id: 'notes', label: t('common.notes') },
+  ],
+);
 
 /**
  * Design 9 body for `in_progress` and `paused` visits: banner, section navigation, every section
@@ -54,7 +59,16 @@ const SECTIONS: readonly { readonly id: JobSection; readonly label: string }[] =
  */
 @Component({
   selector: 'app-job-progress',
-  imports: [RouterLink, ButtonDirective, JobTasks, JobMaterials, JobEvidence, JobNotes, JobTime],
+  imports: [
+    TranslocoPipe,
+    RouterLink,
+    ButtonDirective,
+    JobTasks,
+    JobMaterials,
+    JobEvidence,
+    JobNotes,
+    JobTime,
+  ],
   templateUrl: './job-progress.html',
   styleUrls: ['./job-progress.scss', './job-progress-bar.scss'],
 })
@@ -78,8 +92,12 @@ export class JobProgress {
 
   readonly todayPath = '/today';
   readonly readyText = REVIEW_READY_TEXT;
-  readonly blockedText = REVIEW_BLOCKED_TEXT;
-  readonly notPrimaryText = NOT_PRIMARY_JOB_TEXT;
+  get blockedText(): string {
+    return REVIEW_BLOCKED_TEXT();
+  }
+  get notPrimaryText(): string {
+    return NOT_PRIMARY_JOB_TEXT();
+  }
   readonly sections = SECTIONS;
   /** Section marked in the navigation: the last one clicked, then whichever is scrolled into view. */
   readonly activeSection = signal<JobSection>('tasks');
@@ -106,7 +124,9 @@ export class JobProgress {
     const visit = this.visit();
     return visit.actualStartedAt === null
       ? null
-      : `Started ${formatTime(visit.actualStartedAt, visit.timezone)}`;
+      : t('technicianJobs.jobProgress.started', {
+          value: formatTime(visit.actualStartedAt, visit.timezone),
+        });
   });
   readonly ready = computed(() => reviewReady(this.visit()));
   readonly notesDirty = computed(
@@ -157,11 +177,15 @@ export class JobProgress {
     (action === 'pause' ? this.visits.pause(visitId) : this.visits.resume(visitId)).subscribe({
       next: (result) => {
         this.transition.set(null);
-        this.announcement.set(action === 'pause' ? 'Job paused.' : 'Job resumed.');
+        this.announcement.set(
+          action === 'pause'
+            ? t('technicianJobs.jobProgress.jobPaused')
+            : t('technicianJobs.jobProgress.jobResumed'),
+        );
         this.visitChange.emit(result.visit);
       },
       error: (error: unknown) => {
-        const failure = classifyMutationFailure(error, { conflict: PAUSE_INVALID_MESSAGE });
+        const failure = classifyMutationFailure(error, { conflict: PAUSE_INVALID_MESSAGE() });
         this.transition.set(null);
         this.transitionError.set(failure.message);
         if (failure.reload) {
@@ -212,12 +236,12 @@ export class JobProgress {
         }
       },
       error: (error: unknown) => {
-        const failure = classifyMutationFailure(error, { invalid: NOTES_INVALID_MESSAGE });
+        const failure = classifyMutationFailure(error, { invalid: NOTES_INVALID_MESSAGE() });
         this.notesPending.set(false);
         this.notesError.set(failure.message);
         if (this.exitRequested) {
           this.exitRequested = false;
-          this.exitError.set(NOTES_SAVE_ERROR_MESSAGE);
+          this.exitError.set(NOTES_SAVE_ERROR_MESSAGE());
         } else if (failure.reload) {
           this.reload.emit();
         }

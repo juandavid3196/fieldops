@@ -19,11 +19,13 @@
     </span>
 
     <div class="line__item">
-      <span class="line__label" aria-hidden="true">Item</span>
+      <span class="line__label" aria-hidden="true">{{
+        'quotes.quoteLineItems.item' | transloco
+      }}</span>
       <input
         pInputText
         fluid
-        [attr.aria-label]="label('Item name', row) + ' (' + typeLabel(row.line.type) + ')'"
+        [attr.aria-label]="label('itemName', row) + ' (' + typeLabel(row.line.type) + ')'"
         [attr.data-field-key]="row.line.uid + '.name'"
         [attr.aria-invalid]="error(row, 'name') ? 'true' : null"
         [attr.aria-describedby]="describedBy(row, 'name')"
@@ -37,12 +39,12 @@
     </div>
 
     <div class="line__description">
-      <span class="line__label" aria-hidden="true">Description</span>
+      <span class="line__label" aria-hidden="true">{{ 'common.description' | transloco }}</span>
       <textarea
         pTextarea
         rows="2"
         fluid
-        [attr.aria-label]="label('Description', row)"
+        [attr.aria-label]="label('description', row)"
         [attr.data-field-key]="row.line.uid + '.description'"
         [attr.aria-invalid]="error(row, 'description') ? 'true' : null"
         [attr.aria-describedby]="describedBy(row, 'description')"
@@ -58,7 +60,9 @@
     </div>
 
     <div class="line__qty">
-      <span class="line__label" aria-hidden="true">Qty</span>
+      <span class="line__label" aria-hidden="true">{{
+        'quotes.quoteLineItems.qty' | transloco
+      }}</span>
       <div class="line__affix">
         <input
           pInputText
@@ -67,7 +71,7 @@
           min="0"
           step="any"
           fluid
-          [attr.aria-label]="label('Quantity', row)"
+          [attr.aria-label]="label('quantity', row)"
           [attr.data-field-key]="row.line.uid + '.quantity'"
           [attr.aria-invalid]="error(row, 'quantity') ? 'true' : null"
           [attr.aria-describedby]="describedBy(row, 'quantity')"
@@ -85,7 +89,9 @@
     </div>
 
     <div class="line__rate">
-      <span class="line__label" aria-hidden="true">Rate</span>
+      <span class="line__label" aria-hidden="true">{{
+        'quotes.quoteLineItems.rate' | transloco
+      }}</span>
       <div class="line__affix">
         <span class="line__prefix" aria-hidden="true">$</span>
         <input
@@ -96,7 +102,7 @@
           min="0"
           step="0.01"
           fluid
-          [attr.aria-label]="label('Rate', row)"
+          [attr.aria-label]="label('rate', row)"
           [attr.data-field-key]="row.line.uid + '.unitPrice'"
           [attr.aria-invalid]="error(row, 'unitPrice') ? 'true' : null"
           [attr.aria-describedby]="describedBy(row, 'unitPrice')"
@@ -113,14 +119,16 @@
     </div>
 
     <div class="line__tax">
-      <span class="line__label" aria-hidden="true">Tax</span>
+      <span class="line__label" aria-hidden="true">{{
+        'quotes.quoteLineItems.tax' | transloco
+      }}</span>
       <p-select
         appendTo="body"
         fluid
         optionLabel="label"
         optionValue="code"
-        [ariaLabel]="label('Tax', row)"
-        [options]="taxOptions"
+        [ariaLabel]="label('tax', row)"
+        [options]="taxOptions | localizedRef"
         [disabled]="disabled()"
         [ngModel]="row.line.taxable"
         (ngModelChange)="patch(row, { taxable: $event })"
@@ -128,7 +136,7 @@
     </div>
 
     <div class="line__amount">
-      <span class="line__label" aria-hidden="true">Amount</span>
+      <span class="line__label" aria-hidden="true">{{ 'common.amount' | transloco }}</span>
       <output class="line__money" [class.line__money--busy]="isBusy()">{{ amount(row) }}</output>
     </div>
 
@@ -137,7 +145,10 @@
         type="button"
         class="line__icon"
         aria-haspopup="menu"
-        [attr.aria-label]="'More actions for ' + name(row) + ', line ' + (row.index + 1)"
+        [attr.aria-label]="
+          'quotes.quoteLineItems.moreActionsForLine'
+            | transloco: { row: name(row), value: row.index + 1 }
+        "
         [attr.data-menu-uid]="row.line.uid"
         [disabled]="disabled()"
         (click)="openMenu($event, row)"
@@ -147,7 +158,9 @@
       <button
         type="button"
         class="line__icon line__icon--danger"
-        [attr.aria-label]="'Delete ' + name(row) + ', line ' + (row.index + 1)"
+        [attr.aria-label]="
+          'quotes.quoteLineItems.deleteLine' | transloco: { row: name(row), value: row.index + 1 }
+        "
         [disabled]="disabled()"
         (click)="lineRemove.emit(row.line.uid)"
       >
@@ -158,12 +171,14 @@
       <div class="line__details">
         <span class="line__type">{{ typeLabel(row.line.type) }}</span>
         <div class="line__field">
-          <label class="line__label" [for]="'line-' + row.line.uid + '-unit'">Unit</label>
+          <label class="line__label" [for]="'line-' + row.line.uid + '-unit'">{{
+            'quotes.quoteLineItems.unit' | transloco
+          }}</label>
           <input
             pInputText
             fluid
             [id]="'line-' + row.line.uid + '-unit'"
-            [attr.aria-label]="label('Unit', row)"
+            [attr.aria-label]="label('unit', row)"
             [attr.data-field-key]="row.line.uid + '.unit'"
             [attr.aria-invalid]="error(row, 'unit') ? 'true' : null"
             [attr.aria-describedby]="describedBy(row, 'unit')"
@@ -177,7 +192,8 @@
         </div>
         <div class="line__field">
           <span class="line__label line__label--cost">
-            Unit cost <span class="line__internal">Internal</span>
+            {{ 'quotes.quoteLineItems.unitCost' | transloco }}
+            <span class="line__internal">{{ 'quotes.quoteLineItems.internal' | transloco }}</span>
           </span>
           <input
             pInputText
@@ -186,7 +202,7 @@
             min="0"
             step="0.01"
             fluid
-            [attr.aria-label]="label('Unit cost (internal)', row)"
+            [attr.aria-label]="label('unitCost', row)"
             [attr.data-field-key]="row.line.uid + '.unitCost'"
             [attr.aria-invalid]="error(row, 'unitCost') ? 'true' : null"
             [attr.aria-describedby]="describedBy(row, 'unitCost')"
@@ -206,7 +222,9 @@
 </ng-template>
 
 <section class="items" aria-labelledby="quote-lines-heading">
-  <h2 class="items__title" id="quote-lines-heading">Line items</h2>
+  <h2 class="items__title" id="quote-lines-heading">
+    {{ 'quotes.quoteLineItems.lineItems' | transloco }}
+  </h2>
 
   @if (lines().length === 0) {
     <p class="items__empty">{{ emptyMessage }}</p>
@@ -214,14 +232,14 @@
 
   @if (regular().length > 0) {
     <div class="items__columns" aria-hidden="true">
-      <span>Item</span>
-      <span>Description</span>
-      <span>Qty</span>
-      <span>Rate</span>
-      <span>Tax</span>
-      <span>Amount</span>
+      <span>{{ 'quotes.quoteLineItems.item' | transloco }}</span>
+      <span>{{ 'common.description' | transloco }}</span>
+      <span>{{ 'quotes.quoteLineItems.qty' | transloco }}</span>
+      <span>{{ 'quotes.quoteLineItems.rate' | transloco }}</span>
+      <span>{{ 'quotes.quoteLineItems.tax' | transloco }}</span>
+      <span>{{ 'common.amount' | transloco }}</span>
     </div>
-    <ul class="items__list" aria-label="Line items">
+    <ul class="items__list" [attr.aria-label]="'quotes.quoteLineItems.lineItems' | transloco">
       @for (row of regular(); track row.line.uid) {
         <ng-container *ngTemplateOutlet="lineRow; context: { $implicit: row }" />
       }
@@ -238,7 +256,7 @@
       (click)="openPicker('service', false)"
     >
       <i class="pi pi-plus" aria-hidden="true"></i>
-      Add service
+      {{ 'quotes.quoteLineItems.addService' | transloco }}
     </button>
     <button
       pButton
@@ -249,7 +267,7 @@
       (click)="openPicker('product', false)"
     >
       <i class="pi pi-plus" aria-hidden="true"></i>
-      Add material
+      {{ 'quotes.quoteLineItems.addMaterial' | transloco }}
     </button>
     <button
       pButton
@@ -260,7 +278,7 @@
       (click)="openPicker(null, true)"
     >
       <i class="pi pi-plus" aria-hidden="true"></i>
-      Add optional item
+      {{ 'quotes.quoteLineItems.addOptionalItem' | transloco }}
     </button>
   </div>
   @if (errors()['lines']; as errorText) {
@@ -269,8 +287,8 @@
 
   @if (optional().length > 0) {
     <h3 class="items__subtitle" id="quote-optional-heading">
-      Optional items
-      <span class="items__chip">Optional</span>
+      {{ 'quotes.quoteLineItems.optionalItems' | transloco }}
+      <span class="items__chip">{{ 'common.optional' | transloco }}</span>
     </h3>
     <ul class="items__list" aria-labelledby="quote-optional-heading">
       @for (row of optional(); track row.line.uid) {

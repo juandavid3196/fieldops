@@ -6,12 +6,14 @@
   (closeRequested)="requestClose()"
 >
   <ng-container ngProjectAs="[drawerHeader]">
-    <h2 class="availability-drawer__title" [id]="titleId" tabindex="-1">Edit availability</h2>
+    <h2 class="availability-drawer__title" [id]="titleId" tabindex="-1">
+      {{ 'team.availabilityDrawer.editAvailability' | transloco }}
+    </h2>
     <span class="availability-drawer__spacer"></span>
     <button
       type="button"
       class="availability-drawer__close"
-      aria-label="Close edit availability"
+      [attr.aria-label]="'team.availabilityDrawer.closeEditAvailability' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -23,7 +25,9 @@
     @if (open()) {
       <div class="availability-drawer__body">
         <div class="availability-drawer__field">
-          <label class="availability-drawer__label" for="availability-technician">Technician</label>
+          <label class="availability-drawer__label" for="availability-technician">{{
+            'team.availabilityDrawer.technician' | transloco
+          }}</label>
           <app-technician-picker
             inputId="availability-technician"
             [value]="selection()"
@@ -46,14 +50,17 @@
             <span class="availability-drawer__inline">
               {{ loadFailedMessage }}
               <button pButton type="button" severity="secondary" size="small" (click)="load()">
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
         } @else if (detail(); as technician) {
           <div class="availability-drawer__meta">
             <span class="availability-drawer__badge">{{ scheduleLabel() }}</span>
-            <span class="availability-drawer__zone">Time zone: {{ technician.timezoneLabel }}</span>
+            <span class="availability-drawer__zone">{{
+              'team.availabilityDrawer.timeZone'
+                | transloco: { timezoneLabel: technician.timezoneLabel }
+            }}</span>
           </div>
 
           @if (stale()) {
@@ -61,20 +68,23 @@
               <span class="availability-drawer__inline">
                 {{ staleMessage }}
                 <button pButton type="button" severity="secondary" size="small" (click)="load()">
-                  Reload
+                  {{ 'team.availabilityDrawer.reload' | transloco }}
                 </button>
               </span>
             </p-message>
           } @else if (saveFailed()) {
             <p-message severity="error" [closable]="false" role="alert">
-              We couldn't save availability. Try again.
+              {{ 'team.availabilityDrawer.weCouldnTSave' | transloco }}
             </p-message>
           }
           @if (hasServerErrors()) {
             <app-error-summary [id]="summaryId" [links]="errorLinks()" />
           }
 
-          <ul class="availability-drawer__days" aria-label="Weekly schedule">
+          <ul
+            class="availability-drawer__days"
+            [attr.aria-label]="'team.availabilityDrawer.weeklySchedule' | transloco"
+          >
             @for (row of rows(); track row.day.dayOfWeek) {
               <li class="availability-drawer__day">
                 <span class="availability-drawer__day-name">{{ row.label }}</span>
@@ -84,8 +94,10 @@
                   optionLabel="label"
                   optionValue="value"
                   [inputId]="'availability-' + row.day.dayOfWeek + '-status'"
-                  [ariaLabel]="row.label + ' availability'"
-                  [options]="statusChoices"
+                  [ariaLabel]="
+                    'team.availabilityDrawer.availability' | transloco: { label: row.label }
+                  "
+                  [options]="statusChoices | localizedRef"
                   [ngModel]="row.day.isAvailable"
                   [disabled]="submitting()"
                   [invalid]="row.error.day !== undefined"
@@ -97,8 +109,10 @@
                   optionLabel="label"
                   optionValue="value"
                   [inputId]="'availability-' + row.day.dayOfWeek + '-start'"
-                  [ariaLabel]="row.label + ' start time'"
-                  [options]="row.startChoices"
+                  [ariaLabel]="
+                    'team.availabilityDrawer.startTime' | transloco: { label: row.label }
+                  "
+                  [options]="row.startChoices | localizedRef"
                   [ngModel]="row.day.start"
                   [disabled]="submitting() || !row.day.isAvailable"
                   [invalid]="row.error.start !== undefined"
@@ -110,8 +124,8 @@
                   optionLabel="label"
                   optionValue="value"
                   [inputId]="'availability-' + row.day.dayOfWeek + '-end'"
-                  [ariaLabel]="row.label + ' end time'"
-                  [options]="row.endChoices"
+                  [ariaLabel]="'team.availabilityDrawer.endTime' | transloco: { label: row.label }"
+                  [options]="row.endChoices | localizedRef"
                   [ngModel]="row.day.end"
                   [disabled]="submitting() || !row.day.isAvailable"
                   [invalid]="row.error.end !== undefined"
@@ -124,7 +138,9 @@
             }
           </ul>
         } @else {
-          <p class="availability-drawer__hint">Choose a technician to edit availability.</p>
+          <p class="availability-drawer__hint">
+            {{ 'team.availabilityDrawer.chooseATechnicianTo' | transloco }}
+          </p>
         }
       </div>
     }
@@ -142,7 +158,7 @@
           [disabled]="busy()"
           (click)="useBranchHours()"
         >
-          Use branch hours
+          {{ 'team.availabilityDrawer.useBranchHours' | transloco }}
         </button>
       }
     }
@@ -156,7 +172,7 @@
       [disabled]="submitting()"
       (click)="requestClose()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button
       pButton
@@ -168,7 +184,7 @@
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Save
+      {{ 'common.save' | transloco }}
     </button>
   </ng-container>
 </app-drawer-shell>

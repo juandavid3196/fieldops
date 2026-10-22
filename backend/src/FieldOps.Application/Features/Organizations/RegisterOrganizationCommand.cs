@@ -12,7 +12,8 @@ public sealed record RegisterOrganizationCommand(
     RegisterOrganizationCommand.OrganizationInput Organization,
     RegisterOrganizationCommand.BranchInput Branch,
     RegisterOrganizationCommand.OwnerInput Owner,
-    IPAddress? ClientIp)
+    IPAddress? ClientIp,
+    string? PreferredLanguage = null)
 {
     public sealed record OrganizationInput(
         string? Name,

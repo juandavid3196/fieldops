@@ -2,9 +2,10 @@
   @if (showAll()) {
     <app-help-breadcrumb [items]="crumbs" />
     <a class="home__back" [routerLink]="base">
-      <i class="pi pi-arrow-left" aria-hidden="true"></i>Back to Help &amp; support
+      <i class="pi pi-arrow-left" aria-hidden="true"></i
+      >{{ 'help.helpHome.backToHelpSupport' | transloco }}
     </a>
-    <h1 class="home__title">All help articles</h1>
+    <h1 class="home__title">{{ 'help.helpHome.allHelpArticles' | transloco }}</h1>
     @for (group of groups; track group.topic.slug) {
       <section class="home__group" [attr.aria-labelledby]="'all-' + group.topic.slug">
         <h2 class="home__group-title" [id]="'all-' + group.topic.slug">{{ group.topic.title }}</h2>
@@ -14,12 +15,12 @@
   } @else {
     <app-help-breadcrumb [items]="crumbs" />
     <header>
-      <h1 class="home__title">Help &amp; support</h1>
-      <p class="home__subtitle">Find answers and learn how to use FieldOps.</p>
+      <h1 class="home__title">{{ 'help.helpHome.helpSupport' | transloco }}</h1>
+      <p class="home__subtitle">{{ 'help.helpHome.findAnswersAndLearn' | transloco }}</p>
     </header>
 
     <app-help-search-field
-      placeholder="Search help articles..."
+      [placeholder]="'help.helpHome.searchHelpArticles' | transloco"
       inputId="help-search"
       [(query)]="query"
     />
@@ -27,16 +28,22 @@
 
     @if (searching()) {
       <section class="home__section" aria-labelledby="help-results-title">
-        <h2 class="home__section-title" id="help-results-title">Search results</h2>
+        <h2 class="home__section-title" id="help-results-title">
+          {{ 'help.helpHome.searchResults' | transloco }}
+        </h2>
         @if (results().length > 0) {
           <app-help-result-list [results]="results()" />
         } @else {
-          <p class="home__empty">No articles match "{{ trimmedQuery() }}"</p>
+          <p class="home__empty">
+            {{ 'help.helpHome.noArticlesMatch' | transloco: { trimmedQuery: trimmedQuery() } }}
+          </p>
         }
       </section>
     } @else {
       <section class="home__section" aria-labelledby="help-topics-title">
-        <h2 class="home__section-title" id="help-topics-title">Browse by topic</h2>
+        <h2 class="home__section-title" id="help-topics-title">
+          {{ 'help.helpHome.browseByTopic' | transloco }}
+        </h2>
         <div class="home__topics">
           @for (topic of topics; track topic.slug) {
             <app-help-topic-card [topic]="topic" />
@@ -47,7 +54,9 @@
 
     <div class="home__columns">
       <section class="home__popular" aria-labelledby="help-popular-title">
-        <h2 class="home__card-title" id="help-popular-title">Popular questions</h2>
+        <h2 class="home__card-title" id="help-popular-title">
+          {{ 'help.helpHome.popularQuestions' | transloco }}
+        </h2>
         <p-accordion [multiple]="true" [(value)]="openQuestions">
           @for (entry of questions; track entry.question; let index = $index) {
             <p-accordion-panel [value]="'q' + index">
@@ -68,8 +77,11 @@
                   <a
                     class="home__read"
                     [routerLink]="[base, entry.topicSlug, entry.articleSlug]"
-                    [attr.aria-label]="'Read the full article: ' + entry.target.article.title"
-                    >Read the full article</a
+                    [attr.aria-label]="
+                      'help.helpHome.readTheFullArticle'
+                        | transloco: { title: entry.target.article.title }
+                    "
+                    >{{ 'help.helpHome.readTheFullArticle2' | transloco }}</a
                   >
                 }
               </p-accordion-content>

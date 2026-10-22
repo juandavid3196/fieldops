@@ -32,6 +32,7 @@ import {
   of,
   switchMap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -76,6 +77,8 @@ import {
   validateGenerate,
 } from '../../utils/billing-review-format';
 
+import { localizedList, t as translateKey } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 /** Toast outlet whose template adds the View invoice action (BR-27). */
 const INVOICE_TOAST_KEY = 'invoice-link';
 
@@ -97,19 +100,19 @@ interface Option<T> {
 }
 
 // Not `readonly`: PrimeNG's `p-select` `[options]` input requires a mutable array type.
-const COMPLETED_OPTIONS: Option<CompletedRange>[] = [
-  { code: '7d', label: 'Last 7 days' },
-  { code: '30d', label: 'Last 30 days' },
-  { code: '90d', label: 'Last 90 days' },
-  { code: 'all', label: 'All time' },
-];
-const VARIANCE_OPTIONS: Option<VarianceFilter>[] = [
-  { code: 'all', label: 'All' },
-  { code: 'none', label: 'No variance' },
-  { code: 'any', label: 'Any variance' },
-  { code: 'labor', label: 'Labor variance' },
-  { code: 'material', label: 'Material variance' },
-];
+const COMPLETED_OPTIONS: Option<CompletedRange>[] = localizedList(() => [
+  { code: '7d', label: translateKey('billingReview.billingReview.last7Days') },
+  { code: '30d', label: translateKey('billingReview.billingReview.last30Days') },
+  { code: '90d', label: translateKey('billingReview.billingReview.last90Days') },
+  { code: 'all', label: translateKey('billingReview.billingReview.allTime') },
+]);
+const VARIANCE_OPTIONS: Option<VarianceFilter>[] = localizedList(() => [
+  { code: 'all', label: translateKey('billingReview.billingReview.all') },
+  { code: 'none', label: translateKey('billingReview.billingReview.noVariance') },
+  { code: 'any', label: translateKey('billingReview.billingReview.anyVariance') },
+  { code: 'labor', label: translateKey('billingReview.billingReview.laborVariance') },
+  { code: 'material', label: translateKey('billingReview.billingReview.materialVariance') },
+]);
 const SEARCH_DEBOUNCE_MS = 300;
 const VARIANCE_KEY = 'billing-variance';
 const DISCARD_KEY = 'billing-note';
@@ -134,6 +137,8 @@ export const DEFAULT_FILTERS: QueueFilters = {
 @Component({
   selector: 'app-billing-review',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     ButtonDirective,
     ConfirmDialog,
     FormsModule,
@@ -167,10 +172,18 @@ export class BillingReview {
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
   readonly invoiceToastKey = INVOICE_TOAST_KEY;
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly errorMessage = QUEUE_ERROR_MESSAGE;
-  readonly detailErrorMessage = DETAIL_ERROR_MESSAGE;
-  readonly goneMessage = DETAIL_GONE_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get errorMessage(): string {
+    return QUEUE_ERROR_MESSAGE();
+  }
+  get detailErrorMessage(): string {
+    return DETAIL_ERROR_MESSAGE();
+  }
+  get goneMessage(): string {
+    return DETAIL_GONE_MESSAGE();
+  }
   readonly varianceKey = VARIANCE_KEY;
   readonly discardKey = DISCARD_KEY;
   readonly noteMaxLength = NOTE_MAX_LENGTH;
@@ -223,16 +236,20 @@ export class BillingReview {
   readonly completedOptions = COMPLETED_OPTIONS;
   readonly varianceOptions = VARIANCE_OPTIONS;
   readonly branchOptions = computed<Option<string>[]>(() => [
-    { code: 'all', label: 'All branches' },
+    { code: 'all', label: translateKey('billingReview.billingReview.allBranches') },
     ...(this.options()?.branches ?? []).map((b) => ({ code: b.id, label: b.name })),
   ]);
   readonly technicianOptions = computed<Option<string>[]>(() => [
-    { code: 'all', label: 'All technicians' },
+    { code: 'all', label: translateKey('billingReview.billingReview.allTechnicians') },
     ...(this.options()?.technicians ?? []).map((t) => ({ code: t.id, label: t.name })),
   ]);
-  readonly exportMenu: MenuItem[] = [
-    { label: 'Export CSV', icon: 'pi pi-download', command: () => this.exportCsv() },
-  ];
+  readonly exportMenu: MenuItem[] = localizedList(() => [
+    {
+      label: translateKey('billingReview.billingReview.exportCsv'),
+      icon: 'pi pi-download',
+      command: () => this.exportCsv(),
+    },
+  ]);
 
   private readonly queueLoads = new Subject<string | null>();
   private readonly detailLoads = new Subject<string>();
@@ -432,11 +449,15 @@ export class BillingReview {
     }
     this.confirmations.confirm({
       key: DISCARD_KEY,
-      header: 'Discard unsaved note?',
-      message: 'You have an unsaved accounting note. If you leave now, the note will be lost.',
+      header: translateKey('billingReview.billingReview.discardUnsavedNote'),
+      message: translateKey('billingReview.billingReview.youHaveAnUnsaved'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Discard', severity: 'secondary', outlined: true },
-      rejectButtonProps: { label: 'Keep editing' },
+      acceptButtonProps: {
+        label: translateKey('billingReview.billingReview.discard'),
+        severity: 'secondary',
+        outlined: true,
+      },
+      rejectButtonProps: { label: translateKey('billingReview.billingReview.keepEditing') },
       accept: () => this.openJob(id, true),
     });
   }
@@ -543,7 +564,7 @@ export class BillingReview {
         reason: 'returned_to_queue',
       }),
       () => {
-        this.toast('success', 'Returned to quote.');
+        this.toast('success', translateKey('billingReview.billingReview.returnedToQuote'));
         this.reloadAfter(detail.header.workOrderId);
       },
     );
@@ -563,7 +584,12 @@ export class BillingReview {
         reason: 'manual',
       }),
       (state: ReviewState) => {
-        this.toast('success', mark ? 'Marked for follow-up.' : 'Follow-up removed.');
+        this.toast(
+          'success',
+          mark
+            ? translateKey('billingReview.billingReview.markedForFollowUp')
+            : translateKey('billingReview.billingReview.followUpRemoved'),
+        );
         this.applyReview(detail.header.workOrderId, state);
       },
     );
@@ -606,12 +632,15 @@ export class BillingReview {
     if (hasVariance(detail.laborVariance, detail.materialVariance) && !blocked) {
       this.confirmations.confirm({
         key: VARIANCE_KEY,
-        header: 'Generate invoice with variances?',
-        message:
-          'This job has labor or material variances. The draft invoice uses the approved quote amounts; variances stay for review only.',
+        header: translateKey('billingReview.billingReview.generateInvoiceWithVariances'),
+        message: translateKey('billingReview.billingReview.thisJobHasLabor'),
         defaultFocus: 'reject',
-        acceptButtonProps: { label: 'Generate draft' },
-        rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+        acceptButtonProps: { label: translateKey('billingReview.billingReview.generateDraft') },
+        rejectButtonProps: {
+          label: translateKey('common.cancel'),
+          severity: 'secondary',
+          outlined: true,
+        },
         accept: () => this.sendGenerate(detail, true),
       });
       return;
@@ -638,8 +667,12 @@ export class BillingReview {
           key: INVOICE_TOAST_KEY,
           severity: 'success',
           summary: result.changed
-            ? `Draft invoice ${result.invoice.number} created.`
-            : `Draft invoice ${result.invoice.number} already exists.`,
+            ? translateKey('billingReview.billingReview.draftInvoiceCreated', {
+                number: result.invoice.number,
+              })
+            : translateKey('billingReview.billingReview.draftInvoiceAlreadyExists', {
+                number: result.invoice.number,
+              }),
           data: { invoiceId: result.invoice.id },
         });
         this.reloadAfter(id);
@@ -656,18 +689,18 @@ export class BillingReview {
       const next: GenerateErrors = {
         ...errors,
         ...(keys.includes('issuedate') && !errors.issueDate
-          ? { issueDate: ISSUE_DATE_MESSAGE }
+          ? { issueDate: ISSUE_DATE_MESSAGE() }
           : {}),
         ...(keys.includes('paymentterms') && !errors.paymentTerms
-          ? { paymentTerms: TERMS_MESSAGE }
+          ? { paymentTerms: TERMS_MESSAGE() }
           : {}),
-        ...(keys.includes('note') && !errors.note ? { note: NOTE_TOO_LONG_MESSAGE } : {}),
+        ...(keys.includes('note') && !errors.note ? { note: NOTE_TOO_LONG_MESSAGE() } : {}),
       };
       this.errors.set(next);
       if (Object.keys(next).length > 0) {
         this.focusInvalid(next);
       } else {
-        this.toast('error', ACTION_FAILED_MESSAGE);
+        this.toast('error', ACTION_FAILED_MESSAGE());
       }
       return;
     }
@@ -722,13 +755,13 @@ export class BillingReview {
 
   private actionFailed(error: ApiError | null): void {
     if (error?.kind === 'forbidden') {
-      this.toast('error', READ_ONLY_MESSAGE);
+      this.toast('error', READ_ONLY_MESSAGE());
     } else if (error?.kind === 'not-found') {
-      this.toast('error', DETAIL_GONE_MESSAGE);
+      this.toast('error', DETAIL_GONE_MESSAGE());
       this.selectedId.set(null);
       this.reloadQueue();
     } else {
-      this.toast('error', ACTION_FAILED_MESSAGE);
+      this.toast('error', ACTION_FAILED_MESSAGE());
     }
   }
 
@@ -760,7 +793,7 @@ export class BillingReview {
             // The only `409` of the export is `export_too_large` (the error body is a blob).
             this.toast(
               'error',
-              kind === 'conflict' ? EXPORT_TOO_LARGE_MESSAGE : EXPORT_FAILED_MESSAGE,
+              kind === 'conflict' ? EXPORT_TOO_LARGE_MESSAGE() : EXPORT_FAILED_MESSAGE(),
             );
           }
         },

@@ -11,6 +11,7 @@ import { Skeleton } from 'primeng/skeleton';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Toast } from 'primeng/toast';
 import { Observable } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -31,9 +32,10 @@ import {
   validateProfile,
 } from '../../utils/account-validation';
 
-export const PROFILE_LOAD_ERROR = "We couldn't load your profile. Try again.";
-export const PROFILE_SAVE_ERROR = "We couldn't save your changes. Try again.";
-export const PHOTO_ERROR = "We couldn't update your photo. Try again.";
+import { t } from '../../../../core/i18n/translate';
+export const PROFILE_LOAD_ERROR = (): string => t('account.profile.profileLoadError');
+export const PROFILE_SAVE_ERROR = (): string => t('account.profile.profileSaveError');
+export const PHOTO_ERROR = (): string => t('account.profile.photoError');
 
 const FIELDS: readonly ProfileField[] = ['firstName', 'lastName', 'phone'];
 
@@ -43,6 +45,7 @@ type ProfileValues = Record<ProfileField, string>;
 @Component({
   selector: 'app-profile',
   imports: [
+    TranslocoPipe,
     ReactiveFormsModule,
     ButtonDirective,
     InputText,
@@ -67,9 +70,15 @@ export class Profile {
   private readonly destroyRef = inject(DestroyRef);
   private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
 
-  readonly loadError = PROFILE_LOAD_ERROR;
-  readonly saveErrorText = PROFILE_SAVE_ERROR;
-  readonly photoHelper = PHOTO_HELPER;
+  get loadError(): string {
+    return PROFILE_LOAD_ERROR();
+  }
+  get saveErrorText(): string {
+    return PROFILE_SAVE_ERROR();
+  }
+  get photoHelper(): string {
+    return PHOTO_HELPER();
+  }
   readonly photoAccept = PHOTO_ACCEPT;
 
   readonly form = new FormGroup({
@@ -137,7 +146,7 @@ export class Profile {
       };
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'your profile',
+          subject: t('account.profile.yourProfile'),
           accept: () => settle(true),
           reject: () => settle(false),
         }),
@@ -180,7 +189,10 @@ export class Profile {
         next: (profile) => {
           this.submitting.set(false);
           this.applyProfile(profile);
-          this.messageService.add({ severity: 'success', summary: 'Profile updated' });
+          this.messageService.add({
+            severity: 'success',
+            summary: t('account.profile.profileUpdated'),
+          });
           this.sessionService
             .refreshCurrent()
             .pipe(takeUntilDestroyed(this.destroyRef))
@@ -224,7 +236,10 @@ export class Profile {
           this.progress.set(null);
           this.hasPhoto.set(true);
           this.setSessionPhoto(uploadEvent.photo.updatedAt);
-          this.messageService.add({ severity: 'success', summary: 'Photo updated' });
+          this.messageService.add({
+            severity: 'success',
+            summary: t('account.profile.photoUpdated'),
+          });
         },
         error: (failure: unknown) => {
           this.uploading.set(false);
@@ -248,7 +263,10 @@ export class Profile {
           this.removing.set(false);
           this.hasPhoto.set(false);
           this.setSessionPhoto(null);
-          this.messageService.add({ severity: 'success', summary: 'Photo removed' });
+          this.messageService.add({
+            severity: 'success',
+            summary: t('account.profile.photoRemoved'),
+          });
         },
         error: (failure: unknown) => {
           this.removing.set(false);
@@ -310,7 +328,7 @@ export class Profile {
       return;
     }
     const fileMessage = isApiError(failure) ? failure.fieldErrors['file']?.[0] : undefined;
-    this.photoError.set(fileMessage ?? PHOTO_ERROR);
+    this.photoError.set(fileMessage ?? PHOTO_ERROR());
   }
 
   /** `401`: the session is gone; leave without the discard dialog. */

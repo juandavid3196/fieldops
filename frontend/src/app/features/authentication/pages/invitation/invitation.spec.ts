@@ -284,6 +284,8 @@ describe('Invitation', () => {
       firstName: 'Olivia',
       lastName: 'Carter',
       password: PASSWORD,
+      // app-i18n-en-es BR-08: the active UI language is stored with the new account.
+      preferredLanguage: 'en',
     });
     expect(submitButton().textContent?.trim()).toBe('Accepting…');
     expect(submitButton().disabled).toBe(true);

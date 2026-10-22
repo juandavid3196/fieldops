@@ -8,6 +8,8 @@ import {
   AuditView,
 } from '../models/audit-log.model';
 
+import { localized, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 export const DEFAULT_VIEW: AuditView = {
   from: null,
   to: null,
@@ -24,11 +26,11 @@ export const DEFAULT_VIEW: AuditView = {
   pageSize: AUDIT_PAGE_SIZES[0],
 };
 
-export const IMPACT_LABELS: Readonly<Record<AuditImpact, string>> = {
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-};
+export const IMPACT_LABELS: Readonly<Record<AuditImpact, string>> = localized(() => ({
+  high: t('auditLog.auditLogFormat.high'),
+  medium: t('auditLog.auditLogFormat.medium'),
+  low: t('auditLog.auditLogFormat.low'),
+}));
 
 export const IMPACT_ICONS: Readonly<Record<AuditImpact, string>> = {
   high: 'pi-exclamation-triangle',
@@ -71,7 +73,7 @@ function safeZone(timeZone: string | null): string | undefined {
     return undefined;
   }
   try {
-    new Intl.DateTimeFormat('en-US', { timeZone });
+    new Intl.DateTimeFormat(activeIntlLocale(), { timeZone });
     return timeZone;
   } catch {
     return undefined;
@@ -80,7 +82,7 @@ function safeZone(timeZone: string | null): string | undefined {
 
 /** `yyyy-MM-dd` of an instant in the organization zone (the browser zone before it is known). */
 export function dayIn(instant: Date, timeZone: string | null): string {
-  const parts = new Intl.DateTimeFormat('en-US', {
+  const parts = new Intl.DateTimeFormat(activeIntlLocale(), {
     timeZone: safeZone(timeZone),
     year: 'numeric',
     month: '2-digit',
@@ -105,7 +107,7 @@ function format(instant: string, timeZone: string, options: Intl.DateTimeFormatO
   if (Number.isNaN(date.getTime())) {
     return '';
   }
-  return new Intl.DateTimeFormat('en-US', { timeZone: safeZone(timeZone), ...options })
+  return new Intl.DateTimeFormat(activeIntlLocale(), { timeZone: safeZone(timeZone), ...options })
     .format(date)
     .replace(/\s/g, ' ');
 }
@@ -129,7 +131,10 @@ export function tableTime(instant: string, timeZone: string): string {
 
 /** BR-24 drawer: "MMM d, yyyy 'at' h:mm:ss a". */
 export function drawerDateTime(instant: string, timeZone: string): string {
-  return `${tableDate(instant, timeZone)} at ${tableTime(instant, timeZone)}`;
+  return t('auditLog.auditLogFormat.at', {
+    value: tableDate(instant, timeZone),
+    value2: tableTime(instant, timeZone),
+  });
 }
 
 export function initials(name: string): string {

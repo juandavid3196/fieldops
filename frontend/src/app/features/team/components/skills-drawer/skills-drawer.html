@@ -7,14 +7,18 @@
 >
   <ng-container ngProjectAs="[drawerHeader]">
     <div class="skills-drawer__heading">
-      <h2 class="skills-drawer__title" [id]="titleId" tabindex="-1">Edit skills</h2>
-      <p class="skills-drawer__subtitle">Choose the skills this technician can be assigned to.</p>
+      <h2 class="skills-drawer__title" [id]="titleId" tabindex="-1">
+        {{ 'team.skillsDrawer.editSkills' | transloco }}
+      </h2>
+      <p class="skills-drawer__subtitle">
+        {{ 'team.skillsDrawer.chooseTheSkillsThis' | transloco }}
+      </p>
     </div>
     <span class="skills-drawer__spacer"></span>
     <button
       type="button"
       class="skills-drawer__close"
-      aria-label="Close edit skills"
+      [attr.aria-label]="'team.skillsDrawer.closeEditSkills' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -26,7 +30,9 @@
     @if (open()) {
       <div class="skills-drawer__body">
         <div class="skills-drawer__field">
-          <label class="skills-drawer__label" for="skills-technician">Technician</label>
+          <label class="skills-drawer__label" for="skills-technician">{{
+            'team.skillsDrawer.technician' | transloco
+          }}</label>
           <app-technician-picker
             inputId="skills-technician"
             [value]="selection()"
@@ -47,7 +53,7 @@
         } @else if (loadFailed() || catalogFailed()) {
           <p-message severity="error" [closable]="false">
             <span class="skills-drawer__inline">
-              We couldn't load skills.
+              {{ 'team.skillsDrawer.weCouldnTLoad' | transloco }}
               <button
                 pButton
                 type="button"
@@ -55,7 +61,7 @@
                 size="small"
                 (click)="catalogFailed() ? loadCatalog() : load()"
               >
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
@@ -65,27 +71,34 @@
               <span class="skills-drawer__inline">
                 {{ staleMessage }}
                 <button pButton type="button" severity="secondary" size="small" (click)="load()">
-                  Reload
+                  {{ 'team.skillsDrawer.reload' | transloco }}
                 </button>
               </span>
             </p-message>
           } @else if (saveFailed()) {
             <p-message severity="error" [closable]="false" role="alert">
-              We couldn't save skills. Try again.
+              {{ 'team.skillsDrawer.weCouldnTSave' | transloco }}
             </p-message>
           }
           @if (activeSkills().length === 0) {
-            <p class="skills-drawer__hint">No skills defined yet.</p>
+            <p class="skills-drawer__hint">
+              {{ 'team.skillsDrawer.noSkillsDefinedYet' | transloco }}
+            </p>
           } @else {
             <section class="skills-drawer__section" aria-labelledby="skills-selected-title">
               <div class="skills-drawer__row">
-                <h3 id="skills-selected-title" class="skills-drawer__label">Selected skills</h3>
+                <h3 id="skills-selected-title" class="skills-drawer__label">
+                  {{ 'team.skillsDrawer.selectedSkills' | transloco }}
+                </h3>
                 <p class="skills-drawer__count" aria-live="polite">
-                  {{ selectedCount() }} selected
+                  {{ 'team.skillsDrawer.selected' | transloco: { selectedCount: selectedCount() } }}
                 </p>
               </div>
               @if (selectedSkills().length > 0) {
-                <ul class="skills-drawer__chips" aria-label="Selected skills">
+                <ul
+                  class="skills-drawer__chips"
+                  [attr.aria-label]="'team.skillsDrawer.selectedSkills' | transloco"
+                >
                   @for (skill of selectedSkills(); track skill.id) {
                     <li class="skills-drawer__chip">
                       {{ skill.name }}
@@ -93,7 +106,9 @@
                         type="button"
                         class="skills-drawer__chip-remove"
                         [disabled]="submitting()"
-                        [attr.aria-label]="'Remove ' + skill.name"
+                        [attr.aria-label]="
+                          'team.skillsDrawer.remove' | transloco: { name: skill.name }
+                        "
                         (click)="remove(skill.id)"
                       >
                         <i class="pi pi-times" aria-hidden="true"></i>
@@ -104,7 +119,7 @@
               }
               <p class="skills-drawer__note">
                 <i class="pi pi-info-circle" aria-hidden="true"></i>
-                New skills start at Intermediate level.
+                {{ 'team.skillsDrawer.newSkillsStartAt' | transloco }}
               </p>
             </section>
             @if (skillsError(); as message) {
@@ -117,8 +132,8 @@
                 type="search"
                 fluid
                 class="skills-drawer__search"
-                placeholder="Search skill catalog..."
-                aria-label="Search skills"
+                [attr.placeholder]="'team.skillsDrawer.searchSkillCatalog' | transloco"
+                [attr.aria-label]="'team.skillsDrawer.searchSkills' | transloco"
                 maxlength="100"
                 [ngModel]="searchText()"
                 (ngModelChange)="onSearch($event)"
@@ -128,19 +143,26 @@
               class="skills-drawer__filter"
               appendTo="body"
               fluid
-              ariaLabel="Show skills"
-              [options]="filterOptions"
+              [ariaLabel]="'team.skillsDrawer.showSkills' | transloco"
+              [options]="filterOptions | localizedRef"
               optionLabel="label"
               optionValue="code"
               [ngModel]="filter()"
               (ngModelChange)="filter.set($event)"
             />
             <section class="skills-drawer__section" aria-labelledby="skills-available-title">
-              <h3 id="skills-available-title" class="skills-drawer__label">Available skills</h3>
+              <h3 id="skills-available-title" class="skills-drawer__label">
+                {{ 'team.skillsDrawer.availableSkills' | transloco }}
+              </h3>
               @if (visibleSkills().length === 0) {
-                <p class="skills-drawer__hint">No skills match.</p>
+                <p class="skills-drawer__hint">
+                  {{ 'team.skillsDrawer.noSkillsMatch' | transloco }}
+                </p>
               } @else {
-                <ul class="skills-drawer__list" aria-label="Skills">
+                <ul
+                  class="skills-drawer__list"
+                  [attr.aria-label]="'team.skillsDrawer.skills' | transloco"
+                >
                   @for (skill of visibleSkills(); track skill.id) {
                     <li>
                       <label class="skills-drawer__option">
@@ -166,14 +188,18 @@
             </section>
           }
         } @else {
-          <p class="skills-drawer__hint">Choose a technician to edit skills.</p>
+          <p class="skills-drawer__hint">
+            {{ 'team.skillsDrawer.chooseATechnicianTo' | transloco }}
+          </p>
         }
       </div>
     }
   </ng-container>
 
   <ng-container ngProjectAs="[drawerFooter]">
-    <p class="skills-drawer__footer-note">Changes affect future job matching.</p>
+    <p class="skills-drawer__footer-note">
+      {{ 'team.skillsDrawer.changesAffectFutureJob' | transloco }}
+    </p>
     <span class="skills-drawer__spacer"></span>
     <button
       pButton
@@ -184,7 +210,7 @@
       [disabled]="submitting()"
       (click)="requestClose()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button
       pButton
@@ -196,7 +222,7 @@
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Save changes
+      {{ 'team.skillsDrawer.saveChanges' | transloco }}
     </button>
   </ng-container>
 </app-drawer-shell>

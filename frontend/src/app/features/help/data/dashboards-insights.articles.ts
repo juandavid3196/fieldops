@@ -1,166 +1,152 @@
 import { HelpSection } from '../models/help.model';
 
+import { localizedList, t } from '../../../core/i18n/translate';
 /** Dashboards and insights articles. Content describes only behavior FieldOps implements (BR-10). */
-export const DASHBOARDS_INSIGHTS_SECTIONS: readonly HelpSection[] = [
+export const DASHBOARDS_INSIGHTS_SECTIONS: readonly HelpSection[] = localizedList(() => [
   {
-    label: 'DASHBOARDS',
+    label: t('help.dashboardsInsightsArticles.dashboards'),
     articles: [
       {
         slug: 'read-the-operations-dashboard',
-        title: 'Read the Operations Dashboard',
-        description: "Monitor today's visits and technicians.",
+        title: t('help.dashboardsInsightsArticles.readTheOperationsDashboard'),
+        description: t('help.dashboardsInsightsArticles.monitorTodaysVisitsAnd'),
         icon: 'pi-th-large',
-        introduction:
-          'The Operations Dashboard shows how the day is going: visits, people and anything that needs action.',
-        callout:
-          'Owner, Operations manager and Dispatcher land on the Dashboard. Operations manager and Dispatcher see this Operations view; the Owner can switch between Business and Operations.',
+        introduction: t('help.dashboardsInsightsArticles.theOperationsDashboardShows'),
+        callout: t('help.dashboardsInsightsArticles.ownerOperationsManagerAnd'),
         steps: [
           {
-            text: 'Choose a Branch and a Date, or select Today to return to the current day. Select Filters to narrow by Technician or Service category.',
+            text: t('help.dashboardsInsightsArticles.chooseABranchAnd'),
           },
           {
-            text: 'Read the key figures: jobs, Unassigned, At risk / delayed, Technician utilization and On-time arrival.',
+            text: t('help.dashboardsInsightsArticles.readTheKeyFigures'),
           },
-          { text: 'Review the visit list, then Needs attention for items that require follow-up.' },
-          { text: 'Check Technician availability to see who is working and who is free.' },
+          { text: t('help.dashboardsInsightsArticles.reviewTheVisitList') },
+          { text: t('help.dashboardsInsightsArticles.checkTechnicianAvailabilityTo') },
           {
-            text: 'Scroll to Estimated vs actual duration, Service performance and Live operational activity for trends.',
+            text: t('help.dashboardsInsightsArticles.scrollToEstimatedVs'),
           },
           {
-            text: 'Select Open dispatch board to assign or adjust visits, and the refresh icon to reload the data.',
+            text: t('help.dashboardsInsightsArticles.selectOpenDispatchBoard'),
           },
         ],
-        whatHappensNext: 'The links in each card open the related jobs, schedule or team page.',
+        whatHappensNext: t('help.dashboardsInsightsArticles.theLinksInEach'),
       },
       {
         slug: 'read-the-business-overview',
-        title: 'Read the Business Overview',
-        description: 'Follow revenue, pipeline and cash flow.',
+        title: t('help.dashboardsInsightsArticles.readTheBusinessOverview'),
+        description: t('help.dashboardsInsightsArticles.followRevenuePipelineAnd'),
         icon: 'pi-chart-line',
-        introduction:
-          'The Business Overview summarizes financial results and capacity for a chosen period.',
-        callout:
-          'The Business view is available to the Owner only. Switch to it with the Business / Operations control on the Dashboard.',
+        introduction: t('help.dashboardsInsightsArticles.theBusinessOverviewSummarizes'),
+        callout: t('help.dashboardsInsightsArticles.theBusinessViewIs'),
         steps: [
           {
-            text: 'Choose a Branch and a Date range: This month, Last month, Last 30 days, This quarter, This year or Custom.',
+            text: t('help.dashboardsInsightsArticles.chooseABranchAnd2'),
           },
           {
-            text: 'Turn on Compare to previous period to see changes against the previous period.',
+            text: t('help.dashboardsInsightsArticles.turnOnCompareTo'),
           },
-          { text: 'Read the key figures, then Revenue & estimated profit and Cash flow snapshot.' },
+          { text: t('help.dashboardsInsightsArticles.readTheKeyFigures2') },
           {
-            text: 'Review Sales pipeline, Branch performance, Service profitability estimates and Team & capacity.',
+            text: t('help.dashboardsInsightsArticles.reviewSalesPipelineBranch'),
           },
-          { text: 'Check Owner attention for alerts that need a decision.' },
-          { text: 'Select Export report to download the report for the period.' },
+          { text: t('help.dashboardsInsightsArticles.checkOwnerAttentionFor') },
+          { text: t('help.dashboardsInsightsArticles.selectExportReportTo') },
         ],
-        whatHappensNext:
-          'Profit and profitability figures are estimates based on the data recorded in FieldOps.',
+        whatHappensNext: t('help.dashboardsInsightsArticles.profitAndProfitabilityFigures'),
       },
       {
         slug: 'use-the-overview-page',
-        title: 'Use the Overview page',
-        description: 'Know what you see without a dashboard.',
+        title: t('help.dashboardsInsightsArticles.useTheOverviewPage'),
+        description: t('help.dashboardsInsightsArticles.knowWhatYouSee'),
         icon: 'pi-home',
-        introduction: 'Roles without a dashboard land on the Overview welcome page instead.',
-        callout:
-          "Accounting and Viewer roles land on Overview. Technicians use Today's jobs, and the Owner, Operations manager and Dispatcher use the Dashboard.",
+        introduction: t('help.dashboardsInsightsArticles.rolesWithoutADashboard'),
+        callout: t('help.dashboardsInsightsArticles.accountingAndViewerRoles'),
         steps: [
-          { text: 'Sign in to open Overview. It greets you with Welcome and your first name.' },
-          { text: 'Read your Organization and Role to confirm which account you are using.' },
+          { text: t('help.dashboardsInsightsArticles.signInToOpen') },
+          { text: t('help.dashboardsInsightsArticles.readYourOrganizationAnd') },
           {
-            text: 'Use the sidebar to open the areas your role can access, such as Reports or Audit log.',
+            text: t('help.dashboardsInsightsArticles.useTheSidebarTo'),
           },
         ],
-        whatHappensNext:
-          'Overview has no charts or figures. Open Reports for business data when your role includes it.',
+        whatHappensNext: t('help.dashboardsInsightsArticles.overviewHasNoCharts'),
       },
     ],
   },
   {
-    label: 'REPORTS & ACTIVITY',
+    label: t('help.dashboardsInsightsArticles.reportsActivity'),
     articles: [
       {
         slug: 'use-the-reports-workspace',
-        title: 'Use the Reports workspace',
-        description: 'Filter, compare and export business reports.',
+        title: t('help.dashboardsInsightsArticles.useTheReportsWorkspace'),
+        description: t('help.dashboardsInsightsArticles.filterCompareAndExport'),
         icon: 'pi-chart-bar',
-        introduction:
-          'Reports lets you pick a report, filter it by period and branch, compare it and export it.',
-        callout:
-          'Owner, Operations manager, Dispatcher and Accounting can open Reports, and each sees only some reports. Job profitability and Invoice aging: Owner, Operations manager, Accounting. Quote conversion, Completed jobs & on-time performance and Technician utilization: Owner, Operations manager, Dispatcher.',
+        introduction: t('help.dashboardsInsightsArticles.reportsLetsYouPick'),
+        callout: t('help.dashboardsInsightsArticles.ownerOperationsManagerDispatcher'),
         steps: [
           {
-            text: 'Open Reports and choose a report from the catalog. Use Search reports, Favorites or Recently viewed to find one faster.',
+            text: t('help.dashboardsInsightsArticles.openReportsAndChoose'),
           },
           {
-            text: 'Set the Date range and Branch. Turn on Compare to previous period to see the change.',
+            text: t('help.dashboardsInsightsArticles.setTheDateRange'),
           },
           {
-            text: 'Use the filters under the report name, then select Apply filters, or Reset to clear them.',
+            text: t('help.dashboardsInsightsArticles.useTheFiltersUnder'),
           },
           {
-            text: 'Read the summary figures, the chart and the table. Sort columns and change pages in the table.',
+            text: t('help.dashboardsInsightsArticles.readTheSummaryFigures'),
           },
-          { text: 'Select the star to add the report to Favorites.' },
+          { text: t('help.dashboardsInsightsArticles.selectTheStarTo') },
           {
-            text: 'Select Export CSV or Download PDF to export. Export history opens a list of earlier exports; files are not stored, so select Open report to run one again.',
+            text: t('help.dashboardsInsightsArticles.selectExportCsvOr'),
           },
         ],
-        whatHappensNext:
-          'Invoice aging reflects today, so its date range and comparison are turned off.',
+        whatHappensNext: t('help.dashboardsInsightsArticles.invoiceAgingReflectsToday'),
       },
       {
         slug: 'review-the-audit-log',
-        title: 'Review the Audit log',
-        description: 'Trace who changed what and when.',
+        title: t('help.dashboardsInsightsArticles.reviewTheAuditLog'),
+        description: t('help.dashboardsInsightsArticles.traceWhoChangedWhat'),
         icon: 'pi-history',
-        introduction:
-          'The Audit log records changes made in your organization so you can review who did what and when.',
-        callout:
-          'The Audit log is available to Owner, Operations manager and Accounting. Events are read-only and cannot be edited or deleted.',
+        introduction: t('help.dashboardsInsightsArticles.theAuditLogRecords'),
+        callout: t('help.dashboardsInsightsArticles.theAuditLogIs'),
         steps: [
-          { text: 'Select Audit log in the sidebar to open the Audit trail page.' },
+          { text: t('help.dashboardsInsightsArticles.selectAuditLogIn') },
           {
-            text: 'Read the summary cards at the top: Events today, Users active, High-impact changes and Access changes.',
+            text: t('help.dashboardsInsightsArticles.readTheSummaryCards'),
           },
           {
-            text: 'Search by user, entity, reference or event ID, or filter by Date, User, Action, Entity, Branch and Impact, then select Apply filters.',
+            text: t('help.dashboardsInsightsArticles.searchByUserEntity'),
           },
-          { text: 'Sort by Timestamp or Impact and move between pages in the table.' },
+          { text: t('help.dashboardsInsightsArticles.sortByTimestampOr') },
           {
-            text: 'Select View on a row to open the Audit event with its change summary (Before and After) and metadata.',
+            text: t('help.dashboardsInsightsArticles.selectViewOnA'),
           },
-          { text: 'Select Export CSV to download the events.' },
+          { text: t('help.dashboardsInsightsArticles.selectExportCsvTo') },
         ],
-        whatHappensNext: 'In the event details you can copy the event ID to share it with support.',
+        whatHappensNext: t('help.dashboardsInsightsArticles.inTheEventDetails'),
       },
       {
         slug: 'follow-notifications',
-        title: 'Follow Notifications',
-        description: 'Stay on top of what needs attention.',
+        title: t('help.dashboardsInsightsArticles.followNotifications'),
+        description: t('help.dashboardsInsightsArticles.stayOnTopOf'),
         icon: 'pi-bell',
-        introduction:
-          'Notifications tells you about activity such as requests, quotes, visits, jobs, invoices and payments.',
-        callout:
-          'Notifications are available to internal roles, but not to technicians. For technicians the bell and Notifications are Coming soon.',
+        introduction: t('help.dashboardsInsightsArticles.notificationsTellsYouAbout'),
+        callout: t('help.dashboardsInsightsArticles.notificationsAreAvailableTo'),
         steps: [
           {
-            text: 'Select the bell icon to see recent notifications, or select View all notifications to open the full page.',
+            text: t('help.dashboardsInsightsArticles.selectTheBellIcon'),
           },
           {
-            text: 'Choose All notifications or Unread, then search or filter by Type and Date (and Branch when your organization has more than one).',
+            text: t('help.dashboardsInsightsArticles.chooseAllNotificationsOr'),
           },
           {
-            text: 'Select a notification to mark it read and, when it has a related record, open that record.',
+            text: t('help.dashboardsInsightsArticles.selectANotificationTo'),
           },
-          { text: 'Use the row menu to mark one as read or unread.' },
-          { text: 'Select Mark all as read to clear every unread notification.' },
+          { text: t('help.dashboardsInsightsArticles.useTheRowMenu') },
+          { text: t('help.dashboardsInsightsArticles.selectMarkAllAs') },
         ],
-        whatHappensNext:
-          'The bell shows the unread count. When new notifications arrive, the page offers a Refresh button.',
+        whatHappensNext: t('help.dashboardsInsightsArticles.theBellShowsThe'),
       },
     ],
   },
-];
+]);

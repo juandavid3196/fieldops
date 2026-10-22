@@ -1,3 +1,4 @@
+import { localized, t } from '../../../core/i18n/translate';
 export const HUB_TABS = ['invoices', 'payments', 'ready'] as const;
 export type HubTab = (typeof HUB_TABS)[number];
 
@@ -25,14 +26,14 @@ export const RECORDABLE_METHODS: readonly PaymentMethod[] = [
 ];
 
 /** Payment field rules: labels. */
-export const PAYMENT_METHOD_LABELS: Readonly<Record<PaymentMethod, string>> = {
-  cash: 'Cash',
-  bank_transfer: 'Bank transfer',
-  card_external: 'External card payment',
-  check: 'Check',
-  other: 'Other',
-  card_online: 'Online card',
-};
+export const PAYMENT_METHOD_LABELS: Readonly<Record<PaymentMethod, string>> = localized(() => ({
+  cash: t('invoices.invoicesHubModel.cash'),
+  bank_transfer: t('invoices.invoicesHubModel.bankTransfer'),
+  card_external: t('invoices.invoicesHubModel.externalCardPayment'),
+  check: t('invoices.invoicesHubModel.check'),
+  other: t('invoices.invoicesHubModel.other'),
+  card_online: t('invoices.invoicesHubModel.onlineCard'),
+}));
 
 /** Payment field rules: methods whose reference is required. */
 export const REFERENCE_REQUIRED_METHODS: readonly PaymentMethod[] = [
@@ -131,11 +132,13 @@ export interface InvoiceRow {
 export type PaymentStatus = 'succeeded' | 'partially_refunded' | 'refunded';
 
 /** Text tags for refunded payments (BR-31 b); `null` for a plain succeeded payment. */
-export const PAYMENT_STATUS_LABELS: Readonly<Record<PaymentStatus, string | null>> = {
-  succeeded: null,
-  partially_refunded: 'Partially refunded',
-  refunded: 'Refunded',
-};
+export const PAYMENT_STATUS_LABELS: Readonly<Record<PaymentStatus, string | null>> = localized(
+  () => ({
+    succeeded: null,
+    partially_refunded: t('invoices.invoicesHubModel.partiallyRefunded'),
+    refunded: t('invoices.invoicesHubModel.refunded'),
+  }),
+);
 
 export interface PaymentRow {
   readonly id: string;
@@ -204,37 +207,52 @@ export interface RecordPaymentResult {
   };
 }
 
-export const HUB_FORBIDDEN_MESSAGE = "You don't have access to invoices.";
-export const INVOICES_ERROR_MESSAGE = "We couldn't load invoices. Try again.";
-export const PAYMENTS_ERROR_MESSAGE = "We couldn't load payments. Try again.";
-export const READY_ERROR_MESSAGE = "We couldn't load completed jobs. Try again.";
-export const METRICS_ERROR_MESSAGE = "We couldn't load billing metrics. Try again.";
-export const OPTIONS_ERROR_MESSAGE = "We couldn't load payment options. Try again.";
-export const CUSTOMERS_ERROR_MESSAGE = "We couldn't load customers.";
-export const NO_CUSTOMERS_MESSAGE = 'No customers found.';
-export const INVOICES_EMPTY_MESSAGE = 'No invoices yet. Generate invoices from completed jobs.';
-export const INVOICES_FILTERED_EMPTY_MESSAGE = 'No invoices match these filters.';
-export const PAYMENTS_EMPTY_MESSAGE = 'No payments recorded yet.';
-export const PAYMENTS_FILTERED_EMPTY_MESSAGE = 'No payments match these filters.';
-export const READY_EMPTY_MESSAGE =
-  'No completed jobs are ready to invoice. Jobs with variances or missing requirements stay in Needs review.';
-export const EXPORT_FAILED_MESSAGE = "We couldn't export. Try again.";
-export const EXPORT_TOO_LARGE_MESSAGE = 'Narrow the filters to export 5,000 rows or fewer.';
-export const PDF_FAILED_MESSAGE = "We couldn't download the PDF. Try again.";
+export const HUB_FORBIDDEN_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.hubForbiddenMessage');
+export const INVOICES_ERROR_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.invoicesErrorMessage');
+export const PAYMENTS_ERROR_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.paymentsErrorMessage');
+export const READY_ERROR_MESSAGE = (): string => t('invoices.invoicesHubModel.readyErrorMessage');
+export const METRICS_ERROR_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.metricsErrorMessage');
+export const OPTIONS_ERROR_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.optionsErrorMessage');
+export const CUSTOMERS_ERROR_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.customersErrorMessage');
+export const NO_CUSTOMERS_MESSAGE = (): string => t('invoices.invoicesHubModel.noCustomersMessage');
+export const INVOICES_EMPTY_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.invoicesEmptyMessage');
+export const INVOICES_FILTERED_EMPTY_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.invoicesFilteredEmptyMessage');
+export const PAYMENTS_EMPTY_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.paymentsEmptyMessage');
+export const PAYMENTS_FILTERED_EMPTY_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.paymentsFilteredEmptyMessage');
+export const READY_EMPTY_MESSAGE = (): string => t('invoices.invoicesHubModel.readyEmptyMessage');
+export const EXPORT_FAILED_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.exportFailedMessage');
+export const EXPORT_TOO_LARGE_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.exportTooLargeMessage');
+export const PDF_FAILED_MESSAGE = (): string => t('invoices.invoicesHubModel.pdfFailedMessage');
 
-export const PAYMENT_FAILED_MESSAGE = "We couldn't record this payment. Try again.";
-export const PAYMENT_FORBIDDEN_MESSAGE = 'Only owners and accounting can record payments.';
-export const PAYMENT_UNAVAILABLE_MESSAGE = "This invoice isn't available.";
-export const PAYMENT_ALREADY_RECORDED_MESSAGE = 'This payment was already recorded.';
-export const RECEIPT_SENT_MESSAGE = 'Receipt sent to the customer.';
-export const RECEIPT_FAILED_MESSAGE = "Payment recorded, but we couldn't email the receipt.";
-export const PAYMENT_CONFLICT_MESSAGES: Readonly<Record<string, string>> = {
-  invoice_changed: 'This invoice changed. Refresh to see the latest.',
-  invoice_not_payable: "This invoice can't receive payments.",
-  payment_in_progress:
-    'An online card payment is in progress for this invoice. Try again in a few minutes.',
-};
-export const NO_RECIPIENT_MESSAGE = 'This invoice has no recipient email.';
+export const PAYMENT_FAILED_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.paymentFailedMessage');
+export const PAYMENT_FORBIDDEN_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.paymentForbiddenMessage');
+export const PAYMENT_UNAVAILABLE_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.paymentUnavailableMessage');
+export const PAYMENT_ALREADY_RECORDED_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.paymentAlreadyRecordedMessage');
+export const RECEIPT_SENT_MESSAGE = (): string => t('invoices.invoicesHubModel.receiptSentMessage');
+export const RECEIPT_FAILED_MESSAGE = (): string =>
+  t('invoices.invoicesHubModel.receiptFailedMessage');
+export const PAYMENT_CONFLICT_MESSAGES: Readonly<Record<string, string>> = localized(() => ({
+  invoice_changed: t('invoices.invoicesHubModel.thisInvoiceChangedRefresh'),
+  invoice_not_payable: t('invoices.invoicesHubModel.thisInvoiceCantReceive'),
+  payment_in_progress: t('invoices.invoicesHubModel.anOnlineCardPayment'),
+}));
+export const NO_RECIPIENT_MESSAGE = (): string => t('invoices.invoicesHubModel.noRecipientMessage');
 export const NOTE_MAX_LENGTH = 500;
 export const REFERENCE_MAX_LENGTH = 160;
 

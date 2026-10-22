@@ -12,6 +12,8 @@ export interface SessionUser {
   readonly email: string;
   /** ISO timestamp of the profile photo, `null` without one (account-settings BR-08). */
   readonly photoUpdatedAt: string | null;
+  /** Persisted UI language (`en` or `es`); an unsupported value is ignored (app-i18n-en-es BR-02). */
+  readonly preferredLanguage?: string;
 }
 
 export interface SessionOrganization {

@@ -1,0 +1,135 @@
+{
+  "notificationPopover": {
+    "markAllAsRead": "Mark all as read",
+    "notifications": "Notifications",
+    "viewAllNotifications": "View all notifications",
+    "youReAllCaught": "You're all caught up.",
+    "read": "read",
+    "unread": "unread"
+  },
+  "notifications": {
+    "administration": "Administration",
+    "branch": "Branch",
+    "breadcrumb": "Breadcrumb",
+    "clearFilters": "Clear filters",
+    "filterNotifications": "Filter notifications",
+    "markAllAsRead": "Mark all as read",
+    "moreActionsFor": "More actions for {{title}}",
+    "newNotificationsAvailable": "New notifications available",
+    "notificationGroups": "Notification groups",
+    "notifications": "Notifications",
+    "rowsPerPage": "Rows per page",
+    "searchNotifications": "Search notifications",
+    "searchNotifications2": "Search notifications…",
+    "stayUpdatedOnActivity": "Stay updated on activity that needs your attention.",
+    "summary": "Summary",
+    "allBranches": "All branches",
+    "allTypes": "All types",
+    "earlier": "Earlier",
+    "markAsRead": "Mark as read",
+    "markAsUnread": "Mark as unread",
+    "notifications2": "{{total}} notifications",
+    "of": "{{value}}–{{value2}} of {{total}}",
+    "read": "read",
+    "today": "Today",
+    "unread": "Unread",
+    "unread2": "unread"
+  },
+  "notificationsFormat": {
+    "allNotifications": "All notifications",
+    "anyDate": "Any date",
+    "hrAgo": "{{value}} hr ago",
+    "invoices": "Invoices",
+    "jobs": "Jobs",
+    "justNow": "Just now",
+    "last30Days": "Last 30 days",
+    "last7Days": "Last 7 days",
+    "messages": "Messages",
+    "minAgo": "{{minutes}} min ago",
+    "payments": "Payments",
+    "quotes": "Quotes",
+    "requests": "Requests",
+    "today": "Today",
+    "unread": "Unread",
+    "visits": "Visits",
+    "yesterday": "Yesterday"
+  },
+  "notificationsModel": {
+    "notificationsEmptyText": "New activity for you will appear here.",
+    "notificationsEmptyTitle": "You're all caught up",
+    "notificationsFilteredEmptyMessage": "No notifications match your filters",
+    "notificationsForbiddenMessage": "You don't have access to notifications.",
+    "notificationsLoadErrorMessage": "Couldn't load notifications.",
+    "notificationTargetGoneMessage": "This item is no longer available.",
+    "notificationUnavailableMessage": "This notification isn't available.",
+    "notificationUpdateFailedMessage": "Couldn't update the notification. Try again."
+  },
+  "templates": {
+    "request": {
+      "created": {
+        "title": "New service request",
+        "body": "{{name}} submitted {{number}}."
+      }
+    },
+    "customer": {
+      "message_sent": {
+        "title": "Customer sent a message",
+        "body": "{{contact}} from {{customer}} sent a message from the customer portal."
+      }
+    },
+    "quote": {
+      "approved": {
+        "title": "Quote {{number}} was approved",
+        "body": "{{customer}} approved the quote for {{total}}."
+      },
+      "rejected": {
+        "title": "Quote {{number}} was declined",
+        "body": "{{customer}} declined the quote."
+      },
+      "clarification_requested": {
+        "title": "Question about quote {{number}}",
+        "body": "{{customer}} requested a clarification."
+      }
+    },
+    "visit": {
+      "assigned": {
+        "title": "Visit assigned",
+        "body": "{{order}} was assigned to {{technician}} for {{when}}."
+      },
+      "on_the_way": {
+        "title": "Technician on the way",
+        "body": "{{technician}} is on the way to {{order}}."
+      },
+      "started": {
+        "title": "Visit started",
+        "body": "{{technician}} started {{order}}."
+      },
+      "paused": {
+        "title": "Visit paused",
+        "body": "{{technician}} paused {{order}}."
+      }
+    },
+    "job": {
+      "completed": {
+        "title": "Job completed",
+        "body": "{{technician}} completed {{order}}."
+      }
+    },
+    "invoice": {
+      "sent": {
+        "title": "Invoice {{number}} was sent",
+        "body": "{{number}} was sent to {{customer}} for {{total}}."
+      },
+      "bank_transfer_reported": {
+        "title": "Bank transfer reported",
+        "body": "{{customer}} reported a bank transfer of {{amount}} for {{number}}."
+      }
+    },
+    "payment": {
+      "received": {
+        "title": "Payment received",
+        "body": "Payment of {{amount}} was recorded for invoice {{number}}."
+      }
+    }
+  }
+}

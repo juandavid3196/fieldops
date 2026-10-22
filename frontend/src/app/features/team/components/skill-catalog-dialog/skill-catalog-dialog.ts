@@ -23,13 +23,16 @@ import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 import { CatalogSkill } from '../../models/skills-availability.model';
 import { SkillsAvailabilityService } from '../../services/skills-availability.service';
 
-export const NO_CATALOG_MESSAGE = 'No skills defined yet.';
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const NO_CATALOG_MESSAGE = (): string => t('team.skillCatalogDialog.noCatalogMessage');
 const NEW_ID = '';
 
 interface Draft {
@@ -45,6 +48,8 @@ type StatusFilter = 'all' | 'active' | 'inactive';
 @Component({
   selector: 'app-skill-catalog-dialog',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     Dialog,
@@ -73,13 +78,15 @@ export class SkillCatalogDialog {
 
   private readonly menu = viewChild.required(Menu);
 
-  protected readonly emptyMessage = NO_CATALOG_MESSAGE;
+  protected get emptyMessage(): string {
+    return NO_CATALOG_MESSAGE();
+  }
   protected readonly skeletons = [0, 1, 2];
-  protected readonly statusOptions: { code: StatusFilter; label: string }[] = [
-    { code: 'all', label: 'All skills' },
-    { code: 'active', label: 'Active' },
-    { code: 'inactive', label: 'Inactive' },
-  ];
+  protected readonly statusOptions: { code: StatusFilter; label: string }[] = localizedList(() => [
+    { code: 'all', label: t('team.skillCatalogDialog.allSkills') },
+    { code: 'active', label: t('common.active') },
+    { code: 'inactive', label: t('common.inactive') },
+  ]);
   protected readonly searchText = signal('');
   protected readonly statusFilter = signal<StatusFilter>('all');
   protected readonly menuModel = signal<MenuItem[]>([]);
@@ -193,18 +200,18 @@ export class SkillCatalogDialog {
     const description = draft.description.trim();
     this.clearErrors();
     if (name === '') {
-      this.nameError.set('Enter a skill name.');
+      this.nameError.set(t('team.skillCatalogDialog.enterASkillName'));
     } else if (name.length > 120) {
-      this.nameError.set('Use 120 characters or fewer.');
+      this.nameError.set(t('team.skillCatalogDialog.use120CharactersOr'));
     } else if (
       this.skills().some(
         (skill) => skill.id !== draft.id && skill.name.toLowerCase() === name.toLowerCase(),
       )
     ) {
-      this.nameError.set('A skill with this name already exists.');
+      this.nameError.set(t('team.skillCatalogDialog.aSkillWithThis'));
     }
     if (description.length > 500) {
-      this.descriptionError.set('Use 500 characters or fewer.');
+      this.descriptionError.set(t('team.skillCatalogDialog.use500CharactersOr'));
     }
     if (this.nameError() !== null || this.descriptionError() !== null) {
       return;
@@ -219,7 +226,10 @@ export class SkillCatalogDialog {
       next: (saved) => {
         this.busy.set(false);
         this.draft.set(null);
-        this.messages.add({ severity: 'success', summary: 'Skill saved.' });
+        this.messages.add({
+          severity: 'success',
+          summary: t('team.skillCatalogDialog.skillSaved'),
+        });
         this.apply(
           draft.id === NEW_ID
             ? [...this.skills(), saved]
@@ -254,7 +264,10 @@ export class SkillCatalogDialog {
       .subscribe({
         next: () => {
           this.busy.set(false);
-          this.messages.add({ severity: 'success', summary: 'Skill saved.' });
+          this.messages.add({
+            severity: 'success',
+            summary: t('team.skillCatalogDialog.skillSaved'),
+          });
           this.apply(
             this.skills().map((item) =>
               item.id === skill.id ? { ...item, isActive: active } : item,
@@ -272,7 +285,9 @@ export class SkillCatalogDialog {
   protected openMenu(event: Event, skill: CatalogSkill): void {
     this.menuModel.set([
       {
-        label: skill.isActive ? 'Deactivate' : 'Activate',
+        label: skill.isActive
+          ? t('team.skillCatalogDialog.deactivate')
+          : t('team.skillCatalogDialog.activate'),
         icon: skill.isActive ? 'pi pi-ban' : 'pi pi-check-circle',
         command: () => this.setActive(skill, !skill.isActive),
       },
@@ -298,7 +313,7 @@ export class SkillCatalogDialog {
     }
     this.confirmation.confirm(
       discardChangesConfirmation({
-        subject: 'this skill',
+        subject: t('team.skillCatalogDialog.thisSkill'),
         accept: () => this.visible.set(false),
       }),
     );

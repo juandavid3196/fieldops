@@ -4,7 +4,11 @@
     class="head__star"
     [attr.aria-pressed]="favorite()"
     [class.head__star--on]="favorite()"
-    [attr.aria-label]="favorite() ? 'Remove from favorites' : 'Add to favorites'"
+    [attr.aria-label]="
+      favorite()
+        ? ('reports.reportHeader.removeFromFavorites' | transloco)
+        : ('reports.reportHeader.addToFavorites' | transloco)
+    "
     [disabled]="disabled()"
     (click)="favoriteToggled.emit()"
   >
@@ -31,7 +35,7 @@
         [class.pi-spin]="exporting() === 'csv'"
         aria-hidden="true"
       ></i>
-      Export CSV
+      {{ 'reports.reportHeader.exportCsv' | transloco }}
     </button>
     <button
       pButton
@@ -49,7 +53,7 @@
         [class.pi-spin]="exporting() === 'pdf'"
         aria-hidden="true"
       ></i>
-      Download PDF
+      {{ 'reports.reportHeader.downloadPdf' | transloco }}
     </button>
   </div>
 </header>

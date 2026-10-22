@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Account;
 using FieldOps.Application.Features.PublicRequests;
 using FieldOps.Domain.Branches;
 using FieldOps.Domain.Notifications;
@@ -139,7 +140,8 @@ public sealed class RegisterOrganizationHandler(
             passwordHash,
             (command.Owner.FirstName ?? string.Empty).Trim(),
             (command.Owner.LastName ?? string.Empty).Trim(),
-            NullIfEmpty(command.Owner.Phone));
+            NullIfEmpty(command.Owner.Phone),
+            SupportedLanguages.Normalize(command.PreferredLanguage));
         user.Activate();
 
         var membership = OrganizationUser.Create(

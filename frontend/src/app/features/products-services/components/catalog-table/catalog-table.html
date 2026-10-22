@@ -22,7 +22,9 @@
                   class="pi pi-info-circle catalog-table__info"
                   tabindex="0"
                   role="img"
-                  aria-label="Estimated margin formula"
+                  [attr.aria-label]="
+                    'productsServices.catalogTable.estimatedMarginFormula' | transloco
+                  "
                   [pTooltip]="marginTooltip"
                 ></i>
               }
@@ -34,15 +36,17 @@
     <tbody>
       @for (row of rows(); track row.id) {
         <tr class="catalog-table__row">
-          <td class="catalog-table__name" data-label="Name">{{ row.name }}</td>
-          <td data-label="Type">
+          <td class="catalog-table__name" [attr.data-label]="'common.name' | transloco">
+            {{ row.name }}
+          </td>
+          <td [attr.data-label]="'common.type' | transloco">
             <p-tag
               [rounded]="true"
               [severity]="row.type === 'service' ? 'info' : 'secondary'"
               [value]="row.type === 'service' ? 'Service' : 'Product'"
             />
           </td>
-          <td class="catalog-table__wide" data-label="Description">
+          <td class="catalog-table__wide" [attr.data-label]="'common.description' | transloco">
             @if (row.description) {
               <span class="catalog-table__description" [pTooltip]="row.description">{{
                 row.description
@@ -51,15 +55,28 @@
               <span class="catalog-table__muted">—</span>
             }
           </td>
-          <td class="catalog-table__wide catalog-table__number" data-label="Unit cost">
+          <td
+            class="catalog-table__wide catalog-table__number"
+            [attr.data-label]="'productsServices.catalogTable.unitCost' | transloco"
+          >
             {{ money().format(row.unitCost) }}
           </td>
-          <td class="catalog-table__number" data-label="Unit price">
+          <td
+            class="catalog-table__number"
+            [attr.data-label]="'productsServices.catalogTable.unitPrice' | transloco"
+          >
             {{ money().format(row.unitPrice) }}
           </td>
-          <td class="catalog-table__number" data-label="Margin">{{ marginText(row) }}</td>
-          <td data-label="Taxable">{{ row.isTaxable ? 'Yes' : 'No' }}</td>
-          <td data-label="Status">
+          <td
+            class="catalog-table__number"
+            [attr.data-label]="'productsServices.catalogTable.margin' | transloco"
+          >
+            {{ marginText(row) }}
+          </td>
+          <td [attr.data-label]="'productsServices.catalogTable.taxable' | transloco">
+            {{ row.isTaxable ? ('common.yes' | transloco) : ('common.no' | transloco) }}
+          </td>
+          <td [attr.data-label]="'common.status' | transloco">
             <p-tag
               [rounded]="true"
               icon="pi pi-circle-fill"
@@ -72,7 +89,9 @@
               type="button"
               class="catalog-table__menu-button"
               aria-haspopup="menu"
-              [attr.aria-label]="'More actions for ' + row.name"
+              [attr.aria-label]="
+                'productsServices.catalogTable.moreActionsFor' | transloco: { name: row.name }
+              "
               [disabled]="busyId() === row.id"
               (click)="menuRequested.emit({ event: $event, row })"
             >

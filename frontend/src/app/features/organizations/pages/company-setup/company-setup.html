@@ -9,15 +9,24 @@
   }
 
   <div class="company-setup__main">
-    <nav class="company-setup__breadcrumb" aria-label="Breadcrumb">
-      <a routerLink="/admin/company">Administration</a>
+    <nav
+      class="company-setup__breadcrumb"
+      [attr.aria-label]="'organizations.companySetup.breadcrumb' | transloco"
+    >
+      <a routerLink="/admin/company">{{
+        'organizations.companySetup.administration' | transloco
+      }}</a>
       <span aria-hidden="true">/</span>
-      <span class="company-setup__current" aria-current="page">Company</span>
+      <span class="company-setup__current" aria-current="page">{{
+        'organizations.companySetup.company' | transloco
+      }}</span>
     </nav>
 
     <header class="company-setup__header">
       <div>
-        <h1 class="company-setup__title">Company setup</h1>
+        <h1 class="company-setup__title">
+          {{ 'organizations.companySetup.companySetup' | transloco }}
+        </h1>
         @if (!forbidden()) {
           <p class="company-setup__description">{{ descriptionMessage }}</p>
         }
@@ -33,13 +42,13 @@
             [disabled]="!canSave()"
             (click)="discard()"
           >
-            Discard changes
+            {{ 'organizations.companySetup.discardChanges' | transloco }}
           </button>
           <button pButton type="button" [disabled]="!canSave()" (click)="save()">
             @if (submitting()) {
               <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
             }
-            Save changes
+            {{ 'organizations.companySetup.saveChanges' | transloco }}
           </button>
         </div>
       }
@@ -59,7 +68,7 @@
         <div class="company-setup__load-error">
           <p>{{ loadErrorMessage }}</p>
           <button pButton type="button" severity="secondary" (click)="retrySettings()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </div>
       } @else {
@@ -78,7 +87,7 @@
 
         @if (staleConflict()) {
           <button pButton type="button" class="company-setup__reload" (click)="reloadStale()">
-            Reload
+            {{ 'organizations.companySetup.reload' | transloco }}
           </button>
         }
       }

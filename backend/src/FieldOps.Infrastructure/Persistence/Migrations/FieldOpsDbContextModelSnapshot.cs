@@ -4135,6 +4135,14 @@ namespace FieldOps.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(40)")
                         .HasColumnName("phone");
 
+                    b.Property<string>("PreferredLanguage")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)")
+                        .HasDefaultValue("en")
+                        .HasColumnName("preferred_language");
+
                     b.Property<UserStatus>("Status")
                         .HasColumnType("user_status")
                         .HasColumnName("status");

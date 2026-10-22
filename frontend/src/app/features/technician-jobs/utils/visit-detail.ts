@@ -9,6 +9,7 @@ import {
 import { NOT_PRIMARY_MESSAGE, STATUS_INVALID_MESSAGE } from './technician-errors';
 import { STATUS_LABELS, formatTime, pluralLabel } from './technician-format';
 
+import { localized, localizedList, t } from '../../../core/i18n/translate';
 export type StepState = 'done' | 'current' | 'upcoming';
 
 export interface Step {
@@ -16,7 +17,15 @@ export interface Step {
   readonly state: StepState;
 }
 
-const STEP_LABELS = ['Scheduled', 'On the way', 'Arrived', 'In progress'] as const;
+const STEP_LABELS = localizedList(
+  () =>
+    [
+      t('technicianJobs.visitDetail.scheduled'),
+      t('technicianJobs.visitDetail.onTheWay'),
+      t('technicianJobs.visitDetail.arrived'),
+      t('technicianJobs.visitDetail.inProgress'),
+    ] as const,
+);
 
 /** Index of the current step; 4 means every step is done. */
 function currentStep(visit: TechnicianVisitDetail): number {
@@ -64,15 +73,24 @@ export function bannerFor(visit: TechnicianVisitDetail): Banner | null {
   if (visit.status === 'on_the_way') {
     if (travel.arrivedAt !== null) {
       return {
-        title: 'Arrived',
+        title: t('technicianJobs.visitDetail.arrived'),
         detail: formatTime(travel.arrivedAt, timezone),
-        note: travel.durationMinutes === null ? null : `Travel time ${travel.durationMinutes} min`,
+        note:
+          travel.durationMinutes === null
+            ? null
+            : t('technicianJobs.visitDetail.travelTimeMin', {
+                durationMinutes: travel.durationMinutes,
+              }),
       };
     }
     return {
-      title: 'On the way',
+      title: t('technicianJobs.visitDetail.onTheWay'),
       detail:
-        travel.startedAt === null ? null : `Started ${formatTime(travel.startedAt, timezone)}`,
+        travel.startedAt === null
+          ? null
+          : t('technicianJobs.visitDetail.started', {
+              value: formatTime(travel.startedAt, timezone),
+            }),
       note: null,
     };
   }
@@ -86,12 +104,13 @@ export function bannerFor(visit: TechnicianVisitDetail): Banner | null {
 export function announcementFor(visit: TechnicianVisitDetail): string {
   const banner = bannerFor(visit);
   return banner === null
-    ? 'Job updated.'
+    ? t('technicianJobs.visitDetail.jobUpdated')
     : [banner.title, banner.detail, banner.note].filter((part) => part !== null).join('. ') + '.';
 }
 
-export const RESCHEDULE_MESSAGE = 'Ask dispatch to reschedule';
-export const START_JOB_AFTER_ARRIVAL = 'Available after arrival is recorded';
+export const RESCHEDULE_MESSAGE = (): string => t('technicianJobs.visitDetail.rescheduleMessage');
+export const START_JOB_AFTER_ARRIVAL = (): string =>
+  t('technicianJobs.visitDetail.startJobAfterArrival');
 
 export interface ActionBar {
   /** Primary travel control; `arrived` is the disabled confirmation after arrival. */
@@ -110,21 +129,21 @@ export interface ActionBar {
 /** BR-14 action bar by role and status; BR-15 enables Start job after arrival. */
 export function actionBarFor(visit: TechnicianVisitDetail): ActionBar {
   const arrived = hasArrived(visit);
-  const helper = START_JOB_AFTER_ARRIVAL;
+  const helper = START_JOB_AFTER_ARRIVAL();
   if (visit.needsReschedule === true && ['scheduled', 'assigned'].includes(visit.status)) {
-    return { travel: null, message: RESCHEDULE_MESSAGE, startJobHelper: null, startJob: false };
+    return { travel: null, message: RESCHEDULE_MESSAGE(), startJobHelper: null, startJob: false };
   }
   if (!visit.isPrimary) {
     return {
       travel: null,
-      message: NOT_PRIMARY_MESSAGE,
+      message: NOT_PRIMARY_MESSAGE(),
       startJobHelper: arrived ? null : helper,
       startJob: false,
     };
   }
   if (visit.status === 'assigned') {
     return {
-      travel: { kind: 'start-travel', label: 'Start travel' },
+      travel: { kind: 'start-travel', label: t('technicianJobs.visitDetail.startTravel') },
       message: null,
       startJobHelper: helper,
       startJob: false,
@@ -134,9 +153,11 @@ export function actionBarFor(visit: TechnicianVisitDetail): ActionBar {
     const travel = arrived
       ? {
           kind: 'arrived' as const,
-          label: `Arrived ${formatTime(visit.travel.arrivedAt!, visit.timezone)}`,
+          label: t('technicianJobs.visitDetail.arrived2', {
+            value: formatTime(visit.travel.arrivedAt!, visit.timezone),
+          }),
         }
-      : { kind: 'arrive' as const, label: "I've arrived" };
+      : { kind: 'arrive' as const, label: t('technicianJobs.visitDetail.iveArrived') };
     return {
       travel,
       message: null,
@@ -144,21 +165,25 @@ export function actionBarFor(visit: TechnicianVisitDetail): ActionBar {
       startJob: arrived,
     };
   }
-  return { travel: null, message: STATUS_INVALID_MESSAGE, startJobHelper: null, startJob: false };
+  return { travel: null, message: STATUS_INVALID_MESSAGE(), startJobHelper: null, startJob: false };
 }
 
 export function customerTypeLabel(type: CustomerType): string {
-  return type === 'company' ? 'Commercial' : 'Residential';
+  return type === 'company'
+    ? t('technicianJobs.visitDetail.commercial')
+    : t('technicianJobs.visitDetail.residential');
 }
 
-const CONTACT_PREFERENCES: Readonly<Record<ContactPreference, string>> = {
-  email: 'Email',
-  sms: 'Text message',
-  email_or_sms: 'Email or text message',
-};
+const CONTACT_PREFERENCES: Readonly<Record<ContactPreference, string>> = localized(() => ({
+  email: t('common.email'),
+  sms: t('technicianJobs.visitDetail.textMessage'),
+  email_or_sms: t('technicianJobs.visitDetail.emailOrTextMessage'),
+}));
 
 export function contactPreferenceText(preference: ContactPreference | null): string | null {
-  return preference === null ? null : `Contact preference: ${CONTACT_PREFERENCES[preference]}`;
+  return preference === null
+    ? null
+    : t('technicianJobs.visitDetail.contactPreference', { value: CONTACT_PREFERENCES[preference] });
 }
 
 /** BR-16: non-empty lines with one leading `-`, `*` or `•` removed. */
@@ -174,11 +199,11 @@ export function scopeLines(scope: string): string[] {
     .filter((line) => line !== '');
 }
 
-const SOURCE_LABELS: Readonly<Record<MaterialSource, string>> = {
-  truck_stock: 'Truck stock',
-  warehouse: 'Warehouse',
-  to_purchase: 'To purchase',
-};
+const SOURCE_LABELS: Readonly<Record<MaterialSource, string>> = localized(() => ({
+  truck_stock: t('technicianJobs.visitDetail.truckStock'),
+  warehouse: t('technicianJobs.visitDetail.warehouse'),
+  to_purchase: t('technicianJobs.visitDetail.toPurchase'),
+}));
 
 export function materialSourceLabel(source: MaterialSource): string {
   return SOURCE_LABELS[source];
@@ -190,10 +215,17 @@ export function materialLine(material: PlannedMaterial): string {
 
 /** "<n> planned materials" / "1 planned material". */
 export function materialsCountText(count: number): string {
-  return `${count} planned ${pluralLabel(count, 'material', 'materials')}`;
+  return t('technicianJobs.visitDetail.planned', {
+    count: count,
+    value: pluralLabel(
+      count,
+      t('technicianJobs.plurals.material'),
+      t('technicianJobs.plurals.materials'),
+    ),
+  });
 }
 
 export function tasksSummary(tasks: readonly VisitTask[]): string {
   const completed = tasks.filter((task) => task.isCompleted).length;
-  return `${completed} of ${tasks.length} tasks`;
+  return t('technicianJobs.visitDetail.ofTasks', { completed: completed, length: tasks.length });
 }

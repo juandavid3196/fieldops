@@ -18,6 +18,7 @@ import { InputText } from 'primeng/inputtext';
 import { Menu } from 'primeng/menu';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { timezoneGenericName } from '../../data/display-names';
@@ -25,24 +26,30 @@ import { BranchListItem } from '../../models/company-settings.model';
 import { BranchesService } from '../../services/branches.service';
 import { BranchRow, BranchTable } from '../branch-table/branch-table';
 
-export const ONLY_ACTIVE_BRANCH_TOOLTIP = 'At least one branch must stay active.';
-export const MAIN_BRANCH_TOOLTIP = "The main branch can't be deactivated.";
-export const INACTIVE_MAIN_MESSAGE = 'Only an active branch can be the main branch.';
-export const BRANCH_LOAD_ERROR_MESSAGE =
-  "We couldn't load branches. Check your connection and try again.";
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const ONLY_ACTIVE_BRANCH_TOOLTIP = (): string =>
+  t('organizations.branchList.onlyActiveBranchTooltip');
+export const MAIN_BRANCH_TOOLTIP = (): string => t('organizations.branchList.mainBranchTooltip');
+export const INACTIVE_MAIN_MESSAGE = (): string =>
+  t('organizations.branchList.inactiveMainMessage');
+export const BRANCH_LOAD_ERROR_MESSAGE = (): string =>
+  t('organizations.branchList.branchLoadErrorMessage');
 
 type StatusFilter = 'all' | 'active' | 'inactive';
 type SortDirection = 'ascending' | 'descending';
 
 // Not `readonly`: PrimeNG's `p-select` `[options]` input requires a mutable array type.
-const STATUS_OPTIONS: { code: StatusFilter; label: string }[] = [
-  { code: 'all', label: 'All statuses' },
-  { code: 'active', label: 'Active' },
-  { code: 'inactive', label: 'Inactive' },
-];
+const STATUS_OPTIONS: { code: StatusFilter; label: string }[] = localizedList(() => [
+  { code: 'all', label: t('organizations.branchList.allStatuses') },
+  { code: 'active', label: t('common.active') },
+  { code: 'inactive', label: t('common.inactive') },
+]);
 
 export function teamText(count: number): string {
-  return count === 1 ? '1 technician' : `${count} technicians`;
+  return count === 1
+    ? t('organizations.branchList.n1Technician')
+    : t('organizations.branchList.technicians', { count: count });
 }
 
 function addressText(branch: BranchListItem): string {
@@ -58,6 +65,8 @@ function addressText(branch: BranchListItem): string {
 @Component({
   selector: 'app-branch-list',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     IconField,
@@ -92,7 +101,9 @@ export class BranchList {
   readonly unauthorized = output<void>();
 
   readonly statusOptions = STATUS_OPTIONS;
-  readonly loadErrorMessage = BRANCH_LOAD_ERROR_MESSAGE;
+  get loadErrorMessage(): string {
+    return BRANCH_LOAD_ERROR_MESSAGE();
+  }
 
   readonly search = signal('');
   readonly statusFilter = signal<StatusFilter>('all');
@@ -169,7 +180,7 @@ export class BranchList {
     const busy = this.mutatingId() !== null;
     const items: MenuItem[] = [
       {
-        label: this.canManage() ? 'Edit' : 'View',
+        label: this.canManage() ? t('common.edit') : t('common.view'),
         icon: this.canManage() ? 'pi pi-pencil' : 'pi pi-eye',
         command: () => this.onRowActivate(branch),
       },
@@ -177,7 +188,7 @@ export class BranchList {
     if (this.canManage()) {
       if (branch.isActive && !branch.isMain) {
         items.push({
-          label: 'Set as main branch',
+          label: t('organizations.branchList.setAsMainBranch'),
           icon: 'pi pi-star',
           disabled: busy,
           command: () => this.setMain(branch),
@@ -185,12 +196,12 @@ export class BranchList {
       }
       if (branch.isActive) {
         const tooltip = branch.isMain
-          ? MAIN_BRANCH_TOOLTIP
+          ? MAIN_BRANCH_TOOLTIP()
           : this.isOnlyActive(branch)
-            ? ONLY_ACTIVE_BRANCH_TOOLTIP
+            ? ONLY_ACTIVE_BRANCH_TOOLTIP()
             : undefined;
         items.push({
-          label: 'Deactivate',
+          label: t('organizations.branchList.deactivate'),
           icon: 'pi pi-ban',
           disabled: busy || tooltip !== undefined,
           tooltip,
@@ -200,7 +211,7 @@ export class BranchList {
         });
       } else {
         items.push({
-          label: 'Reactivate',
+          label: t('organizations.branchList.reactivate'),
           icon: 'pi pi-refresh',
           disabled: busy,
           command: () => this.reactivate(branch),
@@ -215,10 +226,10 @@ export class BranchList {
       return;
     }
     this.confirmationService.confirm({
-      header: 'Deactivate branch',
-      message: `Deactivate ${branch.name}? No new requests, quotes or work orders can be created for this branch. Existing records stay available.`,
-      acceptButtonProps: { label: 'Deactivate', severity: 'danger' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      header: t('organizations.branchList.deactivateBranch'),
+      message: t('organizations.branchList.deactivateNoNewRequests', { name: branch.name }),
+      acceptButtonProps: { label: t('organizations.branchList.deactivate'), severity: 'danger' },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => this.performStateChange(branch, 'deactivate'),
     });
   }
@@ -243,11 +254,11 @@ export class BranchList {
           this.mutatingId.set(null);
           this.messageService.add({
             severity: 'success',
-            summary: `${branch.name} is now the main branch`,
+            summary: t('organizations.branchList.isNowTheMain', { name: branch.name }),
           });
           this.changed.emit();
         },
-        error: (error: unknown) => this.handleMutationFailed(error, INACTIVE_MAIN_MESSAGE),
+        error: (error: unknown) => this.handleMutationFailed(error, INACTIVE_MAIN_MESSAGE()),
       });
   }
 
@@ -268,7 +279,7 @@ export class BranchList {
       error: (error: unknown) =>
         this.handleMutationFailed(
           error,
-          branch.isMain ? MAIN_BRANCH_TOOLTIP : ONLY_ACTIVE_BRANCH_TOOLTIP,
+          branch.isMain ? MAIN_BRANCH_TOOLTIP() : ONLY_ACTIVE_BRANCH_TOOLTIP(),
         ),
     });
   }
@@ -284,7 +295,7 @@ export class BranchList {
     if (apiError?.kind === 'not-found') {
       this.messageService.add({
         severity: 'error',
-        summary: 'This branch is no longer available.',
+        summary: t('organizations.branchList.thisBranchIsNo'),
       });
       this.changed.emit();
       return;
@@ -295,7 +306,7 @@ export class BranchList {
     }
     this.messageService.add({
       severity: 'error',
-      summary: apiError?.message ?? 'An unexpected error occurred. Please try again.',
+      summary: apiError?.message ?? t('organizations.branchList.anUnexpectedErrorOccurred'),
     });
   }
 }

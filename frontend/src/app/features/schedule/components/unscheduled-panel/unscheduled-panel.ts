@@ -9,6 +9,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 import { Subject, debounceTime } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { durationLabel } from '../../../jobs/utils/work-order-format';
 import { UnscheduledFilter, UnscheduledItem } from '../../models/schedule.model';
@@ -16,25 +17,37 @@ import { LoadStatus } from '../../services/schedule-page.store';
 import { PRIORITY_ICONS, PRIORITY_TEXT } from '../../utils/dispatch-form';
 import { formatPreferred, numberText } from '../../utils/schedule-range';
 
-export const PANEL_ERROR_MESSAGE = "We couldn't load unscheduled visits.";
-export const NO_MATCH_MESSAGE = 'No visits match your search.';
+import { localized, localizedList, t } from '../../../../core/i18n/translate';
+export const PANEL_ERROR_MESSAGE = (): string => t('schedule.unscheduledPanel.panelErrorMessage');
+export const NO_MATCH_MESSAGE = (): string => t('schedule.unscheduledPanel.noMatchMessage');
 export const SEARCH_DEBOUNCE_MS = 300;
 
-const FILTERS: readonly { readonly code: UnscheduledFilter; readonly label: string }[] = [
-  { code: 'all', label: 'All' },
-  { code: 'today', label: 'Today' },
-  { code: 'overdue', label: 'Overdue' },
-];
-const EMPTY_TEXT: Readonly<Record<UnscheduledFilter, string>> = {
-  all: 'No unscheduled visits.',
-  today: 'No visits due today.',
-  overdue: 'No overdue visits.',
-};
+const FILTERS: readonly { readonly code: UnscheduledFilter; readonly label: string }[] =
+  localizedList(() => [
+    { code: 'all', label: t('schedule.unscheduledPanel.all') },
+    { code: 'today', label: t('schedule.unscheduledPanel.today') },
+    { code: 'overdue', label: t('schedule.unscheduledPanel.overdue') },
+  ]);
+const EMPTY_TEXT: Readonly<Record<UnscheduledFilter, string>> = localized(() => ({
+  all: t('schedule.unscheduledPanel.noUnscheduledVisits'),
+  today: t('schedule.unscheduledPanel.noVisitsDueToday'),
+  overdue: t('schedule.unscheduledPanel.noOverdueVisits'),
+}));
 
 /** Presentational unscheduled visits panel: filters, search, cards, Load more (BR-07). */
 @Component({
   selector: 'app-unscheduled-panel',
-  imports: [FormsModule, ButtonDirective, IconField, InputIcon, InputText, Message, Skeleton, Tag],
+  imports: [
+    TranslocoPipe,
+    FormsModule,
+    ButtonDirective,
+    IconField,
+    InputIcon,
+    InputText,
+    Message,
+    Skeleton,
+    Tag,
+  ],
   templateUrl: './unscheduled-panel.html',
   styleUrl: './unscheduled-panel.scss',
 })
@@ -58,13 +71,15 @@ export class UnscheduledPanel {
   readonly retry = output<void>();
 
   readonly filters = FILTERS;
-  readonly errorMessage = PANEL_ERROR_MESSAGE;
+  get errorMessage(): string {
+    return PANEL_ERROR_MESSAGE();
+  }
   readonly priorityText = PRIORITY_TEXT;
   readonly priorityIcons = PRIORITY_ICONS;
   readonly skeletons = [0, 1, 2];
 
   readonly emptyText = computed(() =>
-    this.searchText().trim().length > 0 ? NO_MATCH_MESSAGE : EMPTY_TEXT[this.filter()],
+    this.searchText().trim().length > 0 ? NO_MATCH_MESSAGE() : EMPTY_TEXT[this.filter()],
   );
   readonly cards = computed(() =>
     this.items().map((item) => {
@@ -73,7 +88,10 @@ export class UnscheduledPanel {
       const visitOf =
         item.recurrenceCount === null
           ? null
-          : `Visit ${item.visitNumber} of ${item.recurrenceCount}`;
+          : t('schedule.unscheduledPanel.visitOf', {
+              visitNumber: item.visitNumber,
+              recurrenceCount: item.recurrenceCount,
+            });
       return {
         item,
         number,
@@ -83,9 +101,9 @@ export class UnscheduledPanel {
         ariaLabel: [
           item.title,
           number,
-          `${PRIORITY_TEXT[item.priority]} priority`,
+          t('schedule.unscheduledPanel.priority', { value: PRIORITY_TEXT[item.priority] }),
           window,
-          item.isOverdue ? 'Overdue' : null,
+          item.isOverdue ? t('schedule.unscheduledPanel.overdue') : null,
         ]
           .filter((part): part is string => part !== null)
           .join(', '),

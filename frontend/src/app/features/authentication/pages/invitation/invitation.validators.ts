@@ -13,6 +13,7 @@ import { PASSWORD_REQUIRED_MESSAGE, PASSWORD_TOO_LONG_MESSAGE } from '../sign-in
 import { validatePassword as validateCurrentPassword } from '../sign-in/sign-in.validators';
 import { FIRST_NAME_REQUIRED_MESSAGE, LAST_NAME_REQUIRED_MESSAGE } from './invitation.messages';
 
+import { localized } from '../../../../core/i18n/translate';
 export type InvitationField = 'firstName' | 'lastName' | 'password' | 'confirmPassword';
 export type InvitationFieldErrors = Partial<Record<InvitationField, string>>;
 
@@ -20,17 +21,17 @@ const NAME_MAX_LENGTH = 100;
 
 /** BR-06 messages a server `400` may show per field; anything else becomes the fallback. */
 const ALLOWED_MESSAGES: Readonly<Record<'firstName' | 'lastName' | 'password', readonly string[]>> =
-  {
-    firstName: [FIRST_NAME_REQUIRED_MESSAGE, tooLongMessage(NAME_MAX_LENGTH)],
-    lastName: [LAST_NAME_REQUIRED_MESSAGE, tooLongMessage(NAME_MAX_LENGTH)],
+  localized(() => ({
+    firstName: [FIRST_NAME_REQUIRED_MESSAGE(), tooLongMessage(NAME_MAX_LENGTH)],
+    lastName: [LAST_NAME_REQUIRED_MESSAGE(), tooLongMessage(NAME_MAX_LENGTH)],
     password: [
-      REQUIRED_MESSAGE,
-      PASSWORD_LENGTH_MESSAGE,
-      PASSWORD_EQUALS_EMAIL_MESSAGE,
-      PASSWORD_REQUIRED_MESSAGE,
-      PASSWORD_TOO_LONG_MESSAGE,
+      REQUIRED_MESSAGE(),
+      PASSWORD_LENGTH_MESSAGE(),
+      PASSWORD_EQUALS_EMAIL_MESSAGE(),
+      PASSWORD_REQUIRED_MESSAGE(),
+      PASSWORD_TOO_LONG_MESSAGE(),
     ],
-  };
+  }));
 
 export function validateName(value: string, requiredMessage: string): string | null {
   const trimmed = value.trim();
@@ -70,7 +71,9 @@ export function mapServerFieldErrors(
   for (const field of ['firstName', 'lastName', 'password'] as const) {
     const message = fieldErrors[field]?.[0];
     if (message !== undefined) {
-      result[field] = ALLOWED_MESSAGES[field].includes(message) ? message : FALLBACK_FIELD_MESSAGE;
+      result[field] = ALLOWED_MESSAGES[field].includes(message)
+        ? message
+        : FALLBACK_FIELD_MESSAGE();
     }
   }
   return result;

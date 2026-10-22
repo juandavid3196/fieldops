@@ -3,7 +3,7 @@
     <div class="technician-drawer__heading">
       <h2 class="technician-drawer__title" [id]="titleId" tabindex="-1">{{ fullName() }}</h2>
       <p class="technician-drawer__subtitle">
-        Technician profile
+        {{ 'team.technicianDrawer.technicianProfile' | transloco }}
         @if (detail(); as current) {
           <p-tag
             [rounded]="true"
@@ -17,7 +17,7 @@
     <button
       type="button"
       class="technician-drawer__close"
-      aria-label="Close technician drawer"
+      [attr.aria-label]="'team.technicianDrawer.closeTechnicianDrawer' | transloco"
       (click)="closed.emit()"
     >
       <i class="pi pi-times" aria-hidden="true"></i>
@@ -40,7 +40,7 @@
         <span class="technician-drawer__retry">
           {{ errorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -64,7 +64,7 @@
       [outlined]="true"
       [routerLink]="schedulePath"
     >
-      View schedule
+      {{ 'team.technicianDrawer.viewSchedule' | transloco }}
     </a>
     @if (canMutate() && detail(); as current) {
       <button
@@ -73,7 +73,7 @@
         class="technician-drawer__action"
         (click)="editRequested.emit(current.id)"
       >
-        Edit profile
+        {{ 'team.technicianDrawer.editProfile' | transloco }}
       </button>
     }
   </ng-container>

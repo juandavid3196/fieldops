@@ -1,5 +1,6 @@
 import { Component, input, output } from '@angular/core';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { BranchListItem } from '../../models/company-settings.model';
 
@@ -22,7 +23,7 @@ export interface BranchMenuRequest {
  */
 @Component({
   selector: 'app-branch-table',
-  imports: [Tag],
+  imports: [TranslocoPipe, Tag],
   templateUrl: './branch-table.html',
   styleUrl: './branch-table.scss',
 })

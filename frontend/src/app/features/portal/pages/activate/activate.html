@@ -1,10 +1,13 @@
 <main class="auth">
-  <p class="auth__brand">Field<span>Ops</span> · Customer portal</p>
+  <p class="auth__brand">
+    {{ 'portal.activate.field' | transloco }}<span>{{ 'portal.activate.ops' | transloco }}</span>
+    {{ 'portal.activate.customerPortal' | transloco }}
+  </p>
 
   @switch (state()) {
     @case ('loading') {
       <div class="auth__card" role="status" aria-live="polite" aria-busy="true">
-        <span class="sr">Checking your invitation</span>
+        <span class="sr">{{ 'portal.activate.checkingYourInvitation' | transloco }}</span>
         <div class="auth__skeletons" aria-hidden="true">
           <p-skeleton width="60%" height="2rem" />
           <p-skeleton height="3rem" />
@@ -14,29 +17,41 @@
     }
     @case ('unavailable') {
       <div class="auth__card" role="alert">
-        <h1 class="auth__title">Invitation unavailable</h1>
+        <h1 class="auth__title">{{ 'portal.activate.invitationUnavailable' | transloco }}</h1>
         <p class="auth__subtitle">{{ unavailableMessage() }}</p>
-        <a class="auth__link" routerLink="/portal/sign-in" (click)="leave()">Go to sign in</a>
+        <a class="auth__link" routerLink="/portal/sign-in" (click)="leave()">{{
+          'portal.activate.goToSignIn' | transloco
+        }}</a>
       </div>
     }
     @case ('load-error') {
       <div class="auth__card" role="alert">
         <p-message severity="error">{{ loadErrorMessage }}</p-message>
-        <button pButton type="button" severity="secondary" (click)="retry()">Try again</button>
+        <button pButton type="button" severity="secondary" (click)="retry()">
+          {{ 'common.tryAgain' | transloco }}
+        </button>
       </div>
     }
     @default {
       @if (detail(); as invitation) {
         <div class="auth__card">
           <header>
-            <h1 class="auth__title">Welcome, {{ invitation.firstName }}</h1>
+            <h1 class="auth__title">
+              {{ 'portal.activate.welcome' | transloco: { firstName: invitation.firstName } }}
+            </h1>
             <p class="auth__subtitle">
               @if (existing()) {
-                {{ invitation.organizationName }} invited {{ invitation.email }} to the customer
-                portal. Enter your current password to link your account.
+                {{
+                  'portal.activate.invitedToTheCustomer'
+                    | transloco
+                      : { organizationName: invitation.organizationName, email: invitation.email }
+                }}
               } @else {
-                {{ invitation.organizationName }} invited {{ invitation.email }} to the customer
-                portal. Create a password to activate your access.
+                {{
+                  'portal.activate.invitedToTheCustomer2'
+                    | transloco
+                      : { organizationName: invitation.organizationName, email: invitation.email }
+                }}
               }
             </p>
           </header>
@@ -50,7 +65,9 @@
           <form class="auth__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
             @if (lastNameRequired()) {
               <div class="auth__field">
-                <label class="auth__label" for="portal-last-name">Last name</label>
+                <label class="auth__label" for="portal-last-name">{{
+                  'portal.activate.lastName' | transloco
+                }}</label>
                 <input
                   pInputText
                   id="portal-last-name"
@@ -73,7 +90,11 @@
 
             <div class="auth__field">
               <label class="auth__label" for="portal-activate-password">
-                {{ existing() ? 'Current password' : 'Password' }}
+                {{
+                  existing()
+                    ? ('portal.activate.currentPassword' | transloco)
+                    : ('portal.activate.password' | transloco)
+                }}
               </label>
               <input
                 pInputPassword
@@ -92,13 +113,15 @@
               @if (fieldErrors().password; as error) {
                 <p class="auth__error" id="portal-activate-password-error">{{ error }}</p>
               } @else if (!existing()) {
-                <p class="auth__hint">Use 12 to 128 characters that differ from your email.</p>
+                <p class="auth__hint">{{ 'portal.activate.use12To128' | transloco }}</p>
               }
             </div>
 
             @if (!existing()) {
               <div class="auth__field">
-                <label class="auth__label" for="portal-activate-confirm">Confirm password</label>
+                <label class="auth__label" for="portal-activate-confirm">{{
+                  'portal.activate.confirmPassword' | transloco
+                }}</label>
                 <input
                   pInputPassword
                   id="portal-activate-confirm"
@@ -124,11 +147,11 @@
             <button pButton type="submit" size="large" fluid [disabled]="submitDisabled()">
               @if (submitting()) {
                 <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-                Activating…
+                {{ 'portal.activate.activating' | transloco }}
               } @else if (existing()) {
-                Link my account
+                {{ 'portal.activate.linkMyAccount' | transloco }}
               } @else {
-                Activate access
+                {{ 'portal.activate.activateAccess' | transloco }}
               }
             </button>
           </form>
@@ -136,4 +159,7 @@
       }
     }
   }
+  <footer class="login__footer">
+    <app-language-footer-selector />
+  </footer>
 </main>

@@ -23,6 +23,8 @@ export interface ApiError {
   readonly message: string;
   /** Field-level validation messages keyed by field name. Empty when not applicable. */
   readonly fieldErrors: Readonly<Record<string, readonly string[]>>;
+  /** `fieldErrors` translated through the field catalog (BR-13); unknown messages are generic. */
+  readonly localizedFieldErrors?: Readonly<Record<string, readonly string[]>>;
   readonly traceId?: string;
   /**
    * Seconds to wait before retrying, from the `Retry-After` header of a `429`

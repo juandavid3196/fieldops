@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { map } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { HelpBreadcrumb } from '../../components/help-breadcrumb/help-breadcrumb';
 import { HelpSupportCard } from '../../components/help-support-card/help-support-card';
@@ -11,10 +12,18 @@ import { injectHelpContext } from '../../utils/help-audience';
 import { findArticle, neighbours, readingMinutes } from '../../utils/help-content';
 import { HelpNotFound } from '../help-not-found/help-not-found';
 
+import { t } from '../../../../core/i18n/translate';
 /** `/help/:topicSlug/:articleSlug`: the single reusable article template (FR-09, FR-10). */
 @Component({
   selector: 'app-help-article',
-  imports: [ButtonDirective, HelpBreadcrumb, HelpNotFound, HelpSupportCard, RouterLink],
+  imports: [
+    TranslocoPipe,
+    ButtonDirective,
+    HelpBreadcrumb,
+    HelpNotFound,
+    HelpSupportCard,
+    RouterLink,
+  ],
   templateUrl: './help-article.html',
   styleUrl: './help-article.scss',
 })
@@ -46,7 +55,7 @@ export class HelpArticlePage {
   readonly crumbs = computed(() => {
     const ref = this.ref();
     return [
-      { label: 'Help', link: this.base },
+      { label: t('help.helpArticle.help'), link: this.base },
       { label: ref?.topic.title ?? '', link: `${this.base}/${ref?.topic.slug}` },
       { label: ref?.article.title ?? '' },
     ];

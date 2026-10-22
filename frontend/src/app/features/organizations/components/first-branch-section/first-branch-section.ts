@@ -10,12 +10,21 @@ import { SelectOption } from '../../data/display-names';
 import { BranchFormControls, FieldErrors } from '../../models/organization-registration.model';
 
 import type { FormGroup } from '@angular/forms';
+import { TranslocoPipe } from '@jsverse/transloco';
 import type { SimpleFieldKey } from '../../models/organization-registration.model';
 
 /** "First branch" card (wizard step 1): branch fields and address. */
 @Component({
   selector: 'app-first-branch-section',
-  imports: [ReactiveFormsModule, InputText, Select, FormField, WizardCard, WizardNote],
+  imports: [
+    TranslocoPipe,
+    ReactiveFormsModule,
+    InputText,
+    Select,
+    FormField,
+    WizardCard,
+    WizardNote,
+  ],
   templateUrl: './first-branch-section.html',
   styleUrl: './first-branch-section.scss',
 })

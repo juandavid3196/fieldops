@@ -17,6 +17,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { Observable, Subject, catchError, forkJoin, map, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { MD_QUERY, watchMedia } from '../../../../core/config/breakpoints';
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
@@ -66,30 +67,33 @@ import {
 } from '../../utils/assessment-schedule';
 import { addressLine, fieldKey, preferredVisit } from '../../utils/requests-format';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to schedule assessments.";
-export const NOT_SCHEDULABLE_MESSAGE = "This request can't have an assessment scheduled.";
-export const LOAD_ERROR_MESSAGE = "We couldn't load this request.";
-export const SUBTITLE =
-  'Arrange an optional site visit to gather information before preparing a quote.';
-export const NO_PREFERRED_MESSAGE = 'No preferred times provided.';
-export const PREFERRED_NOTE =
-  'These are preferred times, not a confirmed appointment until you schedule the assessment.';
-export const FOOTER_NOTE =
-  'Completing the assessment returns the request to Ready for quote. A quote must still be created and sent separately.';
-export const TECHNICIAN_REQUIRED_MESSAGE = 'Choose a technician.';
-export const PURPOSE_REQUIRED_MESSAGE = 'Enter the purpose of the assessment.';
+import { localized, localizedList, t } from '../../../../core/i18n/translate';
+export const FORBIDDEN_MESSAGE = (): string => t('requests.assessment.forbiddenMessage');
+export const NOT_SCHEDULABLE_MESSAGE = (): string => t('requests.assessment.notSchedulableMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('requests.assessment.loadErrorMessage');
+export const SUBTITLE = (): string => t('requests.assessment.subtitle');
+export const NO_PREFERRED_MESSAGE = (): string => t('requests.assessment.noPreferredMessage');
+export const PREFERRED_NOTE = (): string => t('requests.assessment.preferredNote');
+export const FOOTER_NOTE = (): string => t('requests.assessment.footerNote');
+export const TECHNICIAN_REQUIRED_MESSAGE = (): string =>
+  t('requests.assessment.technicianRequiredMessage');
+export const PURPOSE_REQUIRED_MESSAGE = (): string =>
+  t('requests.assessment.purposeRequiredMessage');
 /** Fixed copy of the `409` conflict codes (the backend title is never displayed, BR-09). */
-export const CONFLICT_COPY: Readonly<Record<string, string>> = {
-  technician_conflict: 'This technician already has a commitment at that time.',
-  technician_time_off: 'This technician is off at that time.',
-};
+export const CONFLICT_COPY: Readonly<Record<string, string>> = localized(() => ({
+  technician_conflict: t('requests.assessment.thisTechnicianAlreadyHas'),
+  technician_time_off: t('requests.assessment.thisTechnicianIsOff'),
+}));
 
-const STEPS = [
-  'Request under review',
-  'Assessment scheduled',
-  'Assessment completed',
-  'Ready for quote',
-] as const;
+const STEPS = localizedList(
+  () =>
+    [
+      t('requests.assessment.requestUnderReview'),
+      t('requests.assessment.assessmentScheduled'),
+      t('requests.assessment.assessmentCompleted'),
+      t('requests.assessment.readyForQuote'),
+    ] as const,
+);
 
 /** Server field keys to the form control that owns them. */
 const FIELD_OWNER: Readonly<Record<string, string>> = {
@@ -132,6 +136,7 @@ interface Step {
 @Component({
   selector: 'app-assessment',
   imports: [
+    TranslocoPipe,
     RouterLink,
     ButtonDirective,
     ConfirmDialog,
@@ -162,15 +167,33 @@ export class Assessment {
   readonly requestQueryParams = { request: this.requestId };
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly notSchedulableMessage = NOT_SCHEDULABLE_MESSAGE;
-  readonly unavailableMessage = UNAVAILABLE_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
-  readonly subtitle = SUBTITLE;
-  readonly noPreferredMessage = NO_PREFERRED_MESSAGE;
-  readonly preferredNote = PREFERRED_NOTE;
-  readonly footerNote = FOOTER_NOTE;
-  readonly noEmailMessage = NO_EMAIL_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get notSchedulableMessage(): string {
+    return NOT_SCHEDULABLE_MESSAGE();
+  }
+  get unavailableMessage(): string {
+    return UNAVAILABLE_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  get subtitle(): string {
+    return SUBTITLE();
+  }
+  get noPreferredMessage(): string {
+    return NO_PREFERRED_MESSAGE();
+  }
+  get preferredNote(): string {
+    return PREFERRED_NOTE();
+  }
+  get footerNote(): string {
+    return FOOTER_NOTE();
+  }
+  get noEmailMessage(): string {
+    return NO_EMAIL_MESSAGE();
+  }
 
   private readonly roleCode = computed(() => this.sessionService.session()?.role.code ?? '');
   /** UX only: the backend decides (BR-01). */
@@ -186,11 +209,15 @@ export class Assessment {
     this.detail()?.status === 'assessment_scheduled' ? 'reschedule' : 'schedule',
   );
   readonly title = computed(() =>
-    this.mode() === 'reschedule' ? 'Reschedule assessment' : 'Schedule assessment',
+    this.mode() === 'reschedule'
+      ? t('requests.assessment.rescheduleAssessment')
+      : t('requests.assessment.scheduleAssessment'),
   );
   readonly statusChip = computed(() => {
     const detail = this.detail();
-    return detail === null ? '' : `Request: ${STATUS_LABELS[detail.status]}`;
+    return detail === null
+      ? ''
+      : t('requests.assessment.requestStatus', { value: STATUS_LABELS[detail.status] });
   });
 
   // Form
@@ -220,7 +247,7 @@ export class Assessment {
     }
     return {
       number: detail.number,
-      customer: detail.customer?.name ?? detail.contact.name ?? 'Guest',
+      customer: detail.customer?.name ?? detail.contact.name ?? t('requests.assessment.guest'),
       property: addressLine(detail.serviceAddress) ?? '—',
       issue: detail.title,
     };
@@ -503,7 +530,7 @@ export class Assessment {
         this.settle('not-available');
         return true;
       case 'conflict':
-        this.leaveToRequest({ severity: 'error', summary: CONFLICT_MESSAGE });
+        this.leaveToRequest({ severity: 'error', summary: CONFLICT_MESSAGE() });
         return true;
       default:
         return false;
@@ -623,31 +650,33 @@ export class Assessment {
       rescheduling
         ? this.requests.rescheduleAssessment(this.requestId, body)
         : this.requests.scheduleAssessment(this.requestId, body),
-      rescheduling ? 'Assessment rescheduled.' : 'Assessment scheduled.',
+      rescheduling
+        ? t('requests.assessment.assessmentRescheduled')
+        : t('requests.assessment.assessmentScheduled2'),
     );
   }
 
   private validate(form: AssessmentFormValue): Record<string, string> {
     const errors: Record<string, string> = {};
     if (this.needsBranch() && form.branchId === '') {
-      errors['branchId'] = 'Choose a branch.';
+      errors['branchId'] = t('requests.assessment.chooseABranch');
     }
     if (!isLocalDate(form.date)) {
-      errors['date'] = 'Choose a date.';
+      errors['date'] = t('requests.assessment.chooseADate');
     } else if (form.date < this.today()) {
-      errors['date'] = 'Choose a date from today onward.';
+      errors['date'] = t('requests.assessment.chooseADateFrom');
     }
     if (form.technicianId === '') {
-      errors['technicianId'] = TECHNICIAN_REQUIRED_MESSAGE;
+      errors['technicianId'] = TECHNICIAN_REQUIRED_MESSAGE();
     }
     const purpose = form.purpose.trim();
     if (purpose.length === 0) {
-      errors['purpose'] = PURPOSE_REQUIRED_MESSAGE;
+      errors['purpose'] = PURPOSE_REQUIRED_MESSAGE();
     } else if (purpose.length > 500) {
-      errors['purpose'] = 'Purpose must be 500 characters or fewer.';
+      errors['purpose'] = t('requests.assessment.purposeMustBe500');
     }
     if (form.internalInstructions.trim().length > 2000) {
-      errors['internalInstructions'] = 'Internal instructions must be 2000 characters or fewer.';
+      errors['internalInstructions'] = t('requests.assessment.internalInstructionsMustBe');
     }
     return errors;
   }
@@ -661,15 +690,19 @@ export class Assessment {
     const notify = this.emailAvailable();
     this.cancelNotify.set(notify);
     this.confirmationService.confirm({
-      header: 'Cancel assessment?',
-      message: 'The request returns to Needs review.',
+      header: t('requests.assessment.cancelAssessment'),
+      message: t('requests.assessment.theRequestReturnsTo'),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Cancel assessment', severity: 'danger' },
-      rejectButtonProps: { label: 'Keep', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('requests.assessment.cancelAssessment2'), severity: 'danger' },
+      rejectButtonProps: {
+        label: t('requests.assessment.keep'),
+        severity: 'secondary',
+        outlined: true,
+      },
       accept: () =>
         this.run(
           this.requests.cancelAssessment(this.requestId, notify && this.cancelNotify()),
-          'Assessment cancelled.',
+          t('requests.assessment.assessmentCancelled'),
         ),
     });
   }
@@ -716,7 +749,7 @@ export class Assessment {
       );
       return;
     }
-    this.messageService.add({ severity: 'error', summary: SAVE_FAILED_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: SAVE_FAILED_MESSAGE() });
   }
 
   // Navigation
@@ -750,7 +783,7 @@ export class Assessment {
     return new Observable<boolean>((subscriber) => {
       this.confirmationService.confirm(
         discardChangesConfirmation({
-          subject: 'this assessment',
+          subject: t('requests.assessment.thisAssessment'),
           accept: () => {
             subscriber.next(true);
             subscriber.complete();

@@ -1,13 +1,15 @@
 import { Component, computed, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PortalStatusChip } from '../portal-status-chip/portal-status-chip';
 
+import { t } from '../../../../core/i18n/translate';
 /** Portal request confirmation (BR-28): number, BR-39 status, View request and Back to home. */
 @Component({
   selector: 'app-request-received',
-  imports: [ButtonDirective, PortalStatusChip, RouterLink],
+  imports: [TranslocoPipe, ButtonDirective, PortalStatusChip, RouterLink],
   templateUrl: './request-received.html',
   styleUrl: './request-received.scss',
 })
@@ -19,7 +21,9 @@ export class RequestReceived {
 
   protected readonly team = computed(() => {
     const name = this.organizationName();
-    return name === null ? 'Our team' : `The ${name} team`;
+    return name === null
+      ? t('portal.requestReceived.ourTeam')
+      : t('portal.requestReceived.theTeam', { name: name });
   });
 
   readonly copied = signal(false);

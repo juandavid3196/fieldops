@@ -15,6 +15,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Message } from 'primeng/message';
 import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { canSeeBusinessOverview, canSeeDashboard } from '../../../../core/config/dashboard-roles';
 import { SessionService } from '../../../../core/services/session.service';
@@ -37,10 +38,11 @@ import {
 import { agoLabel, hiddenTooLong, shouldAutoRefresh } from '../../utils/dashboard-refresh';
 import { longDate } from '../../utils/dashboard-view';
 
-export const FORBIDDEN_MESSAGE = "You don't have access to Dashboard.";
-export const NO_BRANCHES_MESSAGE = 'No branches available.';
-export const LOAD_ERROR_MESSAGE = "We couldn't load the dashboard.";
-export const REFRESH_ERROR_MESSAGE = "Couldn't refresh.";
+import { t } from '../../../../core/i18n/translate';
+export const FORBIDDEN_MESSAGE = (): string => t('dashboard.dashboard.forbiddenMessage');
+export const NO_BRANCHES_MESSAGE = (): string => t('dashboard.dashboard.noBranchesMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('dashboard.dashboard.loadErrorMessage');
+export const REFRESH_ERROR_MESSAGE = (): string => t('dashboard.dashboard.refreshErrorMessage');
 
 const ALL = 'all';
 const TICK_MS = 1000;
@@ -53,6 +55,7 @@ const TICK_MS = 1000;
 @Component({
   selector: 'app-dashboard',
   imports: [
+    TranslocoPipe,
     DashboardAnalytics,
     DashboardAttention,
     DashboardKpisRow,
@@ -77,10 +80,18 @@ export class DashboardPage {
   private readonly document = inject(DOCUMENT);
   private readonly destroyRef = inject(DestroyRef);
 
-  readonly forbiddenMessage = FORBIDDEN_MESSAGE;
-  readonly noBranchesMessage = NO_BRANCHES_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
-  readonly refreshErrorMessage = REFRESH_ERROR_MESSAGE;
+  get forbiddenMessage(): string {
+    return FORBIDDEN_MESSAGE();
+  }
+  get noBranchesMessage(): string {
+    return NO_BRANCHES_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  get refreshErrorMessage(): string {
+    return REFRESH_ERROR_MESSAGE();
+  }
   readonly skeletons = [0, 1, 2];
   readonly kpiSkeletons = [0, 1, 2, 3, 4];
 
@@ -122,7 +133,8 @@ export class DashboardPage {
 
   readonly branchChoices = computed(() => {
     const branches = this.store.options()?.branches ?? [];
-    const all = branches.length > 1 ? [{ id: ALL, name: 'All branches' }] : [];
+    const all =
+      branches.length > 1 ? [{ id: ALL, name: t('dashboard.dashboard.allBranches') }] : [];
     return [...all, ...branches.map(({ id, name }) => ({ id, name }))];
   });
   readonly branchValue = computed(() => this.dashboardRoute()?.branchId ?? ALL);
@@ -133,7 +145,7 @@ export class DashboardPage {
   readonly subtitle = computed(() =>
     this.date() === ''
       ? ''
-      : `${longDate(this.date())} · ${this.branchName() === null ? 'All branches' : `${this.branchName()} operations`}`,
+      : `${longDate(this.date())} · ${this.branchName() === null ? t('dashboard.dashboard.allBranches') : t('dashboard.dashboard.operations', { branchName: this.branchName() })}`,
   );
   readonly technicianChoices = computed(() => {
     const branchId = this.dashboardRoute()?.branchId ?? null;

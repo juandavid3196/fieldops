@@ -102,8 +102,8 @@ describe('register-company validators (AC-05, AC-39)', () => {
       ['branch.city', (v: string) => withBranch({ city: v }), 100],
       ['branch.postalCode', (v: string) => withBranch({ postalCode: v }), 30],
     ] as const)('%s: empty -> required, too long -> length message', (field, build, max) => {
-      expect(validateField(field, build(''))).toBe(REQUIRED_MESSAGE);
-      expect(validateField(field, build('   '))).toBe(REQUIRED_MESSAGE);
+      expect(validateField(field, build(''))).toBe(REQUIRED_MESSAGE());
+      expect(validateField(field, build('   '))).toBe(REQUIRED_MESSAGE());
       expect(validateField(field, build('a'.repeat(max + 1)))).toBe(tooLongMessage(max));
       expect(validateField(field, build('a'.repeat(max)))).toBeNull();
     });
@@ -128,7 +128,7 @@ describe('register-company validators (AC-05, AC-39)', () => {
       ['organization.email', (v: string) => withOrganization({ email: v })],
       ['owner.email', (v: string) => withOwner({ email: v })],
     ] as const)('%s: required, length, format', (field, build) => {
-      expect(validateField(field, build(''))).toBe(REQUIRED_MESSAGE);
+      expect(validateField(field, build(''))).toBe(REQUIRED_MESSAGE());
       expect(validateField(field, build(emailOfLength(255)))).toBe(tooLongMessage(254));
       expect(validateField(field, build('not-an-email'))).toBe(
         'Enter a valid email address, for example name@company.com.',
@@ -149,13 +149,13 @@ describe('register-company validators (AC-05, AC-39)', () => {
 
   it('organization.phone: required, length, format', () => {
     expect(validateField('organization.phone', withOrganization({ phone: '' }))).toBe(
-      REQUIRED_MESSAGE,
+      REQUIRED_MESSAGE(),
     );
     expect(validateField('organization.phone', withOrganization({ phone: '1'.repeat(41) }))).toBe(
       tooLongMessage(40),
     );
     expect(validateField('organization.phone', withOrganization({ phone: '123456' }))).toBe(
-      PHONE_INVALID_MESSAGE,
+      PHONE_INVALID_MESSAGE(),
     );
     expect(
       validateField('organization.phone', withOrganization({ phone: '+1 555 000 1111' })),
@@ -168,24 +168,24 @@ describe('register-company validators (AC-05, AC-39)', () => {
   ] as const)('%s: optional, length and format only', (field, build) => {
     expect(validateField(field, build(''))).toBeNull();
     expect(validateField(field, build('1'.repeat(41)))).toBe(tooLongMessage(40));
-    expect(validateField(field, build('123456'))).toBe(PHONE_INVALID_MESSAGE);
+    expect(validateField(field, build('123456'))).toBe(PHONE_INVALID_MESSAGE());
   });
 
   it.each([
     ['organization.timezone', (v: string) => withOrganization({ timezone: v })],
     ['branch.timezone', (v: string) => withBranch({ timezone: v })],
   ] as const)('%s: empty or unknown zone -> select message', (field, build) => {
-    expect(validateField(field, build(''))).toBe(TIMEZONE_MESSAGE);
-    expect(validateField(field, build('Not/AZone'))).toBe(TIMEZONE_MESSAGE);
+    expect(validateField(field, build(''))).toBe(TIMEZONE_MESSAGE());
+    expect(validateField(field, build('Not/AZone'))).toBe(TIMEZONE_MESSAGE());
     expect(validateField(field, build('America/Chicago'))).toBeNull();
   });
 
   it('organization.currency: empty or unsupported code -> select message', () => {
     expect(validateField('organization.currency', withOrganization({ currency: '' }))).toBe(
-      CURRENCY_MESSAGE,
+      CURRENCY_MESSAGE(),
     );
     expect(validateField('organization.currency', withOrganization({ currency: 'XAU' }))).toBe(
-      CURRENCY_MESSAGE,
+      CURRENCY_MESSAGE(),
     );
     expect(
       validateField('organization.currency', withOrganization({ currency: 'USD' })),
@@ -194,10 +194,10 @@ describe('register-company validators (AC-05, AC-39)', () => {
 
   it('branch.countryCode: empty or unsupported code -> select message', () => {
     expect(validateField('branch.countryCode', withBranch({ countryCode: '' }))).toBe(
-      COUNTRY_MESSAGE,
+      COUNTRY_MESSAGE(),
     );
     expect(validateField('branch.countryCode', withBranch({ countryCode: 'ZZ' }))).toBe(
-      COUNTRY_MESSAGE,
+      COUNTRY_MESSAGE(),
     );
     expect(validateField('branch.countryCode', withBranch({ countryCode: 'US' }))).toBeNull();
   });
@@ -205,13 +205,13 @@ describe('register-company validators (AC-05, AC-39)', () => {
   it('organization.defaultTaxRate: required, range and decimals', () => {
     expect(
       validateField('organization.defaultTaxRate', withOrganization({ defaultTaxRate: null })),
-    ).toBe(REQUIRED_MESSAGE);
+    ).toBe(REQUIRED_MESSAGE());
     expect(
       validateField('organization.defaultTaxRate', withOrganization({ defaultTaxRate: 101 })),
-    ).toBe(TAX_RATE_MESSAGE);
+    ).toBe(TAX_RATE_MESSAGE());
     expect(
       validateField('organization.defaultTaxRate', withOrganization({ defaultTaxRate: 1.23456 })),
-    ).toBe(TAX_RATE_MESSAGE);
+    ).toBe(TAX_RATE_MESSAGE());
     expect(
       validateField('organization.defaultTaxRate', withOrganization({ defaultTaxRate: 7.5 })),
     ).toBeNull();
@@ -224,9 +224,9 @@ describe('register-company validators (AC-05, AC-39)', () => {
   ] as const)('%s: required, length/characters', (field) => {
     const withPrefix = (v: string) =>
       withOrganization({ quotePrefix: v, workOrderPrefix: v, invoicePrefix: v });
-    expect(validateField(field, withPrefix(''))).toBe(REQUIRED_MESSAGE);
-    expect(validateField(field, withPrefix('A'.repeat(21)))).toBe(PREFIX_MESSAGE);
-    expect(validateField(field, withPrefix('AB_1'))).toBe(PREFIX_MESSAGE);
+    expect(validateField(field, withPrefix(''))).toBe(REQUIRED_MESSAGE());
+    expect(validateField(field, withPrefix('A'.repeat(21)))).toBe(PREFIX_MESSAGE());
+    expect(validateField(field, withPrefix('AB_1'))).toBe(PREFIX_MESSAGE());
     expect(validateField(field, withPrefix('Q-1'))).toBeNull();
   });
 
@@ -236,58 +236,58 @@ describe('register-company validators (AC-05, AC-39)', () => {
         'organization.nextInvoiceNumber',
         withOrganization({ nextInvoiceNumber: null }),
       ),
-    ).toBe(REQUIRED_MESSAGE);
+    ).toBe(REQUIRED_MESSAGE());
     expect(
       validateField('organization.nextInvoiceNumber', withOrganization({ nextInvoiceNumber: 0 })),
-    ).toBe(NEXT_INVOICE_NUMBER_MESSAGE);
+    ).toBe(NEXT_INVOICE_NUMBER_MESSAGE());
     expect(
       validateField(
         'organization.nextInvoiceNumber',
         withOrganization({ nextInvoiceNumber: 1_000_000_000_000 }),
       ),
-    ).toBe(NEXT_INVOICE_NUMBER_MESSAGE);
+    ).toBe(NEXT_INVOICE_NUMBER_MESSAGE());
     expect(
       validateField('organization.nextInvoiceNumber', withOrganization({ nextInvoiceNumber: 1.5 })),
-    ).toBe(NEXT_INVOICE_NUMBER_MESSAGE);
+    ).toBe(NEXT_INVOICE_NUMBER_MESSAGE());
     expect(
       validateField('organization.nextInvoiceNumber', withOrganization({ nextInvoiceNumber: 1 })),
     ).toBeNull();
   });
 
   it('branch.code: required, length/characters', () => {
-    expect(validateField('branch.code', withBranch({ code: '' }))).toBe(REQUIRED_MESSAGE);
+    expect(validateField('branch.code', withBranch({ code: '' }))).toBe(REQUIRED_MESSAGE());
     expect(validateField('branch.code', withBranch({ code: 'ABCDEFGHI' }))).toBe(
-      BRANCH_CODE_MESSAGE,
+      BRANCH_CODE_MESSAGE(),
     );
-    expect(validateField('branch.code', withBranch({ code: 'AB_1' }))).toBe(BRANCH_CODE_MESSAGE);
+    expect(validateField('branch.code', withBranch({ code: 'AB_1' }))).toBe(BRANCH_CODE_MESSAGE());
     expect(validateField('branch.code', withBranch({ code: 'MAIN' }))).toBeNull();
   });
 
   describe('business hours (open day, AC-31)', () => {
     it('start: empty -> required', () => {
-      expect(validateBusinessHoursStart('')).toBe(REQUIRED_MESSAGE);
+      expect(validateBusinessHoursStart('')).toBe(REQUIRED_MESSAGE());
       expect(validateBusinessHoursStart('08:00')).toBeNull();
     });
 
     it('end: empty -> required, not after start -> end message', () => {
-      expect(validateBusinessHoursEnd('08:00', '')).toBe(REQUIRED_MESSAGE);
-      expect(validateBusinessHoursEnd('08:00', '08:00')).toBe(END_NOT_AFTER_START_MESSAGE);
-      expect(validateBusinessHoursEnd('08:00', '07:00')).toBe(END_NOT_AFTER_START_MESSAGE);
+      expect(validateBusinessHoursEnd('08:00', '')).toBe(REQUIRED_MESSAGE());
+      expect(validateBusinessHoursEnd('08:00', '08:00')).toBe(END_NOT_AFTER_START_MESSAGE());
+      expect(validateBusinessHoursEnd('08:00', '07:00')).toBe(END_NOT_AFTER_START_MESSAGE());
       expect(validateBusinessHoursEnd('08:00', '17:00')).toBeNull();
     });
   });
 
   describe('owner.password', () => {
     it('empty -> required', () => {
-      expect(validateField('owner.password', withOwner({ password: '' }))).toBe(REQUIRED_MESSAGE);
+      expect(validateField('owner.password', withOwner({ password: '' }))).toBe(REQUIRED_MESSAGE());
     });
 
     it('too short or too long -> length message', () => {
       expect(validateField('owner.password', withOwner({ password: 'short11' }))).toBe(
-        PASSWORD_LENGTH_MESSAGE,
+        PASSWORD_LENGTH_MESSAGE(),
       );
       expect(validateField('owner.password', withOwner({ password: 'a'.repeat(129) }))).toBe(
-        PASSWORD_LENGTH_MESSAGE,
+        PASSWORD_LENGTH_MESSAGE(),
       );
     });
 
@@ -297,27 +297,27 @@ describe('register-company validators (AC-05, AC-39)', () => {
           'owner.password',
           withOwner({ email: 'owner@acme.com', password: 'OWNER@ACME.COM' }),
         ),
-      ).toBe(PASSWORD_EQUALS_EMAIL_MESSAGE);
+      ).toBe(PASSWORD_EQUALS_EMAIL_MESSAGE());
     });
 
     it('AC-39: a short password equal to the email shows only the length message', () => {
       expect(
         validateField('owner.password', withOwner({ email: 'ab@cd.io', password: 'ab@cd.io' })),
-      ).toBe(PASSWORD_LENGTH_MESSAGE);
+      ).toBe(PASSWORD_LENGTH_MESSAGE());
     });
   });
 
   describe('confirmPassword (BR-18, client-only)', () => {
     it('empty -> required', () => {
       expect(validateField('confirmPassword', { ...DEFAULT, confirmPassword: '' })).toBe(
-        REQUIRED_MESSAGE,
+        REQUIRED_MESSAGE(),
       );
     });
 
     it('different from password -> mismatch message', () => {
       expect(
         validateField('confirmPassword', { ...DEFAULT, confirmPassword: 'something else12' }),
-      ).toBe(PASSWORDS_DONT_MATCH_MESSAGE);
+      ).toBe(PASSWORDS_DONT_MATCH_MESSAGE());
     });
 
     it('equal to password -> valid', () => {

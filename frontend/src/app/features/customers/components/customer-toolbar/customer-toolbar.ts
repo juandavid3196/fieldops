@@ -5,6 +5,7 @@ import { InputIcon } from 'primeng/inputicon';
 import { InputText } from 'primeng/inputtext';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   BalanceStatus,
@@ -15,6 +16,9 @@ import {
   TabCounts,
 } from '../../models/customer.model';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+import { activeIntlLocale } from '../../../../core/i18n/active-locale';
 interface Option<T> {
   readonly code: T;
   readonly label: string;
@@ -25,37 +29,46 @@ interface Tab {
   readonly label: string;
 }
 
-const TABS: readonly Tab[] = [
-  { code: 'all', label: 'All customers' },
-  { code: 'leads', label: 'Leads' },
-  { code: 'active', label: 'Active' },
-  { code: 'archived', label: 'Archived' },
-];
+const TABS: readonly Tab[] = localizedList(() => [
+  { code: 'all', label: t('customers.customerToolbar.allCustomers') },
+  { code: 'leads', label: t('customers.customerToolbar.leads') },
+  { code: 'active', label: t('common.active') },
+  { code: 'archived', label: t('customers.customerToolbar.archived') },
+]);
 
 // Not `readonly`: PrimeNG's `p-select` `[options]` input requires a mutable array type.
-const TYPE_OPTIONS: Option<'all' | CustomerType>[] = [
-  { code: 'all', label: 'All types' },
-  { code: 'residential', label: 'Residential' },
-  { code: 'commercial', label: 'Commercial' },
-];
-const BALANCE_OPTIONS: Option<BalanceStatus>[] = [
-  { code: 'any', label: 'Any balance' },
-  { code: 'none', label: 'No balance' },
-  { code: 'has_balance', label: 'Has balance' },
-  { code: 'overdue', label: 'Overdue' },
-];
-const SORT_OPTIONS: Option<CustomerSort>[] = [
-  { code: 'last_activity', label: 'Last activity' },
-  { code: 'name_asc', label: 'Name A–Z' },
-  { code: 'name_desc', label: 'Name Z–A' },
-  { code: 'newest', label: 'Newest' },
-  { code: 'balance_desc', label: 'Balance high–low' },
-];
+const TYPE_OPTIONS: Option<'all' | CustomerType>[] = localizedList(() => [
+  { code: 'all', label: t('customers.customerToolbar.allTypes') },
+  { code: 'residential', label: t('customers.customerToolbar.residential') },
+  { code: 'commercial', label: t('customers.customerToolbar.commercial') },
+]);
+const BALANCE_OPTIONS: Option<BalanceStatus>[] = localizedList(() => [
+  { code: 'any', label: t('customers.customerToolbar.anyBalance') },
+  { code: 'none', label: t('customers.customerToolbar.noBalance') },
+  { code: 'has_balance', label: t('customers.customerToolbar.hasBalance') },
+  { code: 'overdue', label: t('customers.customerToolbar.overdue') },
+]);
+const SORT_OPTIONS: Option<CustomerSort>[] = localizedList(() => [
+  { code: 'last_activity', label: t('customers.customerToolbar.lastActivity') },
+  { code: 'name_asc', label: t('customers.customerToolbar.nameAZ') },
+  { code: 'name_desc', label: t('customers.customerToolbar.nameZA') },
+  { code: 'newest', label: t('customers.customerToolbar.newest') },
+  { code: 'balance_desc', label: t('customers.customerToolbar.balanceHighLow') },
+]);
 
 /** Tabs with counts, search and the Customer type / Branch / Tags / Balance status / Sort controls (BR-06 to BR-08). */
 @Component({
   selector: 'app-customer-toolbar',
-  imports: [FormsModule, IconField, InputIcon, InputText, MultiSelect, Select],
+  imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
+    FormsModule,
+    IconField,
+    InputIcon,
+    InputText,
+    MultiSelect,
+    Select,
+  ],
   templateUrl: './customer-toolbar.html',
   styleUrl: './customer-toolbar.scss',
 })
@@ -87,14 +100,14 @@ export class CustomerToolbar {
   readonly sortOptions = SORT_OPTIONS;
 
   readonly branchOptions = computed<Option<string>[]>(() => [
-    { code: 'all', label: 'All branches' },
+    { code: 'all', label: t('customers.customerToolbar.allBranches') },
     ...this.branches().map((branch) => ({ code: branch.id, label: branch.name })),
   ]);
   readonly tagOptions = computed<CustomerTag[]>(() => [...this.tags()]);
 
   count(tab: Tab): string {
     const counts = this.counts();
-    return counts === null ? '—' : counts[tab.code].toLocaleString('en-US');
+    return counts === null ? '—' : counts[tab.code].toLocaleString(activeIntlLocale());
   }
 
   /** Arrow keys move the selection between tabs (roving tabindex). */

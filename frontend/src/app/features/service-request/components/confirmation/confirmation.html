@@ -4,32 +4,41 @@
       <header class="confirmation__header">
         <span class="confirmation__badge" aria-hidden="true"><i class="pi pi-check"></i></span>
         <div>
-          <h2 class="confirmation__title" tabindex="-1" data-sr-heading>Request received</h2>
+          <h2 class="confirmation__title" tabindex="-1" data-sr-heading>
+            {{ 'serviceRequest.confirmation.requestReceived' | transloco }}
+          </h2>
           <p class="confirmation__lead" role="status">
-            Thanks, {{ result.firstName }}. We'll send a confirmation to {{ result.email }}.
+            {{
+              'serviceRequest.confirmation.thanksWeLlSend'
+                | transloco: { firstName: result.firstName, email: result.email }
+            }}
           </p>
         </div>
       </header>
 
       <p class="confirmation__number">
-        <span>Request number</span>
+        <span>{{ 'serviceRequest.confirmation.requestNumber' | transloco }}</span>
         <strong>{{ result.requestNumber }}</strong>
-        <span>Keep this number for your records.</span>
+        <span>{{ 'serviceRequest.confirmation.keepThisNumberFor' | transloco }}</span>
       </p>
 
-      <h3 class="confirmation__subtitle">What happens next</h3>
+      <h3 class="confirmation__subtitle">
+        {{ 'serviceRequest.confirmation.whatHappensNext' | transloco }}
+      </h3>
       <ol class="confirmation__steps">
-        <li>Our team reviews your request.</li>
-        <li>We'll contact you to confirm details.</li>
-        <li>You'll receive scheduling updates by email or text.</li>
+        <li>{{ 'serviceRequest.confirmation.ourTeamReviewsYour' | transloco }}</li>
+        <li>{{ 'serviceRequest.confirmation.weLlContactYou' | transloco }}</li>
+        <li>{{ 'serviceRequest.confirmation.youLlReceiveScheduling' | transloco }}</li>
       </ol>
 
-      <h3 class="confirmation__subtitle">Submitted request</h3>
+      <h3 class="confirmation__subtitle">
+        {{ 'serviceRequest.confirmation.submittedRequest' | transloco }}
+      </h3>
       <ul class="confirmation__submitted">
         <li>
           <span class="confirmation__icon" aria-hidden="true"><i class="pi pi-home"></i></span>
           <div>
-            <h4>Property</h4>
+            <h4>{{ 'serviceRequest.confirmation.property' | transloco }}</h4>
             @for (line of result.submitted.property; track $index) {
               <p>{{ line }}</p>
             }
@@ -38,14 +47,14 @@
         <li>
           <span class="confirmation__icon" aria-hidden="true"><i class="pi pi-wrench"></i></span>
           <div>
-            <h4>Service</h4>
+            <h4>{{ 'serviceRequest.confirmation.service' | transloco }}</h4>
             <p>{{ result.submitted.service }}</p>
           </div>
         </li>
         <li>
           <span class="confirmation__icon" aria-hidden="true"><i class="pi pi-calendar"></i></span>
           <div>
-            <h4>Preferred time</h4>
+            <h4>{{ 'serviceRequest.confirmation.preferredTime' | transloco }}</h4>
             <p>{{ result.submitted.preferredTime }}</p>
           </div>
         </li>
@@ -54,42 +63,51 @@
       <div class="confirmation__actions">
         @if (store.homeUrl(); as url) {
           <a pButton [href]="url">
-            Return to home
+            {{ 'serviceRequest.confirmation.returnToHome' | transloco }}
             <i class="pi pi-arrow-right" aria-hidden="true"></i>
           </a>
         } @else {
           <button pButton type="button" (click)="store.reset()">
-            Return to home
+            {{ 'serviceRequest.confirmation.returnToHome' | transloco }}
             <i class="pi pi-arrow-right" aria-hidden="true"></i>
           </button>
         }
         <button pButton type="button" variant="outlined" (click)="store.reset()">
-          Submit another request
+          {{ 'serviceRequest.confirmation.submitAnotherRequest' | transloco }}
         </button>
       </div>
     </section>
 
     <aside class="confirmation__card" aria-labelledby="sr-help-title">
-      <h2 class="confirmation__side-title" id="sr-help-title">Need help?</h2>
+      <h2 class="confirmation__side-title" id="sr-help-title">
+        {{ 'serviceRequest.confirmation.needHelp' | transloco }}
+      </h2>
       @if (store.config()?.phone; as phone) {
         <div class="confirmation__help">
           <span class="confirmation__icon confirmation__icon--lg" aria-hidden="true"
             ><i class="pi pi-phone"></i
           ></span>
           <div>
-            <p>Call us anytime</p>
+            <p>{{ 'serviceRequest.confirmation.callUsAnytime' | transloco }}</p>
             <p class="confirmation__phone">{{ phone }}</p>
-            <p>Mention request {{ result.requestNumber }} when you call.</p>
+            <p>
+              {{
+                'serviceRequest.confirmation.mentionRequestWhenYou'
+                  | transloco: { requestNumber: result.requestNumber }
+              }}
+            </p>
           </div>
         </div>
       }
 
-      <h2 class="confirmation__side-title">Your request</h2>
+      <h2 class="confirmation__side-title">
+        {{ 'serviceRequest.confirmation.yourRequest' | transloco }}
+      </h2>
       <ul class="confirmation__summary">
         <li>
           <span class="confirmation__icon" aria-hidden="true"><i class="pi pi-user"></i></span>
           <div>
-            <h3>Contact</h3>
+            <h3>{{ 'serviceRequest.confirmation.contact' | transloco }}</h3>
             @for (line of result.submitted.contact; track $index) {
               <p>{{ line }}</p>
             }
@@ -98,7 +116,7 @@
         <li>
           <span class="confirmation__icon" aria-hidden="true"><i class="pi pi-home"></i></span>
           <div>
-            <h3>Property</h3>
+            <h3>{{ 'serviceRequest.confirmation.property' | transloco }}</h3>
             @for (line of result.submitted.property; track $index) {
               <p>{{ line }}</p>
             }
@@ -107,14 +125,14 @@
         <li>
           <span class="confirmation__icon" aria-hidden="true"><i class="pi pi-wrench"></i></span>
           <div>
-            <h3>Service</h3>
+            <h3>{{ 'serviceRequest.confirmation.service' | transloco }}</h3>
             <p>{{ result.submitted.service }}</p>
           </div>
         </li>
         <li>
           <span class="confirmation__icon" aria-hidden="true"><i class="pi pi-calendar"></i></span>
           <div>
-            <h3>Preferred time</h3>
+            <h3>{{ 'serviceRequest.confirmation.preferredTime' | transloco }}</h3>
             <p>{{ result.submitted.preferredTime }}</p>
           </div>
         </li>

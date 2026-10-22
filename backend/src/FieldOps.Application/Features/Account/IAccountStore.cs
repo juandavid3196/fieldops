@@ -26,6 +26,19 @@ public interface IAccountStore
         DateTimeOffset now,
         CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Stores the language and, only when it differs, writes one
+    /// <c>user.language_updated</c> audit row ({from,to}) in the same save.
+    /// Returns the stored language, or null when the user does not exist.
+    /// </summary>
+    Task<string?> UpdateLanguageAsync(
+        Guid userId,
+        Guid organizationId,
+        string language,
+        IPAddress? clientIp,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
+
     Task<AccountCredential?> FindCredentialAsync(Guid userId, CancellationToken cancellationToken);
 
     /// <summary>

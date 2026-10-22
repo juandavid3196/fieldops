@@ -18,20 +18,22 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Subject, catchError, debounceTime, map, of, switchMap, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { LinkableAccount } from '../../models/team.model';
 import { TeamService } from '../../services/team.service';
 
-export const LINK_CONFLICT_MESSAGE = "This user account can't be linked to this profile.";
-export const LINK_FAILED_MESSAGE = "We couldn't link the user account. Try again.";
-export const NO_ACCOUNTS_MESSAGE = 'No eligible user accounts.';
+import { t } from '../../../../core/i18n/translate';
+export const LINK_CONFLICT_MESSAGE = (): string => t('team.linkAccountDialog.linkConflictMessage');
+export const LINK_FAILED_MESSAGE = (): string => t('team.linkAccountDialog.linkFailedMessage');
+export const NO_ACCOUNTS_MESSAGE = (): string => t('team.linkAccountDialog.noAccountsMessage');
 const SEARCH_DEBOUNCE_MS = 300;
 
 /** BR-18 link dialog: searchable eligible members, single selection, inline 409. */
 @Component({
   selector: 'app-link-account-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, InputText, Message, SpinnerIcon],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Dialog, InputText, Message, SpinnerIcon],
   templateUrl: './link-account-dialog.html',
   styleUrl: './link-account-dialog.scss',
 })
@@ -48,7 +50,9 @@ export class LinkAccountDialog {
   readonly linked = output<string>();
   readonly unauthorized = output<void>();
 
-  readonly noAccountsMessage = NO_ACCOUNTS_MESSAGE;
+  get noAccountsMessage(): string {
+    return NO_ACCOUNTS_MESSAGE();
+  }
   readonly search = signal('');
   readonly accounts = signal<readonly LinkableAccount[]>([]);
   readonly searching = signal(false);
@@ -148,7 +152,10 @@ export class LinkAccountDialog {
         next: () => {
           this.submitting.set(false);
           this.visible.set(false);
-          this.messageService.add({ severity: 'success', summary: 'User account linked.' });
+          this.messageService.add({
+            severity: 'success',
+            summary: t('team.linkAccountDialog.userAccountLinked'),
+          });
           this.linked.emit(id);
         },
         error: (error: unknown) => {
@@ -159,11 +166,13 @@ export class LinkAccountDialog {
           } else if (kind === 'conflict') {
             this.conflict.set(true);
           } else {
-            this.messageService.add({ severity: 'error', summary: LINK_FAILED_MESSAGE });
+            this.messageService.add({ severity: 'error', summary: LINK_FAILED_MESSAGE() });
           }
         },
       });
   }
 
-  readonly conflictMessage = LINK_CONFLICT_MESSAGE;
+  get conflictMessage(): string {
+    return LINK_CONFLICT_MESSAGE();
+  }
 }

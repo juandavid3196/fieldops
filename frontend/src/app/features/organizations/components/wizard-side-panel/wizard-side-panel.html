@@ -1,11 +1,16 @@
 <aside class="side-panel">
   <p class="side-panel__brand">
     <i class="pi pi-cog" aria-hidden="true"></i>
-    <span>FieldOps</span>
+    <span>{{ 'organizations.wizardSidePanel.fieldops' | transloco }}</span>
   </p>
 
   <div class="side-panel__compact">
-    <p class="side-panel__compact-label">Step {{ current() }} of 4 · {{ labels[current()] }}</p>
+    <p class="side-panel__compact-label">
+      {{
+        'organizations.wizardSidePanel.stepOf4'
+          | transloco: { current: current(), value: labels[current()] }
+      }}
+    </p>
     <div class="side-panel__segments" aria-hidden="true">
       @for (step of steps; track step) {
         <span
@@ -17,11 +22,18 @@
   </div>
 
   <div class="side-panel__intro">
-    <p class="side-panel__heading">Set up your workspace</p>
-    <p class="side-panel__text">Get your organization up and running in a few simple steps.</p>
+    <p class="side-panel__heading">
+      {{ 'organizations.wizardSidePanel.setUpYourWorkspace' | transloco }}
+    </p>
+    <p class="side-panel__text">
+      {{ 'organizations.wizardSidePanel.getYourOrganizationUp' | transloco }}
+    </p>
   </div>
 
-  <nav class="side-panel__nav" aria-label="Setup steps">
+  <nav
+    class="side-panel__nav"
+    [attr.aria-label]="'organizations.wizardSidePanel.setupSteps' | transloco"
+  >
     <ol class="side-panel__steps">
       @for (step of steps; track step) {
         @let entry = item(step);
@@ -62,10 +74,11 @@
   <div class="side-panel__footer">
     <p class="side-panel__secure">
       <i class="pi pi-lock" aria-hidden="true"></i>
-      <span>Your information is secure and encrypted.</span>
+      <span>{{ 'organizations.wizardSidePanel.yourInformationIsSecure' | transloco }}</span>
     </p>
     <p class="side-panel__signin">
-      Already have an account? <a routerLink="/auth/sign-in">Sign in</a>
+      {{ 'organizations.wizardSidePanel.alreadyHaveAnAccount' | transloco }}
+      <a routerLink="/auth/sign-in">{{ 'organizations.wizardSidePanel.signIn' | transloco }}</a>
     </p>
   </div>
 </aside>

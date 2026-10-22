@@ -15,6 +15,7 @@ import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { SessionService } from '../../../../core/services/session.service';
 import { TOAST_STATE_KEY, ToastHandoff } from '../../../requests/models/requests.model';
@@ -47,15 +48,17 @@ import {
 } from '../../utils/technician-errors';
 import { addressLine } from '../../utils/technician-format';
 
-export const REVIEW_SUBTITLE = 'Review completed work before capturing customer acknowledgment.';
-export const ACK_SUBTITLE = 'Choose how completion was acknowledged.';
-export const JOB_COMPLETED_MESSAGE = 'Job completed.';
-export const NOT_AVAILABLE_MESSAGE = "This job isn't available.";
-export const LOAD_ERROR_MESSAGE = "We couldn't load this job. Try again.";
-export const COMPLETES_ORDER_TEXT =
-  'Completing stops the timer and changes the work order to Completed.';
-export const KEEPS_ORDER_TEXT =
-  'Completing stops the timer. The work order stays in progress until its remaining visits are completed.';
+import { t } from '../../../../core/i18n/translate';
+export const REVIEW_SUBTITLE = (): string => t('technicianJobs.visitReview.reviewSubtitle');
+export const ACK_SUBTITLE = (): string => t('technicianJobs.visitReview.ackSubtitle');
+export const JOB_COMPLETED_MESSAGE = (): string =>
+  t('technicianJobs.visitReview.jobCompletedMessage');
+export const NOT_AVAILABLE_MESSAGE = (): string =>
+  t('technicianJobs.visitReview.notAvailableMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('technicianJobs.visitReview.loadErrorMessage');
+export const COMPLETES_ORDER_TEXT = (): string =>
+  t('technicianJobs.visitReview.completesOrderText');
+export const KEEPS_ORDER_TEXT = (): string => t('technicianJobs.visitReview.keepsOrderText');
 const TICK_MS = 30_000;
 
 type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
@@ -69,7 +72,7 @@ type ItemState = 'met' | 'unmet' | 'neutral';
  */
 @Component({
   selector: 'app-visit-review',
-  imports: [RouterLink, ButtonDirective, InputText, Message, Skeleton, SignaturePad],
+  imports: [TranslocoPipe, RouterLink, ButtonDirective, InputText, Message, Skeleton, SignaturePad],
   templateUrl: './visit-review.html',
   styleUrls: ['./visit-review.scss', './visit-review-ack.scss'],
 })
@@ -87,9 +90,15 @@ export class VisitReview {
 
   readonly jobLink = ['/today/visits', this.visitId];
   readonly todayPath = '/today';
-  readonly notAvailableMessage = NOT_AVAILABLE_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
-  readonly notPrimaryText = NOT_PRIMARY_JOB_MESSAGE;
+  get notAvailableMessage(): string {
+    return NOT_AVAILABLE_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
+  get notPrimaryText(): string {
+    return NOT_PRIMARY_JOB_MESSAGE();
+  }
   readonly methods = METHODS;
   readonly relationships = RELATIONSHIPS;
   readonly fieldRules = FIELD_RULES;
@@ -169,24 +178,24 @@ export class VisitReview {
     return [
       {
         label: completion.requiredTasksComplete
-          ? 'Checklist complete'
-          : 'Required tasks incomplete',
+          ? t('technicianJobs.visitReview.checklistComplete')
+          : t('technicianJobs.visitReview.requiredTasksIncomplete'),
         state: completion.requiredTasksComplete ? 'met' : 'unmet',
       },
       {
         label:
           completion.hasBeforePhoto && completion.hasAfterPhoto
-            ? 'Required evidence attached'
-            : 'Before and after photos missing',
+            ? t('technicianJobs.visitReview.requiredEvidenceAttached')
+            : t('technicianJobs.visitReview.beforeAndAfterPhotos'),
         state: completion.hasBeforePhoto && completion.hasAfterPhoto ? 'met' : 'unmet',
       },
       this.materials().total > 0
-        ? { label: 'Materials recorded', state: 'met' }
-        : { label: 'No materials recorded', state: 'neutral' },
+        ? { label: t('technicianJobs.visitReview.materialsRecorded'), state: 'met' }
+        : { label: t('technicianJobs.visitReview.noMaterialsRecordedLabel'), state: 'neutral' },
     ];
   });
   readonly footerText = computed(() =>
-    this.visit()?.completion.completesWorkOrder ? COMPLETES_ORDER_TEXT : KEEPS_ORDER_TEXT,
+    this.visit()?.completion.completesWorkOrder ? COMPLETES_ORDER_TEXT() : KEEPS_ORDER_TEXT(),
   );
 
   constructor() {
@@ -201,11 +210,16 @@ export class VisitReview {
       }
       const acknowledgment = this.currentStep() === 'acknowledgment';
       this.visits.setShellHeader({
-        backLabel: acknowledgment ? 'Back to review' : 'Back to job',
+        backLabel: acknowledgment
+          ? t('technicianJobs.visitReview.backToReview')
+          : t('technicianJobs.visitReview.backToJob'),
         onBack: () =>
           acknowledgment ? this.show('review') : void this.router.navigate(this.jobLink),
         title: `#${visit.displayNumber}`,
-        status: visit.status === 'paused' ? 'Paused' : 'In progress',
+        status:
+          visit.status === 'paused'
+            ? t('technicianJobs.visitReview.paused')
+            : t('technicianJobs.visitReview.inProgress'),
         paused: visit.status === 'paused',
         time: this.laborText(),
       });
@@ -321,7 +335,7 @@ export class VisitReview {
       signature = (await this.pad()?.exportPng()) ?? null;
       if (signature === null) {
         this.pending.set(false);
-        this.serverErrors.set({ signature: SIGNATURE_AGAIN_MESSAGE });
+        this.serverErrors.set({ signature: SIGNATURE_AGAIN_MESSAGE() });
         this.focusField('signature');
         return;
       }
@@ -333,8 +347,8 @@ export class VisitReview {
   }
 
   private finish(): void {
-    this.announcement.set(JOB_COMPLETED_MESSAGE);
-    const toast: ToastHandoff = { severity: 'success', summary: JOB_COMPLETED_MESSAGE };
+    this.announcement.set(JOB_COMPLETED_MESSAGE());
+    const toast: ToastHandoff = { severity: 'success', summary: JOB_COMPLETED_MESSAGE() };
     void this.router
       .navigate([this.todayPath], { state: { [TOAST_STATE_KEY]: toast } })
       .finally(() => this.pending.set(false));

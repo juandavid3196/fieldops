@@ -3,7 +3,7 @@
     <p class="table__message" role="alert">
       {{ errorMessage }}
       <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-        Retry
+        {{ 'common.retry' | transloco }}
       </button>
     </p>
   } @else if (region().data === null) {
@@ -23,11 +23,11 @@
           size="small"
           (click)="clearFilters.emit()"
         >
-          Clear filters
+          {{ 'invoices.invoicesTable.clearFilters' | transloco }}
         </button>
       } @else {
         <button pButton type="button" severity="secondary" size="small" (click)="openReady.emit()">
-          Completed jobs
+          {{ 'invoices.invoicesTable.completedJobs' | transloco }}
         </button>
       }
     </p>
@@ -36,16 +36,18 @@
       <table class="table__table">
         <thead>
           <tr>
-            <th scope="col">Invoice #</th>
-            <th scope="col">Customer</th>
-            <th scope="col">Work order</th>
-            <th scope="col">Invoice date</th>
-            <th scope="col">Due date</th>
-            <th scope="col" class="table__number">Amount</th>
-            <th scope="col" class="table__number">Balance</th>
-            <th scope="col">Status</th>
-            <th scope="col">Last activity</th>
-            <th scope="col">Actions</th>
+            <th scope="col">{{ 'invoices.invoicesTable.invoice' | transloco }}</th>
+            <th scope="col">{{ 'common.customer' | transloco }}</th>
+            <th scope="col">{{ 'invoices.invoicesTable.workOrder' | transloco }}</th>
+            <th scope="col">{{ 'invoices.invoicesTable.invoiceDate' | transloco }}</th>
+            <th scope="col">{{ 'invoices.invoicesTable.dueDate' | transloco }}</th>
+            <th scope="col" class="table__number">{{ 'common.amount' | transloco }}</th>
+            <th scope="col" class="table__number">
+              {{ 'invoices.invoicesTable.balance' | transloco }}
+            </th>
+            <th scope="col">{{ 'common.status' | transloco }}</th>
+            <th scope="col">{{ 'invoices.invoicesTable.lastActivity' | transloco }}</th>
+            <th scope="col">{{ 'common.actions' | transloco }}</th>
           </tr>
         </thead>
         <tbody>
@@ -78,7 +80,9 @@
                   type="button"
                   class="table__menu"
                   aria-haspopup="menu"
-                  [attr.aria-label]="'Actions for ' + item.row.number"
+                  [attr.aria-label]="
+                    'invoices.invoicesTable.actionsFor' | transloco: { number: item.row.number }
+                  "
                   [attr.aria-busy]="pdfBusyId() === item.row.id"
                   (click)="menuRequested.emit({ event: $event, row: item.row })"
                 >
@@ -97,7 +101,7 @@
       </table>
     </div>
     <app-hub-pager
-      noun="invoices"
+      [noun]="'invoices.invoicesTable.invoices' | transloco"
       [page]="page()"
       [pageSize]="region().data?.pageSize ?? 20"
       [total]="region().data?.total ?? 0"

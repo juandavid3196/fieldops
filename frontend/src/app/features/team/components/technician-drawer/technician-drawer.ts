@@ -15,6 +15,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -23,13 +24,24 @@ import { TeamService } from '../../services/team.service';
 import { PROFILE_STATUS_LABELS, profileStatusSeverity } from '../../utils/team-format';
 import { SCHEDULE_PATH, TechnicianProfile } from '../technician-profile/technician-profile';
 
-export const TECHNICIAN_UNAVAILABLE_MESSAGE = "This technician profile isn't available.";
-export const DETAIL_ERROR_MESSAGE = "We couldn't load this technician profile.";
+import { t } from '../../../../core/i18n/translate';
+export const TECHNICIAN_UNAVAILABLE_MESSAGE = (): string =>
+  t('team.technicianDrawer.technicianUnavailableMessage');
+export const DETAIL_ERROR_MESSAGE = (): string => t('team.technicianDrawer.detailErrorMessage');
 
 /** BR-13 detail drawer. The page owns refreshes, account actions and the 401 redirect. */
 @Component({
   selector: 'app-technician-drawer',
-  imports: [RouterLink, ButtonDirective, Message, Skeleton, Tag, DrawerShell, TechnicianProfile],
+  imports: [
+    TranslocoPipe,
+    RouterLink,
+    ButtonDirective,
+    Message,
+    Skeleton,
+    Tag,
+    DrawerShell,
+    TechnicianProfile,
+  ],
   templateUrl: './technician-drawer.html',
   styleUrl: './technician-drawer.scss',
 })
@@ -52,8 +64,12 @@ export class TechnicianDrawer {
   readonly titleId = 'technician-drawer-title';
   readonly schedulePath = SCHEDULE_PATH;
   readonly profileSeverity = profileStatusSeverity;
-  readonly unavailableMessage = TECHNICIAN_UNAVAILABLE_MESSAGE;
-  readonly errorMessage = DETAIL_ERROR_MESSAGE;
+  get unavailableMessage(): string {
+    return TECHNICIAN_UNAVAILABLE_MESSAGE();
+  }
+  get errorMessage(): string {
+    return DETAIL_ERROR_MESSAGE();
+  }
 
   readonly detail = signal<TechnicianDetail | null>(null);
   readonly loading = signal(false);
@@ -61,7 +77,9 @@ export class TechnicianDrawer {
   readonly unavailable = signal(false);
   readonly fullName = computed(() => {
     const detail = this.detail();
-    return detail === null ? 'Technician' : `${detail.firstName} ${detail.lastName}`.trim();
+    return detail === null
+      ? t('team.technicianDrawer.technician')
+      : `${detail.firstName} ${detail.lastName}`.trim();
   });
   readonly profileStatusLabel = computed(() => {
     return PROFILE_STATUS_LABELS[this.detail()?.profileStatus ?? 'active'];

@@ -13,7 +13,7 @@
     @switch (kind()) {
       @case ('assign') {
         <app-form-field
-          label="Assignee"
+          [label]="'requests.requestActionDialog.assignee' | transloco"
           controlId="request-dialog-assigneeUserId"
           [error]="error('assigneeUserId')"
         >
@@ -33,7 +33,7 @@
       }
       @case ('change-priority') {
         <app-form-field
-          label="Priority"
+          [label]="'requests.requestActionDialog.priority' | transloco"
           controlId="request-dialog-urgency"
           [error]="error('urgency')"
         >
@@ -43,7 +43,7 @@
             fluid
             optionLabel="label"
             optionValue="code"
-            [options]="priorityOptions"
+            [options]="priorityOptions | localizedRef"
             [ngModel]="urgency()"
             (ngModelChange)="urgency.set($event)"
           />
@@ -51,7 +51,7 @@
       }
       @case ('set-branch') {
         <app-form-field
-          label="Branch"
+          [label]="'requests.requestActionDialog.branch' | transloco"
           controlId="request-dialog-branchId"
           [required]="true"
           [error]="error('branchId')"
@@ -60,7 +60,7 @@
             inputId="request-dialog-branchId"
             appendTo="body"
             fluid
-            placeholder="Choose a branch"
+            [placeholder]="'requests.requestActionDialog.chooseABranch' | transloco"
             optionLabel="label"
             optionValue="code"
             [options]="branchOptions()"
@@ -73,10 +73,10 @@
       }
       @case ('cancel-request') {
         <p class="action__message">
-          The request leaves the board and any scheduled assessment is cancelled.
+          {{ 'requests.requestActionDialog.theRequestLeavesThe' | transloco }}
         </p>
         <app-form-field
-          label="Reason"
+          [label]="'requests.requestActionDialog.reason' | transloco"
           controlId="request-dialog-reason"
           [required]="true"
           [error]="error('reason')"
@@ -130,7 +130,11 @@
       [disabled]="submitting()"
       (click)="dismissed.emit()"
     >
-      {{ kind() === 'cancel-request' ? 'Keep' : 'Cancel' }}
+      {{
+        kind() === 'cancel-request'
+          ? ('requests.requestActionDialog.keep' | transloco)
+          : ('common.cancel' | transloco)
+      }}
     </button>
     <button
       pButton

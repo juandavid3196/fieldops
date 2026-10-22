@@ -1,5 +1,6 @@
 import { Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { HelpResultList } from '../../components/help-result-list/help-result-list';
 import { HelpSearchField } from '../../components/help-search-field/help-search-field';
@@ -16,6 +17,7 @@ import {
 } from '../../utils/help-content';
 import { effectiveQuery, searchArticles } from '../../utils/help-search';
 
+import { t } from '../../../../core/i18n/translate';
 /** Topics featured on the public page, in display order; search covers every internal topic. */
 const FEATURED_TOPICS = [
   'getting-started',
@@ -28,7 +30,7 @@ const FEATURED_TOPICS = [
 /** Public `/support` home linked from sign-in: hero search, featured topics, popular questions. */
 @Component({
   selector: 'app-public-help',
-  imports: [HelpResultList, HelpSearchField, HelpSupportCard, RouterLink],
+  imports: [TranslocoPipe, HelpResultList, HelpSearchField, HelpSupportCard, RouterLink],
   templateUrl: './public-help.html',
   styleUrl: './public-help.scss',
 })
@@ -51,8 +53,11 @@ export class PublicHelp {
     }
     const count = this.results().length;
     return count === 0
-      ? `No articles match "${this.trimmedQuery()}"`
-      : `${count} ${count === 1 ? 'article' : 'articles'} found`;
+      ? t('help.publicHelp.noArticlesMatch', { trimmedQuery: this.trimmedQuery() })
+      : t('help.publicHelp.found', {
+          count: count,
+          value: count === 1 ? t('help.publicHelp.article') : t('help.publicHelp.articles'),
+        });
   });
 
   readonly questions = popularQuestionsFor(this.context.audience)

@@ -21,8 +21,12 @@
   }
 
   <div class="panel__body" [attr.inert]="flow.locked() ? '' : null">
-    <h2 id="pay-title" class="panel__title">Pay invoice</h2>
-    <p class="panel__text">Pay securely online using your preferred payment method.</p>
+    <h2 id="pay-title" class="panel__title">
+      {{ 'invoices.publicPaymentPanel.payInvoice' | transloco }}
+    </h2>
+    <p class="panel__text">
+      {{ 'invoices.publicPaymentPanel.paySecurelyOnlineUsing' | transloco }}
+    </p>
 
     <div class="methods" role="radiogroup" aria-labelledby="pay-title">
       <label class="method" [class.method--on]="method() === 'card'">
@@ -36,7 +40,7 @@
           (change)="select('card')"
         />
         <i class="pi pi-credit-card method__icon" aria-hidden="true"></i>
-        <span>Credit or debit card</span>
+        <span>{{ 'invoices.publicPaymentPanel.creditOrDebitCard' | transloco }}</span>
       </label>
       <label class="method" [class.method--on]="method() === 'bank'">
         <input
@@ -49,7 +53,7 @@
           (change)="select('bank')"
         />
         <i class="pi pi-building-columns method__icon" aria-hidden="true"></i>
-        <span>Bank transfer (ACH)</span>
+        <span>{{ 'invoices.publicPaymentPanel.bankTransferAch' | transloco }}</span>
       </label>
       <label class="method" [class.method--on]="method() === 'cash'">
         <input
@@ -62,8 +66,11 @@
         />
         <i class="pi pi-money-bill method__icon" aria-hidden="true"></i>
         <span>
-          Cash
-          <small>Arrange with {{ invoice().organization.name }}</small>
+          {{ 'invoices.publicPaymentPanel.cash' | transloco }}
+          <small>{{
+            'invoices.publicPaymentPanel.arrangeWith'
+              | transloco: { name: invoice().organization.name }
+          }}</small>
         </span>
       </label>
     </div>
@@ -86,8 +93,16 @@
         />
       }
       @default {
-        <section class="cash" aria-label="Cash payment">
-          <p>Contact {{ invoice().organization.name }} to arrange a cash payment.</p>
+        <section
+          class="cash"
+          [attr.aria-label]="'invoices.publicPaymentPanel.cashPayment' | transloco"
+        >
+          <p>
+            {{
+              'invoices.publicPaymentPanel.contactToArrangeA'
+                | transloco: { name: invoice().organization.name }
+            }}
+          </p>
           @if (phoneHref(); as href) {
             <a [href]="href"><i class="pi pi-phone" aria-hidden="true"></i>{{ cash().phone }}</a>
           }
@@ -103,8 +118,8 @@
     @if (questionHref(); as href) {
       <p class="question">
         <a [href]="href"
-          ><i class="pi pi-question-circle" aria-hidden="true"></i>I have a question about this
-          invoice</a
+          ><i class="pi pi-question-circle" aria-hidden="true"></i
+          >{{ 'invoices.publicPaymentPanel.iHaveAQuestion' | transloco }}</a
         >
       </p>
     }
@@ -114,8 +129,8 @@
     @if (flow.overlay()) {
       <div class="overlay">
         <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-        <h3>Processing your payment</h3>
-        <p>Please keep this page open. This may take a few moments.</p>
+        <h3>{{ 'invoices.publicPaymentPanel.processingYourPayment' | transloco }}</h3>
+        <p>{{ 'invoices.publicPaymentPanel.pleaseKeepThisPage' | transloco }}</p>
       </div>
     }
   </div>

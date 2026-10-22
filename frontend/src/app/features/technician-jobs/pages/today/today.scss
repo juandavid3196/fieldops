@@ -111,11 +111,15 @@
     list-style: none;
   }
 
+  // Icon and value share the first row, the label sits centered below, so a wrapped label
+  // (longer in Spanish) never shifts the icon or the value.
   &__metric {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 0.125rem 0.5rem;
+    align-content: center;
     align-items: center;
     justify-content: center;
-    gap: 0.625rem;
     min-inline-size: 0;
     padding: 0.625rem 0.25rem;
     background: var(--fo-color-surface);
@@ -124,29 +128,30 @@
   }
 
   &__metric-icon {
-    flex: none;
+    grid-area: 1 / 1;
     font-size: 1.25rem;
     line-height: 1;
     color: var(--fo-today-ink);
   }
 
   &__metric-text {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-inline-size: 0;
-    line-height: 1.2;
+    display: contents;
   }
 
   &__metric-value {
+    grid-area: 1 / 2;
     font-size: 1.375rem;
     font-weight: 700;
+    line-height: 1.2;
     color: var(--fo-today-ink);
   }
 
   &__metric-label {
+    grid-area: 2 / 1 / 3 / 3;
     font-size: 0.625rem;
-    white-space: nowrap;
+    line-height: 1.2;
+    text-align: center;
+    overflow-wrap: anywhere;
     color: var(--fo-color-text-secondary);
   }
 

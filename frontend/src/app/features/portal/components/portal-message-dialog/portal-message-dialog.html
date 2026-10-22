@@ -1,5 +1,5 @@
 <p-dialog
-  header="Send a message"
+  [header]="'portal.portalMessageDialog.sendAMessage' | transloco"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
@@ -19,13 +19,15 @@
       <div class="dialog__to">
         <span class="dialog__to-icon" aria-hidden="true"><i class="pi pi-building"></i></span>
         <div>
-          <p class="dialog__to-label">To</p>
+          <p class="dialog__to-label">{{ 'portal.portalMessageDialog.to' | transloco }}</p>
           <p class="dialog__to-name">{{ organizationName() }}</p>
-          <p class="dialog__to-hint">Replies by email or phone</p>
+          <p class="dialog__to-hint">
+            {{ 'portal.portalMessageDialog.repliesByEmailOr' | transloco }}
+          </p>
         </div>
       </div>
       <app-form-field
-        label="Message"
+        [label]="'portal.portalMessageDialog.message' | transloco"
         controlId="portal-message-text"
         [required]="true"
         [error]="error()"
@@ -35,7 +37,7 @@
           id="portal-message-text"
           rows="5"
           fluid
-          placeholder="How can we help? Include any details about your service, property or schedule."
+          [attr.placeholder]="'portal.portalMessageDialog.howCanWeHelp' | transloco"
           name="message"
           [attr.aria-invalid]="error() ? 'true' : null"
           [attr.aria-describedby]="error() ? 'portal-message-text-error' : null"
@@ -46,7 +48,7 @@
       <p class="dialog__count">{{ message().length }}/{{ limit }}</p>
       <p class="dialog__note">
         <span class="dialog__info" aria-hidden="true"><i class="pi pi-info"></i></span>
-        Your name, email and phone are included so they can reply.
+        {{ 'portal.portalMessageDialog.yourNameEmailAnd' | transloco }}
       </p>
       @if (failure(); as text) {
         <p class="dialog__failure" role="alert">{{ text }}</p>
@@ -56,7 +58,7 @@
 
   <ng-template #footer>
     @if (sent()) {
-      <button pButton type="button" (click)="close()">Close</button>
+      <button pButton type="button" (click)="close()">{{ 'common.close' | transloco }}</button>
     } @else {
       <button
         pButton
@@ -67,13 +69,13 @@
         [disabled]="submitting()"
         (click)="close()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
       <button pButton type="button" [disabled]="submitting()" (click)="submit()">
         @if (submitting()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        Send message
+        {{ 'portal.portalMessageDialog.sendMessage' | transloco }}
         <i class="pi pi-send" aria-hidden="true"></i>
       </button>
     }

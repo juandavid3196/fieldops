@@ -4,40 +4,55 @@
       {{ detail().header.title }}
       <span class="detail__chip detail__chip--ok">
         <i class="pi pi-check-circle" aria-hidden="true"></i>
-        Completed
+        {{ 'billingReview.reviewDetail.completed' | transloco }}
       </span>
-      <span class="detail__chip detail__chip--dot">Not invoiced</span>
+      <span class="detail__chip detail__chip--dot">{{
+        'billingReview.reviewDetail.notInvoiced' | transloco
+      }}</span>
     </h2>
     <p class="detail__muted">
-      #{{ detail().header.number }} <span class="detail__divider" aria-hidden="true">|</span> Quote
-      #{{ detail().header.quoteNumber }}
+      #{{ detail().header.number }} <span class="detail__divider" aria-hidden="true">|</span>
+      {{
+        'billingReview.reviewDetail.quote' | transloco: { quoteNumber: detail().header.quoteNumber }
+      }}
     </p>
     <dl class="detail__facts">
       <div>
         <dt>
-          <i class="pi pi-user" aria-hidden="true"></i><span class="detail__sr">Customer</span>
+          <i class="pi pi-user" aria-hidden="true"></i
+          ><span class="detail__sr">{{ 'common.customer' | transloco }}</span>
         </dt>
         <dd>{{ detail().header.customerName }}</dd>
       </div>
       <div>
         <dt>
           <i class="pi pi-map-marker" aria-hidden="true"></i
-          ><span class="detail__sr">Property</span>
+          ><span class="detail__sr">{{ 'billingReview.reviewDetail.property' | transloco }}</span>
         </dt>
         <dd>{{ detail().header.propertyAddress }}</dd>
       </div>
       <div>
-        <dt><i class="pi pi-id-card" aria-hidden="true"></i>Completed by</dt>
+        <dt>
+          <i class="pi pi-id-card" aria-hidden="true"></i
+          >{{ 'billingReview.reviewDetail.completedBy' | transloco }}
+        </dt>
         <dd>{{ detail().header.completedByName ?? '—' }}</dd>
       </div>
       <div>
-        <dt><i class="pi pi-calendar" aria-hidden="true"></i>Completed</dt>
+        <dt>
+          <i class="pi pi-calendar" aria-hidden="true"></i
+          >{{ 'billingReview.reviewDetail.completed' | transloco }}
+        </dt>
         <dd>{{ view().completed }}</dd>
       </div>
     </dl>
   </header>
 
-  <div class="detail__tabs" role="tablist" aria-label="Job review sections">
+  <div
+    class="detail__tabs"
+    role="tablist"
+    [attr.aria-label]="'billingReview.reviewDetail.jobReviewSections' | transloco"
+  >
     @for (item of tabs; track item.code; let index = $index) {
       <button
         type="button"
@@ -59,7 +74,9 @@
     @switch (tab()) {
       @case ('billing') {
         <div class="detail__section-head">
-          <h3 class="detail__heading">Billing comparison</h3>
+          <h3 class="detail__heading">
+            {{ 'billingReview.reviewDetail.billingComparison' | transloco }}
+          </h3>
           <span class="detail__adjust-group">
             <button
               type="button"
@@ -68,14 +85,14 @@
               [attr.aria-describedby]="id + '-adjust'"
             >
               <i class="pi pi-plus" aria-hidden="true"></i>
-              Add adjustment
+              {{ 'billingReview.reviewDetail.addAdjustment' | transloco }}
             </button>
             <span class="detail__hint" [id]="id + '-adjust'">{{ adjustmentHint }}</span>
           </span>
           @if (view().warn) {
             <p class="detail__warning">
               <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-              Additional charges require customer approval.
+              {{ 'billingReview.reviewDetail.additionalChargesRequireCustomer' | transloco }}
             </p>
           }
         </div>
@@ -84,19 +101,19 @@
           class="detail__scroll"
           tabindex="0"
           role="region"
-          aria-label="Billing comparison table"
+          [attr.aria-label]="'billingReview.reviewDetail.billingComparisonTable' | transloco"
         >
           <table class="detail__table">
             <thead>
               <tr>
                 <th scope="col">#</th>
-                <th scope="col">Line item</th>
-                <th scope="col">Approved</th>
-                <th scope="col">Actual</th>
-                <th scope="col">Billable</th>
-                <th scope="col">Tax</th>
-                <th scope="col">Amount</th>
-                <th scope="col">Status</th>
+                <th scope="col">{{ 'billingReview.reviewDetail.lineItem' | transloco }}</th>
+                <th scope="col">{{ 'billingReview.reviewDetail.approved' | transloco }}</th>
+                <th scope="col">{{ 'billingReview.reviewDetail.actual' | transloco }}</th>
+                <th scope="col">{{ 'billingReview.reviewDetail.billable' | transloco }}</th>
+                <th scope="col">{{ 'billingReview.reviewDetail.tax' | transloco }}</th>
+                <th scope="col">{{ 'common.amount' | transloco }}</th>
+                <th scope="col">{{ 'common.status' | transloco }}</th>
               </tr>
             </thead>
             <tbody>
@@ -110,9 +127,9 @@
                   <td>
                     {{
                       row.line.tax === 'taxable'
-                        ? 'Taxable'
+                        ? ('billingReview.reviewDetail.taxable' | transloco)
                         : row.line.tax === 'non_taxable'
-                          ? 'Non-taxable'
+                          ? ('billingReview.reviewDetail.nonTaxable' | transloco)
                           : '—'
                     }}
                   </td>
@@ -129,19 +146,21 @@
           </table>
         </div>
 
-        <h3 class="detail__heading">Totals comparison</h3>
+        <h3 class="detail__heading">
+          {{ 'billingReview.reviewDetail.totalsComparison' | transloco }}
+        </h3>
         <dl class="detail__totals">
           <div>
-            <dt>Approved subtotal</dt>
+            <dt>{{ 'billingReview.reviewDetail.approvedSubtotal' | transloco }}</dt>
             <dd>{{ view().totals.approved }}</dd>
           </div>
           <div>
-            <dt>Actual billable subtotal</dt>
+            <dt>{{ 'billingReview.reviewDetail.actualBillableSubtotal' | transloco }}</dt>
             <dd>{{ view().totals.billable }}</dd>
           </div>
           @if (view().totals.discount; as discount) {
             <div>
-              <dt>Discount</dt>
+              <dt>{{ 'billingReview.reviewDetail.discount' | transloco }}</dt>
               <dd>{{ discount }}</dd>
             </div>
           }
@@ -150,18 +169,20 @@
             <dd>{{ view().totals.tax }}</dd>
           </div>
           <div class="detail__total-strong">
-            <dt>Invoice total</dt>
+            <dt>{{ 'billingReview.reviewDetail.invoiceTotal' | transloco }}</dt>
             <dd>{{ view().totals.total }}</dd>
           </div>
           <div class="detail__variance">
-            <dt>Variance</dt>
+            <dt>{{ 'billingReview.reviewDetail.variance' | transloco }}</dt>
             <dd>{{ view().totals.variance }}</dd>
           </div>
         </dl>
 
         <div class="detail__split">
           <section class="detail__box" [attr.aria-labelledby]="id + '-verification'">
-            <h3 class="detail__heading" [id]="id + '-verification'">Completion verification</h3>
+            <h3 class="detail__heading" [id]="id + '-verification'">
+              {{ 'billingReview.reviewDetail.completionVerification' | transloco }}
+            </h3>
             <ul class="detail__list detail__list--checks">
               @for (item of detail().verification; track item.key) {
                 <li [class.detail__unmet]="!item.met && item.mandatory" [attr.data-met]="item.met">
@@ -175,7 +196,9 @@
                   <span>
                     {{ item.label }}
                     @if (!item.met && item.mandatory) {
-                      <strong class="detail__required">Required before invoicing</strong>
+                      <strong class="detail__required">{{
+                        'billingReview.reviewDetail.requiredBeforeInvoicing' | transloco
+                      }}</strong>
                     }
                   </span>
                 </li>
@@ -184,7 +207,10 @@
           </section>
           <section class="detail__box" [attr.aria-labelledby]="id + '-evidence'">
             <h3 class="detail__heading" [id]="id + '-evidence'">
-              Evidence ({{ detail().evidence.count }})
+              {{
+                'billingReview.reviewDetail.evidence'
+                  | transloco: { count: detail().evidence.count }
+              }}
             </h3>
             <ul class="detail__thumbs">
               @for (thumb of detail().evidence.thumbnails; track thumb.id) {
@@ -192,13 +218,18 @@
                   <button
                     type="button"
                     class="detail__thumb"
-                    [attr.aria-label]="'Open ' + thumb.type + ' photo in work evidence'"
+                    [attr.aria-label]="
+                      'billingReview.reviewDetail.openPhotoInWork' | transloco: { type: thumb.type }
+                    "
                     (click)="select('work')"
                   >
                     <img
                       loading="lazy"
                       [src]="evidenceUrl(thumb.id)"
-                      [alt]="(thumb.type === 'before' ? 'Before' : 'After') + ' photo'"
+                      [alt]="
+                        'billingReview.reviewDetail.photo'
+                          | transloco: { value: thumb.type === 'before' ? 'Before' : 'After' }
+                      "
                     />
                   </button>
                 </li>
@@ -208,13 +239,16 @@
         </div>
 
         <h3 class="detail__heading">
-          <label [for]="id + '-note'">Accounting note <small>(internal only)</small></label>
+          <label [for]="id + '-note'"
+            >{{ 'billingReview.reviewDetail.accountingNote' | transloco }}
+            <small>{{ 'billingReview.reviewDetail.internalOnly' | transloco }}</small></label
+          >
         </h3>
         <textarea
           pTextarea
           rows="3"
           fluid
-          placeholder="Add an internal note about billing, variances, or customer communication..."
+          [attr.placeholder]="'billingReview.reviewDetail.addAnInternalNote' | transloco"
           [id]="id + '-note'"
           [maxlength]="maxLength"
           [readOnly]="readOnly()"

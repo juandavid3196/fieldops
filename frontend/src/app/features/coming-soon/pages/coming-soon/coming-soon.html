@@ -1,7 +1,9 @@
 <section class="coming-soon">
   <h1 class="coming-soon__title">{{ moduleName() }}</h1>
-  <p class="coming-soon__text">{{ moduleName() }} isn't available yet.</p>
+  <p class="coming-soon__text">
+    {{ 'comingSoon.comingSoon.isnTAvailableYet' | transloco: { moduleName: moduleName() } }}
+  </p>
   <a pButton [routerLink]="target.link" severity="secondary" [outlined]="true">{{
-    target.label
+    target.label | transloco
   }}</a>
 </section>

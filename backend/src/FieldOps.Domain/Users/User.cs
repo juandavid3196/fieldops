@@ -11,9 +11,11 @@ public sealed class User
         string email,
         string passwordHash,
         string firstName,
-        string lastName)
+        string lastName,
+        string preferredLanguage)
     {
         Id = id;
+        PreferredLanguage = preferredLanguage;
         Email = email;
         PasswordHash = passwordHash;
         FirstName = firstName;
@@ -35,6 +37,9 @@ public sealed class User
 
     public string? Phone { get; private set; }
 
+    /// <summary>Supported language code, validated by the caller (app i18n BR-01).</summary>
+    public string PreferredLanguage { get; private set; } = "en";
+
     public UserStatus Status { get; private set; }
 
     public DateTimeOffset? EmailVerifiedAt { get; private set; }
@@ -53,7 +58,8 @@ public sealed class User
         string passwordHash,
         string firstName,
         string lastName,
-        string? phone = null)
+        string? phone = null,
+        string preferredLanguage = "en")
     {
         if (string.IsNullOrWhiteSpace(email))
         {
@@ -88,7 +94,8 @@ public sealed class User
             email.Trim(),
             passwordHash,
             firstName.Trim(),
-            lastName.Trim())
+            lastName.Trim(),
+            preferredLanguage)
         {
             Phone = phone?.Trim(),
         };
@@ -162,6 +169,18 @@ public sealed class User
 
         PasswordHash = passwordHash;
         PasswordChangedAt = now;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Stores an already validated language code.</summary>
+    public void UpdatePreferredLanguage(string preferredLanguage, DateTimeOffset now)
+    {
+        if (string.IsNullOrWhiteSpace(preferredLanguage))
+        {
+            throw new ArgumentException("Preferred language is required.", nameof(preferredLanguage));
+        }
+
+        PreferredLanguage = preferredLanguage;
         UpdatedAt = now;
     }
 

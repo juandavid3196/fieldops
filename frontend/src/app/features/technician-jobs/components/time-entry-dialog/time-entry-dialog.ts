@@ -2,6 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TimeEntry } from '../../models/technician-visits.model';
 import { TimeTypeIcon } from '../time-type-icon/time-type-icon';
@@ -20,7 +21,7 @@ export interface TimeEntryDetail {
 /** Read-only detail of one time entry; "Open job" only when the visit is still accessible. */
 @Component({
   selector: 'app-time-entry-dialog',
-  imports: [RouterLink, ButtonDirective, Dialog, TimeTypeIcon],
+  imports: [TranslocoPipe, RouterLink, ButtonDirective, Dialog, TimeTypeIcon],
   templateUrl: './time-entry-dialog.html',
   styleUrl: './time-entry-dialog.scss',
 })

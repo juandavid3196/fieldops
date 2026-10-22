@@ -11,12 +11,21 @@ import { FieldErrors, OwnerFormControls } from '../../models/organization-regist
 import { PasswordRequirements } from '../../pages/register-company/register-company.helpers';
 
 import type { FormGroup } from '@angular/forms';
+import { TranslocoPipe } from '@jsverse/transloco';
 import type { SimpleFieldKey } from '../../models/organization-registration.model';
 
 /** "Your account" card (wizard step 3): the Owner's name, contact and password. */
 @Component({
   selector: 'app-owner-account-section',
-  imports: [ReactiveFormsModule, InputText, Checkbox, FormField, WizardCard, WizardNote],
+  imports: [
+    TranslocoPipe,
+    ReactiveFormsModule,
+    InputText,
+    Checkbox,
+    FormField,
+    WizardCard,
+    WizardNote,
+  ],
   templateUrl: './owner-account-section.html',
   styleUrl: './owner-account-section.scss',
 })

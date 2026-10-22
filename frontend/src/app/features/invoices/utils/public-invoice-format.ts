@@ -1,6 +1,7 @@
 import { PublicInvoice, PublicPayment } from '../models/invoice.model';
 import { STATUS_CHIPS, formatCalendarDate, money, todayIn } from './invoices-hub-format';
 
+import { localized, t } from '../../../core/i18n/translate';
 export type StepState = 'complete' | 'current' | 'pending';
 
 export interface TimelineStep {
@@ -10,20 +11,20 @@ export interface TimelineStep {
   readonly stateText: string;
 }
 
-const STATE_TEXT: Readonly<Record<StepState, string>> = {
-  complete: 'Completed',
-  current: 'Current step',
-  pending: 'Not reached yet',
-};
+const STATE_TEXT: Readonly<Record<StepState, string>> = localized(() => ({
+  complete: t('invoices.publicInvoiceFormat.completed'),
+  current: t('invoices.publicInvoiceFormat.currentStep'),
+  pending: t('invoices.publicInvoiceFormat.notReachedYet'),
+}));
 
 /** BR-27 timeline: a step with a date is complete, the first without one is current. */
 export function timelineSteps(invoice: PublicInvoice): readonly TimelineStep[] {
   const { timeline } = invoice;
   const steps: readonly [string, string | null][] = [
-    ['Service completed', timeline.serviceCompletedOn],
-    ['Invoice sent', timeline.sentOn],
-    ['Payment', timeline.paidOn],
-    ['Receipt', timeline.receiptOn],
+    [t('invoices.publicInvoiceFormat.serviceCompleted'), timeline.serviceCompletedOn],
+    [t('invoices.publicInvoiceFormat.invoiceSent'), timeline.sentOn],
+    [t('invoices.publicInvoiceFormat.payment'), timeline.paidOn],
+    [t('invoices.publicInvoiceFormat.receipt'), timeline.receiptOn],
   ];
   let currentTaken = false;
   return steps.map(([label, date]) => {
@@ -34,7 +35,7 @@ export function timelineSteps(invoice: PublicInvoice): readonly TimelineStep[] {
     }
     return {
       label,
-      date: date === null ? 'Pending' : formatCalendarDate(date),
+      date: date === null ? t('invoices.publicInvoiceFormat.pending') : formatCalendarDate(date),
       state,
       stateText: STATE_TEXT[state],
     };
@@ -52,13 +53,25 @@ const DAY_MS = 86_400_000;
 export function dueText(invoice: PublicInvoice, now: Date = new Date()): string {
   if (invoice.overdue) {
     const days = invoice.daysOverdue ?? 0;
-    return `${days} ${days === 1 ? 'day' : 'days'} overdue`;
+    return t('invoices.publicInvoiceFormat.overdue', {
+      days: days,
+      value:
+        days === 1 ? t('invoices.publicInvoiceFormat.day') : t('invoices.publicInvoiceFormat.days'),
+    });
   }
   const toUtc = (value: string): number => Date.parse(`${value}T00:00:00Z`);
   const days = Math.round(
     (toUtc(invoice.dueDate) - toUtc(todayIn(invoice.timezone, now))) / DAY_MS,
   );
-  return days <= 0 ? 'Due today' : `Payment due in ${days} ${days === 1 ? 'day' : 'days'}`;
+  return days <= 0
+    ? t('invoices.publicInvoiceFormat.dueToday')
+    : t('invoices.publicInvoiceFormat.paymentDueIn', {
+        days: days,
+        value:
+          days === 1
+            ? t('invoices.publicInvoiceFormat.day')
+            : t('invoices.publicInvoiceFormat.days'),
+      });
 }
 
 /** Gross amount minus refunds: what the customer actually paid (BR-31). */

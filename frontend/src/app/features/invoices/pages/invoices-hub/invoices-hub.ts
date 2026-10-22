@@ -31,6 +31,7 @@ import {
   switchMap,
   tap,
 } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -78,6 +79,8 @@ import { InvoiceService } from '../../services/invoice.service';
 import { InvoicesHubService } from '../../services/invoices-hub.service';
 import { STATUS_CHIPS, todayIn } from '../../utils/invoices-hub-format';
 
+import { localized, localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 type ListRequest =
   | { readonly tab: 'invoices'; readonly filters: InvoiceFilters; readonly page: number }
   | { readonly tab: 'payments'; readonly filters: PaymentFilters; readonly page: number }
@@ -97,23 +100,23 @@ const SEARCH_DEBOUNCE_MS = 300;
 const ALL = 'all';
 
 // Not `readonly`: PrimeNG's `p-select` `[options]` input requires a mutable array type.
-const STATUS_OPTIONS: Choice<string>[] = [
-  { code: ALL, label: 'All statuses' },
+const STATUS_OPTIONS: Choice<string>[] = localizedList(() => [
+  { code: ALL, label: t('invoices.invoicesHub.allStatuses') },
   ...STATUS_FILTERS.map((code) => ({
     code: code as string,
     label: STATUS_CHIPS[code].label,
   })),
-];
-const METHOD_OPTIONS: Choice<string>[] = [
-  { code: ALL, label: 'All methods' },
+]);
+const METHOD_OPTIONS: Choice<string>[] = localizedList(() => [
+  { code: ALL, label: t('invoices.invoicesHub.allMethods') },
   ...PAYMENT_METHODS.map((code) => ({ code: code as string, label: PAYMENT_METHOD_LABELS[code] })),
-];
+]);
 
-const TAB_LABELS: Readonly<Record<HubTab, string>> = {
-  invoices: 'Invoices',
-  payments: 'Payments',
-  ready: 'Completed jobs ready to invoice',
-};
+const TAB_LABELS: Readonly<Record<HubTab, string>> = localized(() => ({
+  invoices: t('invoices.invoicesHub.invoices'),
+  payments: t('invoices.invoicesHub.payments'),
+  ready: t('invoices.invoicesHub.completedJobsReadyTo'),
+}));
 
 /**
  * Invoices and payments hub (`/invoices`, BR-19 to BR-26): owns the options, overview, list,
@@ -123,6 +126,8 @@ const TAB_LABELS: Readonly<Record<HubTab, string>> = {
 @Component({
   selector: 'app-invoices-hub',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     ButtonDirective,
     DiscardChangesDialog,
     FormsModule,
@@ -157,10 +162,18 @@ export class InvoicesHub {
   readonly tabs = HUB_TABS.map((code) => ({ code, label: TAB_LABELS[code] }));
   readonly statusOptions = STATUS_OPTIONS;
   readonly methodOptions = METHOD_OPTIONS;
-  readonly forbiddenMessage = HUB_FORBIDDEN_MESSAGE;
-  readonly optionsMessage = OPTIONS_ERROR_MESSAGE;
-  readonly customersMessage = CUSTOMERS_ERROR_MESSAGE;
-  readonly noCustomers = NO_CUSTOMERS_MESSAGE;
+  get forbiddenMessage(): string {
+    return HUB_FORBIDDEN_MESSAGE();
+  }
+  get optionsMessage(): string {
+    return OPTIONS_ERROR_MESSAGE();
+  }
+  get customersMessage(): string {
+    return CUSTOMERS_ERROR_MESSAGE();
+  }
+  get noCustomers(): string {
+    return NO_CUSTOMERS_MESSAGE();
+  }
   readonly sessionExpired = signal(false);
   readonly announcement = signal('');
 
@@ -216,7 +229,7 @@ export class InvoicesHub {
 
   readonly canChooseBranch = computed(() => (this.options().data?.branches.length ?? 0) > 1);
   readonly branchChoices = computed<Choice<string>[]>(() => [
-    { code: ALL, label: 'All branches' },
+    { code: ALL, label: t('invoices.invoicesHub.allBranches') },
     ...(this.options().data?.branches ?? []).map((b) => ({ code: b.id, label: b.name })),
   ]);
   readonly customerChoices = computed<Choice<string>[]>(() => {
@@ -224,7 +237,7 @@ export class InvoicesHub {
     const listed = this.customers();
     const extra = selected !== null && !listed.some((c) => c.id === selected.id) ? [selected] : [];
     return [
-      { code: ALL, label: 'All customers' },
+      { code: ALL, label: t('invoices.invoicesHub.allCustomers') },
       ...[...extra, ...listed].map((c) => ({ code: c.id, label: c.name })),
     ];
   });
@@ -286,10 +299,18 @@ export class InvoicesHub {
     { equal: (a, b) => a.branchId === b.branchId && a.page === b.page },
   );
 
-  readonly exportMenu: MenuItem[] = [
-    { label: 'Invoices CSV', icon: 'pi pi-download', command: () => this.exportCsv('invoices') },
-    { label: 'Payments CSV', icon: 'pi pi-download', command: () => this.exportCsv('payments') },
-  ];
+  readonly exportMenu: MenuItem[] = localizedList(() => [
+    {
+      label: t('invoices.invoicesHub.invoicesCsv'),
+      icon: 'pi pi-download',
+      command: () => this.exportCsv('invoices'),
+    },
+    {
+      label: t('invoices.invoicesHub.paymentsCsv'),
+      icon: 'pi pi-download',
+      command: () => this.exportCsv('payments'),
+    },
+  ]);
 
   private readonly options$ = new Subject<void>();
   private readonly overview$ = new Subject<string | null>();
@@ -604,18 +625,22 @@ export class InvoicesHub {
   openRowMenu(event: Event, row: InvoiceRow, menu: Menu): void {
     const optionsReady = this.options().status === 'ready';
     const items: MenuItem[] = [
-      { label: 'View invoice', icon: 'pi pi-eye', routerLink: ['/invoices', row.id] },
+      {
+        label: t('invoices.invoicesHub.viewInvoice'),
+        icon: 'pi pi-eye',
+        routerLink: ['/invoices', row.id],
+      },
     ];
     if (row.canRecordPayment) {
       items.push({
-        label: 'Record payment',
+        label: t('invoices.invoicesHub.recordPayment'),
         icon: 'pi pi-wallet',
         disabled: !optionsReady,
         command: () => this.openDrawer(row),
       });
     }
     items.push({
-      label: 'Download PDF',
+      label: t('invoices.invoicesHub.downloadPdf'),
       icon: 'pi pi-file-pdf',
       disabled: this.pdfBusyId() === row.id,
       command: () => this.downloadPdf(row),
@@ -661,7 +686,7 @@ export class InvoicesHub {
           if (isApiError(error) && error.kind === 'unauthorized') {
             handleUnauthorized(this.router, this.sessionExpired);
           } else {
-            this.notify({ severity: 'error', summary: PDF_FAILED_MESSAGE });
+            this.notify({ severity: 'error', summary: PDF_FAILED_MESSAGE() });
           }
         },
       });
@@ -693,7 +718,8 @@ export class InvoicesHub {
           // The only `409` of the export is `export_too_large` (the error body is a blob).
           this.notify({
             severity: 'error',
-            summary: kindOfError === 'conflict' ? EXPORT_TOO_LARGE_MESSAGE : EXPORT_FAILED_MESSAGE,
+            summary:
+              kindOfError === 'conflict' ? EXPORT_TOO_LARGE_MESSAGE() : EXPORT_FAILED_MESSAGE(),
           });
         }
       },

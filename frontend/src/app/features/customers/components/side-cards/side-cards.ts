@@ -1,6 +1,7 @@
 import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { CustomerOverview } from '../../models/customer.model';
 import {
@@ -13,6 +14,8 @@ import {
 import { formatDate, formatPhone } from '../../utils/customer-format';
 import { dateOnlyLabel } from '../../../quotes/utils/quote-format';
 
+import { t } from '../../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../../core/i18n/active-locale';
 export const INVOICES_LINK = '/coming-soon/invoices';
 
 /**
@@ -21,7 +24,7 @@ export const INVOICES_LINK = '/coming-soon/invoices';
  */
 @Component({
   selector: 'app-side-cards',
-  imports: [RouterLink, Tag],
+  imports: [TranslocoPipe, RouterLink, Tag],
   templateUrl: './side-cards.html',
   styleUrl: './side-cards.scss',
 })
@@ -47,14 +50,21 @@ export class SideCards {
       value ? dateOnlyLabel(value.slice(0, 10)) : '';
     switch (contact.portalStatus) {
       case 'active':
-        return { status: 'active', text: `Active since ${date(contact.portalLinkedOn)}` };
+        return {
+          status: 'active',
+          text: t('customers.sideCards.activeSince', {
+            portalLinkedOn: date(contact.portalLinkedOn),
+          }),
+        };
       case 'invited':
         return {
           status: 'invited',
-          text: `Invitation sent · expires ${date(contact.invitationExpiresOn)}`,
+          text: t('customers.sideCards.invitationSentExpires', {
+            invitationExpiresOn: date(contact.invitationExpiresOn),
+          }),
         };
       case 'not_invited':
-        return { status: 'not_invited', text: 'Not invited' };
+        return { status: 'not_invited', text: t('customers.sideCards.notInvited') };
       default:
         return null;
     }
@@ -68,12 +78,12 @@ export class SideCards {
       phone: phone === null ? null : formatPhone(phone),
       phoneHref: phone === null ? null : `tel:${phone.replace(/[^\d+]/g, '')}`,
       preferred: preferredContact(o.contact),
-      totalJobs: o.summary.totalJobs.toLocaleString('en-US'),
+      totalJobs: o.summary.totalJobs.toLocaleString(activeIntlLocale()),
       lifetime: formatMoney(o.summary.lifetimeValue, o.currency),
       since: sinceLabel(o.summary.customerSince, o.timezone),
       lastService: o.summary.lastServiceAt
         ? formatDate(o.summary.lastServiceAt, o.timezone)
-        : 'No completed service',
+        : t('customers.sideCards.noCompletedService'),
       balance: formatMoney(o.outstandingBalance, o.currency),
       invoice: o.lastInvoice
         ? {

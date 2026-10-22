@@ -4,6 +4,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Subscription } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { SessionService } from '../../../../core/services/session.service';
 import { UnresolvedJobs } from '../../components/unresolved-jobs/unresolved-jobs';
@@ -27,10 +28,11 @@ import {
 } from '../../utils/technician-errors';
 import { STATUS_LABELS, formatTime } from '../../utils/technician-format';
 
-export const SCHEDULE_LOAD_ERROR_MESSAGE =
-  "We couldn't load your schedule. Check your connection and try again.";
-export const NO_JOBS_DAY_MESSAGE = 'No jobs scheduled for this day.';
-export const TIMEZONE_NOTICE = 'Your schedule is shown in your branch time zone.';
+import { t } from '../../../../core/i18n/translate';
+export const SCHEDULE_LOAD_ERROR_MESSAGE = (): string =>
+  t('technicianJobs.schedule.scheduleLoadErrorMessage');
+export const NO_JOBS_DAY_MESSAGE = (): string => t('technicianJobs.schedule.noJobsDayMessage');
+export const TIMEZONE_NOTICE = (): string => t('technicianJobs.schedule.timezoneNotice');
 const SKELETON_CARDS = [0, 1, 2];
 
 type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
@@ -47,7 +49,7 @@ interface WeekRequest {
  */
 @Component({
   selector: 'app-technician-schedule',
-  imports: [RouterLink, ButtonDirective, Message, Skeleton, UnresolvedJobs],
+  imports: [TranslocoPipe, RouterLink, ButtonDirective, Message, Skeleton, UnresolvedJobs],
   templateUrl: './schedule.html',
   styleUrl: './schedule.scss',
 })
@@ -58,9 +60,15 @@ export class TechnicianSchedule {
   private inFlight: Subscription | null = null;
   private pending: WeekRequest | null = null;
 
-  readonly loadErrorMessage = SCHEDULE_LOAD_ERROR_MESSAGE;
-  readonly emptyMessage = NO_JOBS_DAY_MESSAGE;
-  readonly timezoneNotice = TIMEZONE_NOTICE;
+  get loadErrorMessage(): string {
+    return SCHEDULE_LOAD_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return NO_JOBS_DAY_MESSAGE();
+  }
+  get timezoneNotice(): string {
+    return TIMEZONE_NOTICE();
+  }
   readonly skeletonCards = SKELETON_CARDS;
   readonly statusLabels = STATUS_LABELS;
 

@@ -1,12 +1,12 @@
 <app-wizard-card
   headingId="owner-account-heading"
-  title="Your account"
-  description="This user will receive the Owner role and have full access to manage your organization in FieldOps."
+  [title]="'organizations.ownerAccountSection.yourAccount' | transloco"
+  [description]="'organizations.ownerAccountSection.thisUserWillReceive' | transloco"
   icon="pi-user"
 >
   <div class="owner-account__grid" [formGroup]="group()">
     <app-form-field
-      label="First name"
+      [label]="'organizations.ownerAccountSection.firstName' | transloco"
       controlId="owner-firstName"
       [required]="true"
       [error]="error('owner.firstName')"
@@ -28,7 +28,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Last name"
+      [label]="'organizations.ownerAccountSection.lastName' | transloco"
       controlId="owner-lastName"
       [required]="true"
       [error]="error('owner.lastName')"
@@ -50,7 +50,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Email"
+      [label]="'common.email' | transloco"
       controlId="owner-email"
       [required]="true"
       [error]="error('owner.email')"
@@ -72,7 +72,11 @@
       />
     </app-form-field>
 
-    <app-form-field label="Phone (optional)" controlId="owner-phone" [error]="error('owner.phone')">
+    <app-form-field
+      [label]="'organizations.ownerAccountSection.phoneOptional' | transloco"
+      controlId="owner-phone"
+      [error]="error('owner.phone')"
+    >
       <input
         pInputText
         id="owner-phone"
@@ -89,7 +93,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Password"
+      [label]="'organizations.ownerAccountSection.password' | transloco"
       controlId="owner-password"
       [required]="true"
       [error]="error('owner.password')"
@@ -116,7 +120,7 @@
     </app-form-field>
 
     <app-form-field
-      label="Confirm password"
+      [label]="'organizations.ownerAccountSection.confirmPassword' | transloco"
       controlId="confirmPassword"
       [required]="true"
       [error]="error('confirmPassword')"
@@ -149,12 +153,16 @@
         [binary]="true"
         [readonly]="submitting()"
       />
-      <label for="owner-show-password">Show password</label>
+      <label for="owner-show-password">{{
+        'organizations.ownerAccountSection.showPassword' | transloco
+      }}</label>
     </div>
   </div>
 
   <div class="owner-account__requirements" id="owner-password-requirements">
-    <p class="owner-account__requirements-title">Password requirements</p>
+    <p class="owner-account__requirements-title">
+      {{ 'organizations.ownerAccountSection.passwordRequirements' | transloco }}
+    </p>
     <ul>
       <li [class.owner-account__met]="requirements().lengthMet">
         <i
@@ -163,9 +171,11 @@
           [class.pi-circle]="!requirements().lengthMet"
           aria-hidden="true"
         ></i>
-        12–128 characters
+        {{ 'organizations.ownerAccountSection.n12128Characters' | transloco }}
         <span class="owner-account__sr">{{
-          requirements().lengthMet ? '(met)' : '(not met)'
+          requirements().lengthMet
+            ? ('organizations.ownerAccountSection.met' | transloco)
+            : ('organizations.ownerAccountSection.notMet' | transloco)
         }}</span>
       </li>
       <li [class.owner-account__met]="requirements().differsFromEmailMet">
@@ -175,20 +185,22 @@
           [class.pi-circle]="!requirements().differsFromEmailMet"
           aria-hidden="true"
         ></i>
-        Must not match your email
+        {{ 'organizations.ownerAccountSection.mustNotMatchYour' | transloco }}
         <span class="owner-account__sr">{{
-          requirements().differsFromEmailMet ? '(met)' : '(not met)'
+          requirements().differsFromEmailMet
+            ? ('organizations.ownerAccountSection.met' | transloco)
+            : ('organizations.ownerAccountSection.notMet' | transloco)
         }}</span>
       </li>
     </ul>
   </div>
 
   <app-wizard-note class="owner-account__note">
-    You'll be the first Owner and can invite your team after setup.
+    {{ 'organizations.ownerAccountSection.youLlBeThe' | transloco }}
   </app-wizard-note>
 
   <p class="owner-account__secure">
     <i class="pi pi-lock" aria-hidden="true"></i>
-    Your password is securely hashed and never stored as plain text.
+    {{ 'organizations.ownerAccountSection.yourPasswordIsSecurely' | transloco }}
   </p>
 </app-wizard-card>

@@ -1,25 +1,30 @@
 <section class="summary" aria-labelledby="summary-heading">
-  <h2 class="summary__title" id="summary-heading">Quote total</h2>
+  <h2 class="summary__title" id="summary-heading">
+    {{ 'quotes.publicQuoteSummary.quoteTotal' | transloco }}
+  </h2>
   <p class="summary__total" aria-live="polite" aria-atomic="true" [attr.aria-busy]="calculating()">
     {{ money(totals().total) }}
     @if (calculating()) {
       <svg data-p-icon="spinner" class="summary__spinner" [spin]="true" aria-hidden="true"></svg>
-      <span class="summary__sr">Updating total</span>
+      <span class="summary__sr">{{ 'quotes.publicQuoteSummary.updatingTotal' | transloco }}</span>
     }
   </p>
-  <p class="summary__muted">No payment due today</p>
+  <p class="summary__muted">{{ 'quotes.publicQuoteSummary.noPaymentDueToday' | transloco }}</p>
   <p class="summary__valid">
     <svg class="summary__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l3 2" />
     </svg>
-    Valid until {{ validUntil() }}
+    {{ 'quotes.publicQuoteSummary.validUntil' | transloco: { validUntil: validUntil() } }}
   </p>
 
   @if (open()) {
     @if (quote().clarification; as clarification) {
       <p class="summary__confirm" role="status">
-        Your question was sent. {{ quote().organization.name }} will contact you soon.
+        {{
+          'quotes.publicQuoteSummary.yourQuestionWasSent'
+            | transloco: { name: quote().organization.name }
+        }}
         <span class="summary__muted">{{ askedOn() }}</span>
       </p>
     }
@@ -30,7 +35,9 @@
         [ngModel]="acceptTerms()"
         (ngModelChange)="acceptTerms.set($event)"
       />
-      <label for="accept-terms">I approve the scope of work and agree to the terms.</label>
+      <label for="accept-terms">{{
+        'quotes.publicQuoteSummary.iApproveTheScope' | transloco
+      }}</label>
     </div>
     <button
       pButton
@@ -43,12 +50,14 @@
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Approve quote
+      {{ 'quotes.publicQuoteSummary.approveQuote' | transloco }}
     </button>
     @if (!acceptTerms()) {
       <span class="summary__sr" id="approve-hint">{{ hint }}</span>
     }
-    <p class="summary__muted summary__center">Approval does not charge your payment method.</p>
+    <p class="summary__muted summary__center">
+      {{ 'quotes.publicQuoteSummary.approvalDoesNotCharge' | transloco }}
+    </p>
     @if (actionError(); as message) {
       <p class="summary__error" role="alert">{{ message }}</p>
     }
@@ -66,7 +75,7 @@
             d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
           />
         </svg>
-        Ask a question
+        {{ 'quotes.publicQuoteSummary.askAQuestion' | transloco }}
       </button>
     }
     <button
@@ -76,7 +85,7 @@
       [disabled]="submitting()"
       (click)="declined.emit()"
     >
-      Decline quote
+      {{ 'quotes.publicQuoteSummary.declineQuote' | transloco }}
     </button>
     <p class="summary__secure">
       <svg class="summary__shield" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -86,12 +95,19 @@
         />
         <path class="summary__shield-check" d="M8.5 12l2.5 2.5 4.5-5" />
       </svg>
-      Your approval will be recorded securely.
+      {{ 'quotes.publicQuoteSummary.yourApprovalWillBe' | transloco }}
     </p>
   } @else if (quote().response?.type === 'approved') {
-    <p class="summary__final">Approved on {{ respondedOn() }}</p>
+    <p class="summary__final">
+      {{ 'quotes.publicQuoteSummary.approvedOn' | transloco: { respondedOn: respondedOn() } }}
+    </p>
     @for (line of approvedOptional(); track line.id) {
-      <p class="summary__muted">Included: {{ line.name }} · {{ money(line.lineSubtotal) }}</p>
+      <p class="summary__muted">
+        {{
+          'quotes.publicQuoteSummary.included'
+            | transloco: { name: line.name, lineSubtotal: money(line.lineSubtotal) }
+        }}
+      </p>
     }
     <button
       pButton
@@ -104,15 +120,24 @@
       @if (pdfState() === 'downloading') {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Download PDF
+      {{ 'quotes.publicQuoteSummary.downloadPdf' | transloco }}
     </button>
     @if (pdfState() === 'failed') {
-      <p class="summary__error" role="alert">We couldn't download the PDF. Please try again.</p>
+      <p class="summary__error" role="alert">
+        {{ 'quotes.publicQuoteSummary.weCouldnTDownload' | transloco }}
+      </p>
     }
   } @else if (quote().quote.status === 'expired') {
     <p class="summary__final" role="status">{{ expiredNotice() }}</p>
   } @else {
-    <p class="summary__final">Declined on {{ respondedOn() }}</p>
-    <p class="summary__muted">Your decision was sent to {{ quote().organization.name }}.</p>
+    <p class="summary__final">
+      {{ 'quotes.publicQuoteSummary.declinedOn' | transloco: { respondedOn: respondedOn() } }}
+    </p>
+    <p class="summary__muted">
+      {{
+        'quotes.publicQuoteSummary.yourDecisionWasSent'
+          | transloco: { name: quote().organization.name }
+      }}
+    </p>
   }
 </section>

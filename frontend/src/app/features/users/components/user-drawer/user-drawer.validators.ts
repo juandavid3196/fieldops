@@ -1,20 +1,23 @@
 import { InviteFieldErrors, InviteFieldKey, INVITE_FIELD_KEYS } from '../../models/users.model';
 
-export const EMAIL_INVALID_MESSAGE = 'Enter a valid email address.';
-export const FIRST_NAME_MESSAGE = 'Enter a first name.';
-export const LAST_NAME_MESSAGE = 'Enter a last name.';
-export const ROLE_MESSAGE = 'Select a role.';
-export const BRANCH_REQUIRED_MESSAGE = 'Select at least one branch.';
-export const EXPIRY_MESSAGE = 'Select a valid expiry.';
+import { localized, t } from '../../../../core/i18n/translate';
+export const EMAIL_INVALID_MESSAGE = (): string =>
+  t('users.userDrawerValidators.emailInvalidMessage');
+export const FIRST_NAME_MESSAGE = (): string => t('users.userDrawerValidators.firstNameMessage');
+export const LAST_NAME_MESSAGE = (): string => t('users.userDrawerValidators.lastNameMessage');
+export const ROLE_MESSAGE = (): string => t('users.userDrawerValidators.roleMessage');
+export const BRANCH_REQUIRED_MESSAGE = (): string =>
+  t('users.userDrawerValidators.branchRequiredMessage');
+export const EXPIRY_MESSAGE = (): string => t('users.userDrawerValidators.expiryMessage');
 export const EXPIRY_OPTIONS = [3, 7, 14] as const;
-export const FIELD_LABELS: Readonly<Record<InviteFieldKey, string>> = {
-  email: 'Email address',
-  firstName: 'First name',
-  lastName: 'Last name',
-  roleCode: 'Role',
-  branchIds: 'Branch access',
-  expiresInDays: 'Invitation expires in',
-};
+export const FIELD_LABELS: Readonly<Record<InviteFieldKey, string>> = localized(() => ({
+  email: t('users.userDrawerValidators.emailAddress'),
+  firstName: t('users.userDrawerValidators.firstName'),
+  lastName: t('users.userDrawerValidators.lastName'),
+  roleCode: t('common.role'),
+  branchIds: t('users.userDrawerValidators.branchAccess'),
+  expiresInDays: t('users.userDrawerValidators.invitationExpiresIn'),
+}));
 
 export interface InviteFormValue {
   readonly email: string;
@@ -40,24 +43,24 @@ export function validateInviteField(
       const email = value.email.trim();
       return email.length > 0 && email.length <= 254 && EMAIL_PATTERN.test(email)
         ? null
-        : EMAIL_INVALID_MESSAGE;
+        : EMAIL_INVALID_MESSAGE();
     }
     case 'firstName': {
       const name = value.firstName.trim();
-      return name.length > 0 && name.length <= 100 ? null : FIRST_NAME_MESSAGE;
+      return name.length > 0 && name.length <= 100 ? null : FIRST_NAME_MESSAGE();
     }
     case 'lastName': {
       const name = value.lastName.trim();
-      return name.length > 0 && name.length <= 100 ? null : LAST_NAME_MESSAGE;
+      return name.length > 0 && name.length <= 100 ? null : LAST_NAME_MESSAGE();
     }
     case 'roleCode':
-      return validRoleCodes.includes(value.roleCode) ? null : ROLE_MESSAGE;
+      return validRoleCodes.includes(value.roleCode) ? null : ROLE_MESSAGE();
     case 'branchIds':
-      return value.isAllBranches || value.branchIds.length > 0 ? null : BRANCH_REQUIRED_MESSAGE;
+      return value.isAllBranches || value.branchIds.length > 0 ? null : BRANCH_REQUIRED_MESSAGE();
     case 'expiresInDays':
       return (EXPIRY_OPTIONS as readonly number[]).includes(value.expiresInDays ?? -1)
         ? null
-        : EXPIRY_MESSAGE;
+        : EXPIRY_MESSAGE();
   }
 }
 

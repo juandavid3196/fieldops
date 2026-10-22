@@ -1,5 +1,7 @@
 <section class="card" aria-labelledby="service-title">
-  <h2 class="card__title" id="service-title">Service profitability estimates</h2>
+  <h2 class="card__title" id="service-title">
+    {{ 'businessOverview.serviceProfitability.serviceProfitabilityEstimates' | transloco }}
+  </h2>
   @if (rows().length === 0) {
     <p class="card__empty">{{ emptyText }}</p>
   } @else {
@@ -7,10 +9,17 @@
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">Service</th>
-            <th scope="col" class="num">Revenue</th>
-            <th scope="col" class="num">Estimated margin <app-info-hint [text]="hint" /></th>
-            <th scope="col" class="num">Avg job value</th>
+            <th scope="col">{{ 'businessOverview.serviceProfitability.service' | transloco }}</th>
+            <th scope="col" class="num">
+              {{ 'businessOverview.serviceProfitability.revenue' | transloco }}
+            </th>
+            <th scope="col" class="num">
+              {{ 'businessOverview.serviceProfitability.estimatedMargin' | transloco }}
+              <app-info-hint [text]="hint" />
+            </th>
+            <th scope="col" class="num">
+              {{ 'businessOverview.serviceProfitability.avgJobValue' | transloco }}
+            </th>
           </tr>
         </thead>
         <tbody>

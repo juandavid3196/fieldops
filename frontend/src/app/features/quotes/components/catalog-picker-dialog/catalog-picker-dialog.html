@@ -10,7 +10,7 @@
   <div class="picker">
     @if (target()?.optional) {
       <fieldset class="picker__types">
-        <legend class="picker__legend">Type</legend>
+        <legend class="picker__legend">{{ 'common.type' | transloco }}</legend>
         <label class="picker__type">
           <input
             type="radio"
@@ -19,7 +19,7 @@
             [checked]="choice() === 'service'"
             (change)="choice.set('service')"
           />
-          Service
+          {{ 'quotes.catalogPickerDialog.service' | transloco }}
         </label>
         <label class="picker__type">
           <input
@@ -29,12 +29,14 @@
             [checked]="choice() === 'product'"
             (change)="choice.set('product')"
           />
-          Material
+          {{ 'quotes.catalogPickerDialog.material' | transloco }}
         </label>
       </fieldset>
     }
 
-    <label class="picker__legend" for="catalog-picker-search">Search the catalog</label>
+    <label class="picker__legend" for="catalog-picker-search">{{
+      'quotes.catalogPickerDialog.searchTheCatalog' | transloco
+    }}</label>
     <input
       pInputText
       id="catalog-picker-search"
@@ -58,14 +60,14 @@
           <span class="picker__error">
             {{ errorMessage }}
             <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-              Retry
+              {{ 'common.retry' | transloco }}
             </button>
           </span>
         </p-message>
       }
       @default {
         @if (items().length === 0) {
-          <p class="picker__empty">No items found.</p>
+          <p class="picker__empty">{{ 'quotes.catalogPickerDialog.noItemsFound' | transloco }}</p>
         } @else {
           <ul class="picker__list">
             @for (item of items(); track item.id) {

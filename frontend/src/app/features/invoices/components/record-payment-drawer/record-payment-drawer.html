@@ -6,12 +6,14 @@
   (closeRequested)="requestClose()"
 >
   <ng-container ngProjectAs="[drawerHeader]">
-    <h2 class="record__title" [id]="titleId" tabindex="-1">Record external payment</h2>
+    <h2 class="record__title" [id]="titleId" tabindex="-1">
+      {{ 'invoices.recordPaymentDrawer.recordExternalPayment' | transloco }}
+    </h2>
     <span class="record__spacer"></span>
     <button
       type="button"
       class="record__close"
-      aria-label="Close record payment drawer"
+      [attr.aria-label]="'invoices.recordPaymentDrawer.closeRecordPaymentDrawer' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -23,22 +25,22 @@
     @if (row(); as invoice) {
       <p class="record__info">
         <span class="record__icon" aria-hidden="true">i</span>
-        Use this form only for money already received outside FieldOps. No card will be charged.
+        {{ 'invoices.recordPaymentDrawer.useThisFormOnly' | transloco }}
       </p>
 
       <dl class="record__summary">
-        <dt>Invoice</dt>
+        <dt>{{ 'invoices.recordPaymentDrawer.invoice' | transloco }}</dt>
         <dd>{{ invoice.number }}</dd>
-        <dt>Customer</dt>
+        <dt>{{ 'common.customer' | transloco }}</dt>
         <dd>{{ invoice.customerName }}</dd>
-        <dt>Outstanding balance</dt>
+        <dt>{{ 'invoices.recordPaymentDrawer.outstandingBalance' | transloco }}</dt>
         <dd>{{ balanceText() }}</dd>
       </dl>
 
       <form class="record__form" ngNoForm novalidate (submit)="$event.preventDefault(); save()">
         <fieldset class="record__group" [disabled]="submitting()">
           <app-form-field
-            label="Amount"
+            [label]="'common.amount' | transloco"
             controlId="record-payment-amount"
             [required]="true"
             [error]="error('amount')"
@@ -61,7 +63,7 @@
           </app-form-field>
 
           <app-form-field
-            label="Payment date"
+            [label]="'invoices.recordPaymentDrawer.paymentDate' | transloco"
             controlId="record-payment-paidDate"
             [required]="true"
             [error]="error('paidDate')"
@@ -82,20 +84,20 @@
           </app-form-field>
 
           <app-form-field
-            label="Payment method"
+            [label]="'invoices.recordPaymentDrawer.paymentMethod' | transloco"
             controlId="record-payment-method"
             [required]="true"
             [error]="error('method')"
-            helper="Select how the payment was received."
+            [helper]="'invoices.recordPaymentDrawer.selectHowThePayment' | transloco"
           >
             <p-select
               inputId="record-payment-method"
               appendTo="body"
               fluid
-              placeholder="Select a method"
+              [placeholder]="'invoices.recordPaymentDrawer.selectAMethod' | transloco"
               optionLabel="label"
               optionValue="code"
-              [options]="methodChoices"
+              [options]="methodChoices | localizedRef"
               [ngModel]="method()"
               [invalid]="error('method') !== null"
               [attr.aria-describedby]="describedBy('method')"
@@ -104,11 +106,11 @@
           </app-form-field>
 
           <app-form-field
-            label="Reference number"
+            [label]="'invoices.recordPaymentDrawer.referenceNumber' | transloco"
             controlId="record-payment-reference"
             [required]="referenceRequired()"
             [error]="error('reference')"
-            helper="Required for external card payments, bank transfers, and checks."
+            [helper]="'invoices.recordPaymentDrawer.requiredForExternalCard' | transloco"
           >
             <input
               pInputText
@@ -125,17 +127,17 @@
           </app-form-field>
 
           <app-form-field
-            label="Received by"
+            [label]="'invoices.recordPaymentDrawer.receivedBy' | transloco"
             controlId="record-payment-receivedByUserId"
             [required]="true"
             [error]="error('receivedByUserId')"
-            helper="Person who received the payment."
+            [helper]="'invoices.recordPaymentDrawer.personWhoReceivedThe' | transloco"
           >
             <p-select
               inputId="record-payment-receivedByUserId"
               appendTo="body"
               fluid
-              placeholder="Select a person"
+              [placeholder]="'invoices.recordPaymentDrawer.selectAPerson' | transloco"
               optionLabel="label"
               optionValue="code"
               [options]="memberChoices()"
@@ -147,9 +149,13 @@
           </app-form-field>
 
           <app-form-field
-            label="Send receipt"
+            [label]="'invoices.recordPaymentDrawer.sendReceipt' | transloco"
             controlId="record-payment-sendReceipt"
-            [helper]="hasRecipient() ? 'Send a receipt to the customer.' : noRecipientMessage"
+            [helper]="
+              hasRecipient()
+                ? ('invoices.recordPaymentDrawer.sendAReceiptTo' | transloco)
+                : noRecipientMessage
+            "
           >
             <p-toggleswitch
               inputId="record-payment-sendReceipt"
@@ -160,10 +166,10 @@
           </app-form-field>
 
           <app-form-field
-            label="Internal note"
+            [label]="'invoices.recordPaymentDrawer.internalNote' | transloco"
             controlId="record-payment-note"
             [error]="error('note')"
-            helper="Visible only to your team."
+            [helper]="'invoices.recordPaymentDrawer.visibleOnlyToYour' | transloco"
           >
             <textarea
               pTextarea
@@ -171,7 +177,7 @@
               rows="3"
               fluid
               name="note"
-              placeholder="Add an internal note (optional)..."
+              [attr.placeholder]="'invoices.recordPaymentDrawer.addAnInternalNote' | transloco"
               [attr.aria-invalid]="error('note') !== null ? 'true' : null"
               [attr.aria-describedby]="describedBy('note')"
               [ngModel]="note()"
@@ -194,18 +200,17 @@
       [disabled]="submitting()"
       (click)="requestClose()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button pButton type="button" [disabled]="submitting()" (click)="save()">
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Record external payment
+      {{ 'invoices.recordPaymentDrawer.recordExternalPayment' | transloco }}
     </button>
     <p class="record__footnote">
       <span class="record__icon" aria-hidden="true">i</span>
-      This creates a payment record and updates the invoice balance. It does not process, authorize,
-      or capture a card.
+      {{ 'invoices.recordPaymentDrawer.thisCreatesAPayment' | transloco }}
     </p>
   </ng-container>
 </app-drawer-shell>

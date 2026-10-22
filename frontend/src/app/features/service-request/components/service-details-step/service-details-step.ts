@@ -3,12 +3,14 @@ import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Urgency } from '../../models/service-request.model';
 import { ServiceRequestWizardStore } from '../../services/service-request-wizard.store';
 import { NOT_SURE_LABEL } from '../../service-request.messages';
 import { AttachmentDropzone } from '../attachment-dropzone/attachment-dropzone';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 /** Categories are tenant data (names only), so the icon is picked by keyword with a fallback. */
 const CATEGORY_ICONS: readonly (readonly [RegExp, string])[] = [
   [/plumb|pipe|drain|water/i, 'pi-link'],
@@ -25,23 +27,38 @@ export function categoryIcon(name: string): string {
 
 @Component({
   selector: 'app-service-details-step',
-  imports: [FormsModule, ButtonDirective, Select, Textarea, AttachmentDropzone],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Select, Textarea, AttachmentDropzone],
   templateUrl: './service-details-step.html',
   styleUrl: './service-details-step.scss',
 })
 export class ServiceDetailsStep {
   protected readonly store = inject(ServiceRequestWizardStore);
   protected readonly service = computed(() => this.store.data().service);
-  protected readonly notSureLabel = NOT_SURE_LABEL;
+  protected get notSureLabel(): string {
+    return NOT_SURE_LABEL();
+  }
   protected readonly categoryIcon = categoryIcon;
   // The select sits inside a <form>; without `standalone` ngModel throws NG01352 while the
   // step renders, leaving the whole step half-rendered until the next change detection.
   protected readonly standalone = { standalone: true };
-  protected readonly urgencies: readonly { value: Urgency; label: string; hint: string }[] = [
-    { value: 'standard', label: 'Standard', hint: 'Routine issue' },
-    { value: 'urgent', label: 'Urgent', hint: 'Needs prompt attention' },
-    { value: 'emergency', label: 'Emergency', hint: 'Safety risk or major damage' },
-  ];
+  protected readonly urgencies: readonly { value: Urgency; label: string; hint: string }[] =
+    localizedList(() => [
+      {
+        value: 'standard',
+        label: t('serviceRequest.serviceDetailsStep.standard'),
+        hint: t('serviceRequest.serviceDetailsStep.routineIssue'),
+      },
+      {
+        value: 'urgent',
+        label: t('serviceRequest.serviceDetailsStep.urgent'),
+        hint: t('serviceRequest.serviceDetailsStep.needsPromptAttention'),
+      },
+      {
+        value: 'emergency',
+        label: t('serviceRequest.serviceDetailsStep.emergency'),
+        hint: t('serviceRequest.serviceDetailsStep.safetyRiskOrMajor'),
+      },
+    ]);
 
   protected chooseCategory(categoryId: string): void {
     this.store.patchService({ categoryId });

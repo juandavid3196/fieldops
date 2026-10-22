@@ -2,11 +2,13 @@ import { Component, computed, input, output } from '@angular/core';
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import type { ButtonDirectiveOptions } from 'primeng/types/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
+import { t } from '../../../../core/i18n/translate';
 /** BR-16 read-only "Original scope" dialog opened from the task checklist. */
 @Component({
   selector: 'app-job-scope',
-  imports: [ButtonDirective, Dialog],
+  imports: [TranslocoPipe, ButtonDirective, Dialog],
   templateUrl: './job-scope.html',
   styleUrl: './job-scope.scss',
 })
@@ -17,7 +19,10 @@ export class JobScope {
 
   readonly countText = computed(() => {
     const count = this.lines().length;
-    return `${count} scope ${count === 1 ? 'item' : 'items'}`;
+    return t('technicianJobs.jobScope.scope', {
+      count: count,
+      value: count === 1 ? t('technicianJobs.jobScope.item') : t('technicianJobs.jobScope.items'),
+    });
   });
 
   readonly dialogStyle = { width: '26rem', maxWidth: '94vw' };

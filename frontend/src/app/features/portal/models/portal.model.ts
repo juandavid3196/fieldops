@@ -1,3 +1,4 @@
+import { localized, localizedList, t } from '../../../core/i18n/translate';
 /** Portal API shapes (customer-portal-dashboard API contracts). Dates are `YYYY-MM-DD`, times `HH:mm`. */
 
 export interface Page<T> {
@@ -241,20 +242,21 @@ export interface PortalRequestCreated {
 }
 
 /** Fixed copy (backend text is never displayed). */
-export const ITEM_UNAVAILABLE_MESSAGE = "This item isn't available.";
-export const GENERIC_ERROR_MESSAGE = 'Something went wrong. Try again.';
-export const RATE_LIMITED_MESSAGE = 'Too many attempts. Please wait a few minutes and try again.';
-export const SESSION_ENDED_MESSAGE = 'Your session ended. Sign in again.';
+export const ITEM_UNAVAILABLE_MESSAGE = (): string =>
+  t('portal.portalModel.itemUnavailableMessage');
+export const GENERIC_ERROR_MESSAGE = (): string => t('portal.portalModel.genericErrorMessage');
+export const RATE_LIMITED_MESSAGE = (): string => t('portal.portalModel.rateLimitedMessage');
+export const SESSION_ENDED_MESSAGE = (): string => t('portal.portalModel.sessionEndedMessage');
 
-export const REQUEST_STATUS_LABELS: Readonly<Record<RequestStatus, string>> = {
-  new: 'Submitted',
-  needs_review: 'Under review',
-  assessment_scheduled: 'Assessment scheduled',
-  ready_for_quote: 'Preparing quote',
-  quoted: 'Quote ready',
-  converted: 'Job created',
-  cancelled: 'Cancelled',
-};
+export const REQUEST_STATUS_LABELS: Readonly<Record<RequestStatus, string>> = localized(() => ({
+  new: t('portal.portalModel.submitted'),
+  needs_review: t('portal.portalModel.underReview'),
+  assessment_scheduled: t('portal.portalModel.assessmentScheduled'),
+  ready_for_quote: t('portal.portalModel.preparingQuote'),
+  quoted: t('portal.portalModel.quoteReady'),
+  converted: t('portal.portalModel.jobCreated'),
+  cancelled: t('portal.portalModel.cancelled'),
+}));
 
 export type ProgressStep = 'scheduled' | 'on_the_way' | 'in_progress' | 'completed';
 
@@ -266,12 +268,12 @@ export const PROGRESS_STEPS: readonly ProgressStep[] = [
   'completed',
 ];
 
-export const VISIT_STEPS: readonly string[] = [
-  'Scheduled',
-  'On the way',
-  'In progress',
-  'Completed',
-];
+export const VISIT_STEPS: readonly string[] = localizedList(() => [
+  t('portal.portalModel.scheduled'),
+  t('portal.portalModel.onTheWay'),
+  t('portal.portalModel.inProgress'),
+  t('portal.portalModel.completed'),
+]);
 
 /** Zero-based stepper position of a BR-38 step (unknown values read as Scheduled). */
 export function progressIndex(step: ProgressStep): number {

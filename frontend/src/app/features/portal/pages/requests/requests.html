@@ -1,6 +1,6 @@
 <div class="pp">
   <header class="pp__head">
-    <h1 class="pp__title">Requests</h1>
+    <h1 class="pp__title">{{ 'portal.requests.requests' | transloco }}</h1>
     <div class="pp__actions">
       @if (list.properties().length > 0) {
         <app-portal-property-filter
@@ -11,55 +11,72 @@
       }
       <a pButton routerLink="/portal/requests/new" [queryParams]="query()">
         <i class="pi pi-plus" aria-hidden="true"></i>
-        Request a service
+        {{ 'portal.requests.requestAService' | transloco }}
       </a>
     </div>
   </header>
 
   <app-portal-state
     [state]="list.resource.state()"
-    label="Loading requests"
-    emptyText="No requests yet."
-    errorText="We couldn't load your requests."
+    [label]="'portal.requests.loadingRequests' | transloco"
+    [emptyText]="'portal.requests.noRequestsYet' | transloco"
+    [errorText]="'portal.requests.weCouldnTLoad' | transloco"
     (retry)="list.reload()"
   >
-    <a empty pButton routerLink="/portal/requests/new" [queryParams]="query()">Request a service</a>
+    <a empty pButton routerLink="/portal/requests/new" [queryParams]="query()">{{
+      'portal.requests.requestAService' | transloco
+    }}</a>
 
     @if (list.resource.data(); as page) {
       <div class="pcard">
         <table class="ptable">
           <caption class="sr">
-            Requests
+            {{
+              'portal.requests.requests' | transloco
+            }}
           </caption>
           <thead>
             <tr>
-              <th scope="col">Request</th>
-              <th scope="col">Title</th>
-              <th scope="col">Property</th>
-              <th scope="col">Status</th>
-              <th scope="col">Submitted</th>
-              <th scope="col"><span class="sr">Actions</span></th>
+              <th scope="col">{{ 'portal.requests.request' | transloco }}</th>
+              <th scope="col">{{ 'portal.requests.title' | transloco }}</th>
+              <th scope="col">{{ 'portal.requests.property' | transloco }}</th>
+              <th scope="col">{{ 'common.status' | transloco }}</th>
+              <th scope="col">{{ 'portal.requests.submitted' | transloco }}</th>
+              <th scope="col">
+                <span class="sr">{{ 'common.actions' | transloco }}</span>
+              </th>
             </tr>
           </thead>
           <tbody>
             @for (row of rows(); track row.request.id) {
               <tr>
-                <td data-label="Request">{{ row.request.displayNumber }}</td>
-                <td data-label="Title">{{ row.request.title }}</td>
-                <td data-label="Property">{{ row.request.propertyName ?? '—' }}</td>
-                <td data-label="Status">
+                <td [attr.data-label]="'portal.requests.request' | transloco">
+                  {{ row.request.displayNumber }}
+                </td>
+                <td [attr.data-label]="'portal.requests.title' | transloco">
+                  {{ row.request.title }}
+                </td>
+                <td [attr.data-label]="'portal.requests.property' | transloco">
+                  {{ row.request.propertyName ?? '—' }}
+                </td>
+                <td [attr.data-label]="'common.status' | transloco">
                   <app-portal-status-chip [label]="row.chip.label" [tone]="row.chip.tone" />
                 </td>
-                <td data-label="Submitted">{{ row.submitted }}</td>
+                <td [attr.data-label]="'portal.requests.submitted' | transloco">
+                  {{ row.submitted }}
+                </td>
                 <td>
                   <a
                     pButton
                     severity="secondary"
                     [outlined]="true"
                     size="small"
-                    [attr.aria-label]="'View request ' + row.request.displayNumber"
+                    [attr.aria-label]="
+                      'portal.requests.viewRequest'
+                        | transloco: { displayNumber: row.request.displayNumber }
+                    "
                     [routerLink]="['/portal/requests', row.request.id]"
-                    >View</a
+                    >{{ 'common.view' | transloco }}</a
                   >
                 </td>
               </tr>
@@ -70,7 +87,7 @@
           [page]="page.page"
           [pageSize]="page.pageSize"
           [total]="page.total"
-          noun="requests"
+          [noun]="'portal.requests.requests2' | transloco"
           (pageChange)="list.goTo($event)"
         />
       </div>

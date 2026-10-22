@@ -1,6 +1,8 @@
 import { ScheduleDay, ScheduleVisit } from '../models/technician-visits.model';
 import { formatScheduledHours, pluralLabel } from './technician-format';
 
+import { t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 const DAY_MS = 86_400_000;
 
 function utcNoon(date: string): Date {
@@ -18,7 +20,9 @@ export function weekdayIndex(date: string): number {
 }
 
 function calendarText(date: string, options: Intl.DateTimeFormatOptions): string {
-  return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(utcNoon(date));
+  return new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: 'UTC' }).format(
+    utcNoon(date),
+  );
 }
 
 /** "EEE" */
@@ -48,8 +52,13 @@ export function localDateOf(iso: string, timeZone: string): string {
 /** BR-04: "<n> job(s) · <h>h"; "0 jobs" when the day is empty. */
 export function summaryText(day: ScheduleDay | undefined): string {
   const count = day?.visitCount ?? 0;
-  const label = `${count} ${pluralLabel(count, 'job', 'jobs')}`;
-  return count === 0 ? label : `${label} · ${formatScheduledHours(day?.scheduledMinutes ?? 0)}h`;
+  const label = `${count} ${pluralLabel(count, t('technicianJobs.plurals.job'), t('technicianJobs.plurals.jobs'))}`;
+  return count === 0
+    ? label
+    : t('technicianJobs.scheduleFormat.h', {
+        label: label,
+        value: formatScheduledHours(day?.scheduledMinutes ?? 0),
+      });
 }
 
 /** BR-16: "1h 30m", "2h", "45m". */
@@ -83,17 +92,24 @@ export function relativeTimeText(iso: string | null | undefined, now: Date): str
     return null;
   }
   if (minutes < 1) {
-    return 'just now';
+    return t('technicianJobs.scheduleFormat.justNow');
   }
   if (minutes < 60) {
-    return `${minutes} min ago`;
+    return t('technicianJobs.scheduleFormat.minAgo', { minutes: minutes });
   }
   const hours = Math.floor(minutes / 60);
   if (hours < 24) {
-    return `${hours} ${pluralLabel(hours, 'hour', 'hours')} ago`;
+    return t('technicianJobs.scheduleFormat.ago', {
+      hours: hours,
+      value: pluralLabel(
+        hours,
+        t('technicianJobs.plurals.hour'),
+        t('technicianJobs.plurals.hours'),
+      ),
+    });
   }
   const days = Math.floor(hours / 24);
-  return days === 1 ? 'yesterday' : `${days} days ago`;
+  return days === 1 ? 'yesterday' : t('technicianJobs.scheduleFormat.daysAgo', { days: days });
 }
 
 /** BR-17 status line: "Started …", "On the way since …", "Paused …"; `null` when unknown. */
@@ -108,11 +124,11 @@ export function statusSinceText(
   }
   switch (status) {
     case 'in_progress':
-      return `Started ${relative}`;
+      return t('technicianJobs.scheduleFormat.started', { relative: relative });
     case 'on_the_way':
-      return `On the way since ${relative}`;
+      return t('technicianJobs.scheduleFormat.onTheWaySince', { relative: relative });
     case 'paused':
-      return `Paused ${relative}`;
+      return t('technicianJobs.scheduleFormat.paused', { relative: relative });
     default:
       return null;
   }

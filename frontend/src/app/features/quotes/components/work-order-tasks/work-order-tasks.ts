@@ -2,6 +2,7 @@ import { Component, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonDirective } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TaskRow, taskName } from '../../utils/work-order-form';
 
@@ -11,7 +12,7 @@ import { TaskRow, taskName } from '../../utils/work-order-form';
  */
 @Component({
   selector: 'app-work-order-tasks',
-  imports: [FormsModule, ButtonDirective, InputText],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, InputText],
   templateUrl: './work-order-tasks.html',
   styleUrl: './work-order-tasks.scss',
 })

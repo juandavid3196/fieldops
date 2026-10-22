@@ -7,17 +7,19 @@ import {
   WorkloadState,
 } from '../models/team.model';
 
+import { localized, localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 type TagSeverity = 'success' | 'info' | 'warn' | 'secondary';
 
-export const STATUS_LABELS: Readonly<Record<TodayStatus, string>> = {
-  on_job: 'On job',
-  available: 'Available',
-  break: 'Break',
-  time_off: 'Time off',
-  off: 'Off',
-  inactive: 'Inactive',
-  suspended: 'Suspended',
-};
+export const STATUS_LABELS: Readonly<Record<TodayStatus, string>> = localized(() => ({
+  on_job: t('team.teamFormat.onJob'),
+  available: t('team.teamFormat.available'),
+  break: t('team.teamFormat.break'),
+  time_off: t('team.teamFormat.timeOff'),
+  off: t('team.teamFormat.off'),
+  inactive: t('common.inactive'),
+  suspended: t('team.teamFormat.suspended'),
+}));
 
 const STATUS_SEVERITIES: Readonly<Record<TodayStatus, TagSeverity>> = {
   on_job: 'info',
@@ -33,21 +35,21 @@ export function statusSeverity(status: TodayStatus): TagSeverity {
   return STATUS_SEVERITIES[status];
 }
 
-export const PROFILE_STATUS_LABELS: Readonly<Record<ProfileStatus, string>> = {
-  active: 'Active',
-  inactive: 'Inactive',
-  suspended: 'Suspended',
-};
+export const PROFILE_STATUS_LABELS: Readonly<Record<ProfileStatus, string>> = localized(() => ({
+  active: t('common.active'),
+  inactive: t('common.inactive'),
+  suspended: t('team.teamFormat.suspended'),
+}));
 
 export function profileStatusSeverity(status: ProfileStatus): TagSeverity {
   return status === 'active' ? 'success' : 'secondary';
 }
 
-export const HEALTH_LABELS: Readonly<Record<SkillHealth, string>> = {
-  healthy: 'Healthy',
-  watch: 'Watch',
-  low: 'Low coverage',
-};
+export const HEALTH_LABELS: Readonly<Record<SkillHealth, string>> = localized(() => ({
+  healthy: t('team.teamFormat.healthy'),
+  watch: t('team.teamFormat.watch'),
+  low: t('team.teamFormat.lowCoverage'),
+}));
 
 export const HEALTH_SEVERITIES: Readonly<Record<SkillHealth, TagSeverity>> = {
   healthy: 'success',
@@ -56,13 +58,13 @@ export const HEALTH_SEVERITIES: Readonly<Record<SkillHealth, TagSeverity>> = {
 };
 
 /** BR-25. */
-const PROFICIENCY_LABELS: Readonly<Record<number, string>> = {
-  1: 'Beginner',
-  2: 'Basic',
-  3: 'Intermediate',
-  4: 'Advanced',
-  5: 'Expert',
-};
+const PROFICIENCY_LABELS: Readonly<Record<number, string>> = localized(() => ({
+  1: t('team.teamFormat.beginner'),
+  2: t('team.teamFormat.basic'),
+  3: t('team.teamFormat.intermediate'),
+  4: t('team.teamFormat.advanced'),
+  5: t('team.teamFormat.expert'),
+}));
 
 export function proficiencyLabel(level: number | null | undefined): string | null {
   return level === null || level === undefined ? null : (PROFICIENCY_LABELS[level] ?? null);
@@ -81,7 +83,7 @@ export function workloadView(
   percent: number | null | undefined,
 ): WorkloadView {
   if (state === 'no_availability') {
-    return { text: 'No availability', fill: null, over: true };
+    return { text: t('team.teamFormat.noAvailability'), fill: null, over: true };
   }
   if (state === 'percent' && typeof percent === 'number') {
     return { text: `${percent}%`, fill: Math.min(100, Math.max(0, percent)), over: percent > 100 };
@@ -95,7 +97,7 @@ function parts(iso: string, timeZone: string, options: Intl.DateTimeFormatOption
     return '—';
   }
   const format = (zone: string | undefined) =>
-    new Intl.DateTimeFormat('en-US', { ...options, timeZone: zone }).format(date);
+    new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: zone }).format(date);
   try {
     return format(timeZone);
   } catch {
@@ -123,7 +125,7 @@ export function nextAvailableText(
   now: Date = new Date(),
 ): string {
   if (next.kind === 'now') {
-    return 'Now';
+    return t('team.teamFormat.now');
   }
   if (next.kind !== 'time' || !next.at) {
     return '—';
@@ -139,7 +141,15 @@ export interface AvailabilityLine {
   readonly value: string;
 }
 
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const DAY_NAMES = localizedList(() => [
+  t('team.teamFormat.sunday'),
+  t('team.teamFormat.monday'),
+  t('team.teamFormat.tuesday'),
+  t('team.teamFormat.wednesday'),
+  t('team.teamFormat.thursday'),
+  t('team.teamFormat.friday'),
+  t('team.teamFormat.saturday'),
+]);
 /** Monday first, Sunday last. */
 const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
@@ -176,10 +186,10 @@ export function groupAvailability(days: readonly AvailabilityDay[]): readonly Av
     const value = valueOf(day);
     if (value === '') {
       if (day === 6 && valueOf(0) === '') {
-        lines.push({ label: 'Weekends', value: 'Off' });
+        lines.push({ label: t('team.teamFormat.weekends'), value: t('team.teamFormat.off') });
         break;
       }
-      lines.push({ label: DAY_NAMES[day], value: 'Off' });
+      lines.push({ label: DAY_NAMES[day], value: t('team.teamFormat.off') });
       index += 1;
       continue;
     }

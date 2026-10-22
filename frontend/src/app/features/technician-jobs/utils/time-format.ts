@@ -1,8 +1,10 @@
 import { TimeDay, TimeEntryType, TimeView } from '../models/technician-visits.model';
 import { addDays } from './schedule-format';
 
+import { localized, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 function calendar(date: string, options: Intl.DateTimeFormatOptions): string {
-  return new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' }).format(
+  return new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: 'UTC' }).format(
     new Date(`${date}T12:00:00Z`),
   );
 }
@@ -11,7 +13,9 @@ function calendar(date: string, options: Intl.DateTimeFormatOptions): string {
 export function formatSeconds(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds / 60));
   const hours = Math.floor(total / 60);
-  return hours > 0 ? `${hours}h ${total % 60}m` : `${total}m`;
+  return hours > 0
+    ? t('technicianJobs.timeFormat.hM', { hours: hours, value: total % 60 })
+    : `${total}m`;
 }
 
 /** BR-06: "EEE, MMM d" (day) or "MMM d – d" / "MMM d – MMM d" (week); the year is appended when not the current one. */
@@ -34,10 +38,10 @@ export function rangeLabel(view: TimeView, from: string, to: string, today: stri
 export function sectionHeading(date: string, today: string): string {
   const weekday = calendar(date, { weekday: 'long' });
   if (date === today) {
-    return `Today · ${weekday}`;
+    return t('technicianJobs.timeFormat.today', { weekday: weekday });
   }
   return date === addDays(today, -1)
-    ? `Yesterday · ${weekday}`
+    ? t('technicianJobs.timeFormat.yesterday', { weekday: weekday })
     : calendar(date, { weekday: 'long', month: 'short', day: 'numeric' });
 }
 
@@ -50,13 +54,19 @@ export function weekdayName(date: string): string {
   return calendar(date, { weekday: 'short' });
 }
 
-export const TYPE_LABELS: Readonly<Record<TimeEntryType, string>> = {
-  work: 'Work',
-  travel: 'Travel',
-  break: 'Break',
-};
+export const TYPE_LABELS: Readonly<Record<TimeEntryType, string>> = localized(() => ({
+  work: t('technicianJobs.timeFormat.work'),
+  travel: t('technicianJobs.timeFormat.travel'),
+  break: t('technicianJobs.timeFormat.break'),
+}));
 
 /** BR-11: "Mon: total 4h 20m, work 3h 40m, travel 30m, break 10m". */
 export function dayAlternative(day: TimeDay): string {
-  return `${weekdayName(day.date)}: total ${formatSeconds(day.totalSeconds)}, work ${formatSeconds(day.workSeconds)}, travel ${formatSeconds(day.travelSeconds)}, break ${formatSeconds(day.breakSeconds)}`;
+  return t('technicianJobs.timeFormat.totalWorkTravelBreak', {
+    date: weekdayName(day.date),
+    totalSeconds: formatSeconds(day.totalSeconds),
+    workSeconds: formatSeconds(day.workSeconds),
+    travelSeconds: formatSeconds(day.travelSeconds),
+    breakSeconds: formatSeconds(day.breakSeconds),
+  });
 }

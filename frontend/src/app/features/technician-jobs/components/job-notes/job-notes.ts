@@ -1,10 +1,12 @@
 import { Component, input, output } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 export const NOTES_MAX_LENGTH = 4000;
 
 /** BR-17 Notes section; the draft, pending and error state live in the parent (Save and exit shares them). */
 @Component({
   selector: 'app-job-notes',
+  imports: [TranslocoPipe],
   templateUrl: './job-notes.html',
   styleUrl: './job-notes.scss',
 })

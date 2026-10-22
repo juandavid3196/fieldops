@@ -1,5 +1,6 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TechnicianAvailability } from '../../models/dashboard.model';
 import { TEAM_LINK } from '../../utils/dashboard-params';
@@ -10,7 +11,7 @@ export const TECHNICIAN_ROW_LIMIT = 6;
 /** BR-12: each in-scope technician's skills, status, workload and next available time. */
 @Component({
   selector: 'app-dashboard-technicians',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './dashboard-technicians.html',
   styleUrl: './dashboard-technicians.scss',
 })

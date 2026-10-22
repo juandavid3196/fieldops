@@ -1,5 +1,5 @@
 <p-dialog
-  header="Resend email"
+  [header]="'quotes.quoteResendDialog.resendEmail' | transloco"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
@@ -11,10 +11,10 @@
 >
   <form class="resend" ngNoForm novalidate (submit)="$event.preventDefault(); submit()">
     <p class="resend__text">
-      A new secure link is sent to {{ recipient() }}. The previous link stops working.
+      {{ 'quotes.quoteResendDialog.aNewSecureLink' | transloco: { recipient: recipient() } }}
     </p>
     <app-form-field
-      label="Message"
+      [label]="'quotes.quoteResendDialog.message' | transloco"
       controlId="quote-resend-message"
       [required]="true"
       [error]="error()"
@@ -43,13 +43,13 @@
       [disabled]="submitting()"
       (click)="dismissed.emit()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button pButton type="button" [disabled]="submitting()" (click)="submit()">
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Resend email
+      {{ 'quotes.quoteResendDialog.resendEmail' | transloco }}
     </button>
   </ng-template>
 </p-dialog>

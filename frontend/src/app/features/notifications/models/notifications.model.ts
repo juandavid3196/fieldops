@@ -1,12 +1,21 @@
+import { t } from '../../../core/i18n/translate';
 /** Fixed copy of the notifications center (specs/notifications-center/spec.md; backend text is never shown). */
-export const NOTIFICATIONS_LOAD_ERROR_MESSAGE = "Couldn't load notifications.";
-export const NOTIFICATIONS_FORBIDDEN_MESSAGE = "You don't have access to notifications.";
-export const NOTIFICATIONS_EMPTY_TITLE = "You're all caught up";
-export const NOTIFICATIONS_EMPTY_TEXT = 'New activity for you will appear here.';
-export const NOTIFICATIONS_FILTERED_EMPTY_MESSAGE = 'No notifications match your filters';
-export const NOTIFICATION_UNAVAILABLE_MESSAGE = "This notification isn't available.";
-export const NOTIFICATION_UPDATE_FAILED_MESSAGE = "Couldn't update the notification. Try again.";
-export const NOTIFICATION_TARGET_GONE_MESSAGE = 'This item is no longer available.';
+export const NOTIFICATIONS_LOAD_ERROR_MESSAGE = (): string =>
+  t('notifications.notificationsModel.notificationsLoadErrorMessage');
+export const NOTIFICATIONS_FORBIDDEN_MESSAGE = (): string =>
+  t('notifications.notificationsModel.notificationsForbiddenMessage');
+export const NOTIFICATIONS_EMPTY_TITLE = (): string =>
+  t('notifications.notificationsModel.notificationsEmptyTitle');
+export const NOTIFICATIONS_EMPTY_TEXT = (): string =>
+  t('notifications.notificationsModel.notificationsEmptyText');
+export const NOTIFICATIONS_FILTERED_EMPTY_MESSAGE = (): string =>
+  t('notifications.notificationsModel.notificationsFilteredEmptyMessage');
+export const NOTIFICATION_UNAVAILABLE_MESSAGE = (): string =>
+  t('notifications.notificationsModel.notificationUnavailableMessage');
+export const NOTIFICATION_UPDATE_FAILED_MESSAGE = (): string =>
+  t('notifications.notificationsModel.notificationUpdateFailedMessage');
+export const NOTIFICATION_TARGET_GONE_MESSAGE = (): string =>
+  t('notifications.notificationsModel.notificationTargetGoneMessage');
 
 /** BR-13: rows per page offered by the UI (the first is the default). */
 export const NOTIFICATIONS_PAGE_SIZES: readonly number[] = [10, 25, 50];

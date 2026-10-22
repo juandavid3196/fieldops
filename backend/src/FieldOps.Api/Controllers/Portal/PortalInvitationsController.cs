@@ -66,7 +66,8 @@ public sealed class PortalInvitationsController(
         }
 
         var outcome = await acceptHandler.HandleAsync(
-            new AcceptPortalInvitationCommand(request.Token, request.Password, request.LastName, ClientIp()), cancellationToken);
+            new AcceptPortalInvitationCommand(request.Token, request.Password, request.LastName, ClientIp(), LanguageInput.AsString(request.PreferredLanguage)),
+            cancellationToken);
 
         return await MapAcceptedAsync(outcome);
     }

@@ -15,6 +15,7 @@ import {
   TERMS_MESSAGE,
 } from '../models/invoice.model';
 
+import { t } from '../../../core/i18n/translate';
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Field order of the panel: the first invalid one receives focus (BR-26). */
@@ -46,19 +47,19 @@ export function validateDelivery(values: DeliveryValues, mode: 'save' | 'send'):
   const recipient = values.recipientEmail.trim();
   if (recipient === '') {
     if (mode === 'send') {
-      errors.recipientEmail = RECIPIENT_REQUIRED_MESSAGE;
+      errors.recipientEmail = RECIPIENT_REQUIRED_MESSAGE();
     }
   } else if (recipient.length > EMAIL_MAX_LENGTH || !EMAIL_PATTERN.test(recipient)) {
-    errors.recipientEmail = RECIPIENT_INVALID_MESSAGE;
+    errors.recipientEmail = RECIPIENT_INVALID_MESSAGE();
   }
   if (!TERMS_OPTIONS.some((option) => option.code === values.paymentTerms)) {
-    errors.paymentTerms = TERMS_MESSAGE;
+    errors.paymentTerms = TERMS_MESSAGE();
   }
   const length = values.message.trim().length;
   if (length === 0) {
-    errors.message = MESSAGE_REQUIRED_MESSAGE;
+    errors.message = MESSAGE_REQUIRED_MESSAGE();
   } else if (length > MESSAGE_MAX_LENGTH) {
-    errors.message = MESSAGE_TOO_LONG_MESSAGE;
+    errors.message = MESSAGE_TOO_LONG_MESSAGE();
   }
   return errors;
 }
@@ -72,13 +73,13 @@ export function serverErrors(
   const lower = keys.map((key) => key.toLowerCase());
   const errors = validateDelivery(values, mode);
   if (lower.includes('recipientemail') && errors.recipientEmail === undefined) {
-    errors.recipientEmail = RECIPIENT_INVALID_MESSAGE;
+    errors.recipientEmail = RECIPIENT_INVALID_MESSAGE();
   }
   if (lower.includes('paymentterms') && errors.paymentTerms === undefined) {
-    errors.paymentTerms = TERMS_MESSAGE;
+    errors.paymentTerms = TERMS_MESSAGE();
   }
   if (lower.includes('message') && errors.message === undefined) {
-    errors.message = MESSAGE_REQUIRED_MESSAGE;
+    errors.message = MESSAGE_REQUIRED_MESSAGE();
   }
   return errors;
 }
@@ -114,9 +115,9 @@ export function taxText(rate: number): string {
 export function statusLabel(status: string): string {
   switch (status) {
     case 'draft':
-      return 'Draft';
+      return t('invoices.invoiceFormat.draft');
     case 'sent':
-      return 'Sent';
+      return t('invoices.invoiceFormat.sent');
     default:
       return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ');
   }

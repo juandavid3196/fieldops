@@ -8,6 +8,7 @@ import {
   input,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ActiveVisitSummary } from '../../models/technician-visits.model';
 import { formatInstantDateTime, statusLabelOf } from '../../utils/technician-format';
@@ -18,7 +19,7 @@ import { formatInstantDateTime, statusLabelOf } from '../../utils/technician-for
  */
 @Component({
   selector: 'app-active-visit-notice',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './active-visit-notice.html',
   styleUrl: './active-visit-notice.scss',
 })

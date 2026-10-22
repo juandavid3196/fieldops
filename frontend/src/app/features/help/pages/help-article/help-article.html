@@ -1,7 +1,8 @@
 @if (ref(); as current) {
   <app-help-breadcrumb [items]="crumbs()" />
   <a class="article__back" [routerLink]="[base, current.topic.slug]">
-    <i class="pi pi-arrow-left" aria-hidden="true"></i>Back to {{ current.topic.title }}
+    <i class="pi pi-arrow-left" aria-hidden="true"></i
+    >{{ 'help.helpArticle.backTo' | transloco: { title: current.topic.title } }}
   </a>
 
   <article class="article__card">
@@ -10,12 +11,16 @@
       <h1 class="article__title">{{ current.article.title }}</h1>
       <p class="article__intro">{{ current.article.introduction }}</p>
       <p class="article__time">
-        <i class="pi pi-clock" aria-hidden="true"></i>{{ minutes() }} min read
+        <i class="pi pi-clock" aria-hidden="true"></i
+        >{{ 'help.helpArticle.minRead' | transloco: { minutes: minutes() } }}
       </p>
     </header>
 
     @if (current.article.callout; as callout) {
-      <aside class="article__callout" aria-label="Information">
+      <aside
+        class="article__callout"
+        [attr.aria-label]="'help.helpArticle.information' | transloco"
+      >
         <span class="article__callout-icon" aria-hidden="true"><i class="pi pi-info"></i></span>
         <p>{{ callout }}</p>
       </aside>
@@ -38,18 +43,23 @@
     <section class="article__next" aria-labelledby="article-next-title">
       <span class="article__next-icon" aria-hidden="true"><i class="pi pi-check"></i></span>
       <div class="article__next-body">
-        <h2 class="article__next-title" id="article-next-title">What happens next?</h2>
+        <h2 class="article__next-title" id="article-next-title">
+          {{ 'help.helpArticle.whatHappensNext' | transloco }}
+        </h2>
         <p class="article__next-text">{{ current.article.whatHappensNext }}</p>
       </div>
     </section>
 
     @if (neighbours(); as nav) {
-      <nav class="article__pager" aria-label="Article navigation">
+      <nav
+        class="article__pager"
+        [attr.aria-label]="'help.helpArticle.articleNavigation' | transloco"
+      >
         @if (nav.previous; as previous) {
           <a class="article__pager-link" [routerLink]="[base, current.topic.slug, previous.slug]">
             <i class="pi pi-arrow-left article__pager-icon" aria-hidden="true"></i>
             <span class="article__pager-text">
-              <span class="article__pager-label">Previous</span>
+              <span class="article__pager-label">{{ 'common.previous' | transloco }}</span>
               <span class="article__pager-title">{{ previous.title }}</span>
             </span>
           </a>
@@ -60,7 +70,7 @@
             [routerLink]="[base, current.topic.slug, next.slug]"
           >
             <span class="article__pager-text">
-              <span class="article__pager-label">Next</span>
+              <span class="article__pager-label">{{ 'common.next' | transloco }}</span>
               <span class="article__pager-title">{{ next.title }}</span>
             </span>
             <i class="pi pi-arrow-right article__pager-icon" aria-hidden="true"></i>
@@ -71,15 +81,17 @@
 
     <div class="article__feedback" aria-live="polite">
       @if (answered()) {
-        <p class="article__thanks">Thanks for your feedback.</p>
+        <p class="article__thanks">{{ 'help.helpArticle.thanksForYourFeedback' | transloco }}</p>
       } @else {
-        <p class="article__question" id="article-feedback-question">Was this article helpful?</p>
+        <p class="article__question" id="article-feedback-question">
+          {{ 'help.helpArticle.wasThisArticleHelpful' | transloco }}
+        </p>
         <div class="article__answers" role="group" aria-labelledby="article-feedback-question">
           <button pButton type="button" severity="secondary" [outlined]="true" (click)="answer()">
-            Yes
+            {{ 'common.yes' | transloco }}
           </button>
           <button pButton type="button" severity="secondary" [outlined]="true" (click)="answer()">
-            No
+            {{ 'common.no' | transloco }}
           </button>
         </div>
       }

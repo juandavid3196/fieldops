@@ -7,18 +7,23 @@
         <path d="M18 2 34 30H24L18 20 6 38H0Z" fill="var(--p-primary-400)" />
         <path d="M30 14 48 38H14l10-12 4 4Z" fill="var(--p-primary-600)" />
       </svg>
-      <span>Field</span><span class="sign-in__accent">Ops</span>
+      <span>{{ 'authentication.signIn.field' | transloco }}</span
+      ><span class="sign-in__accent">{{ 'authentication.signIn.ops' | transloco }}</span>
     </p>
     <div class="sign-in__topbar-actions">
-      <span class="sign-in__topbar-text">Need service?</span>
-      <a class="sign-in__request" href="#" (click)="$event.preventDefault()">Request a service</a>
+      <span class="sign-in__topbar-text">{{
+        'authentication.signIn.needService' | transloco
+      }}</span>
+      <a class="sign-in__request" href="#" (click)="$event.preventDefault()">{{
+        'authentication.signIn.requestAService' | transloco
+      }}</a>
     </div>
   </header>
 
   <div class="sign-in__panel">
     <header class="sign-in__header">
-      <h1 class="sign-in__title">Welcome back</h1>
-      <p class="sign-in__subtitle">Sign in to continue to FieldOps</p>
+      <h1 class="sign-in__title">{{ 'authentication.signIn.welcomeBack' | transloco }}</h1>
+      <p class="sign-in__subtitle">{{ 'authentication.signIn.signInToContinue' | transloco }}</p>
     </header>
 
     @if (pageMessage(); as message) {
@@ -33,7 +38,7 @@
 
     <form class="sign-in__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
       <div class="sign-in__field">
-        <label class="sign-in__label" for="email">Email</label>
+        <label class="sign-in__label" for="email">{{ 'common.email' | transloco }}</label>
         <input
           #emailInput
           pInputText
@@ -59,7 +64,9 @@
       </div>
 
       <div class="sign-in__field">
-        <label class="sign-in__label" for="password">Password</label>
+        <label class="sign-in__label" for="password">{{
+          'authentication.signIn.password' | transloco
+        }}</label>
         <div class="sign-in__password">
           <input
             #passwordInput
@@ -84,7 +91,11 @@
             variant="text"
             class="sign-in__toggle"
             aria-controls="password"
-            [attr.aria-label]="passwordMasked() ? 'Show password' : 'Hide password'"
+            [attr.aria-label]="
+              passwordMasked()
+                ? ('authentication.signIn.showPassword' | transloco)
+                : ('authentication.signIn.hidePassword' | transloco)
+            "
             [attr.aria-pressed]="!passwordMasked()"
             (click)="togglePassword()"
           >
@@ -94,7 +105,11 @@
               [class.pi-eye-slash]="!passwordMasked()"
               aria-hidden="true"
             ></i>
-            <span class="sign-in__sr">{{ passwordMasked() ? 'Show' : 'Hide' }}</span>
+            <span class="sign-in__sr">{{
+              passwordMasked()
+                ? ('authentication.signIn.show' | transloco)
+                : ('authentication.signIn.hide' | transloco)
+            }}</span>
           </button>
         </div>
         @if (fieldErrors().password; as error) {
@@ -110,9 +125,13 @@
             [binary]="true"
             [readonly]="submitting()"
           />
-          <label class="sign-in__remember-label" for="remember-me">Remember me</label>
+          <label class="sign-in__remember-label" for="remember-me">{{
+            'authentication.signIn.rememberMe' | transloco
+          }}</label>
         </div>
-        <a class="sign-in__forgot" routerLink="/auth/forgot-password">Forgot password?</a>
+        <a class="sign-in__forgot" routerLink="/auth/forgot-password">{{
+          'authentication.signIn.forgotPassword' | transloco
+        }}</a>
       </div>
 
       <button
@@ -126,9 +145,9 @@
       >
         @if (submitting()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-          Signing in…
+          {{ 'authentication.signIn.signingIn' | transloco }}
         } @else {
-          Sign in
+          {{ 'authentication.signIn.signIn' | transloco }}
         }
       </button>
     </form>
@@ -137,20 +156,19 @@
   </div>
 
   <footer class="sign-in__footer">
-    <nav class="sign-in__footer-links" aria-label="Legal and help">
-      <a routerLink="/privacy">Privacy</a>
-      <a routerLink="/terms">Terms</a>
-      <a routerLink="/support">Help</a>
+    <nav
+      class="sign-in__footer-links"
+      [attr.aria-label]="'authentication.signIn.legalAndHelp' | transloco"
+    >
+      <a routerLink="/privacy">{{ 'authentication.signIn.privacy' | transloco }}</a>
+      <a routerLink="/terms">{{ 'authentication.signIn.terms' | transloco }}</a>
+      <a routerLink="/support">{{ 'authentication.signIn.help' | transloco }}</a>
     </nav>
     <div class="sign-in__footer-end">
-      <button type="button" class="sign-in__language" aria-label="Language: English">
-        <i class="pi pi-globe" aria-hidden="true"></i>
-        English
-        <i class="pi pi-angle-down" aria-hidden="true"></i>
-      </button>
+      <app-language-footer-selector />
       <p class="sign-in__badge">
         <span class="sign-in__flag" aria-hidden="true"></span>
-        Designed &amp; built in Colombia
+        {{ 'authentication.signIn.designedBuiltInColombia' | transloco }}
       </p>
     </div>
   </footer>

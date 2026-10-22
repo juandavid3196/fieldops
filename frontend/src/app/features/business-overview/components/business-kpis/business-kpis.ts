@@ -1,10 +1,12 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { BusinessKpis } from '../../models/business-overview.model';
 import { Delta, delta, money, percentOne, percentWhole } from '../../utils/business-view';
 import { DeltaBadge } from '../delta-badge/delta-badge';
 import { InfoHint } from '../info-hint/info-hint';
 
+import { t } from '../../../../core/i18n/translate';
 interface KpiCard {
   readonly id: string;
   readonly label: string;
@@ -17,13 +19,13 @@ interface KpiCard {
   readonly warning: boolean;
 }
 
-export const PROFIT_HINT = 'Estimated profit = revenue − configured product and service costs.';
-export const MARGIN_HINT = 'Estimated gross margin = estimated gross profit ÷ revenue.';
+export const PROFIT_HINT = (): string => t('businessOverview.businessKpis.profitHint');
+export const MARGIN_HINT = (): string => t('businessOverview.businessKpis.marginHint');
 
 /** BR-05 … BR-08, BR-11: the six KPI cards; deltas only with comparison on. */
 @Component({
   selector: 'app-business-kpis',
-  imports: [DeltaBadge, InfoHint],
+  imports: [TranslocoPipe, DeltaBadge, InfoHint],
   templateUrl: './business-kpis.html',
   styleUrl: './business-kpis.scss',
 })
@@ -42,7 +44,7 @@ export class BusinessKpisRow {
     return [
       {
         id: 'revenue',
-        label: 'Revenue',
+        label: t('businessOverview.businessKpis.revenue'),
         icon: 'pi-chart-bar',
         tone: 'blue',
         hint: null,
@@ -53,10 +55,10 @@ export class BusinessKpisRow {
       },
       {
         id: 'profit',
-        label: 'Estimated gross profit',
+        label: t('businessOverview.businessKpis.estimatedGrossProfit'),
         icon: 'pi-database',
         tone: 'teal',
-        hint: PROFIT_HINT,
+        hint: PROFIT_HINT(),
         value: money(kpis.grossProfit.current, currency),
         delta: change(kpis.grossProfit.current, kpis.grossProfit.previous),
         caption: null,
@@ -64,10 +66,10 @@ export class BusinessKpisRow {
       },
       {
         id: 'margin',
-        label: 'Estimated gross margin',
+        label: t('businessOverview.businessKpis.estimatedGrossMargin'),
         icon: 'pi-percentage',
         tone: 'teal',
-        hint: MARGIN_HINT,
+        hint: MARGIN_HINT(),
         value: percentOne(kpis.grossMarginPercent.current),
         delta: null,
         caption: null,
@@ -75,29 +77,35 @@ export class BusinessKpisRow {
       },
       {
         id: 'conversion',
-        label: 'Quote conversion',
+        label: t('businessOverview.businessKpis.quoteConversion'),
         icon: 'pi-file',
         tone: 'blue',
         hint: null,
         value: percentWhole(kpis.quoteConversion.percent),
         delta: null,
-        caption: `${kpis.quoteConversion.accepted} accepted of ${kpis.quoteConversion.sent} sent`,
+        caption: t('businessOverview.businessKpis.acceptedOfSent', {
+          accepted: kpis.quoteConversion.accepted,
+          sent: kpis.quoteConversion.sent,
+        }),
         warning: false,
       },
       {
         id: 'outstanding',
-        label: 'Outstanding invoices',
+        label: t('businessOverview.businessKpis.outstandingInvoices'),
         icon: 'pi-receipt',
         tone: 'blue',
         hint: null,
         value: money(kpis.outstanding.amount, currency),
         delta: null,
-        caption: overdue > 0 ? `${money(overdue, currency)} overdue` : 'Nothing overdue',
+        caption:
+          overdue > 0
+            ? t('businessOverview.businessKpis.overdue', { value: money(overdue, currency) })
+            : t('businessOverview.businessKpis.nothingOverdue'),
         warning: overdue > 0,
       },
       {
         id: 'jobs',
-        label: 'Jobs completed',
+        label: t('businessOverview.businessKpis.jobsCompleted'),
         icon: 'pi-check-circle',
         tone: 'teal',
         hint: null,

@@ -1,6 +1,8 @@
 import { formatMoney } from '../../customers/utils/customer-detail-format';
 import { dateOnlyLabel } from '../../quotes/utils/quote-format';
 
+import { t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 export { dateOnlyLabel as dateLabel, formatMoney as money };
 
 const MINUTE_MS = 60_000;
@@ -10,8 +12,8 @@ const DAY_MS = 86_400_000;
 /** BR-17: greeting by the browser local time. */
 export function greeting(now: Date, firstName: string): string {
   const hour = now.getHours();
-  const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
-  return `Good ${part}, ${firstName}`;
+  const key = hour < 12 ? 'goodMorning' : hour < 18 ? 'goodAfternoon' : 'goodEvening';
+  return t(`portal.portalFormat.${key}`, { firstName });
 }
 
 /** "EEEE, MMM d, yyyy" of a calendar date (`YYYY-MM-DD`), never shifted by a time zone. */
@@ -20,7 +22,7 @@ export function longDateLabel(value: string): string {
   if (Number.isNaN(date.getTime())) {
     return value;
   }
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     weekday: 'long',
     month: 'short',
     day: 'numeric',
@@ -52,18 +54,18 @@ export function updateTimeLabel(occurredAt: string, now: Date): string {
     return '';
   }
   if (elapsed < MINUTE_MS) {
-    return 'Just now';
+    return t('portal.portalFormat.justNow');
   }
   if (elapsed < HOUR_MS) {
-    return `${Math.floor(elapsed / MINUTE_MS)}m ago`;
+    return t('portal.portalFormat.mAgo', { value: Math.floor(elapsed / MINUTE_MS) });
   }
   if (elapsed < DAY_MS) {
-    return `${Math.floor(elapsed / HOUR_MS)}h ago`;
+    return t('portal.portalFormat.hAgo', { value: Math.floor(elapsed / HOUR_MS) });
   }
   if (elapsed < 2 * DAY_MS) {
-    return 'Yesterday';
+    return t('portal.portalFormat.yesterday');
   }
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     month: 'short',
     day: 'numeric',
     year: 'numeric',

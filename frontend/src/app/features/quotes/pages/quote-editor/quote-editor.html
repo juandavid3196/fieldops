@@ -4,7 +4,7 @@
     <div class="editor__toast">
       <span>{{ message.summary }}</span>
       <button pButton type="button" size="small" severity="secondary" (click)="refresh()">
-        Refresh
+        {{ 'common.refresh' | transloco }}
       </button>
     </div>
   </ng-template>
@@ -18,27 +18,32 @@
 
   <header class="editor__header">
     @if (detail(); as detail) {
-      <nav class="editor__breadcrumb" aria-label="Breadcrumb">
+      <nav
+        class="editor__breadcrumb"
+        [attr.aria-label]="'quotes.quoteEditor.breadcrumb' | transloco"
+      >
         <ol>
-          <li><a routerLink="/requests">Requests</a></li>
+          <li>
+            <a routerLink="/requests">{{ 'quotes.quoteEditor.requests' | transloco }}</a>
+          </li>
           <li>
             <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
               detail.request.displayNumber
             }}</a>
           </li>
-          <li aria-current="page">Quote</li>
+          <li aria-current="page">{{ 'quotes.quoteEditor.quote' | transloco }}</li>
         </ol>
       </nav>
     }
     <div class="editor__title-row">
       <div class="editor__title-group">
         <h1 #heading class="editor__title" tabindex="-1">
-          {{ state() === 'ready' ? title() : 'Quote' }}
+          {{ state() === 'ready' ? title() : ('quotes.quoteEditor.quote' | transloco) }}
         </h1>
         @if (state() === 'ready' && detail()?.completedAssessment) {
           <span class="editor__chip">
             <i class="pi pi-check-circle" aria-hidden="true"></i>
-            Assessment completed
+            {{ 'quotes.quoteEditor.assessmentCompleted' | transloco }}
           </span>
         }
       </div>
@@ -58,12 +63,12 @@
             [outlined]="true"
             (click)="previewOpen.set(true)"
           >
-            Preview
+            {{ 'quotes.quoteEditor.preview' | transloco }}
           </button>
           <button
             type="button"
             class="editor__icon"
-            aria-label="More actions"
+            [attr.aria-label]="'quotes.quoteEditor.moreActions' | transloco"
             aria-haspopup="menu"
             [disabled]="submitting()"
             (click)="openMoreMenu($event)"
@@ -92,7 +97,9 @@
     @case ('not-available') {
       <div class="editor__message" role="alert">
         <p>{{ unavailableMessage }}</p>
-        <a pButton severity="secondary" size="small" routerLink="/requests">Back to requests</a>
+        <a pButton severity="secondary" size="small" routerLink="/requests">{{
+          'quotes.quoteEditor.backToRequests' | transloco
+        }}</a>
       </div>
     }
     @case ('error') {
@@ -100,7 +107,7 @@
         <span class="editor__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retryLoad()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -131,9 +138,14 @@
               (lineAdd)="onAddLine($event)"
             />
 
-            <section class="editor__card editor__texts" aria-label="Quote texts and terms">
+            <section
+              class="editor__card editor__texts"
+              [attr.aria-label]="'quotes.quoteEditor.quoteTextsAndTerms' | transloco"
+            >
               <div class="editor__field editor__field--wide">
-                <label class="editor__label" for="quote-customer-message">Customer message</label>
+                <label class="editor__label" for="quote-customer-message">{{
+                  'quotes.quoteEditor.customerMessage' | transloco
+                }}</label>
                 <textarea
                   pTextarea
                   id="quote-customer-message"
@@ -155,16 +167,20 @@
 
               <div class="editor__field">
                 <label class="editor__label" for="quote-internal-note">
-                  Internal note
-                  <span class="editor__chip editor__chip--internal">Internal</span>
-                  <span class="editor__hint">(Not visible to customer)</span>
+                  {{ 'quotes.quoteEditor.internalNote' | transloco }}
+                  <span class="editor__chip editor__chip--internal">{{
+                    'quotes.quoteEditor.internal' | transloco
+                  }}</span>
+                  <span class="editor__hint">{{
+                    'quotes.quoteEditor.notVisibleToCustomer' | transloco
+                  }}</span>
                 </label>
                 <textarea
                   pTextarea
                   id="quote-internal-note"
                   rows="4"
                   fluid
-                  placeholder="Add internal note..."
+                  [attr.placeholder]="'quotes.quoteEditor.addInternalNote' | transloco"
                   data-field-key="internalNote"
                   [attr.aria-invalid]="errors()['internalNote'] ? 'true' : null"
                   [attr.aria-describedby]="'quote-internal-note-count'"
@@ -180,19 +196,23 @@
               </div>
 
               <div class="editor__field">
-                <label class="editor__label" for="quote-terms">Terms</label>
+                <label class="editor__label" for="quote-terms">{{
+                  'quotes.quoteEditor.terms' | transloco
+                }}</label>
                 <p-select
                   inputId="quote-terms"
                   appendTo="body"
                   fluid
                   optionLabel="label"
                   optionValue="code"
-                  [options]="termsPresets"
+                  [options]="termsPresets | localizedRef"
                   [ngModel]="terms().preset"
                   (ngModelChange)="onPreset($event)"
                 />
                 @if (terms().preset === 'custom') {
-                  <label class="editor__label" for="quote-terms-custom">Custom terms</label>
+                  <label class="editor__label" for="quote-terms-custom">{{
+                    'quotes.quoteEditor.customTerms' | transloco
+                  }}</label>
                   <textarea
                     pTextarea
                     id="quote-terms-custom"
@@ -213,7 +233,9 @@
                   }
                 }
 
-                <label class="editor__label" for="quote-valid-until">Quote expiration</label>
+                <label class="editor__label" for="quote-valid-until">{{
+                  'quotes.quoteEditor.quoteExpiration' | transloco
+                }}</label>
                 <input
                   pInputText
                   id="quote-valid-until"
@@ -263,7 +285,7 @@
                 [disabled]="submitting() || !dirty()"
                 (click)="save()"
               >
-                Save draft
+                {{ 'quotes.quoteEditor.saveDraft' | transloco }}
               </button>
               <button
                 pButton
@@ -275,7 +297,7 @@
                 @if (submitting()) {
                   <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
                 }
-                Send quote
+                {{ 'quotes.quoteEditor.sendQuote' | transloco }}
               </button>
               @if (sendBlocked()) {
                 <p class="editor__helper" id="quote-send-helper">{{ noRecipientMessage }}</p>

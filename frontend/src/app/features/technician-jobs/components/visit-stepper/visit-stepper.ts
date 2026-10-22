@@ -1,10 +1,12 @@
 import { Component, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { Step } from '../../utils/visit-detail';
 
 /** BR-12 stepper: each step exposes done/current/upcoming as text, never by color alone. */
 @Component({
   selector: 'app-visit-stepper',
+  imports: [TranslocoPipe],
   templateUrl: './visit-stepper.html',
   styleUrl: './visit-stepper.scss',
 })

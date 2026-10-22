@@ -15,6 +15,7 @@ import { MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
 import { Subject, catchError, of, switchMap, tap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -33,6 +34,7 @@ import {
   drawerDateTime,
   initials,
 } from '../../utils/audit-log-format';
+import { CodeLabelPipe } from '../../../../core/i18n/code-label.pipe';
 
 type DetailState =
   | { readonly status: 'idle' | 'loading' | 'error' | 'gone' }
@@ -41,7 +43,7 @@ type DetailState =
 /** Audit event drawer (BR-22): a modal labelled dialog; Escape or close returns focus to View. */
 @Component({
   selector: 'app-audit-event-drawer',
-  imports: [ButtonDirective, DrawerShell, RouterLink, Skeleton],
+  imports: [CodeLabelPipe, TranslocoPipe, ButtonDirective, DrawerShell, RouterLink, Skeleton],
   templateUrl: './audit-event-drawer.html',
   styleUrl: './audit-event-drawer.scss',
 })
@@ -59,9 +61,15 @@ export class AuditEventDrawer {
   readonly sessionExpired = output<void>();
 
   readonly titleId = 'audit-drawer-title';
-  readonly goneMessage = AUDIT_DETAIL_GONE_MESSAGE;
-  readonly errorMessage = AUDIT_DETAIL_ERROR_MESSAGE;
-  readonly allBranches = AUDIT_ALL_BRANCHES;
+  get goneMessage(): string {
+    return AUDIT_DETAIL_GONE_MESSAGE();
+  }
+  get errorMessage(): string {
+    return AUDIT_DETAIL_ERROR_MESSAGE();
+  }
+  get allBranches(): string {
+    return AUDIT_ALL_BRANCHES();
+  }
   readonly open = computed(() => this.eventId() !== null);
   readonly state = signal<DetailState>({ status: 'idle' });
   readonly copied = signal('');
@@ -127,8 +135,8 @@ export class AuditEventDrawer {
 
   copy(eventId: string): void {
     void navigator.clipboard?.writeText(eventId).then(() => {
-      this.copied.set(AUDIT_COPIED_MESSAGE);
-      this.messages.add({ severity: 'success', summary: AUDIT_COPIED_MESSAGE });
+      this.copied.set(AUDIT_COPIED_MESSAGE());
+      this.messages.add({ severity: 'success', summary: AUDIT_COPIED_MESSAGE() });
     });
   }
 }

@@ -9,6 +9,8 @@ import {
   TIME_WINDOW_LABELS,
 } from '../models/requests.model';
 
+import { t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 /** A bare `YYYY-MM-DD` is a calendar date, never shifted by a time zone. */
@@ -30,9 +32,9 @@ export function cardDate(card: RequestCard, timeZone: string): string {
     case 'assessment':
       return card.date === null ? '' : dateTime(card.date, timeZone);
     case 'asap':
-      return 'ASAP';
+      return t('requests.requestsFormat.asap');
     case 'flexible':
-      return 'Flexible';
+      return t('requests.requestsFormat.flexible');
     default:
       return card.date === null ? '' : day(card.date, timeZone);
   }
@@ -55,22 +57,24 @@ export function ageLabel(createdAt: string, timeZone: string, now: Date = new Da
         86_400_000,
     ),
   );
-  return days === 0 ? 'Today' : `${days}d`;
+  return days === 0 ? t('requests.requestsFormat.today') : `${days}d`;
 }
 
 /** BR-19 time: "Today at h:mm a", otherwise "MMM d, yyyy h:mm a". */
 export function activityTime(iso: string, timeZone: string, now: Date = new Date()): string {
   const sameDay = todayInTimeZone(timeZone, new Date(iso)) === todayInTimeZone(timeZone, now);
-  return sameDay ? `Today at ${formatTime(iso, timeZone)}` : dateTime(iso, timeZone);
+  return sameDay
+    ? t('requests.requestsFormat.todayAt', { value: formatTime(iso, timeZone) })
+    : dateTime(iso, timeZone);
 }
 
 export function avatarLabel(avatar: RequestAvatar): string {
-  return `${avatar.role === 'technician' ? 'Assessment technician' : 'Assignee'}: ${avatar.name}`;
+  return `${avatar.role === 'technician' ? t('requests.requestsFormat.assessmentTechnician') : t('requests.requestsFormat.assignee')}: ${avatar.name}`;
 }
 
 /** Accessible name of a card: "<title>, <customer>, <status>". */
 export function cardName(card: RequestCard, status: RequestStatus): string {
-  return `${card.title}, ${card.customerName ?? 'Unknown customer'}, ${STATUS_LABELS[status]}`;
+  return `${card.title}, ${card.customerName ?? t('requests.requestsFormat.unknownCustomer')}, ${STATUS_LABELS[status]}`;
 }
 
 /** BR-08 service address line from the structured or plain address. */
@@ -91,10 +95,10 @@ export function preferredVisit(availability: RequestDetail['availability']): str
     return null;
   }
   if (availability.dateMode === 'asap') {
-    return 'ASAP';
+    return t('requests.requestsFormat.asap');
   }
   if (availability.dateMode === 'flexible') {
-    return 'Flexible';
+    return t('requests.requestsFormat.flexible');
   }
   const date = availability.preferredDate === null ? '' : dateOnly(availability.preferredDate);
   const window =
@@ -104,9 +108,9 @@ export function preferredVisit(availability: RequestDetail['availability']): str
 
 export function fileSize(bytes: number): string {
   if (bytes >= 1024 * 1024) {
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+    return t('requests.requestsFormat.mb', { value: (bytes / (1024 * 1024)).toFixed(1) });
   }
-  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return t('requests.requestsFormat.kb', { value: Math.max(1, Math.round(bytes / 1024)) });
 }
 
 export function initialsOf(name: string): string {
@@ -135,9 +139,9 @@ export function toLocalInput(iso: string, timeZone: string): string {
   };
   let formatter: Intl.DateTimeFormat;
   try {
-    formatter = new Intl.DateTimeFormat('en-US', { ...options, timeZone });
+    formatter = new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone });
   } catch {
-    formatter = new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'UTC' });
+    formatter = new Intl.DateTimeFormat(activeIntlLocale(), { ...options, timeZone: 'UTC' });
   }
   const parts = Object.fromEntries(formatter.formatToParts(date).map((p) => [p.type, p.value]));
   return `${parts['year']}-${parts['month']}-${parts['day']}T${parts['hour']}:${parts['minute']}`;

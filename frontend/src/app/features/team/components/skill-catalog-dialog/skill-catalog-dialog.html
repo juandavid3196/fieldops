@@ -11,23 +11,27 @@
 >
   <ng-template #header>
     <div class="catalog__head">
-      <h2 class="catalog__title">Manage skills</h2>
+      <h2 class="catalog__title">{{ 'team.skillCatalogDialog.manageSkills' | transloco }}</h2>
       <p class="catalog__subtitle">
-        Create and maintain the skills used to match technicians with jobs.
+        {{ 'team.skillCatalogDialog.createAndMaintainThe' | transloco }}
       </p>
     </div>
   </ng-template>
 
   <div class="catalog">
-    <div class="catalog__toolbar" role="search" aria-label="Filter skills">
+    <div
+      class="catalog__toolbar"
+      role="search"
+      [attr.aria-label]="'team.skillCatalogDialog.filterSkills' | transloco"
+    >
       <p-iconfield class="catalog__search">
         <p-inputicon class="pi pi-search" />
         <input
           pInputText
           type="search"
           class="catalog__control"
-          placeholder="Search skills..."
-          aria-label="Search skills"
+          [attr.placeholder]="'team.skillCatalogDialog.searchSkills' | transloco"
+          [attr.aria-label]="'team.skillCatalogDialog.searchSkills2' | transloco"
           maxlength="100"
           fluid
           [ngModel]="searchText()"
@@ -38,8 +42,8 @@
         class="catalog__status"
         appendTo="body"
         fluid
-        ariaLabel="Status"
-        [options]="statusOptions"
+        [ariaLabel]="'common.status' | transloco"
+        [options]="statusOptions | localizedRef"
         optionLabel="label"
         optionValue="code"
         [ngModel]="statusFilter()"
@@ -53,18 +57,22 @@
         (click)="startAdd()"
       >
         <i class="pi pi-plus" aria-hidden="true"></i>
-        Add skill
+        {{ 'team.skillCatalogDialog.addSkill' | transloco }}
       </button>
     </div>
 
     @if (draft(); as edit) {
       <section class="catalog__panel" aria-labelledby="skill-panel-title">
         <h3 id="skill-panel-title" class="catalog__panel-title">
-          {{ edit.id === '' ? 'Add a new skill' : 'Edit skill' }}
+          {{
+            edit.id === ''
+              ? ('team.skillCatalogDialog.addANewSkill' | transloco)
+              : ('team.skillCatalogDialog.editSkill' | transloco)
+          }}
         </h3>
         <div class="catalog__form">
           <div class="catalog__field">
-            <label for="skill-name">Name</label>
+            <label for="skill-name">{{ 'common.name' | transloco }}</label>
             <input
               pInputText
               id="skill-name"
@@ -81,7 +89,9 @@
             }
           </div>
           <div class="catalog__field">
-            <label for="skill-description">Description (optional)</label>
+            <label for="skill-description">{{
+              'team.skillCatalogDialog.descriptionOptional' | transloco
+            }}</label>
             <input
               pInputText
               id="skill-description"
@@ -106,10 +116,14 @@
               [disabled]="busy()"
               (click)="cancelEdit()"
             >
-              Cancel
+              {{ 'common.cancel' | transloco }}
             </button>
             <button pButton type="button" [loading]="busy()" (click)="save()">
-              {{ edit.id === '' ? 'Add skill' : 'Save' }}
+              {{
+                edit.id === ''
+                  ? ('team.skillCatalogDialog.addSkill' | transloco)
+                  : ('common.save' | transloco)
+              }}
             </button>
           </div>
         </div>
@@ -117,10 +131,17 @@
     }
 
     <div class="catalog__heading">
-      <h3 class="catalog__heading-title">Skill catalog</h3>
+      <h3 class="catalog__heading-title">
+        {{ 'team.skillCatalogDialog.skillCatalog' | transloco }}
+      </h3>
       @if (!loading() && !loadFailed()) {
         <span class="catalog__count">
-          {{ visibleSkills().length }} {{ visibleSkills().length === 1 ? 'skill' : 'skills' }}
+          {{ visibleSkills().length }}
+          {{
+            visibleSkills().length === 1
+              ? ('team.skillCatalogDialog.skill' | transloco)
+              : ('team.skillCatalogDialog.skills' | transloco)
+          }}
         </span>
       }
     </div>
@@ -134,27 +155,29 @@
     } @else if (loadFailed()) {
       <p-message severity="error" [closable]="false">
         <span class="catalog__retry">
-          We couldn't load the skill list.
+          {{ 'team.skillCatalogDialog.weCouldnTLoad' | transloco }}
           <button pButton type="button" size="small" severity="secondary" (click)="load()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
     } @else if (skills().length === 0) {
       <p class="catalog__empty">{{ emptyMessage }}</p>
     } @else if (visibleSkills().length === 0) {
-      <p class="catalog__empty">No skills match these filters.</p>
+      <p class="catalog__empty">{{ 'team.skillCatalogDialog.noSkillsMatchThese' | transloco }}</p>
     } @else {
       <div class="catalog__scroll">
         <table class="catalog__table">
           <caption class="catalog__sr">
-            Skill catalog
+            {{
+              'team.skillCatalogDialog.skillCatalog' | transloco
+            }}
           </caption>
           <thead>
             <tr>
-              <th scope="col">Skill</th>
-              <th scope="col" class="catalog__col-status">Status</th>
-              <th scope="col" class="catalog__col-actions">Actions</th>
+              <th scope="col">{{ 'team.skillCatalogDialog.skill2' | transloco }}</th>
+              <th scope="col" class="catalog__col-status">{{ 'common.status' | transloco }}</th>
+              <th scope="col" class="catalog__col-actions">{{ 'common.actions' | transloco }}</th>
             </tr>
           </thead>
           <tbody>
@@ -184,17 +207,21 @@
                       class="catalog__action catalog__action--edit"
                       [outlined]="true"
                       [disabled]="busy() || draft() !== null"
-                      [attr.aria-label]="'Edit ' + skill.name"
+                      [attr.aria-label]="
+                        'team.skillCatalogDialog.edit' | transloco: { name: skill.name }
+                      "
                       (click)="startEdit(skill)"
                     >
-                      Edit
+                      {{ 'common.edit' | transloco }}
                     </button>
                     <button
                       type="button"
                       class="catalog__more"
                       aria-haspopup="menu"
                       [disabled]="busy() || draft() !== null"
-                      [attr.aria-label]="'More actions for ' + skill.name"
+                      [attr.aria-label]="
+                        'team.skillCatalogDialog.moreActionsFor' | transloco: { name: skill.name }
+                      "
                       (click)="openMenu($event, skill)"
                     >
                       <i class="pi pi-ellipsis-h" aria-hidden="true"></i>
@@ -210,14 +237,16 @@
 
     @if (failed()) {
       <p-message severity="error" [closable]="false">
-        We couldn't save the skill. Try again.
+        {{ 'team.skillCatalogDialog.weCouldnTSave' | transloco }}
       </p-message>
     }
   </div>
 
   <ng-template #footer>
     <div class="catalog__footer">
-      <p class="catalog__footer-note">Inactive skills remain on historical records.</p>
+      <p class="catalog__footer-note">
+        {{ 'team.skillCatalogDialog.inactiveSkillsRemainOn' | transloco }}
+      </p>
       <button
         pButton
         type="button"
@@ -226,7 +255,7 @@
         [disabled]="busy()"
         (click)="close()"
       >
-        Close
+        {{ 'common.close' | transloco }}
       </button>
     </div>
   </ng-template>

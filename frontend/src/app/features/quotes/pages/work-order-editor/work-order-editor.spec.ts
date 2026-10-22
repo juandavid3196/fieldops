@@ -208,9 +208,9 @@ describe('Work order editor page', { timeout: 20_000 }, () => {
   afterEach(() => httpTesting?.verify());
 
   it.each<[string, EditorModel | { status: number; code?: string } | null, string]>([
-    ['accounting', null, WO_FORBIDDEN_MESSAGE],
-    ['technician', null, WO_FORBIDDEN_MESSAGE],
-    ['owner', { status: 409, code: 'quote_not_approved' }, WO_NOT_APPROVED_MESSAGE],
+    ['accounting', null, WO_FORBIDDEN_MESSAGE()],
+    ['technician', null, WO_FORBIDDEN_MESSAGE()],
+    ['owner', { status: 409, code: 'quote_not_approved' }, WO_NOT_APPROVED_MESSAGE()],
     [
       'dispatcher',
       { status: 409, code: 'customer_required' },
@@ -274,7 +274,7 @@ describe('Work order editor page', { timeout: 20_000 }, () => {
     expect(JSON.stringify(put.request.body)).not.toMatch(/price|cost|tax|total/i);
     put.flush({ title: 'x', code: 'work_order_changed' }, { status: 409, statusText: 'Conflict' });
     await settle();
-    expect(text()).toContain(WO_CHANGED_MESSAGE);
+    expect(text()).toContain(WO_CHANGED_MESSAGE());
     expect(button('Reload')).toBeDefined();
     expect(page.dirty()).toBe(true);
 

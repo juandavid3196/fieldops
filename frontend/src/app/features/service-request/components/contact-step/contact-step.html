@@ -1,18 +1,21 @@
 <p class="sr-guest">
   <i class="pi pi-user sr-guest__icon" aria-hidden="true"></i>
   <span>
-    <strong>Continuing as guest</strong>
-    You can submit a request without creating an account.
+    <strong>{{ 'serviceRequest.contactStep.continuingAsGuest' | transloco }}</strong>
+    {{ 'serviceRequest.contactStep.youCanSubmitA' | transloco }}
   </span>
 </p>
-<h2 class="sr-title" tabindex="-1" data-sr-heading>Contact details</h2>
-<p class="sr-subtitle">How should we contact you about this request?</p>
+<h2 class="sr-title" tabindex="-1" data-sr-heading>
+  {{ 'serviceRequest.contactStep.contactDetails' | transloco }}
+</h2>
+<p class="sr-subtitle">{{ 'serviceRequest.contactStep.howShouldWeContact' | transloco }}</p>
 
 <form novalidate (submit)="$event.preventDefault(); store.next()">
   <div class="sr-grid">
     <div class="sr-field">
       <label class="sr-label" for="sr-contact-firstName"
-        >First name <span class="sr-required" aria-hidden="true">*</span></label
+        >{{ 'serviceRequest.contactStep.firstName' | transloco }}
+        <span class="sr-required" aria-hidden="true">*</span></label
       >
       <input
         pInputText
@@ -36,7 +39,8 @@
 
     <div class="sr-field">
       <label class="sr-label" for="sr-contact-lastName"
-        >Last name <span class="sr-required" aria-hidden="true">*</span></label
+        >{{ 'serviceRequest.contactStep.lastName' | transloco }}
+        <span class="sr-required" aria-hidden="true">*</span></label
       >
       <input
         pInputText
@@ -60,7 +64,8 @@
 
     <div class="sr-field">
       <label class="sr-label" for="sr-contact-email"
-        >Email address <span class="sr-required" aria-hidden="true">*</span></label
+        >{{ 'serviceRequest.contactStep.emailAddress' | transloco }}
+        <span class="sr-required" aria-hidden="true">*</span></label
       >
       <input
         pInputText
@@ -87,7 +92,8 @@
 
     <div class="sr-field">
       <label class="sr-label" for="sr-contact-phone"
-        >Mobile phone <span class="sr-required" aria-hidden="true">*</span></label
+        >{{ 'serviceRequest.contactStep.mobilePhone' | transloco }}
+        <span class="sr-required" aria-hidden="true">*</span></label
       >
       <input
         pInputText
@@ -112,9 +118,11 @@
   </div>
 
   <fieldset class="sr-methods" [attr.aria-describedby]="store.errorId('contact.prefersEmail')">
-    <legend class="sr-subheading">How would you like updates?</legend>
+    <legend class="sr-subheading">
+      {{ 'serviceRequest.contactStep.howWouldYouLike' | transloco }}
+    </legend>
     <p class="sr-hint">
-      Select at least one method. We'll use these details to keep you informed about your request.
+      {{ 'serviceRequest.contactStep.selectAtLeastOne' | transloco }}
     </p>
     <div class="sr-method-grid">
       <label class="sr-method">
@@ -130,8 +138,8 @@
         />
         <i class="pi pi-envelope sr-method__icon" aria-hidden="true"></i>
         <span class="sr-method__text">
-          <strong>Email</strong>
-          <small>Get updates by email</small>
+          <strong>{{ 'common.email' | transloco }}</strong>
+          <small>{{ 'serviceRequest.contactStep.getUpdatesByEmail' | transloco }}</small>
         </span>
       </label>
       <label class="sr-method">
@@ -147,8 +155,8 @@
         />
         <i class="pi pi-comment sr-method__icon" aria-hidden="true"></i>
         <span class="sr-method__text">
-          <strong>Text message</strong>
-          <small>Get updates by text message</small>
+          <strong>{{ 'serviceRequest.contactStep.textMessage' | transloco }}</strong>
+          <small>{{ 'serviceRequest.contactStep.getUpdatesByText' | transloco }}</small>
         </span>
       </label>
     </div>
@@ -159,14 +167,14 @@
 
   <p class="sr-privacy">
     <i class="pi pi-lock" aria-hidden="true"></i>
-    We'll only use these details to manage your service request.
+    {{ 'serviceRequest.contactStep.weLlOnlyUse' | transloco }}
   </p>
 
   <div class="sr-actions">
     @if (store.homeUrl(); as url) {
       <a pButton variant="outlined" class="sr-back" class="sr-back" data-sr-back [href]="url">
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
-        Back to home
+        {{ 'serviceRequest.contactStep.backToHome' | transloco }}
       </a>
     } @else {
       <button
@@ -178,11 +186,11 @@
         (click)="store.reset()"
       >
         <i class="pi pi-arrow-left" aria-hidden="true"></i>
-        Back to home
+        {{ 'serviceRequest.contactStep.backToHome' | transloco }}
       </button>
     }
     <button pButton type="submit" class="sr-continue" data-sr-continue>
-      Continue to property
+      {{ 'serviceRequest.contactStep.continueToProperty' | transloco }}
       <i class="pi pi-arrow-right" aria-hidden="true"></i>
     </button>
   </div>

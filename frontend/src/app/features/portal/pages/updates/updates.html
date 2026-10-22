@@ -1,34 +1,38 @@
 <div class="pp">
   <header class="feed__head">
-    <h1 class="pp__title">Messages &amp; updates</h1>
+    <h1 class="pp__title">{{ 'portal.updates.messagesUpdates' | transloco }}</h1>
     <p class="feed__intro">
-      Stay up to date with your services, appointments, quotes, and invoices.
+      {{ 'portal.updates.stayUpToDate' | transloco }}
     </p>
   </header>
 
   <app-portal-state
     [state]="resource.state()"
-    label="Loading updates"
-    emptyText="No updates yet."
-    errorText="We couldn't load your updates."
+    [label]="'portal.updates.loadingUpdates' | transloco"
+    [emptyText]="'portal.updates.noUpdatesYet' | transloco"
+    [errorText]="'portal.updates.weCouldnTLoad' | transloco"
     (retry)="load()"
   >
-    <section class="pcard feed" aria-label="Updates">
+    <section class="pcard feed" [attr.aria-label]="'portal.updates.updates' | transloco">
       <div class="feed__tools">
         <p-iconfield class="feed__search">
           <p-inputicon class="pi pi-search" />
           <input
             pInputText
             type="search"
-            placeholder="Search updates"
-            aria-label="Search updates"
+            [attr.placeholder]="'portal.updates.searchUpdates' | transloco"
+            [attr.aria-label]="'portal.updates.searchUpdates' | transloco"
             maxlength="100"
             fluid
             [ngModel]="search()"
             (ngModelChange)="search.set($event)"
           />
         </p-iconfield>
-        <div class="feed__tabs" role="group" aria-label="Filter updates">
+        <div
+          class="feed__tabs"
+          role="group"
+          [attr.aria-label]="'portal.updates.filterUpdates' | transloco"
+        >
           @for (option of filters; track option.id) {
             <button
               type="button"
@@ -47,14 +51,22 @@
             [ngModel]="unreadOnly()"
             (ngModelChange)="unreadOnly.set($event)"
           />
-          <label for="updates-unread-only">Unread only</label>
+          <label for="updates-unread-only">{{ 'portal.updates.unreadOnly' | transloco }}</label>
         </div>
       </div>
 
       <p class="feed__count" aria-live="polite">
-        {{ total() }} {{ total() === 1 ? 'update' : 'updates' }}
+        {{ total() }}
+        {{
+          total() === 1
+            ? ('portal.updates.update' | transloco)
+            : ('portal.updates.updates2' | transloco)
+        }}
         @if (unread() > 0) {
-          · <strong class="feed__unread">{{ unread() }} unread</strong>
+          ·
+          <strong class="feed__unread">{{
+            'portal.updates.unread' | transloco: { unread: unread() }
+          }}</strong>
         }
       </p>
 
@@ -74,7 +86,7 @@
               <div class="feed__text">
                 <p class="feed__title">
                   @if (row.update.isUnread) {
-                    <span class="sr">Unread: </span>
+                    <span class="sr">{{ 'portal.updates.unread2' | transloco }} </span>
                   }
                   {{ row.update.title }}
                 </p>
@@ -97,13 +109,13 @@
       }
 
       @if (groups().length === 0 && filtered()) {
-        <p class="feed__none">No updates match these filters.</p>
+        <p class="feed__none">{{ 'portal.updates.noUpdatesMatchThese' | transloco }}</p>
       }
 
       @if (unread() === 0) {
         <p class="feed__done">
           <i class="pi pi-check-circle" aria-hidden="true"></i>
-          You're all caught up.
+          {{ 'portal.updates.youReAllCaught' | transloco }}
         </p>
       }
     </section>

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FieldOps.Api.Contracts;
 using FieldOps.Api.Extensions;
+using FieldOps.Application.Features.Account;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.PortalDashboard;
@@ -18,7 +19,8 @@ public sealed class PortalAccountController(
     PortalPropertiesHandler propertiesHandler,
     SendPortalMessageHandler messageHandler,
     GetPortalWorkOrderReportHandler reportHandler,
-    IPortalCatalogStore catalogStore) : PortalControllerBase
+    IPortalCatalogStore catalogStore,
+    UpdateLanguageHandler languageHandler) : PortalControllerBase
 {
     public const int MaxRequestBodyBytes = 8 * 1024;
 
@@ -149,6 +151,40 @@ public sealed class PortalAccountController(
         }
 
         return Map(await messageHandler.HandleAsync(Scope, request.Message, ClientIp(), cancellationToken), _ => Accepted());
+    }
+
+    // Only the session user's own language; the user and organization come from the validated portal session (app i18n BR-05..BR-09).
+    [HttpPut("portal/account/language")]
+    [Consumes("application/json")]
+    [RequestSizeLimit(AccountController.MaxJsonBodyBytes)]
+    [ProducesResponseType<UpdateLanguageView>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status413PayloadTooLarge)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status415UnsupportedMediaType)]
+    public async Task<IActionResult> UpdateLanguage(
+        [FromBody(EmptyBodyBehavior = EmptyBodyBehavior.Disallow)] UpdateLanguageRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return InvalidBody();
+        }
+
+        var scope = Scope;
+        var result = await languageHandler.HandleAsync(
+            scope.UserId,
+            scope.OrganizationId,
+            ClientIp(),
+            new UpdateLanguageCommand(request.LanguageText),
+            cancellationToken);
+
+        return result switch
+        {
+            UpdateLanguageResult.Succeeded succeeded => Ok(new UpdateLanguageView(succeeded.PreferredLanguage)),
+            UpdateLanguageResult.Invalid invalid => FieldErrors(invalid.Errors),
+            _ => Unauthorized(),
+        };
     }
 
     [HttpGet("portal/work-orders/{id:guid}/completion-report")]

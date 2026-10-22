@@ -1,4 +1,4 @@
-<nav class="catalog" aria-label="Report catalog">
+<nav class="catalog" [attr.aria-label]="'reports.reportCatalog.reportCatalog' | transloco">
   <p-iconfield>
     <p-inputicon class="pi pi-search" />
     <input
@@ -7,8 +7,8 @@
       name="report-search"
       fluid
       autocomplete="off"
-      aria-label="Search reports"
-      placeholder="Search reports…"
+      [attr.aria-label]="'reports.reportCatalog.searchReports' | transloco"
+      [attr.placeholder]="'reports.reportCatalog.searchReports2' | transloco"
       [disabled]="disabled()"
       [ngModel]="search()"
       (ngModelChange)="search.set($event)"
@@ -18,7 +18,7 @@
   <section class="catalog__section" aria-labelledby="catalog-favorites">
     <h2 class="catalog__heading" id="catalog-favorites">
       <i class="pi pi-star" aria-hidden="true"></i>
-      <span class="catalog__title">Favorites</span>
+      <span class="catalog__title">{{ 'reports.reportCatalog.favorites' | transloco }}</span>
       <span class="catalog__count">{{ favorites().length }}</span>
     </h2>
     <ul class="catalog__list">
@@ -42,7 +42,7 @@
     <section class="catalog__section" aria-labelledby="catalog-recent">
       <h2 class="catalog__heading" id="catalog-recent">
         <i class="pi pi-history" aria-hidden="true"></i>
-        <span class="catalog__title">Recently viewed</span>
+        <span class="catalog__title">{{ 'reports.reportCatalog.recentlyViewed' | transloco }}</span>
       </h2>
       <ul class="catalog__list">
         @for (info of recentItems(); track info.key) {
@@ -87,6 +87,8 @@
     </section>
   }
   @if (noMatches()) {
-    <p class="catalog__empty" role="status">No reports match your search.</p>
+    <p class="catalog__empty" role="status">
+      {{ 'reports.reportCatalog.noReportsMatchYour' | transloco }}
+    </p>
   }
 </nav>

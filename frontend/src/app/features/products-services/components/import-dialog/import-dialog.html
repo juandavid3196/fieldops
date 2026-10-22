@@ -13,18 +13,25 @@
     <div class="import-head">
       <span class="import-head__tile" aria-hidden="true"><i class="pi pi-file-import"></i></span>
       <div>
-        <h2 class="import-head__title">Import products &amp; services</h2>
-        <p class="import-head__subtitle">Add up to 500 catalog items from a CSV file.</p>
+        <h2 class="import-head__title">
+          {{ 'productsServices.importDialog.importProductsServices' | transloco }}
+        </h2>
+        <p class="import-head__subtitle">
+          {{ 'productsServices.importDialog.addUpTo500' | transloco }}
+        </p>
       </div>
     </div>
   </ng-template>
 
   <div class="import">
-    <section class="import__template" aria-label="Template">
+    <section
+      class="import__template"
+      [attr.aria-label]="'productsServices.importDialog.template' | transloco"
+    >
       <i class="pi pi-file import__template-icon" aria-hidden="true"></i>
       <div class="import__template-copy">
-        <strong>Start with the FieldOps template</strong>
-        <span>Use the required columns and examples to avoid formatting errors.</span>
+        <strong>{{ 'productsServices.importDialog.startWithTheFieldops' | transloco }}</strong>
+        <span>{{ 'productsServices.importDialog.useTheRequiredColumns' | transloco }}</span>
       </div>
       <button
         pButton
@@ -40,7 +47,7 @@
         } @else {
           <i class="pi pi-download" aria-hidden="true"></i>
         }
-        Download CSV template
+        {{ 'productsServices.importDialog.downloadCsvTemplate' | transloco }}
       </button>
     </section>
 
@@ -59,7 +66,7 @@
         type="file"
         accept=".csv,text/csv"
         tabindex="-1"
-        aria-label="CSV file"
+        [attr.aria-label]="'productsServices.importDialog.csvFile' | transloco"
         [disabled]="importing()"
         [attr.aria-describedby]="fileError() !== null ? 'import-file-error' : null"
         [attr.aria-invalid]="fileError() !== null ? 'true' : null"
@@ -72,21 +79,25 @@
         <button
           type="button"
           class="import__link"
-          aria-label="Remove file"
+          [attr.aria-label]="'productsServices.importDialog.removeFile' | transloco"
           [disabled]="importing()"
           (click)="removeFile()"
         >
-          <i class="pi pi-times" aria-hidden="true"></i>Remove
+          <i class="pi pi-times" aria-hidden="true"></i>{{ 'common.remove' | transloco }}
         </button>
       } @else {
-        <p class="import__drop-title">Drop your CSV file here</p>
+        <p class="import__drop-title">
+          {{ 'productsServices.importDialog.dropYourCsvFile' | transloco }}
+        </p>
         <p class="import__drop-or">
-          or
+          {{ 'productsServices.importDialog.or' | transloco }}
           <button type="button" class="import__link" [disabled]="importing()" (click)="browse()">
-            browse files
+            {{ 'productsServices.importDialog.browseFiles' | transloco }}
           </button>
         </p>
-        <p class="import__hint">CSV only · Maximum 1 MB · Up to 500 rows</p>
+        <p class="import__hint">
+          {{ 'productsServices.importDialog.csvOnlyMaximum1' | transloco }}
+        </p>
       }
     </div>
 
@@ -96,23 +107,38 @@
       </p>
     }
     @if (rowErrors().length > 0) {
-      <ul class="import__rows" role="alert" aria-label="Row errors">
+      <ul
+        class="import__rows"
+        role="alert"
+        [attr.aria-label]="'productsServices.importDialog.rowErrors' | transloco"
+      >
         @for (error of rowErrors(); track $index) {
-          <li>Row {{ error.row }} · {{ error.column }}: {{ error.message }}</li>
+          <li>
+            {{
+              'productsServices.importDialog.row'
+                | transloco: { row: error.row, column: error.column, message: error.message }
+            }}
+          </li>
         }
       </ul>
     }
 
     <section aria-labelledby="import-checklist">
-      <h3 class="import__checklist-title" id="import-checklist">Before you upload</h3>
+      <h3 class="import__checklist-title" id="import-checklist">
+        {{ 'productsServices.importDialog.beforeYouUpload' | transloco }}
+      </h3>
       <ul class="import__checklist">
         <li>
-          <i class="pi pi-check-circle" aria-hidden="true"></i>Required columns must be present
+          <i class="pi pi-check-circle" aria-hidden="true"></i
+          >{{ 'productsServices.importDialog.requiredColumnsMustBe' | transloco }}
         </li>
-        <li><i class="pi pi-check-circle" aria-hidden="true"></i>Names must be unique by type</li>
         <li>
-          <i class="pi pi-check-circle" aria-hidden="true"></i>Prices use decimal numbers without
-          currency symbols
+          <i class="pi pi-check-circle" aria-hidden="true"></i
+          >{{ 'productsServices.importDialog.namesMustBeUnique' | transloco }}
+        </li>
+        <li>
+          <i class="pi pi-check-circle" aria-hidden="true"></i
+          >{{ 'productsServices.importDialog.pricesUseDecimalNumbers' | transloco }}
         </li>
       </ul>
     </section>
@@ -127,13 +153,13 @@
       [disabled]="importing()"
       (click)="close()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button pButton type="button" [disabled]="file() === null || importing()" (click)="submit()">
       @if (importing()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Import
+      {{ 'productsServices.importDialog.import' | transloco }}
     </button>
   </ng-template>
 </p-dialog>

@@ -14,17 +14,23 @@ import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 import { FormField } from '../../../organizations/components/form-field/form-field';
 import { CompleteAssessmentBody } from '../../models/requests.model';
 import { fileSize } from '../../utils/requests-format';
 
-export const DIAGNOSIS_REQUIRED = 'Enter the diagnosis.';
-export const DIAGNOSIS_TOO_LONG = 'Diagnosis must be 2000 characters or fewer.';
-export const SCOPE_TOO_LONG = 'Recommended scope must be 2000 characters or fewer.';
-export const PHOTO_COUNT_MESSAGE = 'Add up to 6 photos.';
-export const PHOTO_TYPE_MESSAGE = 'Photos must be JPG or PNG files of 10 MB or less.';
+import { t } from '../../../../core/i18n/translate';
+export const DIAGNOSIS_REQUIRED = (): string =>
+  t('requests.completeAssessmentDialog.diagnosisRequired');
+export const DIAGNOSIS_TOO_LONG = (): string =>
+  t('requests.completeAssessmentDialog.diagnosisTooLong');
+export const SCOPE_TOO_LONG = (): string => t('requests.completeAssessmentDialog.scopeTooLong');
+export const PHOTO_COUNT_MESSAGE = (): string =>
+  t('requests.completeAssessmentDialog.photoCountMessage');
+export const PHOTO_TYPE_MESSAGE = (): string =>
+  t('requests.completeAssessmentDialog.photoTypeMessage');
 export const MAX_PHOTOS = 6;
 export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 export const MAX_TOTAL_BYTES = 25 * 1024 * 1024;
@@ -39,22 +45,22 @@ export function assessmentErrors(
   const errors: Record<string, string> = {};
   const text = diagnosis.trim();
   if (text.length === 0) {
-    errors['diagnosis'] = DIAGNOSIS_REQUIRED;
+    errors['diagnosis'] = DIAGNOSIS_REQUIRED();
   } else if (text.length > 2000) {
-    errors['diagnosis'] = DIAGNOSIS_TOO_LONG;
+    errors['diagnosis'] = DIAGNOSIS_TOO_LONG();
   }
   if (scope.trim().length > 2000) {
-    errors['recommendedScope'] = SCOPE_TOO_LONG;
+    errors['recommendedScope'] = SCOPE_TOO_LONG();
   }
   if (photos.length > MAX_PHOTOS) {
-    errors['photos'] = PHOTO_COUNT_MESSAGE;
+    errors['photos'] = PHOTO_COUNT_MESSAGE();
   } else if (
     photos.some(
       (file) => file.size < 1 || file.size > MAX_PHOTO_BYTES || !PHOTO_EXTENSION.test(file.name),
     ) ||
     photos.reduce((total, file) => total + file.size, 0) > MAX_TOTAL_BYTES
   ) {
-    errors['photos'] = PHOTO_TYPE_MESSAGE;
+    errors['photos'] = PHOTO_TYPE_MESSAGE();
   }
   return errors;
 }
@@ -66,7 +72,7 @@ export function assessmentErrors(
  */
 @Component({
   selector: 'app-complete-assessment-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, SpinnerIcon, Textarea, FormField],
+  imports: [TranslocoPipe, FormsModule, ButtonDirective, Dialog, SpinnerIcon, Textarea, FormField],
   templateUrl: './complete-assessment-dialog.html',
   styleUrl: './complete-assessment-dialog.scss',
 })
@@ -143,7 +149,7 @@ export class CompleteAssessmentDialog {
     }
     this.confirmation.confirm(
       discardChangesConfirmation({
-        subject: 'this assessment',
+        subject: t('requests.completeAssessmentDialog.thisAssessment'),
         accept: () => this.dismissed.emit(),
       }),
     );

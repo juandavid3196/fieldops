@@ -1,5 +1,5 @@
 <p-dialog
-  header="Request a reschedule"
+  [header]="'portal.portalRescheduleDialog.requestAReschedule' | transloco"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
@@ -14,7 +14,9 @@
       <div class="dialog__current">
         <span class="dialog__current-icon" aria-hidden="true"><i class="pi pi-calendar"></i></span>
         <div>
-          <p class="dialog__current-label">Current appointment</p>
+          <p class="dialog__current-label">
+            {{ 'portal.portalRescheduleDialog.currentAppointment' | transloco }}
+          </p>
           <p class="dialog__current-title">{{ now.title }} · {{ now.workOrder }}</p>
           <p class="dialog__current-when">{{ now.date }} · {{ now.time }}</p>
         </div>
@@ -23,12 +25,11 @@
 
     <p class="dialog__note">
       <span class="dialog__info" aria-hidden="true"><i class="pi pi-info"></i></span>
-      Tell us when would suit you better. We'll review it and contact you; your appointment doesn't
-      change until we confirm.
+      {{ 'portal.portalRescheduleDialog.tellUsWhenWould' | transloco }}
     </p>
 
     <app-form-field
-      label="Preferred date"
+      [label]="'portal.portalRescheduleDialog.preferredDate' | transloco"
       controlId="portal-reschedule-date"
       [required]="true"
       [error]="errors().preferredDate ?? null"
@@ -49,7 +50,11 @@
       />
     </app-form-field>
 
-    <app-form-field label="Time window" controlId="portal-reschedule-window" [required]="true">
+    <app-form-field
+      [label]="'portal.portalRescheduleDialog.timeWindow' | transloco"
+      controlId="portal-reschedule-window"
+      [required]="true"
+    >
       <p-select
         inputId="portal-reschedule-window"
         appendTo="body"
@@ -57,14 +62,14 @@
         optionLabel="label"
         optionValue="value"
         name="timeWindow"
-        [options]="windows"
+        [options]="windows | localizedRef"
         [ngModel]="timeWindow()"
         (ngModelChange)="timeWindow.set($event)"
       />
     </app-form-field>
 
     <app-form-field
-      label="Reason"
+      [label]="'portal.portalRescheduleDialog.reason' | transloco"
       controlId="portal-reschedule-reason"
       [required]="true"
       [error]="errors().reason ?? null"
@@ -98,13 +103,13 @@
       [disabled]="submitting()"
       (click)="close()"
     >
-      Cancel
+      {{ 'common.cancel' | transloco }}
     </button>
     <button pButton type="button" [disabled]="submitting()" (click)="submit()">
       @if (submitting()) {
         <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
       }
-      Send request
+      {{ 'portal.portalRescheduleDialog.sendRequest' | transloco }}
     </button>
   </ng-template>
 </p-dialog>

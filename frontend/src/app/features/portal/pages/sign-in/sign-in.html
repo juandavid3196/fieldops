@@ -2,12 +2,15 @@
   <app-portal-auth-brand class="login__brand" />
 
   <main class="login__main">
-    <p class="auth__brand login__mobile-brand">Field<span>Ops</span> · Customer portal</p>
+    <p class="auth__brand login__mobile-brand">
+      {{ 'portal.signIn.field' | transloco }}<span>{{ 'portal.signIn.ops' | transloco }}</span>
+      {{ 'portal.signIn.customerPortal' | transloco }}
+    </p>
 
     <div class="auth__card login__card">
       <header>
-        <h1 class="auth__title">Sign in to your portal</h1>
-        <p class="auth__subtitle">Review quotes, pay invoices and follow your appointments.</p>
+        <h1 class="auth__title">{{ 'portal.signIn.signInToYour' | transloco }}</h1>
+        <p class="auth__subtitle">{{ 'portal.signIn.reviewQuotesPayInvoices' | transloco }}</p>
       </header>
 
       <div aria-live="polite">
@@ -21,7 +24,7 @@
 
       <form class="auth__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
         <div class="auth__field">
-          <label class="auth__label" for="portal-email">Email</label>
+          <label class="auth__label" for="portal-email">{{ 'common.email' | transloco }}</label>
           <p-iconfield>
             <p-inputicon class="pi pi-envelope" />
             <input
@@ -49,7 +52,9 @@
         </div>
 
         <div class="auth__field">
-          <label class="auth__label" for="portal-password">Password</label>
+          <label class="auth__label" for="portal-password">{{
+            'portal.signIn.password' | transloco
+          }}</label>
           <p-iconfield class="login__password">
             <p-inputicon class="pi pi-lock" />
             <input
@@ -71,7 +76,11 @@
             <button
               type="button"
               class="login__eye"
-              [attr.aria-label]="passwordMasked() ? 'Show password' : 'Hide password'"
+              [attr.aria-label]="
+                passwordMasked()
+                  ? ('portal.signIn.showPassword' | transloco)
+                  : ('portal.signIn.hidePassword' | transloco)
+              "
               [attr.aria-pressed]="!passwordMasked()"
               (click)="passwordMasked.set(!passwordMasked())"
             >
@@ -93,39 +102,47 @@
               [ngModelOptions]="{ standalone: true }"
               (ngModelChange)="passwordMasked.set(!$event)"
             />
-            <label for="portal-show-password">Show password</label>
+            <label for="portal-show-password">{{ 'portal.signIn.showPassword' | transloco }}</label>
           </span>
         </div>
 
         <div class="auth__row">
           <span class="auth__check">
             <p-checkbox inputId="portal-remember" formControlName="rememberMe" [binary]="true" />
-            <label for="portal-remember">Remember me</label>
+            <label for="portal-remember">{{ 'portal.signIn.rememberMe' | transloco }}</label>
           </span>
-          <a class="auth__link" routerLink="/portal/forgot-password">Forgot password?</a>
+          <a class="auth__link" routerLink="/portal/forgot-password">{{
+            'portal.signIn.forgotPassword' | transloco
+          }}</a>
         </div>
 
         <button pButton type="submit" size="large" fluid [disabled]="submitDisabled()">
           @if (submitting()) {
             <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-            Signing in…
+            {{ 'portal.signIn.signingIn' | transloco }}
           } @else {
-            Sign in
+            {{ 'portal.signIn.signIn' | transloco }}
             <i class="pi pi-arrow-right" aria-hidden="true"></i>
           }
         </button>
         <p class="login__secure">
           <i class="pi pi-lock" aria-hidden="true"></i>
-          Secure customer access
+          {{ 'portal.signIn.secureCustomerAccess' | transloco }}
         </p>
       </form>
     </div>
 
+    <a class="login__back" routerLink="/auth/sign-in">
+      <i class="pi pi-arrow-left" aria-hidden="true"></i>
+      {{ 'portal.signIn.backToFieldopsSignIn' | transloco }}
+    </a>
+
     <footer class="login__footer">
-      <span>© {{ year }} FieldOps</span>
+      <span>{{ 'portal.signIn.fieldops' | transloco: { year: year } }}</span>
       <span class="login__sep" aria-hidden="true">|</span>
       <!-- Visual only: there is no portal privacy page yet. -->
-      <span class="login__privacy">Privacy</span>
+      <span class="login__privacy">{{ 'portal.signIn.privacy' | transloco }}</span>
+      <app-language-footer-selector />
     </footer>
   </main>
 </div>

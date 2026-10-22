@@ -1,5 +1,5 @@
 <div class="gs" role="search">
-  <label class="gs__hidden" for="shell-search">Search</label>
+  <label class="gs__hidden" for="shell-search">{{ 'common.search' | transloco }}</label>
   <p-iconfield>
     <p-inputicon class="pi pi-search" />
     <input
@@ -25,7 +25,12 @@
     />
     @if (term()) {
       <p-inputicon class="gs__clear-icon">
-        <button type="button" class="gs__clear" aria-label="Clear search" (click)="clear()">
+        <button
+          type="button"
+          class="gs__clear"
+          [attr.aria-label]="'shell.globalSearch.clearSearch' | transloco"
+          (click)="clear()"
+        >
           <i class="pi pi-times" aria-hidden="true"></i>
         </button>
       </p-inputicon>
@@ -37,11 +42,15 @@
     <div class="gs__panel">
       @if (state() === 'results') {
         <div class="gs__header">
-          <span class="gs__title">Search results</span>
+          <span class="gs__title">{{ 'shell.globalSearch.searchResults' | transloco }}</span>
           <span class="gs__count">{{ countText() }}</span>
         </div>
         <div class="gs__body">
-          <div id="global-search-listbox" role="listbox" aria-label="Search results">
+          <div
+            id="global-search-listbox"
+            role="listbox"
+            [attr.aria-label]="'shell.globalSearch.searchResults' | transloco"
+          >
             @for (group of groups(); track group.type) {
               <div role="group" [attr.aria-labelledby]="group.labelId">
                 <div class="gs__group" [id]="group.labelId">{{ group.label }}</div>
@@ -95,7 +104,12 @@
             @case ('error') {
               <div class="gs__note gs__error">
                 <span>{{ errorText }}</span>
-                <p-button label="Retry" size="small" severity="secondary" (onClick)="retry()" />
+                <p-button
+                  [label]="'common.retry' | transloco"
+                  size="small"
+                  severity="secondary"
+                  (onClick)="retry()"
+                />
               </div>
             }
             @case ('short') {
@@ -108,9 +122,15 @@
         </div>
       }
       <div class="gs__footer" aria-hidden="true">
-        <span><kbd>↑↓</kbd> Navigate</span>
-        <span><kbd>Enter</kbd> Open</span>
-        <span><kbd>Esc</kbd> Close</span>
+        <span><kbd>↑↓</kbd> {{ 'shell.globalSearch.navigate' | transloco }}</span>
+        <span
+          ><kbd>{{ 'shell.globalSearch.enter' | transloco }}</kbd>
+          {{ 'common.open' | transloco }}</span
+        >
+        <span
+          ><kbd>{{ 'shell.globalSearch.esc' | transloco }}</kbd>
+          {{ 'common.close' | transloco }}</span
+        >
       </div>
     </div>
   }

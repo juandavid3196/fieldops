@@ -7,6 +7,7 @@ import { InputText } from 'primeng/inputtext';
 import { Menu } from 'primeng/menu';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { formatMoney } from '../../../customers/utils/customer-detail-format';
 import { CalculatedLine, LineType } from '../../models/quote.model';
@@ -18,7 +19,9 @@ import {
 } from '../catalog-picker-dialog/catalog-picker-dialog';
 import { CalcStatus } from '../quote-summary/quote-summary';
 
-export const EMPTY_LINES_MESSAGE = 'Add a service, material or optional item to build this quote.';
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const EMPTY_LINES_MESSAGE = (): string => t('quotes.quoteLineItems.emptyLinesMessage');
 
 export interface LineChange {
   readonly uid: string;
@@ -54,6 +57,8 @@ interface TaxOption {
 @Component({
   selector: 'app-quote-line-items',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     NgTemplateOutlet,
     FormsModule,
     ButtonDirective,
@@ -81,11 +86,13 @@ export class QuoteLineItems {
   readonly lineRemove = output<string>();
   readonly lineAdd = output<LineAdd>();
 
-  readonly emptyMessage = EMPTY_LINES_MESSAGE;
-  readonly taxOptions: TaxOption[] = [
-    { code: true, label: 'Taxable' },
-    { code: false, label: 'Non-taxable' },
-  ];
+  get emptyMessage(): string {
+    return EMPTY_LINES_MESSAGE();
+  }
+  readonly taxOptions: TaxOption[] = localizedList(() => [
+    { code: true, label: t('quotes.quoteLineItems.taxable') },
+    { code: false, label: t('quotes.quoteLineItems.nonTaxable') },
+  ]);
 
   readonly picker = signal<PickerTarget | null>(null);
   private readonly menu = viewChild.required(Menu);
@@ -104,17 +111,19 @@ export class QuoteLineItems {
     const uid = this.menuUid() ?? '';
     return [
       {
-        label: 'Move up',
+        label: t('quotes.quoteLineItems.moveUp'),
         disabled: !canMove(lines, index, -1),
         command: () => this.lineMove.emit({ uid, direction: -1 }),
       },
       {
-        label: 'Move down',
+        label: t('quotes.quoteLineItems.moveDown'),
         disabled: !canMove(lines, index, 1),
         command: () => this.lineMove.emit({ uid, direction: 1 }),
       },
       {
-        label: this.opened().has(uid) ? 'Hide unit and cost' : 'Edit unit and cost',
+        label: this.opened().has(uid)
+          ? t('quotes.quoteLineItems.hideUnitAndCost')
+          : t('quotes.quoteLineItems.editUnitAndCost'),
         command: () => this.toggleDetails(uid),
       },
     ];
@@ -151,7 +160,10 @@ export class QuoteLineItems {
 
   /** "Item name, line 2": the position is part of every control's accessible name. */
   label(field: string, row: Row): string {
-    return `${field}, line ${row.index + 1}`;
+    return t('quotes.quoteLineItems.line', {
+      field: t(`quotes.quoteLineItems.fields.${field}`),
+      value: row.index + 1,
+    });
   }
 
   error(row: Row, field: string): string | null {
@@ -175,7 +187,9 @@ export class QuoteLineItems {
   }
 
   typeLabel(type: LineType): string {
-    return type === 'product' ? 'Material' : 'Service';
+    return type === 'product'
+      ? t('quotes.quoteLineItems.material')
+      : t('quotes.quoteLineItems.service');
   }
 
   patch(row: Row, patch: Partial<QuoteLine>): void {

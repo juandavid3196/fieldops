@@ -33,11 +33,14 @@ import {
   OrganizationSettingsRequest,
 } from '../../models/company-settings.model';
 
-export const WEBSITE_INVALID_MESSAGE = 'Enter a valid website.';
-export const STATE_MESSAGE = 'Select a state.';
-export const NEXT_QUOTE_NUMBER_FLOOR_MESSAGE = 'Enter a number greater than the last quote number.';
-export const NEXT_WORK_ORDER_NUMBER_FLOOR_MESSAGE =
-  'Enter a number greater than the last work order number.';
+import { localized, t } from '../../../../core/i18n/translate';
+export const WEBSITE_INVALID_MESSAGE = (): string =>
+  t('organizations.companySetupValidators.websiteInvalidMessage');
+export const STATE_MESSAGE = (): string => t('organizations.companySetupValidators.stateMessage');
+export const NEXT_QUOTE_NUMBER_FLOOR_MESSAGE = (): string =>
+  t('organizations.companySetupValidators.nextQuoteNumberFloorMessage');
+export const NEXT_WORK_ORDER_NUMBER_FLOOR_MESSAGE = (): string =>
+  t('organizations.companySetupValidators.nextWorkOrderNumberFloorMessage');
 
 /** Raw value of the Company setup `FormGroup<CompanySetupFormControls>`. */
 export interface OrganizationFormValue {
@@ -89,28 +92,32 @@ export const ORGANIZATION_FIELD_KEYS: readonly OrganizationFieldKey[] = [
 ];
 
 /** Visible labels (handoff copy), shared by field labels and the error summary. */
-export const ORGANIZATION_FIELD_LABELS: Readonly<Record<OrganizationFieldKey, string>> = {
-  'organization.name': 'Display name',
-  'organization.legalName': 'Legal business name',
-  'organization.website': 'Website',
-  'organization.email': 'Business email',
-  'organization.phone': 'Phone number',
-  'organization.taxId': 'Tax ID (EIN)',
-  'organization.addressLine1': 'Street address',
-  'organization.city': 'City',
-  'organization.stateRegion': 'State',
-  'organization.postalCode': 'ZIP code',
-  'organization.countryCode': 'Default country',
-  'organization.timezone': 'Default time zone',
-  'organization.currency': 'Currency',
-  'organization.defaultTaxRate': 'Default sales tax rate',
-  'organization.quotePrefix': 'Quote prefix',
-  'organization.workOrderPrefix': 'Work order prefix',
-  'organization.invoicePrefix': 'Invoice prefix',
-  'organization.nextInvoiceNumber': 'Next invoice number',
-  'organization.nextQuoteNumber': 'Next quote number',
-  'organization.nextWorkOrderNumber': 'Next work order number',
-};
+export const ORGANIZATION_FIELD_LABELS: Readonly<Record<OrganizationFieldKey, string>> = localized(
+  () => ({
+    'organization.name': t('organizations.companySetupValidators.displayName'),
+    'organization.legalName': t('organizations.companySetupValidators.legalBusinessName'),
+    'organization.website': t('organizations.companySetupValidators.website'),
+    'organization.email': t('organizations.companySetupValidators.businessEmail'),
+    'organization.phone': t('organizations.companySetupValidators.phoneNumber'),
+    'organization.taxId': t('organizations.companySetupValidators.taxIdEin'),
+    'organization.addressLine1': t('organizations.companySetupValidators.streetAddress'),
+    'organization.city': t('organizations.companySetupValidators.city'),
+    'organization.stateRegion': t('organizations.companySetupValidators.state'),
+    'organization.postalCode': t('organizations.companySetupValidators.zipCode'),
+    'organization.countryCode': t('organizations.companySetupValidators.defaultCountry'),
+    'organization.timezone': t('organizations.companySetupValidators.defaultTimeZone'),
+    'organization.currency': t('organizations.companySetupValidators.currency'),
+    'organization.defaultTaxRate': t('organizations.companySetupValidators.defaultSalesTaxRate'),
+    'organization.quotePrefix': t('organizations.companySetupValidators.quotePrefix'),
+    'organization.workOrderPrefix': t('organizations.companySetupValidators.workOrderPrefix'),
+    'organization.invoicePrefix': t('organizations.companySetupValidators.invoicePrefix'),
+    'organization.nextInvoiceNumber': t('organizations.companySetupValidators.nextInvoiceNumber'),
+    'organization.nextQuoteNumber': t('organizations.companySetupValidators.nextQuoteNumber'),
+    'organization.nextWorkOrderNumber': t(
+      'organizations.companySetupValidators.nextWorkOrderNumber',
+    ),
+  }),
+);
 
 /** Server request key for each field (the API body is flat, unlike the `organization.*` UI keys). */
 const REQUEST_KEYS: Readonly<Record<OrganizationFieldKey, keyof OrganizationFormValue>> = {
@@ -137,40 +144,50 @@ const REQUEST_KEYS: Readonly<Record<OrganizationFieldKey, keyof OrganizationForm
 };
 
 /** The catalog messages a field is allowed to show; anything else becomes the fallback. */
-const ALLOWED_MESSAGES: Readonly<Record<OrganizationFieldKey, readonly string[]>> = {
-  'organization.name': [REQUIRED_MESSAGE, tooLongMessage(160)],
-  'organization.legalName': [REQUIRED_MESSAGE, tooLongMessage(200)],
-  'organization.website': [WEBSITE_INVALID_MESSAGE, tooLongMessage(255)],
-  'organization.email': [REQUIRED_MESSAGE, tooLongMessage(EMAIL_MAX_LENGTH), EMAIL_INVALID_MESSAGE],
-  'organization.phone': [REQUIRED_MESSAGE, tooLongMessage(PHONE_MAX_LENGTH), PHONE_INVALID_MESSAGE],
-  'organization.taxId': [tooLongMessage(60)],
-  'organization.addressLine1': [REQUIRED_MESSAGE, tooLongMessage(180)],
-  'organization.city': [REQUIRED_MESSAGE, tooLongMessage(100)],
-  'organization.stateRegion': [STATE_MESSAGE, tooLongMessage(100)],
-  'organization.postalCode': [REQUIRED_MESSAGE, tooLongMessage(30)],
-  'organization.countryCode': [COUNTRY_MESSAGE],
-  'organization.timezone': [TIMEZONE_MESSAGE],
-  'organization.currency': [CURRENCY_MESSAGE],
-  'organization.defaultTaxRate': [REQUIRED_MESSAGE, TAX_RATE_MESSAGE],
-  'organization.quotePrefix': [REQUIRED_MESSAGE, PREFIX_MESSAGE],
-  'organization.workOrderPrefix': [REQUIRED_MESSAGE, PREFIX_MESSAGE],
-  'organization.invoicePrefix': [REQUIRED_MESSAGE, PREFIX_MESSAGE],
-  'organization.nextInvoiceNumber': [
-    REQUIRED_MESSAGE,
-    NEXT_INVOICE_NUMBER_MESSAGE,
-    NEXT_INVOICE_NUMBER_FLOOR_MESSAGE,
-  ],
-  'organization.nextQuoteNumber': [
-    REQUIRED_MESSAGE,
-    NEXT_INVOICE_NUMBER_MESSAGE,
-    NEXT_QUOTE_NUMBER_FLOOR_MESSAGE,
-  ],
-  'organization.nextWorkOrderNumber': [
-    REQUIRED_MESSAGE,
-    NEXT_INVOICE_NUMBER_MESSAGE,
-    NEXT_WORK_ORDER_NUMBER_FLOOR_MESSAGE,
-  ],
-};
+const ALLOWED_MESSAGES: Readonly<Record<OrganizationFieldKey, readonly string[]>> = localized(
+  () => ({
+    'organization.name': [REQUIRED_MESSAGE(), tooLongMessage(160)],
+    'organization.legalName': [REQUIRED_MESSAGE(), tooLongMessage(200)],
+    'organization.website': [WEBSITE_INVALID_MESSAGE(), tooLongMessage(255)],
+    'organization.email': [
+      REQUIRED_MESSAGE(),
+      tooLongMessage(EMAIL_MAX_LENGTH),
+      EMAIL_INVALID_MESSAGE(),
+    ],
+    'organization.phone': [
+      REQUIRED_MESSAGE(),
+      tooLongMessage(PHONE_MAX_LENGTH),
+      PHONE_INVALID_MESSAGE(),
+    ],
+    'organization.taxId': [tooLongMessage(60)],
+    'organization.addressLine1': [REQUIRED_MESSAGE(), tooLongMessage(180)],
+    'organization.city': [REQUIRED_MESSAGE(), tooLongMessage(100)],
+    'organization.stateRegion': [STATE_MESSAGE(), tooLongMessage(100)],
+    'organization.postalCode': [REQUIRED_MESSAGE(), tooLongMessage(30)],
+    'organization.countryCode': [COUNTRY_MESSAGE()],
+    'organization.timezone': [TIMEZONE_MESSAGE()],
+    'organization.currency': [CURRENCY_MESSAGE()],
+    'organization.defaultTaxRate': [REQUIRED_MESSAGE(), TAX_RATE_MESSAGE()],
+    'organization.quotePrefix': [REQUIRED_MESSAGE(), PREFIX_MESSAGE()],
+    'organization.workOrderPrefix': [REQUIRED_MESSAGE(), PREFIX_MESSAGE()],
+    'organization.invoicePrefix': [REQUIRED_MESSAGE(), PREFIX_MESSAGE()],
+    'organization.nextInvoiceNumber': [
+      REQUIRED_MESSAGE(),
+      NEXT_INVOICE_NUMBER_MESSAGE(),
+      NEXT_INVOICE_NUMBER_FLOOR_MESSAGE(),
+    ],
+    'organization.nextQuoteNumber': [
+      REQUIRED_MESSAGE(),
+      NEXT_INVOICE_NUMBER_MESSAGE(),
+      NEXT_QUOTE_NUMBER_FLOOR_MESSAGE(),
+    ],
+    'organization.nextWorkOrderNumber': [
+      REQUIRED_MESSAGE(),
+      NEXT_INVOICE_NUMBER_MESSAGE(),
+      NEXT_WORK_ORDER_NUMBER_FLOOR_MESSAGE(),
+    ],
+  }),
+);
 
 /** The keys edited in the "Edit sequences" dialog. */
 export const SEQUENCE_FIELD_KEYS: readonly OrganizationFieldKey[] = [
@@ -189,18 +206,18 @@ export function validateWebsite(value: string): string | null {
     return tooLongMessage(255);
   }
   if (/\s/.test(trimmed)) {
-    return WEBSITE_INVALID_MESSAGE;
+    return WEBSITE_INVALID_MESSAGE();
   }
   const withoutProtocol = trimmed.replace(/^https?:\/\//i, '');
   const host = withoutProtocol.split(/[/?#]/, 1)[0];
   const validHost = host.includes('.') && !host.startsWith('.') && !host.endsWith('.');
-  return validHost ? null : WEBSITE_INVALID_MESSAGE;
+  return validHost ? null : WEBSITE_INVALID_MESSAGE();
 }
 
 /** BR-04: required, one of the 50 states or DC, when the country is the US; otherwise optional. */
 export function validateStateRegion(state: string, countryCode: string): string | null {
   if (countryCode.trim().toUpperCase() === 'US') {
-    return US_STATE_CODES.has(state.trim().toUpperCase()) ? null : STATE_MESSAGE;
+    return US_STATE_CODES.has(state.trim().toUpperCase()) ? null : STATE_MESSAGE();
   }
   return validateOptionalText(state, 100);
 }
@@ -304,7 +321,9 @@ export function mapOrganizationServerFieldErrors(
   for (const field of ORGANIZATION_FIELD_KEYS) {
     const message = fieldErrors[REQUEST_KEYS[field]]?.[0];
     if (message !== undefined) {
-      result[field] = ALLOWED_MESSAGES[field].includes(message) ? message : FALLBACK_FIELD_MESSAGE;
+      result[field] = ALLOWED_MESSAGES[field].includes(message)
+        ? message
+        : FALLBACK_FIELD_MESSAGE();
     }
   }
 

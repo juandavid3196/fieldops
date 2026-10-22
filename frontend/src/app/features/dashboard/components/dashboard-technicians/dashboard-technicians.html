@@ -1,26 +1,31 @@
 <section class="card" aria-labelledby="tech-title">
   <header class="card__head">
-    <h2 class="card__title" id="tech-title">Technician availability</h2>
+    <h2 class="card__title" id="tech-title">
+      {{ 'dashboard.dashboardTechnicians.technicianAvailability' | transloco }}
+    </h2>
     <a class="card__link" [routerLink]="teamLink.path">
-      View team <i class="pi pi-arrow-right" aria-hidden="true"></i>
+      {{ 'dashboard.dashboardTechnicians.viewTeam' | transloco }}
+      <i class="pi pi-arrow-right" aria-hidden="true"></i>
     </a>
   </header>
 
   @if (rows().length === 0) {
     <div class="card__empty">
-      <p>No active technicians in this branch.</p>
-      <a class="card__link" [routerLink]="teamLink.path">Go to Team</a>
+      <p>{{ 'dashboard.dashboardTechnicians.noActiveTechniciansIn' | transloco }}</p>
+      <a class="card__link" [routerLink]="teamLink.path">{{
+        'dashboard.dashboardTechnicians.goToTeam' | transloco
+      }}</a>
     </div>
   } @else {
     <div class="card__scroll">
       <table class="tech">
         <thead>
           <tr>
-            <th scope="col">Technician</th>
-            <th scope="col">Skills</th>
-            <th scope="col">Current status</th>
-            <th scope="col">Workload</th>
-            <th scope="col">Next available</th>
+            <th scope="col">{{ 'dashboard.dashboardTechnicians.technician' | transloco }}</th>
+            <th scope="col">{{ 'dashboard.dashboardTechnicians.skills' | transloco }}</th>
+            <th scope="col">{{ 'dashboard.dashboardTechnicians.currentStatus' | transloco }}</th>
+            <th scope="col">{{ 'dashboard.dashboardTechnicians.workload' | transloco }}</th>
+            <th scope="col">{{ 'dashboard.dashboardTechnicians.nextAvailable' | transloco }}</th>
           </tr>
         </thead>
         <tbody>

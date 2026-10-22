@@ -1,6 +1,7 @@
 import { InjectionToken } from '@angular/core';
 import type { Appearance, Stripe, StripeElements } from '@stripe/stripe-js';
 
+import { t } from '../../../core/i18n/translate';
 /** BR-07: card data lives only inside the Stripe-hosted Payment Element mounted by this adapter. */
 export interface CardMountOptions {
   readonly publishableKey: string;
@@ -70,7 +71,7 @@ export class StripeJsPaymentAdapter implements StripePaymentAdapter {
     const { loadStripe } = await import('@stripe/stripe-js/pure');
     const stripe = await loadStripe(options.publishableKey);
     if (stripe === null) {
-      throw new Error('Stripe.js did not load.');
+      throw new Error(t('invoices.stripePaymentAdapter.stripeJsDidNot'));
     }
     const elements = stripe.elements({
       mode: 'payment',

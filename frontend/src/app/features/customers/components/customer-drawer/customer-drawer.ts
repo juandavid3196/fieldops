@@ -24,6 +24,7 @@ import { Select } from 'primeng/select';
 import { Skeleton } from 'primeng/skeleton';
 import { Textarea } from 'primeng/textarea';
 import { Observable, Subject, Subscription, catchError, map, of, switchMap, timer } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ApiError, isApiError } from '../../../../core/models/api-error.model';
 import { DrawerShell } from '../../../../shared/components/drawer-shell/drawer-shell';
@@ -63,6 +64,8 @@ import {
 } from './customer-drawer.validators';
 import { discardChangesConfirmation } from '../../../../shared/components/discard-changes-dialog/discard-changes-dialog';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 export type CustomerDrawerMode = 'create' | 'edit' | 'view';
 
 export interface BranchOption {
@@ -70,10 +73,12 @@ export interface BranchOption {
   readonly name: string;
 }
 
-export const CUSTOMER_UNAVAILABLE_MESSAGE = 'This customer is no longer available.';
-export const SAVE_FAILED_MESSAGE = "We couldn't save the customer. Try again.";
-export const RESOLVE_MATCH_MESSAGE = 'Resolve the possible match to continue.';
-const TAG_FAILED_MESSAGE = "We couldn't create the tag. Try again.";
+export const CUSTOMER_UNAVAILABLE_MESSAGE = (): string =>
+  t('customers.customerDrawer.customerUnavailableMessage');
+export const SAVE_FAILED_MESSAGE = (): string => t('customers.customerDrawer.saveFailedMessage');
+export const RESOLVE_MATCH_MESSAGE = (): string =>
+  t('customers.customerDrawer.resolveMatchMessage');
+const TAG_FAILED_MESSAGE = (): string => t('customers.customerDrawer.tagFailedMessage');
 const DUPLICATE_IDLE_MS = 500;
 const TITLE_ID = 'customer-drawer-title';
 const SUMMARY_ID = 'customer-drawer-error-summary';
@@ -126,6 +131,8 @@ const text = (value: string): string | null => (value.trim() === '' ? null : val
 @Component({
   selector: 'app-customer-drawer',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     Checkbox,
@@ -174,18 +181,25 @@ export class CustomerDrawer {
   readonly titleId = TITLE_ID;
   readonly summaryId = SUMMARY_ID;
   readonly controlIds = CONTROL_IDS;
-  readonly resolveMessage = RESOLVE_MATCH_MESSAGE;
+  get resolveMessage(): string {
+    return RESOLVE_MATCH_MESSAGE();
+  }
   readonly statusLabels = STATUS_LABELS;
   readonly stateOptions = US_STATE_OPTIONS;
-  readonly typeOptions: readonly { value: CustomerType; label: string; icon: string }[] = [
-    { value: 'residential', label: 'Residential', icon: 'pi-home' },
-    { value: 'commercial', label: 'Commercial', icon: 'pi-building' },
-  ];
+  readonly typeOptions: readonly { value: CustomerType; label: string; icon: string }[] =
+    localizedList(() => [
+      { value: 'residential', label: t('customers.customerDrawer.residential'), icon: 'pi-home' },
+      { value: 'commercial', label: t('customers.customerDrawer.commercial'), icon: 'pi-building' },
+    ]);
 
   readonly readOnly = computed(() => this.mode() === 'view');
   readonly isCreate = computed(() => this.mode() === 'create');
   readonly title = computed(() =>
-    this.isCreate() ? 'New customer' : this.readOnly() ? 'Customer details' : 'Edit customer',
+    this.isCreate()
+      ? t('customers.customerDrawer.newCustomer')
+      : this.readOnly()
+        ? t('customers.customerDrawer.customerDetails')
+        : t('customers.customerDrawer.editCustomer'),
   );
   readonly usesStateList = computed(() => {
     const country = this.countryCode();
@@ -229,7 +243,7 @@ export class CustomerDrawer {
     const options = this.branches();
     const current = this.form().branchId;
     return current !== null && current !== '' && !options.some((option) => option.id === current)
-      ? [...options, { id: current, name: 'Current branch' }]
+      ? [...options, { id: current, name: t('customers.customerDrawer.currentBranch') }]
       : [...options];
   });
   readonly selectedTags = computed<readonly CustomerTag[]>(() => {
@@ -434,14 +448,17 @@ export class CustomerDrawer {
     const toCommercial = next === 'commercial';
     this.confirmationService.confirm({
       header: toCommercial
-        ? 'Change to a commercial customer?'
-        : 'Change to a residential customer?',
+        ? t('customers.customerDrawer.changeToACommercial')
+        : t('customers.customerDrawer.changeToAResidential'),
       message: toCommercial
-        ? `Add a company name. ${firstName.trim()} ${lastName.trim()} stays the primary contact.`
-        : `${companyName.trim()} will no longer be the display name. The customer will be shown as the primary contact's name, and the company name and contact title will be removed when you save.`,
+        ? t('customers.customerDrawer.addACompanyName', {
+            trim: firstName.trim(),
+            trim2: lastName.trim(),
+          })
+        : t('customers.customerDrawer.willNoLongerBe', { trim: companyName.trim() }),
       defaultFocus: 'reject',
-      acceptButtonProps: { label: 'Change type' },
-      rejectButtonProps: { label: 'Cancel', severity: 'secondary', outlined: true },
+      acceptButtonProps: { label: t('customers.customerDrawer.changeType') },
+      rejectButtonProps: { label: t('common.cancel'), severity: 'secondary', outlined: true },
       accept: () => {
         this.patch(
           toCommercial ? { type: next } : { type: next, companyName: '', title: '' },
@@ -495,7 +512,7 @@ export class CustomerDrawer {
             this.unauthorized.emit();
             return;
           }
-          this.messageService.add({ severity: 'error', summary: TAG_FAILED_MESSAGE });
+          this.messageService.add({ severity: 'error', summary: TAG_FAILED_MESSAGE() });
         },
       });
   }
@@ -641,7 +658,10 @@ export class CustomerDrawer {
         this.submitting.set(false);
         this.messageService.add({
           severity: 'success',
-          summary: id === null ? 'Customer created.' : 'Customer updated.',
+          summary:
+            id === null
+              ? t('customers.customerDrawer.customerCreated')
+              : t('customers.customerDrawer.customerUpdated'),
         });
         this.closed.emit();
         this.saved.emit();
@@ -665,13 +685,15 @@ export class CustomerDrawer {
       const mapped = mapServerFieldErrors(apiError.fieldErrors);
       if (Object.keys(mapped).length > 0) {
         this.fieldErrors.set(
-          mapped.type !== undefined ? { ...mapped, type: 'Choose a customer type.' } : mapped,
+          mapped.type !== undefined
+            ? { ...mapped, type: t('customers.customerDrawer.chooseACustomerType') }
+            : mapped,
         );
         this.focusFirstInvalid();
         return;
       }
     }
-    this.messageService.add({ severity: 'error', summary: SAVE_FAILED_MESSAGE });
+    this.messageService.add({ severity: 'error', summary: SAVE_FAILED_MESSAGE() });
   }
 
   // Closing
@@ -695,7 +717,7 @@ export class CustomerDrawer {
   private confirmDiscard(accept: () => void): void {
     this.confirmationService.confirm(
       discardChangesConfirmation({
-        subject: 'this customer',
+        subject: t('customers.customerDrawer.thisCustomer'),
         accept,
       }),
     );

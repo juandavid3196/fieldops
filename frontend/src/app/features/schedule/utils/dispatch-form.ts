@@ -1,17 +1,18 @@
 import { ArrivalWindowCode, DispatchPriority } from '../models/schedule.model';
 import { clockMinutes, formatMinutes } from './schedule-range';
 
+import { localized, t } from '../../../core/i18n/translate';
 export interface Choice<T> {
   readonly code: T;
   readonly label: string;
 }
 
-export const PRIORITY_TEXT: Readonly<Record<DispatchPriority, string>> = {
-  urgent: 'Urgent',
-  high: 'High',
-  normal: 'Normal',
-  low: 'Low',
-};
+export const PRIORITY_TEXT: Readonly<Record<DispatchPriority, string>> = localized(() => ({
+  urgent: t('schedule.dispatchForm.urgent'),
+  high: t('schedule.dispatchForm.high'),
+  normal: t('schedule.dispatchForm.normal'),
+  low: t('schedule.dispatchForm.low'),
+}));
 
 export const PRIORITY_ICONS: Readonly<Record<DispatchPriority, string>> = {
   urgent: 'pi-exclamation-circle',
@@ -45,10 +46,10 @@ export function timeChoices(current: string | null): Choice<string>[] {
 export function arrivalChoices(start: string | null): Choice<ArrivalWindowCode>[] {
   if (!start) {
     return [
-      { code: 'at_start', label: 'At start time' },
-      { code: 'start_plus_1h', label: 'Start time to 1 hour later' },
-      { code: 'start_plus_2h', label: 'Start time to 2 hours later' },
-      { code: 'around_1h', label: '1 hour before to 1 hour after' },
+      { code: 'at_start', label: t('schedule.dispatchForm.atStartTime') },
+      { code: 'start_plus_1h', label: t('schedule.dispatchForm.startTimeTo1') },
+      { code: 'start_plus_2h', label: t('schedule.dispatchForm.startTimeTo2') },
+      { code: 'around_1h', label: t('schedule.dispatchForm.n1HourBeforeTo') },
     ];
   }
   const from = clockMinutes(start);
@@ -71,38 +72,49 @@ export function impactText(impact: {
   readonly scheduledMinutes: number;
   readonly availableMinutes: number;
 }): string {
-  return `${impact.jobs} jobs · ${hoursText(impact.scheduledMinutes)} / ${hoursText(impact.availableMinutes)} after assignment`;
+  return t('schedule.dispatchForm.jobsAfterAssignment', {
+    jobs: impact.jobs,
+    scheduledMinutes: hoursText(impact.scheduledMinutes),
+    availableMinutes: hoursText(impact.availableMinutes),
+  });
 }
 
 export function previousText(value: string | null): string {
   if (value === null) {
-    return 'No previous job';
+    return t('schedule.dispatchForm.noPreviousJob');
   }
-  return value.startsWith('Previous job') || value.startsWith('No previous')
+  return value.startsWith(t('schedule.dispatchForm.previousJob')) ||
+    value.startsWith(t('schedule.dispatchForm.noPrevious'))
     ? value
-    : `Previous job: ${value}`;
+    : t('schedule.dispatchForm.previousJob2', { value: value });
 }
 
 export function nextText(value: string | null): string {
   if (value === null) {
-    return 'No next job';
+    return t('schedule.dispatchForm.noNextJob');
   }
-  return value.startsWith('Next job') || value.startsWith('No next') ? value : `Next job: ${value}`;
+  return value.startsWith(t('schedule.dispatchForm.nextJob')) ||
+    value.startsWith(t('schedule.dispatchForm.noNext'))
+    ? value
+    : t('schedule.dispatchForm.nextJob2', { value: value });
 }
 
 /** Validation messages (BR-11) for the client-side checks that mirror the server. */
-export const MESSAGES = {
-  date: 'Select a date.',
-  start: 'Select a start time.',
-  end: 'Select an end time.',
-  endOrder: 'End time must be after start time.',
-  primary: 'Choose a primary technician.',
-  technicians: 'Select up to 5 technicians.',
-  note: 'Note must be 1000 characters or fewer.',
-  reasonShort: 'Enter at least 10 characters.',
-  reasonLong: 'Reason must be 500 characters or fewer.',
-  reasonRequired: 'Enter a reason to confirm despite the conflicts.',
-} as const;
+export const MESSAGES = localized(
+  () =>
+    ({
+      date: t('schedule.dispatchForm.selectADate'),
+      start: t('schedule.dispatchForm.selectAStartTime'),
+      end: t('schedule.dispatchForm.selectAnEndTime'),
+      endOrder: t('schedule.dispatchForm.endTimeMustBe'),
+      primary: t('schedule.dispatchForm.chooseAPrimaryTechnician'),
+      technicians: t('schedule.dispatchForm.selectUpTo5'),
+      note: t('schedule.dispatchForm.noteMustBe1000'),
+      reasonShort: t('schedule.dispatchForm.enterAtLeast10'),
+      reasonLong: t('schedule.dispatchForm.reasonMustBe500'),
+      reasonRequired: t('schedule.dispatchForm.enterAReasonTo'),
+    }) as const,
+);
 
 export const MAX_TECHNICIANS = 5;
 export const MAX_NOTE = 1000;

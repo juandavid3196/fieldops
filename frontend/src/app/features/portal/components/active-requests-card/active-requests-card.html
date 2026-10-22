@@ -2,12 +2,14 @@
   <header class="pcard__head">
     <h2 class="pcard__title" id="active-requests-title">
       <i class="pi pi-file pcard__icon" aria-hidden="true"></i>
-      Active requests
+      {{ 'portal.activeRequestsCard.activeRequests' | transloco }}
     </h2>
-    <a class="pcard__link" routerLink="/portal/requests">View all</a>
+    <a class="pcard__link" routerLink="/portal/requests">{{
+      'portal.activeRequestsCard.viewAll' | transloco
+    }}</a>
   </header>
   @if (rows().length === 0) {
-    <p class="pcard__empty">No active requests.</p>
+    <p class="pcard__empty">{{ 'portal.activeRequestsCard.noActiveRequests' | transloco }}</p>
   } @else {
     <ul class="requests">
       @for (row of rows(); track row.request.id) {
@@ -23,7 +25,7 @@
             variant="tag"
           />
           <p class="requests__submitted">
-            Submitted<br />
+            {{ 'portal.activeRequestsCard.submitted' | transloco }}<br />
             {{ row.submitted }}
           </p>
           <a
@@ -32,9 +34,12 @@
             severity="secondary"
             [outlined]="true"
             size="small"
-            [attr.aria-label]="'View request ' + row.request.displayNumber"
+            [attr.aria-label]="
+              'portal.activeRequestsCard.viewRequest'
+                | transloco: { displayNumber: row.request.displayNumber }
+            "
             [routerLink]="['/portal/requests', row.request.id]"
-            >View</a
+            >{{ 'common.view' | transloco }}</a
           >
         </li>
       }

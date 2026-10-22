@@ -22,6 +22,7 @@ import { InputText } from 'primeng/inputtext';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { FormField } from '../../../organizations/components/form-field/form-field';
@@ -35,18 +36,26 @@ import {
 import { PortalAppointmentsService } from '../../services/portal-appointments.service';
 import { longDateLabel, rescheduleRange, timeRange, toDateOnly } from '../../utils/portal-format';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 export const REASON_LIMIT = 500;
-export const RESCHEDULE_DATE_REQUIRED = 'Choose a preferred date.';
-export const RESCHEDULE_DATE_RANGE = 'Choose a date from tomorrow up to 90 days from today.';
-export const RESCHEDULE_REASON_REQUIRED = 'Tell us why you need to reschedule.';
-export const RESCHEDULE_REASON_LONG = 'Reason must be 500 characters or fewer.';
-export const RESCHEDULE_ALREADY_REQUESTED = 'You already asked to reschedule this appointment.';
-export const RESCHEDULE_FIELD_FALLBACK = 'Check this field and try again.';
+export const RESCHEDULE_DATE_REQUIRED = (): string =>
+  t('portal.portalRescheduleDialog.rescheduleDateRequired');
+export const RESCHEDULE_DATE_RANGE = (): string =>
+  t('portal.portalRescheduleDialog.rescheduleDateRange');
+export const RESCHEDULE_REASON_REQUIRED = (): string =>
+  t('portal.portalRescheduleDialog.rescheduleReasonRequired');
+export const RESCHEDULE_REASON_LONG = (): string =>
+  t('portal.portalRescheduleDialog.rescheduleReasonLong');
+export const RESCHEDULE_ALREADY_REQUESTED = (): string =>
+  t('portal.portalRescheduleDialog.rescheduleAlreadyRequested');
+export const RESCHEDULE_FIELD_FALLBACK = (): string =>
+  t('portal.portalRescheduleDialog.rescheduleFieldFallback');
 
 export function rescheduleUnavailable(phone: string | null): string {
   return phone === null
-    ? "This appointment can't be rescheduled online. Contact the company."
-    : `This appointment can't be rescheduled online. Call ${phone}.`;
+    ? t('portal.portalRescheduleDialog.thisAppointmentCantBe')
+    : t('portal.portalRescheduleDialog.thisAppointmentCantBe2', { phone: phone });
 }
 
 type Field = 'preferredDate' | 'reason';
@@ -55,6 +64,8 @@ type Field = 'preferredDate' | 'reason';
 @Component({
   selector: 'app-portal-reschedule-dialog',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     FormsModule,
     ButtonDirective,
     Dialog,
@@ -281,15 +292,15 @@ export class PortalRescheduleDialog {
     const { min, max } = this.range();
     const date = this.preferredDate();
     if (date === '') {
-      errors.preferredDate = RESCHEDULE_DATE_REQUIRED;
+      errors.preferredDate = RESCHEDULE_DATE_REQUIRED();
     } else if (date < min || date > max) {
-      errors.preferredDate = RESCHEDULE_DATE_RANGE;
+      errors.preferredDate = RESCHEDULE_DATE_RANGE();
     }
     const length = this.reason().trim().length;
     if (length === 0) {
-      errors.reason = RESCHEDULE_REASON_REQUIRED;
+      errors.reason = RESCHEDULE_REASON_REQUIRED();
     } else if (length > REASON_LIMIT) {
-      errors.reason = RESCHEDULE_REASON_LONG;
+      errors.reason = RESCHEDULE_REASON_LONG();
     }
     return errors;
   }
@@ -298,27 +309,27 @@ export class PortalRescheduleDialog {
     this.submitting.set(false);
     const apiError = isApiError(error) ? error : null;
     if (apiError?.status === 409 && apiError.code === 'reschedule_already_requested') {
-      this.failure.set(RESCHEDULE_ALREADY_REQUESTED);
+      this.failure.set(RESCHEDULE_ALREADY_REQUESTED());
     } else if (apiError?.status === 409) {
       this.failure.set(rescheduleUnavailable(this.phone()));
     } else if (apiError?.kind === 'validation') {
       const fields = apiError.fieldErrors;
       const mapped: Partial<Record<Field, string>> = {};
       if (fields['preferredDate'] !== undefined) {
-        mapped.preferredDate = RESCHEDULE_DATE_RANGE;
+        mapped.preferredDate = RESCHEDULE_DATE_RANGE();
       }
       if (fields['reason'] !== undefined) {
-        mapped.reason = RESCHEDULE_REASON_REQUIRED;
+        mapped.reason = RESCHEDULE_REASON_REQUIRED();
       }
       if (Object.keys(mapped).length > 0) {
         this.errors.set(mapped);
       } else {
-        this.failure.set(RESCHEDULE_FIELD_FALLBACK);
+        this.failure.set(RESCHEDULE_FIELD_FALLBACK());
       }
     } else if (apiError?.kind === 'rate-limited') {
-      this.failure.set(RATE_LIMITED_MESSAGE);
+      this.failure.set(RATE_LIMITED_MESSAGE());
     } else {
-      this.failure.set(GENERIC_ERROR_MESSAGE);
+      this.failure.set(GENERIC_ERROR_MESSAGE());
     }
   }
 

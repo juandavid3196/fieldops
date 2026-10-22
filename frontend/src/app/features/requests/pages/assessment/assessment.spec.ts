@@ -220,12 +220,12 @@ describe('Schedule assessment page', () => {
   afterEach(() => httpTesting?.verify());
 
   it.each<[string, string, RequestStatus | 'not-found' | null, string]>([
-    ['viewer', ID, null, FORBIDDEN_MESSAGE],
-    ['technician', ID, null, FORBIDDEN_MESSAGE],
-    ['owner', 'not-a-uuid', null, UNAVAILABLE_MESSAGE],
-    ['owner', ID, 'not-found', UNAVAILABLE_MESSAGE],
-    ['dispatcher', ID, 'ready_for_quote', NOT_SCHEDULABLE_MESSAGE],
-    ['dispatcher', ID, 'cancelled', NOT_SCHEDULABLE_MESSAGE],
+    ['viewer', ID, null, FORBIDDEN_MESSAGE()],
+    ['technician', ID, null, FORBIDDEN_MESSAGE()],
+    ['owner', 'not-a-uuid', null, UNAVAILABLE_MESSAGE()],
+    ['owner', ID, 'not-found', UNAVAILABLE_MESSAGE()],
+    ['dispatcher', ID, 'ready_for_quote', NOT_SCHEDULABLE_MESSAGE()],
+    ['dispatcher', ID, 'cancelled', NOT_SCHEDULABLE_MESSAGE()],
   ])(
     '%s opening %s sees a state instead of the form, with no planner calls and no calls before the role check (AC-02, AC-03)',
     async (role, id, status, message) => {
@@ -307,7 +307,7 @@ describe('Schedule assessment page', () => {
     button('Schedule assessment')!.click();
     await settle();
     httpTesting.expectNone((r) => r.method === 'POST');
-    expect(text()).toContain(PURPOSE_REQUIRED_MESSAGE);
+    expect(text()).toContain(PURPOSE_REQUIRED_MESSAGE());
 
     page.onFormChange({
       ...page.form()!,
@@ -373,12 +373,12 @@ describe('Schedule assessment page', () => {
 
     submit().flush(null, { status: 500, statusText: 'Server Error' });
     await settle();
-    expect(text()).toContain(SAVE_FAILED_MESSAGE);
+    expect(text()).toContain(SAVE_FAILED_MESSAGE());
     expect(page.form()?.purpose).toBe('Inspect the valve');
 
     submit().flush({ code: 'request_changed' }, { status: 409, statusText: 'Conflict' });
     await vi.waitFor(() => expect(router().url).toBe(`/requests?request=${ID}`));
-    expect(toastState()).toEqual({ severity: 'error', summary: CONFLICT_MESSAGE });
+    expect(toastState()).toEqual({ severity: 'error', summary: CONFLICT_MESSAGE() });
   });
 
   it('prefills reschedule mode, saves with PUT and asks before discarding a changed form (AC-01, AC-13, AC-19)', async () => {

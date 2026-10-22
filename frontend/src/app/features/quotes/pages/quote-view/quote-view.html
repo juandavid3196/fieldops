@@ -4,7 +4,7 @@
     <div class="view__toast">
       <span>{{ message.summary }}</span>
       <button pButton type="button" size="small" severity="secondary" (click)="refresh()">
-        Refresh
+        {{ 'common.refresh' | transloco }}
       </button>
     </div>
   </ng-template>
@@ -14,21 +14,23 @@
   <header class="view__header">
     <div class="view__heading">
       @if (detail(); as detail) {
-        <nav class="view__breadcrumb" aria-label="Breadcrumb">
+        <nav class="view__breadcrumb" [attr.aria-label]="'quotes.quoteView.breadcrumb' | transloco">
           <ol>
-            <li><a routerLink="/requests">Requests</a></li>
+            <li>
+              <a routerLink="/requests">{{ 'quotes.quoteView.requests' | transloco }}</a>
+            </li>
             <li>
               <a routerLink="/requests" [queryParams]="requestQueryParams()">{{
                 detail.request.displayNumber
               }}</a>
             </li>
-            <li aria-current="page">Quote</li>
+            <li aria-current="page">{{ 'quotes.quoteView.quote' | transloco }}</li>
           </ol>
         </nav>
       }
       <div class="view__title-row">
         <h1 #heading class="view__title" tabindex="-1">
-          Quote
+          {{ 'quotes.quoteView.quote' | transloco }}
           @if (detail(); as detail) {
             #{{ detail.displayNumber }}
           }
@@ -36,7 +38,8 @@
         @if (detail(); as detail) {
           <span class="view__chip view__chip--{{ statusTone() }}">
             <i class="pi {{ statusIcon() }}" aria-hidden="true"></i>
-            <span class="view__sr">Status: </span>{{ statusLabel() }}
+            <span class="view__sr">{{ 'quotes.quoteView.status' | transloco }} </span
+            >{{ statusLabel() }}
           </span>
         }
       </div>
@@ -73,7 +76,9 @@
     @case ('not-available') {
       <div class="view__message" role="alert">
         <p>{{ unavailableMessage }}</p>
-        <a pButton severity="secondary" size="small" routerLink="/requests">Back to requests</a>
+        <a pButton severity="secondary" size="small" routerLink="/requests">{{
+          'quotes.quoteView.backToRequests' | transloco
+        }}</a>
       </div>
     }
     @case ('error') {
@@ -81,7 +86,7 @@
         <span class="view__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retryLoad()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -90,7 +95,9 @@
       @if (detail(); as detail) {
         @if (revisionNo(); as revision) {
           <p-message severity="info" [closable]="false">
-            <span class="view__error">Version {{ revision }} is being revised.</span>
+            <span class="view__error">{{
+              'quotes.quoteView.versionIsBeingRevised' | transloco: { revision: revision }
+            }}</span>
           </p-message>
         }
 
@@ -98,11 +105,13 @@
           <div class="view__actions">
             @if (canRevise()) {
               <button pButton type="button" [disabled]="busy()" (click)="revise()">
-                Revise quote
+                {{ 'quotes.quoteView.reviseQuote' | transloco }}
               </button>
             }
             @if (revisionNo() !== null) {
-              <a pButton [routerLink]="['/quotes', detail.id, 'edit']">Continue editing</a>
+              <a pButton [routerLink]="['/quotes', detail.id, 'edit']">{{
+                'quotes.quoteView.continueEditing' | transloco
+              }}</a>
             }
             @if (canResend()) {
               <button
@@ -113,7 +122,7 @@
                 [disabled]="busy()"
                 (click)="openResend()"
               >
-                Resend email
+                {{ 'quotes.quoteView.resendEmail' | transloco }}
               </button>
             }
           </div>
@@ -128,7 +137,10 @@
               @if (detail.draft; as draft) {
                 @if (draft.internalNote) {
                   <h2 class="view__subtitle">
-                    Internal note <span class="view__internal">Internal</span>
+                    {{ 'quotes.quoteView.internalNote' | transloco }}
+                    <span class="view__internal">{{
+                      'quotes.quoteView.internal' | transloco
+                    }}</span>
                   </h2>
                   <p class="view__note">{{ draft.internalNote }}</p>
                 }
@@ -143,9 +155,14 @@
             }
           </section>
         } @else {
-          <section class="view__card" aria-label="Quote version">
+          <section
+            class="view__card"
+            [attr.aria-label]="'quotes.quoteView.quoteVersion' | transloco"
+          >
             <div class="view__version">
-              <label class="view__label" for="quote-version">Version</label>
+              <label class="view__label" for="quote-version">{{
+                'quotes.quoteView.version' | transloco
+              }}</label>
               <p-select
                 inputId="quote-version"
                 appendTo="body"
@@ -175,7 +192,7 @@
                       size="small"
                       (click)="retryVersion()"
                     >
-                      Retry
+                      {{ 'common.retry' | transloco }}
                     </button>
                   </span>
                 </p-message>
@@ -185,7 +202,7 @@
                   <app-quote-customer-view [view]="view" />
                   <section class="view__response-card" aria-labelledby="quote-response-heading">
                     <h2 class="view__subtitle view__subtitle--success" id="quote-response-heading">
-                      Customer response
+                      {{ 'quotes.quoteView.customerResponse' | transloco }}
                     </h2>
                     @for (response of versionResponses(); track $index) {
                       <div class="view__response">
@@ -199,11 +216,20 @@
                         @if (response.type === 'approved') {
                           @for (line of response.selectedOptionalLines; track $index) {
                             <p class="view__note">
-                              Optional: {{ line.name }} · {{ money(line.lineSubtotal) }}
+                              {{
+                                'quotes.quoteView.optional'
+                                  | transloco
+                                    : { name: line.name, lineSubtotal: money(line.lineSubtotal) }
+                              }}
                             </p>
                           }
                           @if (response.totals; as totals) {
-                            <p class="view__note">Approved total: {{ money(totals.total) }}</p>
+                            <p class="view__note">
+                              {{
+                                'quotes.quoteView.approvedTotal'
+                                  | transloco: { total: money(totals.total) }
+                              }}
+                            </p>
                           }
                         }
                       </div>
@@ -213,13 +239,20 @@
                   </section>
                   <section class="view__internal-card" aria-labelledby="quote-internal-heading">
                     <h2 class="view__subtitle" id="quote-internal-heading">
-                      Internal <span class="view__internal">Internal</span>
+                      {{ 'quotes.quoteView.internal' | transloco }}
+                      <span class="view__internal">{{
+                        'quotes.quoteView.internal' | transloco
+                      }}</span>
                     </h2>
                     @if (version()?.internalNote; as note) {
-                      <p class="view__response-title">Internal note</p>
+                      <p class="view__response-title">
+                        {{ 'quotes.quoteView.internalNote' | transloco }}
+                      </p>
                       <p class="view__note">{{ note }}</p>
                     }
-                    <p class="view__response-title">Estimated margin</p>
+                    <p class="view__response-title">
+                      {{ 'quotes.quoteView.estimatedMargin' | transloco }}
+                    </p>
                     <p class="view__note">{{ margin() }}</p>
                   </section>
                 }

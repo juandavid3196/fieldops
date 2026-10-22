@@ -5,7 +5,10 @@
         <button
           type="button"
           class="photos__open"
-          [attr.aria-label]="'Open photo ' + (index + 1) + ': ' + photo.fileName"
+          [attr.aria-label]="
+            'requests.assessmentPhotos.openPhoto'
+              | transloco: { value: index + 1, fileName: photo.fileName }
+          "
           [disabled]="!thumbnails()[photo.id]"
           (click)="open(photo.id)"
         >

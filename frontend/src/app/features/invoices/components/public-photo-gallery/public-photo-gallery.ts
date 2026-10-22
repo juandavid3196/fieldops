@@ -11,11 +11,13 @@ import {
 import { ButtonDirective } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PublicPhoto } from '../../models/invoice.model';
 import { InvoiceLinkApi } from '../../services/invoice-link-api';
 import { formatCalendarDate } from '../../utils/public-invoice-format';
 
+import { t } from '../../../../core/i18n/translate';
 interface PhotoImage {
   readonly state: 'loading' | 'ready' | 'error';
   readonly url: string | null;
@@ -27,7 +29,7 @@ interface PhotoImage {
  */
 @Component({
   selector: 'app-public-photo-gallery',
-  imports: [ButtonDirective, Dialog, SpinnerIcon],
+  imports: [TranslocoPipe, ButtonDirective, Dialog, SpinnerIcon],
   templateUrl: './public-photo-gallery.html',
   styleUrl: './public-photo-gallery.scss',
 })
@@ -47,7 +49,10 @@ export class PublicPhotoGallery {
       ? null
       : {
           photo,
-          typeLabel: photo.type === 'before' ? 'Before' : 'After',
+          typeLabel:
+            photo.type === 'before'
+              ? t('invoices.publicPhotoGallery.before')
+              : t('invoices.publicPhotoGallery.after'),
           date: formatCalendarDate(photo.takenOn),
           image: this.images()[photo.photoId] ?? { state: 'loading', url: null },
         };

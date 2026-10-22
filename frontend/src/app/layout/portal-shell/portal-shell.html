@@ -1,4 +1,5 @@
 <div class="pshell">
+  <app-language-toast />
   <header class="pshell__bar">
     @if (isDrawer()) {
       <button
@@ -9,11 +10,17 @@
         (click)="openDrawer()"
       >
         <i class="pi pi-bars" aria-hidden="true"></i>
-        <span class="pshell__sr">Open navigation</span>
+        <span class="pshell__sr">{{ 'portal.portalShell.openNavigation' | transloco }}</span>
       </button>
     }
 
-    <a class="pshell__brand" routerLink="/portal" [attr.aria-label]="organizationName() + ', Home'">
+    <a
+      class="pshell__brand"
+      routerLink="/portal"
+      [attr.aria-label]="
+        'portal.portalShell.home' | transloco: { organizationName: organizationName() }
+      "
+    >
       @if (logoUrl(); as url) {
         <img class="pshell__logo" [src]="url" alt="" />
       } @else {
@@ -25,7 +32,7 @@
     </a>
 
     @if (!isDrawer()) {
-      <nav class="pshell__nav" aria-label="Primary">
+      <nav class="pshell__nav" [attr.aria-label]="'portal.portalShell.primary' | transloco">
         @for (item of nav; track item.label) {
           <a
             class="pshell__link"
@@ -43,7 +50,7 @@
 
     <a class="pshell__icon-button pshell__help" routerLink="/portal/help">
       <i class="pi pi-question-circle" aria-hidden="true"></i>
-      <span class="pshell__help-text">Help</span>
+      <span class="pshell__help-text">{{ 'portal.portalShell.help' | transloco }}</span>
     </a>
 
     <a
@@ -59,12 +66,13 @@
 
     <div class="pshell__user" data-portal-menu>
       <button
+        #userButton
         type="button"
         class="pshell__user-button"
         aria-haspopup="menu"
         aria-controls="portal-user-menu"
         [attr.aria-expanded]="menuOpen()"
-        [attr.aria-label]="'Account menu, ' + fullName()"
+        [attr.aria-label]="'portal.portalShell.accountMenu' | transloco: { fullName: fullName() }"
         (click)="toggleMenu()"
       >
         <span class="pshell__initials" aria-hidden="true">{{ initials() }}</span>
@@ -73,10 +81,17 @@
       </button>
 
       @if (menuOpen()) {
-        <div class="pshell__menu" id="portal-user-menu" role="menu" aria-label="Account">
+        <div
+          class="pshell__menu"
+          id="portal-user-menu"
+          role="menu"
+          [attr.aria-label]="'portal.portalShell.account' | transloco"
+        >
           <p class="pshell__menu-name">{{ fullName() }}</p>
           @if (canSwitch()) {
-            <p class="pshell__menu-label" id="portal-switch-label">Switch account</p>
+            <p class="pshell__menu-label" id="portal-switch-label">
+              {{ 'portal.portalShell.switchAccount' | transloco }}
+            </p>
             @for (account of otherAccounts(); track account.contactId) {
               <button
                 type="button"
@@ -91,15 +106,16 @@
               </button>
             }
           }
+          <app-language-menu-item surface="portal" (chosen)="onLanguageChosen()" />
           <button
             type="button"
             role="menuitem"
-            class="pshell__menu-item"
+            class="pshell__menu-item pshell__menu-item--danger"
             [disabled]="busy()"
             (click)="signOut()"
           >
             <i class="pi pi-sign-out" aria-hidden="true"></i>
-            Sign out
+            {{ 'portal.portalShell.signOut' | transloco }}
           </button>
         </div>
       }
@@ -121,9 +137,9 @@
       (visibleChange)="drawerOpen.set($event)"
       (onHide)="onDrawerHide()"
       [modal]="true"
-      header="Menu"
+      [header]="'portal.portalShell.menu' | transloco"
     >
-      <nav class="pshell__drawer-nav" aria-label="Primary">
+      <nav class="pshell__drawer-nav" [attr.aria-label]="'portal.portalShell.primary' | transloco">
         @for (item of nav; track item.label) {
           <a
             class="pshell__link pshell__link--drawer"

@@ -309,7 +309,7 @@ describe('Quote read-only view', () => {
     async (role) => {
       await setup(role, null);
 
-      expect(text()).toContain(VIEW_FORBIDDEN_MESSAGE);
+      expect(text()).toContain(VIEW_FORBIDDEN_MESSAGE());
     },
   );
 
@@ -324,7 +324,7 @@ describe('Quote read-only view', () => {
 
     TestBed.resetTestingModule();
     await setup('viewer', unsent);
-    expect(text()).toContain(NOT_SENT_MESSAGE);
+    expect(text()).toContain(NOT_SENT_MESSAGE());
     expect(text()).toContain('SECRET NOTE');
     expect(control('Continue editing')).toBeUndefined();
   });

@@ -1,6 +1,6 @@
 <p-dialog
   [modal]="true"
-  closeAriaLabel="Close"
+  [closeAriaLabel]="'common.close' | transloco"
   [closeButtonProps]="closeProps"
   [draggable]="false"
   [resizable]="false"
@@ -13,25 +13,29 @@
       <span class="report__tile" aria-hidden="true">
         <i class="pi pi-exclamation-triangle"></i>
       </span>
-      <h2 class="report__title">Report delay or issue</h2>
+      <h2 class="report__title">
+        {{ 'technicianJobs.reportIssue.reportDelayOrIssue' | transloco }}
+      </h2>
     </div>
   </ng-template>
 
   <div class="report">
-    <p class="report__intro">Need immediate help with this job?</p>
+    <p class="report__intro">
+      {{ 'technicianJobs.reportIssue.needImmediateHelpWith' | transloco }}
+    </p>
     @if (officeHref(); as href) {
       <a class="report__call" [href]="href">
         <i class="pi pi-phone report__call-icon" aria-hidden="true"></i>
         <span class="report__call-text">
-          <strong>Call office</strong>
-          <span>Contact dispatch for urgent support</span>
+          <strong>{{ 'technicianJobs.reportIssue.callOffice' | transloco }}</strong>
+          <span>{{ 'technicianJobs.reportIssue.contactDispatchForUrgent' | transloco }}</span>
         </span>
         <i class="pi pi-chevron-right" aria-hidden="true"></i>
       </a>
     }
     <p class="report__note">
       <i class="pi pi-info-circle" aria-hidden="true"></i>
-      Issue reporting is coming soon.
+      {{ 'technicianJobs.reportIssue.issueReportingIsComing' | transloco }}
     </p>
     <button
       pButton
@@ -40,7 +44,7 @@
       severity="secondary"
       (click)="closed.emit()"
     >
-      Close
+      {{ 'common.close' | transloco }}
     </button>
   </div>
 </p-dialog>

@@ -1,13 +1,16 @@
 import { monthDay } from '../../schedule/utils/schedule-range';
 import { Granularity, SeriesBucket } from '../models/business-overview.model';
 
+import { localized, localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
 export type ChartTab = 'revenue' | 'profit' | 'cash';
 
-export const CHART_TABS: readonly { readonly id: ChartTab; readonly name: string }[] = [
-  { id: 'revenue', name: 'Revenue' },
-  { id: 'profit', name: 'Estimated profit' },
-  { id: 'cash', name: 'Cash collected' },
-];
+export const CHART_TABS: readonly { readonly id: ChartTab; readonly name: string }[] =
+  localizedList(() => [
+    { id: 'revenue', name: t('businessOverview.chartGeometry.revenue') },
+    { id: 'profit', name: t('businessOverview.chartGeometry.estimatedProfit') },
+    { id: 'cash', name: t('businessOverview.chartGeometry.cashCollected') },
+  ]);
 
 export const CHART_WIDTH = 640;
 export const CHART_HEIGHT = 260;
@@ -46,7 +49,7 @@ export interface ChartModel {
 
 /** BR-10: compact axis units ("$5K", "-$1.5M"). */
 export function compactMoney(value: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat(activeIntlLocale(), {
     style: 'currency',
     currency,
     notation: 'compact',
@@ -90,27 +93,27 @@ interface LineSpec {
   readonly previous: (bucket: SeriesBucket) => number;
 }
 
-const REVENUE: LineSpec = {
+const REVENUE: LineSpec = localized(() => ({
   id: 'revenue',
-  name: 'Revenue',
+  name: t('businessOverview.chartGeometry.revenue'),
   tone: 0,
   current: (b) => b.revenue,
   previous: (b) => b.previousRevenue,
-};
-const PROFIT: LineSpec = {
+}));
+const PROFIT: LineSpec = localized(() => ({
   id: 'profit',
-  name: 'Estimated profit',
+  name: t('businessOverview.chartGeometry.estimatedProfit'),
   tone: 1,
   current: (b) => b.grossProfit,
   previous: (b) => b.previousGrossProfit,
-};
-const CASH: LineSpec = {
+}));
+const CASH: LineSpec = localized(() => ({
   id: 'cash',
-  name: 'Cash collected',
+  name: t('businessOverview.chartGeometry.cashCollected'),
   tone: 2,
   current: (b) => b.collected,
   previous: (b) => b.previousCollected,
-};
+}));
 
 const TAB_LINES: Readonly<Record<ChartTab, readonly LineSpec[]>> = {
   revenue: [REVENUE, PROFIT],
@@ -140,8 +143,8 @@ export function buildChart(
     TOP + ((axis.max - value) / (axis.max - axis.min)) * plotHeight;
 
   const lines = raw.map(({ spec, previous, values }): ChartLine => ({
-    id: `${spec.id}-${previous ? 'previous' : 'current'}`,
-    label: `${spec.name} (${previous ? 'previous' : 'current'})`,
+    id: `${spec.id}-${previous ? t('businessOverview.chartGeometry.previous') : t('businessOverview.chartGeometry.current')}`,
+    label: `${spec.name} (${previous ? t('businessOverview.chartGeometry.previous') : t('businessOverview.chartGeometry.current')})`,
     dashed: previous,
     tone: spec.tone,
     values,

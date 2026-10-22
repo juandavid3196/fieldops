@@ -11,28 +11,32 @@ import {
 } from '../models/skills-availability.model';
 import { formatWindowTime } from './team-format';
 
-export const DAY_NAMES = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-];
+import { localized, localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
+export const DAY_NAMES = localizedList(() => [
+  t('team.skillsAvailability.sunday'),
+  t('team.skillsAvailability.monday'),
+  t('team.skillsAvailability.tuesday'),
+  t('team.skillsAvailability.wednesday'),
+  t('team.skillsAvailability.thursday'),
+  t('team.skillsAvailability.friday'),
+  t('team.skillsAvailability.saturday'),
+]);
 /** BR-03: Monday first, Sunday last. */
 export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 export const DEFAULT_START = '08:00';
 export const DEFAULT_END = '17:00';
 export const DEFAULT_LEVEL = 3;
 
-export const LEVEL_OPTIONS: { readonly value: number; readonly label: string }[] = [
-  { value: 1, label: 'Beginner' },
-  { value: 2, label: 'Basic' },
-  { value: 3, label: 'Intermediate' },
-  { value: 4, label: 'Advanced' },
-  { value: 5, label: 'Expert' },
-];
+export const LEVEL_OPTIONS: { readonly value: number; readonly label: string }[] = localizedList(
+  () => [
+    { value: 1, label: t('team.skillsAvailability.beginner') },
+    { value: 2, label: t('team.skillsAvailability.basic') },
+    { value: 3, label: t('team.skillsAvailability.intermediate') },
+    { value: 4, label: t('team.skillsAvailability.advanced') },
+    { value: 5, label: t('team.skillsAvailability.expert') },
+  ],
+);
 
 export interface Option<T> {
   readonly value: T;
@@ -154,7 +158,7 @@ export function copyMondayToWeekdays(days: readonly DayForm[]): DayForm[] {
 }
 
 export function breakOptions(day: DayForm): Option<string>[] {
-  const options: Option<string>[] = [{ value: '', label: 'No break' }];
+  const options: Option<string>[] = [{ value: '', label: t('team.skillsAvailability.noBreak') }];
   const start = toMinutes(day.start);
   const end = toMinutes(day.end);
   for (let from = start + 30; from < end; from += 30) {
@@ -289,11 +293,11 @@ export function splitWeeklyErrors(fieldErrors: Readonly<Record<string, readonly 
 
 // Display helpers (BR-03, BR-16, BR-18, BR-19)
 
-export const KIND_LABELS: Readonly<Record<ExceptionKind, string>> = {
-  extended: 'Extended availability',
-  partial: 'Partially unavailable',
-  unavailable: 'Unavailable',
-};
+export const KIND_LABELS: Readonly<Record<ExceptionKind, string>> = localized(() => ({
+  extended: t('team.skillsAvailability.extendedAvailability'),
+  partial: t('team.skillsAvailability.partiallyUnavailable'),
+  unavailable: t('team.skillsAvailability.unavailable'),
+}));
 
 function localDate(value: string): Date {
   const [year, month, day] = value.split('-').map(Number);
@@ -302,7 +306,7 @@ function localDate(value: string): Date {
 
 /** "MMM d, yyyy" from `yyyy-MM-dd`. */
 export function formatExceptionDate(value: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -312,7 +316,7 @@ export function formatExceptionDate(value: string): string {
 
 /** "EEE, MMM d" from `yyyy-MM-dd`. */
 export function formatUpcomingDate(value: string): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeIntlLocale(), {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
@@ -323,7 +327,7 @@ export function formatUpcomingDate(value: string): string {
 export function exceptionTime(start?: string | null, end?: string | null): string {
   return start && end
     ? `${formatWindowTime(start.slice(0, 5))} – ${formatWindowTime(end.slice(0, 5))}`
-    : 'All day';
+    : t('team.skillsAvailability.allDay');
 }
 
 export function windowsText(windows: UpcomingDay['windows']): string {
@@ -336,7 +340,7 @@ export function windowsText(windows: UpcomingDay['windows']): string {
 export function todayIn(timeZone: string, now: Date = new Date()): string {
   let zone: string | undefined = timeZone;
   try {
-    new Intl.DateTimeFormat('en-US', { timeZone });
+    new Intl.DateTimeFormat(activeIntlLocale(), { timeZone });
   } catch {
     zone = undefined;
   }

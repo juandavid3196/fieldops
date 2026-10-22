@@ -6,12 +6,14 @@
   (closeRequested)="closed.emit()"
 >
   <ng-container ngProjectAs="[drawerHeader]">
-    <h2 class="hist__title" [id]="titleId" tabindex="-1">Export history</h2>
+    <h2 class="hist__title" [id]="titleId" tabindex="-1">
+      {{ 'reports.exportHistoryDrawer.exportHistory' | transloco }}
+    </h2>
     <span class="hist__spacer"></span>
     <button
       type="button"
       class="hist__close"
-      aria-label="Close export history"
+      [attr.aria-label]="'reports.exportHistoryDrawer.closeExportHistory' | transloco"
       (click)="closed.emit()"
     >
       <i class="pi pi-times" aria-hidden="true"></i>
@@ -19,13 +21,13 @@
   </ng-container>
 
   <ng-container ngProjectAs="[drawerBody]">
-    <p class="hist__note">Files aren't stored. Open a report to export it again.</p>
+    <p class="hist__note">{{ 'reports.exportHistoryDrawer.filesArenTStored' | transloco }}</p>
     @switch (state().status) {
       @case ('error') {
         <p class="hist__message" role="alert">
           {{ errorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-            Try again
+            {{ 'common.tryAgain' | transloco }}
           </button>
         </p>
       }
@@ -38,7 +40,11 @@
               <li class="hist__item">
                 <p class="hist__name">{{ row.item.reportName }}</p>
                 <p class="hist__meta">
-                  {{ row.when }} · {{ row.format }} · {{ row.item.rowCount }} rows
+                  {{
+                    'reports.exportHistoryDrawer.rows'
+                      | transloco
+                        : { when: row.when, format: row.format, rowCount: row.item.rowCount }
+                  }}
                 </p>
                 <p class="hist__meta">{{ row.period }} · {{ row.branch }}</p>
                 <button
@@ -47,10 +53,13 @@
                   severity="secondary"
                   size="small"
                   [outlined]="true"
-                  [attr.aria-label]="'Open report ' + row.item.reportName"
+                  [attr.aria-label]="
+                    'reports.exportHistoryDrawer.openReport'
+                      | transloco: { reportName: row.item.reportName }
+                  "
                   (click)="reportOpened.emit(row.item)"
                 >
-                  Open report
+                  {{ 'reports.exportHistoryDrawer.openReport2' | transloco }}
                 </button>
               </li>
             }

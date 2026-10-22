@@ -1,5 +1,9 @@
 <p-dialog
-  [header]="canManage() ? 'Edit sequences' : 'Sequences'"
+  [header]="
+    canManage()
+      ? ('organizations.sequencesDialog.editSequences' | transloco)
+      : ('organizations.sequencesDialog.sequences' | transloco)
+  "
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
@@ -40,11 +44,13 @@
   <ng-template #footer>
     @if (canManage()) {
       <button pButton type="button" severity="secondary" [outlined]="true" (click)="close()">
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
-      <button pButton type="button" (click)="apply()">Apply</button>
+      <button pButton type="button" (click)="apply()">{{ 'common.apply' | transloco }}</button>
     } @else {
-      <button pButton type="button" severity="secondary" (click)="close()">Close</button>
+      <button pButton type="button" severity="secondary" (click)="close()">
+        {{ 'common.close' | transloco }}
+      </button>
     }
   </ng-template>
 </p-dialog>

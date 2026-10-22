@@ -16,6 +16,7 @@ import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import {
@@ -42,7 +43,15 @@ const FIELDS: readonly BankField[] = ['bankName', 'accountNumber', 'routingNumbe
  */
 @Component({
   selector: 'app-bank-details-card',
-  imports: [ReactiveFormsModule, ButtonDirective, FormField, InputText, Skeleton, SpinnerIcon],
+  imports: [
+    TranslocoPipe,
+    ReactiveFormsModule,
+    ButtonDirective,
+    FormField,
+    InputText,
+    Skeleton,
+    SpinnerIcon,
+  ],
   templateUrl: './bank-details-card.html',
   styleUrl: './bank-details-card.scss',
 })
@@ -61,8 +70,12 @@ export class BankDetailsCard {
     routingNumber: new FormControl('', { nonNullable: true }),
   });
 
-  protected readonly helper = BANK_HELPER_MESSAGE;
-  protected readonly loadErrorMessage = BANK_LOAD_ERROR_MESSAGE;
+  protected get helper(): string {
+    return BANK_HELPER_MESSAGE();
+  }
+  protected get loadErrorMessage(): string {
+    return BANK_LOAD_ERROR_MESSAGE();
+  }
 
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
@@ -163,7 +176,7 @@ export class BankDetailsCard {
         next: (saved) => {
           this.saving.set(false);
           this.apply(saved);
-          this.messages.add({ severity: 'success', summary: BANK_SAVED_MESSAGE });
+          this.messages.add({ severity: 'success', summary: BANK_SAVED_MESSAGE() });
         },
         error: (error: unknown) => {
           this.saving.set(false);
@@ -185,14 +198,14 @@ export class BankDetailsCard {
         }
       }
       this.errors.set(mapped);
-      this.formMessage.set(Object.keys(mapped).length > 0 ? null : BANK_SAVE_FAILED_MESSAGE);
+      this.formMessage.set(Object.keys(mapped).length > 0 ? null : BANK_SAVE_FAILED_MESSAGE());
     } else if (apiError?.status === 409) {
-      this.formMessage.set(BANK_CHANGED_MESSAGE);
+      this.formMessage.set(BANK_CHANGED_MESSAGE());
       this.stale.set(true);
     } else if (apiError?.status === 503) {
-      this.formMessage.set(BANK_UNAVAILABLE_MESSAGE);
+      this.formMessage.set(BANK_UNAVAILABLE_MESSAGE());
     } else {
-      this.formMessage.set(BANK_SAVE_FAILED_MESSAGE);
+      this.formMessage.set(BANK_SAVE_FAILED_MESSAGE());
     }
   }
 }

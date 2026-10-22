@@ -1,12 +1,17 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ProgressStep, VISIT_STEPS, progressIndex } from '../../models/portal.model';
 
 /** Visit progress (BR-38): past steps complete, the current step marked, text and icon not color. */
 @Component({
   selector: 'app-portal-progress-stepper',
+  imports: [TranslocoPipe],
   template: `
-    <ol class="steps" aria-label="Appointment progress">
+    <ol
+      class="steps"
+      [attr.aria-label]="'portal.portalProgressStepper.appointmentProgress' | transloco"
+    >
       @for (label of steps; track label; let index = $index) {
         <li
           class="steps__item"
@@ -24,7 +29,11 @@ import { ProgressStep, VISIT_STEPS, progressIndex } from '../../models/portal.mo
           <span class="steps__label">{{ label }}</span>
           <span class="sr">
             {{
-              index < step() ? ', completed' : index === step() ? ', current step' : ', upcoming'
+              index < step()
+                ? ('portal.portalProgressStepper.completed' | transloco)
+                : index === step()
+                  ? ('portal.portalProgressStepper.currentStep' | transloco)
+                  : ('portal.portalProgressStepper.upcoming' | transloco)
             }}
           </span>
         </li>

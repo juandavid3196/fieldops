@@ -10,7 +10,7 @@
     <button
       type="button"
       class="property-drawer__close"
-      aria-label="Close property drawer"
+      [attr.aria-label]="'customers.propertyDrawer.closePropertyDrawer' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -29,9 +29,9 @@
     } @else if (loadFailed()) {
       <p-message severity="error" [closable]="false">
         <span class="property-drawer__retry">
-          We couldn't load this property.
+          {{ 'customers.propertyDrawer.weCouldnTLoad' | transloco }}
           <button pButton type="button" severity="secondary" size="small" (click)="load()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -45,7 +45,7 @@
         <app-error-summary [id]="summaryId" [links]="errorLinks()" />
 
         <app-form-field
-          label="Property name"
+          [label]="'customers.propertyDrawer.propertyName' | transloco"
           [controlId]="controlIds.name"
           [required]="true"
           [error]="error('name')"
@@ -66,7 +66,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Address line 1"
+          [label]="'customers.propertyDrawer.addressLine1' | transloco"
           [controlId]="controlIds.addressLine1"
           [required]="true"
           [error]="error('addressLine1')"
@@ -88,7 +88,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Address line 2"
+          [label]="'customers.propertyDrawer.addressLine2' | transloco"
           [controlId]="controlIds.addressLine2"
           [error]="error('addressLine2')"
         >
@@ -109,7 +109,7 @@
 
         <div class="property-drawer__row">
           <app-form-field
-            label="City"
+            [label]="'customers.propertyDrawer.city' | transloco"
             [controlId]="controlIds.city"
             [required]="true"
             [error]="error('city')"
@@ -130,20 +130,20 @@
             />
           </app-form-field>
           <app-form-field
-            label="State"
+            [label]="'customers.propertyDrawer.state' | transloco"
             [controlId]="controlIds.stateRegion"
             [error]="error('stateRegion')"
           >
             @if (usesStateList()) {
               <p-select
                 [inputId]="controlIds.stateRegion"
-                [options]="stateOptions"
+                [options]="stateOptions | localizedRef"
                 optionLabel="label"
                 optionValue="code"
                 [filter]="true"
                 [showClear]="true"
-                ariaLabel="State"
-                placeholder="State"
+                [ariaLabel]="'customers.propertyDrawer.state' | transloco"
+                [placeholder]="'customers.propertyDrawer.state' | transloco"
                 appendTo="body"
                 fluid
                 [ngModel]="form().stateRegion || null"
@@ -171,7 +171,7 @@
             }
           </app-form-field>
           <app-form-field
-            label="ZIP code"
+            [label]="'customers.propertyDrawer.zipCode' | transloco"
             [controlId]="controlIds.postalCode"
             [error]="error('postalCode')"
           >
@@ -192,7 +192,7 @@
         </div>
 
         <app-form-field
-          label="Branch"
+          [label]="'customers.propertyDrawer.branch' | transloco"
           [controlId]="controlIds.branchId"
           [required]="true"
           [error]="error('branchId')"
@@ -202,8 +202,8 @@
             [options]="branchOptions()"
             optionLabel="name"
             optionValue="id"
-            ariaLabel="Branch"
-            placeholder="Select branch"
+            [ariaLabel]="'customers.propertyDrawer.branch' | transloco"
+            [placeholder]="'customers.propertyDrawer.selectBranch' | transloco"
             appendTo="body"
             fluid
             [ngModel]="form().branchId"
@@ -215,7 +215,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Service instructions"
+          [label]="'customers.propertyDrawer.serviceInstructions' | transloco"
           [controlId]="controlIds.serviceInstructions"
           [error]="error('serviceInstructions')"
         >
@@ -223,7 +223,9 @@
             pTextarea
             rows="3"
             fluid
-            placeholder="Add service instructions (optional)"
+            [attr.placeholder]="
+              'customers.propertyDrawer.addServiceInstructionsOptional' | transloco
+            "
             [id]="controlIds.serviceInstructions"
             [ngModel]="form().serviceInstructions"
             (ngModelChange)="patch({ serviceInstructions: $event }, 'serviceInstructions')"
@@ -236,13 +238,16 @@
         </app-form-field>
 
         @if (loaded()) {
-          <dl class="property-drawer__history" aria-label="Property history">
+          <dl
+            class="property-drawer__history"
+            [attr.aria-label]="'customers.propertyDrawer.propertyHistory' | transloco"
+          >
             <div>
-              <dt>Last service</dt>
+              <dt>{{ 'customers.propertyDrawer.lastService' | transloco }}</dt>
               <dd>{{ lastService() }}</dd>
             </div>
             <div>
-              <dt>Next appointment</dt>
+              <dt>{{ 'customers.propertyDrawer.nextAppointment' | transloco }}</dt>
               <dd>{{ nextAppointment() }}</dd>
             </div>
           </dl>
@@ -255,7 +260,7 @@
     <span class="property-drawer__spacer"></span>
     @if (readOnly()) {
       <button pButton type="button" class="property-drawer__action" (click)="requestClose()">
-        Close
+        {{ 'common.close' | transloco }}
       </button>
     } @else {
       <button
@@ -267,7 +272,7 @@
         [disabled]="submitting()"
         (click)="requestClose()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
       <button
         pButton
@@ -279,7 +284,11 @@
         @if (submitting()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        {{ isCreate() ? 'Add property' : 'Save changes' }}
+        {{
+          isCreate()
+            ? ('customers.propertyDrawer.addProperty' | transloco)
+            : ('customers.propertyDrawer.saveChanges' | transloco)
+        }}
       </button>
     }
   </ng-container>

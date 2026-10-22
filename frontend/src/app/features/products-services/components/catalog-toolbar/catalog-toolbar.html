@@ -1,4 +1,8 @@
-<div class="toolbar__tabs" role="tablist" aria-label="Item type">
+<div
+  class="toolbar__tabs"
+  role="tablist"
+  [attr.aria-label]="'productsServices.catalogToolbar.itemType' | transloco"
+>
   @for (tab of tabs; track tab.label; let index = $index) {
     <button
       type="button"
@@ -16,15 +20,19 @@
   }
 </div>
 
-<div class="toolbar__filters" role="search" aria-label="Filter items">
+<div
+  class="toolbar__filters"
+  role="search"
+  [attr.aria-label]="'productsServices.catalogToolbar.filterItems' | transloco"
+>
   <p-iconfield class="toolbar__search-field">
     <p-inputicon class="pi pi-search" />
     <input
       pInputText
       type="search"
       class="toolbar__control"
-      placeholder="Search items..."
-      aria-label="Search items"
+      [attr.placeholder]="'productsServices.catalogToolbar.searchItems' | transloco"
+      [attr.aria-label]="'productsServices.catalogToolbar.searchItems2' | transloco"
       maxlength="100"
       fluid
       [ngModel]="searchText()"
@@ -33,13 +41,13 @@
   </p-iconfield>
 
   <div class="toolbar__field">
-    <label class="toolbar__label" for="catalog-filter-type">Type</label>
+    <label class="toolbar__label" for="catalog-filter-type">{{ 'common.type' | transloco }}</label>
     <p-select
       inputId="catalog-filter-type"
       class="toolbar__control"
       appendTo="body"
       fluid
-      [options]="typeOptions"
+      [options]="typeOptions | localizedRef"
       optionLabel="label"
       optionValue="code"
       [ngModel]="type()"
@@ -48,13 +56,15 @@
   </div>
 
   <div class="toolbar__field">
-    <label class="toolbar__label" for="catalog-filter-tax">Tax status</label>
+    <label class="toolbar__label" for="catalog-filter-tax">{{
+      'productsServices.catalogToolbar.taxStatus' | transloco
+    }}</label>
     <p-select
       inputId="catalog-filter-tax"
       class="toolbar__control"
       appendTo="body"
       fluid
-      [options]="taxOptions"
+      [options]="taxOptions | localizedRef"
       optionLabel="label"
       optionValue="code"
       [ngModel]="taxStatus()"
@@ -63,13 +73,15 @@
   </div>
 
   <div class="toolbar__field">
-    <label class="toolbar__label" for="catalog-filter-status">Status</label>
+    <label class="toolbar__label" for="catalog-filter-status">{{
+      'common.status' | transloco
+    }}</label>
     <p-select
       inputId="catalog-filter-status"
       class="toolbar__control"
       appendTo="body"
       fluid
-      [options]="statusOptions"
+      [options]="statusOptions | localizedRef"
       optionLabel="label"
       optionValue="code"
       [ngModel]="status()"

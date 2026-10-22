@@ -1,6 +1,7 @@
 import { Component, computed, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PaymentDue } from '../../models/portal.model';
 import { dateLabel, money } from '../../utils/portal-format';
@@ -8,7 +9,7 @@ import { dateLabel, money } from '../../utils/portal-format';
 /** Payment due card (BR-21): the invoice with a balance due. */
 @Component({
   selector: 'app-payment-due-card',
-  imports: [ButtonDirective, RouterLink],
+  imports: [TranslocoPipe, ButtonDirective, RouterLink],
   templateUrl: './payment-due-card.html',
   styleUrls: ['../../portal.scss', '../../portal-card.scss', './payment-due-card.scss'],
 })

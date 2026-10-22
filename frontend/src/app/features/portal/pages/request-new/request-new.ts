@@ -15,6 +15,7 @@ import { ButtonDirective } from 'primeng/button';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Subscription, forkJoin } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PortalSessionService } from '../../../../core/services/portal-session.service';
 import { RequestReceived } from '../../components/request-received/request-received';
@@ -31,12 +32,13 @@ import { fieldId } from '../../../service-request/service-request.validators';
 import { PortalPropertiesService } from '../../services/portal-properties.service';
 import { PortalRequestsService } from '../../services/portal-requests.service';
 
+import { t } from '../../../../core/i18n/translate';
 type LoadState = 'loading' | 'ready' | 'unavailable' | 'error';
 
 export function unavailableText(phone: string | null): string {
   return phone === null
-    ? "Online requests aren't available right now. Call the company."
-    : `Online requests aren't available right now. Call ${phone}.`;
+    ? t('portal.requestNew.onlineRequestsArentAvailable')
+    : t('portal.requestNew.onlineRequestsArentAvailable2', { phone: phone });
 }
 
 /** Whether the organization offers at least one requestable service (BR-28). */
@@ -51,6 +53,7 @@ export function hasRequestableService(form: ServiceRequestForm): boolean {
 @Component({
   selector: 'app-portal-request-new',
   imports: [
+    TranslocoPipe,
     AvailabilityStep,
     ButtonDirective,
     Message,
@@ -83,7 +86,9 @@ export class PortalRequestNew {
   );
   protected readonly state = signal<LoadState>('loading');
   protected readonly unavailable = signal(unavailableText(null));
-  protected readonly loadError = "We couldn't load the request form.";
+  protected get loadError(): string {
+    return t('portal.requestNew.weCouldntLoadThe');
+  }
 
   constructor() {
     this.load();

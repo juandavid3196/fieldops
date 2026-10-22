@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 
 import { API_CONFIG } from '../../../core/config/api.config';
+import { LanguageService } from '../../../core/i18n/language.service';
 import { PortalSession } from '../../../core/models/portal-session.model';
 import { PortalSessionService } from '../../../core/services/portal-session.service';
 import { portalUrl } from './portal-url';
@@ -22,6 +23,7 @@ export class PortalInvitationService {
   private readonly http = inject(HttpClient);
   private readonly config = inject(API_CONFIG);
   private readonly session = inject(PortalSessionService);
+  private readonly language = inject(LanguageService);
 
   validate(token: string): Observable<PortalInvitationDetails> {
     return this.http.post<PortalInvitationDetails>(portalUrl(this.config, 'invitations/validate'), {
@@ -31,7 +33,11 @@ export class PortalInvitationService {
 
   /** New user; `lastName` is sent only when the page asked for it. */
   accept(token: string, password: string, lastName: string | null): Observable<PortalSession> {
-    const body = lastName === null ? { token, password } : { token, password, lastName };
+    const preferredLanguage = this.language.lang();
+    const body =
+      lastName === null
+        ? { token, password, preferredLanguage }
+        : { token, password, lastName, preferredLanguage };
     return this.http
       .post<PortalSession>(portalUrl(this.config, 'invitations/accept'), body)
       .pipe(tap((session) => this.session.setSession(session)));

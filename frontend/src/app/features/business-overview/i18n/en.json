@@ -1,0 +1,140 @@
+{
+  "branchPerformance": {
+    "branch": "Branch",
+    "branchPerformance": "Branch performance",
+    "estimatedMargin": "Estimated margin",
+    "jobs": "Jobs",
+    "noBranchActivityIn": "No branch activity in this period.",
+    "onTime": "On-time %",
+    "rating": "Rating",
+    "revenue": "Revenue",
+    "inactive": "{{name}} (inactive)",
+    "marginColumnHint": "Estimated margin = estimated gross profit ÷ revenue."
+  },
+  "businessKpis": {
+    "keyFigures": "Key figures",
+    "acceptedOfSent": "{{accepted}} accepted of {{sent}} sent",
+    "estimatedGrossMargin": "Estimated gross margin",
+    "estimatedGrossProfit": "Estimated gross profit",
+    "jobsCompleted": "Jobs completed",
+    "marginHint": "Estimated gross margin = estimated gross profit ÷ revenue.",
+    "nothingOverdue": "Nothing overdue",
+    "outstandingInvoices": "Outstanding invoices",
+    "overdue": "{{value}} overdue",
+    "profitHint": "Estimated profit = revenue − configured product and service costs.",
+    "quoteConversion": "Quote conversion",
+    "revenue": "Revenue"
+  },
+  "businessOverview": {
+    "branch": "Branch",
+    "businessOverview": "Business Overview",
+    "compareToPreviousPeriod": "Compare to previous period",
+    "dashboard": "Dashboard",
+    "dateRange": "Date range",
+    "exportReport": "Export report",
+    "from": "From",
+    "refreshBusinessOverview": "Refresh business overview",
+    "to": "To",
+    "allBranches": "All branches",
+    "exportErrorMessage": "We couldn't export the report.",
+    "forbiddenMessage": "You don't have access to Dashboard.",
+    "loadErrorMessage": "We couldn't load the business overview.",
+    "noBranchesMessage": "No branches available.",
+    "refreshErrorMessage": "Couldn't refresh."
+  },
+  "cashFlow": {
+    "accountsReceivableAging": "Accounts receivable aging",
+    "cashFlowSnapshot": "Cash flow snapshot",
+    "viewReceivables": "View receivables",
+    "collected": "Collected",
+    "current": "Current",
+    "invoiced": "Invoiced",
+    "n130Days": "1 – 30 days",
+    "n3160Days": "31 – 60 days",
+    "n60Days": "60+ days",
+    "outstanding": "Outstanding",
+    "overdue": "Overdue"
+  },
+  "ownerAttention": {
+    "critical": "Critical: ",
+    "estimatesDisclaimer": "Estimates disclaimer",
+    "ownerAttention": "Owner attention",
+    "showLess": "Show less",
+    "warning": "Warning: ",
+    "attentionEmptyText": "Nothing needs your attention.",
+    "disclaimerText": "Profitability figures are operational estimates based on configured product and service costs. They exclude overhead, payroll, payroll taxes, depreciation, and other accounting expenses. They are not net income and not a substitute for accounting software.",
+    "viewAll": "View all ({{count}})"
+  },
+  "revenueChart": {
+    "chartSeries": "Chart series",
+    "period": "Period",
+    "revenueAndEstimatedProfit": "Revenue and estimated profit by period",
+    "revenueEstimatedProfit": "Revenue & estimated profit",
+    "chartEmptyText": "No data for this period."
+  },
+  "salesPipeline": {
+    "salesPipeline": "Sales pipeline",
+    "accepted": "Accepted",
+    "jobsCreated": "Jobs created",
+    "quotesSent": "Quotes sent",
+    "requests": "Requests"
+  },
+  "serviceProfitability": {
+    "avgJobValue": "Avg job value",
+    "estimatedMargin": "Estimated margin",
+    "revenue": "Revenue",
+    "service": "Service",
+    "serviceProfitabilityEstimates": "Service profitability estimates",
+    "servicesEmptyText": "No invoiced services in this period."
+  },
+  "teamCapacity": {
+    "teamCapacity": "Team & capacity",
+    "next7DaysScheduled": "Next 7 days (scheduled)",
+    "scheduledOvertime": "Scheduled overtime",
+    "technicians": "Technicians",
+    "utilization": "Utilization"
+  },
+  "businessParams": {
+    "apr": "Apr",
+    "aug": "Aug",
+    "custom": "Custom",
+    "dec": "Dec",
+    "feb": "Feb",
+    "jan": "Jan",
+    "jul": "Jul",
+    "jun": "Jun",
+    "last30Days": "Last 30 days",
+    "lastMonth": "Last month",
+    "mar": "Mar",
+    "may": "May",
+    "nov": "Nov",
+    "oct": "Oct",
+    "sep": "Sep",
+    "thisMonth": "This month",
+    "thisQuarter": "This quarter",
+    "thisYear": "This year"
+  },
+  "businessView": {
+    "belowTargetText": "Below 40% target",
+    "branch": "Branch",
+    "estimatedMarginBelowTarget": "{{value}} estimated margin below target",
+    "noChange": "No change",
+    "overdueInvoice": "{{count}} overdue invoice",
+    "scheduledOvertimeUp": "Scheduled overtime up {{value}}%",
+    "service": "Service",
+    "totaling": "Totaling {{value}}",
+    "vsInPreviousPeriod": "{{value}} vs {{value2}} in previous period",
+    "vsTarget": "{{marginPercent}} vs {{value}}% target",
+    "overdueInvoices": "{{count}} overdue invoices"
+  },
+  "chartGeometry": {
+    "cashCollected": "Cash collected",
+    "current": "current",
+    "estimatedProfit": "Estimated profit",
+    "previous": "previous",
+    "revenue": "Revenue"
+  },
+  "deltaBadge": {
+    "vsPreviousPeriod": "vs previous period"
+  }
+}

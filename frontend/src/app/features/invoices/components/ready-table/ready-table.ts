@@ -2,6 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { QueueResponse } from '../../../billing-review/models/billing-review.model';
 import { READY_EMPTY_MESSAGE, READY_ERROR_MESSAGE, Region } from '../../models/invoices-hub.model';
@@ -11,7 +12,7 @@ import { HubPager } from '../hub-pager/hub-pager';
 /** Ready tab list (BR-23): completed jobs ready to invoice from the review queue. */
 @Component({
   selector: 'app-ready-table',
-  imports: [ButtonDirective, HubPager, RouterLink, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, HubPager, RouterLink, Skeleton],
   templateUrl: './ready-table.html',
   styleUrl: '../invoices-table/invoices-table.scss',
 })
@@ -23,8 +24,12 @@ export class ReadyTable {
   readonly pageChange = output<number>();
   readonly retry = output<void>();
 
-  readonly errorMessage = READY_ERROR_MESSAGE;
-  readonly emptyMessage = READY_EMPTY_MESSAGE;
+  get errorMessage(): string {
+    return READY_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return READY_EMPTY_MESSAGE();
+  }
   readonly rows = computed(() =>
     (this.region().data?.items ?? []).map((item) => ({
       item,

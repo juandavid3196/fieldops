@@ -1,4 +1,4 @@
-<ul class="metrics" aria-label="Request metrics">
+<ul class="metrics" [attr.aria-label]="'requests.requestMetrics.requestMetrics' | transloco">
   @for (metric of items(); track metric.key) {
     <li class="metrics__card">
       <span class="metrics__icon" aria-hidden="true">
@@ -22,8 +22,9 @@
               class="metrics__delta metrics__delta--{{ metric.tone }}"
               [attr.aria-label]="
                 metric.direction === 'none'
-                  ? 'No comparison available'
-                  : 'Change ' + metric.delta + ' ' + metric.comparison
+                  ? ('requests.requestMetrics.noComparisonAvailable' | transloco)
+                  : ('requests.requestMetrics.change'
+                    | transloco: { delta: metric.delta, comparison: metric.comparison })
               "
             >
               @if (metric.direction === 'up') {

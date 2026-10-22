@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { injectHelpContext } from '../../utils/help-audience';
 
 /** FR-12: unknown topic, unknown article or an article under the wrong topic or audience. */
 @Component({
   selector: 'app-help-not-found',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './help-not-found.html',
   styleUrl: './help-not-found.scss',
 })

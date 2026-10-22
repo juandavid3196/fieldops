@@ -4,7 +4,7 @@
   [draggable]="false"
   [resizable]="false"
   [closable]="true"
-  closeAriaLabel="Close"
+  [closeAriaLabel]="'common.close' | transloco"
   [visible]="visible()"
   (visibleChange)="$event ? null : close()"
   [style]="{ width: '30rem', maxWidth: '96vw' }"
@@ -16,14 +16,16 @@
         type="button"
         severity="secondary"
         [outlined]="true"
-        aria-label="Previous photo"
+        [attr.aria-label]="'technicianJobs.photoViewer.previousPhoto' | transloco"
         [disabled]="photos().length < 2"
         (click)="step(-1)"
       >
         <i class="pi pi-chevron-left" aria-hidden="true"></i>
       </button>
       @if (unavailable()) {
-        <p class="viewer__failed">Photo unavailable.</p>
+        <p class="viewer__failed">
+          {{ 'technicianJobs.photoViewer.photoUnavailable' | transloco }}
+        </p>
       } @else {
         <img class="viewer__image" [src]="current.url" [alt]="alt()" (error)="markFailed()" />
       }
@@ -32,7 +34,7 @@
         type="button"
         severity="secondary"
         [outlined]="true"
-        aria-label="Next photo"
+        [attr.aria-label]="'technicianJobs.photoViewer.nextPhoto' | transloco"
         [disabled]="photos().length < 2"
         (click)="step(1)"
       >
@@ -49,7 +51,7 @@
         (click)="deleteRequest.emit({ id: current.id, trigger: $any($event.currentTarget) })"
       >
         <i class="pi pi-trash" aria-hidden="true"></i>
-        Delete photo
+        {{ 'technicianJobs.photoViewer.deletePhoto' | transloco }}
       </button>
     }
   }

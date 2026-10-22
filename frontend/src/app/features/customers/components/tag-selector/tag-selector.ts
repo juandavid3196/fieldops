@@ -1,9 +1,11 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { InputText } from 'primeng/inputtext';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { CustomerTag, MAX_TAGS } from '../../models/customer.model';
 
+import { t } from '../../../../core/i18n/translate';
 interface TagOption {
   readonly key: string;
   readonly label: string;
@@ -22,7 +24,7 @@ export const MAX_TAG_NAME_LENGTH = 40;
  */
 @Component({
   selector: 'app-tag-selector',
-  imports: [FormsModule, InputText],
+  imports: [TranslocoPipe, FormsModule, InputText],
   templateUrl: './tag-selector.html',
   styleUrl: './tag-selector.scss',
 })
@@ -69,7 +71,7 @@ export class TagSelector {
     if (this.canCreate() && text.length > 0 && text.length <= MAX_TAG_NAME_LENGTH && !exact) {
       found.push({
         key: 'create',
-        label: `Create "${text}"`,
+        label: t('customers.tagSelector.create', { text: text }),
         tag: null,
         createName: text,
         selected: false,

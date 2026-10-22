@@ -17,6 +17,7 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Subject, catchError, debounceTime, map, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { MaterialSource } from '../../../jobs/models/work-order.model';
 import { SOURCE_LABELS, optionsOf } from '../../../jobs/utils/work-order-format';
@@ -29,6 +30,8 @@ import {
   materialErrors,
 } from '../../utils/work-order-form';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 export type MaterialValue = Omit<MaterialRow, 'uid'>;
 
 const SEARCH_DEBOUNCE_MS = 300;
@@ -39,7 +42,16 @@ const SEARCH_DEBOUNCE_MS = 300;
  */
 @Component({
   selector: 'app-work-order-material-dialog',
-  imports: [FormsModule, ButtonDirective, Dialog, InputText, Select, SpinnerIcon],
+  imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
+    FormsModule,
+    ButtonDirective,
+    Dialog,
+    InputText,
+    Select,
+    SpinnerIcon,
+  ],
   templateUrl: './work-order-material-dialog.html',
   styleUrl: './work-order-material-dialog.scss',
 })
@@ -55,7 +67,11 @@ export class WorkOrderMaterialDialog {
   readonly dismissed = output<void>();
 
   readonly sources = optionsOf(SOURCE_LABELS);
-  readonly title = computed(() => (this.material() === null ? 'Add material' : 'Edit material'));
+  readonly title = computed(() =>
+    this.material() === null
+      ? t('quotes.workOrderMaterialDialog.addMaterial')
+      : t('quotes.workOrderMaterialDialog.editMaterial'),
+  );
 
   readonly search = signal('');
   readonly searching = signal(false);

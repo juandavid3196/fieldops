@@ -10,7 +10,7 @@
     <button
       type="button"
       class="item-drawer__close"
-      aria-label="Close item drawer"
+      [attr.aria-label]="'productsServices.itemDrawer.closeItemDrawer' | transloco"
       [disabled]="submitting()"
       (click)="requestClose()"
     >
@@ -31,9 +31,9 @@
     } @else if (detailFailed()) {
       <p-message severity="error" [closable]="false">
         <span class="item-drawer__retry">
-          We couldn't load this item. Check your connection and try again.
+          {{ 'productsServices.itemDrawer.weCouldnTLoad' | transloco }}
           <button pButton type="button" severity="secondary" size="small" (click)="loadDetail()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -51,8 +51,14 @@
         />
 
         <fieldset class="item-drawer__type" [disabled]="submitting() || readOnly()">
-          <legend class="item-drawer__legend">Type <span aria-hidden="true">*</span></legend>
-          <div class="item-drawer__segments" role="radiogroup" aria-label="Type">
+          <legend class="item-drawer__legend">
+            {{ 'common.type' | transloco }} <span aria-hidden="true">*</span>
+          </legend>
+          <div
+            class="item-drawer__segments"
+            role="radiogroup"
+            [attr.aria-label]="'common.type' | transloco"
+          >
             @for (option of typeOptions; track option.value) {
               <label
                 class="item-drawer__segment"
@@ -82,7 +88,7 @@
         </fieldset>
 
         <app-form-field
-          label="Name"
+          [label]="'common.name' | transloco"
           [controlId]="controlIds.name"
           [required]="true"
           [error]="error('name')"
@@ -104,7 +110,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Description"
+          [label]="'common.description' | transloco"
           [controlId]="controlIds.description"
           [error]="error('description')"
         >
@@ -127,13 +133,15 @@
 
         @if (readOnly()) {
           <div class="item-drawer__readonly">
-            <span class="item-drawer__legend">Category</span>
+            <span class="item-drawer__legend">{{
+              'productsServices.itemDrawer.category' | transloco
+            }}</span>
             <p class="item-drawer__readonly-value">{{ categoryText() }}</p>
           </div>
         } @else {
           <div class="item-drawer__category">
             <app-form-field
-              label="Category"
+              [label]="'productsServices.itemDrawer.category' | transloco"
               [controlId]="controlIds.category"
               [error]="error('category')"
             >
@@ -161,7 +169,7 @@
                     size="small"
                     (click)="retryCategories.emit()"
                   >
-                    Retry
+                    {{ 'common.retry' | transloco }}
                   </button>
                 </span>
               </p-message>
@@ -170,11 +178,11 @@
         }
 
         <app-form-field
-          label="Unit cost"
+          [label]="'productsServices.itemDrawer.unitCost' | transloco"
           [controlId]="controlIds.unitCost"
           [required]="true"
           [error]="error('unitCost')"
-          helper="Internal only. Used for profitability analysis."
+          [helper]="'productsServices.itemDrawer.internalOnlyUsedFor' | transloco"
         >
           <div class="item-drawer__money">
             <span class="item-drawer__symbol" aria-hidden="true">{{ money().symbol }}</span>
@@ -189,7 +197,10 @@
               [disabled]="submitting() || readOnly()"
               [invalid]="error('unitCost') !== null"
               aria-required="true"
-              [attr.aria-label]="'Unit cost' + currencyLabel()"
+              [attr.aria-label]="
+                'productsServices.itemDrawer.unitCost2'
+                  | transloco: { currencyLabel: currencyLabel() }
+              "
               [attr.aria-invalid]="error('unitCost') !== null ? 'true' : null"
               [attr.aria-describedby]="
                 error('unitCost') !== null
@@ -202,7 +213,7 @@
         </app-form-field>
 
         <app-form-field
-          label="Unit price"
+          [label]="'productsServices.itemDrawer.unitPrice' | transloco"
           [controlId]="controlIds.unitPrice"
           [required]="true"
           [error]="error('unitPrice')"
@@ -220,7 +231,10 @@
               [disabled]="submitting() || readOnly()"
               [invalid]="error('unitPrice') !== null"
               aria-required="true"
-              [attr.aria-label]="'Unit price' + currencyLabel()"
+              [attr.aria-label]="
+                'productsServices.itemDrawer.unitPrice2'
+                  | transloco: { currencyLabel: currencyLabel() }
+              "
               [attr.aria-invalid]="error('unitPrice') !== null ? 'true' : null"
               [attr.aria-describedby]="
                 error('unitPrice') !== null ? controlIds.unitPrice + '-error' : null
@@ -234,31 +248,34 @@
           <i class="pi pi-lock" aria-hidden="true"></i>
           <div aria-live="polite">
             <h3 class="item-drawer__margin-title" id="item-margin-title">
-              Estimated margin (calculated)
+              {{ 'productsServices.itemDrawer.estimatedMarginCalculated' | transloco }}
             </h3>
             <p class="item-drawer__margin-value">{{ marginText() }}</p>
             <p class="item-drawer__margin-profit">
-              Estimated gross profit per unit <strong>{{ profitText() }}</strong>
+              {{ 'productsServices.itemDrawer.estimatedGrossProfitPer' | transloco }}
+              <strong>{{ profitText() }}</strong>
             </p>
           </div>
-          <p class="item-drawer__margin-formula">(Unit price – unit cost) ÷ unit price</p>
+          <p class="item-drawer__margin-formula">
+            {{ 'productsServices.itemDrawer.unitPriceUnitCost' | transloco }}
+          </p>
         </section>
 
         <div class="item-drawer__switch">
-          <label for="item-taxable">Taxable</label>
+          <label for="item-taxable">{{ 'productsServices.itemDrawer.taxable' | transloco }}</label>
           <p-toggleswitch
             inputId="item-taxable"
-            ariaLabel="Taxable"
+            [ariaLabel]="'productsServices.itemDrawer.taxable' | transloco"
             [ngModel]="isTaxable()"
             (ngModelChange)="isTaxable.set($event)"
             [disabled]="submitting() || readOnly()"
           />
         </div>
         <div class="item-drawer__switch">
-          <label for="item-active">Active</label>
+          <label for="item-active">{{ 'common.active' | transloco }}</label>
           <p-toggleswitch
             inputId="item-active"
-            ariaLabel="Active"
+            [ariaLabel]="'common.active' | transloco"
             [ngModel]="isActive()"
             (ngModelChange)="isActive.set($event)"
             [disabled]="submitting() || readOnly()"
@@ -268,12 +285,18 @@
         @if (!readOnly() || hasImage()) {
           <section class="item-drawer__image" aria-labelledby="item-image-title">
             <h3 class="item-drawer__section-title" id="item-image-title">
-              Item image <span class="item-drawer__optional">(optional)</span>
+              {{ 'productsServices.itemDrawer.itemImage' | transloco }}
+              <span class="item-drawer__optional">{{
+                'productsServices.itemDrawer.optional' | transloco
+              }}</span>
             </h3>
             @if (hasImage()) {
               <div class="item-drawer__preview">
                 @if (previewUrl(); as url) {
-                  <img [src]="url" alt="Item image preview" />
+                  <img
+                    [src]="url"
+                    [attr.alt]="'productsServices.itemDrawer.itemImagePreview' | transloco"
+                  />
                 } @else {
                   <i class="pi pi-image" aria-hidden="true"></i>
                 }
@@ -288,7 +311,7 @@
                       [disabled]="submitting()"
                       (click)="fileInput.click()"
                     >
-                      Replace
+                      {{ 'productsServices.itemDrawer.replace' | transloco }}
                     </button>
                     <button
                       pButton
@@ -299,7 +322,7 @@
                       [disabled]="submitting()"
                       (click)="removeImage()"
                     >
-                      Remove
+                      {{ 'common.remove' | transloco }}
                     </button>
                   </div>
                 }
@@ -317,8 +340,8 @@
               >
                 <i class="pi pi-image" aria-hidden="true"></i>
                 <span>
-                  Drag and drop an image here or click to upload
-                  <small>PNG, JPG up to 5MB</small>
+                  {{ 'productsServices.itemDrawer.dragAndDropAn' | transloco }}
+                  <small>{{ 'productsServices.itemDrawer.pngJpgUpTo' | transloco }}</small>
                 </span>
               </button>
             }
@@ -343,7 +366,9 @@
         @if (usage(); as usageLine) {
           @if (!isCreate()) {
             <section class="item-drawer__usage" aria-labelledby="item-usage-title">
-              <h3 class="item-drawer__section-title" id="item-usage-title">Usage</h3>
+              <h3 class="item-drawer__section-title" id="item-usage-title">
+                {{ 'productsServices.itemDrawer.usage' | transloco }}
+              </h3>
               <p>{{ usageLine }}</p>
             </section>
           }
@@ -356,7 +381,7 @@
     <span class="item-drawer__spacer"></span>
     @if (readOnly()) {
       <button pButton type="button" class="item-drawer__action" (click)="requestClose()">
-        Close
+        {{ 'common.close' | transloco }}
       </button>
     } @else {
       <button
@@ -368,7 +393,7 @@
         [disabled]="submitting()"
         (click)="requestClose()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
       <button
         pButton
@@ -380,7 +405,7 @@
         @if (submitting()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        Save item
+        {{ 'productsServices.itemDrawer.saveItem' | transloco }}
       </button>
     }
   </ng-container>

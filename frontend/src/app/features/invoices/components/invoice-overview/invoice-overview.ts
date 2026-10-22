@@ -2,6 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   METRICS_ERROR_MESSAGE,
@@ -12,13 +13,14 @@ import {
 } from '../../models/invoices-hub.model';
 import { averageDaysText, formatCalendarDate, money } from '../../utils/invoices-hub-format';
 
+import { t } from '../../../../core/i18n/translate';
 /**
  * Hub overview (BR-21, BR-24): `metrics` renders the five metric cards above the tabs; `summary`
  * renders the aging cards and the recent payments below them. Each part has its own skeleton.
  */
 @Component({
   selector: 'app-invoice-overview',
-  imports: [ButtonDirective, RouterLink, Skeleton],
+  imports: [TranslocoPipe, ButtonDirective, RouterLink, Skeleton],
   templateUrl: './invoice-overview.html',
   styleUrl: './invoice-overview.scss',
 })
@@ -30,8 +32,12 @@ export class InvoiceOverview {
   readonly retry = output<void>();
   readonly viewAll = output<void>();
 
-  readonly errorMessage = METRICS_ERROR_MESSAGE;
-  readonly emptyMessage = PAYMENTS_EMPTY_MESSAGE;
+  get errorMessage(): string {
+    return METRICS_ERROR_MESSAGE();
+  }
+  get emptyMessage(): string {
+    return PAYMENTS_EMPTY_MESSAGE();
+  }
 
   readonly metrics = computed(() => {
     const data = this.region().data;
@@ -41,17 +47,32 @@ export class InvoiceOverview {
     const { metrics } = data;
     const value = (amount: number): string => money(amount, metrics.currency);
     return [
-      { label: 'Outstanding', icon: 'pi-file', tone: 'info', value: value(metrics.outstanding) },
-      { label: 'Overdue', icon: 'pi-clock', tone: 'danger', value: value(metrics.overdue) },
-      { label: 'Draft', icon: 'pi-file-edit', tone: 'neutral', value: value(metrics.draft) },
       {
-        label: 'Paid this month',
+        label: t('invoices.invoiceOverview.outstanding'),
+        icon: 'pi-file',
+        tone: 'info',
+        value: value(metrics.outstanding),
+      },
+      {
+        label: t('invoices.invoiceOverview.overdue'),
+        icon: 'pi-clock',
+        tone: 'danger',
+        value: value(metrics.overdue),
+      },
+      {
+        label: t('invoices.invoiceOverview.draft'),
+        icon: 'pi-file-edit',
+        tone: 'neutral',
+        value: value(metrics.draft),
+      },
+      {
+        label: t('invoices.invoiceOverview.paidThisMonth'),
         icon: 'pi-credit-card',
         tone: 'success',
         value: value(metrics.paidThisMonth),
       },
       {
-        label: 'Average time to pay',
+        label: t('invoices.invoiceOverview.averageTimeToPay'),
         icon: 'pi-chart-bar',
         tone: 'violet',
         value: averageDaysText(metrics.averageDaysToPay),
@@ -66,10 +87,26 @@ export class InvoiceOverview {
     }
     const value = (amount: number): string => money(amount, this.currency());
     return [
-      { label: 'Current', tone: 'success', value: value(data.aging.current) },
-      { label: '1 – 30 days', tone: 'warning', value: value(data.aging.days1To30) },
-      { label: '31 – 60 days', tone: 'orange', value: value(data.aging.days31To60) },
-      { label: '60+ days', tone: 'danger', value: value(data.aging.days60Plus) },
+      {
+        label: t('invoices.invoiceOverview.current'),
+        tone: 'success',
+        value: value(data.aging.current),
+      },
+      {
+        label: t('invoices.invoiceOverview.n130Days'),
+        tone: 'warning',
+        value: value(data.aging.days1To30),
+      },
+      {
+        label: t('invoices.invoiceOverview.n3160Days'),
+        tone: 'orange',
+        value: value(data.aging.days31To60),
+      },
+      {
+        label: t('invoices.invoiceOverview.n60Days'),
+        tone: 'danger',
+        value: value(data.aging.days60Plus),
+      },
     ];
   });
 

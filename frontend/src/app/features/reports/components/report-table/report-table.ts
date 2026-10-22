@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { ButtonDirective } from 'primeng/button';
 import { Paginator, PaginatorState } from 'primeng/paginator';
 import { Select } from 'primeng/select';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { REPORT_PAGE_SIZES, ReportRow, SortDirection } from '../../models/reports.model';
 import { ReportColumn, ReportMeta } from '../../utils/report-catalog';
@@ -16,7 +17,9 @@ import {
   totalView,
 } from '../../utils/report-view';
 
-export const TABLE_EMPTY_MESSAGE = 'No rows match these filters.';
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
+export const TABLE_EMPTY_MESSAGE = (): string => t('reports.reportTable.tableEmptyMessage');
 
 interface RowView {
   readonly id: string;
@@ -26,7 +29,16 @@ interface RowView {
 /** BR-07/BR-21: sortable headers (`aria-sort`), totals row of the whole set, footer and paging. */
 @Component({
   selector: 'app-report-table',
-  imports: [ButtonDirective, FormsModule, NgTemplateOutlet, Paginator, RouterLink, Select],
+  imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
+    ButtonDirective,
+    FormsModule,
+    NgTemplateOutlet,
+    Paginator,
+    RouterLink,
+    Select,
+  ],
   templateUrl: './report-table.html',
   styleUrl: './report-table.scss',
 })
@@ -48,11 +60,15 @@ export class ReportTable {
   readonly pageSizeRequested = output<number>();
   readonly resetRequested = output<void>();
 
-  readonly emptyMessage = TABLE_EMPTY_MESSAGE;
-  readonly belowTarget = BELOW_TARGET_TEXT;
+  get emptyMessage(): string {
+    return TABLE_EMPTY_MESSAGE();
+  }
+  get belowTarget(): string {
+    return BELOW_TARGET_TEXT();
+  }
   readonly pageSizeOptions = REPORT_PAGE_SIZES.map((size) => ({
     code: String(size),
-    label: `${size} / page`,
+    label: t('reports.reportTable.page', { size: size }),
   }));
 
   private readonly context = computed<CellContext>(() => ({
@@ -73,7 +89,12 @@ export class ReportTable {
   readonly footer = computed(() => {
     const first = (this.page() - 1) * this.pageSize() + 1;
     const last = Math.min(this.page() * this.pageSize(), this.total());
-    return `Showing ${first}–${last} of ${this.total()} ${this.meta().noun}`;
+    return t('reports.reportTable.showingOf', {
+      first: first,
+      last: last,
+      total: this.total(),
+      noun: this.meta().noun,
+    });
   });
   readonly pageSizeCode = computed(() => String(this.pageSize()));
 

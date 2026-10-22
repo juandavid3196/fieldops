@@ -2,27 +2,31 @@
   class="sidebar"
   [class.sidebar--rail]="rail()"
   [class.sidebar--drawer]="drawer()"
-  [attr.aria-label]="drawer() ? null : 'Sidebar'"
+  [attr.aria-label]="drawer() ? null : ('shell.shellSidebar.sidebar' | transloco)"
 >
   @if (drawer()) {
     <div class="sidebar__brand sidebar__brand--drawer">
       <p class="sidebar__wordmark" aria-hidden="true">
         <ng-container [ngTemplateOutlet]="mark" />
-        <span>Field</span><span class="sidebar__accent">Ops</span>
+        <span>{{ 'shell.shellSidebar.field' | transloco }}</span
+        ><span class="sidebar__accent">{{ 'shell.shellSidebar.ops' | transloco }}</span>
       </p>
-      <span class="sidebar__hidden" id="shell-drawer-title">Navigation</span>
+      <span class="sidebar__hidden" id="shell-drawer-title">{{
+        'shell.shellSidebar.navigation' | transloco
+      }}</span>
       <button type="button" class="sidebar__close" (click)="closeRequested.emit()">
         <i class="pi pi-times" aria-hidden="true"></i>
-        <span class="sidebar__hidden">Close navigation</span>
+        <span class="sidebar__hidden">{{ 'shell.shellSidebar.closeNavigation' | transloco }}</span>
       </button>
     </div>
   } @else {
     <p class="sidebar__brand">
       <ng-container [ngTemplateOutlet]="mark" />
       @if (rail()) {
-        <span class="sidebar__hidden">FieldOps</span>
+        <span class="sidebar__hidden">{{ 'shell.shellSidebar.fieldops' | transloco }}</span>
       } @else {
-        <span>Field</span><span class="sidebar__accent">Ops</span>
+        <span>{{ 'shell.shellSidebar.field' | transloco }}</span
+        ><span class="sidebar__accent">{{ 'shell.shellSidebar.ops' | transloco }}</span>
       }
     </p>
   }
@@ -35,7 +39,7 @@
     </svg>
   </ng-template>
 
-  <nav class="sidebar__nav" aria-label="Main navigation">
+  <nav class="sidebar__nav" [attr.aria-label]="'shell.shellSidebar.mainNavigation' | transloco">
     <ul class="sidebar__list">
       @for (group of groups(); track group.id) {
         <li [class.sidebar__group--divider]="group.divider">
@@ -116,8 +120,8 @@
     <button
       type="button"
       class="sidebar__collapse"
-      [attr.aria-label]="rail() ? 'Expand navigation' : null"
-      [pTooltip]="rail() ? 'Expand' : undefined"
+      [attr.aria-label]="rail() ? ('shell.shellSidebar.expandNavigation' | transloco) : null"
+      [pTooltip]="rail() ? ('shell.shellSidebar.expand' | transloco) : undefined"
       tooltipPosition="right"
       (click)="collapseToggled.emit()"
     >
@@ -128,7 +132,7 @@
         aria-hidden="true"
       ></i>
       @if (!rail()) {
-        <span>Collapse</span>
+        <span>{{ 'shell.shellSidebar.collapse' | transloco }}</span>
       }
     </button>
   }

@@ -1,8 +1,8 @@
 <header class="tb">
   <div class="tb__top">
     <div class="tb__heading">
-      <h1 class="tb__title">Dispatch calendar</h1>
-      <p class="tb__subtitle">Schedule and assign work orders to your team</p>
+      <h1 class="tb__title">{{ 'schedule.scheduleToolbar.dispatchCalendar' | transloco }}</h1>
+      <p class="tb__subtitle">{{ 'schedule.scheduleToolbar.scheduleAndAssignWork' | transloco }}</p>
     </div>
     <div class="tb__controls">
       <button
@@ -13,13 +13,21 @@
         [outlined]="true"
         (click)="todayRequested.emit()"
       >
-        Today
+        {{ 'schedule.scheduleToolbar.today' | transloco }}
       </button>
-      <div class="tb__range" role="group" aria-label="Date range">
+      <div
+        class="tb__range"
+        role="group"
+        [attr.aria-label]="'schedule.scheduleToolbar.dateRange' | transloco"
+      >
         <button
           type="button"
           class="tb__nav"
-          [attr.aria-label]="view() === 'day' ? 'Previous day' : 'Previous week'"
+          [attr.aria-label]="
+            view() === 'day'
+              ? ('schedule.scheduleToolbar.previousDay' | transloco)
+              : ('schedule.scheduleToolbar.previousWeek' | transloco)
+          "
           (click)="previousRequested.emit()"
         >
           <i class="pi pi-chevron-left" aria-hidden="true"></i>
@@ -28,13 +36,21 @@
         <button
           type="button"
           class="tb__nav"
-          [attr.aria-label]="view() === 'day' ? 'Next day' : 'Next week'"
+          [attr.aria-label]="
+            view() === 'day'
+              ? ('schedule.scheduleToolbar.nextDay' | transloco)
+              : ('schedule.scheduleToolbar.nextWeek' | transloco)
+          "
           (click)="nextRequested.emit()"
         >
           <i class="pi pi-chevron-right" aria-hidden="true"></i>
         </button>
       </div>
-      <div class="tb__toggle" role="group" aria-label="Calendar view">
+      <div
+        class="tb__toggle"
+        role="group"
+        [attr.aria-label]="'schedule.scheduleToolbar.calendarView' | transloco"
+      >
         <button
           type="button"
           class="tb__seg"
@@ -42,7 +58,7 @@
           [attr.aria-pressed]="view() === 'day'"
           (click)="viewChange.emit('day')"
         >
-          Day
+          {{ 'schedule.scheduleToolbar.day' | transloco }}
         </button>
         <button
           type="button"
@@ -51,7 +67,7 @@
           [attr.aria-pressed]="view() === 'week'"
           (click)="viewChange.emit('week')"
         >
-          Week
+          {{ 'schedule.scheduleToolbar.week' | transloco }}
         </button>
       </div>
       <button
@@ -64,7 +80,7 @@
         aria-describedby="tb-map-note"
       >
         <i class="pi pi-map" aria-hidden="true"></i>
-        Map view
+        {{ 'schedule.scheduleToolbar.mapView' | transloco }}
       </button>
       <span class="tb__sr" id="tb-map-note">{{ mapMessage }}</span>
     </div>
@@ -82,19 +98,21 @@
       (click)="filtersOpen.set(!filtersOpen())"
     >
       <i class="pi pi-filter" aria-hidden="true"></i>
-      Filters
+      {{ 'common.filters' | transloco }}
     </button>
   }
   @if (!compact() || filtersOpen()) {
     <div class="tb__filters" id="tb-filters">
       <div class="tb__filter">
-        <label class="tb__sr" for="tb-branch">Branch</label>
+        <label class="tb__sr" for="tb-branch">{{
+          'schedule.scheduleToolbar.branch' | transloco
+        }}</label>
         <p-select
           [options]="branchOptions()"
           optionLabel="name"
           optionValue="id"
           [inputId]="'tb-branch'"
-          ariaLabel="Branch"
+          [ariaLabel]="'schedule.scheduleToolbar.branch' | transloco"
           appendTo="body"
           fluid
           [ngModel]="branchModel()"
@@ -102,20 +120,23 @@
         >
           <ng-template #selectedItem let-item>
             <span class="tb__value"
-              >Branch: <strong>{{ item.name }}</strong></span
+              >{{ 'schedule.scheduleToolbar.branch2' | transloco }}
+              <strong>{{ item.name }}</strong></span
             >
           </ng-template>
         </p-select>
       </div>
       <div class="tb__filter">
-        <label class="tb__sr" for="tb-team">Team</label>
+        <label class="tb__sr" for="tb-team">{{
+          'schedule.scheduleToolbar.team' | transloco
+        }}</label>
         <p-multiselect
           [options]="teamChoices()"
           optionLabel="name"
           optionValue="id"
           [inputId]="'tb-team'"
-          ariaLabel="Team"
-          placeholder="Team: All"
+          [ariaLabel]="'schedule.scheduleToolbar.team' | transloco"
+          [placeholder]="'schedule.scheduleToolbar.teamAll' | transloco"
           [showToggleAll]="false"
           appendTo="body"
           fluid
@@ -124,20 +145,23 @@
         >
           <ng-template #selectedItems let-value>
             <span class="tb__value"
-              >Team: <strong>{{ teamNames(value) }}</strong></span
+              >{{ 'schedule.scheduleToolbar.team2' | transloco }}
+              <strong>{{ teamNames(value) }}</strong></span
             >
           </ng-template>
         </p-multiselect>
       </div>
       <div class="tb__filter">
-        <label class="tb__sr" for="tb-skills">Skills</label>
+        <label class="tb__sr" for="tb-skills">{{
+          'schedule.scheduleToolbar.skills' | transloco
+        }}</label>
         <p-select
           [options]="skillChoices()"
           optionLabel="name"
           optionValue="id"
           [inputId]="'tb-skills'"
-          ariaLabel="Skills"
-          placeholder="Skills: All"
+          [ariaLabel]="'schedule.scheduleToolbar.skills' | transloco"
+          [placeholder]="'schedule.scheduleToolbar.skillsAll' | transloco"
           [showClear]="true"
           appendTo="body"
           fluid
@@ -146,19 +170,20 @@
         >
           <ng-template #selectedItem let-item>
             <span class="tb__value"
-              >Skills: <strong>{{ item.name }}</strong></span
+              >{{ 'schedule.scheduleToolbar.skills2' | transloco }}
+              <strong>{{ item.name }}</strong></span
             >
           </ng-template>
         </p-select>
       </div>
       <div class="tb__filter">
-        <label class="tb__sr" for="tb-status">Status</label>
+        <label class="tb__sr" for="tb-status">{{ 'common.status' | transloco }}</label>
         <p-select
-          [options]="statusChoices"
+          [options]="statusChoices | localizedRef"
           optionLabel="label"
           optionValue="code"
           [inputId]="'tb-status'"
-          ariaLabel="Status"
+          [ariaLabel]="'common.status' | transloco"
           appendTo="body"
           fluid
           [ngModel]="status()"
@@ -166,7 +191,8 @@
         >
           <ng-template #selectedItem let-item>
             <span class="tb__value"
-              >Status: <strong>{{ item.label }}</strong></span
+              >{{ 'schedule.scheduleToolbar.status' | transloco }}
+              <strong>{{ item.label }}</strong></span
             >
           </ng-template>
         </p-select>

@@ -1,18 +1,33 @@
 <section class="card" aria-labelledby="branch-title">
-  <h2 class="card__title" id="branch-title">Branch performance</h2>
+  <h2 class="card__title" id="branch-title">
+    {{ 'businessOverview.branchPerformance.branchPerformance' | transloco }}
+  </h2>
   @if (rows().length === 0) {
-    <p class="card__empty">No branch activity in this period.</p>
+    <p class="card__empty">
+      {{ 'businessOverview.branchPerformance.noBranchActivityIn' | transloco }}
+    </p>
   } @else {
     <div class="scroll" tabindex="0" role="region" aria-labelledby="branch-title">
       <table class="table">
         <thead>
           <tr>
-            <th scope="col">Branch</th>
-            <th scope="col" class="num">Revenue</th>
-            <th scope="col" class="num">Estimated margin <app-info-hint [text]="hint" /></th>
-            <th scope="col" class="num">Jobs</th>
-            <th scope="col" class="num">On-time %</th>
-            <th scope="col" class="num">Rating</th>
+            <th scope="col">{{ 'businessOverview.branchPerformance.branch' | transloco }}</th>
+            <th scope="col" class="num">
+              {{ 'businessOverview.branchPerformance.revenue' | transloco }}
+            </th>
+            <th scope="col" class="num">
+              {{ 'businessOverview.branchPerformance.estimatedMargin' | transloco }}
+              <app-info-hint [text]="hint" />
+            </th>
+            <th scope="col" class="num">
+              {{ 'businessOverview.branchPerformance.jobs' | transloco }}
+            </th>
+            <th scope="col" class="num">
+              {{ 'businessOverview.branchPerformance.onTime' | transloco }}
+            </th>
+            <th scope="col" class="num">
+              {{ 'businessOverview.branchPerformance.rating' | transloco }}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -42,7 +57,7 @@
         @if (total(); as total) {
           <tfoot>
             <tr>
-              <th scope="row">Total</th>
+              <th scope="row">{{ 'common.total' | transloco }}</th>
               <td class="num">{{ total.revenue }}</td>
               <td class="num">
                 <span class="margin" [class.margin--below]="total.below">

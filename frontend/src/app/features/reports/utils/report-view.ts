@@ -3,9 +3,24 @@ import { formatMinutes, zoned } from '../../schedule/utils/schedule-range';
 import { LinkKey, Metric, ReportChart, ReportRow } from '../models/reports.model';
 import { ChartUnit, ReportColumn } from './report-catalog';
 
-export const BELOW_TARGET_TEXT = 'Below 40% target';
+import { localizedList, t } from '../../../core/i18n/translate';
+import { activeIntlLocale } from '../../../core/i18n/active-locale';
+export const BELOW_TARGET_TEXT = (): string => t('reports.reportView.belowTargetText');
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = localizedList(() => [
+  t('reports.reportView.jan'),
+  t('reports.reportView.feb'),
+  t('reports.reportView.mar'),
+  t('reports.reportView.apr'),
+  t('reports.reportView.may'),
+  t('reports.reportView.jun'),
+  t('reports.reportView.jul'),
+  t('reports.reportView.aug'),
+  t('reports.reportView.sep'),
+  t('reports.reportView.oct'),
+  t('reports.reportView.nov'),
+  t('reports.reportView.dec'),
+]);
 
 /** BR-04: "MMM d, yyyy" of a local `YYYY-MM-DD` date. */
 export function formatDate(date: string): string {
@@ -25,7 +40,7 @@ export function formatDateTime(iso: string, timezone: string): string {
 
 /** Table money keeps cents (BR-14 precision); cards use whole units. */
 export function moneyExact(value: number, currency: string): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value);
+  return new Intl.NumberFormat(activeIntlLocale(), { style: 'currency', currency }).format(value);
 }
 
 /** `awaiting_response` → "Awaiting response"; text that already reads as a label is kept. */
@@ -43,9 +58,11 @@ export function varianceText(minutes: number | null): string {
     return EMPTY_VALUE;
   }
   if (minutes === 0) {
-    return 'On estimate';
+    return t('reports.reportView.onEstimate');
   }
-  return minutes > 0 ? `+${minutes} min` : `−${Math.abs(minutes)} min`;
+  return minutes > 0
+    ? t('reports.reportView.min', { minutes: minutes })
+    : t('reports.reportView.min2', { minutes: Math.abs(minutes) });
 }
 
 export interface LinkTarget {
@@ -160,7 +177,7 @@ function formatValue(
     case 'hours':
       return n === null ? null : `${Math.round(n / 60)}h`;
     case 'minutes':
-      return n === null ? null : `${n} min`;
+      return n === null ? null : t('reports.reportView.min3', { n: n });
     case 'variance':
       return n === null ? null : varianceText(n);
     case 'invoicing':
@@ -187,7 +204,7 @@ export function cellView(column: ReportColumn, row: ReportRow, ctx: CellContext)
   if (column.type === 'invoicing') {
     const invoiced = value === true;
     return {
-      text: invoiced ? 'Invoiced' : 'Not invoiced',
+      text: invoiced ? t('reports.reportView.invoiced') : t('reports.reportView.notInvoiced'),
       link: null,
       mark: invoiced ? 'invoiced' : 'not-invoiced',
     };
@@ -245,7 +262,7 @@ export interface SummaryContext {
   readonly percentDecimals: 0 | 1;
 }
 
-const JOBS_COMPLETED_CAPTION = 'Work orders completed in the period';
+const JOBS_COMPLETED_CAPTION = (): string => t('reports.reportView.jobsCompletedCaption');
 
 function metricValue(metric: Metric, value: number | null, ctx: SummaryContext): string {
   if (value === null) {
@@ -281,9 +298,9 @@ export function summaryCards(metrics: readonly Metric[], ctx: SummaryContext): S
       badWhenUp: metric.key === 'overtimeHours',
       previousText:
         ctx.compare && percentLike
-          ? `vs ${metricValue(metric, metric.previous, ctx)} previous`
+          ? t('reports.reportView.vsPrevious', { value: metricValue(metric, metric.previous, ctx) })
           : null,
-      caption: metric.key === 'jobsCompleted' ? JOBS_COMPLETED_CAPTION : null,
+      caption: metric.key === 'jobsCompleted' ? JOBS_COMPLETED_CAPTION() : null,
     };
   });
 }

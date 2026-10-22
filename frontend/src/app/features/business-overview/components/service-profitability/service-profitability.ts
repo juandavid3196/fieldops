@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { ServiceRow } from '../../models/business-overview.model';
 import {
@@ -11,12 +12,14 @@ import {
 import { MARGIN_COLUMN_HINT } from '../branch-performance/branch-performance';
 import { InfoHint } from '../info-hint/info-hint';
 
-export const SERVICES_EMPTY_TEXT = 'No invoiced services in this period.';
+import { t } from '../../../../core/i18n/translate';
+export const SERVICES_EMPTY_TEXT = (): string =>
+  t('businessOverview.serviceProfitability.servicesEmptyText');
 
 /** BR-16: the five best-selling categories with revenue, estimated margin and average job value. */
 @Component({
   selector: 'app-service-profitability',
-  imports: [InfoHint],
+  imports: [TranslocoPipe, InfoHint],
   templateUrl: './service-profitability.html',
   styleUrl: './service-profitability.scss',
 })
@@ -25,9 +28,15 @@ export class ServiceProfitability {
   readonly currency = input.required<string>();
   readonly target = input.required<number>();
 
-  readonly hint = MARGIN_COLUMN_HINT;
-  readonly emptyText = SERVICES_EMPTY_TEXT;
-  readonly warningText = BELOW_TARGET_TEXT;
+  get hint(): string {
+    return MARGIN_COLUMN_HINT();
+  }
+  get emptyText(): string {
+    return SERVICES_EMPTY_TEXT();
+  }
+  get warningText(): string {
+    return BELOW_TARGET_TEXT();
+  }
 
   readonly rows = computed(() =>
     this.services()

@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, linkedSignal, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { BillingReviewDetail, NOTE_MAX_LENGTH } from '../../models/billing-review.model';
 import { BillingReviewService } from '../../services/billing-review.service';
@@ -8,20 +9,21 @@ import { LINE_STATUS, formatDateTime, money } from '../../utils/billing-review-f
 import { ReviewAuditTrail } from '../review-audit-trail/review-audit-trail';
 import { ReviewWorkEvidence } from '../review-work-evidence/review-work-evidence';
 
+import { localizedList, t } from '../../../../core/i18n/translate';
 type DetailTab = 'billing' | 'work' | 'audit';
 
-const TABS: readonly { readonly code: DetailTab; readonly label: string }[] = [
-  { code: 'billing', label: 'Billing review' },
-  { code: 'work', label: 'Work evidence' },
-  { code: 'audit', label: 'Audit trail' },
-];
+const TABS: readonly { readonly code: DetailTab; readonly label: string }[] = localizedList(() => [
+  { code: 'billing', label: t('billingReview.reviewDetail.billingReview') },
+  { code: 'work', label: t('billingReview.reviewDetail.workEvidence') },
+  { code: 'audit', label: t('billingReview.reviewDetail.auditTrail') },
+]);
 
 let nextId = 0;
 
 /** Detail panel (BR-24): header, tabs, comparison, totals, verification, evidence and note. */
 @Component({
   selector: 'app-review-detail',
-  imports: [FormsModule, Textarea, ReviewWorkEvidence, ReviewAuditTrail],
+  imports: [TranslocoPipe, FormsModule, Textarea, ReviewWorkEvidence, ReviewAuditTrail],
   templateUrl: './review-detail.html',
   styleUrl: './review-detail.scss',
 })
@@ -39,7 +41,9 @@ export class ReviewDetail {
   protected readonly tabs = TABS;
   protected readonly maxLength = NOTE_MAX_LENGTH;
   protected readonly statuses = LINE_STATUS;
-  protected readonly adjustmentHint = 'Adjustments will be available in invoice drafts.';
+  protected get adjustmentHint(): string {
+    return t('billingReview.reviewDetail.adjustmentsWillBeAvailable');
+  }
 
   /** Back to "Billing review" whenever another job is shown. */
   readonly tab = linkedSignal<string, DetailTab>({

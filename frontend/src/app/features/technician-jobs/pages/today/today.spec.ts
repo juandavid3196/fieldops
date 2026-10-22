@@ -165,7 +165,7 @@ describe('Today', () => {
       response([visit('1', 'completed'), visit('2', 'approved')], { scheduledMinutes: 480 }, null),
       ['2jobs', '8scheduled hours', '0remaining'],
       '2 of 2 completed 100%',
-      ALL_DONE_MESSAGE,
+      ALL_DONE_MESSAGE(),
     ],
     [
       'completed plus needs correction',
@@ -176,14 +176,14 @@ describe('Today', () => {
       ),
       ['2jobs', '4scheduled hours', '1remaining'],
       '1 of 2 completed 50%',
-      NO_STARTABLE_MESSAGE,
+      NO_STARTABLE_MESSAGE(),
     ],
     [
       'no visits',
       response([], {}, null),
       ['0jobs', '0scheduled hours', '0remaining'],
       '',
-      NO_JOBS_MESSAGE,
+      NO_JOBS_MESSAGE(),
     ],
   ])(
     'shows metrics, progress and the next job or empty text for %s (AC-07, AC-08, AC-12)',
@@ -476,7 +476,7 @@ describe('Today', () => {
     root().querySelector<HTMLButtonElement>('p-message button')!.click();
     httpTesting.expectOne(TODAY_URL).flush(response([], {}, null));
     await settle();
-    expect(text('.today__empty')).toBe(NO_JOBS_MESSAGE);
+    expect(text('.today__empty')).toBe(NO_JOBS_MESSAGE());
 
     TestBed.resetTestingModule();
     create('dispatcher');

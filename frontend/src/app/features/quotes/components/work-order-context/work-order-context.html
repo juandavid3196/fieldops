@@ -1,9 +1,14 @@
 <section class="card" aria-labelledby="wo-customer-heading">
   <header class="card__head">
     <h2 class="card__title" id="wo-customer-heading">
-      Customer <span class="card__from">(from quote)</span>
+      {{ 'common.customer' | transloco }}
+      <span class="card__from">{{ 'quotes.workOrderContext.fromQuote' | transloco }}</span>
     </h2>
-    <i class="pi pi-lock card__lock" role="img" aria-label="Locked, from quote"></i>
+    <i
+      class="pi pi-lock card__lock"
+      role="img"
+      [attr.aria-label]="'quotes.workOrderContext.lockedFromQuote' | transloco"
+    ></i>
   </header>
   <div class="card__person">
     <span class="card__avatar" aria-hidden="true">{{ customerInitials() }}</span>
@@ -31,8 +36,14 @@
 
 <section class="card" aria-labelledby="wo-quote-heading">
   <header class="card__head">
-    <h2 class="card__title" id="wo-quote-heading">Approved quote</h2>
-    <i class="pi pi-lock card__lock" role="img" aria-label="Locked, from quote"></i>
+    <h2 class="card__title" id="wo-quote-heading">
+      {{ 'quotes.workOrderContext.approvedQuote' | transloco }}
+    </h2>
+    <i
+      class="pi pi-lock card__lock"
+      role="img"
+      [attr.aria-label]="'quotes.workOrderContext.lockedFromQuote' | transloco"
+    ></i>
   </header>
   <div class="card__person">
     <span class="card__tile" aria-hidden="true"><i class="pi pi-file"></i></span>
@@ -41,7 +52,7 @@
       <p class="card__muted">{{ approvedAt() }}</p>
       <p class="card__total">{{ approvedTotal() }}</p>
       <a class="card__link" [routerLink]="['/quotes', editor().quote.id]">
-        View approved quote
+        {{ 'quotes.workOrderContext.viewApprovedQuote' | transloco }}
         <i class="pi pi-arrow-right" aria-hidden="true"></i>
       </a>
     </div>
@@ -51,16 +62,23 @@
 <section class="card" aria-labelledby="wo-assessment-heading">
   <header class="card__head">
     <h2 class="card__title" id="wo-assessment-heading">
-      Assessment <span class="card__from">(from quote)</span>
+      {{ 'quotes.workOrderContext.assessment' | transloco }}
+      <span class="card__from">{{ 'quotes.workOrderContext.fromQuote' | transloco }}</span>
     </h2>
-    <i class="pi pi-lock card__lock" role="img" aria-label="Locked, from quote"></i>
+    <i
+      class="pi pi-lock card__lock"
+      role="img"
+      [attr.aria-label]="'quotes.workOrderContext.lockedFromQuote' | transloco"
+    ></i>
   </header>
   @if (editor().assessment; as assessment) {
     <div class="card__person">
       <span class="card__avatar" aria-hidden="true">{{ technicianInitials() || '?' }}</span>
       <div class="card__details">
-        <strong class="card__name">{{ assessment.technicianName ?? 'Unassigned' }}</strong>
-        <h3 class="card__label">Diagnosis:</h3>
+        <strong class="card__name">{{
+          assessment.technicianName ?? ('quotes.workOrderContext.unassigned' | transloco)
+        }}</strong>
+        <h3 class="card__label">{{ 'quotes.workOrderContext.diagnosis' | transloco }}</h3>
         <p class="card__text">{{ assessment.diagnosis || noDiagnosis }}</p>
       </div>
     </div>

@@ -17,6 +17,7 @@ import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Toast } from 'primeng/toast';
 import { Subject, catchError, map, of, switchMap } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
@@ -44,18 +45,19 @@ import {
   plainDate,
 } from '../../utils/work-order-format';
 
+import { t } from '../../../../core/i18n/translate';
 type PageState = 'loading' | 'ready' | 'forbidden' | 'not-available' | 'error';
 type LoadResult =
   | { readonly kind: 'ready'; readonly detail: WorkOrderDetail }
   | { readonly kind: 'state'; readonly state: PageState }
   | { readonly kind: 'unauthorized' };
 
-const NO_VISITS_MESSAGE = 'No visits yet.';
+const NO_VISITS_MESSAGE = (): string => t('jobs.jobDetail.noVisitsMessage');
 
 /** Read-only job detail (`/jobs/:id`, BR-22). Read roles only; Manage roles may continue a draft. */
 @Component({
   selector: 'app-job-detail',
-  imports: [RouterLink, ButtonDirective, Message, Skeleton, Toast],
+  imports: [TranslocoPipe, RouterLink, ButtonDirective, Message, Skeleton, Toast],
   providers: [MessageService],
   templateUrl: './job-detail.html',
   styleUrl: './job-detail.scss',
@@ -71,10 +73,18 @@ export class JobDetail {
   private readonly heading = viewChild<ElementRef<HTMLElement>>('heading');
 
   readonly id = this.route.snapshot.paramMap.get('id') ?? '';
-  readonly forbiddenMessage = WO_FORBIDDEN_MESSAGE;
-  readonly notAvailableMessage = WO_NOT_AVAILABLE_MESSAGE;
-  readonly errorMessage = WO_LOAD_ERROR_MESSAGE;
-  readonly noVisits = NO_VISITS_MESSAGE;
+  get forbiddenMessage(): string {
+    return WO_FORBIDDEN_MESSAGE();
+  }
+  get notAvailableMessage(): string {
+    return WO_NOT_AVAILABLE_MESSAGE();
+  }
+  get errorMessage(): string {
+    return WO_LOAD_ERROR_MESSAGE();
+  }
+  get noVisits(): string {
+    return NO_VISITS_MESSAGE();
+  }
   readonly priorityLabels = PRIORITY_LABELS;
   readonly statusLabels = STATUS_LABELS;
   readonly visitLabel = visitStatusLabel;
@@ -100,7 +110,7 @@ export class JobDetail {
   readonly preferred = computed(() => {
     const detail = this.detail();
     if (detail === null || detail.preferredDate === null) {
-      return 'No preferred date';
+      return t('jobs.jobDetail.noPreferredDate');
     }
     const zone = detail.branch.timezone;
     // The instant is the branch-local start of the window; the date is shown in the branch zone.

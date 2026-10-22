@@ -2,6 +2,7 @@ import { Component, DestroyRef, computed, inject, input, output, signal } from '
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonDirective } from 'primeng/button';
 import { SpinnerIcon } from 'primeng/icons/spinner';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import {
@@ -12,13 +13,16 @@ import {
 import { InvoiceLinkApi } from '../../services/invoice-link-api';
 import { formatCalendarDate } from '../../utils/public-invoice-format';
 
-export const REVIEW_RATING_MESSAGE = 'Select a rating.';
-export const REVIEW_COMMENT_MESSAGE = 'Use 500 characters or fewer.';
+import { t } from '../../../../core/i18n/translate';
+export const REVIEW_RATING_MESSAGE = (): string =>
+  t('invoices.publicReviewCard.reviewRatingMessage');
+export const REVIEW_COMMENT_MESSAGE = (): string =>
+  t('invoices.publicReviewCard.reviewCommentMessage');
 
 /** "How was your service?" card (BR-22, BR-30): star radio group, comment and its states. */
 @Component({
   selector: 'app-public-review-card',
-  imports: [ButtonDirective, SpinnerIcon],
+  imports: [TranslocoPipe, ButtonDirective, SpinnerIcon],
   templateUrl: './public-review-card.html',
   styleUrl: './public-review-card.scss',
 })
@@ -31,7 +35,9 @@ export class PublicReviewCard {
 
   protected readonly stars = [1, 2, 3, 4, 5];
   protected readonly max = REVIEW_COMMENT_MAX_LENGTH;
-  protected readonly failedMessage = REVIEW_FAILED_MESSAGE;
+  protected get failedMessage(): string {
+    return REVIEW_FAILED_MESSAGE();
+  }
 
   protected readonly rating = signal(0);
   protected readonly comment = signal('');

@@ -2,6 +2,7 @@ import { Component, ElementRef, input, output, viewChild } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import {
   CompanySetupFormControls,
@@ -10,13 +11,14 @@ import {
 } from '../../models/company-settings.model';
 import { FormField } from '../form-field/form-field';
 
-export const NUMBERING_HELPER =
-  'Prefixes appear before the sequential number, for example INV-1049.';
+import { t } from '../../../../core/i18n/translate';
+export const NUMBERING_HELPER = (): string =>
+  t('organizations.documentNumberingCard.numberingHelper');
 
 /** "Document numbering" card of Company setup (handoff §2.8). */
 @Component({
   selector: 'app-document-numbering-card',
-  imports: [ReactiveFormsModule, InputText, InputNumber, FormField],
+  imports: [TranslocoPipe, ReactiveFormsModule, InputText, InputNumber, FormField],
   templateUrl: './document-numbering-card.html',
   styleUrl: './document-numbering-card.scss',
 })
@@ -31,7 +33,9 @@ export class DocumentNumberingCard {
   readonly fieldBlur = output<OrganizationFieldKey>();
   readonly sequencesRequested = output<void>();
 
-  readonly helper = NUMBERING_HELPER;
+  get helper(): string {
+    return NUMBERING_HELPER();
+  }
 
   error(field: OrganizationFieldKey): string | null {
     return this.fieldErrors()[field] ?? null;

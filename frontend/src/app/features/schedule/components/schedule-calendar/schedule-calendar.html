@@ -1,4 +1,8 @@
-<section class="cal" aria-label="Dispatch calendar" [attr.aria-busy]="status() === 'loading'">
+<section
+  class="cal"
+  [attr.aria-label]="'schedule.scheduleCalendar.dispatchCalendar' | transloco"
+  [attr.aria-busy]="status() === 'loading'"
+>
   @if (status() === 'loading' && calendar() === null) {
     <div class="cal__skeletons" aria-busy="true">
       @for (item of skeletons; track item) {
@@ -10,7 +14,7 @@
       <span class="cal__inline">
         {{ errorMessage }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -20,7 +24,7 @@
         <span class="cal__inline">
           {{ errorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -57,7 +61,11 @@
             <div
               class="cal__row"
               role="group"
-              [attr.aria-label]="lane.unassigned ? 'Unassigned' : lane.technician?.name"
+              [attr.aria-label]="
+                lane.unassigned
+                  ? ('schedule.scheduleCalendar.unassigned' | transloco)
+                  : lane.technician?.name
+              "
             >
               <div class="cal__lane-head">
                 @if (lane.technician; as technician) {
@@ -73,9 +81,11 @@
                       <span class="cal__muted">{{ technician.primarySkill }}</span>
                     }
                     @if (technician.tag === 'inactive') {
-                      <span class="cal__tag">Inactive</span>
+                      <span class="cal__tag">{{ 'common.inactive' | transloco }}</span>
                     } @else if (technician.tag === 'other_branch') {
-                      <span class="cal__tag">Other branch</span>
+                      <span class="cal__tag">{{
+                        'schedule.scheduleCalendar.otherBranch' | transloco
+                      }}</span>
                     }
                     @if (lane.load; as load) {
                       <span class="cal__load-text">{{ load.text }}</span>
@@ -92,7 +102,9 @@
                   <span class="cal__avatar cal__avatar--unassigned" aria-hidden="true">
                     <i class="pi pi-user"></i>
                   </span>
-                  <div class="cal__lane-text"><strong>Unassigned</strong></div>
+                  <div class="cal__lane-text">
+                    <strong>{{ 'schedule.scheduleCalendar.unassigned' | transloco }}</strong>
+                  </div>
                 }
               </div>
 
@@ -144,7 +156,8 @@
                   >
                     @if (cell.timeOff) {
                       <span class="cal__tag"
-                        ><i class="pi pi-ban" aria-hidden="true"></i> Time off</span
+                        ><i class="pi pi-ban" aria-hidden="true"></i>
+                        {{ 'schedule.scheduleCalendar.timeOff' | transloco }}</span
                       >
                     }
                     @for (block of cell.blocks; track block.key) {
@@ -163,20 +176,32 @@
         </div>
       </div>
 
-      <ul class="cal__legend" aria-label="Legend">
-        <li><span class="cal__swatch cal__swatch--scheduled"></span> Scheduled</li>
-        <li><span class="cal__swatch cal__swatch--proposed"></span> Proposed</li>
-        <li><span class="cal__swatch cal__swatch--conflict"></span> Conflict</li>
-        <li><span class="cal__swatch cal__swatch--now"></span> Current time</li>
+      <ul class="cal__legend" [attr.aria-label]="'schedule.scheduleCalendar.legend' | transloco">
+        <li>
+          <span class="cal__swatch cal__swatch--scheduled"></span>
+          {{ 'schedule.scheduleCalendar.scheduled' | transloco }}
+        </li>
+        <li>
+          <span class="cal__swatch cal__swatch--proposed"></span>
+          {{ 'schedule.scheduleCalendar.proposed' | transloco }}
+        </li>
+        <li>
+          <span class="cal__swatch cal__swatch--conflict"></span>
+          {{ 'schedule.scheduleCalendar.conflict' | transloco }}
+        </li>
+        <li>
+          <span class="cal__swatch cal__swatch--now"></span>
+          {{ 'schedule.scheduleCalendar.currentTime' | transloco }}
+        </li>
       </ul>
     </div>
 
     @if (!hasTechnicians() && status() === 'ready') {
       <p class="cal__empty">
         {{ noTechniciansMessage }}
-        <a pButton severity="secondary" size="small" [outlined]="true" routerLink="/team"
-          >Go to Team</a
-        >
+        <a pButton severity="secondary" size="small" [outlined]="true" routerLink="/team">{{
+          'schedule.scheduleCalendar.goToTeam' | transloco
+        }}</a>
       </p>
     }
   }
@@ -202,7 +227,8 @@
       <span class="cal__block-meta">{{ block.street }}</span>
       @if (block.conflict) {
         <span class="cal__block-conflict"
-          ><i class="pi pi-exclamation-triangle" aria-hidden="true"></i> (Conflict)</span
+          ><i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          {{ 'schedule.scheduleCalendar.conflict2' | transloco }}</span
         >
       }
     </button>

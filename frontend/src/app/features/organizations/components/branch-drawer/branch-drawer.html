@@ -1,7 +1,7 @@
 <app-drawer-shell [open]="open()" [titleId]="titleId" (closeRequested)="requestClose()">
   <ng-container ngProjectAs="[drawerHeader]">
     <h2 class="branch-drawer__title" [id]="titleId" tabindex="-1">
-      {{ isCreate() ? 'New branch' : title() }}
+      {{ isCreate() ? ('organizations.branchDrawer.newBranch' | transloco) : title() }}
     </h2>
     @if (!isCreate() && detail(); as branch) {
       <p-tag
@@ -16,7 +16,7 @@
     <button
       type="button"
       class="branch-drawer__close"
-      aria-label="Close branch details"
+      [attr.aria-label]="'organizations.branchDrawer.closeBranchDetails' | transloco"
       (click)="requestClose()"
     >
       <i class="pi pi-times" aria-hidden="true"></i>
@@ -34,7 +34,9 @@
     } @else if (loadError()) {
       <div class="branch-drawer__load-error">
         <p>{{ loadErrorMessage }}</p>
-        <button pButton type="button" severity="secondary" (click)="retryLoad()">Retry</button>
+        <button pButton type="button" severity="secondary" (click)="retryLoad()">
+          {{ 'common.retry' | transloco }}
+        </button>
       </div>
     } @else {
       <form class="branch-drawer__form" novalidate [formGroup]="form" (ngSubmit)="submit()">
@@ -46,14 +48,14 @@
 
         @if (staleConflict()) {
           <button pButton type="button" class="branch-drawer__reload" (click)="reload()">
-            Reload
+            {{ 'organizations.branchDrawer.reload' | transloco }}
           </button>
         }
 
-        <h3 class="branch-drawer__section-title">Details</h3>
+        <h3 class="branch-drawer__section-title">{{ 'common.details' | transloco }}</h3>
         <div class="branch-drawer__grid">
           <app-form-field
-            label="Branch name"
+            [label]="'organizations.branchDrawer.branchName' | transloco"
             controlId="branch-name"
             [required]="true"
             [error]="error('branch.name')"
@@ -72,12 +74,14 @@
           </app-form-field>
 
           <app-form-field
-            label="Branch code"
+            [label]="'organizations.branchDrawer.branchCode' | transloco"
             controlId="branch-code"
             [required]="true"
             [error]="error('branch.code')"
             [helper]="
-              error('branch.code') === null ? 'Used in document numbering and reports.' : null
+              error('branch.code') === null
+                ? ('organizations.branchDrawer.usedInDocumentNumbering' | transloco)
+                : null
             "
           >
             <input
@@ -96,7 +100,7 @@
           </app-form-field>
 
           <app-form-field
-            label="Contact phone"
+            [label]="'organizations.branchDrawer.contactPhone' | transloco"
             controlId="branch-phone"
             [error]="error('branch.phone')"
           >
@@ -114,7 +118,7 @@
           </app-form-field>
 
           <app-form-field
-            label="Contact email"
+            [label]="'organizations.branchDrawer.contactEmail' | transloco"
             controlId="branch-email"
             [error]="error('branch.email')"
           >
@@ -133,7 +137,7 @@
 
           <app-form-field
             class="branch-drawer__wide"
-            label="Time zone"
+            [label]="'organizations.branchDrawer.timeZone' | transloco"
             controlId="branch-timezone"
             [required]="true"
             [error]="error('branch.timezone')"
@@ -145,7 +149,7 @@
               optionLabel="label"
               optionValue="code"
               [filter]="true"
-              ariaLabel="Time zone"
+              [ariaLabel]="'organizations.branchDrawer.timeZone' | transloco"
               appendTo="body"
               fluid
               [invalid]="error('branch.timezone') !== null"
@@ -159,7 +163,7 @@
           </app-form-field>
 
           <app-form-field
-            label="Address line 1"
+            [label]="'organizations.branchDrawer.addressLine1' | transloco"
             controlId="branch-addressLine1"
             [required]="true"
             [error]="error('branch.addressLine1')"
@@ -180,7 +184,7 @@
           </app-form-field>
 
           <app-form-field
-            label="Address line 2"
+            [label]="'organizations.branchDrawer.addressLine2' | transloco"
             controlId="branch-addressLine2"
             [error]="error('branch.addressLine2')"
           >
@@ -199,7 +203,7 @@
           </app-form-field>
 
           <app-form-field
-            label="City"
+            [label]="'organizations.branchDrawer.city' | transloco"
             controlId="branch-city"
             [required]="true"
             [error]="error('branch.city')"
@@ -218,7 +222,7 @@
           </app-form-field>
 
           <app-form-field
-            label="State/region"
+            [label]="'organizations.branchDrawer.stateRegion' | transloco"
             controlId="branch-stateRegion"
             [error]="error('branch.stateRegion')"
           >
@@ -237,7 +241,7 @@
           </app-form-field>
 
           <app-form-field
-            label="Postal code"
+            [label]="'organizations.branchDrawer.postalCode' | transloco"
             controlId="branch-postalCode"
             [required]="true"
             [error]="error('branch.postalCode')"
@@ -258,7 +262,7 @@
           </app-form-field>
 
           <app-form-field
-            label="Country"
+            [label]="'organizations.branchDrawer.country' | transloco"
             controlId="branch-countryCode"
             [required]="true"
             [error]="error('branch.countryCode')"
@@ -270,7 +274,7 @@
               optionLabel="label"
               optionValue="code"
               [filter]="true"
-              ariaLabel="Country"
+              [ariaLabel]="'organizations.branchDrawer.country' | transloco"
               appendTo="body"
               fluid
               [invalid]="error('branch.countryCode') !== null"
@@ -285,11 +289,13 @@
 
           <app-form-field
             class="branch-drawer__wide"
-            label="Service area ZIP codes"
+            [label]="'organizations.branchDrawer.serviceAreaZipCodes' | transloco"
             controlId="branch-servicePostalCodes"
             [error]="error('branch.servicePostalCodes')"
             [helper]="
-              error('branch.servicePostalCodes') === null ? 'Separate ZIP codes with commas.' : null
+              error('branch.servicePostalCodes') === null
+                ? ('organizations.branchDrawer.separateZipCodesWith' | transloco)
+                : null
             "
           >
             <input
@@ -313,19 +319,23 @@
           <p-toggleswitch
             inputId="branch-usesCompanyBilling"
             formControlName="usesCompanyBilling"
-            ariaLabel="Use company billing settings"
+            [ariaLabel]="'organizations.branchDrawer.useCompanyBillingSettings' | transloco"
           />
           <span>
-            <span class="branch-drawer__switch-title">Use company billing settings</span>
+            <span class="branch-drawer__switch-title">{{
+              'organizations.branchDrawer.useCompanyBillingSettings' | transloco
+            }}</span>
             <span class="branch-drawer__switch-helper">
-              Inherit tax rates, currency, and document numbering from company settings.
+              {{ 'organizations.branchDrawer.inheritTaxRatesCurrency' | transloco }}
             </span>
           </span>
         </div>
 
         <hr class="branch-drawer__divider" />
 
-        <h3 class="branch-drawer__section-title">Business hours</h3>
+        <h3 class="branch-drawer__section-title">
+          {{ 'organizations.branchDrawer.businessHours' | transloco }}
+        </h3>
         <app-business-hours-editor
           [group]="form.controls.businessHours"
           [fieldErrors]="fieldErrors()"
@@ -336,7 +346,7 @@
 
         <div class="branch-drawer__note" role="note">
           <i class="pi pi-info-circle" aria-hidden="true"></i>
-          <span>Deactivating a branch prevents new records. All historical data is preserved.</span>
+          <span>{{ 'organizations.branchDrawer.deactivatingABranchPrevents' | transloco }}</span>
         </div>
       </form>
     }
@@ -352,7 +362,7 @@
         severity="secondary"
         (click)="requestClose()"
       >
-        Close
+        {{ 'common.close' | transloco }}
       </button>
     } @else if (!loading() && !loadError()) {
       @if (!isCreate() && detail(); as branch) {
@@ -383,7 +393,11 @@
               [class.pi-refresh]="!branch.isActive"
               aria-hidden="true"
             ></i>
-            {{ branch.isActive ? 'Deactivate branch' : 'Reactivate branch' }}
+            {{
+              branch.isActive
+                ? ('organizations.branchDrawer.deactivateBranch' | transloco)
+                : ('organizations.branchDrawer.reactivateBranch' | transloco)
+            }}
           </button>
         </span>
       }
@@ -396,7 +410,7 @@
         [outlined]="true"
         (click)="requestClose()"
       >
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
       <button
         pButton
@@ -408,7 +422,11 @@
         @if (submitting()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
         }
-        {{ isCreate() ? 'Create branch' : 'Update branch' }}
+        {{
+          isCreate()
+            ? ('organizations.branchDrawer.createBranch' | transloco)
+            : ('organizations.branchDrawer.updateBranch' | transloco)
+        }}
       </button>
     }
   </ng-container>

@@ -7,6 +7,7 @@ import { API_CONFIG, buildApiUrl } from '../config/api.config';
 import { isApiError } from '../models/api-error.model';
 import { createVisiblePoller } from './visible-poller';
 
+import { t } from '../i18n/translate';
 /** `GET /messages/summary` (specs/technician-messages BR-07). */
 export interface MessageSummary {
   readonly unreadMessages: number;
@@ -42,7 +43,15 @@ export class MessageUnreadService {
   /** Text equivalent of the badge ("3 unread messages"); `null` at 0. */
   readonly label = computed(() => {
     const count = this.unreadMessages();
-    return count === 0 ? null : `${count} unread ${count === 1 ? 'message' : 'messages'}`;
+    return count === 0
+      ? null
+      : t('shell.messageUnreadService.unread', {
+          count: count,
+          value:
+            count === 1
+              ? t('shell.messageUnreadService.message')
+              : t('shell.messageUnreadService.messages'),
+        });
   });
 
   /** Loads the summary now unless a load is in flight. */

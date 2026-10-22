@@ -9,15 +9,17 @@
   }
 
   <div class="users__main">
-    <nav class="users__breadcrumb" aria-label="Breadcrumb">
-      <a routerLink="/admin/company">Administration</a>
+    <nav class="users__breadcrumb" [attr.aria-label]="'users.users.breadcrumb' | transloco">
+      <a routerLink="/admin/company">{{ 'users.users.administration' | transloco }}</a>
       <span aria-hidden="true">/</span>
-      <span class="users__current" aria-current="page">Users &amp; permissions</span>
+      <span class="users__current" aria-current="page">{{
+        'users.users.usersPermissions' | transloco
+      }}</span>
     </nav>
 
     <header class="users__header">
       <div>
-        <h1 class="users__title">Users &amp; permissions</h1>
+        <h1 class="users__title">{{ 'users.users.usersPermissions' | transloco }}</h1>
         @if (!forbidden()) {
           <p class="users__description">{{ descriptionMessage }}</p>
         }
@@ -26,7 +28,7 @@
       @if (!forbidden() && canManage()) {
         <button pButton type="button" class="users__invite" (click)="openInvite()">
           <i class="pi pi-plus" aria-hidden="true"></i>
-          Invite user
+          {{ 'users.users.inviteUser' | transloco }}
         </button>
       }
     </header>
@@ -49,11 +51,14 @@
         />
 
         <section class="users__card" aria-labelledby="users-heading">
-          <h2 class="users__heading" id="users-heading">Users</h2>
+          <h2 class="users__heading" id="users-heading">{{ 'users.users.users' | transloco }}</h2>
 
           <div class="users__note" role="note">
             <i class="pi pi-info-circle" aria-hidden="true"></i>
-            <span>{{ noteMessage }} <a [routerLink]="teamPath">Team</a>.</span>
+            <span
+              >{{ noteMessage }} <a [routerLink]="teamPath">{{ 'users.users.team' | transloco }}</a
+              >.</span
+            >
           </div>
 
           <app-user-filters
@@ -83,7 +88,7 @@
                     size="small"
                     (click)="loadList()"
                   >
-                    Retry
+                    {{ 'common.retry' | transloco }}
                   </button>
                 </span>
               </p-message>
@@ -103,7 +108,7 @@
               <div class="users__empty">
                 <p>{{ emptyMessage }}</p>
                 <button pButton type="button" severity="secondary" (click)="clearFilters()">
-                  Clear filters
+                  {{ 'users.users.clearFilters' | transloco }}
                 </button>
               </div>
             } @else {

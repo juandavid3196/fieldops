@@ -8,24 +8,25 @@ import {
 } from '../../models/customer.model';
 import { normalizeEmail, normalizePhone } from '../../utils/customer-format';
 
-export const FIELD_LABELS: Readonly<Record<CustomerFieldKey, string>> = {
-  type: 'Customer type',
-  companyName: 'Company name',
-  firstName: 'First name',
-  lastName: 'Last name',
-  title: 'Title',
-  email: 'Email',
-  phone: 'Mobile phone',
-  preferences: 'Preferred communication',
-  addressLine1: 'Address line 1',
-  city: 'City',
-  stateRegion: 'State',
-  postalCode: 'ZIP code',
-  serviceInstructions: 'Service instructions',
-  branchId: 'Branch',
-  tagIds: 'Tags',
-  internalNote: 'Internal note',
-};
+import { localized, t } from '../../../../core/i18n/translate';
+export const FIELD_LABELS: Readonly<Record<CustomerFieldKey, string>> = localized(() => ({
+  type: t('customers.customerDrawerValidators.customerType'),
+  companyName: t('customers.customerDrawerValidators.companyName'),
+  firstName: t('customers.customerDrawerValidators.firstName'),
+  lastName: t('customers.customerDrawerValidators.lastName'),
+  title: t('customers.customerDrawerValidators.title'),
+  email: t('common.email'),
+  phone: t('customers.customerDrawerValidators.mobilePhone'),
+  preferences: t('customers.customerDrawerValidators.preferredCommunication'),
+  addressLine1: t('customers.customerDrawerValidators.addressLine1'),
+  city: t('customers.customerDrawerValidators.city'),
+  stateRegion: t('customers.customerDrawerValidators.state'),
+  postalCode: t('customers.customerDrawerValidators.zipCode'),
+  serviceInstructions: t('customers.customerDrawerValidators.serviceInstructions'),
+  branchId: t('customers.customerDrawerValidators.branch'),
+  tagIds: t('customers.customerDrawerValidators.tags'),
+  internalNote: t('customers.customerDrawerValidators.internalNote'),
+}));
 
 export interface CustomerFormValue {
   readonly type: CustomerType | null;
@@ -70,57 +71,83 @@ export function validateCustomerField(
   const commercial = value.type === 'commercial';
   switch (field) {
     case 'type':
-      return value.type === null ? 'Choose a customer type.' : null;
+      return value.type === null
+        ? t('customers.customerDrawerValidators.chooseACustomerType')
+        : null;
     case 'companyName':
       return commercial
-        ? required(value.companyName, 'Enter a company name.', 180, 'Use 180 characters or fewer.')
+        ? required(
+            value.companyName,
+            t('customers.customerDrawerValidators.enterACompanyName'),
+            180,
+            t('customers.customerDrawerValidators.use180CharactersOr'),
+          )
         : null;
     case 'firstName':
-      return required(value.firstName, 'Enter a first name.', 100, 'Use 100 characters or fewer.');
+      return required(
+        value.firstName,
+        t('customers.customerDrawerValidators.enterAFirstName'),
+        100,
+        t('customers.customerDrawerValidators.use100CharactersOr'),
+      );
     case 'lastName': {
       const message = required(
         value.lastName,
-        'Enter a last name.',
+        t('customers.customerDrawerValidators.enterALastName'),
         100,
-        'Use 100 characters or fewer.',
+        t('customers.customerDrawerValidators.use100CharactersOr'),
       );
       if (message !== null) {
         return message;
       }
       return !commercial && `${value.firstName.trim()} ${value.lastName.trim()}`.length > 180
-        ? 'Use 180 characters or fewer for the full name.'
+        ? t('customers.customerDrawerValidators.use180CharactersOr2')
         : null;
     }
     case 'title':
-      return commercial ? within(value.title, 100, 'Use 100 characters or fewer.') : null;
+      return commercial
+        ? within(value.title, 100, t('customers.customerDrawerValidators.use100CharactersOr'))
+        : null;
     case 'email': {
       if (value.email.trim().length === 0) {
-        return 'Enter an email.';
+        return t('customers.customerDrawerValidators.enterAnEmail');
       }
-      return normalizeEmail(value.email) === null ? 'Enter a valid email.' : null;
+      return normalizeEmail(value.email) === null
+        ? t('customers.customerDrawerValidators.enterAValidEmail')
+        : null;
     }
     case 'phone':
       return value.phone.trim().length > 0 && normalizePhone(value.phone) === null
-        ? 'Enter a valid phone number.'
+        ? t('customers.customerDrawerValidators.enterAValidPhone')
         : null;
     case 'preferences':
       if (!value.prefersEmail && !value.prefersSms) {
-        return 'Choose at least one communication method.';
+        return t('customers.customerDrawerValidators.chooseAtLeastOne');
       }
       return value.prefersSms && normalizePhone(value.phone) === null
-        ? 'Add a mobile phone to use SMS.'
+        ? t('customers.customerDrawerValidators.addAMobilePhone')
         : null;
     case 'addressLine1':
-      return required(value.addressLine1, 'Enter an address.', 180, 'Use 180 characters or fewer.');
+      return required(
+        value.addressLine1,
+        t('customers.customerDrawerValidators.enterAnAddress'),
+        180,
+        t('customers.customerDrawerValidators.use180CharactersOr'),
+      );
     case 'city':
-      return required(value.city, 'Enter a city.', 100, 'Use 100 characters or fewer.');
+      return required(
+        value.city,
+        t('customers.customerDrawerValidators.enterACity'),
+        100,
+        t('customers.customerDrawerValidators.use100CharactersOr'),
+      );
     case 'stateRegion': {
       const state = value.stateRegion.trim();
       if (state.length === 0) {
         return null;
       }
       return (usesStateList ? !STATE_CODES.has(state) : state.length > 100)
-        ? 'Choose a valid state.'
+        ? t('customers.customerDrawerValidators.chooseAValidState')
         : null;
     }
     case 'postalCode': {
@@ -129,17 +156,29 @@ export function validateCustomerField(
         return null;
       }
       return (usesStateList ? !US_ZIP.test(zip) : zip.length > 30)
-        ? 'Enter a valid ZIP code.'
+        ? t('customers.customerDrawerValidators.enterAValidZip')
         : null;
     }
     case 'serviceInstructions':
-      return within(value.serviceInstructions, 2000, 'Use 2,000 characters or fewer.');
+      return within(
+        value.serviceInstructions,
+        2000,
+        t('customers.customerDrawerValidators.use2000Characters'),
+      );
     case 'branchId':
-      return value.branchId === null || value.branchId === '' ? 'Choose a branch.' : null;
+      return value.branchId === null || value.branchId === ''
+        ? t('customers.customerDrawerValidators.chooseABranch')
+        : null;
     case 'tagIds':
-      return value.tagIds.length > MAX_TAGS ? 'Choose up to 10 tags.' : null;
+      return value.tagIds.length > MAX_TAGS
+        ? t('customers.customerDrawerValidators.chooseUpTo10')
+        : null;
     case 'internalNote':
-      return within(value.internalNote, 2000, 'Use 2,000 characters or fewer.');
+      return within(
+        value.internalNote,
+        2000,
+        t('customers.customerDrawerValidators.use2000Characters'),
+      );
   }
 }
 

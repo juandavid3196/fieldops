@@ -4,7 +4,7 @@
       <div
         class="sched__skeletons"
         aria-busy="true"
-        aria-label="Loading your schedule"
+        [attr.aria-label]="'technicianJobs.schedule.loadingYourSchedule' | transloco"
         role="status"
       >
         <p-skeleton height="2rem" width="60%" />
@@ -20,7 +20,7 @@
         <span class="sched__error">
           {{ loadErrorMessage }}
           <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-            Retry
+            {{ 'common.retry' | transloco }}
           </button>
         </span>
       </p-message>
@@ -28,7 +28,7 @@
     @case ('ready') {
       @if (data(); as schedule) {
         <header class="sched__header">
-          <h1 class="sched__title">My schedule</h1>
+          <h1 class="sched__title">{{ 'technicianJobs.schedule.mySchedule' | transloco }}</h1>
         </header>
 
         @if (weekFailed()) {
@@ -36,7 +36,7 @@
             <span class="sched__error">
               {{ loadErrorMessage }}
               <button pButton type="button" severity="secondary" size="small" (click)="retry()">
-                Retry
+                {{ 'common.retry' | transloco }}
               </button>
             </span>
           </p-message>
@@ -46,13 +46,17 @@
           <button
             type="button"
             class="sched__week"
-            aria-label="Previous week"
+            [attr.aria-label]="'technicianJobs.schedule.previousWeek' | transloco"
             [attr.aria-disabled]="changingWeek()"
             (click)="changeWeek(-1)"
           >
             <i class="pi pi-chevron-left" aria-hidden="true"></i>
           </button>
-          <div class="sched__strip" role="tablist" aria-label="Days of the week">
+          <div
+            class="sched__strip"
+            role="tablist"
+            [attr.aria-label]="'technicianJobs.schedule.daysOfTheWeek' | transloco"
+          >
             @for (day of days(); track day.date; let index = $index) {
               <button
                 type="button"
@@ -67,7 +71,7 @@
                 <span class="sched__day-name">{{ day.name }}</span>
                 <span class="sched__day-number">{{ day.number }}</span>
                 @if (day.isToday) {
-                  <span class="sched__sr">Today</span>
+                  <span class="sched__sr">{{ 'technicianJobs.schedule.today' | transloco }}</span>
                 }
               </button>
             }
@@ -75,7 +79,7 @@
           <button
             type="button"
             class="sched__week"
-            aria-label="Next week"
+            [attr.aria-label]="'technicianJobs.schedule.nextWeek' | transloco"
             [attr.aria-disabled]="changingWeek()"
             (click)="changeWeek(1)"
           >
@@ -161,7 +165,7 @@
                       @if (item.visit.needsReschedule) {
                         <span class="sched__reschedule">
                           <i class="pi pi-exclamation-circle" aria-hidden="true"></i>
-                          Ask dispatch to reschedule
+                          {{ 'technicianJobs.schedule.askDispatchToReschedule' | transloco }}
                         </span>
                       }
                     </span>

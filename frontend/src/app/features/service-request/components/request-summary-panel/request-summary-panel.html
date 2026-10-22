@@ -1,7 +1,11 @@
 <aside class="panel" aria-labelledby="sr-summary-title">
   <header class="panel__header">
-    <h2 class="panel__title" id="sr-summary-title">Your request</h2>
-    <span class="panel__badge">Not submitted</span>
+    <h2 class="panel__title" id="sr-summary-title">
+      {{ 'serviceRequest.requestSummaryPanel.yourRequest' | transloco }}
+    </h2>
+    <span class="panel__badge">{{
+      'serviceRequest.requestSummaryPanel.notSubmitted' | transloco
+    }}</span>
   </header>
 
   <ul class="panel__list">
@@ -13,7 +17,9 @@
         <div class="panel__body">
           <h3 class="panel__name">{{ section.title }}</h3>
           @if (section.lines.length === 0) {
-            <p class="panel__line">Not added yet</p>
+            <p class="panel__line">
+              {{ 'serviceRequest.requestSummaryPanel.notAddedYet' | transloco }}
+            </p>
           } @else {
             @for (line of section.lines; track $index) {
               <p class="panel__line">{{ line }}</p>
@@ -27,10 +33,12 @@
             variant="text"
             size="small"
             class="panel__edit"
-            [attr.aria-label]="'Edit ' + section.title"
+            [attr.aria-label]="
+              'serviceRequest.requestSummaryPanel.edit' | transloco: { title: section.title }
+            "
             (click)="store.edit(section.step)"
           >
-            Edit
+            {{ 'common.edit' | transloco }}
           </button>
         }
       </li>
@@ -39,7 +47,9 @@
 
   @if (store.step() === 'review') {
     <section class="panel__next" aria-labelledby="sr-before-title">
-      <h3 class="panel__next-title" id="sr-before-title">Before you submit</h3>
+      <h3 class="panel__next-title" id="sr-before-title">
+        {{ 'serviceRequest.requestSummaryPanel.beforeYouSubmit' | transloco }}
+      </h3>
       <ol class="panel__steps panel__steps--rich">
         @for (item of before; track item.title) {
           <li>
@@ -54,22 +64,29 @@
     </section>
   } @else {
     <section class="panel__next" aria-labelledby="sr-next-title">
-      <h3 class="panel__next-title" id="sr-next-title">What happens next?</h3>
+      <h3 class="panel__next-title" id="sr-next-title">
+        {{ 'serviceRequest.requestSummaryPanel.whatHappensNext' | transloco }}
+      </h3>
       <ol class="panel__steps">
-        <li>We review your request.</li>
-        <li>We may ask questions or schedule an assessment.</li>
-        <li>You receive a quote before work is scheduled.</li>
+        <li>{{ 'serviceRequest.requestSummaryPanel.weReviewYourRequest' | transloco }}</li>
+        <li>{{ 'serviceRequest.requestSummaryPanel.weMayAskQuestions' | transloco }}</li>
+        <li>{{ 'serviceRequest.requestSummaryPanel.youReceiveAQuote' | transloco }}</li>
       </ol>
       <p class="panel__notice">
         <i class="pi pi-info-circle" aria-hidden="true"></i>
-        Submitting this request does not confirm a price or appointment.
+        {{ 'serviceRequest.requestSummaryPanel.submittingThisRequestDoes' | transloco }}
       </p>
     </section>
   }
 
   <footer class="panel__footer">
-    <span><i class="pi pi-lock" aria-hidden="true"></i> Your information is handled securely.</span>
+    <span
+      ><i class="pi pi-lock" aria-hidden="true"></i>
+      {{ 'serviceRequest.requestSummaryPanel.yourInformationIsHandled' | transloco }}</span
+    >
     <!-- Visual only (BR-22): plain text, not focusable, no navigation. -->
-    <span class="panel__privacy">Privacy</span>
+    <span class="panel__privacy">{{
+      'serviceRequest.requestSummaryPanel.privacy' | transloco
+    }}</span>
   </footer>
 </aside>

@@ -2,6 +2,8 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Injector,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -13,16 +15,22 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { Drawer } from 'primeng/drawer';
 import { Message } from 'primeng/message';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { MD_QUERY, watchMedia } from '../../core/config/breakpoints';
 import { PortalSessionService } from '../../core/services/portal-session.service';
 import { PortalOrganizationService } from '../../features/portal/services/portal-organization.service';
 import { PortalUpdatesStore } from '../../features/portal/services/portal-updates.store';
 import { initialsOf } from '../../features/portal/utils/portal-format';
+import { LanguageMenuItem } from '../../shared/components/language-menu-item/language-menu-item';
+import { LanguageToast } from '../../shared/components/language-toast/language-toast';
 import { PORTAL_NAV, SIGN_IN_LINK, UPDATES_LINK, bellCountText } from './portal-shell.nav';
 
-export const PORTAL_SIGN_OUT_ERROR_MESSAGE = "We couldn't sign you out. Try again.";
-export const PORTAL_SWITCH_ERROR_MESSAGE = "We couldn't switch accounts. Try again.";
+import { t } from '../../core/i18n/translate';
+export const PORTAL_SIGN_OUT_ERROR_MESSAGE = (): string =>
+  t('portal.portalShell.portalSignOutErrorMessage');
+export const PORTAL_SWITCH_ERROR_MESSAGE = (): string =>
+  t('portal.portalShell.portalSwitchErrorMessage');
 
 /**
  * Customer portal layout (BR-16): organization logo or initials and name, primary navigation, Help,
@@ -30,7 +38,16 @@ export const PORTAL_SWITCH_ERROR_MESSAGE = "We couldn't switch accounts. Try aga
  */
 @Component({
   selector: 'app-portal-shell',
-  imports: [Drawer, Message, RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [
+    TranslocoPipe,
+    Drawer,
+    LanguageMenuItem,
+    LanguageToast,
+    Message,
+    RouterLink,
+    RouterLinkActive,
+    RouterOutlet,
+  ],
   templateUrl: './portal-shell.html',
   styleUrl: './portal-shell.scss',
   host: {
@@ -44,7 +61,9 @@ export class PortalShell {
   private readonly organization = inject(PortalOrganizationService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   private readonly menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuButton');
+  private readonly userButton = viewChild<ElementRef<HTMLButtonElement>>('userButton');
 
   private logoObjectUrl: string | null = null;
 
@@ -83,7 +102,9 @@ export class PortalShell {
   readonly bellText = computed(() => bellCountText(this.updates.unreadCount()));
   readonly bellLabel = computed(() => {
     const count = this.updates.unreadCount();
-    return count > 0 ? `Updates, ${count} unread` : 'Updates';
+    return count > 0
+      ? t('portal.portalShell.updatesUnread', { count: count })
+      : t('portal.portalShell.updates');
   });
 
   constructor() {
@@ -129,6 +150,12 @@ export class PortalShell {
     this.menuOpen.set(false);
   }
 
+  /** BR-18: choosing a language closes the menu and returns focus to the menu button. */
+  onLanguageChosen(): void {
+    this.closeMenu();
+    afterNextRender(() => this.userButton()?.nativeElement.focus(), { injector: this.injector });
+  }
+
   onDocumentClick(event: Event): void {
     const target = event.target;
     if (
@@ -159,7 +186,7 @@ export class PortalShell {
         },
         error: () => {
           this.busy.set(false);
-          this.errorMessage.set(PORTAL_SWITCH_ERROR_MESSAGE);
+          this.errorMessage.set(PORTAL_SWITCH_ERROR_MESSAGE());
           this.closeMenu();
         },
       });
@@ -183,7 +210,7 @@ export class PortalShell {
         },
         error: () => {
           this.busy.set(false);
-          this.errorMessage.set(PORTAL_SIGN_OUT_ERROR_MESSAGE);
+          this.errorMessage.set(PORTAL_SIGN_OUT_ERROR_MESSAGE());
           this.closeMenu();
         },
       });

@@ -1,5 +1,7 @@
 <section class="files" aria-labelledby="request-files-heading">
-  <h3 class="files__title" id="request-files-heading">Attachments ({{ attachments().length }})</h3>
+  <h3 class="files__title" id="request-files-heading">
+    {{ 'requests.requestAttachments.attachments' | transloco: { length: attachments().length } }}
+  </h3>
 
   <ul class="files__grid">
     @for (file of attachments(); track file.id) {
@@ -8,7 +10,10 @@
           type="button"
           class="files__open"
           [attr.aria-label]="
-            (file.mimeType.startsWith('image/') ? 'Preview ' : 'Download ') + file.fileName
+            (file.mimeType.startsWith('image/')
+              ? 'requests.requestAttachments.preview'
+              : 'requests.requestAttachments.download'
+            ) | transloco: { name: file.fileName }
           "
           (click)="open(file)"
         >
@@ -32,7 +37,7 @@
       <li class="files__item">
         <label class="files__add" [class.files__add--busy]="uploading()">
           <i class="pi pi-upload" aria-hidden="true"></i>
-          Add file
+          {{ 'requests.requestAttachments.addFile' | transloco }}
           <input
             class="files__input"
             type="file"
@@ -47,7 +52,7 @@
   </ul>
 
   @if (attachments().length === 0 && !canUpload()) {
-    <p class="files__empty">No files</p>
+    <p class="files__empty">{{ 'requests.requestAttachments.noFiles' | transloco }}</p>
   }
 
   @if (clientErrors().length > 0 || serverErrors().length > 0) {

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
 import { Textarea } from 'primeng/textarea';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { NO_RECIPIENT_MESSAGE, SMS_UNAVAILABLE_MESSAGE } from '../../models/quote.model';
 import { EMAIL_LIMIT } from '../../utils/quote-lines';
@@ -13,7 +14,7 @@ import { EMAIL_LIMIT } from '../../utils/quote-lines';
  */
 @Component({
   selector: 'app-quote-delivery-card',
-  imports: [FormsModule, Checkbox, InputText, Textarea],
+  imports: [TranslocoPipe, FormsModule, Checkbox, InputText, Textarea],
   templateUrl: './quote-delivery-card.html',
   styleUrl: './quote-delivery-card.scss',
 })
@@ -24,8 +25,12 @@ export class QuoteDeliveryCard {
   readonly recipientError = input<string | null>(null);
 
   readonly limit = EMAIL_LIMIT;
-  readonly smsUnavailable = SMS_UNAVAILABLE_MESSAGE;
-  readonly noRecipient = NO_RECIPIENT_MESSAGE;
+  get smsUnavailable(): string {
+    return SMS_UNAVAILABLE_MESSAGE();
+  }
+  get noRecipient(): string {
+    return NO_RECIPIENT_MESSAGE();
+  }
   readonly recipientText = computed(() => this.recipient() ?? '');
   readonly count = computed(() => this.message().length);
 }

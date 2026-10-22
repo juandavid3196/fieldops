@@ -1,7 +1,7 @@
 <form class="form" novalidate (submit)="pay($event)">
   <div class="field">
     <label class="field__label" for="cardholder-name">
-      Cardholder name <span aria-hidden="true">*</span>
+      {{ 'invoices.publicCardForm.cardholderName' | transloco }} <span aria-hidden="true">*</span>
     </label>
     <input
       #name
@@ -9,7 +9,7 @@
       id="cardholder-name"
       type="text"
       autocomplete="cc-name"
-      placeholder="Name on card"
+      [attr.placeholder]="'invoices.publicCardForm.nameOnCard' | transloco"
       aria-required="true"
       [value]="flow.cardholderName()"
       [disabled]="flow.locked()"
@@ -26,7 +26,7 @@
   <div #element class="element" [hidden]="mountFailed()"></div>
   @if (mountFailed()) {
     <p class="field__error" role="alert">
-      We couldn't load the secure card form. Reload the page and try again.
+      {{ 'invoices.publicCardForm.weCouldnTLoad' | transloco }}
     </p>
   }
 
@@ -46,15 +46,16 @@
       {{ buttonLabel() }}
     </button>
     <p class="pay-bar__secure">
-      <i class="pi pi-lock" aria-hidden="true"></i>Secure encrypted payment
+      <i class="pi pi-lock" aria-hidden="true"></i
+      >{{ 'invoices.publicCardForm.secureEncryptedPayment' | transloco }}
     </p>
   </div>
   @if (invoice().receiptEmail) {
-    <p class="receipt">You will receive a receipt by email after payment.</p>
+    <p class="receipt">{{ 'invoices.publicCardForm.youWillReceiveA' | transloco }}</p>
   }
   @if (flow.phase() === 'failed') {
     <button type="button" class="another" (click)="chooseAnother.emit()">
-      Choose another payment method
+      {{ 'invoices.publicCardForm.chooseAnotherPaymentMethod' | transloco }}
     </button>
   }
 </form>

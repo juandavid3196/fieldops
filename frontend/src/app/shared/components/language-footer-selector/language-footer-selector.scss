@@ -1,0 +1,44 @@
+:host {
+  display: inline-block;
+  max-inline-size: 100%;
+}
+
+.lang-footer {
+  position: relative;
+  display: inline-block;
+  max-inline-size: 100%;
+
+  &__button {
+    display: inline-flex;
+    gap: 0.45rem;
+    align-items: center;
+    max-inline-size: 100%;
+    min-block-size: var(--fo-size-touch-target);
+    padding: 0 0.45rem;
+    font: inherit;
+    color: var(--p-text-color);
+    cursor: pointer;
+    background: none;
+    border: 0;
+    border-radius: var(--fo-radius-control);
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: var(--fo-focus-ring);
+    }
+  }
+
+  &__menu {
+    position: absolute;
+    inset-block-end: 100%;
+    inset-inline-start: 0;
+    z-index: 30;
+    min-inline-size: 10rem;
+    margin-block-end: 0.25rem;
+    padding: 0.25rem;
+    background: var(--fo-color-surface);
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-control);
+    box-shadow: var(--fo-shadow-overlay);
+  }
+}

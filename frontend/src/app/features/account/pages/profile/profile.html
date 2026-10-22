@@ -2,7 +2,12 @@
 <app-discard-changes-dialog />
 
 @if (loading()) {
-  <div class="profile__skeleton" role="status" aria-busy="true" aria-label="Loading profile">
+  <div
+    class="profile__skeleton"
+    role="status"
+    aria-busy="true"
+    [attr.aria-label]="'account.profile.loadingProfile' | transloco"
+  >
     <div class="profile__skeleton-header">
       <p-skeleton shape="circle" size="5rem" />
       <p-skeleton width="12rem" height="1.5rem" />
@@ -15,7 +20,7 @@
   <div class="profile__load-error">
     <p-message severity="error">{{ loadError }}</p-message>
     <button pButton type="button" severity="secondary" [outlined]="true" (click)="load()">
-      Retry
+      {{ 'common.retry' | transloco }}
     </button>
   </div>
 } @else {
@@ -27,7 +32,9 @@
     />
     <div class="profile__identity">
       <p class="profile__name">{{ fullName() }}</p>
-      <p class="profile__role">{{ profile()?.role.name }}</p>
+      <p class="profile__role">
+        {{ profile()?.role?.name }}
+      </p>
     </div>
 
     <div class="profile__photo-actions">
@@ -53,7 +60,7 @@
           (click)="fileInput.click()"
         >
           <i class="pi pi-upload" aria-hidden="true"></i>
-          Change photo
+          {{ 'account.profile.changePhoto' | transloco }}
         </button>
         @if (hasPhoto()) {
           <button
@@ -64,7 +71,7 @@
             [disabled]="photoBusy()"
             (click)="removePhoto()"
           >
-            Remove photo
+            {{ 'account.profile.removePhoto' | transloco }}
           </button>
         }
       </div>
@@ -75,9 +82,9 @@
             [value]="progress() ?? 0"
             [mode]="progress() === null ? 'indeterminate' : 'determinate'"
             [showValue]="false"
-            ariaLabel="Uploading photo"
+            [ariaLabel]="'account.profile.uploadingPhoto' | transloco"
           />
-          <span class="profile__helper">Uploading…</span>
+          <span class="profile__helper">{{ 'account.profile.uploading' | transloco }}</span>
         </div>
       }
       @if (photoError(); as message) {
@@ -92,10 +99,14 @@
     }
 
     <section class="profile__section" aria-labelledby="profile-personal">
-      <h2 class="profile__heading" id="profile-personal">Personal information</h2>
+      <h2 class="profile__heading" id="profile-personal">
+        {{ 'account.profile.personalInformation' | transloco }}
+      </h2>
       <div class="profile__grid">
         <div class="profile__field">
-          <label class="profile__label" for="profile-firstName">First name</label>
+          <label class="profile__label" for="profile-firstName">{{
+            'account.profile.firstName' | transloco
+          }}</label>
           <input
             pInputText
             id="profile-firstName"
@@ -115,7 +126,9 @@
         </div>
 
         <div class="profile__field">
-          <label class="profile__label" for="profile-lastName">Last name</label>
+          <label class="profile__label" for="profile-lastName">{{
+            'account.profile.lastName' | transloco
+          }}</label>
           <input
             pInputText
             id="profile-lastName"
@@ -135,7 +148,9 @@
         </div>
 
         <div class="profile__field">
-          <label class="profile__label" for="profile-email">Email address</label>
+          <label class="profile__label" for="profile-email">{{
+            'account.profile.emailAddress' | transloco
+          }}</label>
           <input
             pInputText
             id="profile-email"
@@ -146,13 +161,14 @@
             [value]="profile()?.email ?? ''"
           />
           <p class="profile__helper" id="profile-email-helper">
-            Your email address cannot be changed.
+            {{ 'account.profile.yourEmailAddressCannot' | transloco }}
           </p>
         </div>
 
         <div class="profile__field">
           <label class="profile__label" for="profile-phone">
-            Phone number <span class="profile__optional">(optional)</span>
+            {{ 'account.profile.phoneNumber' | transloco }}
+            <span class="profile__optional">{{ 'account.profile.optional' | transloco }}</span>
           </label>
           <input
             pInputText
@@ -160,7 +176,7 @@
             type="tel"
             formControlName="phone"
             autocomplete="tel"
-            placeholder="e.g. +1 555 123 4567"
+            [attr.placeholder]="'account.profile.eG1555' | transloco"
             fluid
             [invalid]="fieldErrors().phone !== undefined"
             [readonly]="submitting()"
@@ -177,13 +193,17 @@
     </section>
 
     <section class="profile__section" aria-labelledby="profile-membership">
-      <h2 class="profile__heading" id="profile-membership">Membership</h2>
+      <h2 class="profile__heading" id="profile-membership">
+        {{ 'account.profile.membership' | transloco }}
+      </h2>
       <p class="profile__helper" id="profile-membership-note">
-        Your organization and role are managed by an administrator.
+        {{ 'account.profile.yourOrganizationAndRole' | transloco }}
       </p>
       <div class="profile__grid">
         <div class="profile__field">
-          <label class="profile__label" for="profile-organization">Organization</label>
+          <label class="profile__label" for="profile-organization">{{
+            'account.profile.organization' | transloco
+          }}</label>
           <input
             pInputText
             id="profile-organization"
@@ -194,14 +214,14 @@
           />
         </div>
         <div class="profile__field">
-          <label class="profile__label" for="profile-role">Role</label>
+          <label class="profile__label" for="profile-role">{{ 'common.role' | transloco }}</label>
           <input
             pInputText
             id="profile-role"
             class="profile__readonly"
             readonly
             fluid
-            [value]="profile()?.role.name ?? ''"
+            [value]="profile()?.role?.name ?? ''"
           />
         </div>
       </div>
@@ -211,13 +231,13 @@
       <button pButton type="submit" [attr.aria-disabled]="submitting()">
         @if (submitting()) {
           <svg data-p-icon="spinner" [spin]="true" aria-hidden="true"></svg>
-          Saving…
+          {{ 'common.saving' | transloco }}
         } @else {
-          Save changes
+          {{ 'account.profile.saveChanges' | transloco }}
         }
       </button>
       <button pButton type="button" severity="secondary" [outlined]="true" (click)="cancel()">
-        Cancel
+        {{ 'common.cancel' | transloco }}
       </button>
     </div>
   </form>

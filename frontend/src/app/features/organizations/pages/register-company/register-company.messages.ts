@@ -1,29 +1,46 @@
+import { t } from '../../../../core/i18n/translate';
 /** BR-24 message catalog: the only field messages this page ever shows. */
-export const REQUIRED_MESSAGE = 'This field is required.';
-export const EMAIL_INVALID_MESSAGE = 'Enter a valid email address, for example name@company.com.';
-export const PHONE_INVALID_MESSAGE = 'Enter a valid phone number.';
-export const TIMEZONE_MESSAGE = 'Select a time zone.';
-export const CURRENCY_MESSAGE = 'Select a currency.';
-export const COUNTRY_MESSAGE = 'Select a country.';
-export const TAX_RATE_MESSAGE = 'Enter a rate between 0 and 100 with up to 4 decimals.';
-export const PREFIX_MESSAGE = 'Use 1–20 characters: letters A–Z, numbers and hyphens.';
-export const BRANCH_CODE_MESSAGE = 'Use 1–8 characters: letters A–Z, numbers and hyphens.';
-export const NEXT_INVOICE_NUMBER_MESSAGE = 'Enter a whole number from 1 to 999,999,999,999.';
-export const END_NOT_AFTER_START_MESSAGE = 'End time must be after start time.';
-export const PASSWORD_LENGTH_MESSAGE = 'Use 12 to 128 characters.';
-export const PASSWORD_EQUALS_EMAIL_MESSAGE = 'Choose a password that is different from your email.';
-export const PASSWORDS_DONT_MATCH_MESSAGE = "Passwords don't match.";
-export const DUPLICATE_EMAIL_MESSAGE =
-  'An account with this email already exists. Sign in instead.';
+export const REQUIRED_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.requiredMessage');
+export const EMAIL_INVALID_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.emailInvalidMessage');
+export const PHONE_INVALID_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.phoneInvalidMessage');
+export const TIMEZONE_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.timezoneMessage');
+export const CURRENCY_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.currencyMessage');
+export const COUNTRY_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.countryMessage');
+export const TAX_RATE_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.taxRateMessage');
+export const PREFIX_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.prefixMessage');
+export const BRANCH_CODE_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.branchCodeMessage');
+export const NEXT_INVOICE_NUMBER_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.nextInvoiceNumberMessage');
+export const END_NOT_AFTER_START_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.endNotAfterStartMessage');
+export const PASSWORD_LENGTH_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.passwordLengthMessage');
+export const PASSWORD_EQUALS_EMAIL_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.passwordEqualsEmailMessage');
+export const PASSWORDS_DONT_MATCH_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.passwordsDontMatchMessage');
+export const DUPLICATE_EMAIL_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.duplicateEmailMessage');
 /** BR-02 (company-settings-and-branches): `nextInvoiceNumber` at or below the floor. */
-export const NEXT_INVOICE_NUMBER_FLOOR_MESSAGE =
-  'Enter a number greater than the last invoice number.';
+export const NEXT_INVOICE_NUMBER_FLOOR_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.nextInvoiceNumberFloorMessage');
 /** BR-04 (company-settings-and-branches): duplicate branch `code` within the organization. */
-export const DUPLICATE_BRANCH_CODE_MESSAGE = 'Another branch already uses this code.';
+export const DUPLICATE_BRANCH_CODE_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.duplicateBranchCodeMessage');
 /** Replaces any server field message outside the BR-24 catalog. */
-export const FALLBACK_FIELD_MESSAGE = 'Enter a valid value.';
+export const FALLBACK_FIELD_MESSAGE = (): string =>
+  t('organizations.registerCompanyMessages.fallbackFieldMessage');
 
 /** "Use {n} characters or fewer." for the field's maximum length. */
 export function tooLongMessage(maxLength: number): string {
-  return `Use ${maxLength} characters or fewer.`;
+  return t('organizations.registerCompanyMessages.useCharactersOrFewer', { maxLength: maxLength });
 }

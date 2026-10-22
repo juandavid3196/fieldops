@@ -18,6 +18,7 @@ import { SpinnerIcon } from 'primeng/icons/spinner';
 import { InputPassword } from 'primeng/inputpassword';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { isApiError } from '../../../../core/models/api-error.model';
 import {
@@ -43,6 +44,8 @@ import {
   UNAVAILABLE_TITLE,
 } from './reset-password.messages';
 
+import { localizedList } from '../../../../core/i18n/translate';
+import { LanguageFooterSelector } from '../../../../shared/components/language-footer-selector/language-footer-selector';
 type ResetPasswordState = 'loading' | 'unavailable' | 'load-error' | 'ready' | 'done';
 type ResetField = 'password' | 'confirmPassword';
 type ResetFieldErrors = Partial<Record<ResetField, string>>;
@@ -53,11 +56,11 @@ const FIELD_IDS: Readonly<Record<ResetField, string>> = {
   password: 'password',
   confirmPassword: 'confirm-password',
 };
-const SERVER_PASSWORD_MESSAGES: readonly string[] = [
-  REQUIRED_MESSAGE,
-  PASSWORD_LENGTH_MESSAGE,
-  PASSWORD_EQUALS_EMAIL_MESSAGE,
-];
+const SERVER_PASSWORD_MESSAGES: readonly string[] = localizedList(() => [
+  REQUIRED_MESSAGE(),
+  PASSWORD_LENGTH_MESSAGE(),
+  PASSWORD_EQUALS_EMAIL_MESSAGE(),
+]);
 
 /** Server `400` field errors: only `password`; any other key or message gets the fallback. */
 function mapServerFieldErrors(
@@ -71,13 +74,15 @@ function mapServerFieldErrors(
     password:
       message !== undefined && SERVER_PASSWORD_MESSAGES.includes(message)
         ? message
-        : FALLBACK_FIELD_MESSAGE,
+        : FALLBACK_FIELD_MESSAGE(),
   };
 }
 
 @Component({
   selector: 'app-reset-password',
   imports: [
+    LanguageFooterSelector,
+    TranslocoPipe,
     ReactiveFormsModule,
     RouterLink,
     ButtonDirective,
@@ -119,7 +124,7 @@ export class ResetPassword {
   readonly state = signal<ResetPasswordState>('loading');
   /** Account email from validate; kept in memory only. */
   readonly email = signal('');
-  readonly loadErrorMessage = signal(LOAD_ERROR_MESSAGE);
+  readonly loadErrorMessage = signal(LOAD_ERROR_MESSAGE());
   readonly pageMessage = signal<string | null>(null);
   readonly fieldErrors = signal<ResetFieldErrors>({});
   readonly submitting = signal(false);
@@ -127,8 +132,12 @@ export class ResetPassword {
   readonly passwordMasked = signal(true);
   readonly submitDisabled = computed(() => this.submitting() || this.retryLocked());
 
-  readonly unavailableTitle = UNAVAILABLE_TITLE;
-  readonly unavailableBody = UNAVAILABLE_BODY;
+  get unavailableTitle(): string {
+    return UNAVAILABLE_TITLE();
+  }
+  get unavailableBody(): string {
+    return UNAVAILABLE_BODY();
+  }
 
   private readonly passwordValue = toSignal(this.form.controls.password.valueChanges, {
     initialValue: '',
@@ -259,7 +268,7 @@ export class ResetPassword {
     if (apiError?.kind === 'rate-limited') {
       this.loadErrorMessage.set(this.lockAfterRateLimit(apiError.retryAfterSeconds));
     } else {
-      this.loadErrorMessage.set(LOAD_ERROR_MESSAGE);
+      this.loadErrorMessage.set(LOAD_ERROR_MESSAGE());
     }
     this.state.set('load-error');
     this.focus('h1');
@@ -304,7 +313,7 @@ export class ResetPassword {
         return;
     }
 
-    this.pageMessage.set(RESET_ERROR_MESSAGE);
+    this.pageMessage.set(RESET_ERROR_MESSAGE());
   }
 
   private showUnavailable(): void {

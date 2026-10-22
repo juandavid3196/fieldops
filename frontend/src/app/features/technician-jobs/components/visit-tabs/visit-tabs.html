@@ -14,10 +14,10 @@
 
 <p-tabs value="overview" class="tabs">
   <p-tablist>
-    <p-tab value="overview">Overview</p-tab>
-    <p-tab value="tasks">Tasks</p-tab>
-    <p-tab value="materials">Materials</p-tab>
-    <p-tab value="photos">Photos</p-tab>
+    <p-tab value="overview">{{ 'technicianJobs.visitTabs.overview' | transloco }}</p-tab>
+    <p-tab value="tasks">{{ 'technicianJobs.visitTabs.tasks' | transloco }}</p-tab>
+    <p-tab value="materials">{{ 'technicianJobs.visitTabs.materials' | transloco }}</p-tab>
+    <p-tab value="photos">{{ 'technicianJobs.visitTabs.photos' | transloco }}</p-tab>
   </p-tablist>
   <p-tabpanels>
     <p-tabpanel value="overview">
@@ -26,7 +26,9 @@
           <section class="tabs__card" aria-labelledby="tabs-instructions">
             <div class="tabs__card-head">
               <span class="tabs__tile" aria-hidden="true"><i class="pi pi-file"></i></span>
-              <h2 class="tabs__title" id="tabs-instructions">Job instructions</h2>
+              <h2 class="tabs__title" id="tabs-instructions">
+                {{ 'technicianJobs.visitTabs.jobInstructions' | transloco }}
+              </h2>
             </div>
             @if (visit().instructions; as instructions) {
               <div class="tabs__row">
@@ -34,7 +36,9 @@
                   ><i class="pi pi-align-left"></i
                 ></span>
                 <div>
-                  <h3 class="tabs__subtitle">Technician instructions</h3>
+                  <h3 class="tabs__subtitle">
+                    {{ 'technicianJobs.visitTabs.technicianInstructions' | transloco }}
+                  </h3>
                   <p class="tabs__text">{{ instructions }}</p>
                 </div>
               </div>
@@ -45,7 +49,9 @@
                   ><i class="pi pi-comment"></i
                 ></span>
                 <div>
-                  <h3 class="tabs__subtitle">Dispatch note</h3>
+                  <h3 class="tabs__subtitle">
+                    {{ 'technicianJobs.visitTabs.dispatchNote' | transloco }}
+                  </h3>
                   <p class="tabs__text">{{ note }}</p>
                 </div>
               </div>
@@ -59,7 +65,9 @@
               <span class="tabs__tile tabs__tile--teal" aria-hidden="true"
                 ><i class="pi pi-check-square"></i
               ></span>
-              <h2 class="tabs__title" id="tabs-scope">Scope of work</h2>
+              <h2 class="tabs__title" id="tabs-scope">
+                {{ 'technicianJobs.visitTabs.scopeOfWork' | transloco }}
+              </h2>
             </div>
             <ul class="tabs__list">
               @for (line of scope(); track $index) {
@@ -76,7 +84,9 @@
           <section class="tabs__card" aria-labelledby="tabs-skills">
             <div class="tabs__card-head">
               <span class="tabs__tile" aria-hidden="true"><i class="pi pi-user"></i></span>
-              <h2 class="tabs__title" id="tabs-skills">Required skills</h2>
+              <h2 class="tabs__title" id="tabs-skills">
+                {{ 'technicianJobs.visitTabs.requiredSkills' | transloco }}
+              </h2>
             </div>
             <div class="tabs__skills">
               @if (visit().requiredSkills.length > 0) {
@@ -95,7 +105,7 @@
                   [text]="true"
                   (click)="openAssessment.emit($any($event.currentTarget))"
                 >
-                  View approved assessment
+                  {{ 'technicianJobs.visitTabs.viewApprovedAssessment' | transloco }}
                   <i class="pi pi-chevron-right" aria-hidden="true"></i>
                 </button>
               }
@@ -108,7 +118,10 @@
             <div class="tabs__card-head">
               <span class="tabs__tile" aria-hidden="true"><i class="pi pi-image"></i></span>
               <h2 class="tabs__title" id="tabs-photos">
-                Assessment photos ({{ photos().length }})
+                {{
+                  'technicianJobs.visitTabs.assessmentPhotos'
+                    | transloco: { length: photos().length }
+                }}
               </h2>
             </div>
             <app-visit-photos [photos]="photos()" (open)="openPhoto.emit($event)" />
@@ -122,7 +135,9 @@
                 ><i class="pi pi-box"></i
               ></span>
               <div>
-                <h2 class="tabs__title" id="tabs-materials">Planned materials</h2>
+                <h2 class="tabs__title" id="tabs-materials">
+                  {{ 'technicianJobs.visitTabs.plannedMaterials' | transloco }}
+                </h2>
                 <p class="tabs__muted">{{ materialsCount() }}</p>
               </div>
             </div>
@@ -131,7 +146,7 @@
             />
             <p class="tabs__note">
               <i class="pi pi-info-circle" aria-hidden="true"></i>
-              Confirm quantities after starting the job.
+              {{ 'technicianJobs.visitTabs.confirmQuantitiesAfterStarting' | transloco }}
             </p>
           </section>
         }
@@ -141,11 +156,15 @@
     <p-tabpanel value="tasks">
       <div class="tabs__panel tabs__panel--card">
         @if (visit().tasks.length === 0) {
-          <p class="tabs__body tabs__text">No tasks for this job.</p>
+          <p class="tabs__body tabs__text">
+            {{ 'technicianJobs.visitTabs.noTasksForThis' | transloco }}
+          </p>
         } @else {
           <div class="tabs__body">
             <div class="tabs__heading-row">
-              <h2 class="tabs__heading">Job checklist</h2>
+              <h2 class="tabs__heading">
+                {{ 'technicianJobs.visitTabs.jobChecklist' | transloco }}
+              </h2>
               <p class="tabs__count">{{ tasksText() }}</p>
             </div>
             <div class="tabs__progress" aria-hidden="true">
@@ -162,7 +181,9 @@
                     {{ task.label }}
                   </label>
                   @if (task.isRequired) {
-                    <span class="tabs__badge">Required</span>
+                    <span class="tabs__badge">{{
+                      'technicianJobs.visitTabs.required' | transloco
+                    }}</span>
                   }
                 </li>
               }
@@ -170,7 +191,7 @@
           </div>
           <p class="tabs__footer">
             <i class="pi pi-info-circle" aria-hidden="true"></i>
-            Tasks can be completed after starting the job.
+            {{ 'technicianJobs.visitTabs.tasksCanBeCompleted' | transloco }}
           </p>
         }
       </div>
@@ -179,11 +200,15 @@
     <p-tabpanel value="materials">
       <div class="tabs__panel tabs__panel--card">
         @if (visit().plannedMaterials.length === 0) {
-          <p class="tabs__body tabs__text">No planned materials.</p>
+          <p class="tabs__body tabs__text">
+            {{ 'technicianJobs.visitTabs.noPlannedMaterials' | transloco }}
+          </p>
         } @else {
           <div class="tabs__body">
             <div class="tabs__heading-row">
-              <h2 class="tabs__heading">Planned materials</h2>
+              <h2 class="tabs__heading">
+                {{ 'technicianJobs.visitTabs.plannedMaterials' | transloco }}
+              </h2>
               <p class="tabs__count">{{ materialsCount() }}</p>
             </div>
             <ng-container
@@ -192,7 +217,7 @@
           </div>
           <p class="tabs__footer">
             <i class="pi pi-info-circle" aria-hidden="true"></i>
-            Confirm quantities after starting the job.
+            {{ 'technicianJobs.visitTabs.confirmQuantitiesAfterStarting' | transloco }}
           </p>
         }
       </div>
@@ -202,7 +227,9 @@
       <div class="tabs__panel tabs__panel--card">
         <div class="tabs__body">
           @if (photos().length === 0) {
-            <p class="tabs__text">No assessment photos.</p>
+            <p class="tabs__text">
+              {{ 'technicianJobs.visitTabs.noAssessmentPhotos' | transloco }}
+            </p>
           } @else {
             <app-visit-photos [photos]="photos()" (open)="openPhoto.emit($event)" />
           }

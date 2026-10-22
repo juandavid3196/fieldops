@@ -15,6 +15,7 @@ import { Dialog } from 'primeng/dialog';
 import { Message } from 'primeng/message';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { SessionService } from '../../../../core/services/session.service';
 import { TECHNICIAN_MESSAGES_PATH } from '../../../messages/messages.routes';
@@ -59,10 +60,13 @@ import {
   stepsFor,
 } from '../../utils/visit-detail';
 
-export const NOT_AVAILABLE_MESSAGE = "This job isn't available.";
-export const LOAD_ERROR_MESSAGE = "We couldn't load this job. Try again.";
+import { t } from '../../../../core/i18n/translate';
+export const NOT_AVAILABLE_MESSAGE = (): string =>
+  t('technicianJobs.visitDetail.notAvailableMessage');
+export const LOAD_ERROR_MESSAGE = (): string => t('technicianJobs.visitDetail.loadErrorMessage');
 export const TODAY_PATH = '/today';
-export const JOB_IN_PROGRESS_TITLE = 'Job in progress';
+export const JOB_IN_PROGRESS_TITLE = (): string =>
+  t('technicianJobs.visitDetail.jobInProgressTitle');
 
 type PageState = 'loading' | 'ready' | 'error' | TechnicianLoadFailure;
 type TravelAction = 'start-travel' | 'arrive' | 'start-job';
@@ -75,6 +79,7 @@ type TravelAction = 'start-travel' | 'arrive' | 'start-job';
 @Component({
   selector: 'app-visit-detail',
   imports: [
+    TranslocoPipe,
     NgTemplateOutlet,
     RouterLink,
     ButtonDirective,
@@ -112,8 +117,12 @@ export class VisitDetail {
   private readonly focusStack: HTMLElement[] = [];
 
   readonly todayPath = TODAY_PATH;
-  readonly notAvailableMessage = NOT_AVAILABLE_MESSAGE;
-  readonly loadErrorMessage = LOAD_ERROR_MESSAGE;
+  get notAvailableMessage(): string {
+    return NOT_AVAILABLE_MESSAGE();
+  }
+  get loadErrorMessage(): string {
+    return LOAD_ERROR_MESSAGE();
+  }
 
   readonly state = signal<PageState>('loading');
   readonly visit = signal<TechnicianVisitDetail | null>(null);
@@ -144,7 +153,9 @@ export class VisitDetail {
     const visit = this.visit();
     const cancellation = visit?.cancellation;
     return visit && cancellation
-      ? `This visit was cancelled on ${formatInstantDateTime(cancellation.cancelledAt, visit.timezone)}.`
+      ? t('technicianJobs.visitDetail.thisVisitWasCancelled', {
+          value: formatInstantDateTime(cancellation.cancelledAt, visit.timezone),
+        })
       : null;
   });
   readonly canDeletePhotos = computed(() => this.working() && this.visit()?.isPrimary === true);
@@ -207,7 +218,10 @@ export class VisitDetail {
         visit?.evidence.map((item) => ({
           id: item.id,
           url: this.visits.evidencePhotoUrl(this.visitId, item.id),
-          label: item.type === 'before' ? 'Before' : 'After',
+          label:
+            item.type === 'before'
+              ? t('technicianJobs.visitDetail.before')
+              : t('technicianJobs.visitDetail.after'),
         })) ?? []
       );
     }
@@ -222,7 +236,9 @@ export class VisitDetail {
     const visit = this.visit();
     const assessment = visit?.assessment;
     return visit && assessment
-      ? `Completed ${formatInstantShortDate(assessment.completedAt, visit.timezone)}`
+      ? t('technicianJobs.visitDetail.completed', {
+          value: formatInstantShortDate(assessment.completedAt, visit.timezone),
+        })
       : '';
   });
   readonly officeHref = computed(() => {
@@ -232,7 +248,7 @@ export class VisitDetail {
 
   constructor() {
     // The top bar reads "Job in progress" while Design 9 shows; a status change needs no navigation.
-    effect(() => this.visits.setPageTitle(this.working() ? JOB_IN_PROGRESS_TITLE : null));
+    effect(() => this.visits.setPageTitle(this.working() ? JOB_IN_PROGRESS_TITLE() : null));
     this.destroyRef.onDestroy(() => this.visits.setPageTitle(null));
     // The bottom-nav line grows with the stepper's completed steps (Scheduled, On the way, …).
     effect(() => {
@@ -298,7 +314,9 @@ export class VisitDetail {
         this.visit.set(result.visit);
         this.pending.set(null);
         this.announcement.set(
-          action === 'start-job' ? 'Job started.' : announcementFor(result.visit),
+          action === 'start-job'
+            ? t('technicianJobs.visitDetail.jobStarted')
+            : announcementFor(result.visit),
         );
       },
       error: (error: unknown) => {
@@ -331,7 +349,7 @@ export class VisitDetail {
       },
       error: () => {
         this.messaging.set(false);
-        this.messageError.set(OPEN_ERROR_MESSAGE);
+        this.messageError.set(OPEN_ERROR_MESSAGE());
       },
     });
   }
@@ -378,7 +396,7 @@ export class VisitDetail {
         this.deleting.set(false);
         this.deleteTarget.set(null);
         this.restoreFocus();
-        this.announcement.set('Photo deleted.');
+        this.announcement.set(t('technicianJobs.visitDetail.photoDeleted'));
         const count = this.photos().length;
         const index = this.viewerIndex();
         if (count === 0) {

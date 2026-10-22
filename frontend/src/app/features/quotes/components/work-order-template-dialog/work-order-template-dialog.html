@@ -1,5 +1,5 @@
 <p-dialog
-  header="Use checklist template"
+  [header]="'quotes.workOrderTemplateDialog.useChecklistTemplate' | transloco"
   [modal]="true"
   [draggable]="false"
   [resizable]="false"
@@ -10,7 +10,11 @@
   <div class="templates">
     @switch (state()) {
       @case ('loading') {
-        <div class="templates__skeletons" role="status" aria-label="Loading templates">
+        <div
+          class="templates__skeletons"
+          role="status"
+          [attr.aria-label]="'quotes.workOrderTemplateDialog.loadingTemplates' | transloco"
+        >
           <p-skeleton height="2.5rem" />
           <p-skeleton height="2.5rem" />
         </div>
@@ -20,7 +24,7 @@
           <span class="templates__row">
             {{ errorMessage }}
             <button pButton type="button" severity="secondary" size="small" (click)="load()">
-              Retry
+              {{ 'common.retry' | transloco }}
             </button>
           </span>
         </p-message>
@@ -30,7 +34,9 @@
           <p class="templates__muted">{{ emptyMessage }}</p>
         } @else {
           <fieldset class="templates__list">
-            <legend class="templates__legend">Templates</legend>
+            <legend class="templates__legend">
+              {{ 'quotes.workOrderTemplateDialog.templates' | transloco }}
+            </legend>
             @for (template of templates(); track template.id) {
               <label class="templates__item">
                 <input
@@ -49,7 +55,7 @@
           }
           <div class="templates__actions">
             <button pButton type="button" [disabled]="selectedId() === null" (click)="apply()">
-              Add tasks
+              {{ 'quotes.workOrderTemplateDialog.addTasks' | transloco }}
             </button>
           </div>
         }
@@ -57,7 +63,9 @@
     }
 
     <div class="templates__save">
-      <label class="templates__legend" for="wo-template-name">Template name</label>
+      <label class="templates__legend" for="wo-template-name">{{
+        'quotes.workOrderTemplateDialog.templateName' | transloco
+      }}</label>
       <input
         pInputText
         id="wo-template-name"
@@ -81,7 +89,7 @@
         [disabled]="saving()"
         (click)="saveCurrent()"
       >
-        Save current tasks as template
+        {{ 'quotes.workOrderTemplateDialog.saveCurrentTasksAs' | transloco }}
       </button>
     </div>
   </div>

@@ -1,5 +1,6 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { TeamTab } from '../../models/team-planning.model';
 
@@ -9,7 +10,7 @@ import { TeamTab } from '../../models/team-planning.model';
  */
 @Component({
   selector: 'app-team-tabs',
-  imports: [RouterLink],
+  imports: [TranslocoPipe, RouterLink],
   templateUrl: './team-tabs.html',
   styleUrl: './team-tabs.scss',
 })

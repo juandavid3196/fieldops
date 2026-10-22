@@ -1,14 +1,18 @@
 <section class="card" aria-labelledby="quote-approval-heading">
-  <h2 class="card__title" id="quote-approval-heading">Customer approval</h2>
-  <p class="card__text">The customer approves online through a secure link.</p>
+  <h2 class="card__title" id="quote-approval-heading">
+    {{ 'quotes.quoteDeliveryCard.customerApproval' | transloco }}
+  </h2>
+  <p class="card__text">{{ 'quotes.quoteDeliveryCard.theCustomerApprovesOnline' | transloco }}</p>
   <p class="card__note">
     <i class="pi pi-info-circle" aria-hidden="true"></i>
-    A work order can be created after customer approval.
+    {{ 'quotes.quoteDeliveryCard.aWorkOrderCan' | transloco }}
   </p>
 </section>
 
 <section class="card" aria-labelledby="quote-delivery-heading">
-  <h2 class="card__title" id="quote-delivery-heading">Delivery</h2>
+  <h2 class="card__title" id="quote-delivery-heading">
+    {{ 'quotes.quoteDeliveryCard.delivery' | transloco }}
+  </h2>
   <div class="card__channels">
     <label class="card__channel" for="quote-channel-email">
       <p-checkbox
@@ -17,7 +21,7 @@
         [disabled]="true"
         [ngModel]="true"
       />
-      Email
+      {{ 'common.email' | transloco }}
     </label>
     <label class="card__channel" for="quote-channel-sms">
       <p-checkbox
@@ -25,14 +29,16 @@
         [binary]="true"
         [disabled]="true"
         [ngModel]="false"
-        ariaLabel="SMS. SMS isn't available yet."
+        [ariaLabel]="'quotes.quoteDeliveryCard.smsSmsIsnT' | transloco"
       />
-      SMS
+      {{ 'quotes.quoteDeliveryCard.sms' | transloco }}
     </label>
   </div>
   <p class="card__muted" id="quote-sms-helper">{{ smsUnavailable }}</p>
 
-  <label class="card__label" for="quote-recipient">Send to</label>
+  <label class="card__label" for="quote-recipient">{{
+    'quotes.quoteDeliveryCard.sendTo' | transloco
+  }}</label>
   <input
     pInputText
     id="quote-recipient"
@@ -48,7 +54,9 @@
     <p class="card__error" id="quote-recipient-helper">{{ recipientError() ?? noRecipient }}</p>
   }
 
-  <label class="card__label" for="quote-email-message">Message</label>
+  <label class="card__label" for="quote-email-message">{{
+    'quotes.quoteDeliveryCard.message' | transloco
+  }}</label>
   <textarea
     pTextarea
     id="quote-email-message"

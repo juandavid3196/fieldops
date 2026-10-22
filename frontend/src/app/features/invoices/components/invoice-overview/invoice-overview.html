@@ -3,7 +3,7 @@
     <p class="overview__message" role="alert">
       {{ errorMessage }}
       <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-        Retry
+        {{ 'common.retry' | transloco }}
       </button>
     </p>
   } @else if (region().data === null) {
@@ -13,7 +13,10 @@
       }
     </div>
   } @else {
-    <dl class="overview__metrics" aria-label="Billing metrics">
+    <dl
+      class="overview__metrics"
+      [attr.aria-label]="'invoices.invoiceOverview.billingMetrics' | transloco"
+    >
       @for (metric of metrics(); track metric.label) {
         <div class="overview__metric">
           <span
@@ -32,7 +35,9 @@
 } @else if (region().status !== 'error') {
   <div class="overview__summary">
     <section class="overview__card" aria-labelledby="aging-title">
-      <h2 class="overview__title" id="aging-title">Aging summary</h2>
+      <h2 class="overview__title" id="aging-title">
+        {{ 'invoices.invoiceOverview.agingSummary' | transloco }}
+      </h2>
       @if (region().data === null) {
         <div class="overview__aging" aria-busy="true">
           @for (n of [1, 2, 3, 4]; track n) {
@@ -53,7 +58,9 @@
 
     <section class="overview__card" aria-labelledby="recent-title">
       <div class="overview__card-header">
-        <h2 class="overview__title" id="recent-title">Recent payments</h2>
+        <h2 class="overview__title" id="recent-title">
+          {{ 'invoices.invoiceOverview.recentPayments' | transloco }}
+        </h2>
         <button
           pButton
           type="button"
@@ -62,7 +69,7 @@
           size="small"
           (click)="viewAll.emit()"
         >
-          View all
+          {{ 'invoices.invoiceOverview.viewAll' | transloco }}
         </button>
       </div>
       @if (region().data === null) {
@@ -74,11 +81,11 @@
           <table class="overview__table">
             <thead>
               <tr>
-                <th scope="col">Date</th>
-                <th scope="col">Customer</th>
-                <th scope="col">Invoice #</th>
-                <th scope="col" class="overview__number">Amount</th>
-                <th scope="col">Method</th>
+                <th scope="col">{{ 'common.date' | transloco }}</th>
+                <th scope="col">{{ 'common.customer' | transloco }}</th>
+                <th scope="col">{{ 'invoices.invoiceOverview.invoice' | transloco }}</th>
+                <th scope="col" class="overview__number">{{ 'common.amount' | transloco }}</th>
+                <th scope="col">{{ 'invoices.invoiceOverview.method' | transloco }}</th>
               </tr>
             </thead>
             <tbody>

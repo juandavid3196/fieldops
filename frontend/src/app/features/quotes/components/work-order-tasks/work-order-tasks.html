@@ -1,6 +1,8 @@
 <section class="tasks" aria-labelledby="wo-tasks-heading">
   <header class="tasks__head">
-    <h2 class="tasks__title" id="wo-tasks-heading">Tasks &amp; checklist</h2>
+    <h2 class="tasks__title" id="wo-tasks-heading">
+      {{ 'quotes.workOrderTasks.tasksChecklist' | transloco }}
+    </h2>
     <div class="tasks__tools">
       <button
         pButton
@@ -12,7 +14,7 @@
         (click)="added.emit()"
       >
         <i class="pi pi-plus" aria-hidden="true"></i>
-        Add task
+        {{ 'quotes.workOrderTasks.addTask' | transloco }}
       </button>
       <button
         pButton
@@ -24,7 +26,7 @@
         (click)="templateRequested.emit()"
       >
         <i class="pi pi-file" aria-hidden="true"></i>
-        Use checklist template
+        {{ 'quotes.workOrderTasks.useChecklistTemplate' | transloco }}
       </button>
     </div>
   </header>
@@ -57,7 +59,7 @@
             pInputText
             fluid
             data-task-input
-            [attr.aria-label]="'Task ' + (index + 1)"
+            [attr.aria-label]="'quotes.workOrderTasks.task' | transloco: { value: index + 1 }"
             [attr.data-uid]="task.uid"
             [attr.data-field-key]="'tasks[' + task.uid + ']'"
             [attr.aria-invalid]="error(task) ? 'true' : null"
@@ -74,7 +76,9 @@
           <button
             type="button"
             class="task__icon task__icon--quiet"
-            [attr.aria-label]="'Remove ' + name(task, index)"
+            [attr.aria-label]="
+              'quotes.workOrderTasks.remove' | transloco: { value: name(task, index) }
+            "
             [disabled]="disabled()"
             (click)="removed.emit(task.uid)"
           >

@@ -9,19 +9,28 @@
   }
 
   <div class="catalog__main">
-    <nav class="catalog__breadcrumb" aria-label="Breadcrumb">
+    <nav
+      class="catalog__breadcrumb"
+      [attr.aria-label]="'productsServices.productsServices.breadcrumb' | transloco"
+    >
       @if (showAdminNav()) {
-        <a routerLink="/admin/company">Administration</a>
+        <a routerLink="/admin/company">{{
+          'productsServices.productsServices.administration' | transloco
+        }}</a>
       } @else {
-        <span>Administration</span>
+        <span>{{ 'productsServices.productsServices.administration' | transloco }}</span>
       }
       <span aria-hidden="true">/</span>
-      <span class="catalog__current" aria-current="page">Products &amp; services</span>
+      <span class="catalog__current" aria-current="page">{{
+        'productsServices.productsServices.productsServices' | transloco
+      }}</span>
     </nav>
 
     <header class="catalog__header">
       <div>
-        <h1 class="catalog__title">Products &amp; services</h1>
+        <h1 class="catalog__title">
+          {{ 'productsServices.productsServices.productsServices' | transloco }}
+        </h1>
         @if (!forbidden()) {
           <p class="catalog__description">{{ descriptionMessage }}</p>
         }
@@ -39,7 +48,7 @@
               (click)="openImport()"
             >
               <i class="pi pi-upload" aria-hidden="true"></i>
-              Import CSV
+              {{ 'productsServices.productsServices.importCsv' | transloco }}
             </button>
           }
           @if (canManage()) {
@@ -52,11 +61,11 @@
               (click)="openCategories()"
             >
               <i class="pi pi-tags" aria-hidden="true"></i>
-              Manage categories
+              {{ 'productsServices.productsServices.manageCategories' | transloco }}
             </button>
             <button pButton type="button" class="catalog__action" (click)="openCreate()">
               <i class="pi pi-plus" aria-hidden="true"></i>
-              Add item
+              {{ 'productsServices.productsServices.addItem' | transloco }}
             </button>
           }
         </div>
@@ -97,7 +106,10 @@
           </div>
         }
 
-        <section class="catalog__card" aria-label="Catalog items">
+        <section
+          class="catalog__card"
+          [attr.aria-label]="'productsServices.productsServices.catalogItems' | transloco"
+        >
           <app-catalog-toolbar
             [summary]="summary()"
             [summaryFailed]="summaryFailed()"
@@ -128,7 +140,7 @@
                     size="small"
                     (click)="loadList()"
                   >
-                    Retry
+                    {{ 'common.retry' | transloco }}
                   </button>
                 </span>
               </p-message>
@@ -143,14 +155,14 @@
                 @if (hasFilters()) {
                   <p>{{ emptyFilteredMessage }}</p>
                   <button pButton type="button" severity="secondary" (click)="clearFilters()">
-                    Clear filters
+                    {{ 'productsServices.productsServices.clearFilters' | transloco }}
                   </button>
                 } @else {
                   <p>{{ emptyInitialMessage }}</p>
                   @if (canManage()) {
                     <button pButton type="button" (click)="openCreate()">
                       <i class="pi pi-plus" aria-hidden="true"></i>
-                      Add item
+                      {{ 'productsServices.productsServices.addItem' | transloco }}
                     </button>
                   }
                 }
@@ -180,7 +192,7 @@
 
         <div class="catalog__footer">
           <div class="catalog__note catalog__note--info" role="note">
-            <i class="pi pi-info-circle" aria-hidden="true"></i>
+            <i class="pi pi-info" aria-hidden="true"></i>
             <span>{{ infoNote }}</span>
           </div>
           <div class="catalog__note catalog__note--warning" role="note">
@@ -203,7 +215,7 @@
                 } @else {
                   <i class="pi pi-download" aria-hidden="true"></i>
                 }
-                Download CSV
+                {{ 'productsServices.productsServices.downloadCsv' | transloco }}
               </button>
             }
             <button
@@ -220,7 +232,7 @@
               } @else {
                 <i class="pi pi-external-link" aria-hidden="true"></i>
               }
-              Export list
+              {{ 'productsServices.productsServices.exportList' | transloco }}
             </button>
           </div>
         </div>

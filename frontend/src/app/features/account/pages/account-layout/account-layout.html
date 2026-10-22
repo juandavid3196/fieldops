@@ -1,18 +1,21 @@
 <div class="account">
-  <nav aria-label="Breadcrumb">
+  <nav [attr.aria-label]="'account.accountLayout.breadcrumb' | transloco">
     <ol class="account__breadcrumb">
-      <li>Account</li>
+      <li>{{ 'account.accountLayout.account' | transloco }}</li>
       <li class="account__current" aria-current="page">{{ currentLabel() }}</li>
     </ol>
   </nav>
 
   <header class="account__header">
-    <h1 class="account__title">Account settings</h1>
-    <p class="account__subtitle">Manage your profile and security settings.</p>
+    <h1 class="account__title">{{ 'account.accountLayout.accountSettings' | transloco }}</h1>
+    <p class="account__subtitle">{{ 'account.accountLayout.manageYourProfileAnd' | transloco }}</p>
   </header>
 
   <div class="account__body">
-    <nav class="account__nav" aria-label="Account settings sections">
+    <nav
+      class="account__nav"
+      [attr.aria-label]="'account.accountLayout.accountSettingsSections' | transloco"
+    >
       <ul class="account__nav-list">
         @for (section of sections; track section.link) {
           <li>

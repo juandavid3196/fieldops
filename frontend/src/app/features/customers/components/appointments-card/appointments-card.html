@@ -1,15 +1,19 @@
 <section class="appointments" aria-labelledby="appointments-title">
   <header class="appointments__head">
-    <h2 class="appointments__title" id="appointments-title">Upcoming appointments</h2>
-    <a class="appointments__link" [routerLink]="scheduleLink">View all</a>
+    <h2 class="appointments__title" id="appointments-title">
+      {{ 'customers.appointmentsCard.upcomingAppointments' | transloco }}
+    </h2>
+    <a class="appointments__link" [routerLink]="scheduleLink">{{
+      'customers.appointmentsCard.viewAll' | transloco
+    }}</a>
   </header>
 
   @if (state().status === 'error') {
     <p-message severity="error" [closable]="false">
       <span class="appointments__retry">
-        We couldn't load appointments.
+        {{ 'customers.appointmentsCard.weCouldnTLoad' | transloco }}
         <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
-          Retry
+          {{ 'common.retry' | transloco }}
         </button>
       </span>
     </p-message>
@@ -21,10 +25,14 @@
   } @else if (rows().length === 0) {
     <div class="appointments__empty">
       <i class="pi pi-calendar" aria-hidden="true"></i>
-      <p class="appointments__empty-title">No upcoming appointments</p>
-      <p>Schedule a job for this customer.</p>
+      <p class="appointments__empty-title">
+        {{ 'customers.appointmentsCard.noUpcomingAppointments' | transloco }}
+      </p>
+      <p>{{ 'customers.appointmentsCard.scheduleAJobFor' | transloco }}</p>
       @if (canMutate()) {
-        <a pButton [routerLink]="scheduleLink">Schedule a job</a>
+        <a pButton [routerLink]="scheduleLink">{{
+          'customers.appointmentsCard.scheduleAJob' | transloco
+        }}</a>
       }
     </div>
   } @else {

@@ -1,5 +1,6 @@
 using System.Net;
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.Account;
 
 namespace FieldOps.Application.Features.Invitations;
 
@@ -15,7 +16,8 @@ public sealed record AcceptInvitationCommand(
     string? FirstName,
     string? LastName,
     string? Password,
-    IPAddress? ClientIp);
+    IPAddress? ClientIp,
+    string? PreferredLanguage = null);
 
 public sealed record AcceptExistingInvitationCommand(
     string? Token,
@@ -86,7 +88,8 @@ public sealed record AcceptNewUserRequest(
     string FirstName,
     string LastName,
     string PasswordHash,
-    IPAddress? ClientIp);
+    IPAddress? ClientIp,
+    string PreferredLanguage = SupportedLanguages.Default);
 
 public sealed record AcceptExistingUserRequest(
     string TokenHash,

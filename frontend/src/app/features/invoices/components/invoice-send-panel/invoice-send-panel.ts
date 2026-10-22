@@ -7,6 +7,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 import { PaymentTerms } from '../../../billing-review/models/billing-review.model';
 import {
@@ -26,6 +27,8 @@ import {
   SMS_UNAVAILABLE_MESSAGE,
 } from '../../models/invoice.model';
 
+import { t } from '../../../../core/i18n/translate';
+import { LocalizedRefPipe } from '../../../../core/i18n/localized-ref.pipe';
 let nextId = 0;
 
 /** Pending action shown on its button; every action is disabled while one is pending. */
@@ -38,6 +41,8 @@ export type InvoiceAction = 'save' | 'send' | 'resend' | 'pdf';
 @Component({
   selector: 'app-invoice-send-panel',
   imports: [
+    LocalizedRefPipe,
+    TranslocoPipe,
     ButtonDirective,
     Checkbox,
     FormsModule,
@@ -68,9 +73,15 @@ export class InvoiceSendPanel {
   protected readonly id = `invoice-panel-${nextId++}`;
   protected readonly termsOptions = TERMS_OPTIONS.map((option) => ({ ...option }));
   protected readonly limit = MESSAGE_MAX_LENGTH;
-  protected readonly smsUnavailable = SMS_UNAVAILABLE_MESSAGE;
-  protected readonly laterMessage = LATER_MESSAGE;
-  protected readonly readOnlyMessage = READ_ONLY_MESSAGE;
+  protected get smsUnavailable(): string {
+    return SMS_UNAVAILABLE_MESSAGE();
+  }
+  protected get laterMessage(): string {
+    return LATER_MESSAGE();
+  }
+  protected get readOnlyMessage(): string {
+    return READ_ONLY_MESSAGE();
+  }
 
   /** Links the terms error to the select's focusable label (BR-29). */
   protected readonly termsPt = computed(() =>
@@ -92,7 +103,10 @@ export class InvoiceSendPanel {
     const invoice = this.invoice();
     return invoice.sentAt === null
       ? null
-      : `Sent ${formatInstantDate(invoice.sentAt, invoice.timezone)} at ${formatInstantTime(invoice.sentAt, invoice.timezone)}`;
+      : t('invoices.invoiceSendPanel.sentAt', {
+          value: formatInstantDate(invoice.sentAt, invoice.timezone),
+          value2: formatInstantTime(invoice.sentAt, invoice.timezone),
+        });
   });
 
   protected update(change: Partial<DeliveryValues>): void {

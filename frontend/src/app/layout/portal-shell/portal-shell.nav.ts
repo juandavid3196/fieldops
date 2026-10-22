@@ -1,3 +1,4 @@
+import { localizedList, t } from '../../core/i18n/translate';
 /** One primary navigation destination of the portal shell (BR-16). */
 export interface PortalNavItem {
   readonly label: string;
@@ -6,13 +7,13 @@ export interface PortalNavItem {
   readonly exact: boolean;
 }
 
-export const PORTAL_NAV: readonly PortalNavItem[] = [
-  { label: 'Home', link: '/portal', exact: true },
-  { label: 'Requests', link: '/portal/requests', exact: false },
-  { label: 'Appointments', link: '/portal/appointments', exact: false },
-  { label: 'Quotes', link: '/portal/quotes', exact: false },
-  { label: 'Invoices', link: '/portal/invoices', exact: false },
-];
+export const PORTAL_NAV: readonly PortalNavItem[] = localizedList(() => [
+  { label: t('portal.portalShellNav.home'), link: '/portal', exact: true },
+  { label: t('portal.portalShellNav.requests'), link: '/portal/requests', exact: false },
+  { label: t('portal.portalShellNav.appointments'), link: '/portal/appointments', exact: false },
+  { label: t('portal.portalShellNav.quotes'), link: '/portal/quotes', exact: false },
+  { label: t('portal.portalShellNav.invoices'), link: '/portal/invoices', exact: false },
+]);
 
 export const UPDATES_LINK = '/portal/updates';
 export const SIGN_IN_LINK = '/portal/sign-in';
