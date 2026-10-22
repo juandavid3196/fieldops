@@ -156,18 +156,20 @@
         }
       }
     </div>
-    <dl
-      class="properties__history"
-      [attr.aria-label]="'customers.propertiesCard.propertyHistory' | transloco"
-    >
-      <div>
-        <dt>{{ 'customers.propertiesCard.lastService' | transloco }}</dt>
-        <dd>{{ view.lastService }}</dd>
-      </div>
-      <div>
-        <dt>{{ 'customers.propertiesCard.nextAppointment' | transloco }}</dt>
-        <dd>{{ view.nextAppointment }}</dd>
-      </div>
-    </dl>
+    @if (showHistory()) {
+      <dl
+        class="properties__history"
+        [attr.aria-label]="'customers.propertiesCard.propertyHistory' | transloco"
+      >
+        <div>
+          <dt>{{ 'customers.propertiesCard.lastService' | transloco }}</dt>
+          <dd>{{ view.lastService }}</dd>
+        </div>
+        <div>
+          <dt>{{ 'customers.propertiesCard.nextAppointment' | transloco }}</dt>
+          <dd>{{ view.nextAppointment }}</dd>
+        </div>
+      </dl>
+    }
   </article>
 </ng-template>

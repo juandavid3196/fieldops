@@ -104,6 +104,10 @@ public static class DependencyInjection
         services.AddScoped<ListCustomerNotesHandler>();
         services.AddScoped<AddCustomerNoteHandler>();
         services.AddScoped<ListCustomerActivityHandler>();
+        services.AddScoped<ListCustomerRequestsHandler>();
+        services.AddScoped<ListCustomerQuotesHandler>();
+        services.AddScoped<ListCustomerJobsHandler>();
+        services.AddScoped<ListCustomerInvoicesHandler>();
         services.AddScoped<GetTeamOptionsHandler>();
         services.AddScoped<GetTeamMetricsHandler>();
         services.AddScoped<ListTechniciansHandler>();

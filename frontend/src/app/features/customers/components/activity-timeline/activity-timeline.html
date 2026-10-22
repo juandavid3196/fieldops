@@ -1,0 +1,123 @@
+<section class="activity" aria-labelledby="activity-title">
+  <header class="activity__head">
+    <h2 class="activity__title" id="activity-title">
+      {{ 'customers.customerDetail.activity' | transloco }}
+    </h2>
+    <div class="activity__filters">
+      <p-select
+        appendTo="body"
+        fluid
+        [ariaLabel]="'customers.activityTab.typeLabel' | transloco"
+        [options]="typeOptions()"
+        optionLabel="label"
+        optionValue="code"
+        [ngModel]="type()"
+        (ngModelChange)="typeChange.emit($event)"
+      />
+      <p-select
+        appendTo="body"
+        fluid
+        [ariaLabel]="'customers.activityTab.periodLabel' | transloco"
+        [options]="periodOptions()"
+        optionLabel="label"
+        optionValue="code"
+        [ngModel]="period()"
+        (ngModelChange)="periodChange.emit($event)"
+      />
+    </div>
+  </header>
+
+  @if (state().status === 'error') {
+    <p-message severity="error" [closable]="false">
+      <span class="activity__retry">
+        {{ 'customers.customerDetail.weCouldnTLoad' | transloco }}
+        <button pButton type="button" severity="secondary" size="small" (click)="retry.emit()">
+          {{ 'common.retry' | transloco }}
+        </button>
+      </span>
+    </p-message>
+  } @else if (state().status !== 'ready') {
+    <div class="activity__skeletons" aria-busy="true">
+      <p-skeleton height="4rem" />
+      <p-skeleton height="4rem" />
+      <p-skeleton height="4rem" />
+    </div>
+  } @else if (groups().length === 0) {
+    <p class="activity__empty">{{ 'customers.activityTab.empty' | transloco }}</p>
+  } @else {
+    @for (group of groups(); track group.key) {
+      <section class="activity__group" [attr.aria-labelledby]="'activity-day-' + group.key">
+        <h3 class="activity__day" [id]="'activity-day-' + group.key">{{ group.label }}</h3>
+        <ul class="activity__list">
+          @for (item of group.items; track item.id) {
+            <li class="activity__item">
+              @if (item.link; as target) {
+                @let destination = link(target.kind, target.id);
+                <a
+                  class="activity__event"
+                  [routerLink]="destination.path"
+                  [queryParams]="destination.query"
+                  [attr.data-event-id]="item.id"
+                >
+                  <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+                  <i class="pi pi-chevron-right activity__chevron" aria-hidden="true"></i>
+                </a>
+              } @else {
+                <div class="activity__event" tabindex="-1" [attr.data-event-id]="item.id">
+                  <ng-container *ngTemplateOutlet="content; context: { $implicit: item }" />
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      </section>
+    }
+    @if (olderError()) {
+      <p-message severity="error" [closable]="false">
+        <span class="activity__retry">
+          {{ 'customers.activityTab.olderError' | transloco }}
+          <button
+            pButton
+            type="button"
+            severity="secondary"
+            size="small"
+            (click)="loadOlder.emit()"
+          >
+            {{ 'common.retry' | transloco }}
+          </button>
+        </span>
+      </p-message>
+    } @else if (hasMore()) {
+      <button
+        pButton
+        type="button"
+        class="activity__older"
+        severity="secondary"
+        [outlined]="true"
+        [loading]="loadingOlder()"
+        [disabled]="loadingOlder()"
+        (click)="loadOlder.emit()"
+      >
+        {{
+          (loadingOlder()
+            ? 'customers.activityTab.loadingOlder'
+            : 'customers.activityTab.loadOlder'
+          ) | transloco
+        }}
+      </button>
+    }
+  }
+</section>
+
+<ng-template #content let-item>
+  <span class="activity__icon activity__icon--{{ item.tone }}" aria-hidden="true">
+    <i class="pi {{ item.icon }}"></i>
+  </span>
+  <span class="activity__text">
+    <strong class="activity__name">{{ item.title }}</strong>
+    @if (item.summary) {
+      <span class="activity__summary">{{ item.summary }}</span>
+    }
+  </span>
+  <span class="activity__meta">{{ item.time }} · {{ item.origin }}</span>
+</ng-template>

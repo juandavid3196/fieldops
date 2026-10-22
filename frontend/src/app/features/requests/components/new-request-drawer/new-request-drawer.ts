@@ -100,6 +100,8 @@ export class NewRequestDrawer {
   readonly open = input.required<boolean>();
   readonly options = input<RequestOptions | null>(null);
   readonly optionsLoading = input(false);
+  /** Opened from a customer page: this customer is preselected and not editable (BR-09). */
+  readonly lockedCustomer = input<CustomerOption | null>(null);
 
   readonly created = output<RequestDetail>();
   readonly closed = output<void>();
@@ -242,6 +244,10 @@ export class NewRequestDrawer {
     this.preferredDate.set('');
     this.timeWindow.set('any');
     this.schedulingNotes.set('');
+    const locked = this.lockedCustomer();
+    if (locked !== null) {
+      this.onCustomerInput(locked);
+    }
     this.snapshot = this.formKey();
   }
 

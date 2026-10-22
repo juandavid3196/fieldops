@@ -1,0 +1,157 @@
+<section class="related" [attr.aria-labelledby]="'related-title-' + kind()">
+  <header class="related__head">
+    <h2 class="related__title" [id]="'related-title-' + kind()">{{ heading() }}</h2>
+    @if (kind() === 'requests' && canCreate()) {
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        [outlined]="true"
+        class="related__create"
+        (click)="newRequest.emit()"
+      >
+        <i class="pi pi-plus" aria-hidden="true"></i>
+        {{ 'customers.relatedList.newRequest' | transloco }}
+      </button>
+    }
+  </header>
+
+  <div class="related__filters">
+    <p-iconfield class="related__search">
+      <p-inputicon class="pi pi-search" />
+      <input
+        pInputText
+        type="search"
+        maxlength="100"
+        fluid
+        [attr.placeholder]="'customers.relatedList.search.' + kind() | transloco"
+        [attr.aria-label]="'customers.relatedList.search.' + kind() | transloco"
+        [ngModel]="search()"
+        (ngModelChange)="onSearch($event)"
+      />
+    </p-iconfield>
+    <p-select
+      class="related__status"
+      appendTo="body"
+      fluid
+      [ariaLabel]="'common.status' | transloco"
+      [options]="statusOptions()"
+      optionLabel="label"
+      optionValue="code"
+      [ngModel]="status()"
+      (ngModelChange)="onStatus($event)"
+    />
+  </div>
+
+  @if (kind() === 'invoices' && state().status !== 'error') {
+    @if (summary(); as cards) {
+      <dl class="related__summary">
+        @for (card of cards; track card.label) {
+          <div>
+            <dt>{{ card.label }}</dt>
+            <dd>{{ card.value }}</dd>
+          </div>
+        }
+      </dl>
+    } @else {
+      <p-skeleton height="4.5rem" class="related__summary-skeleton" />
+    }
+  }
+
+  @if (state().status === 'error') {
+    <p-message severity="error" [closable]="false">
+      <span class="related__retry">
+        {{ 'customers.relatedList.loadError' | transloco: { noun: noun() } }}
+        <button pButton type="button" severity="secondary" size="small" (click)="load()">
+          {{ 'common.retry' | transloco }}
+        </button>
+      </span>
+    </p-message>
+  } @else if (state().status !== 'ready') {
+    <div class="related__skeletons" aria-busy="true">
+      @for (row of skeletonRows; track row) {
+        <p-skeleton height="3rem" />
+      }
+    </div>
+  } @else if (rows().length === 0) {
+    <div class="related__empty">
+      @if (state().data?.customerTotal === 0) {
+        <p class="related__empty-title">
+          {{ 'customers.relatedList.empty.' + kind() | transloco }}
+        </p>
+        <p>{{ 'customers.relatedList.emptyHint' | transloco: { module: moduleLabel() } }}</p>
+      } @else {
+        <p class="related__empty-title">
+          {{ 'customers.relatedList.noMatch' | transloco: { noun: noun() } }}
+        </p>
+        <button pButton type="button" severity="secondary" size="small" (click)="clearFilters()">
+          {{ 'customers.relatedList.clearFilters' | transloco }}
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="related__table" [style.--related-cols]="columns()">
+      <div class="related__row related__row--head" aria-hidden="true">
+        @for (heading of headings(); track heading) {
+          <span class="related__cell">{{ heading }}</span>
+        }
+      </div>
+      <ul class="related__rows">
+        @for (row of rows(); track row.id) {
+          <li>
+            <a
+              class="related__row"
+              [routerLink]="row.link.path"
+              [queryParams]="row.link.query"
+              [attr.aria-label]="row.ariaLabel"
+            >
+              @for (cell of row.cells; track cell.label) {
+                <span
+                  class="related__cell related__cell--{{ cell.kind }}"
+                  [attr.data-label]="cell.label"
+                >
+                  @switch (cell.kind) {
+                    @case ('primary') {
+                      <span class="related__number">{{ cell.text }}</span>
+                      @if (cell.sub) {
+                        <span class="related__sub">{{ cell.sub }}</span>
+                      }
+                    }
+                    @case ('status') {
+                      <span class="related__chip related__chip--{{ cell.tone }}">{{
+                        cell.text
+                      }}</span>
+                    }
+                    @case ('person') {
+                      <span class="related__person">
+                        <span class="related__avatar" aria-hidden="true">{{ cell.initials }}</span>
+                        {{ cell.text }}
+                      </span>
+                    }
+                    @default {
+                      {{ cell.text }}
+                    }
+                  }
+                </span>
+              }
+              <i class="pi pi-chevron-right related__chevron" aria-hidden="true"></i>
+            </a>
+          </li>
+        }
+      </ul>
+    </div>
+    <div class="related__footer">
+      <p class="related__showing">{{ showing() }}</p>
+      <p-paginator
+        class="related__pager"
+        [first]="(page() - 1) * pageSize()"
+        [rows]="pageSize()"
+        [totalRecords]="state().data?.totalCount ?? 0"
+        [rowsPerPageOptions]="pageSizes"
+        [pageLinkSize]="3"
+        [showFirstLastIcon]="false"
+        (onPageChange)="onPageChange($event)"
+      />
+    </div>
+  }
+</section>

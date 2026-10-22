@@ -1,0 +1,317 @@
+@use '../../../../../styles/breakpoints' as bp;
+@use '../../pages/customer-detail/card';
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.related {
+  @include card.base;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  &__head {
+    @include card.head;
+
+    margin: 0;
+  }
+
+  &__title {
+    @include card.title;
+
+    font-size: 1.25rem;
+  }
+
+  &__create {
+    inline-size: 100%;
+
+    @include bp.up(md) {
+      inline-size: auto;
+    }
+  }
+
+  &__filters {
+    display: grid;
+    gap: 0.75rem;
+
+    @include bp.up(md) {
+      grid-template-columns: minmax(0, 24rem) minmax(0, 14rem);
+    }
+  }
+
+  &__retry {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  &__skeletons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__summary {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    margin: 0;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    @include bp.up(md) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0;
+    }
+
+    div {
+      @include bp.up(md) {
+        padding-inline: 1rem;
+
+        & + div {
+          border-inline-start: 1px solid var(--fo-color-border);
+        }
+      }
+    }
+
+    dt {
+      @include card.muted;
+    }
+
+    dd {
+      margin: 0.25rem 0 0;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--fo-color-heading);
+    }
+  }
+
+  &__empty {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 1.5rem 1rem;
+    text-align: center;
+
+    @include card.muted;
+
+    p {
+      margin: 0;
+    }
+  }
+
+  &__empty-title {
+    font-weight: 600;
+    color: var(--fo-color-text);
+  }
+
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+
+    @include bp.up(md) {
+      gap: 0;
+    }
+  }
+
+  // Tables sit inside a bordered frame on wide screens; narrow screens use one card per row.
+  &__table {
+    @include bp.up(md) {
+      overflow: hidden;
+      border: 1px solid var(--fo-color-border);
+      border-radius: var(--fo-radius-card);
+    }
+  }
+
+  &__row {
+    position: relative;
+    display: grid;
+    gap: 0.375rem;
+    padding: 0.875rem 1rem;
+    color: var(--fo-color-text);
+    text-decoration: none;
+    border: 1px solid var(--fo-color-border);
+    border-radius: var(--fo-radius-card);
+
+    @include bp.up(md) {
+      grid-template-columns: var(--related-cols);
+      gap: 0.75rem;
+      align-items: center;
+      padding: 0.75rem 1rem;
+      border: 0;
+      border-block-end: 1px solid var(--fo-color-row-divider);
+      border-radius: 0;
+    }
+
+    &:hover {
+      background: var(--fo-color-surface-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset var(--fo-focus-ring);
+    }
+
+    &--head {
+      display: none;
+      padding-block: 0.625rem;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--fo-color-text-secondary);
+      background: var(--fo-color-surface-hover);
+
+      @include bp.up(md) {
+        display: grid;
+      }
+
+      &:hover {
+        background: var(--fo-color-surface-hover);
+      }
+    }
+  }
+
+  &__cell {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    // Compact card: every value shows its label (BR-16).
+    &[data-label]::before {
+      font-size: 0.75rem;
+      color: var(--fo-color-text-secondary);
+      content: attr(data-label);
+
+      @include bp.up(md) {
+        display: none;
+      }
+    }
+
+    &--primary {
+      padding-inline-end: 7rem;
+
+      @include bp.up(md) {
+        padding-inline-end: 0;
+      }
+    }
+
+    &--status {
+      position: absolute;
+      inset-block-start: 0.75rem;
+      inset-inline-end: 0.75rem;
+
+      @include bp.up(md) {
+        position: static;
+        align-items: flex-start;
+      }
+
+      &::before {
+        display: none;
+      }
+    }
+  }
+
+  &__number {
+    font-weight: 600;
+    color: var(--fo-color-primary-strong);
+    text-decoration: underline;
+  }
+
+  &__sub {
+    @include card.muted;
+  }
+
+  &__person {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  &__avatar {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2rem;
+    block-size: 2rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--fo-color-primary-strong);
+    background: var(--fo-color-primary-soft);
+    border-radius: var(--fo-radius-pill);
+  }
+
+  &__chip {
+    display: inline-flex;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--fo-color-neutral-text);
+    white-space: nowrap;
+    background: var(--fo-color-neutral-background);
+    border-radius: var(--fo-radius-pill);
+
+    &--info {
+      color: var(--fo-color-info-text);
+      background: var(--fo-color-info-background);
+    }
+
+    &--purple {
+      color: var(--fo-color-review-audit-trail-audit-purple);
+      background: var(--fo-color-review-audit-trail-audit-purple-soft);
+    }
+
+    &--warning {
+      color: var(--fo-color-warning-text);
+      background: var(--fo-color-warning-background);
+    }
+
+    &--success {
+      color: var(--fo-color-success-text);
+      background: var(--fo-color-success-background);
+    }
+
+    &--danger {
+      color: var(--fo-color-danger-text);
+      background: var(--fo-color-danger-background);
+    }
+  }
+
+  &__chevron {
+    display: none;
+    color: var(--fo-color-text-secondary);
+
+    @include bp.up(md) {
+      display: block;
+    }
+  }
+
+  &__footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  &__showing {
+    margin: 0;
+
+    @include card.muted;
+  }
+
+  &__pager {
+    margin-inline-start: auto;
+
+    --p-paginator-padding: 0;
+    --p-paginator-background: transparent;
+  }
+}

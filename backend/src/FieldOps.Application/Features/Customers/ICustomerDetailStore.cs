@@ -15,17 +15,23 @@ public interface ICustomerDetailStore
         Guid organizationId, BranchScope scope, Guid customerId, CancellationToken cancellationToken);
 
     Task<CustomerOverviewData?> GetOverviewAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, CancellationToken cancellationToken);
+        Guid organizationId, BranchScope scope, Guid customerId, CustomerRecordAccess access, CancellationToken cancellationToken);
 
     /// <summary>Active properties first (primary, then name, then id), then archived ones.</summary>
     Task<IReadOnlyList<CustomerPropertyView>?> ListPropertiesAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, DateTimeOffset now, CancellationToken cancellationToken);
+        Guid organizationId,
+        BranchScope scope,
+        Guid customerId,
+        CustomerRecordAccess access,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
 
     Task<CustomerPropertyView?> GetPropertyAsync(
         Guid organizationId,
         BranchScope scope,
         Guid customerId,
         Guid propertyId,
+        CustomerRecordAccess access,
         DateTimeOffset now,
         CancellationToken cancellationToken);
 
@@ -44,6 +50,7 @@ public interface ICustomerDetailStore
         string countryCode,
         Guid actorUserId,
         IPAddress? clientIp,
+        CustomerRecordAccess access,
         DateTimeOffset now,
         CancellationToken cancellationToken);
 
@@ -56,6 +63,7 @@ public interface ICustomerDetailStore
         CustomerPropertyValues values,
         Guid actorUserId,
         IPAddress? clientIp,
+        CustomerRecordAccess access,
         DateTimeOffset now,
         CancellationToken cancellationToken);
 
@@ -72,10 +80,15 @@ public interface ICustomerDetailStore
         CancellationToken cancellationToken);
 
     Task<IReadOnlyList<CustomerRecentWorkItem>?> ListRecentWorkAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, CancellationToken cancellationToken);
+        Guid organizationId, BranchScope scope, Guid customerId, CustomerRecordAccess access, CancellationToken cancellationToken);
 
     Task<IReadOnlyList<CustomerUpcomingAppointment>?> ListUpcomingAppointmentsAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, DateTimeOffset now, CancellationToken cancellationToken);
+        Guid organizationId,
+        BranchScope scope,
+        Guid customerId,
+        CustomerRecordAccess access,
+        DateTimeOffset now,
+        CancellationToken cancellationToken);
 
     Task<CustomerNotesPage?> ListNotesAsync(
         Guid organizationId, BranchScope scope, Guid customerId, int page, string timezone, CancellationToken cancellationToken);
@@ -89,7 +102,4 @@ public interface ICustomerDetailStore
         Guid actorUserId,
         IPAddress? clientIp,
         CancellationToken cancellationToken);
-
-    Task<CustomerActivityPage?> ListActivityAsync(
-        Guid organizationId, BranchScope scope, Guid customerId, int page, string timezone, CancellationToken cancellationToken);
 }

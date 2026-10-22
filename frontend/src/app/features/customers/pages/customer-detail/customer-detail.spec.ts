@@ -16,6 +16,13 @@ import { errorInterceptor } from '../../../../core/interceptors/error.intercepto
 import { SessionService } from '../../../../core/services/session.service';
 import { CustomerDrawer } from '../../components/customer-drawer/customer-drawer';
 import { PropertyDrawer } from '../../components/property-drawer/property-drawer';
+import { RelatedListTab } from '../../components/related-list-tab/related-list-tab';
+import { NewRequestDrawer } from '../../../requests/components/new-request-drawer/new-request-drawer';
+import {
+  CustomerOption,
+  RequestDetail,
+  RequestOptions,
+} from '../../../requests/models/requests.model';
 import { PropertyFormValue } from '../../components/property-drawer/property-drawer.validators';
 import {
   CustomerDetail as CustomerDrawerDetail,
@@ -129,14 +136,74 @@ const notesBody = (items: readonly NoteItem[], page: number, totalCount: number)
   pageSize: 10,
   timezone: 'America/Chicago',
 });
+/** Accounting has no Jobs read: Total jobs is omitted (BR-14). */
+const ACCOUNTING_OVERVIEW: CustomerOverview = {
+  ...OVERVIEW,
+  summary: { customerSince: OVERVIEW.summary.customerSince, lifetimeValue: 1142.28 },
+};
 const ROLES = [
-  { role: 'owner', mutate: true, forbidden: false },
-  { role: 'dispatcher', mutate: true, forbidden: false },
-  { role: 'operations_manager', mutate: false, forbidden: false },
-  { role: 'accounting', mutate: false, forbidden: false },
-  { role: 'viewer', mutate: false, forbidden: false },
-  { role: 'technician', mutate: false, forbidden: true },
+  { role: 'owner', mutate: true, forbidden: false, jobs: true },
+  { role: 'dispatcher', mutate: true, forbidden: false, jobs: true },
+  { role: 'operations_manager', mutate: false, forbidden: false, jobs: true },
+  { role: 'accounting', mutate: false, forbidden: false, jobs: false },
+  { role: 'viewer', mutate: false, forbidden: false, jobs: true },
+  { role: 'technician', mutate: false, forbidden: true, jobs: false },
 ];
+const TABS_ALL = ['Overview', 'Requests', 'Quotes', 'Jobs', 'Invoices', 'Activity'];
+const CUSTOMER_OPTION: CustomerOption = {
+  id: ID,
+  displayName: 'Sofia Martinez',
+  branchId: 'b-1',
+  contacts: [
+    { id: 'c-1', name: 'Sofia Martinez', email: 'sofia@example.com', phone: null, isPrimary: true },
+  ],
+  properties: [
+    { id: 'p-1', name: 'Home', addressLine1: '742 Maple Ave', city: 'Austin', isPrimary: true },
+  ],
+};
+const REQUEST_OPTIONS = {
+  requestPrefix: 'REQ',
+  timezone: 'America/Chicago',
+  categories: [],
+  assignees: [],
+  branches: [],
+  technicians: [],
+} as unknown as RequestOptions;
+const requestsPage = (items: readonly object[], customerTotal = items.length) => ({
+  items,
+  totalCount: items.length,
+  customerTotal,
+  page: 1,
+  pageSize: 10,
+  timezone: 'America/Chicago',
+});
+const REQUEST_ROW = {
+  id: 'r-1',
+  number: 'REQ-1048',
+  service: 'General services',
+  propertyName: 'Home',
+  createdAt: '2026-09-20T15:00:00Z',
+  status: 'new',
+};
+const ago = (days: number, hours = 0): string =>
+  new Date(Date.now() - days * 86_400_000 - hours * 3_600_000).toISOString();
+const event = (id: string, over: object = {}) => ({
+  id,
+  type: 'customer',
+  action: 'customer.updated',
+  occurredAt: ago(0, 0.01),
+  origin: { kind: 'staff', actorName: 'Alex Morgan' },
+  subject: {},
+  link: null,
+  ...over,
+});
+const activityBody = (items: readonly object[], nextCursor: string | null = null) => ({
+  items,
+  availableTypes: ['customer', 'invoices', 'messages', 'payments'],
+  nextCursor,
+  currency: 'USD',
+  timezone: 'America/Chicago',
+});
 
 describe('Customer detail page', () => {
   let httpTesting: HttpTestingController;
@@ -148,11 +215,17 @@ describe('Customer detail page', () => {
   const call = (method: string, path: string): TestRequest =>
     httpTesting.expectOne((r) => r.method === method && r.url === `${API}/${path}`);
   const flushOverview = (
-    regions: { notes?: readonly NoteItem[]; total?: number; properties?: object } = {},
+    regions: {
+      notes?: readonly NoteItem[];
+      total?: number;
+      properties?: object;
+      jobs?: boolean;
+      overview?: CustomerOverview;
+    } = {},
     withDetail = true,
   ): void => {
     if (withDetail) {
-      call('GET', `customers/${ID}/detail`).flush(OVERVIEW);
+      call('GET', `customers/${ID}/detail`).flush(regions.overview ?? OVERVIEW);
     }
     call('GET', `customers/${ID}/properties`).flush(regions.properties ?? PROPERTIES);
     call('GET', `customers/${ID}/recent-work`).flush({
@@ -191,10 +264,12 @@ describe('Customer detail page', () => {
       currency: 'USD',
       timezone: 'America/Chicago',
     });
-    call('GET', `customers/${ID}/upcoming-appointments`).flush({
-      items: [],
-      timezone: 'America/Chicago',
-    });
+    if (regions.jobs ?? true) {
+      call('GET', `customers/${ID}/upcoming-appointments`).flush({
+        items: [],
+        timezone: 'America/Chicago',
+      });
+    }
     call('GET', `customers/${ID}/notes`).flush(
       notesBody(regions.notes ?? [], 1, regions.total ?? regions.notes?.length ?? 0),
     );
@@ -276,7 +351,7 @@ describe('Customer detail page', () => {
 
   it.each(ROLES)(
     'applies role UX per BR-02/BR-03 for $role: Technician gets the forbidden state with no requests; read roles see data without mutation controls (AC-01 to AC-03)',
-    async ({ role, mutate, forbidden }) => {
+    async ({ role, mutate, forbidden, jobs }) => {
       await open(role);
       if (forbidden) {
         await settle();
@@ -284,11 +359,21 @@ describe('Customer detail page', () => {
         expect(host.querySelector('[role="tablist"]')).toBeNull();
         expect(host.querySelector('app-customer-drawer')).toBeNull();
       } else {
-        flushOverview();
+        flushOverview({ jobs, overview: jobs ? OVERVIEW : ACCOUNTING_OVERVIEW });
         if (mutate) {
           flushOptions();
         }
         await settle();
+        // BR-03/BR-14: the Jobs tab, Upcoming appointments, Total jobs and property history need Jobs read.
+        expect(
+          Array.from(host.querySelectorAll('[role="tab"]')).map((tab) => tab.textContent?.trim()),
+        ).toEqual(jobs ? TABS_ALL : TABS_ALL.filter((label) => label !== 'Jobs'));
+        expect(
+          ['Upcoming appointments', 'Total jobs', 'Last service'].map((label) =>
+            text().includes(label),
+          ),
+        ).toEqual([jobs, jobs, jobs]);
+        expect(text()).toContain('Lifetime value');
         const controls = [
           'Edit customer',
           'Create',
@@ -323,7 +408,7 @@ describe('Customer detail page', () => {
         );
         expect(names[0]).toContain('Home');
         expect(names[0]).toContain('Primary');
-        expect(text()).toContain('Sep 20, 2026 · Sink repair');
+        expect(text().includes('Sep 20, 2026 · Sink repair')).toBe(jobs);
         // Quote links open the read-only quote page; request links the Requests panel (quote-builder BR-30).
         expect(host.querySelector('a[href="/quotes/q-1"]')).not.toBeNull();
         expect(host.querySelector('a[href="/requests?request=r-1"]')).not.toBeNull();
@@ -332,48 +417,39 @@ describe('Customer detail page', () => {
     20_000,
   );
 
-  it('syncs the tab with ?tab=, makes no request for Coming soon tabs and routes the Create menu (BR-01, BR-18, AC-01, AC-19)', async () => {
+  it('syncs the tab with ?tab=, shows the new Activity shape and routes the Create menu (BR-01, AC-01, AC-14)', async () => {
     await open('owner', `/customers/${ID}?tab=activity`);
     // Only the header and Activity load; Overview regions wait until they are shown.
     call('GET', `customers/${ID}/detail`).flush(OVERVIEW);
     flushOptions();
-    call('GET', `customers/${ID}/activity`).flush({
-      items: [
-        {
-          id: 'a-1',
+    call('GET', `customers/${ID}/activity`).flush(
+      activityBody([
+        event('a-1', {
           action: 'property.created',
-          subjectName: 'Lake house',
-          actorName: null,
           occurredAt: '2026-09-20T15:00:00Z',
-        },
-        {
-          id: 'a-2',
-          action: 'customer.updated',
-          occurredAt: '2026-09-19T15:00:00Z',
-          actorName: 'Alex Morgan',
-        },
-      ],
-      totalCount: 25,
-      page: 1,
-      pageSize: 20,
-      timezone: 'America/Chicago',
-    });
+          origin: { kind: 'system' },
+          subject: { propertyName: 'Lake house' },
+        }),
+        event('a-2', { occurredAt: '2026-09-19T15:00:00Z' }),
+      ]),
+    );
     await settle();
     const selected = () =>
       host.querySelector('[role="tab"][aria-selected="true"]')?.textContent?.trim();
     expect(selected()).toBe('Activity');
     expect(text()).toContain('Property added: Lake house');
-    expect(text()).toContain('System · Sep 20, 2026');
+    expect(text()).toContain('Sep 20, 2026');
+    expect(text()).toContain('10:00 AM · System');
     expect(text()).toContain('Customer details updated');
-    expect(text()).toContain('Page 1 of 2');
 
     button('Quotes')!.click();
     await settle();
     expect(TestBed.inject(Router).url).toBe(`/customers/${ID}?tab=quotes`);
     expect(selected()).toBe('Quotes');
-    expect(text()).toContain('Quotes are coming soon');
-    expect(text()).toContain("You'll see this customer's quotes here.");
-    expect(button('Go to Quotes')!.getAttribute('href')).toBe('/coming-soon/quotes');
+    call('GET', `customers/${ID}/quotes`).flush({ ...requestsPage([]), currency: 'USD' });
+    await settle();
+    expect(text()).toContain('No quotes yet');
+    expect(text()).not.toContain('coming soon');
 
     // An unknown tab shows Overview and loads its regions once.
     await harness.navigateByUrl(`/customers/${ID}?tab=nope`);
@@ -673,5 +749,195 @@ describe('Customer detail page', () => {
     call('GET', `customers/${ID}/properties`).flush(PROPERTIES);
     await settle();
     expect(messages).toContain('Property archived.');
+  }, 30_000);
+
+  it('loads each related list on first activation, keeps per-tab filters while switching and omits unreadable tabs (BR-03, AC-01, AC-06, AC-07, AC-09)', async () => {
+    await open('owner');
+    flushOverview();
+    flushOptions();
+    await settle();
+    const lists = (): RelatedListTab[] =>
+      fixture.debugElement
+        .queryAll(By.directive(RelatedListTab))
+        .map((node) => node.componentInstance);
+    expect(lists()).toHaveLength(0);
+
+    button('Requests')!.click();
+    await settle();
+    const first = call('GET', `customers/${ID}/requests`);
+    expect(first.request.params.keys().sort()).toEqual(['page', 'pageSize']);
+    expect(first.request.params.get('pageSize')).toBe('10');
+    first.flush(requestsPage([REQUEST_ROW], 3));
+    await settle();
+    expect(text()).toContain('Requests (3)');
+    expect(text()).toContain('Showing 1–1 of 1 requests');
+    const row = host.querySelector<HTMLAnchorElement>('a[href="/requests?request=r-1"]')!;
+    expect(row.getAttribute('aria-label')).toBe('REQ-1048, New');
+    expect(button('New request')).toBeDefined();
+
+    // Status filter returns to page 1; another tab loads on its first activation only.
+    lists()[0].page.set(2);
+    lists()[0].onStatus('quoted');
+    const filtered = call('GET', `customers/${ID}/requests`);
+    expect(filtered.request.params.get('status')).toBe('quoted');
+    expect(filtered.request.params.get('page')).toBe('1');
+    filtered.flush(requestsPage([], 3));
+    await settle();
+    expect(text()).toContain('No requests match your filters.');
+
+    button('Invoices')!.click();
+    await settle();
+    call('GET', `customers/${ID}/invoices`).flush({
+      ...requestsPage([]),
+      currency: 'USD',
+      summary: { outstanding: 0, overdue: 0, paid: 0 },
+    });
+    button('Requests')!.click();
+    await settle();
+    // No new request: the tab stayed mounted with its own filter (AC-07).
+    expect(lists()[0].status()).toBe('quoted');
+    expect(lists()).toHaveLength(2);
+  }, 20_000);
+
+  it('hides the Jobs tab and treats ?tab=jobs as Overview for Accounting (BR-03, AC-09)', async () => {
+    await open('accounting', `/customers/${ID}?tab=jobs`);
+    flushOverview({ jobs: false, overview: ACCOUNTING_OVERVIEW });
+    await settle();
+    expect(host.querySelector('[role="tab"][aria-selected="true"]')?.textContent?.trim()).toBe(
+      'Overview',
+    );
+    expect(button('Jobs')).toBeUndefined();
+    expect(text()).toContain('Properties (2)');
+  });
+
+  it('renders Activity day groups, loads older blocks without duplicates, resets on filters and keeps events on an older-block error (BR-11 to BR-13, AC-14 to AC-17)', async () => {
+    await open('owner', `/customers/${ID}?tab=activity`);
+    call('GET', `customers/${ID}/detail`).flush(OVERVIEW);
+    flushOptions();
+    const payment = event('e-1', {
+      type: 'payments',
+      action: 'payment.recorded',
+      subject: { amount: 890, invoiceNumbers: ['INV-2026-069'] },
+      link: { kind: 'invoice', id: 'i-1' },
+      origin: { kind: 'staff', actorName: 'Laura Gómez' },
+    });
+    const message = event('e-2', {
+      type: 'messages',
+      action: 'portal.message_sent',
+      subject: { contactName: 'Raul' },
+      origin: { kind: 'customer_portal' },
+    });
+    const first = call('GET', `customers/${ID}/activity`);
+    expect(first.request.params.get('period')).toBe('last_90_days');
+    expect(first.request.params.has('type')).toBe(false);
+    first.flush(
+      activityBody([payment, message, event('e-3', { occurredAt: ago(1, 0) })], 'cursor-1'),
+    );
+    await settle();
+    const days = Array.from(host.querySelectorAll('.activity__day')).map((el) => el.textContent);
+    expect(days).toEqual(['Today', 'Yesterday']);
+    expect(text()).toContain('Payment received');
+    expect(text()).toContain('$890.00 received for INV-2026-069');
+    expect(text()).toContain('Customer message');
+    expect(text()).toContain('Raul sent a message');
+    expect(text()).toContain('Customer portal');
+    expect(host.querySelector('a[href="/invoices/i-1"]')).not.toBeNull();
+    // Message events have no destination: no link and no chevron (BR-11).
+    expect(host.querySelector('[data-event-id="e-2"]')!.tagName).toBe('DIV');
+
+    // Load older: appended without duplicates; focus moves to the first new event; button hides.
+    button('Load older activity')!.click();
+    const older = call('GET', `customers/${ID}/activity`);
+    expect(older.request.params.get('before')).toBe('cursor-1');
+    older.flush(activityBody([event('e-3'), event('e-4', { occurredAt: ago(40) })], null));
+    await settle();
+    expect(host.querySelectorAll('.activity__event')).toHaveLength(4);
+    expect((document.activeElement as HTMLElement | null)?.dataset['eventId']).toBe('e-4');
+    expect(button('Load older activity')).toBeUndefined();
+
+    // A type change reloads from the newest; a failed older block keeps the loaded events.
+    page.onActivityType('invoices');
+    const filtered = call('GET', `customers/${ID}/activity`);
+    expect(filtered.request.params.get('type')).toBe('invoices');
+    expect(filtered.request.params.has('before')).toBe(false);
+    filtered.flush(activityBody([event('e-5')], 'cursor-2'));
+    await settle();
+    expect(host.querySelectorAll('.activity__event')).toHaveLength(1);
+    button('Load older activity')!.click();
+    call('GET', `customers/${ID}/activity`).flush(null, SERVER_ERROR);
+    await settle();
+    expect(text()).toContain("We couldn't load older activity.");
+    expect(host.querySelectorAll('.activity__event')).toHaveLength(1);
+    button('Retry')!.click();
+    call('GET', `customers/${ID}/activity`).flush(
+      activityBody([event('e-6', { occurredAt: ago(50) })]),
+    );
+    await settle();
+    expect(host.querySelectorAll('.activity__event')).toHaveLength(2);
+
+    // Period change and the empty state.
+    page.onActivityPeriod('last_7_days');
+    const period = call('GET', `customers/${ID}/activity`);
+    expect(period.request.params.get('period')).toBe('last_7_days');
+    period.flush(activityBody([]));
+    await settle();
+    expect(text()).toContain('No activity in this period.');
+  }, 30_000);
+
+  it('opens New request in place with the customer locked, refreshes Requests and shows the BR-09 toast when unavailable (BR-09, AC-12, AC-13)', async () => {
+    await open('owner');
+    flushOverview();
+    flushOptions();
+    await settle();
+    const messages = toasts();
+    button('Requests')!.click();
+    await settle();
+    call('GET', `customers/${ID}/requests`).flush(requestsPage([REQUEST_ROW]));
+    await settle();
+
+    // Header action and Create -> Request open the same drawer; options load once.
+    button('New request')!.click();
+    const lookup = call('GET', 'service-requests/customer-options');
+    expect(lookup.request.params.get('customerId')).toBe(ID);
+    expect(lookup.request.params.has('search')).toBe(false);
+    lookup.flush({ items: [CUSTOMER_OPTION] });
+    call('GET', 'service-requests/options').flush(REQUEST_OPTIONS);
+    await settle();
+    const drawer = (): NewRequestDrawer =>
+      fixture.debugElement.query(By.directive(NewRequestDrawer)).componentInstance;
+    expect(drawer().open()).toBe(true);
+    expect(drawer().lockedCustomer()?.id).toBe(ID);
+    expect(drawer().customer()?.id).toBe(ID);
+    expect(drawer().contactId()).toBe('c-1');
+    expect(drawer().propertyId()).toBe('p-1');
+    expect(drawer().dirty()).toBe(false);
+
+    drawer().created.emit({ id: 'r-9' } as RequestDetail);
+    call('GET', `customers/${ID}/requests`).flush(requestsPage([REQUEST_ROW]));
+    await settle();
+    expect(messages).toContain('Request created.');
+    expect(drawer().open()).toBe(false);
+    expect(TestBed.inject(Router).url).toBe(`/customers/${ID}?tab=requests`);
+
+    // The customer became unavailable: toast, no drawer.
+    page.openCreateMenu(new Event('click'));
+    page.menuModel().find((item) => item.label === 'Request')!.command!({});
+    call('GET', 'service-requests/customer-options').flush({ items: [] });
+    await settle();
+    expect(messages).toContain("This customer can't receive new requests right now.");
+    expect(drawer().open()).toBe(false);
+
+    // Archived customers get no entry point.
+    page.loadOverview();
+    call('GET', `customers/${ID}/detail`).flush({ ...OVERVIEW, isActive: false });
+    await settle();
+    page.openCreateMenu(new Event('click'));
+    expect(page.menuModel().map((item) => item.label)).toEqual([
+      'Property',
+      'Quote',
+      'Job',
+      'Invoice',
+    ]);
+    expect(button('New request')).toBeUndefined();
   }, 30_000);
 });

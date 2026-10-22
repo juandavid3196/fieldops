@@ -81,51 +81,61 @@
   }
 </section>
 
-<section class="card" aria-labelledby="summary-title">
-  <h2 class="card__title" id="summary-title">
-    {{ 'customers.sideCards.customerSummary' | transloco }}
-  </h2>
-  <dl class="card__stats">
-    <div>
-      <dt>{{ 'customers.sideCards.totalJobs' | transloco }}</dt>
-      <dd>{{ view().totalJobs }}</dd>
-    </div>
-    <div>
-      <dt>{{ 'customers.sideCards.lifetimeValue' | transloco }}</dt>
-      <dd>{{ view().lifetime }}</dd>
-      <dd class="card__caption">{{ view().since }}</dd>
-    </div>
-    <div>
-      <dt>{{ 'customers.sideCards.lastService' | transloco }}</dt>
-      <dd>{{ view().lastService }}</dd>
-    </div>
-  </dl>
-</section>
+@if (view().totalJobs !== null || view().lifetime !== null || view().lastService !== null) {
+  <section class="card" aria-labelledby="summary-title">
+    <h2 class="card__title" id="summary-title">
+      {{ 'customers.sideCards.customerSummary' | transloco }}
+    </h2>
+    <dl class="card__stats">
+      @if (view().totalJobs !== null) {
+        <div>
+          <dt>{{ 'customers.sideCards.totalJobs' | transloco }}</dt>
+          <dd>{{ view().totalJobs }}</dd>
+        </div>
+      }
+      @if (view().lifetime !== null) {
+        <div>
+          <dt>{{ 'customers.sideCards.lifetimeValue' | transloco }}</dt>
+          <dd>{{ view().lifetime }}</dd>
+          <dd class="card__caption">{{ view().since }}</dd>
+        </div>
+      }
+      @if (view().lastService !== null) {
+        <div>
+          <dt>{{ 'customers.sideCards.lastService' | transloco }}</dt>
+          <dd>{{ view().lastService }}</dd>
+        </div>
+      }
+    </dl>
+  </section>
+}
 
-<section class="card" aria-labelledby="billing-title">
-  <h2 class="card__title" id="billing-title">{{ 'customers.sideCards.billing' | transloco }}</h2>
-  <dl class="card__stats">
-    <div>
-      <dt>{{ 'customers.sideCards.outstandingBalance' | transloco }}</dt>
-      <dd>{{ view().balance }}</dd>
-    </div>
-    <div>
-      <dt>{{ 'customers.sideCards.lastInvoice' | transloco }}</dt>
-      <dd>
-        @if (view().invoice; as invoice) {
-          <a class="card__link" [routerLink]="invoicesLink">{{ invoice.number }}</a>
-          <p-tag [rounded]="true" [severity]="invoice.severity" [value]="invoice.status" />
-        } @else {
-          {{ 'customers.sideCards.none' | transloco }}
-        }
-      </dd>
-    </div>
-  </dl>
-  <a class="card__button" [routerLink]="invoicesLink">
-    <i class="pi pi-file" aria-hidden="true"></i>
-    {{ 'customers.sideCards.viewInvoices' | transloco }}
-  </a>
-</section>
+@if (view().balance !== null) {
+  <section class="card" aria-labelledby="billing-title">
+    <h2 class="card__title" id="billing-title">{{ 'customers.sideCards.billing' | transloco }}</h2>
+    <dl class="card__stats">
+      <div>
+        <dt>{{ 'customers.sideCards.outstandingBalance' | transloco }}</dt>
+        <dd>{{ view().balance }}</dd>
+      </div>
+      <div>
+        <dt>{{ 'customers.sideCards.lastInvoice' | transloco }}</dt>
+        <dd>
+          @if (view().invoice; as invoice) {
+            <a class="card__link" [routerLink]="invoicesLink">{{ invoice.number }}</a>
+            <p-tag [rounded]="true" [severity]="invoice.severity" [value]="invoice.status" />
+          } @else {
+            {{ 'customers.sideCards.none' | transloco }}
+          }
+        </dd>
+      </div>
+    </dl>
+    <a class="card__button" [routerLink]="invoicesLink">
+      <i class="pi pi-file" aria-hidden="true"></i>
+      {{ 'customers.sideCards.viewInvoices' | transloco }}
+    </a>
+  </section>
+}
 
 <section class="card" aria-labelledby="tags-title">
   <header class="card__head">

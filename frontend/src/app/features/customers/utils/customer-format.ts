@@ -78,6 +78,18 @@ export function formatDate(iso: string, timeZone: string): string {
   return formatterParts(iso, timeZone, { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
+/** "MMM d" of a UTC instant in the organization timezone. */
+export function formatMonthDay(iso: string, timeZone: string): string {
+  return formatterParts(iso, timeZone, { month: 'short', day: 'numeric' });
+}
+
+/** "MMM d, yyyy" of an ISO calendar date (kept as is) or of a UTC instant in the organization timezone. */
+export function formatDateValue(value: string, timeZone: string): string {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? formatDate(`${value}T12:00:00Z`, 'UTC')
+    : formatDate(value, timeZone);
+}
+
 /** "h:mm a" of a UTC instant in the organization timezone (BR-09). */
 export function formatTime(iso: string, timeZone: string): string {
   return formatterParts(iso, timeZone, { hour: 'numeric', minute: '2-digit', hour12: true });

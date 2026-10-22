@@ -30,7 +30,8 @@ public sealed class CustomerDetailController(
     AddCustomerNoteHandler addNoteHandler,
     ListCustomerActivityHandler activityHandler,
     InvitePortalContactHandler inviteHandler,
-    RemovePortalAccessHandler removeAccessHandler) : ControllerBase
+    RemovePortalAccessHandler removeAccessHandler,
+    IAuthorizationService authorization) : ControllerBase
 {
     [HttpGet("detail")]
     [Authorize(Policy = CustomerPolicies.View)]
@@ -39,7 +40,8 @@ public sealed class CustomerDetailController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public Task<IActionResult> Overview(Guid id, CancellationToken cancellationToken) =>
-        ReadAsync(ticket => overviewHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, id, cancellationToken));
+        ReadAsync(async ticket => await overviewHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, await AccessAsync(), cancellationToken));
 
     [HttpGet("properties")]
     [Authorize(Policy = CustomerPolicies.View)]
@@ -48,7 +50,8 @@ public sealed class CustomerDetailController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public Task<IActionResult> ListProperties(Guid id, CancellationToken cancellationToken) =>
-        ReadAsync(ticket => listPropertiesHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, id, cancellationToken));
+        ReadAsync(async ticket => await listPropertiesHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, await AccessAsync(), cancellationToken));
 
     [HttpGet("properties/{propertyId:guid}")]
     [Authorize(Policy = CustomerPolicies.View)]
@@ -57,8 +60,8 @@ public sealed class CustomerDetailController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public Task<IActionResult> GetProperty(Guid id, Guid propertyId, CancellationToken cancellationToken) =>
-        ReadAsync(ticket =>
-            getPropertyHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, id, propertyId, cancellationToken));
+        ReadAsync(async ticket => await getPropertyHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, propertyId, await AccessAsync(), cancellationToken));
 
     [HttpPost("properties")]
     [Authorize(Policy = CustomerPolicies.Manage)]
@@ -93,6 +96,7 @@ public sealed class CustomerDetailController(
             ticket.UserId,
             GetClientIpAddress(),
             request.ToInput(),
+            await AccessAsync(),
             cancellationToken);
 
         return result.Kind == CustomerResultKind.Succeeded
@@ -136,6 +140,7 @@ public sealed class CustomerDetailController(
             ticket.UserId,
             GetClientIpAddress(),
             request.ToInput(),
+            await AccessAsync(),
             cancellationToken);
 
         return result.Kind == CustomerResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
@@ -178,7 +183,8 @@ public sealed class CustomerDetailController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public Task<IActionResult> RecentWork(Guid id, CancellationToken cancellationToken) =>
-        ReadAsync(ticket => recentWorkHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, id, cancellationToken));
+        ReadAsync(async ticket => await recentWorkHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, await AccessAsync(), cancellationToken));
 
     [HttpGet("upcoming-appointments")]
     [Authorize(Policy = CustomerPolicies.View)]
@@ -187,7 +193,8 @@ public sealed class CustomerDetailController(
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
     public Task<IActionResult> UpcomingAppointments(Guid id, CancellationToken cancellationToken) =>
-        ReadAsync(ticket => upcomingHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, id, cancellationToken));
+        ReadAsync(async ticket => await upcomingHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, await AccessAsync(), cancellationToken));
 
     [HttpGet("notes")]
     [Authorize(Policy = CustomerPolicies.View)]
@@ -246,12 +253,17 @@ public sealed class CustomerDetailController(
 
     [HttpGet("activity")]
     [Authorize(Policy = CustomerPolicies.View)]
-    [ProducesResponseType<CustomerActivityPage>(StatusCodes.Status200OK)]
+    [ProducesResponseType<CustomerActivityResponse>(StatusCodes.Status200OK)]
     [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Activity(Guid id, [FromQuery] string? page, CancellationToken cancellationToken)
+    public async Task<IActionResult> Activity(
+        Guid id,
+        [FromQuery] string? type,
+        [FromQuery] string? period,
+        [FromQuery] string? before,
+        CancellationToken cancellationToken)
     {
         Response.Headers.CacheControl = "no-store";
 
@@ -260,7 +272,8 @@ public sealed class CustomerDetailController(
             return Unauthorized();
         }
 
-        var result = await activityHandler.HandleAsync(ticket.OrganizationId, ticket.MembershipId, id, page, cancellationToken);
+        var result = await activityHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, await AccessAsync(), type, period, before, cancellationToken);
 
         return result.Kind == CustomerResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
     }
@@ -320,6 +333,13 @@ public sealed class CustomerDetailController(
                 }),
             _ => NotFound(),
         };
+
+    /// <summary>The module read permissions of the caller (customer-related-records BR-10, BR-14), from the existing role policies.</summary>
+    private async Task<CustomerRecordAccess> AccessAsync() =>
+        new(
+            (await authorization.AuthorizeAsync(User, ServiceRequestPolicies.View)).Succeeded,
+            (await authorization.AuthorizeAsync(User, WorkOrderPolicies.Read)).Succeeded,
+            (await authorization.AuthorizeAsync(User, BillingReviewPolicies.Read)).Succeeded);
 
     private async Task<IActionResult> ReadAsync<T>(Func<SessionTicket, Task<T?>> read)
         where T : class

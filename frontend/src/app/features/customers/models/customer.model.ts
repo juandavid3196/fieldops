@@ -1,3 +1,6 @@
+import { INVOICE_READ_ROLES } from '../../invoices/models/invoice.model';
+import { MANAGER_ROLES, READ_ROLES } from '../../requests/models/requests.model';
+
 export type CustomerType = 'residential' | 'commercial';
 export type CustomerTab = 'all' | 'leads' | 'active' | 'archived';
 export type BalanceStatus = 'any' | 'none' | 'has_balance' | 'overdue';
@@ -207,7 +210,26 @@ export const DETAIL_TABS: readonly DetailTab[] = [
   'activity',
 ];
 export const NOTES_PAGE_SIZE = 10;
-export const ACTIVITY_PAGE_SIZE = 20;
+
+/** Module read policies deciding which transactional tabs a role sees (BR-03). */
+export const REQUESTS_READ_ROLES: readonly string[] = [...MANAGER_ROLES, ...READ_ROLES];
+export const JOBS_READ_ROLES: readonly string[] = [
+  'owner',
+  'operations_manager',
+  'dispatcher',
+  'viewer',
+];
+export { INVOICE_READ_ROLES };
+
+export type RelatedKind = 'requests' | 'quotes' | 'jobs' | 'invoices';
+export const RELATED_KINDS: readonly RelatedKind[] = ['requests', 'quotes', 'jobs', 'invoices'];
+export const RELATED_READ_ROLES: Readonly<Record<RelatedKind, readonly string[]>> = {
+  requests: REQUESTS_READ_ROLES,
+  quotes: REQUESTS_READ_ROLES,
+  jobs: JOBS_READ_ROLES,
+  invoices: INVOICE_READ_ROLES,
+};
+export const RELATED_PAGE_SIZES: readonly number[] = [10, 25, 50];
 
 export type InvoiceStatus = 'sent' | 'partially_paid' | 'paid' | 'overdue';
 
@@ -220,12 +242,15 @@ export interface CustomerOverview {
   readonly lifecycle: Lifecycle;
   readonly displayStatus: DisplayStatus;
   readonly isActive: boolean;
-  readonly outstandingBalance: number;
+  /** Omitted (not zero) for a role without Invoices read (BR-14). */
+  readonly outstandingBalance?: number | null;
   readonly currency: string;
   readonly timezone: string;
   readonly summary: {
-    readonly totalJobs: number;
-    readonly lifetimeValue: number;
+    /** Omitted without Jobs read. */
+    readonly totalJobs?: number | null;
+    /** Omitted without Invoices read. */
+    readonly lifetimeValue?: number | null;
     readonly customerSince: string;
     readonly lastServiceAt?: string | null;
   };
@@ -321,21 +346,131 @@ export interface NotesResponse {
   readonly timezone: string;
 }
 
+export type ActivityType =
+  'customer' | 'requests' | 'messages' | 'quotes' | 'jobs' | 'visits' | 'invoices' | 'payments';
+export type ActivityPeriod =
+  'last_7_days' | 'last_30_days' | 'last_90_days' | 'last_12_months' | 'all';
+export const ACTIVITY_PERIODS: readonly ActivityPeriod[] = [
+  'last_7_days',
+  'last_30_days',
+  'last_90_days',
+  'last_12_months',
+  'all',
+];
+export type RecordLinkKind = 'request' | 'quote' | 'job' | 'invoice';
+
 export interface ActivityItem {
   readonly id: string;
+  readonly type: ActivityType;
   readonly action: string;
-  readonly subjectName?: string | null;
-  readonly actorName?: string | null;
   readonly occurredAt: string;
+  readonly origin: {
+    readonly kind: 'customer_portal' | 'staff' | 'system';
+    readonly actorName?: string | null;
+  };
+  readonly subject: {
+    readonly number?: string | null;
+    readonly title?: string | null;
+    readonly service?: string | null;
+    readonly amount?: number | null;
+    readonly invoiceNumbers?: readonly string[] | null;
+    readonly contactName?: string | null;
+    readonly propertyName?: string | null;
+    readonly scheduledAt?: string | null;
+    readonly visitNumber?: number | string | null;
+    readonly newStatus?: string | null;
+  };
+  readonly link?: { readonly kind: RecordLinkKind; readonly id: string } | null;
 }
 
+/** `GET /customers/{id}/activity` (BR-12): one cursor block of 20 events. */
 export interface ActivityResponse {
   readonly items: readonly ActivityItem[];
+  readonly availableTypes: readonly ActivityType[];
+  readonly nextCursor?: string | null;
+  readonly currency: string;
+  readonly timezone: string;
+}
+
+export interface ActivityQuery {
+  readonly type: ActivityType | 'all';
+  readonly period: ActivityPeriod;
+  readonly before?: string | null;
+}
+
+/** Query of the four related lists (BR-04). `status` is a code of the tab's status set. */
+export interface RelatedQuery {
+  readonly search: string;
+  readonly status: string | null;
+  readonly page: number;
+  readonly pageSize: number;
+}
+
+interface RelatedPage<T> {
+  readonly items: readonly T[];
   readonly totalCount: number;
+  readonly customerTotal: number;
   readonly page: number;
   readonly pageSize: number;
   readonly timezone: string;
 }
+
+export interface RelatedRequestItem {
+  readonly id: string;
+  readonly number: string;
+  readonly service: string;
+  readonly propertyName?: string | null;
+  readonly createdAt: string;
+  readonly status: string;
+}
+
+export interface RelatedQuoteItem {
+  readonly id: string;
+  readonly number: string;
+  readonly request: { readonly id: string; readonly number: string; readonly service: string };
+  readonly total?: number | null;
+  readonly validUntil?: string | null;
+  readonly status: string;
+}
+
+export interface RelatedJobItem {
+  readonly id: string;
+  readonly number: string;
+  readonly title: string;
+  readonly propertyName?: string | null;
+  readonly nextVisitAt?: string | null;
+  readonly completedAt?: string | null;
+  readonly technician?: { readonly name: string; readonly initials: string } | null;
+  readonly status: string;
+}
+
+export interface RelatedInvoiceItem {
+  readonly id: string;
+  readonly number: string;
+  readonly job: { readonly id: string; readonly number: string };
+  readonly issueDate?: string | null;
+  readonly dueDate?: string | null;
+  readonly balanceDue: number;
+  readonly status: string;
+}
+
+export interface RelatedInvoicesSummary {
+  readonly outstanding: number;
+  readonly overdue: number;
+  readonly paid: number;
+}
+
+export interface RelatedResponses {
+  readonly requests: RelatedPage<RelatedRequestItem>;
+  readonly quotes: RelatedPage<RelatedQuoteItem> & { readonly currency: string };
+  readonly jobs: RelatedPage<RelatedJobItem>;
+  readonly invoices: RelatedPage<RelatedInvoiceItem> & {
+    readonly currency: string;
+    readonly summary: RelatedInvoicesSummary;
+  };
+}
+export type RelatedResponse = RelatedResponses[RelatedKind];
+export type RelatedItem = RelatedResponse['items'][number];
 
 /** Load state of one detail-page region (header, properties, recent work, ...). */
 export interface RegionState<T> {

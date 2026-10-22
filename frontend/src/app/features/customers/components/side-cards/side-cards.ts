@@ -31,6 +31,8 @@ export const INVOICES_LINK = '/coming-soon/invoices';
 export class SideCards {
   readonly overview = input.required<CustomerOverview>();
   readonly canMutate = input(false);
+  /** Without Jobs read the job-derived summary values are omitted (BR-14). */
+  readonly canReadJobs = input(true);
 
   /** A portal access change is running (the buttons are disabled). */
   readonly portalBusy = input(false);
@@ -78,13 +80,24 @@ export class SideCards {
       phone: phone === null ? null : formatPhone(phone),
       phoneHref: phone === null ? null : `tel:${phone.replace(/[^\d+]/g, '')}`,
       preferred: preferredContact(o.contact),
-      totalJobs: o.summary.totalJobs.toLocaleString(activeIntlLocale()),
-      lifetime: formatMoney(o.summary.lifetimeValue, o.currency),
+      totalJobs:
+        typeof o.summary.totalJobs === 'number'
+          ? o.summary.totalJobs.toLocaleString(activeIntlLocale())
+          : null,
+      lifetime:
+        typeof o.summary.lifetimeValue === 'number'
+          ? formatMoney(o.summary.lifetimeValue, o.currency)
+          : null,
       since: sinceLabel(o.summary.customerSince, o.timezone),
-      lastService: o.summary.lastServiceAt
-        ? formatDate(o.summary.lastServiceAt, o.timezone)
-        : t('customers.sideCards.noCompletedService'),
-      balance: formatMoney(o.outstandingBalance, o.currency),
+      lastService: !this.canReadJobs()
+        ? null
+        : o.summary.lastServiceAt
+          ? formatDate(o.summary.lastServiceAt, o.timezone)
+          : t('customers.sideCards.noCompletedService'),
+      balance:
+        typeof o.outstandingBalance === 'number'
+          ? formatMoney(o.outstandingBalance, o.currency)
+          : null,
       invoice: o.lastInvoice
         ? {
             number: o.lastInvoice.number,
