@@ -9,18 +9,18 @@
     color: var(--fo-color-text-secondary);
   }
 
-  // Staff desktop: one rounded card, list and conversation split by a divider.
+  // Staff desktop: list and conversation split by a divider, flush with the top bar and menu.
   &--split {
     display: grid;
-    grid-template-columns: minmax(20rem, 29%) minmax(0, 1fr);
+    grid-template-columns: minmax(22rem, 32%) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
-    margin: 1rem;
-    block-size: calc(100dvh - var(--fo-size-topbar) - 2rem);
+    block-size: calc(100dvh - var(--fo-size-topbar));
     overflow: hidden;
     background: var(--fo-color-surface);
-    border: 1px solid var(--fo-color-border);
-    border-radius: 1rem;
-    box-shadow: 0 8px 24px var(--fo-color-public-help-inputtext-shadow-2);
+  }
+
+  &--rail {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
   }
 
   &--split &__list {
@@ -46,7 +46,7 @@
 
   &__empty-bar {
     flex: none;
-    block-size: 7.5rem;
+    block-size: 3.75rem;
     background: var(--fo-color-surface);
     border-block-end: 1px solid var(--fo-color-border);
   }
@@ -74,6 +74,13 @@
     color: var(--fo-color-primary-strong);
     background: var(--fo-color-primary-soft);
     border-radius: 50%;
+
+    // Thin outline icon; the stroke keeps its weight at any size.
+    .host__empty-svg {
+      display: block;
+      inline-size: 2.75rem;
+      block-size: 2.75rem;
+    }
   }
 
   &__empty-title {

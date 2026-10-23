@@ -322,6 +322,7 @@ describe('Customer detail page', () => {
           { path: 'auth/sign-in', component: Stub },
           { path: 'customers', component: Stub },
           { path: 'coming-soon/:module', component: Stub },
+          { path: 'jobs', component: Stub },
           { path: 'customers/:customerId', component: CustomerDetail },
         ]),
         provideHttpClient(withInterceptors([errorInterceptor])),
@@ -468,7 +469,7 @@ describe('Customer detail page', () => {
     ]);
     page.menuModel()[3].command!({});
     await settle();
-    expect(TestBed.inject(Router).url).toBe('/coming-soon/work-orders');
+    expect(TestBed.inject(Router).url).toBe('/jobs');
   }, 20_000);
 
   it('shows not-found for malformed and unknown ids and isolates region failures with Retry (AC-24)', async () => {

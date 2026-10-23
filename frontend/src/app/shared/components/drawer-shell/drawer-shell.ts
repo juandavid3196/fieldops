@@ -21,7 +21,7 @@ export type DrawerMode = 'docked' | 'overlay' | 'fullscreen';
 
 /**
  * Record drawer chrome shared by the branch and user drawers: a labelled non-modal docked
- * region from 1440px, a modal overlay below the top bar from 768px and a full-screen dialog
+ * region from 1440px, a full-height modal overlay from 768px and a full-screen dialog
  * below. Consumers project `[drawerHeader]`, `[drawerBody]` and `[drawerFooter]` (use
  * `ng-container ngProjectAs`) and own the dirty guard behind `closeRequested`.
  */
@@ -52,7 +52,7 @@ export class DrawerShell {
     this.dockable() && this.isDocked() ? 'docked' : this.isBelowMd() ? 'fullscreen' : 'overlay',
   );
 
-  /** Token variables (`--p-drawer-*`) plus, from md, the panel below the top bar. */
+  /** Token variables (`--p-drawer-*`) plus, from md, the panel at full height over the top bar. */
   readonly overlayStyle = computed(() => ({
     '--p-drawer-shadow': 'var(--fo-shadow-drawer)',
     '--p-drawer-header-padding': '0',
@@ -63,14 +63,11 @@ export class DrawerShell {
       ? {}
       : {
           'inline-size': this.size(),
-          'inset-block-start': 'var(--fo-size-topbar)',
-          'block-size': 'calc(100dvh - var(--fo-size-topbar))',
+          'inset-block-start': '0',
+          'block-size': '100dvh',
         }),
   }));
-  readonly maskStyle = {
-    'inset-block-start': 'var(--fo-size-topbar)',
-    background: 'var(--fo-color-mask)',
-  };
+  readonly maskStyle = { background: 'var(--fo-color-mask)' };
   /** `Drawer` has no role input: the dialog semantics land on its rendered root via `pt.root`. */
   readonly drawerPt = computed(() => ({
     root: { role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': this.titleId() },

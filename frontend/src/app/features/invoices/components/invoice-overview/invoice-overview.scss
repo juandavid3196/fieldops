@@ -92,7 +92,8 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
 
-    @include bp.up(lg) {
+    // Side by side only when each card keeps room for four aging buckets and the payments table.
+    @media (min-width: 100rem) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
@@ -146,10 +147,10 @@
 
     dd {
       margin: 0.25rem 0 0;
-      font-size: 1.375rem;
+      font-size: 1.25rem;
       font-weight: 700;
       color: var(--fo-color-heading);
-      overflow-wrap: anywhere;
+      white-space: nowrap;
     }
 
     &--success {
@@ -196,6 +197,7 @@
     }
 
     th {
+      white-space: nowrap;
       font-size: 0.8125rem;
       font-weight: 600;
       color: var(--fo-color-text-secondary);

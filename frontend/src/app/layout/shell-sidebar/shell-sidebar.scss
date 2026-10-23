@@ -57,6 +57,24 @@
     padding: 0;
   }
 
+  &__brand--toggle {
+    inline-size: 100%;
+    font: inherit;
+    cursor: pointer;
+    background: transparent;
+    border-block-start: 0;
+    border-inline: 0;
+
+    &:hover {
+      background: var(--fo-color-navy-hover);
+    }
+
+    &:focus-visible {
+      outline: none;
+      box-shadow: inset var(--fo-focus-ring);
+    }
+  }
+
   &__brand--drawer {
     justify-content: space-between;
     padding: 0 0 0 0.75rem;

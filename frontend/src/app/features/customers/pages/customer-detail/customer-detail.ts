@@ -120,9 +120,9 @@ const TABS: readonly TabInfo[] = localizedList(() => [
 const CREATE_LINKS: readonly { readonly label: string; readonly path: string | null }[] =
   localizedList(() => [
     { label: t('customers.customerDetail.request'), path: null },
-    { label: t('customers.customerDetail.quote'), path: '/coming-soon/quotes' },
-    { label: t('customers.customerDetail.job'), path: '/coming-soon/work-orders' },
-    { label: t('customers.customerDetail.invoice'), path: '/coming-soon/invoices' },
+    { label: t('customers.customerDetail.quote'), path: '/quotes' },
+    { label: t('customers.customerDetail.job'), path: '/jobs' },
+    { label: t('customers.customerDetail.invoice'), path: '/invoices' },
   ]);
 
 type PropertyAction = 'set-primary' | 'archive' | 'reactivate';

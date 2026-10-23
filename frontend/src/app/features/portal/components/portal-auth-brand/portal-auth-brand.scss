@@ -9,6 +9,8 @@
   box-sizing: border-box;
   min-block-size: 100%;
   padding: 3.5rem 4rem 2.5rem;
+  // Large monitors: push the content toward the centre of the panel.
+  padding-inline-start: clamp(4rem, 15vw - 8rem, 20rem);
   color: var(--fo-color-on-navy);
   background: var(--fo-color-navy);
 
@@ -231,6 +233,43 @@
     .pi {
       font-size: 1.5rem;
       color: var(--p-primary-300);
+    }
+  }
+}
+
+// Laptop screens (~13", short viewport): the panel scales down so it never grows taller than the
+// form and the sign-in card stays in view.
+@media (max-height: 50rem) {
+  .brand {
+    padding: 2rem 3rem 1.5rem;
+
+    &__logo {
+      font-size: 2.25rem;
+    }
+
+    &__eyebrow {
+      margin-block-start: 0.5rem;
+      font-size: 0.75rem;
+    }
+
+    &__heading {
+      margin-block-start: 1.25rem;
+      font-size: clamp(1.75rem, 2.6vw, 2.5rem);
+    }
+
+    &__lead {
+      margin-block-start: 0.5rem;
+      font-size: 1rem;
+    }
+
+    &__stage {
+      min-block-size: 15rem;
+      margin-block: 1rem;
+      zoom: 0.72;
+    }
+
+    &__modules {
+      padding-block-start: 1rem;
     }
   }
 }

@@ -30,7 +30,8 @@ import { LanguageOptions } from '../language-options/language-options';
 export class LanguageFooterSelector {
   private readonly language = inject(LanguageService);
   private readonly injector = inject(Injector);
-  private readonly host: HTMLElement = inject(ElementRef<HTMLElement>).nativeElement;
+  // Own selector only: the host also wraps the appearance selector, which must count as outside.
+  private readonly root = viewChild.required<ElementRef<HTMLElement>>('root');
   private readonly button = viewChild.required<ElementRef<HTMLButtonElement>>('button');
   private readonly options = viewChild(LanguageOptions);
 
@@ -70,14 +71,18 @@ export class LanguageFooterSelector {
   }
 
   onDocumentClick(event: Event): void {
-    if (this.open() && event.target instanceof Node && !this.host.contains(event.target)) {
+    if (
+      this.open() &&
+      event.target instanceof Node &&
+      !this.root().nativeElement.contains(event.target)
+    ) {
       this.close(false);
     }
   }
 
   onFocusOut(event: FocusEvent): void {
     const next = event.relatedTarget;
-    if (this.open() && next instanceof Node && !this.host.contains(next)) {
+    if (this.open() && next instanceof Node && !this.root().nativeElement.contains(next)) {
       this.close(false);
     }
   }

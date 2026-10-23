@@ -16,7 +16,7 @@ import { dateOnlyLabel } from '../../../quotes/utils/quote-format';
 
 import { t } from '../../../../core/i18n/translate';
 import { activeIntlLocale } from '../../../../core/i18n/active-locale';
-export const INVOICES_LINK = '/coming-soon/invoices';
+export const INVOICES_LINK = '/invoices';
 
 /**
  * Contact details, Customer summary, Billing and Tags cards (BR-03, BR-11, BR-12, BR-23).

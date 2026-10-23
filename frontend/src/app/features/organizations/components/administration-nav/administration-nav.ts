@@ -13,6 +13,16 @@ interface AdministrationItem {
   readonly page?: AdministrationPage;
 }
 
+const COLLAPSED_KEY = 'fieldops.admin-nav.collapsed';
+
+function readCollapsed(): boolean {
+  try {
+    return localStorage.getItem(COLLAPSED_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export type AdministrationPage = 'company' | 'users' | 'products' | 'business-hours';
 
 const COMPANY_PATH = '/admin/company';
@@ -82,6 +92,7 @@ export const ADMINISTRATION_ITEMS: readonly AdministrationItem[] = localizedList
   imports: [TranslocoPipe, RouterLink],
   templateUrl: './administration-nav.html',
   styleUrl: './administration-nav.scss',
+  host: { '[class.rail]': 'collapsed()' },
 })
 export class AdministrationNav {
   readonly current = input<AdministrationPage>('company');
@@ -89,6 +100,18 @@ export class AdministrationNav {
   readonly items = ADMINISTRATION_ITEMS;
   readonly companyPath = COMPANY_PATH;
   readonly activeSection = signal('company-profile');
+  /** Column shrunk to icons (from 1100px); the choice survives reloads. */
+  readonly collapsed = signal(readCollapsed());
+
+  toggle(): void {
+    const next = !this.collapsed();
+    this.collapsed.set(next);
+    try {
+      localStorage.setItem(COLLAPSED_KEY, next ? '1' : '0');
+    } catch {
+      // Storage errors never break the layout.
+    }
+  }
 
   select(event: Event, section: string): void {
     event.preventDefault();

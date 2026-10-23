@@ -157,11 +157,11 @@
             [compare]="compare()"
           />
           <app-cash-flow class="bo__card" [cashFlow]="data.cashFlow" [currency]="data.currency" />
-          <app-sales-pipeline class="bo__card" [pipeline]="data.pipeline" />
+          <app-sales-pipeline class="bo__card bo__wide" [pipeline]="data.pipeline" />
         </div>
         <div class="bo__row bo__row--tables">
           <app-branch-performance
-            class="bo__card"
+            class="bo__card bo__wide"
             [branches]="data.branches"
             [totals]="data.branchTotals"
             [currency]="data.currency"

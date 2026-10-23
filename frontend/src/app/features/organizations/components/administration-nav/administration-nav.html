@@ -2,7 +2,30 @@
   class="admin-nav"
   [attr.aria-label]="'organizations.administrationNav.administration' | transloco"
 >
-  <p class="admin-nav__title">{{ 'organizations.administrationNav.administration' | transloco }}</p>
+  <div class="admin-nav__head">
+    <p class="admin-nav__title">
+      {{ 'organizations.administrationNav.administration' | transloco }}
+    </p>
+    <button
+      type="button"
+      class="admin-nav__toggle"
+      [attr.aria-label]="
+        (collapsed()
+          ? 'organizations.administrationNav.expand'
+          : 'organizations.administrationNav.collapse'
+        ) | transloco
+      "
+      [attr.aria-expanded]="!collapsed()"
+      (click)="toggle()"
+    >
+      <i
+        class="pi"
+        [class.pi-angle-double-left]="!collapsed()"
+        [class.pi-angle-double-right]="collapsed()"
+        aria-hidden="true"
+      ></i>
+    </button>
+  </div>
   <ul class="admin-nav__list">
     @for (item of items; track item.label) {
       <li>
@@ -10,24 +33,34 @@
           @if (current() === 'company') {
             <a
               class="admin-nav__link"
+              [attr.title]="collapsed() ? item.label : null"
               [href]="'#' + section"
               [attr.aria-current]="activeSection() === section ? 'location' : null"
               (click)="select($event, section)"
             >
-              <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
+              <i class="pi" [class]="item.icon" aria-hidden="true"></i>
+              <span class="admin-nav__text">{{ item.label }}</span>
             </a>
           } @else {
-            <a class="admin-nav__link" [routerLink]="companyPath" [fragment]="section">
-              <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
+            <a
+              class="admin-nav__link"
+              [attr.title]="collapsed() ? item.label : null"
+              [routerLink]="companyPath"
+              [fragment]="section"
+            >
+              <i class="pi" [class]="item.icon" aria-hidden="true"></i>
+              <span class="admin-nav__text">{{ item.label }}</span>
             </a>
           }
         } @else {
           <a
             class="admin-nav__link"
+            [attr.title]="collapsed() ? item.label : null"
             [routerLink]="item.link"
             [attr.aria-current]="item.page !== undefined && item.page === current() ? 'page' : null"
           >
-            <i class="pi" [class]="item.icon" aria-hidden="true"></i>{{ item.label }}
+            <i class="pi" [class]="item.icon" aria-hidden="true"></i>
+            <span class="admin-nav__text">{{ item.label }}</span>
           </a>
         }
       </li>

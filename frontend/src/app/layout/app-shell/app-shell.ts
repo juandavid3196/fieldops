@@ -43,6 +43,26 @@ export const SIGN_OUT_ERROR_MESSAGE = (): string => t('shell.appShell.signOutErr
 export type LayoutMode = 'drawer' | 'rail' | 'full';
 type MenuKind = 'org' | 'user';
 
+/** localStorage key of the sidebar choice ('1' rail, '0' full); absent follows the layout mode. */
+const SIDEBAR_COLLAPSED_KEY = 'fieldops.sidebar.collapsed';
+
+function readCollapsed(): boolean | null {
+  try {
+    const value = localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    return value === '1' ? true : value === '0' ? false : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCollapsed(value: boolean): void {
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, value ? '1' : '0');
+  } catch {
+    // Storage errors never break the layout.
+  }
+}
+
 /** Authenticated layout: navy sidebar (rail or drawer), top bar and the single `main`. */
 @Component({
   selector: 'app-shell',
@@ -104,8 +124,8 @@ export class AppShell {
   };
 
   readonly layoutMode = signal<LayoutMode>('full');
-  /** Per page visit only (never persisted); `null` follows the layout mode default. Reset on mode change. */
-  readonly collapsed = signal<boolean | null>(null);
+  /** The user's last sidebar choice, kept across reloads; `null` follows the layout mode default. */
+  readonly collapsed = signal<boolean | null>(readCollapsed());
   readonly drawerOpen = signal(false);
   private readonly searchOpen = signal(false);
   /** Drawer layout only: the search takes over the top bar until it is closed. */
@@ -181,7 +201,7 @@ export class AppShell {
       const mode: LayoutMode = !mdMatches ? 'drawer' : adminMatches ? 'full' : 'rail';
       if (mode !== this.layoutMode()) {
         this.layoutMode.set(mode);
-        this.collapsed.set(null);
+        this.collapsed.set(readCollapsed());
         if (mode !== 'drawer') {
           this.drawerOpen.set(false);
         }
@@ -258,7 +278,9 @@ export class AppShell {
   }
 
   toggleCollapsed(): void {
-    this.collapsed.set(!this.railActive());
+    const next = !this.railActive();
+    this.collapsed.set(next);
+    writeCollapsed(next);
   }
 
   toggleMenu(kind: MenuKind = 'user'): void {

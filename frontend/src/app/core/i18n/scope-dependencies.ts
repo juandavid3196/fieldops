@@ -16,7 +16,15 @@ export const I18N_SCOPE_DEPENDENCIES: Readonly<Record<string, readonly string[]>
   jobs: ['customers', 'organizations', 'requests'],
   messages: ['technician-jobs'],
   notifications: ['organizations'],
-  portal: ['authentication', 'customers', 'invoices', 'organizations', 'quotes', 'service-request'],
+  portal: [
+    'authentication',
+    'customers',
+    'help',
+    'invoices',
+    'organizations',
+    'quotes',
+    'service-request',
+  ],
   'products-services': ['organizations'],
   quotes: [
     'customers',

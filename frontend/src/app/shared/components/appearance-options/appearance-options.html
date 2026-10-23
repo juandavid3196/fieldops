@@ -9,17 +9,27 @@
     <button
       type="button"
       role="menuitemradio"
-      class="lang-options__item lang-options__item--card"
+      class="lang-options__item"
       tabindex="-1"
+      [class.lang-options__item--card]="card()"
       [class.lang-options__item--selected]="option.value === active()"
       [attr.aria-label]="option.labelKey | transloco"
       [attr.aria-checked]="option.value === active()"
       [attr.aria-disabled]="saving()"
       (click)="choose(option.value)"
     >
-      <span class="lang-options__name" aria-hidden="true">{{ option.labelKey | transloco }}</span>
-      @if (option.value === active()) {
-        <span class="lang-options__badge" aria-hidden="true"><i class="pi pi-check"></i></span>
+      @if (card()) {
+        <span class="lang-options__name" aria-hidden="true">{{ option.labelKey | transloco }}</span>
+        @if (option.value === active()) {
+          <span class="lang-options__badge" aria-hidden="true"><i class="pi pi-check"></i></span>
+        }
+      } @else {
+        <span class="lang-options__check" aria-hidden="true">
+          @if (option.value === active()) {
+            <i class="pi pi-check"></i>
+          }
+        </span>
+        <span aria-hidden="true">{{ option.labelKey | transloco }}</span>
       }
     </button>
   }

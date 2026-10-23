@@ -156,9 +156,11 @@ $wide: 80rem;
     align-items: center;
 
     [pButton] {
+      flex: none;
       justify-content: center;
       min-block-size: var(--fo-size-touch-target);
       text-decoration: none;
+      white-space: nowrap;
 
       @include bp.up(md) {
         min-block-size: auto;
@@ -381,6 +383,7 @@ $wide: 80rem;
     th {
       font-size: 0.875rem;
       font-weight: 600;
+      white-space: nowrap;
       color: var(--fo-color-heading);
       background: var(--fo-color-neutral-background);
     }

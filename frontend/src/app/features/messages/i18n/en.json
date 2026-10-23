@@ -38,7 +38,9 @@
     "team": "Team",
     "unread": "Unread",
     "loadingMessages": "Loading messages",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "collapseList": "Collapse conversations",
+    "expandList": "Expand conversations"
   },
   "messagesFormat": {
     "bodyErrorMessage": "Enter a message of up to 2000 characters.",

@@ -1,9 +1,20 @@
 @if (!allowed) {
   <p class="host__access" role="status">{{ forbiddenMessage }}</p>
 } @else {
-  <div class="host" [class.host--split]="twoPanes()">
+  <div
+    class="host"
+    [class.host--split]="twoPanes()"
+    [class.host--rail]="twoPanes() && listCollapsed()"
+  >
     @if (selectedId() === null || twoPanes()) {
-      <app-message-list class="host__list" [basePath]="basePath" [selectedId]="selectedId()" />
+      <app-message-list
+        class="host__list"
+        [basePath]="basePath"
+        [selectedId]="selectedId()"
+        [collapsible]="twoPanes()"
+        [collapsed]="twoPanes() && listCollapsed()"
+        (collapseToggled)="toggleList()"
+      />
     }
     <div class="host__detail">
       <router-outlet />
@@ -11,7 +22,23 @@
         <div class="host__empty">
           <span class="host__empty-bar" aria-hidden="true"></span>
           <div class="host__empty-body">
-            <span class="host__empty-icon" aria-hidden="true"><i class="pi pi-comments"></i></span>
+            <span class="host__empty-icon" aria-hidden="true"
+              ><svg class="host__empty-svg" viewBox="0 0 40 40" focusable="false">
+                <g
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M17 6C10.4 6 5 10.3 5 15.6c0 2.6 1.3 4.9 3.4 6.6L7 27l5.3-2.4c1.5.5 3 .7 4.7.7 6.6 0 12-4.3 12-9.7S23.6 6 17 6Z"
+                  />
+                  <path
+                    d="M32.5 17.5c1.6 1.5 2.5 3.4 2.5 5.5 0 2.4-1.2 4.5-3.1 6l1.1 4-4.4-2c-1.1.3-2.2.5-3.4.5-3.4 0-6.4-1.4-8.2-3.6"
+                  />
+                </g></svg
+            ></span>
             <p class="host__empty-title" role="status">{{ selectText }}</p>
             <p class="host__empty-hint">{{ selectHint }}</p>
           </div>

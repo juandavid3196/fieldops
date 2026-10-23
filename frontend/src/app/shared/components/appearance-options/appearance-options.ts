@@ -34,6 +34,8 @@ export class AppearanceOptions {
   /** `anonymous`: pages without a session; the choice only updates the local value. */
   readonly surface = input.required<ThemeSurface | 'anonymous'>();
   readonly source = input<ThemeSource>();
+  /** Card style (default); the compact footer lists use the plain style like the language list. */
+  readonly card = input(true);
   /** Emits after a choice so the host can close its menu and return focus. */
   readonly chosen = output<ThemePreference>();
   /** Escape or Left Arrow: the host closes the list and focuses its trigger. */

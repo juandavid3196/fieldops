@@ -1,26 +1,33 @@
 import { Route } from '@angular/router';
 
+import { withI18n } from '../../core/i18n/i18n-scopes';
+
 export const MESSAGES_TITLE = 'shell.routeData.messages';
 export const TECHNICIAN_MESSAGES_PATH = '/today/messages';
 export const STAFF_MESSAGES_PATH = '/messages';
 
 function messagesRoute(path: string, base: string, split: boolean): Route {
   const data = { shellTitle: MESSAGES_TITLE, messagesBase: base, split };
-  return {
-    path,
-    title: 'titles.messages',
-    data,
-    loadComponent: () => import('./pages/messages-host/messages-host').then((m) => m.MessagesHost),
-    children: [
-      { path: '', pathMatch: 'full', data, children: [] },
-      {
-        path: ':conversationId',
-        data,
-        loadComponent: () =>
-          import('./pages/conversation/conversation').then((m) => m.Conversation),
-      },
-    ],
-  };
+  // Loads the messages scope (and its dependencies) so a direct load or refresh is translated.
+  return withI18n(
+    {
+      path,
+      title: 'titles.messages',
+      data,
+      loadComponent: () =>
+        import('./pages/messages-host/messages-host').then((m) => m.MessagesHost),
+      children: [
+        { path: '', pathMatch: 'full', data, children: [] },
+        {
+          path: ':conversationId',
+          data,
+          loadComponent: () =>
+            import('./pages/conversation/conversation').then((m) => m.Conversation),
+        },
+      ],
+    },
+    'messages',
+  );
 }
 
 /** Technician shell: `/today/messages` and `/today/messages/:conversationId` (single pane). */

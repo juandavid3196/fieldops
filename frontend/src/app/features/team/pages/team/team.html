@@ -43,16 +43,6 @@
       @if (!forbidden() && !isTechnician()) {
         <div class="team__header-actions">
           <div class="team__actions">
-            <a
-              pButton
-              class="team__action"
-              severity="secondary"
-              [outlined]="true"
-              [routerLink]="skillsPath"
-            >
-              <i class="pi pi-cog" aria-hidden="true"></i>
-              {{ 'team.team.manageSkills' | transloco }}
-            </a>
             @if (canMutate()) {
               <button pButton type="button" class="team__action" (click)="openCreate()">
                 <i class="pi pi-plus" aria-hidden="true"></i>
@@ -390,15 +380,6 @@
               </h2>
               <p class="team__muted">{{ 'team.team.numberOfActiveTechnicians' | transloco }}</p>
             </div>
-            <a
-              pButton
-              class="team__action"
-              severity="secondary"
-              [outlined]="true"
-              [routerLink]="skillsPath"
-            >
-              {{ 'team.team.manageSkills' | transloco }}
-            </a>
           </div>
           @if (coverageFailed()) {
             <p-message severity="error" [closable]="false">

@@ -15,7 +15,8 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  @media (min-width: 80rem) {
+  // Six cards per row only fit once the content area is wide enough for the value beside the icon.
+  @media (min-width: 100rem) {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 }
@@ -46,7 +47,7 @@
     margin: 0;
     font-size: 0.875rem;
 
-    @media (min-width: 80rem) {
+    @media (min-width: 100rem) {
       flex-wrap: nowrap;
       font-size: 0.8125rem;
       white-space: nowrap;
@@ -57,7 +58,7 @@
 
   &__value {
     margin: 0;
-    font-size: clamp(1.25rem, 4.5vw, 1.75rem);
+    font-size: clamp(1.125rem, 4vw, 1.5rem);
     font-weight: 700;
     white-space: nowrap;
     color: var(--fo-color-heading);

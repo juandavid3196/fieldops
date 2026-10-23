@@ -229,7 +229,6 @@ describe('Team availability and skills tabs', () => {
     tab$.next(null);
     await settle();
     expect(host.querySelector('app-skills-tab')).toBeNull();
-    expect(control('Manage skills')).toBeDefined();
   });
 
   it('renders the week grid, navigates weeks, filters and shows loading/empty/error states (FR-03, FR-12, AC-23)', async () => {
