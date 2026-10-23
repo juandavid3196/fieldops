@@ -1,0 +1,233 @@
+<div class="jh">
+  @if (profile.forbidden()) {
+    <p class="jh__notice">{{ 'team.skillsAvailability.forbiddenMessage' | transloco }}</p>
+  } @else if (profile.notFound()) {
+    <section class="jh__notice" aria-live="polite">
+      <p class="jh__notice-text">{{ 'team.skillsAvailability.notAvailableMessage' | transloco }}</p>
+      <a pButton routerLink="/team">{{ 'team.skillsAvailability.backToTeam' | transloco }}</a>
+    </section>
+  } @else if (profile.failed()) {
+    <p-message severity="error" [closable]="false">
+      <span class="jh__error">
+        {{ 'team.technicianOverview.loadError' | transloco }}
+        <button pButton type="button" severity="secondary" size="small" (click)="profile.load()">
+          {{ 'common.retry' | transloco }}
+        </button>
+      </span>
+    </p-message>
+  } @else {
+    @if (detail(); as technician) {
+      <app-technician-profile-header [detail]="technician" current="job-history" />
+    } @else {
+      <p-skeleton height="8rem" />
+    }
+
+    <ul class="jh__summary" [attr.aria-label]="'team.technicianJobHistory.summary' | transloco">
+      @for (card of cards(); track card.key) {
+        <li class="jh__metric">
+          <i class="pi jh__metric-icon" [class]="card.icon" aria-hidden="true"></i>
+          <span class="jh__metric-text">
+            <span class="jh__metric-label">{{ card.label }}</span>
+            @if (response() === null && loading()) {
+              <p-skeleton width="4rem" height="1.75rem" />
+            } @else {
+              <span class="jh__metric-value">{{ card.value }}</span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+
+    <section class="jh__card" aria-labelledby="jh-heading">
+      <div>
+        <h2 class="jh__heading" id="jh-heading">
+          {{ 'team.technicianJobHistory.jobHistory' | transloco }}
+        </h2>
+        <p class="jh__muted">{{ 'team.technicianJobHistory.subtitle' | transloco }}</p>
+      </div>
+
+      <div
+        class="jh__filters"
+        role="search"
+        [attr.aria-label]="'team.technicianJobHistory.filters' | transloco"
+      >
+        <p-iconfield class="jh__search">
+          <p-inputicon class="pi pi-search" />
+          <input
+            pInputText
+            type="search"
+            class="jh__control"
+            maxlength="100"
+            fluid
+            [attr.placeholder]="'team.technicianJobHistory.searchJobs' | transloco"
+            [attr.aria-label]="'team.technicianJobHistory.searchJobs' | transloco"
+            [disabled]="response() === null"
+            [ngModel]="searchText()"
+            (ngModelChange)="onSearchText($event)"
+          />
+        </p-iconfield>
+        <p-select
+          class="jh__select"
+          appendTo="body"
+          fluid
+          optionLabel="label"
+          optionValue="code"
+          [ariaLabel]="'team.technicianJobHistory.status' | transloco"
+          [options]="statusChoices | localizedRef"
+          [disabled]="response() === null"
+          [ngModel]="query().status"
+          (ngModelChange)="onStatus($event)"
+        />
+        <p-select
+          class="jh__select"
+          appendTo="body"
+          fluid
+          optionLabel="label"
+          optionValue="code"
+          [ariaLabel]="'team.technicianJobHistory.period' | transloco"
+          [options]="periodChoices | localizedRef"
+          [disabled]="response() === null"
+          [ngModel]="query().period"
+          (ngModelChange)="onPeriod($event)"
+        />
+        <p-select
+          class="jh__select"
+          appendTo="body"
+          fluid
+          optionLabel="label"
+          optionValue="code"
+          [ariaLabel]="'team.technicianJobHistory.sort' | transloco"
+          [options]="sortChoices | localizedRef"
+          [disabled]="response() === null"
+          [ngModel]="query().sort"
+          (ngModelChange)="onSort($event)"
+        />
+        @if (searchText()) {
+          <button
+            pButton
+            type="button"
+            class="jh__clear"
+            severity="secondary"
+            [outlined]="true"
+            (click)="clearFilters()"
+          >
+            <i class="pi pi-filter-slash" aria-hidden="true"></i>
+            {{ 'team.technicianJobHistory.clearFilters' | transloco }}
+          </button>
+        }
+      </div>
+
+      <p class="jh__info">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        {{ 'team.technicianJobHistory.infoNote' | transloco }}
+      </p>
+
+      <div class="jh__results" [attr.aria-busy]="loading()">
+        @if (loadFailed()) {
+          <p-message severity="error" [closable]="false">
+            <span class="jh__error">
+              {{ 'team.technicianJobHistory.loadError' | transloco }}
+              <button pButton type="button" severity="secondary" size="small" (click)="retry()">
+                {{ 'common.retry' | transloco }}
+              </button>
+            </span>
+          </p-message>
+        } @else if (loading()) {
+          <div class="jh__skeletons">
+            @for (row of skeletonRows; track row) {
+              <p-skeleton height="2.5rem" />
+            }
+          </div>
+        } @else if (rows().length === 0) {
+          <div class="jh__empty">
+            <p class="jh__empty-text">{{ emptyText() }}</p>
+            @if (hasFilters()) {
+              <button pButton type="button" severity="secondary" (click)="clearFilters()">
+                {{ 'team.technicianJobHistory.clearFilters' | transloco }}
+              </button>
+            }
+          </div>
+          <p class="jh__report">{{ report() }}</p>
+        } @else {
+          <table class="jh__table">
+            <thead>
+              <tr>
+                <th scope="col">{{ 'team.technicianJobHistory.job' | transloco }}</th>
+                <th scope="col">{{ 'team.technicianJobHistory.property' | transloco }}</th>
+                <th scope="col">{{ 'team.technicianJobHistory.visitDate' | transloco }}</th>
+                <th scope="col">{{ 'team.technicianJobHistory.timeLogged' | transloco }}</th>
+                <th scope="col">{{ 'team.technicianJobHistory.outcome' | transloco }}</th>
+                <th scope="col">
+                  <span class="jh__sr">{{ 'common.actions' | transloco }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of rows(); track row.item.visitId) {
+                <tr>
+                  <td
+                    class="jh__job"
+                    [attr.data-label]="'team.technicianJobHistory.job' | transloco"
+                  >
+                    <span class="jh__job-body">
+                      @if (row.item.canOpen) {
+                        <a class="jh__link" [routerLink]="row.link">{{ row.item.displayNumber }}</a>
+                      } @else {
+                        <span class="jh__number">{{ row.item.displayNumber }}</span>
+                      }
+                      <span class="jh__title">{{ row.item.title }}</span>
+                      @if (row.item.visitCount > 1) {
+                        <span class="jh__muted">{{
+                          'team.technicianJobHistory.visit'
+                            | transloco: { number: row.item.visitNumber }
+                        }}</span>
+                      }
+                    </span>
+                  </td>
+                  <td [attr.data-label]="'team.technicianJobHistory.property' | transloco">
+                    {{ row.item.property.name }} · {{ row.item.property.city }}
+                  </td>
+                  <td [attr.data-label]="'team.technicianJobHistory.visitDate' | transloco">
+                    {{ row.date }}
+                  </td>
+                  <td [attr.data-label]="'team.technicianJobHistory.timeLogged' | transloco">
+                    {{ row.logged }}
+                  </td>
+                  <td [attr.data-label]="'team.technicianJobHistory.outcome' | transloco">
+                    <span class="jh__outcome jh__outcome--{{ outcomeSeverity(row.item.outcome) }}">
+                      <span class="jh__outcome-dot" aria-hidden="true"></span>
+                      {{ outcomeLabels[row.item.outcome] }}
+                    </span>
+                  </td>
+                  <td class="jh__chevron">
+                    @if (row.item.canOpen) {
+                      <a
+                        class="jh__chevron-link"
+                        tabindex="-1"
+                        aria-hidden="true"
+                        [routerLink]="row.link"
+                      >
+                        <i class="pi pi-chevron-right"></i>
+                      </a>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <div class="jh__pager">
+            <p class="jh__report">{{ report() }}</p>
+            <p-paginator
+              class="jh__paginator"
+              [first]="first()"
+              [rows]="query().pageSize"
+              [totalRecords]="total()"
+              [rowsPerPageOptions]="pageSizes"
+              (onPageChange)="onPageChange($event)"
+            />
+          </div>
+        }
+      </div>
+    </section>
+  }
+</div>

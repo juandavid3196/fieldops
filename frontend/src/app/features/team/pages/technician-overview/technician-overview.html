@@ -1,0 +1,205 @@
+<div class="to">
+  @if (profile.forbidden()) {
+    <p class="to__notice">{{ forbiddenMessage }}</p>
+  } @else if (profile.notFound()) {
+    <section class="to__notice" aria-live="polite">
+      <p class="to__notice-text">{{ 'team.skillsAvailability.notAvailableMessage' | transloco }}</p>
+      <a pButton routerLink="/team">{{ 'team.skillsAvailability.backToTeam' | transloco }}</a>
+    </section>
+  } @else if (profile.failed()) {
+    <p-message severity="error" [closable]="false">
+      <span class="to__error">
+        {{ 'team.technicianOverview.loadError' | transloco }}
+        <button pButton type="button" severity="secondary" size="small" (click)="profile.load()">
+          {{ 'common.retry' | transloco }}
+        </button>
+      </span>
+    </p-message>
+  } @else if (detail(); as technician) {
+    <app-technician-profile-header [detail]="technician" current="overview" />
+
+    <ul class="to__summary" [attr.aria-label]="'team.technicianOverview.summary' | transloco">
+      @for (item of summary(); track item.key) {
+        <li class="to__metric">
+          <i class="pi to__metric-icon" [class]="item.icon" aria-hidden="true"></i>
+          <span class="to__metric-text">
+            <span class="to__metric-label">{{ item.label }}</span>
+            <span class="to__metric-value">{{ item.value }}</span>
+          </span>
+        </li>
+      }
+    </ul>
+
+    <div class="to__grid">
+      <div class="to__column">
+        <section class="to__card" aria-labelledby="to-details-heading">
+          <h2 class="to__heading" id="to-details-heading">
+            {{ 'team.technicianProfile.profileDetails' | transloco }}
+          </h2>
+          <dl class="to__list">
+            <dt>{{ 'common.email' | transloco }}</dt>
+            <dd>{{ technician.email || '—' }}</dd>
+            <dt>{{ 'team.technicianProfile.mobilePhone' | transloco }}</dt>
+            <dd>{{ technician.phone || '—' }}</dd>
+            <dt>{{ 'team.technicianProfile.profileId' | transloco }}</dt>
+            <dd>{{ technician.employeeCode || '—' }}</dd>
+            <dt>{{ 'team.technicianProfile.homeBranch' | transloco }}</dt>
+            <dd>{{ technician.branch.name || '—' }}</dd>
+          </dl>
+          <hr class="to__rule" />
+          <h3 class="to__subheading" id="to-account-heading">
+            {{ 'team.technicianProfile.accountAccess' | transloco }}
+          </h3>
+          @if (technician.account; as account) {
+            <dl class="to__list" aria-labelledby="to-account-heading">
+              <dt>{{ 'team.technicianProfile.linkedAccount' | transloco }}</dt>
+              <dd>
+                {{ account.email }}
+                <span class="to__pill">{{ 'team.technicianProfile.readOnly' | transloco }}</span>
+              </dd>
+              <dt>{{ 'common.role' | transloco }}</dt>
+              <dd>{{ account.roleName }}</dd>
+            </dl>
+            <p class="to__note">
+              {{ 'team.technicianProfile.accountPermissionsAreManaged' | transloco }}
+            </p>
+          } @else {
+            <p class="to__note">{{ 'team.technicianProfile.noLinkedUserAccount' | transloco }}</p>
+          }
+        </section>
+
+        <section class="to__card" aria-labelledby="to-skills-heading">
+          <h2 class="to__heading" id="to-skills-heading">
+            {{ 'team.technicianProfile.operationalSkills' | transloco }}
+          </h2>
+          <a
+            class="to__block-link"
+            [routerLink]="skillsPath()"
+            [attr.aria-label]="'team.technicianOverview.skillsLink' | transloco"
+          >
+            @if (skills().length === 0) {
+              <span class="to__note">{{ 'team.technicianOverview.noSkills' | transloco }}</span>
+            } @else {
+              <ul class="to__skills">
+                @for (skill of skills(); track skill.name) {
+                  <li class="to__skill to__skill--{{ skill.tone }}">
+                    <i class="pi to__skill-icon" [class]="skill.icon" aria-hidden="true"></i>
+                    <span class="to__skill-name">{{ skill.name }}</span>
+                    @if (skill.level) {
+                      <span aria-hidden="true">·</span>
+                      <span class="to__skill-level">{{ skill.level }}</span>
+                    }
+                    @if (skill.primary) {
+                      <span class="to__pill to__pill--primary">{{
+                        'team.technicianOverview.primary' | transloco
+                      }}</span>
+                    }
+                  </li>
+                }
+              </ul>
+            }
+            <i class="pi pi-chevron-right" aria-hidden="true"></i>
+          </a>
+        </section>
+
+        <section class="to__card" aria-labelledby="to-availability-heading">
+          <h2 class="to__heading" id="to-availability-heading">
+            {{ 'team.technicianProfile.standardAvailability' | transloco }}
+          </h2>
+          @if (availability().length === 0) {
+            <p class="to__note">{{ 'team.technicianProfile.noAvailabilitySet' | transloco }}</p>
+          } @else {
+            <dl class="to__hours">
+              @for (line of availability(); track line.label) {
+                <div class="to__hours-item">
+                  <dt class="to__pill">{{ line.label }}</dt>
+                  <dd>{{ line.value }}</dd>
+                </div>
+              }
+            </dl>
+          }
+          @if (technician.usesBranchHours) {
+            <p class="to__note">{{ 'team.technicianOverview.usesBranchHours' | transloco }}</p>
+          }
+          <a class="to__link" [routerLink]="skillsPath()">
+            {{ 'team.technicianOverview.openSkillsAvailability' | transloco }}
+          </a>
+        </section>
+      </div>
+
+      <div class="to__column">
+        <section class="to__card" aria-labelledby="to-today-heading">
+          <h2 class="to__heading" id="to-today-heading">
+            {{ 'team.technicianProfile.today' | transloco }}
+          </h2>
+          <p class="to__status to__status--{{ statusSeverity(technician.today.todayStatus) }}">
+            <span class="to__status-dot" aria-hidden="true"></span>
+            {{ statusLabels[technician.today.todayStatus] }}
+          </p>
+          @if (showCurrentJob()) {
+            <p class="to__current">
+              <span class="to__current-label">{{
+                'team.technicianProfile.currentJob' | transloco
+              }}</span>
+              <span>{{ technician.today.currentJob?.label }}</span>
+              @if (technician.today.currentJob?.visitStatus; as visitStatus) {
+                <span class="to__muted">{{ visitStatusLabels[visitStatus] }}</span>
+              }
+            </p>
+          }
+          <div class="to__meter">
+            <span>{{ 'team.technicianProfile.workload' | transloco }}</span>
+            <span class="to__meter-value" [class.to__meter-value--over]="workload().over">{{
+              active() ? workload().text : '—'
+            }}</span>
+          </div>
+          @if (active() && workload().fill !== null) {
+            <div class="to__bar" aria-hidden="true">
+              <span
+                class="to__bar-fill"
+                [class.to__bar-fill--over]="workload().over"
+                [style.inline-size.%]="workload().fill"
+              ></span>
+            </div>
+          }
+          <a pButton class="to__action" [routerLink]="schedulePath">{{
+            'team.technicianProfile.viewSchedule' | transloco
+          }}</a>
+        </section>
+
+        <section class="to__card" aria-labelledby="to-timeoff-heading">
+          <h2 class="to__heading" id="to-timeoff-heading">
+            {{ 'team.technicianOverview.upcomingTimeOff' | transloco }}
+          </h2>
+          <div class="to__timeoff-row">
+            <span class="to__icon-circle" aria-hidden="true"><i class="pi pi-calendar"></i></span>
+            @if (timeOff(); as off) {
+              <p class="to__timeoff">
+                <span class="to__timeoff-date">{{ off.date }}</span>
+                <span>{{ off.times }}</span>
+                <span class="to__muted">{{ off.reason }}</span>
+              </p>
+            } @else {
+              <p class="to__note">{{ 'team.technicianOverview.noTimeOff' | transloco }}</p>
+            }
+          </div>
+          <a class="to__link" [routerLink]="skillsPath()">
+            {{ 'team.technicianOverview.manageAvailability' | transloco }}
+          </a>
+        </section>
+      </div>
+    </div>
+  } @else {
+    <div
+      class="to__skeletons"
+      aria-busy="true"
+      [attr.aria-label]="'team.technicianOverview.loading' | transloco"
+    >
+      <p-skeleton height="4.5rem" />
+      <p-skeleton height="5rem" />
+      @for (block of skeletons; track block) {
+        <p-skeleton height="10rem" />
+      }
+    </div>
+  }
+</div>

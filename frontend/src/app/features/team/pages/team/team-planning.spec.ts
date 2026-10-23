@@ -162,7 +162,7 @@ describe('Team availability and skills tabs', () => {
         {
           provide: ActivatedRoute,
           useValue: {
-            snapshot: { data: {} },
+            snapshot: { data: {}, queryParamMap: convertToParamMap({}) },
             queryParamMap: tab$.pipe(
               map((value) => convertToParamMap(value === null ? {} : { tab: value })),
             ),

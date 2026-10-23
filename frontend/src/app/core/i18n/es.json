@@ -244,7 +244,9 @@
     "reviewAndComplete": "Revisar y completar · FieldOps",
     "usersAndPermissions": "Usuarios y permisos · FieldOps",
     "articleNotFound": "Artículo no encontrado",
-    "portalHelpAndSupport": "Ayuda y soporte · Portal de clientes"
+    "portalHelpAndSupport": "Ayuda y soporte · Portal de clientes",
+    "technicianOverview": "Resumen del técnico · FieldOps",
+    "technicianJobHistory": "Historial de trabajos · FieldOps"
   },
   "selector": {
     "language": "Idioma",

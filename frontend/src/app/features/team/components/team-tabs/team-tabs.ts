@@ -18,6 +18,7 @@ export class TeamTabs {
   readonly current = input.required<TeamTab>();
   readonly membersCount = input<number | null>(null);
 
+  readonly membersQuery = { tab: null };
   readonly availabilityQuery = { tab: 'availability' };
   readonly skillsQuery = { tab: 'skills' };
 }

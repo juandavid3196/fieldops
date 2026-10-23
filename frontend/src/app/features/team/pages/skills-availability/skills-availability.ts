@@ -10,7 +10,6 @@ import { Toast } from 'primeng/toast';
 import { Observable } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
 
-import { comingSoonPath } from '../../../../core/config/coming-soon-modules';
 import { isApiError } from '../../../../core/models/api-error.model';
 import { SessionService } from '../../../../core/services/session.service';
 import { ConfirmDialog } from '../../../../shared/components/confirm-dialog/confirm-dialog';
@@ -117,9 +116,10 @@ export class SkillsAvailabilityPage {
   protected get saveFailedMessage(): string {
     return SAVE_FAILED_MESSAGE();
   }
-  protected readonly profilePath = comingSoonPath('technician-profile');
+  /** BR-03 of the profile spec: name, View profile and Overview go to the Overview. */
+  protected readonly profilePath = computed(() => `/team/${this.technicianId()}/overview`);
   protected readonly schedulePath = '/schedule';
-  protected readonly historyPath = comingSoonPath('technician-job-history');
+  protected readonly historyPath = computed(() => `/team/${this.technicianId()}/job-history`);
   protected readonly statusLabels = PROFILE_STATUS_LABELS;
   protected readonly statusSeverity = profileStatusSeverity;
   protected readonly matchingSteps = localizedList(() => [

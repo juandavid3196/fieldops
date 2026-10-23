@@ -31,7 +31,8 @@ internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStor
         string? EmployeeCode,
         string? Notes,
         TechnicianStatus Status,
-        Guid? OrganizationUserId);
+        Guid? OrganizationUserId,
+        bool UsesBranchHours);
 
     public async Task<TeamOptions> GetOptionsAsync(Guid organizationId, BranchScope scope, CancellationToken cancellationToken)
     {
@@ -611,7 +612,8 @@ internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStor
             profile.EmployeeCode,
             profile.Notes,
             profile.Status,
-            profile.OrganizationUserId);
+            profile.OrganizationUserId,
+            profile.UsesBranchHours);
 
     private async Task<(string? Timezone, string Prefix)> OrganizationContextAsync(
         Guid organizationId, CancellationToken cancellationToken)
@@ -688,6 +690,16 @@ internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStor
                 .SingleOrDefaultAsync(cancellationToken);
         }
 
+        // BR-11: earliest active unavailable exception that has not ended; a current absence is included.
+        var upcomingTimeOff = await dbContext.TechnicianExceptions.AsNoTracking()
+            .Where(item => item.TechnicianId == row.Id
+                && item.Status == TechnicianExceptionStatus.Active
+                && !item.IsAvailable
+                && item.EndsAt > now)
+            .OrderBy(item => item.StartsAt).ThenBy(item => item.Id)
+            .Select(item => new UpcomingTimeOffData(item.StartsAt, item.EndsAt, item.Reason))
+            .FirstOrDefaultAsync(cancellationToken);
+
         var availability = schedule.Slots
             .GroupBy(slot => slot.DayOfWeek)
             .OrderBy(group => (group.Key + 6) % 7)
@@ -712,7 +724,9 @@ internal sealed partial class TeamStore(FieldOpsDbContext dbContext) : ITeamStor
                 ? [.. list.Select(skill => new TechnicianSkillView(skill.Name, skill.Proficiency, skill.IsPrimary))]
                 : [],
             availability,
-            schedule);
+            schedule,
+            row.UsesBranchHours,
+            upcomingTimeOff);
     }
 
     private async Task<Dictionary<string, string[]>?> FindDuplicatesAsync(

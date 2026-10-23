@@ -110,6 +110,7 @@ public static class DependencyInjection
         services.AddScoped<IBranchScopeResolver, BranchScopeResolver>();
         services.AddScoped<ICustomerStore, CustomerStore>();
         services.AddScoped<ITeamStore, TeamStore>();
+        services.AddScoped<ITechnicianJobHistoryStore, TechnicianJobHistoryStore>();
         services.AddScoped<ICustomerDetailStore, CustomerDetailStore>();
         services.AddScoped<ICustomerRecordStore, CustomerRecordStore>();
         services.AddScoped<ICustomerActivityStore, CustomerActivityStore>();

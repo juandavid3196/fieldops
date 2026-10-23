@@ -52,10 +52,8 @@
     font: inherit;
     color: var(--fo-color-primary-strong);
     text-align: start;
-    background: none;
-    border: 0;
+    text-decoration: none;
     border-radius: var(--fo-radius-control);
-    cursor: pointer;
 
     &:hover {
       text-decoration: underline;

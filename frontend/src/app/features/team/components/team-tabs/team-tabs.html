@@ -2,6 +2,8 @@
   <a
     class="team-tabs__tab"
     routerLink="/team"
+    [queryParams]="membersQuery"
+    queryParamsHandling="merge"
     [class.team-tabs__tab--current]="current() === 'members'"
     [attr.aria-current]="current() === 'members' ? 'page' : null"
   >
@@ -11,6 +13,7 @@
     class="team-tabs__tab"
     routerLink="/team"
     [queryParams]="availabilityQuery"
+    queryParamsHandling="merge"
     [class.team-tabs__tab--current]="current() === 'availability'"
     [attr.aria-current]="current() === 'availability' ? 'page' : null"
   >
@@ -20,6 +23,7 @@
     class="team-tabs__tab"
     routerLink="/team"
     [queryParams]="skillsQuery"
+    queryParamsHandling="merge"
     [class.team-tabs__tab--current]="current() === 'skills'"
     [attr.aria-current]="current() === 'skills' ? 'page' : null"
   >

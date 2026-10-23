@@ -6,7 +6,7 @@ import {
 } from '@angular/common/http/testing';
 import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 
 import { API_CONFIG } from '../../../../core/config/api.config';
@@ -148,11 +148,16 @@ describe('Team page', () => {
   async function setup(
     roleCode: string,
     init: (rows?: readonly TechnicianRow[]) => void = () => undefined,
+    startUrl?: string,
   ) {
     TestBed.configureTestingModule({
       providers: [
         { provide: API_CONFIG, useValue: { baseUrl: API } },
-        provideRouter([{ path: 'auth/sign-in', component: Stub }]),
+        provideRouter([
+          { path: 'auth/sign-in', component: Stub },
+          { path: 'team/:technicianId/overview', component: Stub },
+          { path: '', component: Stub },
+        ]),
         provideHttpClient(withInterceptors([errorInterceptor])),
         provideHttpClientTesting(),
       ],
@@ -170,6 +175,9 @@ describe('Team page', () => {
       organization: { id: 'o-1', name: 'Acme' },
       role: { code: roleCode, name: roleCode },
     });
+    if (startUrl !== undefined) {
+      await TestBed.inject(Router).navigateByUrl(startUrl);
+    }
     fixture = TestBed.createComponent(Team);
     page = fixture.componentInstance;
     host = fixture.nativeElement as HTMLElement;
@@ -216,6 +224,7 @@ describe('Team page', () => {
     expect(button('Add technician profile')).toBeDefined();
     expect(page.buildMenu(ANA).map((item) => item.label)).toEqual([
       'View',
+      'View profile',
       'Edit',
       'Unlink account',
       'Deactivate',
@@ -230,9 +239,89 @@ describe('Team page', () => {
     await setup('dispatcher', () => flushManager([ANA, ETHAN]));
     expect(button('Add technician profile')).toBeUndefined();
     expect(button('Link account')).toBeUndefined();
-    expect(page.buildMenu(ANA).map((item) => item.label)).toEqual(['View']);
+    expect(page.buildMenu(ANA).map((item) => item.label)).toEqual(['View', 'View profile']);
     expect(host.querySelector('app-link-account-dialog')).toBeNull();
     expect(host.querySelector('app-technician-form-drawer')).toBeNull();
+  });
+
+  it.each(['owner', 'operations_manager', 'dispatcher'])(
+    'opens the Overview from the name and View profile for %s, leaving View on the drawer (FR-01, AC-01)',
+    async (role) => {
+      await setup(role, () => flushManager([ANA, ETHAN]));
+      expect(host.querySelector('a.team-table__link')?.getAttribute('href')).toBe(
+        '/team/t-1/overview',
+      );
+      const items = page.buildMenu(ANA);
+      expect(items.slice(0, 2).map((item) => item.label)).toEqual(['View', 'View profile']);
+      items[1].command!({});
+      await settle();
+      expect(TestBed.inject(Router).url).toBe('/team/t-1/overview');
+    },
+  );
+
+  it('keeps the list state in the URL: restore, push, replace and invalid values (FR-02, AC-02)', async () => {
+    const router = () => TestBed.inject(Router);
+    const query =
+      'q=ana&branch=b-2&skill=s-1&status=on_job&account=linked&sort=name_desc&period=week&page=2';
+    await setup('owner', undefined, `/?${query}`);
+    // Branch and skill from the URL are validated against the options before the first list request.
+    call('GET', 'team/options').flush(OPTIONS);
+    const list = httpTesting.expectOne((r) => r.url === `${API}/team/technicians`);
+    expect(list.request.params.keys().sort()).toEqual(
+      ['accountLink', 'branchId', 'page', 'period', 'search', 'skillId', 'sort', 'status'].sort(),
+    );
+    expect(list.request.params.get('search')).toBe('ana');
+    expect(list.request.params.get('branchId')).toBe('b-2');
+    expect(list.request.params.get('status')).toBe('on_job');
+    expect(list.request.params.get('sort')).toBe('name_desc');
+    expect(list.request.params.get('period')).toBe('week');
+    expect(list.request.params.get('page')).toBe('2');
+    list.flush(listBody([ANA], 18));
+    call('GET', 'team/metrics').flush(METRICS);
+    call('GET', 'team/skill-coverage').flush(COVERAGE);
+    await settle();
+    expect(router().url).toBe(`/?${query}`);
+
+    // A filter change pushes a new entry and resets the page.
+    const navigate = vi.spyOn(router(), 'navigate');
+    page.onStatus('off');
+    expect(navigate.mock.calls.at(-1)?.[1]).toMatchObject({ replaceUrl: false });
+    call('GET', 'team/technicians').flush(listBody([ETHAN], 1));
+    await settle();
+    expect(router().url).toContain('status=off');
+    expect(router().url).not.toContain('page=');
+
+    // Back to a previous entry restores its list without a reload of the page.
+    await router().navigateByUrl(`/?${query}`);
+    const restored = call('GET', 'team/technicians');
+    expect(restored.request.params.get('status')).toBe('on_job');
+    expect(restored.request.params.get('page')).toBe('2');
+    restored.flush(listBody([ANA], 18));
+    call('GET', 'team/metrics').flush(METRICS);
+    await settle();
+
+    // Invalid values, and ids outside the options, are replaced by defaults before the request.
+    TestBed.resetTestingModule();
+    await setup(
+      'owner',
+      undefined,
+      '/?status=bogus&sort=zzz&period=month&page=-3&account=x&branch=gone&skill=gone',
+    );
+    const replace = vi.spyOn(TestBed.inject(Router), 'navigate');
+    call('GET', 'team/options').flush(OPTIONS);
+    const defaults = call('GET', 'team/technicians');
+    expect(defaults.request.params.get('status')).toBe('all_active');
+    expect(defaults.request.params.get('sort')).toBe('name_asc');
+    expect(defaults.request.params.get('period')).toBe('today');
+    expect(defaults.request.params.get('page')).toBe('1');
+    expect(defaults.request.params.has('branchId')).toBe(false);
+    expect(defaults.request.params.has('skillId')).toBe(false);
+    expect(replace.mock.calls.at(-1)?.[1]).toMatchObject({ replaceUrl: true });
+    defaults.flush(listBody([ANA], 18));
+    call('GET', 'team/metrics').flush(METRICS);
+    call('GET', 'team/skill-coverage').flush(COVERAGE);
+    await settle();
+    expect(TestBed.inject(Router).url).toBe('/');
   });
 
   it.each([

@@ -1,0 +1,53 @@
+<nav class="tph__crumbs" [attr.aria-label]="'team.technicianProfileHeader.breadcrumb' | transloco">
+  <ol>
+    <li>
+      <a routerLink="/team">{{ 'team.technicianProfileHeader.team' | transloco }}</a>
+    </li>
+    <li>
+      <a [routerLink]="overviewPath()">{{ name() }}</a>
+    </li>
+    <li aria-current="page">
+      {{
+        current() === 'overview'
+          ? ('team.technicianProfileHeader.overview' | transloco)
+          : ('team.technicianProfileHeader.jobHistory' | transloco)
+      }}
+    </li>
+  </ol>
+</nav>
+
+<header class="tph__header">
+  <span class="tph__avatar" aria-hidden="true">{{ initials() }}</span>
+  <div>
+    <h1 class="tph__title">
+      {{ name() }}
+      <p-tag
+        class="tph__status"
+        [rounded]="true"
+        [severity]="statusSeverity(detail().profileStatus)"
+        [value]="statusLabels[detail().profileStatus]"
+      />
+    </h1>
+    <p class="tph__meta">
+      <span>{{ 'team.technicianProfileHeader.technician' | transloco }}</span>
+      <span>{{
+        'team.technicianProfileHeader.homeBranch' | transloco: { name: detail().branch.name }
+      }}</span>
+    </p>
+  </div>
+</header>
+
+<nav class="tph__tabs" [attr.aria-label]="'team.technicianProfileHeader.sections' | transloco">
+  <a [routerLink]="overviewPath()" [attr.aria-current]="current() === 'overview' ? 'page' : null">{{
+    'team.technicianProfileHeader.overview' | transloco
+  }}</a>
+  <a routerLink="/schedule">{{ 'team.technicianProfileHeader.schedule' | transloco }}</a>
+  <a [routerLink]="skillsPath()">{{
+    'team.technicianProfileHeader.skillsAvailability' | transloco
+  }}</a>
+  <a
+    [routerLink]="historyPath()"
+    [attr.aria-current]="current() === 'job-history' ? 'page' : null"
+    >{{ 'team.technicianProfileHeader.jobHistory' | transloco }}</a
+  >
+</nav>

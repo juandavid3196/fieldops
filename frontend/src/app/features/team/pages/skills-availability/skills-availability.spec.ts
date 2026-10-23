@@ -333,10 +333,10 @@ describe('Skills & availability page', () => {
         .find((element) => element.textContent?.trim().startsWith(label))
         ?.getAttribute('href');
     expect(href('Team')).toBe('/team');
-    expect(href('View profile')).toBe('/coming-soon/technician-profile');
-    expect(href('Overview')).toBe('/coming-soon/technician-profile');
+    expect(href('View profile')).toBe('/team/t-1/overview');
+    expect(href('Overview')).toBe('/team/t-1/overview');
     expect(href('Schedule')).toBe('/schedule');
-    expect(href('Job history')).toBe('/coming-soon/technician-job-history');
+    expect(href('Job history')).toBe('/team/t-1/job-history');
     expect(href('Open dispatch calendar')).toBe('/schedule');
     expect(text()).toContain('85%');
     expect(text()).toContain('FieldOps never assigns a technician automatically.');

@@ -112,6 +112,7 @@ public static class DependencyInjection
         services.AddScoped<GetTeamMetricsHandler>();
         services.AddScoped<ListTechniciansHandler>();
         services.AddScoped<GetTechnicianHandler>();
+        services.AddScoped<GetTechnicianJobHistoryHandler>();
         services.AddScoped<GetOwnTechnicianHandler>();
         services.AddScoped<GetTodayVisitsHandler>();
         services.AddScoped<GetTechnicianScheduleHandler>();
