@@ -56,7 +56,9 @@ describe('MessageList', () => {
   const text = () => host.textContent?.replace(/\s+/g, ' ').trim() ?? '';
 
   beforeEach(() => {
-    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    // Pin the clock to midday so relative labels ("3h") never cross midnight.
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] });
+    vi.setSystemTime(new Date(2026, 0, 15, 12, 0, 0));
     TestBed.configureTestingModule({
       providers: [
         { provide: API_CONFIG, useValue: { baseUrl: API } },
