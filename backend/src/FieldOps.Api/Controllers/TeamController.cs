@@ -20,6 +20,7 @@ public sealed class TeamController(
     GetTeamMetricsHandler metricsHandler,
     ListTechniciansHandler listHandler,
     GetTechnicianHandler detailHandler,
+    GetTechnicianJobHistoryHandler jobHistoryHandler,
     GetOwnTechnicianHandler ownHandler,
     CreateTechnicianHandler createHandler,
     UpdateTechnicianHandler updateHandler,
@@ -111,6 +112,31 @@ public sealed class TeamController(
 
         var result = await detailHandler.HandleAsync(
             ticket.OrganizationId, ticket.MembershipId, id, period, includeNotes, cancellationToken);
+
+        return result.Kind == TeamResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
+    }
+
+    [HttpGet("technicians/{id:guid}/job-history")]
+    [Authorize(Policy = TeamPolicies.View)]
+    [ProducesResponseType<JobHistoryPage>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ValidationProblemDetails>(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> JobHistory(
+        Guid id, [FromQuery] JobHistoryRequest request, CancellationToken cancellationToken)
+    {
+        Response.Headers.CacheControl = "no-store";
+
+        if (!SessionClaims.TryRead(User, out var ticket))
+        {
+            return Unauthorized();
+        }
+
+        var canReadWorkOrders = (await authorization.AuthorizeAsync(User, WorkOrderPolicies.Read)).Succeeded;
+
+        var result = await jobHistoryHandler.HandleAsync(
+            ticket.OrganizationId, ticket.MembershipId, id, request.ToQuery(), canReadWorkOrders, cancellationToken);
 
         return result.Kind == TeamResultKind.Succeeded ? Ok(result.Value) : MapFailure(result);
     }

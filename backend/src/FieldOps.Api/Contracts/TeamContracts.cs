@@ -37,4 +37,22 @@ public sealed class TechnicianListRequest
     public TeamListQuery ToQuery() => new(Search, BranchId, SkillId, Status, AccountLink, Sort, Period, Page);
 }
 
+/// <summary>Query of GET /team/technicians/{id}/job-history (BR-17); strings so bad input maps to a 400 key.</summary>
+public sealed class JobHistoryRequest
+{
+    public string? Search { get; init; }
+
+    public string? Status { get; init; }
+
+    public string? Period { get; init; }
+
+    public string? Sort { get; init; }
+
+    public string? Page { get; init; }
+
+    public string? PageSize { get; init; }
+
+    public JobHistoryQueryText ToQuery() => new(Search, Status, Period, Sort, Page, PageSize);
+}
+
 public sealed record AccountLinkRequest(Guid? OrganizationUserId);

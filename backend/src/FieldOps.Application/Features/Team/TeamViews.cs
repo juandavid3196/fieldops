@@ -47,7 +47,11 @@ public sealed record AvailabilityWindowView(string Start, string End);
 
 public sealed record AvailabilityDayView(int DayOfWeek, IReadOnlyList<AvailabilityWindowView> Windows);
 
-public sealed record CurrentJobView(string Label);
+/// <summary><c>VisitStatus</c> is the active visit status: <c>on_the_way</c>, <c>in_progress</c> or <c>paused</c>.</summary>
+public sealed record CurrentJobView(string Label, string VisitStatus);
+
+/// <summary>BR-11: <c>Date</c> is the local start date (yyyy-MM-dd); <c>Start</c>/<c>End</c> are local HH:mm unless all day.</summary>
+public sealed record UpcomingTimeOffView(string Date, bool AllDay, string? Start, string? End, string? Reason);
 
 public sealed record TechnicianTodayView(
     string TodayStatus,
@@ -71,7 +75,9 @@ public sealed record TechnicianDetail(
     IReadOnlyList<TechnicianSkillView> Skills,
     IReadOnlyList<AvailabilityDayView> Availability,
     TechnicianTodayView Today,
-    string Timezone);
+    string Timezone,
+    bool UsesBranchHours,
+    UpcomingTimeOffView? UpcomingTimeOff);
 
 public sealed record TechnicianCreated(Guid Id);
 
@@ -185,6 +191,8 @@ public static class TeamFieldKeys
     public const string Period = "period";
 
     public const string Page = "page";
+
+    public const string PageSize = "pageSize";
 }
 
 public static class TeamAuditActions

@@ -346,6 +346,19 @@ public static class TechnicianAvailabilityCalculator
         return next is { } window ? new NextAvailableView("time", window.Start) : NoNext;
     }
 
+    /// <summary>The status code of the first visit that makes the profile "On job" (same visit as the label), or null.</summary>
+    public static string? CurrentJobStatus(TechnicianSchedule schedule) =>
+        schedule.Visits
+            .Where(visit => visit.Status is VisitStatus.OnTheWay or VisitStatus.InProgress or VisitStatus.Paused)
+            .OrderBy(visit => visit.ScheduledStart)
+            .Select(visit => visit.Status switch
+            {
+                VisitStatus.OnTheWay => "on_the_way",
+                VisitStatus.InProgress => "in_progress",
+                _ => "paused",
+            })
+            .FirstOrDefault();
+
     /// <summary>The label of the first visit that makes the profile "On job", or null.</summary>
     public static string? CurrentJobLabel(TechnicianSchedule schedule) =>
         schedule.Visits

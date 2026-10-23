@@ -34,12 +34,42 @@ internal static class TeamMapping
             data.Availability,
             new TechnicianTodayView(
                 derivation.TodayStatus,
-                derivation.CurrentJobLabel is null ? null : new CurrentJobView(derivation.CurrentJobLabel),
+                derivation.CurrentJobLabel is null
+                    ? null
+                    : new CurrentJobView(
+                        derivation.CurrentJobLabel,
+                        TechnicianAvailabilityCalculator.CurrentJobStatus(data.Schedule) ?? "in_progress"),
                 derivation.Workload.Jobs,
                 derivation.Workload.Percent,
                 derivation.Workload.State,
                 derivation.NextAvailable),
-            data.Schedule.ZoneId);
+            data.Schedule.ZoneId,
+            data.UsesBranchHours,
+            UpcomingTimeOff(data));
+    }
+
+    /// <summary>BR-11: local date and times of the home-branch zone; all day follows technician-skills-availability BR-13.</summary>
+    private static UpcomingTimeOffView? UpcomingTimeOff(TechnicianProfileData data)
+    {
+        if (data.UpcomingTimeOff is not { } item)
+        {
+            return null;
+        }
+
+        var zone = BranchTime.FindZone(data.Schedule.ZoneId);
+        var date = BranchTime.LocalDate(item.StartsAt, zone);
+        var (dayStart, dayEnd) = (
+            BranchTime.ToInstant(date, TimeOnly.MinValue, zone), BranchTime.ToInstant(date.AddDays(1), TimeOnly.MinValue, zone));
+
+        var allDay = TimeOffRules.TryFullDayRange(item.StartsAt, item.EndsAt, zone, out _, out _)
+            || (item.StartsAt == dayStart && item.EndsAt == dayEnd);
+
+        return new UpcomingTimeOffView(
+            SkillsAvailabilityMapping.DateText(date),
+            allDay,
+            allDay ? null : SkillsAvailabilityMapping.TimeText(TimeOnly.FromDateTime(TimeZoneInfo.ConvertTime(item.StartsAt, zone).DateTime)),
+            allDay ? null : SkillsAvailabilityMapping.TimeText(TimeOnly.FromDateTime(TimeZoneInfo.ConvertTime(item.EndsAt, zone).DateTime)),
+            item.Reason);
     }
 
     /// <summary>Name order for lists: "first last", case-insensitive, id as tie-breaker.</summary>

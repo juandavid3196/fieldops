@@ -37,7 +37,7 @@
           <a routerLink="/team">{{ 'team.skillsAvailability.team' | transloco }}</a>
         </li>
         <li>
-          <a [routerLink]="profilePath">{{ name() }}</a>
+          <a [routerLink]="profilePath()">{{ name() }}</a>
         </li>
         <li aria-current="page">{{ 'team.skillsAvailability.skillsAvailability' | transloco }}</li>
       </ol>
@@ -48,7 +48,7 @@
         <span class="sa__avatar" aria-hidden="true">{{ initials() }}</span>
         <div>
           <h1 class="sa__title">
-            <a [routerLink]="profilePath">{{ name() }}</a>
+            <a [routerLink]="profilePath()">{{ name() }}</a>
             <p-tag
               [rounded]="true"
               [severity]="statusSeverity(page.technician.profileStatus)"
@@ -65,7 +65,7 @@
         </div>
       </div>
       <div class="sa__actions">
-        <a pButton severity="secondary" [outlined]="true" [routerLink]="profilePath">
+        <a pButton severity="secondary" [outlined]="true" [routerLink]="profilePath()">
           {{ 'team.skillsAvailability.viewProfile' | transloco }}
         </a>
         @if (canEdit()) {
@@ -86,12 +86,12 @@
       class="sa__tabs"
       [attr.aria-label]="'team.skillsAvailability.technicianSections' | transloco"
     >
-      <a [routerLink]="profilePath">{{ 'team.skillsAvailability.overview' | transloco }}</a>
+      <a [routerLink]="profilePath()">{{ 'team.skillsAvailability.overview' | transloco }}</a>
       <a [routerLink]="schedulePath">{{ 'team.skillsAvailability.schedule' | transloco }}</a>
       <span aria-current="page">{{
         'team.skillsAvailability.skillsAvailability' | transloco
       }}</span>
-      <a [routerLink]="historyPath">{{ 'team.skillsAvailability.jobHistory' | transloco }}</a>
+      <a [routerLink]="historyPath()">{{ 'team.skillsAvailability.jobHistory' | transloco }}</a>
     </nav>
 
     @if (conflict()) {

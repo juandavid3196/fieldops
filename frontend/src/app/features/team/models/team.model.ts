@@ -10,6 +10,7 @@ export type TodayStatus =
 export type ProfileStatus = 'active' | 'inactive' | 'suspended';
 export type WorkloadState = 'percent' | 'no_availability' | 'none';
 export type SkillHealth = 'healthy' | 'watch' | 'low';
+export type VisitStatus = 'on_the_way' | 'in_progress' | 'paused';
 
 export interface TeamOption {
   readonly id: string;
@@ -98,11 +99,20 @@ export interface AvailabilityDay {
 
 export interface TechnicianToday {
   readonly todayStatus: TodayStatus;
-  readonly currentJob: { readonly label: string } | null;
+  readonly currentJob: { readonly label: string; readonly visitStatus?: VisitStatus } | null;
   readonly jobs: number;
   readonly workloadPercent?: number | null;
   readonly workloadState: WorkloadState;
   readonly nextAvailable: NextAvailable;
+}
+
+/** `technician-profile-overview-history` BR-11: local date, optional local times, reason as stored. */
+export interface UpcomingTimeOff {
+  readonly date: string;
+  readonly allDay: boolean;
+  readonly start?: string | null;
+  readonly end?: string | null;
+  readonly reason: string;
 }
 
 export interface TechnicianDetail {
@@ -120,6 +130,9 @@ export interface TechnicianDetail {
   readonly availability: readonly AvailabilityDay[];
   readonly today: TechnicianToday;
   readonly timezone: string;
+  /** Additive fields of the profile pages (BR-05). */
+  readonly usesBranchHours?: boolean;
+  readonly upcomingTimeOff?: UpcomingTimeOff | null;
 }
 
 export interface TechnicianRequest {

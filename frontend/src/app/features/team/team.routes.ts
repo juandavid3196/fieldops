@@ -33,3 +33,36 @@ export const skillsAvailabilityRoute: Route = withI18n(
   },
   'team',
 );
+
+/** `/team/:technicianId` opens the Overview; the redirect replaces the history entry (BR-03). */
+export const technicianProfileRedirectRoute: Route = {
+  path: 'team/:technicianId',
+  pathMatch: 'full',
+  redirectTo: '/team/:technicianId/overview',
+};
+
+/** Technician Overview (`/team/:technicianId/overview`); same role rules as Team (BR-21). */
+export const technicianOverviewRoute: Route = withI18n(
+  {
+    path: 'team/:technicianId/overview',
+    pathMatch: 'full',
+    title: 'titles.technicianOverview',
+    loadComponent: () =>
+      import('./pages/technician-overview/technician-overview').then((m) => m.TechnicianOverview),
+  },
+  'team',
+);
+
+/** Technician Job history (`/team/:technicianId/job-history`); same role rules as Team (BR-21). */
+export const technicianJobHistoryRoute: Route = withI18n(
+  {
+    path: 'team/:technicianId/job-history',
+    pathMatch: 'full',
+    title: 'titles.technicianJobHistory',
+    loadComponent: () =>
+      import('./pages/technician-job-history/technician-job-history').then(
+        (m) => m.TechnicianJobHistory,
+      ),
+  },
+  'team',
+);

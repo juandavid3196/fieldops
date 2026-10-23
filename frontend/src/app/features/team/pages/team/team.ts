@@ -22,6 +22,7 @@ import {
   filter,
   map,
   of,
+  skip,
   switchMap,
   tap,
 } from 'rxjs';
@@ -66,6 +67,13 @@ import {
   TechnicianRow,
 } from '../../models/team.model';
 import { TeamService } from '../../services/team.service';
+import {
+  TeamUrlState,
+  needsCanonicalUrl,
+  parseTeamUrl,
+  sameTeamUrlState,
+  teamUrlParams,
+} from '../../utils/team-url-state';
 import { HEALTH_LABELS, HEALTH_SEVERITIES } from '../../utils/team-format';
 
 import { localizedList, t } from '../../../../core/i18n/translate';
@@ -247,15 +255,17 @@ export class Team {
   );
 
   // Filters and paging
-  readonly period = signal<TeamPeriod>('today');
-  readonly searchText = signal('');
-  private readonly searchTerm = signal('');
-  readonly branchId = signal<string | null>(null);
-  readonly skillId = signal<string | null>(null);
-  readonly status = signal<StatusFilter>('all_active');
-  readonly accountLink = signal<AccountLinkFilter>('all');
-  readonly sort = signal<TeamSort>('name_asc');
-  readonly page = signal(1);
+  /** BR-02: the list state starts from the URL query; invalid values fall back to defaults. */
+  private readonly initialState = parseTeamUrl(this.route.snapshot.queryParamMap);
+  readonly period = signal<TeamPeriod>(this.initialState.period);
+  readonly searchText = signal(this.initialState.q);
+  private readonly searchTerm = signal(this.initialState.q);
+  readonly branchId = signal<string | null>(this.initialState.branch);
+  readonly skillId = signal<string | null>(this.initialState.skill);
+  readonly status = signal<StatusFilter>(this.initialState.status);
+  readonly accountLink = signal<AccountLinkFilter>(this.initialState.account);
+  readonly sort = signal<TeamSort>(this.initialState.sort);
+  readonly page = signal(this.initialState.page);
   readonly hasFilters = computed(
     () =>
       this.searchText().trim().length > 0 ||
@@ -288,6 +298,11 @@ export class Team {
   readonly skills = signal<readonly TeamOption[]>([]);
   readonly optionsLoading = signal(true);
   private readonly optionsFailed = signal(false);
+  private optionsLoaded = false;
+  /** List states this page wrote to the URL whose query emissions are still to arrive. */
+  private readonly expectedEchoes: TeamUrlState[] = [];
+  /** Branch or skill ids from the URL are checked against the options before the first request. */
+  private awaitingOptions = false;
 
   readonly capacityText = computed(() => {
     const alert = this.metrics()?.capacityAlert;
@@ -358,7 +373,7 @@ export class Team {
       )
       .subscribe((value) => {
         this.searchTerm.set(value);
-        this.filtersChanged();
+        this.filtersChanged(true);
       });
 
     if (this.forbidden()) {
@@ -369,9 +384,84 @@ export class Team {
     } else if (this.isTechnician()) {
       this.loadOwn();
     } else {
-      this.loadOptions();
-      this.loadList();
-      this.loadMetrics();
+      this.startListing();
+    }
+  }
+
+  private startListing(): void {
+    this.writeUrl(true);
+    this.awaitingOptions = this.branchId() !== null || this.skillId() !== null;
+    this.loadOptions();
+    if (!this.awaitingOptions) {
+      this.refresh();
+    }
+    // Back, Forward and edited URLs re-apply the list state; our own navigations echo the same state.
+    this.route.queryParamMap
+      .pipe(skip(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => this.applyUrlState(parseTeamUrl(params)));
+  }
+
+  private urlState(): TeamUrlState {
+    return {
+      q: this.searchTerm(),
+      branch: this.branchId(),
+      skill: this.skillId(),
+      status: this.status(),
+      account: this.accountLink(),
+      sort: this.sort(),
+      period: this.period(),
+      page: this.page(),
+    };
+  }
+
+  /** Writes the list state to the URL: replacing while typing or correcting, pushing otherwise. */
+  private writeUrl(replace: boolean): void {
+    const state = this.urlState();
+    const params = teamUrlParams(state);
+    if (!needsCanonicalUrl(this.route.snapshot.queryParamMap, params)) {
+      return;
+    }
+    this.expectedEchoes.push(state);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: params,
+      queryParamsHandling: 'merge',
+      replaceUrl: replace,
+    });
+  }
+
+  private applyUrlState(state: TeamUrlState): void {
+    const echo = this.expectedEchoes.findIndex((expected) => sameTeamUrlState(expected, state));
+    if (echo >= 0) {
+      this.expectedEchoes.splice(0, echo + 1);
+      return;
+    }
+    this.expectedEchoes.length = 0;
+    if (this.awaitingOptions || sameTeamUrlState(state, this.urlState())) {
+      return;
+    }
+    const known = (id: string | null, options: readonly TeamOption[]): string | null =>
+      id !== null && (!this.optionsLoaded || options.some((option) => option.id === id))
+        ? id
+        : null;
+    const branch = known(state.branch, this.branches());
+    const skill = known(state.skill, this.skills());
+    const branchChanged = branch !== this.branchId();
+    this.searchText.set(state.q);
+    this.searchTerm.set(state.q);
+    this.branchId.set(branch);
+    this.skillId.set(skill);
+    this.status.set(state.status);
+    this.accountLink.set(state.account);
+    this.sort.set(state.sort);
+    this.period.set(state.period);
+    this.page.set(state.page);
+    if (branch !== state.branch || skill !== state.skill) {
+      this.writeUrl(true);
+    }
+    this.loadList();
+    this.loadMetrics();
+    if (branchChanged) {
       this.loadCoverage();
     }
   }
@@ -400,6 +490,7 @@ export class Team {
       const { items, totalCount, teamMembersCount } = result.response;
       if (items.length === 0 && totalCount > 0 && this.page() > 1) {
         this.page.set(Math.max(1, Math.ceil(totalCount / TEAM_PAGE_SIZE)));
+        this.writeUrl(true);
         this.loadList();
         return;
       }
@@ -490,13 +581,41 @@ export class Team {
           this.optionsLoading.set(false);
           this.branches.set(options.branches);
           this.skills.set(options.skills);
+          this.optionsLoaded = true;
+          this.finishAwaitingOptions();
         },
         error: (error: unknown) => {
           this.optionsLoading.set(false);
           this.optionsFailed.set(true);
-          this.handleAccessFailure(error);
+          if (!this.handleAccessFailure(error)) {
+            this.finishAwaitingOptions();
+          }
         },
       });
+  }
+
+  /** BR-02: ids not in the Team options are replaced by their defaults before the first request. */
+  private finishAwaitingOptions(): void {
+    if (!this.awaitingOptions) {
+      return;
+    }
+    this.awaitingOptions = false;
+    const branch = this.branches().some((option) => option.id === this.branchId())
+      ? this.branchId()
+      : this.optionsLoaded
+        ? null
+        : this.branchId();
+    const skill = this.skills().some((option) => option.id === this.skillId())
+      ? this.skillId()
+      : this.optionsLoaded
+        ? null
+        : this.skillId();
+    if (branch !== this.branchId() || skill !== this.skillId()) {
+      this.branchId.set(branch);
+      this.skillId.set(skill);
+      this.writeUrl(true);
+    }
+    this.refresh();
   }
 
   loadOwn(): void {
@@ -591,11 +710,13 @@ export class Team {
 
   onPageChange(event: PaginatorState): void {
     this.page.set((event.page ?? 0) + 1);
+    this.writeUrl(false);
     this.loadList();
   }
 
-  private filtersChanged(): void {
+  private filtersChanged(replaceUrl = false): void {
     this.page.set(1);
+    this.writeUrl(replaceUrl);
     this.loadList();
   }
 
@@ -813,12 +934,18 @@ export class Team {
       icon: 'pi pi-eye',
       command: () => this.openDetail(row.id),
     };
+    const profile: MenuItem = {
+      label: t('team.team.viewProfile'),
+      icon: 'pi pi-user',
+      command: () => void this.router.navigate(['/team', row.id, 'overview']),
+    };
     if (!this.canMutate()) {
-      return [view];
+      return [view, profile];
     }
     const busy = this.mutatingId() !== null;
     return [
       view,
+      profile,
       { label: t('common.edit'), icon: 'pi pi-pencil', command: () => this.openEdit(row.id) },
       row.isLinked
         ? {

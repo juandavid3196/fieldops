@@ -1,4 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Tag } from 'primeng/tag';
 import { TranslocoPipe } from '@jsverse/transloco';
 
@@ -22,7 +23,7 @@ export interface TeamRowView {
 /** BR-12 table: presentational; the page owns data, sorting and the actions menu. */
 @Component({
   selector: 'app-team-table',
-  imports: [TranslocoPipe, Tag],
+  imports: [TranslocoPipe, RouterLink, Tag],
   templateUrl: './team-table.html',
   styleUrl: './team-table.scss',
 })
@@ -33,7 +34,6 @@ export class TeamTable {
   readonly busyId = input<string | null>(null);
 
   readonly sortRequested = output<void>();
-  readonly nameClicked = output<TechnicianRow>();
   readonly menuRequested = output<{ readonly event: Event; readonly row: TechnicianRow }>();
 
   readonly statusLabels = STATUS_LABELS;

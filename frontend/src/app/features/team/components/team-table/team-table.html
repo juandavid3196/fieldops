@@ -27,9 +27,9 @@
       @for (view of views(); track view.row.id) {
         <tr>
           <td class="team-table__name">
-            <button type="button" class="team-table__link" (click)="nameClicked.emit(view.row)">
+            <a class="team-table__link" [routerLink]="['/team', view.row.id, 'overview']">
               {{ view.row.fullName }}
-            </button>
+            </a>
           </td>
           <td>{{ view.row.branchName }}</td>
           <td>

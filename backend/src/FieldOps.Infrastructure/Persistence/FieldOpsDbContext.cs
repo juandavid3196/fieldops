@@ -180,6 +180,14 @@ public sealed class FieldOpsDbContext(
     public static string? HostText(System.Net.IPAddress? address) =>
         throw new NotSupportedException("Only translatable to SQL.");
 
+    /// <summary>
+    /// PostgreSQL <c>timezone(zone, instant)</c>: the local timestamp of an instant in an IANA zone. A built-in function:
+    /// it creates nothing in the schema.
+    /// </summary>
+    [DbFunction("timezone", IsBuiltIn = true)]
+    public static DateTime LocalTimestamp(string zone, DateTimeOffset instant) =>
+        throw new NotSupportedException("Only translatable to SQL.");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         // Declares the enums with labels in enum declaration order.

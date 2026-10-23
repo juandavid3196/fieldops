@@ -29,7 +29,13 @@ import { productsServicesAdminRoute } from './features/products-services/product
 import { assessmentRoute, requestsRoute } from './features/requests/requests.routes';
 import { reportsRoute } from './features/reports/reports.routes';
 import { TECHNICIAN_SHELL_ROUTES } from './features/technician-jobs/technician-jobs.routes';
-import { skillsAvailabilityRoute, teamRoute } from './features/team/team.routes';
+import {
+  skillsAvailabilityRoute,
+  teamRoute,
+  technicianJobHistoryRoute,
+  technicianOverviewRoute,
+  technicianProfileRedirectRoute,
+} from './features/team/team.routes';
 import { scheduleRoute } from './features/schedule/schedule.routes';
 import { usersAdminRoute } from './features/users/users.routes';
 
@@ -154,6 +160,9 @@ export const routes: Routes = [
         jobsRoute,
         jobDetailRoute,
         teamRoute,
+        technicianProfileRedirectRoute,
+        technicianOverviewRoute,
+        technicianJobHistoryRoute,
         skillsAvailabilityRoute,
         scheduleRoute,
         invoicesHubRoute,

@@ -3,6 +3,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { API_CONFIG, buildApiUrl } from '../../../core/config/api.config';
+import { JobHistoryQuery, JobHistoryResponse } from '../models/team-job-history.model';
 import {
   LinkableAccount,
   SkillCoverage,
@@ -71,6 +72,22 @@ export class TeamService {
   get(id: string, period: TeamPeriod = 'today'): Observable<TechnicianDetail> {
     return this.http.get<TechnicianDetail>(this.url(`team/technicians/${id}`), {
       params: new HttpParams().set('period', period),
+    });
+  }
+
+  jobHistory(id: string, query: JobHistoryQuery): Observable<JobHistoryResponse> {
+    let params = new HttpParams()
+      .set('status', query.status)
+      .set('period', query.period)
+      .set('sort', query.sort)
+      .set('page', query.page)
+      .set('pageSize', query.pageSize);
+    const search = query.search.trim();
+    if (search.length > 0) {
+      params = params.set('search', search);
+    }
+    return this.http.get<JobHistoryResponse>(this.url(`team/technicians/${id}/job-history`), {
+      params,
     });
   }
 

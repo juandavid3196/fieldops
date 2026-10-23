@@ -78,6 +78,9 @@ public sealed record TechnicianFacts(
     public string FullName => $"{FirstName} {LastName}";
 }
 
+/// <summary>The earliest active, unavailable exception that has not ended (BR-11), as stored.</summary>
+public sealed record UpcomingTimeOffData(DateTimeOffset StartsAt, DateTimeOffset EndsAt, string? Reason);
+
 public sealed record TechnicianProfileData(
     Guid Id,
     string FirstName,
@@ -91,7 +94,9 @@ public sealed record TechnicianProfileData(
     TechnicianAccountView? Account,
     IReadOnlyList<TechnicianSkillView> Skills,
     IReadOnlyList<AvailabilityDayView> Availability,
-    TechnicianSchedule Schedule);
+    TechnicianSchedule Schedule,
+    bool UsesBranchHours,
+    UpcomingTimeOffData? UpcomingTimeOff);
 
 public sealed record SkillCoverageRow(Guid SkillId, string Name, int TechnicianCount);
 
