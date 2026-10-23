@@ -1,3 +1,5 @@
+**English** | [Español](frontend-configuration.es.md)
+
 # Frontend configuration
 
 Foundational runtime configuration for the FieldOps Angular application
@@ -58,7 +60,10 @@ Registered in `src/app/app.config.ts`, in order:
 1. `authInterceptor`: sets `withCredentials: true` on API URLs only
    (`isApiUrl`), so the browser sends the HttpOnly session cookie. It never
    adds an `Authorization` header or token, and other URLs are left untouched.
-2. `errorInterceptor`: converts failed API responses into `ApiError`
+2. `portalUnauthorizedInterceptor`: sends a customer back to the portal sign-in when a portal
+   request returns `401` while a portal session was in memory (sign-in, invitation and
+   password-reset endpoints are excluded).
+3. `errorInterceptor`: converts failed API responses into `ApiError`
    (`src/app/core/models/api-error.model.ts`) using `ApiErrorService`.
 
 ## Language
@@ -97,41 +102,56 @@ a category and a fixed, user-friendly message chosen by HTTP status (localized t
   session as a read-only signal. `loadCurrent()` calls `GET /sessions/current`
   and clears the signal on failure; `signIn()` posts `POST /sessions` with the
   email trimmed and lowercased; `signOut()` calls `DELETE /sessions/current`
-  and clears the signal only on success.
+  and clears the signal only on success. Loading or creating a session also
+  applies the user's saved language and theme. `PortalSessionService` does the same for
+  `/portal/sessions`.
 - `authGuard` (`core/guards/auth.guard.ts`) allows a route only when
   `GET /sessions/current` returns `200`; anything else redirects to
-  `/auth/sign-in`. `guestGuard` redirects to `/overview` on `200` and lets
-  the page open otherwise. Both call the endpoint on every activation and
-  redirect with `RedirectCommand` and `replaceUrl: true`.
+  `/auth/sign-in`. `guestGuard` redirects a visitor who already has a session to
+  `landingPath(role)` (`/today` for technicians, `/overview` for everyone else) and lets
+  the page open otherwise. `portalGuard` does the same for the customer portal
+  (`GET /portal/sessions/current`, redirect to `/portal/sign-in`). All of them call the
+  endpoint on every activation and redirect with `RedirectCommand` and `replaceUrl: true`.
 - `app.routes.ts` redirects `''` and every unmatched path (`**`) to
-  `/auth/sign-in`. `/auth/**` and `/overview` are lazy loaded.
+  `/auth/sign-in`. Every feature area is lazy loaded (`loadChildren`/`loadComponent`) and
+  registers its translation scope with `withI18n`. Public areas (`auth`,
+  `request/:slug`, `quotes/view`, `quote-approval`, public invoices, organization
+  registration) sit outside the guarded shells.
+- `/overview` sends the roles that manage operations (`owner`, `operations_manager`,
+  `dispatcher`) to `/dashboard`; other roles see the welcome page.
 - Guards are UX only: the backend authorizes every request.
 
-## Authenticated shell
+## Application shells
 
-- `layout/app-shell` wraps every authenticated route (`authGuard` on the pathless parent).
-  Layout mode comes from `matchMedia` (mirrors of `_breakpoints.scss` in
-  `core/config/breakpoints.ts`): drawer below 768px, 72px rail from 768px, 256px sidebar from
-  1100px. Collapse is per page visit only (never persisted). The navigation lives in
-  `layout/shell-sidebar` and is data in `layout/app-shell/app-shell.nav.ts` (`NAV_GROUPS`;
-  Administration only for `owner`/`viewer`, UX only).
-- Top bar: search (Enter opens `/coming-soon/search`), organization menu (session organization
-  only, no request), Help, notifications bell (no badge) and the user menu.
-- `/coming-soon/:module` (`features/coming-soon`) is the shared placeholder for every future
-  module; slugs and names are in `core/config/coming-soon-modules.ts`. An unknown slug redirects
-  to `/overview`; the page makes no request.
-- Dependencies added for the shell/design: `primeicons` (icons) and self-hosted Inter under
-  `public/fonts/inter/` (OFL license file included).
+Three shells wrap the guarded routes. The staff and technician shells share the
+`authGuard` rules (`runGuardsAndResolvers: 'always'`, so the session is revalidated on every
+navigation); the portal shell uses `portalGuard`.
 
-## Technical debt
+- `layout/app-shell` (staff). Layout mode comes from `matchMedia` (mirrors of
+  `_breakpoints.scss` in `core/config/breakpoints.ts`): drawer below 768px, 72px rail from 768px,
+  256px sidebar from 1100px. The user's sidebar choice (rail or full) is stored in
+  `localStorage` (`fieldops.sidebar.collapsed`); without it the layout mode decides. The
+  navigation lives in `layout/shell-sidebar` and is data in `layout/app-shell/app-shell.nav.ts`
+  (`NAV_GROUPS`); items and groups are filtered by role code, which is UX only.
+- Top bar: global search (`layout/app-shell/global-search`), organization menu (session
+  organization only, no request), Help link, notifications bell (popover with unread badge for
+  internal roles) and the user menu with account, language and appearance options.
+- `layout/technician-shell`: mobile-first shell for technicians (Today's jobs, Schedule, Time,
+  Messages, More). Technicians land on `/today`.
+- `layout/portal-shell`: customer portal shell with its own navigation and account menu.
+- `/coming-soon/:module` (`features/coming-soon`) is a shared placeholder page for
+  destinations without a dedicated screen; slugs and names are in
+  `core/config/coming-soon-modules.ts`. An unknown slug redirects to the shell's home; the
+  page makes no request. `/coming-soon/help` and `/coming-soon/reports` redirect to the real
+  Help and Reports pages.
+- Self-hosted Inter under `public/fonts/inter/` (OFL license file included) and `primeicons`
+  provide typography and icons.
 
-### Error-contract review for the first form spec
+## Field-level errors
 
-`ApiErrorService` still passes field-level messages from
-`ValidationProblemDetails.errors` through unchanged in `ApiError.fieldErrors`.
-ASP.NET Core model-binding errors can contain framework details (for example,
-"The JSON value could not be converted to System.Guid"). Sign-in filters them at
-page level: it shows only the `email`/`password` messages that belong to its
-BR-03 allow-list and replaces any other with "Enter a valid value.". Later
-forms must apply an equivalent allow-list until `ApiErrorService` defines a
-shared validation error contract.
+`ApiErrorService` keeps field messages from `ValidationProblemDetails.errors` in
+`ApiError.fieldErrors` and translates them through `FieldErrorCatalog` (keyed by field and the
+exact approved English message). A message that is not in the catalog becomes a generic localized
+text, so framework details (for example "The JSON value could not be converted to System.Guid")
+never reach the user. The sign-in page additionally keeps an allow-list of the `email` and
+`password` messages it shows.

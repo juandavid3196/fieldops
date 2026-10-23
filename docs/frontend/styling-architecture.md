@@ -1,3 +1,5 @@
+**English** | [Español](styling-architecture.es.md)
+
 # Frontend styling architecture
 
 Rules for global styles, tokens and component styling in `frontend/`.
