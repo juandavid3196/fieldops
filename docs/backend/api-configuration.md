@@ -1,3 +1,5 @@
+**English** | [Español](api-configuration.es.md)
+
 # API configuration
 
 Foundational runtime configuration for `FieldOps.Api`.
@@ -173,6 +175,48 @@ Health responses are `application/json` with `Cache-Control: no-store, no-cache`
 and contain only check names, statuses and durations; no descriptions,
 connection details or exception messages.
 
+## Staff endpoint inventory
+
+All routes below require the internal session cookie (`[Authorize]` with the policy shown), answer `401` without a
+valid session and `403` when the role is not allowed. Organization and branch scope always come from the session; a foreign
+id answers `404`. Role sets come from `FieldOps.Api/Authorization/*Policies.cs`; detailed contracts live in each spec under
+`specs/`.
+
+| Area (route prefix) | Main operations | Policy and roles |
+| --- | --- | --- |
+| `/customers`, `/customers/{id}/…`, `/customer-tags` | List, metrics, CSV import, create/update, archive/reactivate, properties, notes, activity, related requests/quotes/jobs/invoices, portal invitation and access | `CustomerView` (owner, operations_manager, dispatcher, accounting, viewer); `CustomerManage` (owner, dispatcher); `CustomerImport` (owner) |
+| `/service-requests` | Pipeline, metrics, detail, create, review, assignee/priority/branch, notes, information requests, assessments (plan, schedule, cancel, complete), ready for quote, cancel, attachments | `ServiceRequestView` (view roles above); `ServiceRequestManage` (owner, dispatcher) |
+| `/quotes` | List, summary, detail, versions, calculate, save draft, send, revise, discard draft, resend email | `ServiceRequestView` / `ServiceRequestManage` |
+| `/quotes/{id}/work-order`, `/work-orders`, `/checklist-templates` | Work order editor, draft and create; jobs list, summary, options, detail | `WorkOrderManage` (owner, operations_manager, dispatcher); `WorkOrderRead` (adds viewer) |
+| `/dispatch` | Options, calendar, unscheduled visits, visit detail, evaluate, assign/update, cancel | `DispatchManage` (owner, operations_manager, dispatcher); `DispatchRead` (adds viewer) |
+| `/operations-dashboard` | Options, dashboard, performance | `DispatchManage` |
+| `/team` | Technicians (list, detail, create, update, activate/deactivate, account link), metrics, job history, skill coverage, skills catalog, availability, time off, exceptions, `GET /team/me` | `TeamView` (owner, operations_manager, dispatcher); `TeamManage` (owner, operations_manager); `TeamSkillsView` (adds technician); `TeamSelf` (technician) |
+| `/technician` | Today, schedule, time summary, visit detail and the visit lifecycle (start travel, arrive, start, pause, resume, tasks, materials, evidence, notes, complete) | `TeamSelf` (technician) |
+| `/messages` | Summary, conversations, messages, mark read (responses are `no-store`) | `Messaging` (owner, operations_manager, dispatcher, technician) |
+| `/notifications` | Inbox, summary, options, mark read/unread, read all | `NotificationInbox` (owner, operations_manager, dispatcher, accounting, viewer) |
+| `/search/global` | Global search across the user's permitted records | `GlobalSearch` (same roles as notifications) |
+| `/billing-review` | Queue, options, export, detail, evidence, review update, invoice generation | `BillingReviewRead` (owner, operations_manager, dispatcher, accounting, viewer); `BillingReviewAct` (owner, accounting) |
+| `/invoices` | Hub (options, customers, overview, list, export, payments list/export), detail, PDF, draft, send, resend email, record payment | `BillingReviewRead` / `BillingReviewAct` |
+| `/reports` | Options, report by key, export, export history | `ReportsRead` (roles with at least one report) |
+| `/business-overview` | Options, overview, export | `BusinessOverviewRead` (owner) |
+| `/audit-log` | List, summary, filters, export, event detail | `AuditLogRead` (owner, operations_manager, accounting) |
+| `/catalog-items`, `/catalog-categories` | Items and categories CRUD, activate/deactivate, images, CSV export/import | `CatalogView` (view roles above); `CatalogManage` (owner, operations_manager); `CatalogImport` (owner) |
+| `/organization-settings`, `/organization-settings/logo`, `/organization-settings/bank-details`, `/branches`, `/users`, `/permission-matrix` | Company profile, logo, bank details, branches and business hours, user invitations and access, permission matrix | `CompanySettingsView` (owner, viewer); `CompanySettingsManage` (owner) |
+| `/account` | Own profile, photo, language, theme, password | `[Authorize]`, any internal role |
+
+`PUT /account/theme` (and `PUT /portal/account/theme`) take `{ theme, source }` with `theme` exactly `system`, `light` or `dark`,
+follow the pattern of the language endpoints (`application/json`, `no-store`) and return the
+saved preference; the session bodies carry `preferredTheme` beside `preferredLanguage`.
+
+Other anonymous entry points: `POST /organization-registrations` (rate limited, see below), `POST /webhooks/stripe` (signature only)
+and the public invoice links described next.
+
+Public invoice-link endpoints (`/public/invoice-links/*`, invoice-draft-delivery and customer-invoice-payments): anonymous, the raw token in
+the JSON body is the only credential, and every response carries the same `no-store`, `no-referrer` and `nosniff` headers as the quote links
+(`QuoteLinkPublicHeadersMiddleware` covers both prefixes). Operations: `view`, `pdf`, `logo`, `receipt`, `completion-report`, `photos`,
+`photos/content`, `payments/card-intent`, `payments/status`, `payments/bank-transfer-notice` and `review`. Card payments need the Stripe
+settings above. Portal users reach the same use cases by id under `/portal/invoices/{invoiceId}/…`.
+
 ## Error responses
 
 | Case | Response |
@@ -255,7 +299,7 @@ session store.
 ## Rate limiting
 
 In memory, per process, on `POST /sessions`, `POST /organization-registrations`,
-the three `/invitations/*` endpoints, the three `/password-resets*` endpoints and the public quote-link endpoints.
+the three `/invitations/*` endpoints, the three `/password-resets*` endpoints the public quote-link and invoice-link endpoints, the public request endpoints and portal writes.
 Every request counts, whatever its outcome.
 
 | Limit | Key | Rule |
@@ -272,6 +316,11 @@ Every request counts, whatever its outcome.
 | Portal writes, per user (`IPortalActionThrottle`, in memory, 15-minute sliding window) | Portal user id | `POST /portal/service-requests` 5, `POST /portal/properties` 10, `POST /portal/messages` 5, reschedule requests 5; every attempt counts. Global: service requests 100 per hour, the other three 300 per minute. Quote and invoice actions keep the public groups, keyed by user and resource. Portal sign-in and invitations reuse the sign-in and invitation limits (per client and per email). |
 | Password reset, per email | SHA-256 of the normalized email | 3 requests per 60 minutes (`IPasswordResetEmailThrottle`, bounded in memory), counted for every well-formed email. Not a `429`: the request returns the neutral `202` with no token or email. |
 | Per email | SHA-256 of the normalized email | After 5 failed (`401`) attempts in a sliding 15 minutes, `429` before password verification until the oldest failure leaves the window. Unknown emails count. Success clears it; `400`, `413`, `415` and `429` do not count. |
+| Organization registration, per client | `RemoteIpAddress` | `POST /organization-registrations`: 5 per 15-minute fixed window; global 100 per hour. |
+| Public invoice link, read | `RemoteIpAddress` | `view`, `logo`, `photos`, `photos/content`: 60 per 5-minute fixed window; global 600 per minute. |
+| Public invoice link, PDF | `RemoteIpAddress` | `pdf`, `receipt`, `completion-report`: 10 per 5-minute fixed window; global 100 per minute. |
+| Public invoice link, payment status / card intent | `RemoteIpAddress` | `payments/status`: 60 per 5 minutes, global 600 per minute. `payments/card-intent`: 5 per 5 minutes, global 100 per minute. |
+| Public invoice link, actions | Global partition plus per invoice | `bank-transfer-notice` and `review`: global 100 per minute and a per-invoice hourly limit (`IInvoiceActionThrottle`, in memory). |
 
 - Rejections are `429` ProblemDetails with `Retry-After` in whole seconds and
   CORS headers.
@@ -281,7 +330,7 @@ Every request counts, whatever its outcome.
 ## Pipeline and CORS
 
 Middleware order: `RequestLoggingMiddleware`, `UseExceptionHandler`,
-`UseStatusCodePages`, `InvitationNoStoreMiddleware`, `PasswordResetNoStoreMiddleware`, `PortalNoStoreMiddleware`, `QuoteLinkPublicHeadersMiddleware`, (Development: OpenAPI, Swagger UI),
+`UseStatusCodePages`, `InvitationNoStoreMiddleware`, `PasswordResetNoStoreMiddleware`, `PortalNoStoreMiddleware`, `MessagesNoStoreMiddleware`, `QuoteLinkPublicHeadersMiddleware`, (Development: OpenAPI, Swagger UI),
 `UseHttpsRedirection`, `UseCors`, `UseRateLimiter`, `UseAuthentication`,
 `InvalidSessionCookieMiddleware`, `UseAuthorization`, endpoints.
 

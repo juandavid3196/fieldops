@@ -1,3 +1,5 @@
+**English** | [Español](help-center.es.md)
+
 # FieldOps Help & support
 
 ## Help for staff (`/help`)
@@ -512,7 +514,7 @@ _Review your route and the next job._
 
 Today's jobs is the first page technicians see after signing in. It shows your visits for the day and highlights the one to do next.
 
-> The bottom bar also lists Schedule, Time and Messages, and the bell opens Notifications. These are Coming soon for technicians, so use Today for your work.
+> The bottom bar also lists Schedule, Time and Messages. Messages shows a badge when you have unread messages.
 
 1. Read the summary at the top: the number of jobs, scheduled hours and jobs remaining, plus the progress bar of completed jobs.
 2. In the NEXT card (IN PROGRESS once the visit is on the way, in progress or paused), check the job title, customer, address, service category and arrival window.
@@ -555,7 +557,7 @@ The technician menu is the More button at the right of the bottom bar. It holds 
 2. Select My profile to open your technician profile.
 3. Select Account settings to manage your own account.
 4. Select Help & support to open this help center.
-5. Select Sign out when you finish. The avatar at the top right also offers Sign out.
+5. Select Sign out when you finish.
 
 **What happens next?**
 

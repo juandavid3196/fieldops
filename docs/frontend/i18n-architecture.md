@@ -1,3 +1,5 @@
+**English** | [Español](i18n-architecture.es.md)
+
 # Internationalization (English and Spanish)
 
 Spec: `specs/app-i18n-en-es/spec.md` (rules BR-01 to BR-20). This page records

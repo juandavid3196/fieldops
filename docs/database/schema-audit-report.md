@@ -1,8 +1,32 @@
+**English** | [Español](schema-audit-report.es.md)
+
 # FieldOps Database Schema Audit Report
 
 **Date:** 2026-09-22
 **Source of truth:** `docs/database/FieldOps_PostgreSQL_Schema.sql` (`docs/database/fieldops-schema.sql`)
 **Scope:** All Domain entities, EF Core configurations, `FieldOpsDbContext` registrations, and generated migrations.
+
+## Current status (2026-10-23)
+
+This report records the initial audit of 2026-09-22 (kept below as a historical record). The schema has grown since then;
+the figures that matter today are:
+
+| Item | Initial audit | Current |
+|---|---|---|
+| Tables in `fieldops-schema.sql` | 50 | 70 |
+| EF Core entity types in the model snapshot (`ToTable`) and `DbSet<T>` | 50 | 70 |
+| Entity configurations | 50 | 70 |
+| EF Core migrations | 10 | 39 (latest: `AddUserPreferredTheme`) |
+
+The 20 additional tables belong to the features specified after the audit (portal, messaging, payments, invitations,
+password reset, reschedule requests, catalog images and others). Per the project workflow, mapping changes go through a persistence
+review against the schema before a spec is audited.
+
+**Idempotent script:** `backend/database-migration-script.sql` was regenerated on 2026-10-23 and covers all 39 migrations (5,371 lines).
+Regenerate it with the command in `backend/CLAUDE.md` after adding a migration; migrations are always applied by the developer with
+`dotnet ef database update`.
+
+---
 
 ## Scope
 
