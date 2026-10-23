@@ -15,12 +15,27 @@
   }
 }
 
+// Rail: the column shrinks to the icons, like the main sidebar.
+:host(.rail) {
+  @include bp.up(admin) {
+    inline-size: var(--fo-size-sidebar-rail);
+  }
+}
+
 // Below 1100px: horizontal, scrollable link row above the page header.
 .admin-nav {
   box-sizing: border-box;
   min-width: 0;
   background: var(--fo-color-surface);
   border-block-end: 1px solid var(--fo-color-border);
+
+  &__head {
+    display: contents;
+  }
+
+  &__toggle {
+    display: none;
+  }
 
   &__title {
     position: absolute;
@@ -76,12 +91,44 @@
     background: transparent;
     border-block-end: 0;
 
+    &__head {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 0.25rem 0.75rem 0.75rem;
+    }
+
+    &__toggle {
+      display: inline-flex;
+      flex: none;
+      align-items: center;
+      justify-content: center;
+      inline-size: 2rem;
+      block-size: 2rem;
+      font-size: 0.875rem;
+      color: var(--fo-color-text-secondary);
+      cursor: pointer;
+      background: transparent;
+      border: 0;
+      border-radius: var(--fo-radius-control);
+
+      &:hover {
+        background: var(--fo-color-surface-hover);
+      }
+
+      &:focus-visible {
+        outline: none;
+        box-shadow: var(--fo-focus-ring);
+      }
+    }
+
     &__title {
       position: static;
       inline-size: auto;
       block-size: auto;
       margin: 0;
-      padding: 0 0.75rem 0.75rem;
+      padding: 0;
       overflow: visible;
       clip-path: none;
       font-size: 1rem;
@@ -106,6 +153,33 @@
       > i {
         flex: none;
       }
+    }
+  }
+}
+
+// Rail: only the icons stay; names remain for screen readers and as the link title.
+@include bp.up(admin) {
+  :host(.rail) .admin-nav {
+    padding-inline: 0.5rem;
+
+    &__head {
+      justify-content: center;
+      padding-inline: 0;
+    }
+
+    &__title,
+    &__text {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    &__link {
+      justify-content: center;
+      padding-inline: 0;
     }
   }
 }

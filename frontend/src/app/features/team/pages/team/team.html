@@ -380,15 +380,6 @@
               </h2>
               <p class="team__muted">{{ 'team.team.numberOfActiveTechnicians' | transloco }}</p>
             </div>
-            <a
-              pButton
-              class="team__action"
-              severity="secondary"
-              [outlined]="true"
-              [routerLink]="skillsPath"
-            >
-              {{ 'team.team.manageSkills' | transloco }}
-            </a>
           </div>
           @if (coverageFailed()) {
             <p-message severity="error" [closable]="false">

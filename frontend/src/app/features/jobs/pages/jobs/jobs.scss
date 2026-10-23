@@ -316,6 +316,11 @@ $wide: 80rem;
       border-block-end: 1px solid var(--fo-color-row-divider);
     }
 
+    // The job and customer cells keep room to wrap by word, never letter by letter.
+    td:nth-child(-n + 2) {
+      min-inline-size: 10rem;
+    }
+
     th {
       font-size: 0.875rem;
       font-weight: 600;
@@ -327,6 +332,7 @@ $wide: 80rem;
 
   &__link {
     font-weight: 700;
+    white-space: nowrap;
     color: var(--fo-color-primary-strong);
   }
 

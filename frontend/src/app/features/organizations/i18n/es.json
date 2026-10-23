@@ -1,6 +1,8 @@
 {
   "administrationNav": {
     "administration": "Administración",
+    "collapse": "Contraer menú",
+    "expand": "Expandir menú",
     "branches": "Sucursales",
     "businessHours": "Horario comercial",
     "companyProfile": "Perfil de la empresa",
@@ -89,6 +91,8 @@
   },
   "businessHours": {
     "administration": "Administración",
+    "collapse": "Contraer menú",
+    "expand": "Expandir menú",
     "branch": "Sucursal",
     "breadcrumb": "Ruta de navegación",
     "businessHours": "Horario comercial",
@@ -166,6 +170,8 @@
   },
   "companySetup": {
     "administration": "Administración",
+    "collapse": "Contraer menú",
+    "expand": "Expandir menú",
     "breadcrumb": "Ruta de navegación",
     "company": "Empresa",
     "companySetup": "Configuración de la empresa",

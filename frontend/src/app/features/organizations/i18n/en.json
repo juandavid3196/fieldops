@@ -1,6 +1,8 @@
 {
   "administrationNav": {
     "administration": "Administration",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
     "branches": "Branches",
     "businessHours": "Business hours",
     "companyProfile": "Company profile",
@@ -89,6 +91,8 @@
   },
   "businessHours": {
     "administration": "Administration",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
     "branch": "Branch",
     "breadcrumb": "Breadcrumb",
     "businessHours": "Business hours",
@@ -166,6 +170,8 @@
   },
   "companySetup": {
     "administration": "Administration",
+    "collapse": "Collapse menu",
+    "expand": "Expand menu",
     "breadcrumb": "Breadcrumb",
     "company": "Company",
     "companySetup": "Company setup",
