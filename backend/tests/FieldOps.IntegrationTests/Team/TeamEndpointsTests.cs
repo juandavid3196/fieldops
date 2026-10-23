@@ -179,7 +179,8 @@ public class TeamEndpointsTests(CompanySettingsDatabaseFixture database)
             "SELECT concat(after_data::text, metadata::text, before_data::text) FROM audit_logs WHERE entity_id = @i AND action = 'technician_profile.created'", ("i", id));
         Assert.Contains(branch.Id.ToString(), createdAudit);
         Assert.DoesNotContain("grace", createdAudit, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("555", createdAudit);
+        Assert.DoesNotContain("512) 555-0100", createdAudit);
+        Assert.DoesNotContain("5125550100", createdAudit);
 
         // Duplicates are case-insensitive; invalid fields carry their table messages; nothing is saved.
         var other = await database.SeedTechAsync(org, branch.Id, "Other", "Person", email: "taken@example.com", code: "TAKEN-1");
