@@ -1,0 +1,16 @@
+**/bin/
+**/obj/
+**/TestResults/
+**/.vs/
+**/*.user
+**/appsettings.Local.json
+**/appsettings.*.local.json
+**/.env
+**/.env.*
+**/secrets.json
+tests/
+*.md
+database-migration-script.sql
+Dockerfile
+.dockerignore
+.git

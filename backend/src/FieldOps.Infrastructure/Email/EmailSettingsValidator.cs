@@ -63,6 +63,11 @@ public sealed class EmailSettingsValidator(IHostEnvironment environment) : IVali
             failures.Add($"'{Section}:Resend:ApiKey' is required.");
         }
 
+        if (options.AllowedRecipients.Any(entry => !RecipientAllowList.IsValidEntry(entry)))
+        {
+            failures.Add($"'{Section}:AllowedRecipients' entries must be an email address or '@domain'.");
+        }
+
         return failures.Count == 0
             ? ValidateOptionsResult.Success
             : ValidateOptionsResult.Fail(failures);

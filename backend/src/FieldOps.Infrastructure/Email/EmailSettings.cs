@@ -21,6 +21,13 @@ public sealed class EmailSettings
     public SmtpSettings Smtp { get; set; } = new();
 
     public ResendSettings Resend { get; set; } = new();
+
+    /// <summary>
+    /// Optional recipient allow-list for public demos: full addresses or
+    /// <c>@domain</c> entries. Empty means no restriction. A message to anyone
+    /// else is not sent and fails like any other delivery failure.
+    /// </summary>
+    public string[] AllowedRecipients { get; set; } = [];
 }
 
 /// <summary><c>Email:Smtp</c>: credentials are optional (Mailpit needs none).</summary>

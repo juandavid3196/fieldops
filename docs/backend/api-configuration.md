@@ -397,11 +397,20 @@ Rules:
 - Session tests share one Testcontainers PostgreSQL instance migrated with
   `MigrateAsync`; the request size limit test runs on Kestrel (`UseKestrel`).
 
-## Deferred to deployment
+## Deployment settings
 
-HSTS, forwarded headers, `AllowedHosts` and how probes interact with HTTPS
-redirection are decided with the deployment work. Also deferred:
+Optional outside Production; the full deployment procedure is in
+[`docs/deployment/demo-deployment.md`](../deployment/demo-deployment.md).
 
-- Data Protection key persistence.
-- Forwarded headers: until configured, `RemoteIpAddress` behind the proxy is
-  the proxy, so the per-IP sign-in limit applies to all clients together.
+| Key | Environment variable | Notes |
+| --- | --- | --- |
+| `ForwardedHeaders:Enabled` | `ForwardedHeaders__Enabled` | Runs `UseForwardedHeaders` first (`X-Forwarded-For`/`-Proto` only) behind a TLS-terminating proxy; disables the app-level HTTPS redirect and enables HSTS outside Development. Default `false`. |
+| `ForwardedHeaders:KnownProxies`, `KnownNetworks`, `TrustAllProxies`, `ForwardLimit` | `ForwardedHeaders__KnownProxies__0`, ... | When enabled, trust must be explicit: addresses/CIDR networks, or `TrustAllProxies=true` (not both). `ForwardLimit` 1-5, default 1. |
+| `DataProtection:KeysPath`, `ApplicationName` | `DataProtection__KeysPath`, `DataProtection__ApplicationName` | Key ring directory (required in Production, must be writable) and the stable application name (default `FieldOps`). |
+| `Email:AllowedRecipients` | `Email__AllowedRecipients__0`, ... | Optional demo allow-list (address or `@domain`). A message to anyone else is not sent and fails like a delivery failure. |
+
+## Deployment
+
+HSTS, forwarded headers, `AllowedHosts`, probes and Data Protection key persistence are resolved in
+[`docs/deployment/demo-deployment.md`](../deployment/demo-deployment.md). Known limitation: behind Vercel and Railway the
+per-IP limits see the Vercel egress address, so they pool all visitors.

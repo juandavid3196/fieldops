@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+builder.Services.AddApiHosting(builder.Configuration);
 builder.Services.AddApiErrorHandling();
 builder.Services.AddApiCors(builder.Configuration);
 builder.Services.AddApiHealthChecks();
@@ -25,6 +26,15 @@ builder.Services.AddInfrastructure(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+var behindProxy = builder.Configuration.UsesForwardedHeaders();
+
+// Before everything that reads the scheme or client IP (logging, HSTS,
+// rate limiting, audit). Trust comes from ForwardedHeaders settings only.
+if (behindProxy)
+{
+    app.UseForwardedHeaders();
+}
+
 // First so it observes the final status code, including handled 500s.
 app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseExceptionHandler();
@@ -42,7 +52,19 @@ if (app.Environment.IsDevelopment())
         options.SwaggerEndpoint("/openapi/v1.json", "FieldOps API v1"));
 }
 
-app.UseHttpsRedirection();
+// Behind a TLS-terminating proxy the proxy owns the redirect: redirecting
+// here would loop or break plain-HTTP health checks.
+if (behindProxy)
+{
+    if (!app.Environment.IsDevelopment())
+    {
+        app.UseHsts();
+    }
+}
+else
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseCors(CorsSettings.PolicyName);
 

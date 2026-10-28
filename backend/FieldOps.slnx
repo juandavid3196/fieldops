@@ -5,6 +5,9 @@
     <Project Path="src/FieldOps.Domain/FieldOps.Domain.csproj" />
     <Project Path="src/FieldOps.Infrastructure/FieldOps.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/FieldOps.DemoSeeder/FieldOps.DemoSeeder.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/FieldOps.IntegrationTests/FieldOps.IntegrationTests.csproj" />
     <Project Path="tests/FieldOps.UnitTests/FieldOps.UnitTests.csproj" />
