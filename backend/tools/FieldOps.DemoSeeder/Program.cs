@@ -1,10 +1,12 @@
 using FieldOps.Application.Authentication;
 using FieldOps.DemoSeeder;
+using FieldOps.Domain.Quotes;
 using FieldOps.Infrastructure;
 using FieldOps.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 // Loads fictitious demo data into a database reserved for the demo. It is never part of the API start-up, sends no
 // email and has no reset: running it again on a loaded database changes nothing.
@@ -39,6 +41,7 @@ if (password is null || password.Length < 12)
     return 2;
 }
 
+builder.Logging.SetMinimumLevel(LogLevel.Warning);
 builder.Services.AddInfrastructure(builder.Configuration);
 
 using var host = builder.Build();
@@ -71,6 +74,25 @@ var set = new DemoDataBuilder(hasher, roleIds).Build(domain, password, DateTimeO
 
 await using var transaction = await db.Database.BeginTransactionAsync();
 db.AddRange(set.Entities);
+
+// quotes.approved_version_id and quote_versions.quote_id reference each other: insert the quotes first without the
+// approved version, then set it (same transaction).
+var approved = set.Entities.OfType<Quote>().Where(quote => quote.ApprovedVersionId is not null)
+    .Select(quote => (Quote: quote, VersionId: quote.ApprovedVersionId))
+    .ToList();
+
+foreach (var (quote, _) in approved)
+{
+    db.Entry(quote).Property(item => item.ApprovedVersionId).CurrentValue = null;
+}
+
+await db.SaveChangesAsync();
+
+foreach (var (quote, versionId) in approved)
+{
+    db.Entry(quote).Property(item => item.ApprovedVersionId).CurrentValue = versionId;
+}
+
 await db.SaveChangesAsync();
 
 await db.Organizations
