@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://REPLACE-WITH-RAILWAY-API-DOMAIN/:path*"
+      "destination": "https://fieldops-production.up.railway.app/:path*"
     },
     {
       "source": "/((?!api/|.*[.][A-Za-z0-9]+$).*)",
