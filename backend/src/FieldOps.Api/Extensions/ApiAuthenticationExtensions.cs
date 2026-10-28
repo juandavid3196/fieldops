@@ -14,8 +14,8 @@ public static class ApiAuthenticationExtensions
 {
     /// <summary>
     /// Cookie session authentication: HttpOnly, Secure, SameSite=Strict,
-    /// Path=/, no Domain; the ticket is protected by Data Protection with the
-    /// default key store (key persistence is deployment work).
+    /// Path=/, no Domain; the ticket is protected by Data Protection; the key
+    /// ring location and application name come from the DataProtection settings.
     /// </summary>
     public static IServiceCollection AddApiAuthentication(this IServiceCollection services)
     {

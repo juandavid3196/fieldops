@@ -39,6 +39,9 @@ public static class EmailServiceCollectionExtensions
                 settings.Smtp.UserName = section["Smtp:UserName"];
                 settings.Smtp.Password = section["Smtp:Password"];
                 settings.Resend.ApiKey = section["Resend:ApiKey"];
+                settings.AllowedRecipients = section.GetSection("AllowedRecipients").GetChildren()
+                    .Select(child => child.Value ?? string.Empty)
+                    .ToArray();
             })
             .ValidateOnStart();
 
@@ -58,12 +61,19 @@ public static class EmailServiceCollectionExtensions
         {
             var options = provider.GetRequiredService<IOptions<EmailSettings>>();
 
-            return string.Equals(options.Value.Provider, EmailSettings.ResendProvider, StringComparison.Ordinal)
+            IEmailSender sender = string.Equals(options.Value.Provider, EmailSettings.ResendProvider, StringComparison.Ordinal)
                 ? new ResendEmailSender(
                     provider.GetRequiredKeyedService<HttpClient>(ResendHttpClientKey),
                     options,
                     provider.GetRequiredService<ILogger<ResendEmailSender>>())
                 : new SmtpEmailSender(options, provider.GetRequiredService<ILogger<SmtpEmailSender>>());
+
+            return options.Value.AllowedRecipients.Length == 0
+                ? sender
+                : new RecipientRestrictedEmailSender(
+                    sender,
+                    options,
+                    provider.GetRequiredService<ILogger<RecipientRestrictedEmailSender>>());
         });
 
         services.AddSingleton<IInvitationDelivery, InvitationDelivery>();

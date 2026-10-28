@@ -91,6 +91,59 @@ public class EmailRegistrationTests
         Assert.Contains("href=\"https://app.fieldops.test/auth/invitation#token=abc\"", message.HtmlBody, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("demo@example.com", false)]
+    [InlineData("DEMO@Example.com", false)]
+    [InlineData("anyone@fieldops.test", false)]
+    [InlineData("stranger@other.test", true)]
+    [InlineData("xdemo@example.com", true)]
+    public async Task AllowedRecipients_OutsideTheAllowList_AreNotSentAndFailAsDeliveryFailures(string recipient, bool blocked)
+    {
+        var values = new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:FieldOpsDatabase"] = "Host=localhost;Database=unused",
+            ["Email:Provider"] = "Smtp",
+            ["Email:SenderAddress"] = "no-reply@fieldops.test",
+            ["Email:SenderName"] = "FieldOps",
+            ["Email:Smtp:Host"] = "127.0.0.1",
+            ["Email:Smtp:Port"] = "1",
+            ["Email:Smtp:EnableSsl"] = "false",
+            ["Email:AllowedRecipients:0"] = "demo@example.com",
+            ["Email:AllowedRecipients:1"] = "@fieldops.test",
+        };
+
+        using var provider = BuildServices(values, "Development").BuildServiceProvider();
+        var sender = provider.GetRequiredService<IEmailSender>();
+
+        var failure = await Assert.ThrowsAnyAsync<Exception>(() =>
+            sender.SendAsync(new EmailMessage(recipient, "Subject", "text", "<p>html</p>"), CancellationToken.None));
+
+        // Allowed recipients reach the (unreachable) SMTP adapter; blocked ones never do.
+        Assert.Equal(blocked, failure.Message.Contains("RecipientRestriction", StringComparison.Ordinal));
+        Assert.DoesNotContain(recipient, failure.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void AllowedRecipients_WithInvalidEntry_FailsOnStart()
+    {
+        var values = new Dictionary<string, string?>
+        {
+            ["ConnectionStrings:FieldOpsDatabase"] = "Host=localhost;Database=unused",
+            ["Email:Provider"] = "Smtp",
+            ["Email:SenderAddress"] = "no-reply@fieldops.test",
+            ["Email:SenderName"] = "FieldOps",
+            ["Email:Smtp:Host"] = "localhost",
+            ["Email:Smtp:Port"] = "1025",
+            ["Email:AllowedRecipients:0"] = "*",
+        };
+
+        using var provider = BuildServices(values, "Development").BuildServiceProvider();
+
+        var failure = Assert.Throws<OptionsValidationException>(() => provider.GetRequiredService<IOptions<EmailSettings>>().Value);
+
+        Assert.Contains("Email:AllowedRecipients", string.Join(' ', failure.Failures), StringComparison.Ordinal);
+    }
+
     private static IServiceCollection BuildServices(IReadOnlyDictionary<string, string?> values, string environment)
     {
         var services = new ServiceCollection().AddLogging();
@@ -147,7 +200,12 @@ public class EmailRegistrationTests
 
         public IConfigurationSection GetSection(string key) => new FlatConfiguration(values, Combine(key));
 
-        public IEnumerable<IConfigurationSection> GetChildren() => [];
+        public IEnumerable<IConfigurationSection> GetChildren() =>
+            values.Keys
+                .Where(key => key.StartsWith(path.Length == 0 ? string.Empty : path + ":", StringComparison.Ordinal))
+                .Select(key => key[(path.Length == 0 ? 0 : path.Length + 1)..].Split(':')[0])
+                .Distinct(StringComparer.Ordinal)
+                .Select(child => new FlatConfiguration(values, Combine(child)));
 
         public IChangeToken GetReloadToken() => new CancellationChangeToken(CancellationToken.None);
 

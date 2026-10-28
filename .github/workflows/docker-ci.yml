@@ -1,0 +1,41 @@
+name: Docker image CI
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/docker-ci.yml'
+  push:
+    branches: [main, master]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/docker-ci.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    name: API image builds
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # Build only: nothing is pushed and no database is contacted. The build fails
+      # if the migration bundle cannot be produced or setpriv is missing.
+      - name: Build API image
+        run: docker build --file backend/Dockerfile --tag fieldops-api:ci backend
+
+      - name: Image contains the bundle and drops root to the app user
+        run: |
+          docker run --rm --entrypoint sh fieldops-api:ci -c 'test -x /app/efbundle && test -x /app/docker-entrypoint.sh'
+          test "$(docker run --rm --entrypoint setpriv fieldops-api:ci --reuid=app --regid=app --init-groups id -un)" = "app"

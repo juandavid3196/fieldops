@@ -397,11 +397,20 @@ Reglas:
 - Las pruebas de sesión comparten una instancia de PostgreSQL de Testcontainers migrada con
   `MigrateAsync`; la prueba del límite de tamaño de petición corre sobre Kestrel (`UseKestrel`).
 
-## Diferido al despliegue
+## Ajustes de despliegue
 
-HSTS, forwarded headers, `AllowedHosts` y cómo interactúan las sondas con la redirección
-HTTPS se deciden con el trabajo de despliegue. También diferido:
+Opcionales fuera de Production; el procedimiento completo está en
+[`docs/deployment/demo-deployment.es.md`](../deployment/demo-deployment.es.md).
 
-- Persistencia de las claves de Data Protection.
-- Forwarded headers: hasta que se configuren, `RemoteIpAddress` detrás del proxy es
-  el proxy, así que el límite de inicio de sesión por IP se aplica a todos los clientes en conjunto.
+| Clave | Variable de entorno | Notas |
+| --- | --- | --- |
+| `ForwardedHeaders:Enabled` | `ForwardedHeaders__Enabled` | Ejecuta `UseForwardedHeaders` primero (solo `X-Forwarded-For`/`-Proto`) tras un proxy que termina TLS; desactiva la redirección HTTPS de la app y activa HSTS fuera de Development. Por defecto `false`. |
+| `ForwardedHeaders:KnownProxies`, `KnownNetworks`, `TrustAllProxies`, `ForwardLimit` | `ForwardedHeaders__KnownProxies__0`, ... | Al activarse, la confianza debe ser explícita: direcciones/redes CIDR o `TrustAllProxies=true` (no ambas). `ForwardLimit` 1-5, por defecto 1. |
+| `DataProtection:KeysPath`, `ApplicationName` | `DataProtection__KeysPath`, `DataProtection__ApplicationName` | Directorio del anillo de claves (obligatorio en Production, escribible) y nombre estable de la aplicación (por defecto `FieldOps`). |
+| `Email:AllowedRecipients` | `Email__AllowedRecipients__0`, ... | Lista permitida opcional para la demo (dirección o `@dominio`). Un mensaje a cualquier otro no se envía y falla como un fallo de entrega. |
+
+## Despliegue
+
+HSTS, forwarded headers, `AllowedHosts`, sondas y persistencia de claves de Data Protection se resuelven en
+[`docs/deployment/demo-deployment.es.md`](../deployment/demo-deployment.es.md). Limitación conocida: tras Vercel y Railway los
+límites por IP ven la dirección de salida de Vercel, por lo que agrupan a todos los visitantes.

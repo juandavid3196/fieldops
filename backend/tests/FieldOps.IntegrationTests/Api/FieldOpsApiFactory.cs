@@ -63,6 +63,11 @@ public sealed class FieldOpsApiFactory(
         var production = string.Equals(environment, "Production", StringComparison.OrdinalIgnoreCase);
         builder.UseSetting("Email:Provider", production ? "Resend" : "Smtp");
         builder.UseSetting("Email:Resend:ApiKey", production ? "not-a-real-key" : null);
+
+        // Production requires a key directory (the host itself uses the ephemeral provider below).
+        builder.UseSetting(
+            "DataProtection:KeysPath",
+            production ? Path.Combine(Path.GetTempPath(), $"fieldops-test-keys-{Guid.NewGuid():N}") : null);
         builder.UseSetting("Email:SenderAddress", "no-reply@fieldops.test");
         builder.UseSetting("Email:SenderName", "FieldOps");
         builder.UseSetting("Email:Smtp:Host", "localhost");
