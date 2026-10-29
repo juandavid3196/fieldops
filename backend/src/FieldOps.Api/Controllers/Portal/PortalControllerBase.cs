@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using FieldOps.Api.Authentication;
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.QuoteLinks;
@@ -132,6 +133,8 @@ public abstract class PortalControllerBase : ControllerBase
             case QuoteLinkOutcome<T>.AlreadyAnswered:
                 return CodedProblem(
                     StatusCodes.Status409Conflict, QuoteLinkMessages.AlreadyAnsweredTitle, QuoteLinkMessages.AlreadyAnsweredCode);
+            case QuoteLinkOutcome<T>.DemoReadOnly:
+                return CodedProblem(StatusCodes.Status403Forbidden, DemoModeMessages.Title, DemoModeMessages.Code);
             case QuoteLinkOutcome<T>.Expired:
                 return CodedProblem(StatusCodes.Status409Conflict, QuoteLinkMessages.ExpiredTitle, QuoteLinkMessages.ExpiredCode);
             default:
@@ -154,6 +157,8 @@ public abstract class PortalControllerBase : ControllerBase
                 return CodedProblem(StatusCodes.Status409Conflict, conflict.Title, conflict.Code);
             case PublicOutcome<T>.RateLimited limited:
                 return TooManyRequests(limited.RetryAfter);
+            case PublicOutcome<T>.DemoReadOnly:
+                return CodedProblem(StatusCodes.Status403Forbidden, DemoModeMessages.Title, DemoModeMessages.Code);
             case PublicOutcome<T>.ProviderUnavailable:
                 return CodedProblem(
                     StatusCodes.Status502BadGateway, OnlinePaymentMessages.ProviderUnavailableTitle, OnlinePaymentMessages.ProviderUnavailableCode);

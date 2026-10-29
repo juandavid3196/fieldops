@@ -7,6 +7,7 @@ import { routes } from './app.routes';
 import { primeNgConfig } from './core/config/primeng.config';
 import { provideI18n } from './core/i18n/i18n.providers';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { demoModeInterceptor } from './core/interceptors/demo-mode.interceptor';
 import { errorInterceptor } from './core/interceptors/error.interceptor';
 import { portalUnauthorizedInterceptor } from './core/interceptors/portal-unauthorized.interceptor';
 import { ReloadRouteReuseStrategy } from './core/services/reload-route-reuse.strategy';
@@ -18,7 +19,12 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     { provide: RouteReuseStrategy, useClass: ReloadRouteReuseStrategy },
     provideHttpClient(
-      withInterceptors([authInterceptor, portalUnauthorizedInterceptor, errorInterceptor]),
+      withInterceptors([
+        authInterceptor,
+        demoModeInterceptor,
+        portalUnauthorizedInterceptor,
+        errorInterceptor,
+      ]),
     ),
     providePrimeNG(primeNgConfig),
     provideI18n(),

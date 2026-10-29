@@ -1,5 +1,6 @@
 using FieldOps.Api.Authorization;
 using FieldOps.Api.Contracts;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.Dispatch;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -107,6 +108,7 @@ public sealed class DispatchController(
     }
 
     [HttpPost("dispatch/visits/{visitId:guid}/evaluation")]
+    [DemoReadOnlySafe]
     [Authorize(Policy = DispatchPolicies.Manage)]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxJsonBodyBytes)]

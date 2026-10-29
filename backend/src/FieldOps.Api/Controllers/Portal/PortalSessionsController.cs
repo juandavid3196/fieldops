@@ -2,7 +2,9 @@ using System.Globalization;
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Contracts;
 using FieldOps.Api.Extensions;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.PortalAuth;
 using Microsoft.AspNetCore.Authentication;
@@ -22,6 +24,7 @@ public sealed class PortalSessionsController(
     SignInPortalHandler signInHandler,
     SwitchPortalAccountHandler switchHandler,
     TimeProvider timeProvider,
+    IDemoProtection demo,
     ILogger<PortalSessionsController> logger) : PortalControllerBase
 {
     public const int MaxRequestBodyBytes = 4 * 1024;
@@ -51,7 +54,7 @@ public sealed class PortalSessionsController(
             case PortalSignInResult.Succeeded succeeded:
                 await PortalSessionCookieIssuer.SignInAsync(HttpContext, succeeded.Session, succeeded.SignedInAt, command.RememberMe);
 
-                return Ok(succeeded.Session.View);
+                return Ok(await WithDemoFlag(succeeded.Session, cancellationToken));
 
             case PortalSignInResult.Invalid invalid:
                 return FieldErrors(invalid.Errors);
@@ -73,8 +76,10 @@ public sealed class PortalSessionsController(
     [HttpGet("current")]
     [ProducesResponseType<PortalSessionView>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
-    public IActionResult GetCurrentSession() =>
-        PortalSessionCookieEvents.GetValidatedSession(HttpContext) is { } session ? Ok(session.View) : Unauthorized();
+    public async Task<IActionResult> GetCurrentSession(CancellationToken cancellationToken) =>
+        PortalSessionCookieEvents.GetValidatedSession(HttpContext) is { } session
+            ? Ok(await WithDemoFlag(session, cancellationToken))
+            : Unauthorized();
 
     [HttpDelete("current")]
     [AllowAnonymous]
@@ -88,6 +93,7 @@ public sealed class PortalSessionsController(
     }
 
     [HttpPost("current/account")]
+    [DemoReadOnlySafe]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxRequestBodyBytes)]
     [ProducesResponseType<PortalSessionView>(StatusCodes.Status200OK)]
@@ -117,6 +123,12 @@ public sealed class PortalSessionsController(
         // The cookie is reissued only after the switch was audited; the sign-in time and Remember me are kept.
         await PortalSessionCookieIssuer.SignInAsync(HttpContext, session, ticket.SignedInAt, ticket.RememberMe, timeProvider.GetUtcNow());
 
-        return Ok(session.View);
+        return Ok(await WithDemoFlag(session, cancellationToken));
     }
+
+    private async Task<PortalSessionView> WithDemoFlag(PortalSessionContext session, CancellationToken cancellationToken) =>
+        session.View with
+        {
+            DemoReadOnly = await demo.IsProtectedOrganizationAsync(session.Scope.OrganizationId, cancellationToken),
+        };
 }

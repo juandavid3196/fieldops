@@ -1,5 +1,6 @@
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.ServiceRequests;
 using Microsoft.AspNetCore.Authorization;
@@ -65,6 +66,7 @@ public sealed class NotificationsController(
     }
 
     [HttpPost("{id:guid}/read")]
+    [DemoReadOnlySafe]
     [Authorize(Policy = NotificationInboxPolicies.Inbox)]
     [ProducesResponseType<NotificationMarkResult>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
@@ -77,6 +79,7 @@ public sealed class NotificationsController(
     }
 
     [HttpPost("{id:guid}/unread")]
+    [DemoReadOnlySafe]
     [Authorize(Policy = NotificationInboxPolicies.Inbox)]
     [ProducesResponseType<NotificationMarkResult>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
@@ -89,6 +92,7 @@ public sealed class NotificationsController(
     }
 
     [HttpPost("read-all")]
+    [DemoReadOnlySafe]
     [Authorize(Policy = NotificationInboxPolicies.Inbox)]
     [ProducesResponseType<NotificationReadAllResult>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]

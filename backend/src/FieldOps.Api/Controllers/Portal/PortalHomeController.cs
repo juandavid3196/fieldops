@@ -1,3 +1,4 @@
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.PortalDashboard;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +29,7 @@ public sealed class PortalHomeController(
         Ok(await updatesHandler.ListAsync(Scope, cancellationToken));
 
     [HttpPost("updates/seen")]
+    [DemoReadOnlySafe]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> MarkUpdatesSeen(CancellationToken cancellationToken)

@@ -3,7 +3,9 @@ using System.Net;
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Contracts;
 using FieldOps.Api.Extensions;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.DemoMode;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +30,7 @@ namespace FieldOps.Api.Controllers;
 public sealed class SessionsController(
     SignInHandler signInHandler,
     SignOutHandler signOutHandler,
+    IDemoProtection demo,
     ILogger<SessionsController> logger) : ControllerBase
 {
     public const int MaxRequestBodyBytes = 4 * 1024;
@@ -73,7 +76,11 @@ public sealed class SessionsController(
         {
             case SignInResult.Succeeded succeeded:
                 await SignInAsync(succeeded, command.RememberMe);
-                return Ok(succeeded.Session);
+                return Ok(succeeded.Session with
+                {
+                    DemoReadOnly = await demo.IsProtectedOrganizationAsync(
+                        succeeded.Session.Organization.Id, cancellationToken),
+                });
 
             case SignInResult.Invalid invalid:
                 foreach (var (key, messages) in invalid.Errors)
@@ -109,13 +116,18 @@ public sealed class SessionsController(
     [Authorize]
     [ProducesResponseType<SessionView>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
-    public IActionResult GetCurrentSession()
+    public async Task<IActionResult> GetCurrentSession(CancellationToken cancellationToken)
     {
         Response.Headers.CacheControl = NoStore;
 
         var session = SessionCookieEvents.GetValidatedSession(HttpContext);
 
-        return session is null ? Unauthorized() : Ok(session);
+        return session is null
+            ? Unauthorized()
+            : Ok(session with
+            {
+                DemoReadOnly = await demo.IsProtectedOrganizationAsync(session.Organization.Id, cancellationToken),
+            });
     }
 
     [HttpDelete("current")]

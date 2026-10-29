@@ -4,6 +4,8 @@ export interface PortalSession {
   readonly account: PortalAccount;
   /** Every active link in BR-04 order. */
   readonly accounts: readonly PortalAccountSummary[];
+  /** `true` when the organization is a read-only demo; decided by the API, used only for display. */
+  readonly demoReadOnly?: boolean;
 }
 
 export interface PortalSessionUser {

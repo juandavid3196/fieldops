@@ -25,6 +25,7 @@ import { initialsOf } from '../../features/portal/utils/portal-format';
 import { AppearanceMenuItem } from '../../shared/components/appearance-menu-item/appearance-menu-item';
 import { AppearanceToast } from '../../shared/components/appearance-toast/appearance-toast';
 import { LanguageMenuItem } from '../../shared/components/language-menu-item/language-menu-item';
+import { DemoNotice } from '../../shared/components/demo-notice/demo-notice';
 import { LanguageToast } from '../../shared/components/language-toast/language-toast';
 import { PORTAL_NAV, SIGN_IN_LINK, UPDATES_LINK, bellCountText } from './portal-shell.nav';
 
@@ -47,6 +48,7 @@ export const PORTAL_SWITCH_ERROR_MESSAGE = (): string =>
     AppearanceToast,
     LanguageMenuItem,
     LanguageToast,
+    DemoNotice,
     Message,
     RouterLink,
     RouterLinkActive,

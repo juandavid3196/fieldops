@@ -591,5 +591,9 @@
       "invitation_sent": "Invitación al portal enviada",
       "message_sent": "Mensaje del portal enviado"
     }
+  },
+  "demoMode": {
+    "badge": "Demo de solo lectura",
+    "refused": "Esta es una demo de solo lectura. Tu cambio no se guardó."
   }
 }

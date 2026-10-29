@@ -1,5 +1,6 @@
 using FieldOps.Api.Contracts;
 using FieldOps.Api.Extensions;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.PortalDashboard;
 using FieldOps.Application.Features.QuoteLinks;
@@ -73,6 +74,7 @@ public sealed class PortalQuotesController(
         MapQuote(await photoHandler.HandleAsync(Access(quoteId), photoId, cancellationToken), Image);
 
     [HttpPost("{quoteId:guid}/calculate")]
+    [DemoReadOnlySafe]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxRequestBodyBytes)]
     [EnableRateLimiting(ApiRateLimitingExtensions.QuoteLinkReadPolicy)]

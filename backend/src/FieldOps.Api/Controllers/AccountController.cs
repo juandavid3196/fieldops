@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Contracts;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -61,6 +62,7 @@ public sealed class AccountController(
     }
 
     [HttpPut("profile")]
+    [DemoCredentials]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxJsonBodyBytes)]
     [ProducesResponseType<AccountProfileView>(StatusCodes.Status200OK)]
@@ -110,6 +112,7 @@ public sealed class AccountController(
     }
 
     [HttpPut("language")]
+    [DemoReadOnlySafe]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxJsonBodyBytes)]
     [ProducesResponseType<UpdateLanguageView>(StatusCodes.Status200OK)]
@@ -149,6 +152,7 @@ public sealed class AccountController(
     }
 
     [HttpPut("theme")]
+    [DemoReadOnlySafe]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxJsonBodyBytes)]
     [ProducesResponseType<UpdateThemeView>(StatusCodes.Status200OK)]
@@ -214,6 +218,7 @@ public sealed class AccountController(
     }
 
     [HttpPut("photo")]
+    [DemoCredentials]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaxPhotoRequestBodyBytes)]
     [RequestFormLimits(MultipartBodyLengthLimit = MaxPhotoRequestBodyBytes)]
@@ -274,6 +279,7 @@ public sealed class AccountController(
     }
 
     [HttpDelete("photo")]
+    [DemoCredentials]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RemovePhoto(CancellationToken cancellationToken)
@@ -290,6 +296,7 @@ public sealed class AccountController(
     }
 
     [HttpPost("password")]
+    [DemoCredentials]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxJsonBodyBytes)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

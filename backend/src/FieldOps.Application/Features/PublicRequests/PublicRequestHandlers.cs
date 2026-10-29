@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using FieldOps.Application.Features.DemoMode;
 using FluentValidation;
 
 namespace FieldOps.Application.Features.PublicRequests;
@@ -25,7 +26,8 @@ public sealed class SubmitPublicServiceRequestHandler(
     IPublicServiceRequestStore store,
     IValidator<PublicSubmissionValidationInput> validator,
     IPublicRequestConfirmationSender confirmationSender,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    IDemoProtection demo)
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
@@ -35,7 +37,8 @@ public sealed class SubmitPublicServiceRequestHandler(
     {
         var form = await store.FindAcceptingFormAsync(PublicSlugs.Normalize(command.Slug), cancellationToken);
 
-        if (form is null)
+        // Read-only demo: an anonymous submission would create a request and send a confirmation email.
+        if (form is null || demo.IsProtectedSlug(PublicSlugs.Normalize(command.Slug)))
         {
             return new SubmitPublicServiceRequestResult.NotFound();
         }

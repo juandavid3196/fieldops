@@ -1,6 +1,7 @@
 using System.Text.Json;
 using FieldOps.Api.Contracts;
 using FieldOps.Api.Extensions;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.Account;
 using FieldOps.Application.Features.OnlinePayments;
 using FieldOps.Application.Features.PortalAccess;
@@ -156,6 +157,7 @@ public sealed class PortalAccountController(
 
     // Only the session user's own language; the user and organization come from the validated portal session (app i18n BR-05..BR-09).
     [HttpPut("portal/account/language")]
+    [DemoReadOnlySafe]
     [Consumes("application/json")]
     [RequestSizeLimit(AccountController.MaxJsonBodyBytes)]
     [ProducesResponseType<UpdateLanguageView>(StatusCodes.Status200OK)]
@@ -190,6 +192,7 @@ public sealed class PortalAccountController(
 
     // Only the session user's own theme; the user and organization come from the validated portal session (app dark mode BR-06..BR-08).
     [HttpPut("portal/account/theme")]
+    [DemoReadOnlySafe]
     [Consumes("application/json")]
     [RequestSizeLimit(AccountController.MaxJsonBodyBytes)]
     [ProducesResponseType<UpdateThemeView>(StatusCodes.Status200OK)]

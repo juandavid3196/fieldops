@@ -33,20 +33,20 @@ internal sealed partial class OnlinePaymentStore
 
         if (gatewayEvent.IntentId is { } intentId
             && await attempts.Where(attempt => attempt.ProviderPaymentIntentId == intentId)
-                .Select(attempt => new { attempt.Id, attempt.Status })
+                .Select(attempt => new { attempt.Id, attempt.Status, attempt.OrganizationId })
                 .FirstOrDefaultAsync(cancellationToken) is { } byIntent)
         {
-            return new WebhookAttemptLookup(byIntent.Id, OnlinePaymentRules.AttemptStatusCode(byIntent.Status));
+            return new WebhookAttemptLookup(byIntent.Id, OnlinePaymentRules.AttemptStatusCode(byIntent.Status), byIntent.OrganizationId);
         }
 
         if (gatewayEvent is { AttemptId: { } attemptId, OrganizationId: { } organizationId, InvoiceId: { } invoiceId }
             && await attempts.Where(attempt => attempt.Id == attemptId
                     && attempt.OrganizationId == organizationId
                     && attempt.InvoiceId == invoiceId)
-                .Select(attempt => new { attempt.Id, attempt.Status })
+                .Select(attempt => new { attempt.Id, attempt.Status, attempt.OrganizationId })
                 .FirstOrDefaultAsync(cancellationToken) is { } byMetadata)
         {
-            return new WebhookAttemptLookup(byMetadata.Id, OnlinePaymentRules.AttemptStatusCode(byMetadata.Status));
+            return new WebhookAttemptLookup(byMetadata.Id, OnlinePaymentRules.AttemptStatusCode(byMetadata.Status), byMetadata.OrganizationId);
         }
 
         return null;

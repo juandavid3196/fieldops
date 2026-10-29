@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using FieldOps.Api.Contracts;
 using FieldOps.Api.Extensions;
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.QuoteLinks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -204,6 +205,9 @@ public sealed class PublicQuoteLinksController(
 
             case QuoteLinkOutcome<T>.AlreadyAnswered:
                 return Problem(StatusCodes.Status409Conflict, QuoteLinkMessages.AlreadyAnsweredTitle, QuoteLinkMessages.AlreadyAnsweredCode);
+
+            case QuoteLinkOutcome<T>.DemoReadOnly:
+                return Problem(StatusCodes.Status403Forbidden, DemoModeMessages.Title, DemoModeMessages.Code);
 
             default:
                 // One shape for every unusable token, so nothing reveals why (BR-03).

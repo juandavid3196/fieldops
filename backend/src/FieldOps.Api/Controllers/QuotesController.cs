@@ -2,6 +2,7 @@ using System.Net;
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
 using FieldOps.Api.Contracts;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.Quotes;
 using FieldOps.Application.Features.ServiceRequests;
 using Microsoft.AspNetCore.Authorization;
@@ -172,6 +173,7 @@ public sealed class QuotesController(
     }
 
     [HttpPost("{id:guid}/calculate")]
+    [DemoReadOnlySafe]
     [Authorize(Policy = ServiceRequestPolicies.Manage)]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxJsonBodyBytes)]

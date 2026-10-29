@@ -1,3 +1,4 @@
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.InvoiceDelivery;
 using FieldOps.Application.Features.InvoicePayments;
 using FieldOps.Application.Features.PortalAccess;
@@ -26,7 +27,8 @@ public sealed class CreateCardIntentHandler(
     IPaymentGateway gateway,
     PaymentAttemptExpirer expirer,
     IInvoiceActionThrottle throttle,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    IDemoProtection demo)
 {
     public Task<PublicOutcome<CardIntentView>> HandleAsync(string? token, string? idempotencyKey, CancellationToken cancellationToken) =>
         QuoteLinkTokens.IsWellFormed(token)
@@ -38,6 +40,12 @@ public sealed class CreateCardIntentHandler(
         if (await PublicPaymentSupport.ResolveAsync(store, access, cancellationToken) is not { } invoice)
         {
             return new PublicOutcome<CardIntentView>.NotFound();
+        }
+
+        // Read-only demo: no attempt row, no provider intent.
+        if (await demo.IsProtectedOrganizationAsync(invoice.OrganizationId, cancellationToken))
+        {
+            return new PublicOutcome<CardIntentView>.DemoReadOnly();
         }
 
         if (!OnlinePaymentRules.TryParseKey(idempotencyKey, out var key))
@@ -115,7 +123,7 @@ public sealed class CreateCardIntentHandler(
 }
 
 /// <summary>POST /public/invoice-links/payments/status (BR-16): writes only through the BR-14 expiry evaluation.</summary>
-public sealed class GetPaymentStatusHandler(IOnlinePaymentStore store, PaymentAttemptExpirer expirer)
+public sealed class GetPaymentStatusHandler(IOnlinePaymentStore store, PaymentAttemptExpirer expirer, IDemoProtection demo)
 {
     public Task<PublicOutcome<PaymentStatusView>> HandleAsync(string? token, string? attemptId, CancellationToken cancellationToken) =>
         QuoteLinkTokens.IsWellFormed(token)
@@ -134,7 +142,11 @@ public sealed class GetPaymentStatusHandler(IOnlinePaymentStore store, PaymentAt
             return PublicPaymentSupport.Invalid<PaymentStatusView>("attemptId", OnlinePaymentMessages.IdInvalid);
         }
 
-        await expirer.EvaluateAsync(invoice.OrganizationId, invoice.InvoiceId, cancellationToken);
+        // The lazy expiry can cancel an intent and write; a read-only demo only reads the status.
+        if (!await demo.IsProtectedOrganizationAsync(invoice.OrganizationId, cancellationToken))
+        {
+            await expirer.EvaluateAsync(invoice.OrganizationId, invoice.InvoiceId, cancellationToken);
+        }
 
         return await store.GetStatusAsync(access, id, cancellationToken) is { } status
             ? new PublicOutcome<PaymentStatusView>.Ok(status)
@@ -147,7 +159,8 @@ public sealed class ReportBankTransferHandler(
     IOnlinePaymentStore store,
     IInvoiceActionThrottle throttle,
     IBankTransferNotifier notifier,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    IDemoProtection demo)
 {
     public Task<PublicOutcome<BankNoticeView>> HandleAsync(string? token, string? idempotencyKey, CancellationToken cancellationToken) =>
         QuoteLinkTokens.IsWellFormed(token)
@@ -159,6 +172,11 @@ public sealed class ReportBankTransferHandler(
         if (await PublicPaymentSupport.ResolveAsync(store, access, cancellationToken) is not { } invoice)
         {
             return new PublicOutcome<BankNoticeView>.NotFound();
+        }
+
+        if (await demo.IsProtectedOrganizationAsync(invoice.OrganizationId, cancellationToken))
+        {
+            return new PublicOutcome<BankNoticeView>.DemoReadOnly();
         }
 
         if (!OnlinePaymentRules.TryParseKey(idempotencyKey, out var key))
@@ -189,7 +207,11 @@ public sealed class ReportBankTransferHandler(
 }
 
 /// <summary>POST /public/invoice-links/review (BR-22).</summary>
-public sealed class SubmitInvoiceReviewHandler(IOnlinePaymentStore store, IInvoiceActionThrottle throttle, TimeProvider timeProvider)
+public sealed class SubmitInvoiceReviewHandler(
+    IOnlinePaymentStore store,
+    IInvoiceActionThrottle throttle,
+    TimeProvider timeProvider,
+    IDemoProtection demo)
 {
     public Task<PublicOutcome<ReviewSubmittedView>> HandleAsync(
         string? token, decimal? rating, string? comment, CancellationToken cancellationToken) =>
@@ -203,6 +225,11 @@ public sealed class SubmitInvoiceReviewHandler(IOnlinePaymentStore store, IInvoi
         if (await PublicPaymentSupport.ResolveAsync(store, access, cancellationToken) is not { } invoice)
         {
             return new PublicOutcome<ReviewSubmittedView>.NotFound();
+        }
+
+        if (await demo.IsProtectedOrganizationAsync(invoice.OrganizationId, cancellationToken))
+        {
+            return new PublicOutcome<ReviewSubmittedView>.DemoReadOnly();
         }
 
         var errors = new Dictionary<string, string[]>(StringComparer.Ordinal);
@@ -324,7 +351,8 @@ public sealed class ProcessPaymentWebhookHandler(
     IOnlinePaymentStore store,
     IPaymentGateway gateway,
     IPaymentReceiptNotifier receiptNotifier,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    IDemoProtection demo)
 {
     /// <summary>False when the signature is missing or invalid (400); true for every verified event.</summary>
     public async Task<bool> HandleAsync(string payload, string? signature, CancellationToken cancellationToken)
@@ -345,6 +373,16 @@ public sealed class ProcessPaymentWebhookHandler(
     private async Task ApplyAsync(GatewayEvent gatewayEvent, CancellationToken cancellationToken)
     {
         var lookup = await store.FindAttemptAsync(gatewayEvent, cancellationToken);
+
+        // Read-only demo: the signature was already verified; the event is acknowledged (200, so the provider does not
+        // retry) and ignored before any provider call, payment row, receipt or notification.
+        if ((lookup is not null && await demo.IsProtectedOrganizationAsync(lookup.OrganizationId, cancellationToken))
+            || (gatewayEvent.OrganizationId is { } eventOrganization
+                && await demo.IsProtectedOrganizationAsync(eventOrganization, cancellationToken)))
+        {
+            return;
+        }
+
         var pending = lookup?.Status == OnlinePaymentRules.AttemptStatusCode(PaymentAttemptStatus.Pending);
         GatewayCancelResult? cancel = null;
         GatewayCardDetails? card = null;

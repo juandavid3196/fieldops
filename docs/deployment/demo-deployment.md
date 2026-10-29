@@ -107,6 +107,7 @@ Template with every key: [`backend/railway.env.example`](../../backend/railway.e
 | `Email__AllowedRecipients__0…n` | Railway API | Recommended for a public demo | No | Address or `@domain`; unset = no restriction |
 | `Stripe__SecretKey` / `__PublishableKey` / `__WebhookSecret` | Railway API | No | **Yes** | Test mode only (`sk_test_…`, `pk_test_…`, `whsec_…`); unset keeps card payments disabled |
 | `BankDetails__EncryptionKey` | Railway API | No | **Yes** | Base64 of 32 random bytes; enables bank transfer details. Keep a copy: losing it makes stored bank data unreadable |
+| `DemoMode__Enabled`, `DemoMode__OrganizationSlugs__0` | Railway API | No (default off) | No | `true`, `fieldops-demo` (see Read-only demo mode) |
 | `DemoSeed__EmailDomain`, `DemoSeed__Password` | Your machine (loader only) | For the loader | Password: **Yes** | Never set on Railway or committed |
 
 ## Container
@@ -203,6 +204,68 @@ once. The email restriction below still applies to anything the app sends afterw
 - Invitations: the invitation is rolled back and the API answers with its existing delivery-failure response (502).
 - Password reset: the response stays the same as for any address (no enumeration); nothing is delivered.
 - Quotes, invoices, receipts, visit and portal notices: the existing flows record the delivery as failed; they do not claim success.
+
+## Read-only demo mode
+
+Lets visitors explore every experience of the demo organization ("Summit Home Services (Demo)", slug `fieldops-demo`) without
+being able to change its data or the shared credentials. It is **off by default** and decided only by the server: the
+Angular app never sends a demo flag.
+
+| Variable (Railway – API) | Value | Note |
+| --- | --- | --- |
+| `DemoMode__Enabled` | `true` | Absent or `false` = normal behaviour everywhere. |
+| `DemoMode__OrganizationSlugs__0` | `fieldops-demo` | Public slug of each protected organization (`__1`, `__2`… for more). Enabling the mode with no slug fails the start-up validation. |
+
+**Enable on Railway:** API service → Variables → add both variables → redeploy. No migration, no schema change, no data
+reload. To disable, delete `DemoMode__Enabled` (or set it to `false`) and redeploy. Slugs are resolved to organization ids
+at runtime (cached for one minute), so a demo loaded after the deploy is protected without a restart.
+
+What is enforced (all in the API, before the controller, handler, email or payment provider runs):
+
+- Accounts signed in to a protected organization (internal roles Owner, Operations Manager, Dispatcher, Accounting, Viewer,
+  Technician) and portal customers of it keep exactly the screens and queries their role allows. Authorization still
+  decides first, so a role that cannot see something still gets its normal 403.
+- Any request that is not `GET`/`HEAD`/`OPTIONS` from those accounts is answered `403` with ProblemDetails
+  `code: "demo_read_only"`. Classification is by effect, not by verb: actions marked `[DemoReadOnlySafe]` pass although they
+  are POST/PUT — quote and visit-evaluation calculations, customer import preview, duplicate check, switching portal
+  account, notification / conversation read markers, portal "updates seen", and language/theme preferences. Opening a
+  conversation that does not exist yet answers 404 instead of creating it.
+- Credentials: password, profile and photo changes are refused for any demo account (`[DemoCredentials]`, even if the user
+  is signed in to another organization). Password recovery (`/password-resets`, `/portal/password-resets`) answers the
+  usual neutral 202 for demo accounts but issues no token and sends no email; a token issued earlier cannot be confirmed.
+  Role, status, invitations and removal are user-management writes and are refused.
+- External effects: no emails (invitations, quotes, invoices, reminders), no Stripe payment attempts, no webhook-triggering
+  actions can start from a demo account. The anonymous public request form of the demo slug answers 404 on submit.
+- Still allowed: sign-in, sign-out (session and audit records), navigation, filters, search, downloads (PDF, files) and
+  every `GET`.
+- Public quote and invoice links: the organization comes from the validated token row. Viewing, PDFs, logos, photos and the
+  payment status keep working; approve, decline, questions, card payment, bank-transfer notice and review answer `403`
+  `demo_read_only` before the quote is locked, an attempt is created, a provider is called or anything is sent. The lazy expiry
+  that a read could trigger is skipped for protected resources.
+- Stripe webhook (`/webhooks/stripe`): the signature is still verified first (invalid = 400). A verified event that belongs to a
+  protected organization (by its matched attempt or by its metadata) is answered `200` and ignored, so Stripe does not retry
+  it: no payment, receipt, event row, provider call or notification. Other organizations are processed as before.
+- Registration (`/organization-registrations`) and every organization outside `DemoMode__OrganizationSlugs` are untouched: a
+  newly registered organization has full behaviour, and its session reports `demoReadOnly: false`.
+- Keep `Stripe__*` unset or in test mode and `Email__AllowedRecipients__n` set on the public demo anyway.
+
+The session responses (`POST /sessions`, `GET /sessions/current`, and the portal equivalents) include `demoReadOnly`. Angular
+uses it only for display: a discreet "Read-only demo" badge in each shell and a short translated toast whenever the API
+refuses a write. Individual buttons are not disabled; the API refusal is the protection.
+
+### Existing accounts to explore each experience
+
+All use the password you chose in `DemoSeed__Password` and your `DemoSeed__EmailDomain`:
+
+| Experience | Account | What it shows |
+| --- | --- | --- |
+| Owner | `owner@<domain>` | Everything, including company settings, users, reports |
+| Operations Manager | `operations@<domain>` | Operations, team, catalog |
+| Dispatcher | `dispatcher@<domain>` | Requests, scheduling, dispatch |
+| Accounting | `accounting@<domain>` | Billing review, invoices, payments |
+| Viewer | `viewer@<domain>` | Read-only views of operations and settings |
+| Technician | `tech.hvac@`, `tech.plumbing@`, `tech.electric@<domain>` | Mobile technician shell (today, schedule, jobs, messages) |
+| Customer portal | `customer1@<domain>` at the portal sign-in | Portal dashboard, quotes, invoices, requests, appointments |
 
 ## Preventing a release with failing checks
 
