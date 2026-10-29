@@ -13,11 +13,15 @@ using Microsoft.Extensions.Logging;
 //
 //   dotnet run --project tools/FieldOps.DemoSeeder -c Release -- --confirm-demo-database
 //
+// Administrative option: add --rotate-demo-password to set DemoSeed__Password on the nine original demo accounts
+// (all-or-nothing, one transaction, no other data touched).
+//
 // Required environment: ConnectionStrings__FieldOpsDatabase, DemoSeed__EmailDomain, DemoSeed__Password (12+ chars).
 // The connection string and the password are never printed.
 
 const string ConfirmFlag = "--confirm-demo-database";
 const string AllowOthersFlag = "--allow-other-organizations";
+const string RotateFlag = "--rotate-demo-password";
 
 if (!args.Contains(ConfirmFlag, StringComparer.Ordinal))
 {
@@ -57,7 +61,65 @@ if (pending.Count > 0)
     return 3;
 }
 
-if (await db.Organizations.AnyAsync(organization => organization.PublicSlug == DemoDataBuilder.PublicSlug))
+var demoOrganizationId = await db.Organizations
+    .Where(organization => organization.PublicSlug == DemoDataBuilder.PublicSlug)
+    .Select(organization => (Guid?)organization.Id)
+    .FirstOrDefaultAsync();
+
+if (args.Contains(RotateFlag, StringComparer.Ordinal))
+{
+    if (demoOrganizationId is null)
+    {
+        Console.Error.WriteLine("Demo organization does not exist. Nothing was changed.");
+        return 5;
+    }
+
+    string[] locals = ["owner", "operations", "dispatcher", "accounting", "viewer", "tech.hvac", "tech.plumbing", "tech.electric", "customer1"];
+    var emails = locals.Select(local => EmailNormalizer.Normalize($"{local}@{domain}")).ToList();
+    var users = await db.Users.Where(user => emails.Contains(user.Email)).ToListAsync();
+    var userIds = users.Select(user => user.Id).ToList();
+
+    var staffIds = await db.OrganizationUsers
+        .Where(member => userIds.Contains(member.UserId) && member.OrganizationId == demoOrganizationId)
+        .Select(member => member.UserId)
+        .ToListAsync();
+    var portalIds = await db.CustomerContacts
+        .Where(contact => contact.PortalUserId != null && userIds.Contains(contact.PortalUserId.Value) && contact.OrganizationId == demoOrganizationId)
+        .Select(contact => contact.PortalUserId!.Value)
+        .ToListAsync();
+    var foreign = await db.OrganizationUsers.AnyAsync(member => userIds.Contains(member.UserId) && member.OrganizationId != demoOrganizationId)
+        || await db.CustomerContacts.AnyAsync(contact => contact.PortalUserId != null && userIds.Contains(contact.PortalUserId.Value) && contact.OrganizationId != demoOrganizationId);
+
+    var customerId = users.FirstOrDefault(user => user.Email == emails[^1])?.Id;
+    var staffExpected = users.Where(user => user.Id != customerId).Select(user => user.Id).ToHashSet();
+
+    if (users.Count != locals.Length
+        || customerId is null
+        || !portalIds.Contains(customerId.Value)
+        || staffExpected.Count != locals.Length - 1
+        || !staffExpected.SetEquals(staffIds)
+        || foreign)
+    {
+        Console.Error.WriteLine("The nine demo accounts do not match the demo organization, or some belong to another organization. Nothing was changed.");
+        return 6;
+    }
+
+    await using var rotation = await db.Database.BeginTransactionAsync();
+    var now = DateTimeOffset.UtcNow;
+
+    foreach (var user in users)
+    {
+        user.ChangePassword(hasher.Hash(password), now);
+    }
+
+    await db.SaveChangesAsync();
+    await rotation.CommitAsync();
+
+    Console.WriteLine($"Rotated the password of {users.Count} demo accounts. Earlier sessions are invalidated.");
+    return 0;
+}
+
+if (demoOrganizationId is not null)
 {
     Console.WriteLine("Demo organization already exists. Nothing to do.");
     return 0;

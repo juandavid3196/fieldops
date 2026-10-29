@@ -187,6 +187,10 @@ $env:DemoSeed__Password    = "<12+ character password you choose>"
 dotnet run --project tools/FieldOps.DemoSeeder -c Release -- --confirm-demo-database
 ```
 
+To rotate the password of the nine original accounts later, run the same command with `--rotate-demo-password` added
+(also requires `--confirm-demo-database`). It aborts without changes unless all nine accounts exist in `fieldops-demo` and
+none belongs to another organization; it signs out their earlier sessions and touches nothing else.
+
 The loader refuses to run without `--confirm-demo-database`, with pending migrations, or when the database already holds
 other organizations (override only with `--allow-other-organizations`). Re-running it when the demo organization exists does
 nothing. It creates the organization "Summit Home Services (Demo)" (slug `fieldops-demo`), two branches, one user per
