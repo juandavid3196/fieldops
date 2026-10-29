@@ -591,5 +591,9 @@
       "invitation_sent": "Portal invitation sent",
       "message_sent": "Portal message sent"
     }
+  },
+  "demoMode": {
+    "badge": "Read-only demo",
+    "refused": "This is a read-only demo. Your change was not saved."
   }
 }

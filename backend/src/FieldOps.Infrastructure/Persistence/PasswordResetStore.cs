@@ -1,3 +1,4 @@
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.PasswordResets;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.Users;
@@ -8,7 +9,7 @@ using Npgsql;
 
 namespace FieldOps.Infrastructure.Persistence;
 
-internal sealed class PasswordResetStore(FieldOpsDbContext dbContext, TimeProvider timeProvider) : IPasswordResetStore
+internal sealed class PasswordResetStore(FieldOpsDbContext dbContext, TimeProvider timeProvider, IDemoProtection demo) : IPasswordResetStore
 {
     // Stored emails are already normalized, so an exact match uses UNIQUE (email).
     public Task<PasswordResetEligibleUser?> FindEligibleUserAsync(
@@ -129,7 +130,8 @@ internal sealed class PasswordResetStore(FieldOpsDbContext dbContext, TimeProvid
         var user = await dbContext.Users.SingleOrDefaultAsync(
             candidate => candidate.Id == token.UserId, cancellationToken);
 
-        if (user is null || user.Status != UserStatus.Active)
+        // A token issued before the demo mode was enabled must not change shared demo credentials.
+        if (user is null || user.Status != UserStatus.Active || await demo.IsProtectedUserAsync(user.Id, cancellationToken))
         {
             return PasswordResetResult<NoValue>.Gone();
         }

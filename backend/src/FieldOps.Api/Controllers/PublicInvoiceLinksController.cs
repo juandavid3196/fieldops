@@ -3,6 +3,7 @@ using System.Globalization;
 using FieldOps.Api.Contracts;
 using FieldOps.Api.Extensions;
 using FieldOps.Application.Features.InvoiceDelivery;
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.OnlinePayments;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -287,6 +288,8 @@ public sealed class PublicInvoiceLinksController(
                 Response.Headers.RetryAfter = Math.Max(1, (long)Math.Ceiling(limited.RetryAfter.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
 
                 return StatusCode(StatusCodes.Status429TooManyRequests);
+            case PublicOutcome<T>.DemoReadOnly:
+                return CodedProblem(StatusCodes.Status403Forbidden, DemoModeMessages.Code, DemoModeMessages.Title);
             case PublicOutcome<T>.ProviderUnavailable:
                 return CodedProblem(
                     StatusCodes.Status502BadGateway, OnlinePaymentMessages.ProviderUnavailableCode, OnlinePaymentMessages.ProviderUnavailableTitle);

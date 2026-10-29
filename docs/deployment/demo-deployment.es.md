@@ -107,6 +107,7 @@ Plantilla con todas las claves: [`backend/railway.env.example`](../../backend/ra
 | `Email__AllowedRecipients__0…n` | Railway API | Recomendada en una demo pública | No | Dirección o `@dominio`; sin definir = sin restricción |
 | `Stripe__SecretKey` / `__PublishableKey` / `__WebhookSecret` | Railway API | No | **Sí** | Solo modo de prueba (`sk_test_…`, `pk_test_…`, `whsec_…`); sin definir, los pagos con tarjeta quedan deshabilitados |
 | `BankDetails__EncryptionKey` | Railway API | No | **Sí** | Base64 de 32 bytes aleatorios; habilita datos de transferencia bancaria. Guarda una copia: perderla deja ilegibles los datos bancarios guardados |
+| `DemoMode__Enabled`, `DemoMode__OrganizationSlugs__0` | Railway API | No (desactivado por defecto) | No | `true`, `fieldops-demo` (ver Modo demo de solo lectura) |
 | `DemoSeed__EmailDomain`, `DemoSeed__Password` | Tu máquina (solo cargador) | Para el cargador | Password: **Sí** | Nunca en Railway ni en el repositorio |
 
 ## Contenedor
@@ -203,6 +204,69 @@ migraciones al menos una vez. La restricción de correo de abajo sigue aplicando
 - Recuperación de contraseña: la respuesta es la misma que para cualquier dirección (sin enumeración); no se entrega nada.
 - Cotizaciones, facturas, recibos, avisos de visita y portal: los flujos existentes registran la entrega como fallida; no
   declaran éxito.
+
+## Modo demo de solo lectura
+
+Permite a los visitantes explorar todas las experiencias de la organización demo ("Summit Home Services (Demo)", slug
+`fieldops-demo`) sin poder alterar sus datos ni las credenciales compartidas. Está **desactivado por defecto** y lo decide solo
+el servidor: Angular nunca envía un indicador de demo.
+
+| Variable (Railway – API) | Valor | Nota |
+| --- | --- | --- |
+| `DemoMode__Enabled` | `true` | Ausente o `false` = comportamiento normal en todas partes. |
+| `DemoMode__OrganizationSlugs__0` | `fieldops-demo` | Slug público de cada organización protegida (`__1`, `__2`… para más). Activar el modo sin ningún slug hace fallar la validación al iniciar. |
+
+**Activar en Railway:** servicio API → Variables → añadir ambas variables → redeploy. Sin migración, sin cambio de esquema,
+sin recargar datos. Para desactivar, elimina `DemoMode__Enabled` (o ponla en `false`) y redespliega. Los slugs se resuelven a
+ids de organización en tiempo de ejecución (caché de un minuto), así que una demo cargada después del deploy queda protegida
+sin reiniciar.
+
+Qué se aplica (todo en la API, antes de que se ejecute el controlador, el handler, el correo o el proveedor de pagos):
+
+- Las cuentas con sesión en una organización protegida (roles internos Owner, Operations Manager, Dispatcher, Accounting,
+  Viewer, Technician) y los clientes del portal de esa organización conservan exactamente las pantallas y consultas de su
+  rol. La autorización decide primero: un rol que no puede ver algo recibe su 403 habitual.
+- Toda petición que no sea `GET`/`HEAD`/`OPTIONS` de esas cuentas recibe `403` con ProblemDetails `code: "demo_read_only"`. La
+  clasificación es por efecto, no por verbo: las acciones marcadas `[DemoReadOnlySafe]` pasan aunque sean POST/PUT — cálculo de
+  cotización y evaluación de visita, vista previa de importación, comprobación de duplicados, cambio de cuenta del portal,
+  marcadores de lectura de notificaciones/conversaciones, "novedades vistas" del portal y preferencias de idioma/tema. Abrir una
+  conversación que aún no existe responde 404 en lugar de crearla.
+- Credenciales: cambiar contraseña, perfil o foto se rechaza para cualquier cuenta demo (`[DemoCredentials]`, incluso si el
+  usuario tiene sesión en otra organización). La recuperación de contraseña (`/password-resets`, `/portal/password-resets`)
+  responde el 202 neutro habitual para cuentas demo pero no emite token ni envía correo; un token emitido antes no se puede
+  confirmar. Rol, estado, invitaciones y eliminación son escrituras de gestión de usuarios y se rechazan.
+- Efectos externos: ninguna cuenta demo puede iniciar correos (invitaciones, cotizaciones, facturas, avisos), intentos de pago
+  Stripe ni acciones que disparen webhooks. El formulario público anónimo del slug demo responde 404 al enviar.
+- Sigue permitido: iniciar y cerrar sesión (registros de sesión y auditoría), navegación, filtros, búsqueda, descargas (PDF,
+  archivos) y todos los `GET`.
+- Enlaces públicos de cotización y factura: la organización sale de la fila del token validada en el servidor. Ver, PDF,
+  logos, fotos y el estado del pago siguen funcionando; aprobar, rechazar, preguntas, pago con tarjeta, aviso de transferencia
+  y reseña responden `403` `demo_read_only` antes de bloquear la cotización, crear un intento, llamar al proveedor o enviar nada.
+  La expiración perezosa que una lectura podría disparar se omite en recursos protegidos.
+- Webhook de Stripe (`/webhooks/stripe`): la firma se verifica primero (inválida = 400). Un evento verificado de una organización
+  protegida (por su intento asociado o por sus metadatos) recibe `200` y se ignora, para que Stripe no reintente: sin pago,
+  recibo, fila de evento, llamada al proveedor ni notificación. Las demás organizaciones se procesan como siempre.
+- El registro (`/organization-registrations`) y toda organización fuera de `DemoMode__OrganizationSlugs` no cambian: una
+  organización recién registrada tiene el comportamiento completo y su sesión informa `demoReadOnly: false`.
+- Mantén igualmente `Stripe__*` sin definir o en modo test y `Email__AllowedRecipients__n` definido en la demo pública.
+
+Las respuestas de sesión (`POST /sessions`, `GET /sessions/current` y las del portal) incluyen `demoReadOnly`. Angular lo usa
+solo para mostrar: una insignia discreta "Demo de solo lectura" en cada shell y un aviso breve traducido cuando la API rechaza una
+escritura. No se deshabilitan botones individuales; la protección efectiva es el rechazo de la API.
+
+### Cuentas existentes para explorar cada experiencia
+
+Todas usan la contraseña que elegiste en `DemoSeed__Password` y tu `DemoSeed__EmailDomain`:
+
+| Experiencia | Cuenta | Qué muestra |
+| --- | --- | --- |
+| Owner | `owner@<dominio>` | Todo, incluidos ajustes de empresa, usuarios, reportes |
+| Operations Manager | `operations@<dominio>` | Operaciones, equipo, catálogo |
+| Dispatcher | `dispatcher@<dominio>` | Solicitudes, agenda, despacho |
+| Accounting | `accounting@<dominio>` | Revisión de facturación, facturas, pagos |
+| Viewer | `viewer@<dominio>` | Vistas de solo lectura de operaciones y ajustes |
+| Technician | `tech.hvac@`, `tech.plumbing@`, `tech.electric@<dominio>` | Shell móvil del técnico (hoy, agenda, trabajos, mensajes) |
+| Portal del cliente | `customer1@<dominio>` en el inicio de sesión del portal | Dashboard, cotizaciones, facturas, solicitudes, citas |
 
 ## Evitar publicar con checks fallidos
 

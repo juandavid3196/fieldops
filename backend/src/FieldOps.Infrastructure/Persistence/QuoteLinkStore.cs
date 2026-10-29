@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.Notifications;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Application.Features.QuoteLinks;
@@ -24,7 +25,8 @@ internal sealed class QuoteLinkStore(
     FieldOpsDbContext dbContext,
     TimeProvider timeProvider,
     ILogger<QuoteLinkStore> logger,
-    INotificationEventWriter notifications) : IQuoteLinkStore
+    INotificationEventWriter notifications,
+    IDemoProtection demo) : IQuoteLinkStore
 {
     private const string UniqueViolation = "23505";
 
@@ -409,7 +411,11 @@ internal sealed class QuoteLinkStore(
             case Decision.Superseded:
                 return (null, Failure.Superseded);
             case Decision.Expired:
-                await ExpireAsync(access, link, cancellationToken);
+                // Read-only demo: the lazy expiry would write to a protected quote.
+                if (!await demo.IsProtectedOrganizationAsync(link.Quote.OrganizationId, cancellationToken))
+                {
+                    await ExpireAsync(access, link, cancellationToken);
+                }
 
                 return (null, Failure.Unavailable);
             default:
@@ -499,6 +505,12 @@ internal sealed class QuoteLinkStore(
         if (link is null)
         {
             return new QuoteLinkOutcome<T>.Unavailable();
+        }
+
+        // Read-only demo: approve, decline and questions are refused before the quote is locked or anything is written.
+        if (await demo.IsProtectedOrganizationAsync(link.Quote.OrganizationId, cancellationToken))
+        {
+            return new QuoteLinkOutcome<T>.DemoReadOnly();
         }
 
         var first = Decide(link, timeProvider.GetUtcNow());

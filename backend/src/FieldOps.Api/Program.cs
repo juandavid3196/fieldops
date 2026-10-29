@@ -76,6 +76,9 @@ app.UseAuthentication();
 app.UseMiddleware<InvalidSessionCookieMiddleware>();
 app.UseAuthorization();
 
+// Read-only demo: after authorization so roles and 401/403 decide first; before any controller, handler or email.
+app.UseMiddleware<DemoReadOnlyMiddleware>();
+
 // Readiness runs every registered check, including the database.
 var readinessOptions = new HealthCheckOptions
 {

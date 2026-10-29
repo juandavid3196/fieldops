@@ -1,4 +1,5 @@
 using FieldOps.Application.Authentication;
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.Invitations;
 using FieldOps.Application.Features.Organizations;
 using FieldOps.Application.Features.Users;
@@ -16,7 +17,8 @@ public sealed class RequestPasswordResetHandler(
     IPasswordResetEmailThrottle throttle,
     IPasswordResetStore store,
     IPasswordResetEmailQueue queue,
-    IPasswordResetLinkBuilder linkBuilder)
+    IPasswordResetLinkBuilder linkBuilder,
+    IDemoProtection demo)
 {
     public async Task<PasswordResetResult<NoValue>> HandleAsync(
         RequestPasswordResetCommand command,
@@ -40,7 +42,8 @@ public sealed class RequestPasswordResetHandler(
 
         var user = await store.FindEligibleUserAsync(normalizedEmail, cancellationToken);
 
-        if (user is null)
+        // Demo accounts share their credentials: same neutral answer, no token and no email.
+        if (user is null || await demo.IsProtectedUserAsync(user.UserId, cancellationToken))
         {
             return accepted;
         }
@@ -66,7 +69,8 @@ public sealed class RequestPortalPasswordResetHandler(
     IPasswordResetEmailThrottle throttle,
     IPasswordResetStore store,
     IPasswordResetEmailQueue queue,
-    PortalInvitations.IPortalLinkBuilder linkBuilder)
+    PortalInvitations.IPortalLinkBuilder linkBuilder,
+    IDemoProtection demo)
 {
     public async Task<PasswordResetResult<NoValue>> HandleAsync(
         RequestPasswordResetCommand command,
@@ -89,7 +93,8 @@ public sealed class RequestPortalPasswordResetHandler(
 
         var user = await store.FindEligiblePortalUserAsync(normalizedEmail, cancellationToken);
 
-        if (user is null)
+        // Demo accounts share their credentials: same neutral answer, no token and no email.
+        if (user is null || await demo.IsProtectedUserAsync(user.UserId, cancellationToken))
         {
             return accepted;
         }

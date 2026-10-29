@@ -8,6 +8,7 @@ using FieldOps.Application.Features.Customers;
 using FieldOps.Application.Features.BillingReview;
 using FieldOps.Application.Features.BusinessOverview;
 using FieldOps.Application.Features.Reports;
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.Dispatch;
 using FieldOps.Application.Features.OperationsDashboard;
 using FieldOps.Application.Features.Invitations;
@@ -42,6 +43,7 @@ using FieldOps.Domain.Requests;
 using FieldOps.Domain.Users;
 using FieldOps.Domain.WorkOrders;
 using FieldOps.Infrastructure.Authentication;
+using FieldOps.Infrastructure.DemoMode;
 using FieldOps.Infrastructure.Email;
 using FieldOps.Infrastructure.PasswordResets;
 using FieldOps.Infrastructure.Payments;
@@ -52,6 +54,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace FieldOps.Infrastructure;
 
@@ -159,6 +162,22 @@ public static class DependencyInjection
         services.AddSingleton<ICompletionReportPdfRenderer, MigraDocCompletionReportPdfRenderer>();
         services.AddSingleton<IReportPdfRenderer, MigraDocReportPdfRenderer>();
         services.AddEmail(configuration);
+
+        services
+            .AddOptions<DemoModeSettings>()
+            .Configure(settings =>
+            {
+                var section = configuration.GetSection(DemoModeSettings.SectionName);
+
+                settings.Enabled = bool.TryParse(section["Enabled"], out var enabled) && enabled;
+                settings.OrganizationSlugs = section.GetSection("OrganizationSlugs").GetChildren()
+                    .Select(child => child.Value ?? string.Empty)
+                    .ToArray();
+            })
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<DemoModeSettings>, DemoModeSettingsValidator>();
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddSingleton<IDemoProtection, DemoProtection>();
         services.AddOnlinePayments(configuration);
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
 

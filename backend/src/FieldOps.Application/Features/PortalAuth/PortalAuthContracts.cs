@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using FieldOps.Application.Authentication;
 using FieldOps.Application.Features.PortalAccess;
 using FieldOps.Domain.Notifications;
@@ -17,7 +18,12 @@ public sealed record PortalSessionAccountSummary(Guid ContactId, string Customer
 public sealed record PortalSessionView(
     PortalSessionUser User,
     PortalSessionAccount Account,
-    IReadOnlyList<PortalSessionAccountSummary> Accounts);
+    IReadOnlyList<PortalSessionAccountSummary> Accounts)
+{
+    /// <summary>True when the organization is a read-only demo; set by the API from server configuration, never stored.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool DemoReadOnly { get; init; }
+}
 
 /// <summary>One portal link of a user: the contact, its customer and organization (customer portal BR-02).</summary>
 public sealed record PortalLink(

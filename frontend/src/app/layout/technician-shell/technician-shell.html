@@ -50,6 +50,8 @@
     @if (header() === null) {
       <p class="tshell__title">{{ pageTitle() }}</p>
 
+      <app-demo-notice />
+
       <a
         class="tshell__icon-button"
         [routerLink]="helpLink"

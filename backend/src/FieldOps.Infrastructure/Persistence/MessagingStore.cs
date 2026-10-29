@@ -1,4 +1,5 @@
 using FieldOps.Application.Features.Access;
+using FieldOps.Application.Features.DemoMode;
 using FieldOps.Application.Features.Messaging;
 using FieldOps.Application.Features.ServiceRequests;
 using FieldOps.Domain.Messaging;
@@ -18,7 +19,8 @@ namespace FieldOps.Infrastructure.Persistence;
 internal sealed partial class MessagingStore(
     FieldOpsDbContext dbContext,
     IBranchScopeResolver scopes,
-    TimeProvider timeProvider) : IMessagingStore
+    TimeProvider timeProvider,
+    IDemoProtection demo) : IMessagingStore
 {
     private const string UniqueViolation = "23505";
 
@@ -236,6 +238,12 @@ internal sealed partial class MessagingStore(
         if (await FindAsync() is { } existing)
         {
             return MessagingStoreResult<Guid>.Ok(existing);
+        }
+
+        // Read-only demo: opening a conversation that does not exist yet would create it.
+        if (await demo.IsProtectedOrganizationAsync(organizationId, cancellationToken))
+        {
+            return MessagingStoreResult<Guid>.Failure(MessagingStatus.NotFound);
         }
 
         var now = timeProvider.GetUtcNow();

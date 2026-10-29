@@ -2,6 +2,7 @@ using System.Globalization;
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
 using FieldOps.Api.Contracts;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +35,7 @@ public sealed class MessagesController(MessagingHandler handler) : ControllerBas
         Respond(await Run(actor => handler.ListAsync(actor, filter, search, cursor, cancellationToken)));
 
     [HttpPost("conversations/resolve")]
+    [DemoReadOnlySafe]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxJsonBodyBytes)]
     [ProducesResponseType<ResolvedConversation>(StatusCodes.Status200OK)]
@@ -79,6 +81,7 @@ public sealed class MessagesController(MessagingHandler handler) : ControllerBas
     }
 
     [HttpPost("conversations/{conversationId:guid}/read")]
+    [DemoReadOnlySafe]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status403Forbidden)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status404NotFound)]

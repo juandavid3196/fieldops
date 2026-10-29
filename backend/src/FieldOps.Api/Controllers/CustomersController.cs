@@ -2,6 +2,7 @@ using System.Net;
 using FieldOps.Api.Authentication;
 using FieldOps.Api.Authorization;
 using FieldOps.Api.Contracts;
+using FieldOps.Api.Middleware;
 using FieldOps.Application.Features.Customers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -110,6 +111,7 @@ public sealed class CustomersController(
     }
 
     [HttpPost("import/preview")]
+    [DemoReadOnlySafe]
     [Authorize(Policy = CustomerPolicies.Import)]
     [Consumes("multipart/form-data")]
     [RequestSizeLimit(MaxImportRequestBytes)]
@@ -178,6 +180,7 @@ public sealed class CustomersController(
     }
 
     [HttpPost("duplicate-check")]
+    [DemoReadOnlySafe]
     [Authorize(Policy = CustomerPolicies.Manage)]
     [Consumes("application/json")]
     [RequestSizeLimit(MaxJsonBodyBytes)]

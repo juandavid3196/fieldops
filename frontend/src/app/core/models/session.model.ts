@@ -3,6 +3,8 @@ export interface Session {
   readonly user: SessionUser;
   readonly organization: SessionOrganization;
   readonly role: SessionRole;
+  /** `true` when the organization is a read-only demo; decided by the API, used only for display. */
+  readonly demoReadOnly?: boolean;
 }
 
 export interface SessionUser {

@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 namespace FieldOps.Application.Authentication;
 
 /// <summary>
@@ -7,7 +8,12 @@ namespace FieldOps.Application.Authentication;
 public sealed record SessionView(
     SessionUser User,
     SessionOrganization Organization,
-    SessionRole Role);
+    SessionRole Role)
+{
+    /// <summary>True when the organization is a read-only demo; set by the API from server configuration, never stored.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool DemoReadOnly { get; init; }
+}
 
 public sealed record SessionUser(
     Guid Id,

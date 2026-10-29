@@ -28,6 +28,7 @@ import { NotificationPopover } from '../../features/notifications/components/not
 import { AppearanceMenuItem } from '../../shared/components/appearance-menu-item/appearance-menu-item';
 import { AppearanceToast } from '../../shared/components/appearance-toast/appearance-toast';
 import { LanguageMenuItem } from '../../shared/components/language-menu-item/language-menu-item';
+import { DemoNotice } from '../../shared/components/demo-notice/demo-notice';
 import { LanguageToast } from '../../shared/components/language-toast/language-toast';
 import { UserAvatar } from '../../shared/components/user-avatar/user-avatar';
 import { fullNameOf, initialsOf } from '../../shared/utils/initials';
@@ -78,6 +79,7 @@ function writeCollapsed(value: boolean): void {
     AppearanceToast,
     LanguageMenuItem,
     LanguageToast,
+    DemoNotice,
     Message,
     NotificationPopover,
     ShellSidebar,

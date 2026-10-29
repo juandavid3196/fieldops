@@ -89,6 +89,9 @@ public abstract record QuoteLinkOutcome<T>
 
     /// <summary>Portal only: the quote is shown read-only as expired and its actions are refused (customer portal BR-30).</summary>
     public sealed record Expired : QuoteLinkOutcome<T>;
+
+    /// <summary>The quote belongs to a read-only demo organization: the response is refused before any write (403).</summary>
+    public sealed record DemoReadOnly : QuoteLinkOutcome<T>;
 }
 
 /// <summary>

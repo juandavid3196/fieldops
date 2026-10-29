@@ -76,6 +76,9 @@ public abstract record PublicOutcome<T>
 
     /// <summary>502 payment_provider_unavailable.</summary>
     public sealed record ProviderUnavailable : PublicOutcome<T>;
+
+    /// <summary>The invoice belongs to a read-only demo organization: refused before any write or provider call (403).</summary>
+    public sealed record DemoReadOnly : PublicOutcome<T>;
 }
 
 public sealed record PublicTimeline(DateOnly? ServiceCompletedOn, DateOnly? SentOn, DateOnly? PaidOn, DateOnly? ReceiptOn);
@@ -240,7 +243,7 @@ public enum WebhookOutcome
 }
 
 /// <summary>The attempt of an event as the non-locking lookup sees it (webhook pre-step).</summary>
-public sealed record WebhookAttemptLookup(Guid AttemptId, string Status);
+public sealed record WebhookAttemptLookup(Guid AttemptId, string Status, Guid OrganizationId);
 
 /// <summary>Provider answers fetched before the webhook transaction: the cancellation of a failed intent and the card details of a success.</summary>
 public sealed record WebhookExtras(GatewayCancelResult? Cancel, GatewayCardDetails? Card);
