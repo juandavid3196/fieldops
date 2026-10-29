@@ -186,6 +186,10 @@ $env:DemoSeed__Password    = "<contraseña de 12+ caracteres que elijas>"
 dotnet run --project tools/FieldOps.DemoSeeder -c Release -- --confirm-demo-database
 ```
 
+Para rotar después la contraseña de las nueve cuentas originales, ejecuta el mismo comando añadiendo `--rotate-demo-password`
+(también exige `--confirm-demo-database`). Aborta sin cambios si no existen las nueve cuentas en `fieldops-demo` o si alguna
+pertenece a otra organización; cierra sus sesiones anteriores y no toca nada más.
+
 El cargador se niega a ejecutarse sin `--confirm-demo-database`, con migraciones pendientes o si la base ya tiene otras
 organizaciones (solo se anula con `--allow-other-organizations`). Si la organización demo ya existe, no hace nada. Crea la
 organización "Summit Home Services (Demo)" (slug `fieldops-demo`), dos sucursales, un usuario por rol (`owner@`,
